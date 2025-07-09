@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public async Task CSharp_VerifyRegisterSymbolActionDiagnosticAsync()
         {
-            DiagnosticResult expected = GetCSharpExpectedDiagnostic(20, 9, MissingKindArgument.SymbolKind);
+            DiagnosticResult expected = GetCSharpExpectedDiagnostic(19, 9, MissingKindArgument.SymbolKind);
             await VerifyCS.VerifyAnalyzerAsync("""
                 using System;
                 using System.Collections.Immutable;
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public async Task VisualBasic_VerifyRegisterSymbolActionDiagnosticAsync()
         {
-            DiagnosticResult expected = GetBasicExpectedDiagnostic(17, 9, MissingKindArgument.SymbolKind);
+            DiagnosticResult expected = GetBasicExpectedDiagnostic(16, 9, MissingKindArgument.SymbolKind);
             await VerifyVB.VerifyAnalyzerAsync("""
                 Imports System
                 Imports System.Collections.Immutable
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public async Task CSharp_VerifyRegisterSyntaxActionDiagnosticAsync()
         {
-            DiagnosticResult expected = GetCSharpExpectedDiagnostic(21, 9, MissingKindArgument.SyntaxKind);
+            DiagnosticResult expected = GetCSharpExpectedDiagnostic(20, 9, MissingKindArgument.SyntaxKind);
             await VerifyCS.VerifyAnalyzerAsync("""
                 using System;
                 using System.Collections.Immutable;
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public async Task VisualBasic_VerifyRegisterSyntaxActionDiagnosticAsync()
         {
-            DiagnosticResult expected = GetBasicExpectedDiagnostic(18, 9, MissingKindArgument.SyntaxKind);
+            DiagnosticResult expected = GetBasicExpectedDiagnostic(17, 9, MissingKindArgument.SyntaxKind);
             await VerifyVB.VerifyAnalyzerAsync("""
                 Imports System
                 Imports System.Collections.Immutable
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public async Task CSharp_VerifyRegisterOperationActionDiagnosticAsync()
         {
-            DiagnosticResult expected = GetCSharpExpectedDiagnostic(20, 9, MissingKindArgument.OperationKind);
+            DiagnosticResult expected = GetCSharpExpectedDiagnostic(19, 9, MissingKindArgument.OperationKind);
             await VerifyCS.VerifyAnalyzerAsync("""
                 using System;
                 using System.Collections.Immutable;
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public async Task VisualBasic_VerifyRegisterOperationActionDiagnosticAsync()
         {
-            DiagnosticResult expected = GetBasicExpectedDiagnostic(17, 9, MissingKindArgument.OperationKind);
+            DiagnosticResult expected = GetBasicExpectedDiagnostic(16, 9, MissingKindArgument.OperationKind);
             await VerifyVB.VerifyAnalyzerAsync("""
                 Imports System
                 Imports System.Collections.Immutable

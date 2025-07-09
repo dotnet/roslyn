@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task TestMissingReleasesFilesAsync(string id, string shippedText, string unshippedText)
         {
             await VerifyCSharpAsync($$"""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -59,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task TestCodeFixToEnableAnalyzerReleaseTrackingAsync()
         {
             var source = """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -146,6 +148,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task TestReleasesFileAlreadyHasEntryAsync(string shippedText, string unshippedText)
         {
             await VerifyCSharpAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -170,6 +173,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             var unshippedText = DefaultUnshippedHeader + "Id1 | Category1 | Warning |";
 
             await VerifyCSharpAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -190,6 +194,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         {
             var shippedText = DefaultShippedHeader + "Id1 | Category1 | Warning |";
             await VerifyCSharpAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -209,6 +214,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task TestCodeFixToAddUnshippedEntriesAsync()
         {
             await VerifyCSharpAdditionalFileFixAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -247,6 +253,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task TestCodeFixToAddUnshippedEntries_DiagnosticDescriptorHelperAsync()
         {
             var source = """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -284,6 +291,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 
         private const string BlankLine = """
 
+
             """;
 
         // Comments
@@ -299,6 +307,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task TestCodeFixToAddUnshippedEntries_TriviaIsPreservedAsync(string unshippedText, string fixedUnshippedText)
         {
             await VerifyCSharpAdditionalFileFixAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -334,6 +343,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentUnshippedEntriesAsync(string differentRuleId, string unshippedText, string fixedUnshippedText, string shippedText = "")
         {
             await VerifyCSharpAdditionalFileFixAsync($$"""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -366,6 +376,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task TestCodeFixToAddUnshippedEntriesToMultipleTablesAsync(string unshippedText, string fixedUnshippedText, string shippedText = "")
         {
             await VerifyCSharpAdditionalFileFixAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -405,6 +416,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentShippedEntryAsync(string shippedText, string fixedUnshippedText, string expectedDiagnosticId)
         {
             await VerifyCSharpAdditionalFileFixAsync($$"""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -427,6 +439,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task TestCodeFixToUpdateMultipleUnshippedEntriesAsync()
         {
             await VerifyCSharpAdditionalFileFixAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -466,6 +479,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         {
             var entry = $@"Id1 | {ReleaseTrackingHelper.UndetectedText} | {ReleaseTrackingHelper.UndetectedText} | MyAnalyzer";
             await VerifyCSharpAdditionalFileFixAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -502,6 +516,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task TestNoCodeFixToAddUnshippedEntries_UndetectedFieldsAsync()
         {
             await VerifyCSharpAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -570,6 +585,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
             var diagnosticText = (shippedText.Length > 0 ? shippedText : unshippedText).Split([Environment.NewLine], StringSplitOptions.None).ElementAt(line - 1);
             await VerifyCSharpAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -617,6 +633,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             var unshippedText = DefaultUnshippedHeader + entry;
 
             await VerifyCSharpAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -676,6 +693,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             var unshippedText = DefaultChangedUnshippedHeader + entry;
 
             await VerifyCSharpAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -716,6 +734,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task TestDuplicateEntryInReleaseDiagnosticAsync(string shippedText, string unshippedText)
         {
             await VerifyCSharpAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -751,6 +770,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task TestDuplicateEntryBetweenReleasesDiagnosticAsync(string shippedText, string unshippedText)
         {
             await VerifyCSharpAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -778,6 +798,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task TestRemoveEntryInReleaseFile_DiagnosticCasesAsync(string shippedText, string unshippedText, string expectedDiagnosticId)
         {
             await VerifyCSharpAsync($$"""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -805,6 +826,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
             var lineCount = (shippedText.Length > 0 ? shippedText : unshippedText).Split([Environment.NewLine], StringSplitOptions.None).Length;
             await VerifyCSharpAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -835,6 +857,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
             var lineCount = (shippedText.Length > 0 ? shippedText : unshippedText).Split([Environment.NewLine], StringSplitOptions.None).Length;
             await VerifyCSharpAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -867,6 +890,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         {
             var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
             await VerifyCSharpAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -900,6 +924,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task TestRemoveEntryInReleaseFile_NoDiagnosticCasesAsync(string shippedText, string unshippedText)
         {
             await VerifyCSharpAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -918,6 +943,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task TestTargetTypedNew()
         {
             await VerifyCSharpAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -1063,6 +1089,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         }
 
         private const string CSharpDiagnosticDescriptorCreationHelper = """
+
             internal static class DiagnosticDescriptorHelper
             {
                 // Dummy DiagnosticDescriptor creation helper.

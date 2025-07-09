@@ -135,12 +135,14 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
         };
         CommentSelection(
             """
+
             class Goo
             {
                 |start|void M()
                 {
                 }|end|
             }
+
             """,
             expectedChanges,
             supportBlockComments: false,
@@ -156,6 +158,7 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
             {
                 void M() { }
             }|end|
+
             """;
         var exportProvider = CreateExportProvider();
         using var disposableView = EditorFactory.CreateView(exportProvider, code);
@@ -200,12 +203,14 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
             new TextChange(new TextSpan(41, 0), "//"),
         };
         CommentSelection("""
+
             class Goo
             {
             |start|    void M()
                 {
                 }
             |end|}
+
             """, expectedChanges, supportBlockComments: false);
     }
 
@@ -220,12 +225,14 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
         };
 
         CommentSelection("""
+
             class Goo
             {
             |start||end|    void M()
             |start||end|    {
             |start||end|    }
             }
+
             """, expectedChanges, supportBlockComments: true);
     }
 
@@ -240,12 +247,14 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
         };
 
         CommentSelection("""
+
             class Goo
             {
                 |start||end|void M()
                 |start||end|{
                 |start||end|}
             }
+
             """, expectedChanges, supportBlockComments: true);
     }
 
@@ -263,6 +272,7 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
         };
 
         CommentSelection("""
+
             class Goo
             {
                 |start|v|end|oid M()
@@ -270,6 +280,7 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
                 |start|o|end|ther
                 |start|}|end|
             }
+
             """, expectedChanges, supportBlockComments: true);
     }
 
@@ -283,12 +294,14 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
             new TextChange(new TextSpan(41, 0), "//"),
         };
         CommentSelection("""
+
             class Goo
             {
                 |start|v|end|oid M()
                 |start|{|end|
                 |start|}|end|
             }
+
             """, expectedChanges, supportBlockComments: false);
     }
 
@@ -336,6 +349,7 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
         };
 
         UncommentSelection("""
+
             class C
             {
             |start|    //void M()
@@ -369,6 +383,7 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
              };
 
         UncommentSelection("""
+
             class Goo
             {
                 |start|/*v*/|end|oid M()
@@ -389,6 +404,7 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
             new TextChange(new TextSpan(26, 2), string.Empty),
         };
         UncommentSelection("""
+
             //|start|//namespace N
             ////{
             //|end|//}
@@ -481,6 +497,7 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
         };
 
         UncommentSelection("""
+
             class A
             {
                 |start|/*
@@ -509,6 +526,7 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
         };
 
         UncommentSelection("""
+
             class A
             {
             |start|
@@ -539,6 +557,7 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
         };
 
         UncommentSelection("""
+
             class A
             {
             |start|    /*
@@ -567,6 +586,7 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
         };
 
         UncommentSelection("""
+
             class A
             {
                 /*
@@ -594,6 +614,7 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
         };
 
         UncommentSelection("""
+
             class A
             {
                 /*
@@ -621,6 +642,7 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
         };
 
         UncommentSelection("""
+
             class A
             {
                 /*
@@ -654,6 +676,7 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
         };
 
         UncommentSelection("""
+
             class A
             {
                 |start|///*

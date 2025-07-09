@@ -36,9 +36,11 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task Brackets_0()
         => TestInMethodAndScriptAsync(
             """
+
             switch (true)
             {
             }$$
+
             """,
             """
             switch (true)
@@ -61,9 +63,11 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task Brackets_4()
         => TestInMethodAndScriptAsync(
             """
+
             if (true)
             {
             }$$
+
             """,
             """
             if (true)
@@ -224,6 +228,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task ScopeBrackets_8()
         => TestInMethodAndScriptAsync(
             """
+
             {
                 /*************/
 
@@ -231,6 +236,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
 
                 // part 2
             }$$
+
             """,
             """
             {
@@ -278,6 +284,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task RegionEndShowsStartRegionMessage()
         => TestAsync(
             """
+
             #region Start
             #end$$region
             """, "#region Start");
@@ -291,6 +298,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task RegionEndShowsStartRegionMessageAtDifferentPositions(string endRegion)
         => TestAsync(
             $"""
+
             #region Start
             {endRegion}
             """, "#region Start");
@@ -305,6 +313,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task RegionEndQuickInfoIsNotOfferedAtDifferentPositions(string endRegion)
         => TestAsync(
             $"""
+
             #region Start
             {endRegion}
             """, "");
@@ -318,6 +327,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task RegionEndHasNoQuickinfo_MissingRegionStart_2()
         => TestAsync(
             $"""
+
             #region Start
             #endregion
             #end$$region
@@ -327,6 +337,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task RegionEndShowsRegionStart_Nesting_1()
         => TestAsync(
             $"""
+
             #region Start1
             #region Start2
             #endregion
@@ -337,6 +348,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task RegionEndShowsRegionStart_Nesting_2()
         => TestAsync(
             $"""
+
             #region Start1
             #region Start2
             #end$$region
@@ -347,6 +359,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task RegionEndShowsRegionStart_Blocks_1()
         => TestAsync(
             $"""
+
             #region Start1
             #end$$region
             #region Start2
@@ -357,6 +370,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task RegionEndShowsRegionStart_Blocks_2()
         => TestAsync(
             $"""
+
             #region Start1
             #endregion
             #region Start2
@@ -367,6 +381,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task EndIfShowsIfCondition_1()
         => TestAsync(
             $"""
+
             #if DEBUG
             #end$$if
             """, "#if DEBUG");
@@ -375,6 +390,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task EndIfShowsIfCondition_2()
         => TestAsync(
             $"""
+
             #if DEBUG
             #else
             #end$$if
@@ -384,6 +400,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task EndIfShowsElIfCondition()
         => TestAsync(
             $"""
+
             #if DEBUG
             #elif RELEASE
             #end$$if
@@ -393,6 +410,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task ElseShowsIfCondition()
         => TestAsync(
             $"""
+
             #if DEBUG
             #el$$se
             #endif
@@ -402,6 +420,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task ElseShowsElIfCondition_1()
         => TestAsync(
             $"""
+
             #if DEBUG
             #elif RELEASE
             #el$$se
@@ -412,6 +431,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task ElseShowsElIfCondition_2()
         => TestAsync(
             $"""
+
             #if DEBUG
             #elif RELEASE
             #elif DEMO
@@ -423,6 +443,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task ElIfShowsIfCondition()
         => TestAsync(
             $"""
+
             #if DEBUG
             #el$$if RELEASE
             #endif
@@ -432,6 +453,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task EndIfShowsIfNested_1()
         => TestAsync(
             $"""
+
             #if DEBUG
             #if RELEASE
             #end$$if
@@ -442,6 +464,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task EndIfShowsIfNested_2()
         => TestAsync(
             $"""
+
             #if DEBUG
             #if RELEASE
             #endif
@@ -452,6 +475,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task EndIfShowsIfNested_3()
         => TestAsync(
             $"""
+
             #if DEBUG
             #elif RELEASE
             #if DEMO
@@ -463,6 +487,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task EndIfShowsIfNested_4()
         => TestAsync(
             $"""
+
             #if DEBUG
             #elif RELEASE
             #if DEMO
@@ -474,6 +499,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task EndIfHasNoQuickinfo_MissingIf_1()
         => TestAsync(
             $"""
+
             #end$$if
             """, "");
 
@@ -481,6 +507,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task EndIfHasNoQuickinfo_MissingIf_2()
         => TestAsync(
             $"""
+
             #if DEBUG
             #endif
             #end$$if
@@ -493,6 +520,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task ElifHasQuickinfoAtDifferentPositions(string elif)
         => TestAsync(
             $"""
+
             #if DEBUG
             {elif}
             #endif
@@ -513,6 +541,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     public Task ElifHasNoQuickinfoAtDifferentPositions(string elif)
         => TestAsync(
             $"""
+
             #if DEBUG
             {elif}
             #endif

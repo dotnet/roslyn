@@ -911,6 +911,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         using var _ = CreateWorkspace(out var solution, out var service);
         (solution, var document) = AddDefaultTestProject(solution, """
+
             class C1
             {
               void M()
@@ -933,6 +934,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // change the source:
         var document1 = solution.Projects.Single().Documents.Single();
         solution = solution.WithDocumentText(document1.Id, CreateText("""
+
             class C1
             {
               void M()
@@ -1162,9 +1164,11 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         using var _ = CreateWorkspace(out var solution, out var service);
         (solution, var document) = AddDefaultTestProject(solution, """
+
             /* GENERATE: class G { int X1() => 1; } */
 
             class C { int Y => 1; }
+
             """, generator: generator);
 
         // mock project build:
@@ -1176,9 +1180,11 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // change the source:
         var document1 = solution.Projects.Single().Documents.Single();
         solution = solution.WithDocumentText(document1.Id, CreateText("""
+
             /* GENERATE: class G { int X1<T>() => 1; } */
 
             class C { int Y => 2; }
+
             """));
 
         var generatedDocument = (await solution.Projects.Single().GetSourceGeneratedDocumentsAsync()).Single();
@@ -2130,6 +2136,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     public async Task Capabilities_NoTypesEmitted()
     {
         var sourceV1 = """
+
             /* GENERATE:
             class G
             {
@@ -2139,6 +2146,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
                 }
             }
             */
+
             """;
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
 
@@ -2155,6 +2163,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // change the source
         solution = solution.WithDocumentText(document1.Id, CreateText("""
+
             /* GENERATE:
             class G
             {
@@ -2165,6 +2174,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
                 }
             }
             */
+
             """));
 
         // validate solution update status and emit
@@ -2790,16 +2800,20 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     public async Task ValidSignificantChange_PartialTypes()
     {
         var sourceA1 = """
+
             partial class C { int X = 1; void F() { X = 1; } }
 
             partial class D { int U = 1; public D() { } }
             partial class D { int W = 1; }
 
             partial class E { int A; public E(int a) { A = a; } }
+
             """;
         var sourceB1 = """
+
             partial class C { int Y = 1; }
             partial class E { int B; public E(int a, int b) { A = a; B = new System.Func<int>(() => b)(); } }
+
             """;
         using var _ = CreateWorkspace(out var solution, out var service);
         solution = AddDefaultTestProject(solution, [sourceA1, sourceB1]);
@@ -2815,16 +2829,20 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var documentA = project.Documents.First();
         var documentB = project.Documents.Skip(1).First();
         solution = solution.WithDocumentText(documentA.Id, CreateText("""
+
             partial class C { int X = 2; void F() { X = 2; } }
 
             partial class D { int U = 2; }
             partial class D { int W = 2; public D() { } }
 
             partial class E { int A = 1; public E(int a) { A = a; } }
+
             """));
         solution = solution.WithDocumentText(documentB.Id, CreateText("""
+
             partial class C { int Y = 2; }
             partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func<int>(() => b)(); } }
+
             """));
 
         // validate solution update status and emit:
@@ -3028,9 +3046,11 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     internal async Task ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentUpdate(SourceGeneratorExecutionPreference executionPreference)
     {
         var sourceV1 = """
+
             /* GENERATE: file class G { int X => 1; } */
 
             class C { int Y => 1; }
+
             """;
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
 
@@ -3055,9 +3075,11 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // change the source (valid edit)
         solution = solution.WithDocumentText(document1.Id, CreateText("""
+
             /* GENERATE: file class G { int X => 2; } */
 
             class C { int Y => 2; }
+
             """));
 
         // validate solution update status and emit:
@@ -3135,6 +3157,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     public async Task ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentUpdate_LineChanges()
     {
         var sourceV1 = """
+
             /* GENERATE:
             class G
             {
@@ -3144,6 +3167,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
                 }
             }
             */
+
             """;
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
 
@@ -3159,6 +3183,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // change the source (valid edit):
         solution = solution.WithDocumentText(document1.Id, CreateText("""
+
             /* GENERATE:
             class G
             {
@@ -3169,6 +3194,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
                 }
             }
             */
+
             """));
 
         // validate solution update status and emit:
@@ -3196,7 +3222,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     public async Task ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentInsert()
     {
         var sourceV1 = """
+
             partial class C { int X = 1; }
+
             """;
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
 
@@ -3212,9 +3240,11 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // change the source (valid edit):
         solution = solution.WithDocumentText(document1.Id, CreateText("""
+
             /* GENERATE: partial class C { int Y = 2; } */
 
             partial class C { int X = 1; }
+
             """));
 
         // validate solution update status and emit:
@@ -3239,11 +3269,15 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     public async Task ValidSignificantChange_SourceGenerators_AdditionalDocumentUpdate()
     {
         var source = """
+
             class C { int Y => 1; }
+
             """;
 
         var additionalSourceV1 = """
+
             /* GENERATE: class G { int X => 1; } */
+
             """;
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
 
@@ -3260,7 +3294,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // change the additional source (valid edit):
         var additionalDocument1 = solution.Projects.Single().AdditionalDocuments.Single();
         solution = solution.WithAdditionalDocumentText(additionalDocument1.Id, CreateText("""
+
             /* GENERATE: class G { int X => 2; } */
+
             """));
 
         // validate solution update status and emit:
@@ -3285,7 +3321,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     public async Task ValidSignificantChange_SourceGenerators_AnalyzerConfigUpdate()
     {
         var source = """
+
             class C { int Y => 1; }
+
             """;
 
         var configV1 = new[] { ("enc_generator_output", "1") };
@@ -4200,6 +4238,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     public async Task ActiveStatements_SourceGeneratedDocuments_LineDirectives()
     {
         var markedSource1 = """
+
             /* GENERATE:
             class C
             {
@@ -4211,8 +4250,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
                 }
             }
             */
+
             """;
         var markedSource2 = """
+
             /* GENERATE:
             class C
             {
@@ -4224,12 +4265,15 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
                 }
             }
             */
+
             """;
         var source1 = SourceMarkers.Clear(markedSource1);
         var source2 = SourceMarkers.Clear(markedSource2);
 
         var additionalFileSourceV1 = """
-            xxxxxxxxxxxxxxxxx
+
+                   xxxxxxxxxxxxxxxxx
+
             """;
 
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
@@ -4285,6 +4329,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     public async Task ActiveStatements_EncSessionFollowedByHotReload()
     {
         var markedSource1 = """
+
             class C
             {
                 int F()
@@ -4299,8 +4344,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
                     }
                 }
             }
+
             """;
         var markedSource2 = """
+
             class C
             {
                 int F()
@@ -4315,6 +4362,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
                     }
                 }
             }
+
             """;
         var source1 = SourceMarkers.Clear(markedSource1);
         var source2 = SourceMarkers.Clear(markedSource2);

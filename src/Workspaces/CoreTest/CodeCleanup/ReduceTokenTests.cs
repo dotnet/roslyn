@@ -68,6 +68,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, """
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 1: Less than 8 significant digits
@@ -104,6 +105,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(f_7_6)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -148,6 +150,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, """
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 1: Less than 8 significant digits
@@ -184,6 +187,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(f_7_6)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -221,6 +225,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, $"""
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 2: 8 significant digits
@@ -250,6 +255,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(f_8_8)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -287,6 +293,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, $"""
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 2: 8 significant digits
@@ -316,6 +323,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(f_8_8)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -326,7 +334,7 @@ public sealed class ReduceTokenTests
                 Sub Main(args As String())
                     ' CATEGORY 3: > 8 significant digits
                     ' Dev11 and Roslyn behavior are identical: Always rounded off and pretty listed to <= 9 significant digits
-
+                    
                     ' (a) > 8 significant digits overall, but < 8 digits before decimal point.
                     Const f_9_1 As Single = .149997938F     ' Dev11 & Roslyn: 0.149997935F
                     Const f_9_2 As Single = 0.149997931f    ' Dev11 & Roslyn: 0.149997935F
@@ -343,12 +351,12 @@ public sealed class ReduceTokenTests
                     ' (c) Overflow/Underflow cases for Single: Ensure no pretty listing/round off
                     '     Holds signed IEEE 32-bit (4-byte) single-precision floating-point numbers ranging in value from -3.4028235E+38 through -1.401298E-45 for negative values and
                     '     from 1.401298E-45 through 3.4028235E+38 for positive values.
-
+                    
                     Const f_overflow_1 As Single = -3.4028235E+39F          ' Dev11 & Roslyn: Unchanged
                     Const f_overflow_2 As Single = 3.4028235E+39F           ' Dev11 & Roslyn: Unchanged
                     Const f_underflow_1 As Single = -1.401298E-47F          ' Dev11: -0.0F, Roslyn: Unchanged
                     Const f_underflow_2 As Single = 1.401298E-47F           ' Dev11: 0.0F, Roslyn: Unchanged
-
+                    
                     Console.WriteLine(f_9_1)
                     Console.WriteLine(f_9_2)
                     Console.WriteLine(f_9_3)
@@ -365,6 +373,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, $"""
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 3: > 8 significant digits
@@ -406,6 +415,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(f_underflow_2)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -416,7 +426,7 @@ public sealed class ReduceTokenTests
                 Sub Main(args As String())
                     ' CATEGORY 3: > 8 significant digits
                     ' Dev11 and Roslyn behavior are identical: Always rounded off and pretty listed to <= 9 significant digits
-
+                    
                     ' (a) > 8 significant digits overall, but < 8 digits before decimal point.
                     Const f_9_1 As Single = .149997938!     ' Dev11 & Roslyn: 0.149997935F
                     Const f_9_2 As Single = 0.149997931!    ' Dev11 & Roslyn: 0.149997935F
@@ -433,7 +443,7 @@ public sealed class ReduceTokenTests
                     ' (c) Overflow/Underflow cases for Single: Ensure no pretty listing/round off
                     '     Holds signed IEEE 32-bit (4-byte) single-precision floating-point numbers ranging in value from -3.4028235E+38 through -1.401298E-45 for negative values and
                     '     from 1.401298E-45 through 3.4028235E+38 for positive values.
-
+                    
                     Const f_overflow_1 As Single = -3.4028235E+39!          ' Dev11 & Roslyn: Unchanged
                     Const f_overflow_2 As Single = 3.4028235E+39!           ' Dev11 & Roslyn: Unchanged
                     Const f_underflow_1 As Single = -1.401298E-47!          ' Dev11: -0.0F, Roslyn: Unchanged
@@ -455,6 +465,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, $"""
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 3: > 8 significant digits
@@ -496,6 +507,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(f_underflow_2)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -540,6 +552,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, """
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 1: Less than 16 significant digits precision,
@@ -576,6 +589,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(f_15_6)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -620,6 +634,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, """
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 1: Less than 16 significant digits precision,
@@ -656,6 +671,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(f_15_6)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -697,6 +713,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, $"""
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 2: 16 significant digits
@@ -730,6 +747,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(f_16_10)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -771,6 +789,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, $"""
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 2: 16 significant digits
@@ -804,6 +823,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(f_16_10)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -854,7 +874,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(f_17_6)
                     Console.WriteLine(f_17_7)
                     Console.WriteLine(f_17_8)
-
+                    
                     Console.WriteLine(f_18_1)
                     Console.WriteLine(f_18_2)
                     Console.WriteLine(f_18_3)
@@ -871,6 +891,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, $"""
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 3: > 16 significant digits
@@ -930,6 +951,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(f_underflow_2)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -980,7 +1002,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(f_17_6)
                     Console.WriteLine(f_17_7)
                     Console.WriteLine(f_17_8)
-
+                    
                     Console.WriteLine(f_18_1)
                     Console.WriteLine(f_18_2)
                     Console.WriteLine(f_18_3)
@@ -997,6 +1019,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, $"""
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 3: > 16 significant digits
@@ -1056,6 +1079,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(f_underflow_2)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -1100,6 +1124,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, """
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 1: Less than 30 significant digits
@@ -1136,6 +1161,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(d_29_6)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -1180,6 +1206,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, """
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 1: Less than 30 significant digits
@@ -1216,6 +1243,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(d_29_6)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -1226,7 +1254,7 @@ public sealed class ReduceTokenTests
                 Sub Main(args As String())
                     ' CATEGORY 2: 30 significant digits
                     ' Dev11 & Roslyn have identical behavior: pretty listed and round off to <= 29 significant digits
-
+                    
                     Const d_30_1 As Decimal = .123456789012345678901234567891D          ' Dev11 & Roslyn: 0.1234567890123456789012345679D
                     Const d_30_2 As Decimal = 0.1234567890123456789012345687891D        ' Dev11 & Roslyn: 0.1234567890123456789012345688D
                     Const d_30_3 As Decimal = 1.23456789012345678901234567891D          ' Dev11 & Roslyn: 1.2345678901234567890123456789D
@@ -1246,6 +1274,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, """
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 2: 30 significant digits
@@ -1268,6 +1297,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(d_30_6)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -1278,7 +1308,7 @@ public sealed class ReduceTokenTests
                 Sub Main(args As String())
                     ' CATEGORY 2: 30 significant digits
                     ' Dev11 & Roslyn have identical behavior: pretty listed and round off to <= 29 significant digits
-
+                    
                     Const d_30_1 As Decimal = .123456789012345678901234567891@          ' Dev11 & Roslyn: 0.1234567890123456789012345679D
                     Const d_30_2 As Decimal = 0.1234567890123456789012345687891@        ' Dev11 & Roslyn: 0.1234567890123456789012345688D
                     Const d_30_3 As Decimal = 1.23456789012345678901234567891@          ' Dev11 & Roslyn: 1.2345678901234567890123456789D
@@ -1298,6 +1328,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, """
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 2: 30 significant digits
@@ -1320,6 +1351,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(d_30_6)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -1331,13 +1363,13 @@ public sealed class ReduceTokenTests
                     ' CATEGORY 3: > 30 significant digits
                     ' Dev11 has unpredictable behavior: pretty listed/round off to wrong values in certain cases
                     ' Roslyn behavior: Always rounded off + pretty listed to <= 29 significant digits
-
+                    
                     ' (a) > 30 significant digits overall, but < 30 digits before decimal point.
                     Const d_32_1 As Decimal = .12345678901234567890123456789012D          ' Dev11 & Roslyn: 0.1234567890123456789012345679D
                     Const d_32_2 As Decimal = 0.123456789012345678901234568789012@        ' Dev11 & Roslyn: 0.1234567890123456789012345688@
                     Const d_32_3 As Decimal = 1.2345678901234567890123456789012d          ' Dev11 & Roslyn: 1.2345678901234567890123456789D
                     Const d_32_4 As Decimal = 123456789012345.67890123456789012@          ' Dev11 & Roslyn: 123456789012345.67890123456789@
-
+                    
                     ' (b) > 30 significant digits before decimal point (Overflow case): Ensure no pretty listing.
                     Const d_35_1 As Decimal = 123456789012345678901234567890123.45D          ' Dev11 & Roslyn: 123456789012345678901234567890123.45D
 
@@ -1350,6 +1382,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, """
+
             Module Program
                 Sub Main(args As String())
                     ' CATEGORY 3: > 30 significant digits
@@ -1372,6 +1405,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(d_35_1)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -1423,6 +1457,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, $"""
+
             Module Program
                 Sub Main(args As String())
 
@@ -1466,6 +1501,7 @@ public sealed class ReduceTokenTests
                     Const d_8 As Double = 1.234567890123456E-20
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -1501,6 +1537,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, $"""
+
             Module Program
                 Sub Main(args As String())
                     Const f1 As Single = 3.011F                      ' Dev11 & Roslyn: 3.011F
@@ -1528,6 +1565,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(f11)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -1563,6 +1601,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, """
+
             Module Program
                 Sub Main(args As String())
                     Const d1 As Double = 3.011                       ' Dev11 & Roslyn: 3.011
@@ -1590,6 +1629,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(d11)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
@@ -1625,6 +1665,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, """
+
             Module Program
                 Sub Main(args As String())
                     Const d1 As Decimal = 3.011D                     ' Dev11 & Roslyn: 3.011D
@@ -1652,6 +1693,7 @@ public sealed class ReduceTokenTests
                     Console.WriteLine(d11)
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623319")]
@@ -1673,6 +1715,7 @@ public sealed class ReduceTokenTests
                     End Sub
                 End Module|]
                 """, """
+
                 Module Program
                     Sub Main(args As String())
                         Dim d = 1D
@@ -1706,6 +1749,7 @@ public sealed class ReduceTokenTests
                     End Sub
                 End Module|]
                 """, """
+
                 Module Program
                     Sub Main(args As String())
                         Dim d = -0.00000000001D
@@ -1748,6 +1792,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, """
+
             Module Program
                 Sub Main(args As String())
                     Const i0 As Integer = 60
@@ -1769,6 +1814,7 @@ public sealed class ReduceTokenTests
                     Const s2 As Short = &HFFFFS
                 End Sub
             End Module
+
             """);
 
     [Fact]
@@ -1793,6 +1839,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, """
+
             Module Program
                 Sub Main(args As String())
                     Const s0 As Short = &HFFFFS
@@ -1809,6 +1856,7 @@ public sealed class ReduceTokenTests
                     Const l2 As Long = &O1000000000000000000000L
                 End Sub
             End Module
+
             """);
 
     [Fact]
@@ -1829,6 +1877,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, """
+
             Module Module1
                 Sub Main()
                     Dim sMax As Short = 0032768S
@@ -1841,6 +1890,7 @@ public sealed class ReduceTokenTests
                     Dim x As Long = &HFFFFFFFFFFFFFFFFF
                 End Sub
             End Module
+
             """);
 
     [Fact]
@@ -1876,6 +1926,7 @@ public sealed class ReduceTokenTests
             End Module
             |]
             """, """
+
             Module Module1
                 Sub Main()
                     ' signed
@@ -1903,6 +1954,7 @@ public sealed class ReduceTokenTests
                     Dim p As Long = &B1000000000000000000000000000000000000000000000000000000000000001
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14034")]
@@ -1910,6 +1962,7 @@ public sealed class ReduceTokenTests
     public async Task DoNotReduceDigitSeparators()
     {
         var source = """
+
             Module Module1
                 Sub Main()
                     Dim x = 100_000
@@ -1917,6 +1970,7 @@ public sealed class ReduceTokenTests
                     Dim z = 100_000.0D
                 End Sub
             End Module
+
             """;
         var expected = source;
         await VerifyAsync($"[|{source}|]", expected);

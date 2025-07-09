@@ -84,6 +84,7 @@ isNewFile: false);
     public Task GenerateTypeInsideFileScopedNamespace1()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             namespace A;
 
             class Program
@@ -93,10 +94,12 @@ initial: """
                     [|A.Goo$$|] f;
                 }
             }
+
             """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
 expected: """
+
             namespace A;
 
             class Program
@@ -117,6 +120,7 @@ isNewFile: false);
     public Task GenerateTypeInsideFileScopedNamespace2()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             namespace A;
 
             class Program
@@ -126,10 +130,12 @@ initial: """
                     [|Goo$$|] f;
                 }
             }
+
             """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
 expected: """
+
             namespace A;
 
             class Program
@@ -608,6 +614,7 @@ expected: """
             """,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: """
+
             using outer.inner;
 
             class Program
@@ -656,6 +663,7 @@ expected: """
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: """
+
             using ConsoleApplication;
 
             class Program
@@ -704,6 +712,7 @@ expected: """
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: """
+
             using ConsoleApplication.outer.inner;
 
             class Program
@@ -868,6 +877,7 @@ expected: """
             """,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: """
+
             using outer.inner;
 
             class Program
@@ -952,6 +962,7 @@ expected: """
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: """
+
             using ConsoleApplication.outer.inner;
 
             class Program
@@ -1001,6 +1012,7 @@ expected: """
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: """
+
             namespace ConsoleApplication.outer
             {
                 class Program
@@ -1052,6 +1064,7 @@ expected: """
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: """
+
             class Program
             {
                 void Main()
@@ -1106,6 +1119,7 @@ expected: """
             """,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: """
+
             using ConsoleApplication;
 
             namespace outer
@@ -1208,6 +1222,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
 expected: """
+
             namespace A
             {
                 namespace B
@@ -1254,6 +1269,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
 expected: """
+
             namespace A
             {
                 namespace B
@@ -1270,6 +1286,7 @@ expected: """
             """,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: """
+
             using outer.inner;
 
             class Program
@@ -1359,6 +1376,7 @@ expected: """
             """,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: """
+
             using outer.inner;
 
             class Program
@@ -1449,6 +1467,7 @@ expected: """
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: """
+
             using ConsoleApplication.outer.inner;
 
             class Program
@@ -1540,6 +1559,7 @@ expected: """
                 Public Class Goo
                 End Class
             End Namespace
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
@@ -1574,9 +1594,11 @@ expected: """
                 Public Class Goo
                 End Class
             End Namespace
+
             """,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: """
+
             using outer.inner;
 
             class Program
@@ -1624,6 +1646,7 @@ expected: """
                 Public Class Goo
                 End Class
             End Namespace
+
             """,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
@@ -1660,9 +1683,11 @@ expected: """
                 Public Class Goo
                 End Class
             End Namespace
+
             """,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: """
+
             using BarBaz.outer.inner;
 
             class Program
@@ -1711,6 +1736,7 @@ expected: """
                 Public Class Goo
                 End Class
             End Namespace
+
             """,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
@@ -1756,6 +1782,7 @@ expected: """
                 Public Class Bar
                 End Class
             End Namespace
+
             """,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsNotIncluded: true,
@@ -1796,6 +1823,7 @@ expected: """
                 Public Class Goo
                 End Class
             End Namespace
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
@@ -1836,6 +1864,7 @@ expected: """
                 Public Class Goo
                 End Class
             End Namespace
+
             """,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
@@ -1872,9 +1901,11 @@ expected: """
                 Public Class Goo
                 End Class
             End Namespace
+
             """,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: """
+
             using outer.inner;
 
             class Program
@@ -1921,6 +1952,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
 expected: """
+
             Namespace A
             End Namespace
 
@@ -1928,6 +1960,7 @@ expected: """
                 Public Class Goo
                 End Class
             End Namespace
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
@@ -1970,6 +2003,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
 expected: """
+
             Namespace Global
                 Namespace A
                     Namespace C
@@ -2018,6 +2052,7 @@ expected: """
                 Public Module Goo
                 End Module
             End Namespace
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Module,
@@ -2034,6 +2069,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
     public Task GenerateTypeWithProperAccessibilityAndTypeKind_1()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             public class C : [|$$D|]
             {
             }
@@ -2041,6 +2077,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "D",
 expected: """
+
             public class C : D
             {
             }
@@ -2380,6 +2417,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
     public Task GenerateType_GenericBaseList()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             using System.Collections.Generic;
 
             struct C : IEnumerable<[|$$NewType|]>
@@ -2389,6 +2427,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "NewType",
 expected: """
+
             using System.Collections.Generic;
 
             struct C : IEnumerable<NewType>
@@ -2408,6 +2447,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
     public Task GenerateType_QualifiedBaseList()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             using System.Collections.Generic;
 
             struct C : A.B.[|$$INewType|]
@@ -2421,6 +2461,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "INewType",
 expected: """
+
             using System.Collections.Generic;
 
             struct C : A.B.INewType
@@ -2443,6 +2484,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
     public Task GenerateType_AliasQualifiedBaseList()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             using System.Collections.Generic;
 
             struct C : global::A.B.[|$$INewType|]
@@ -2456,6 +2498,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "INewType",
 expected: """
+
             using System.Collections.Generic;
 
             struct C : global::A.B.INewType
@@ -2505,6 +2548,7 @@ expected: """
             }
 
             public delegate void MyD();
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -2541,6 +2585,7 @@ expected: """
             }
 
             public delegate void MyD<T>();
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -2575,6 +2620,7 @@ expected: """
             }
 
             public delegate object MyD();
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -2609,6 +2655,7 @@ expected: """
             }
 
             public delegate void MyD(int obj);
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -2643,6 +2690,7 @@ expected: """
             }
 
             public delegate int MyD();
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -2673,6 +2721,7 @@ expected: """
             }
 
             public delegate int MyD(int n);
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -2703,6 +2752,7 @@ expected: """
             }
 
             public delegate void MyD(object n);
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -2734,6 +2784,7 @@ expected: """
             }
 
             public delegate void MyD();
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -2770,6 +2821,7 @@ expected: """
             }
 
             public delegate void MyD();
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -2806,6 +2858,7 @@ expected: """
             public delegate object MyD1();
 
             public delegate object MyD();
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -2840,6 +2893,7 @@ expected: """
             }
 
             public delegate void MyD(int arg1, int arg2, int arg3);
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -2874,6 +2928,7 @@ expected: """
             }
 
             public delegate int MyD();
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -2891,6 +2946,7 @@ initial: """
                     [|$$MyD|] z5 = (int n) => { return n; };
                 }
             }
+
             """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
@@ -2904,6 +2960,7 @@ expected: """
             }
 
             public delegate int MyD(int n);
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -2934,6 +2991,7 @@ expected: """
             }
 
             public delegate void MyD(object n);
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -2970,6 +3028,7 @@ expected: """
             }
 
             public delegate void MyD();
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -3006,6 +3065,7 @@ expected: """
             public delegate object MyDDD();
 
             public delegate object MyD();
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -3040,6 +3100,7 @@ expected: """
             }
 
             public delegate void MyD(int arg1, int arg2, int arg3);
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -3074,6 +3135,7 @@ expected: """
             }
 
             public delegate int MyD();
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -3091,6 +3153,7 @@ initial: """
                     var zz5 = ([|$$MyD|])((int n) => { return n; });
                 }
             }
+
             """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
@@ -3104,6 +3167,7 @@ expected: """
             }
 
             public delegate int MyD(int n);
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -3134,6 +3198,7 @@ expected: """
             }
 
             public delegate void MyD(object n);
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -3169,6 +3234,7 @@ expected: """
             Namespace Global.A.B
                 Public Delegate Sub Goo()
             End Namespace
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -3201,6 +3267,7 @@ expected: """
             }
 
             public delegate void MyD<T>();
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -3292,6 +3359,7 @@ initial: """
             public class F<T> where T : [|$$Bar|] 
             {
             }
+
             """,
 languageName: LanguageNames.CSharp,
 typeName: "Bar",
@@ -3333,6 +3401,7 @@ initial: """
                 {
                 }
             }
+
             """,
 languageName: LanguageNames.CSharp,
 typeName: "Bar",
@@ -3380,6 +3449,7 @@ initial: """
                     }
                 }
             }
+
             """,
 languageName: LanguageNames.CSharp,
 typeName: "Bar",
@@ -3414,6 +3484,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOpt
     public Task GenerateTypeWithProperAccessibilityWithNesting_1()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             public class B
             {
                 public class C : [|$$D|]
@@ -3424,6 +3495,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "D",
 expected: """
+
             public class B
             {
                 public class C : D
@@ -3443,6 +3515,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOpt
     public Task GenerateTypeWithProperAccessibilityWithNesting_2()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             class B
             {
                 public class C : [|$$D|]
@@ -3453,6 +3526,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "D",
 expected: """
+
             class B
             {
                 public class C : D
@@ -3472,6 +3546,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
     public Task GenerateTypeWithProperAccessibilityWithNesting_3()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             class A
             {
                 public class B
@@ -3485,6 +3560,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "D",
 expected: """
+
             class A
             {
                 public class B
@@ -3507,6 +3583,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
     public Task GenerateType_Event_1()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             class A
             {
                 event [|$$goo|] name1
@@ -3519,6 +3596,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "goo",
 expected: """
+
             class A
             {
                 event goo name1
@@ -3529,6 +3607,7 @@ expected: """
             }
 
             public delegate void goo();
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -3539,6 +3618,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
     public Task GenerateType_Event_2()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             class A
             {
                 public event [|$$goo|] name2;
@@ -3547,12 +3627,14 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "goo",
 expected: """
+
             class A
             {
                 public event goo name2;
             }
 
             public delegate void goo();
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -3563,6 +3645,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
     public Task GenerateType_Event_3()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             class A
             {
                 event [|NS.goo$$|] name1
@@ -3575,6 +3658,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "goo",
 expected: """
+
             class A
             {
                 event NS.goo name1
@@ -3598,6 +3682,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
     public Task GenerateType_Event_4()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             class A
             {
                 public event [|NS.goo$$|] name2;
@@ -3606,6 +3691,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "goo",
 expected: """
+
             class A
             {
                 public event NS.goo name2;
@@ -3625,6 +3711,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
     public Task GenerateType_Event_5()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             class A
             {
                 event [|$$NS.goo.Mydel|] name1
@@ -3641,6 +3728,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "goo",
 expected: """
+
             class A
             {
                 event NS.goo.Mydel name1
@@ -3666,6 +3754,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
     public Task GenerateType_Event_6()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             class A
             {
                 public event [|$$NS.goo.Mydel|] name2;
@@ -3678,6 +3767,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "goo",
 expected: """
+
             class A
             {
                 public event NS.goo.Mydel name2;
@@ -3699,6 +3789,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
     public Task GenerateType_Event_7()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             public class A
             {
                 public event [|$$goo|] name1
@@ -3711,6 +3802,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "goo",
 expected: """
+
             public class A
             {
                 public event goo name1
@@ -3721,6 +3813,7 @@ expected: """
             }
 
             public delegate void goo();
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -3731,6 +3824,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOpt
     public Task GenerateType_Event_8()
         => TestWithMockedGenerateTypeDialog(
 initial: """
+
             public class outer
             {
                 public class A
@@ -3746,6 +3840,7 @@ initial: """
 languageName: LanguageNames.CSharp,
 typeName: "goo",
 expected: """
+
             public class outer
             {
                 public class A
@@ -3759,6 +3854,7 @@ expected: """
             }
 
             public delegate void goo();
+
             """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,

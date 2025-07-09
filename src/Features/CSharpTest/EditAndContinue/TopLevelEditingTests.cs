@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 public sealed class TopLevelEditingTests : EditingTestBase
 {
     private static readonly string s_attributeSource = """
+
         [System.AttributeUsage(System.AttributeTargets.All)]class A : System.Attribute { public A() {} public A(int x) { } }
+
         """;
     #region Usings
 
@@ -33,12 +35,16 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Using_Global_Insert1()
     {
         var src1 = """
+
             using System.Collections.Generic;
+
             """;
         var src2 = """
+
             global using D = System.Diagnostics;
             global using System.Collections;
             using System.Collections.Generic;
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -53,12 +59,16 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Using_Global_Insert2()
     {
         var src1 = """
+
             using unsafe D3 = int*;
+
             """;
         var src2 = """
+
             global using D1 = int;
             using D2 = (int, int);
             using unsafe D3 = int*;
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -73,7 +83,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Using_Delete1()
     {
         var src1 = """
+
             using System.Diagnostics;
+
             """;
         var src2 = @"";
 
@@ -87,12 +99,16 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Using_Delete2()
     {
         var src1 = """
+
             using D = System.Diagnostics;
             using System.Collections;
             using System.Collections.Generic;
+
             """;
         var src2 = """
+
             using System.Collections.Generic;
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -107,12 +123,16 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Using_Delete3()
     {
         var src1 = """
+
             global using D1 = int;
             using D2 = (int, int);
             using unsafe D3 = int*;
+
             """;
         var src2 = """
+
             using D2 = (int, int);
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -127,12 +147,16 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Using_Insert1()
     {
         var src1 = """
+
             using System.Collections.Generic;
+
             """;
         var src2 = """
+
             using D = System.Diagnostics;
             using System.Collections;
             using System.Collections.Generic;
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -147,13 +171,17 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Using_Insert2()
     {
         var src1 = """
+
             using System.Collections.Generic;
+
             """;
         var src2 = """
+
             global using D1 = int;
             using D2 = (int, int);
             using unsafe D3 = int*;
             using System.Collections.Generic;
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -169,14 +197,18 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Using_Update1()
     {
         var src1 = """
+
             using System.Diagnostics;
             using System.Collections;
             using System.Collections.Generic;
+
             """;
         var src2 = """
+
             using System.Diagnostics;
             using X = System.Collections;
             using System.Collections.Generic;
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -190,14 +222,18 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Using_Update2()
     {
         var src1 = """
+
             using System.Diagnostics;
             using X1 = System.Collections;
             using System.Collections.Generic;
+
             """;
         var src2 = """
+
             using System.Diagnostics;
             using X2 = System.Collections;
             using System.Collections.Generic;
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -211,14 +247,18 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Using_Update3()
     {
         var src1 = """
+
             using System.Diagnostics;
             using System.Collections;
             using System.Collections.Generic;
+
             """;
         var src2 = """
+
             using System;
             using System.Collections;
             using System.Collections.Generic;
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -232,14 +272,18 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Using_Update4()
     {
         var src1 = """
+
             using X = int;
             using Y = int;
             using Z = int;
+
             """;
         var src2 = """
+
             using X = string;
             using unsafe Y = int*;
             global using Z = int;
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -255,14 +299,18 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Using_Reorder1()
     {
         var src1 = """
+
             using System.Diagnostics;
             using System.Collections;
             using System.Collections.Generic;
+
             """;
         var src2 = """
+
             using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics;
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -274,12 +322,16 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Using_Reorder2()
     {
         var src1 = """
+
             using X = int;
             using Y = string;
+
             """;
         var src2 = """
+
             using Y = string;
             using X = int;
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -291,6 +343,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Using_InsertDelete1()
     {
         var src1 = """
+
             namespace N
             {
                 using System.Collections;
@@ -299,8 +352,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
             namespace M
             {
             }
+
             """;
         var src2 = """
+
             namespace N
             {
             }
@@ -309,6 +364,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             {
                 using System.Collections;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -321,17 +377,21 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Using_InsertDelete2()
     {
         var src1 = """
+
             namespace N
             {
                 using System.Collections;
             }
+
             """;
         var src2 = """
+
             using System.Collections;
 
             namespace N
             {
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -347,6 +407,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         // a using directive, if existing code changes in meaning as a result, we don't issue edits for that code.
         // If this ever regresses then please buy a lottery ticket because the feature has magically fixed itself.
         var src1 = """
+
             using System.IO;
             using DirectoryInfo = N.C;
 
@@ -369,6 +430,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             using System.IO;
 
             namespace N
@@ -403,6 +465,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         // As distinct from the above, this test validates a real world scenario of inserting a using directive
         // and changing code that utilizes the new directive to some effect.
         var src1 = """
+
             namespace N
             {
                 class Program
@@ -414,6 +477,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             using System;
 
             namespace N
@@ -437,6 +501,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Using_Delete_ForOldCode()
     {
         var src1 = """
+
             using System;
 
             namespace N
@@ -451,6 +516,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             namespace N
             {
                 class Program
@@ -473,6 +539,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         // This test validates that we still issue edits for changed valid code, even when unchanged
         // code has ambiguities after adding a using.
         var src1 = """
+
             using System.Threading;
 
             namespace N
@@ -488,6 +555,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             using System.Threading;
             using System.Timers;
 
@@ -833,6 +901,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_Modifiers_Unsafe_Remove()
     {
         var src1 = """
+
             using System;
             unsafe delegate void D();
             class C
@@ -845,8 +914,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 unsafe C() {}
                 unsafe ~C() {}
             }
+
             """;
         var src2 = """
+
             using System;
             delegate void D();
             class C
@@ -859,6 +930,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 C() {}
                 ~C() {}
             }
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -1139,8 +1211,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_Attribute_Update_Null()
     {
         var attribute = """
+
             using System;
             public class A : Attribute { public A1(int[] array, Type type, Type[] types) {} }
+
             """;
 
         var src1 = attribute + "[A(null, null, new Type[] { typeof(C) })]class C { }";
@@ -1157,9 +1231,11 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_Attribute_Change_Reloadable()
     {
         var attributeSrc = """
+
             public class A1 : System.Attribute { }
             public class A2 : System.Attribute { }
             public class A3 : System.Attribute { }
+
             """;
 
         var src1 = ReloadableAttributeSrc + attributeSrc + "[CreateNewOnMetadataUpdate, A1, A2]class C { }";
@@ -1658,16 +1734,20 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_BaseInterface_Delete_Inherited()
     {
         var src1 = """
+
             interface B {}
             interface A : B {}
 
             class C : A, B {}
+
             """;
         var src2 = """
+
             interface B {}
             interface A : B {}
 
             class C : A {}
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -1724,6 +1804,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_Base_Partial()
     {
         var srcC = """
+
             class B {}
             interface I {}
             interface J {}
@@ -1757,6 +1838,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_Base_InsertDelete()
     {
         var srcC = """
+
             class B {}
             interface I {}
             interface J {}
@@ -1775,6 +1857,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_Reloadable_NotSupportedByRuntime()
     {
         var src1 = ReloadableAttributeSrc + """
+
             [CreateNewOnMetadataUpdate]
             public class C
             {
@@ -1782,6 +1865,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = ReloadableAttributeSrc + """
+
             [CreateNewOnMetadataUpdate]
             public class C
             {
@@ -1800,6 +1884,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     {
         var src1 = "";
         var src2 = """
+
             public abstract class C<T>
             { 
                 public abstract void F(); 
@@ -1817,6 +1902,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_Insert_NotSupportedByRuntime()
     {
         var src1 = """
+
             public class C
             {
                 void F()
@@ -1825,6 +1911,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             public class C
             {
                 void F()
@@ -1885,6 +1972,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     {
         var src1 = "";
         var src2 = """
+
             public interface I 
             { 
                 void F(); 
@@ -2107,12 +2195,15 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Interface_InsertMembers()
     {
         var src1 = """
+
             using System;
             interface I
             {
             }
+
             """;
         var src2 = """
+
             using System;
             interface I
             {
@@ -2144,7 +2235,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 abstract int this[int abstractIndexer] { get; }
                 sealed int this[ulong nonVirtualIndexer] { get => 1; set {} }
                 sealed int this[long nonVirtualIndexer] { get => 1; set {} }
-
+                
                 static event Action StaticEvent;
                 static event Action StaticEvent2 { add { } remove { } }
 
@@ -2157,6 +2248,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 enum E { }
                 delegate void D();
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -2198,19 +2290,25 @@ public sealed class TopLevelEditingTests : EditingTestBase
     {
         EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
+
                 interface I
                 {
                     static void M() { }
                 }
+
                 """, """
+
 
                 """), GetTopEdits("""
 
+
                          """, """
+
                          interface I
                          {
                              static void M() { }
                          }
+
                          """)],
             [
                 DocumentResults(),
@@ -2227,14 +2325,17 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_Generic_Insert_StatelessMembers()
     {
         var src1 = """
+
             using System;
             class C<T>
             {
                 int P1 { get => 1; }
                 int this[string s] { set {} }
             }
+
             """;
         var src2 = """
+
             using System;
             class C<T>
             {
@@ -2256,6 +2357,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 delegate void Del();
                 delegate void Del<S>();
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -2282,12 +2384,15 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_Generic_Insert_DataMembers()
     {
         var src1 = """
+
             using System;
             class C<T>
             {
             }
+
             """;
         var src2 = """
+
             using System;
             class C<T>
             {
@@ -2296,6 +2401,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 int F1, F2;
                 static int SF;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -2335,14 +2441,17 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_Generic_Insert_IntoNestedType()
     {
         var src1 = """
+
             class C<T>
             {
                 class D
                 {
                 }
             }
+
             """;
         var src2 = """
+
             class C<T>
             {
                 class D
@@ -2352,6 +2461,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     static int Y;
                 }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -2377,6 +2487,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_Generic_InsertMembers_Reloadable()
     {
         var src1 = ReloadableAttributeSrc + """
+
             interface IExplicit
             {
                 void F() {}
@@ -2387,8 +2498,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
             {
                 void IExplicit.F() {}
             }
+
             """;
         var src2 = ReloadableAttributeSrc + """
+
             interface IExplicit
             {
                 void F() {}
@@ -2411,6 +2524,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 interface I {} 
                 class D {}
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
@@ -2426,9 +2540,11 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_Generic_DeleteInsert()
     {
         var srcA1 = """
+
             class C<T> { void F() {} }
             struct S<T> { void F() {} }
             interface I<T> { void F() {} }
+
             """;
         var srcB1 = "";
 
@@ -2486,9 +2602,11 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_Delete()
     {
         GetTopEdits("""
+
             class C { void F() {} }
             struct S { void F() {} }
             interface I { void F() {} }
+
             """, "").VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(FeaturesResources.class_, "C")),
             Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(FeaturesResources.struct_, "S")),
@@ -2572,9 +2690,11 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_DeleteInsert()
     {
         var srcA1 = """
+
             class C { void F() {} }
             struct S { void F() {} }
             interface I { void F() {} }
+
             """;
         var srcB1 = "";
 
@@ -2618,6 +2738,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_NonInsertableMembers_DeleteInsert()
     {
         var srcA1 = """
+
             abstract class C
             {
                 public abstract void AbstractMethod();
@@ -2631,6 +2752,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 void G();
                 void F() {}
             }
+
             """;
         var srcB1 = "";
 
@@ -2661,6 +2783,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     {
         EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
+
                 abstract class C
                 {
                     public abstract void AbstractMethod();
@@ -2674,7 +2797,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     void G();
                     void F() {}
                 }
+
                 """, ""), GetTopEdits("", """
+
                 abstract class C
                 {
                     [System.Obsolete]public abstract void AbstractMethod();
@@ -2711,6 +2836,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     {
         EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
+
                 class C
                 {
                     public int x = 1;
@@ -2718,7 +2844,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     public int P { get; set; } = 3;
                     public event System.Action E = new System.Action(null);
                 }
+
                 """, ""), GetTopEdits("", """
+
                 class C
                 {
                     public int x = 1;
@@ -2726,6 +2854,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     public int P { get; set; } = 3;
                     public event System.Action E = new System.Action(null);
                 }
+
                 """)],
             [
                 DocumentResults(),
@@ -2745,23 +2874,29 @@ public sealed class TopLevelEditingTests : EditingTestBase
     {
         EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
+
                 class C
                 {
                     public int x = 1;
                     public int y = 2;
                     public int P { get; set; } = 3;
                 }
+
                 """, """
+
                 partial class C
                 {
                     public int x = 1;
                     public int y = 2;
                 }
+
                 """), GetTopEdits("", """
+
                 partial class C
                 {
                     public int P { get; set; } = 3;
                 }
+
                 """)],
             [
                 DocumentResults(),
@@ -2782,24 +2917,30 @@ public sealed class TopLevelEditingTests : EditingTestBase
         // note that accessors are not updated since they do not have bodies
         EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
+
                 partial class C
                 {
                     public int x = 1;
                     public int y = 2;
                 }
+
                 """, """
+
                 class C
                 {
                     public int x = 1;
                     public int y = 2;
                     public int P { get; set; } = 3;
                 }
+
                 """), GetTopEdits("""
+
                          partial class C
                          {
                              public int P { get; set; } = 3;
                          }
                          """, """
+
 
                          """)],
             [
@@ -2968,11 +3109,13 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void RecordStruct_AddField()
     {
         var src1 = """
+
             record struct C(int X)
             {
             }
             """;
         var src2 = """
+
             record struct C(int X)
             {
                 private int _y = 0;
@@ -2989,11 +3132,13 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void RecordStruct_AddProperty()
     {
         var src1 = """
+
             record struct C(int X)
             {
             }
             """;
         var src2 = """
+
             record struct C(int X)
             {
                 public int Y { get; set; } = 0;
@@ -3122,6 +3267,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     {
         var src1 = "";
         var src2 = """
+
             public abstract record C<T>
             { 
                 public abstract void F(); 
@@ -3296,6 +3442,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Record_Field_Insert_WithExplicitMembers()
     {
         var src1 = """
+
             record C(int X)
             {
                 public C(C other)
@@ -3304,10 +3451,11 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             record C(int X)
             {
                 private int _y;
-
+                
                 public C(C other)
                 {
                 }
@@ -3575,6 +3723,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Record_Property_Delete_WithInitializer()
     {
         var src1 = """
+
             record C(int X)
             {
                 public int Y { get; set; } = 1;
@@ -3583,6 +3732,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             record C(int X)
             {
                 public C(bool b) : this(1) { }
@@ -3902,12 +4052,14 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Record_Property_Insert_WithInitializer()
     {
         var src1 = """
+
             record C(int X)
             {
                 public C(bool b) : this(1) { }
             }
             """;
         var src2 = """
+
             record C(int X)
             {
                 public int Y { get; set; } = 1;
@@ -4010,6 +4162,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Record_Property_Insert_NotPrimary_WithExplicitMembers()
     {
         var src1 = """
+
             record C(int X)
             {
                 protected virtual bool PrintMembers(System.Text.StringBuilder builder)
@@ -4033,6 +4186,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             record C(int X)
             {
                 public int Y { get; set; }
@@ -5582,11 +5736,13 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void NestedType_InsertMemberWithInitializer1()
     {
         var src1 = """
+
             class C
             {
             }
             """;
         var src2 = """
+
             class C
             {
                 private class D
@@ -5607,6 +5763,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void NestedType_Insert_PInvoke()
     {
         var src1 = """
+
             using System;
             using System.Runtime.InteropServices;
 
@@ -5615,6 +5772,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             using System;
             using System.Runtime.InteropServices;
 
@@ -5636,6 +5794,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     public static extern explicit operator int (D d);
                 }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -5652,6 +5811,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void NestedType_Insert_VirtualAbstract()
     {
         var src1 = """
+
             using System;
             using System.Runtime.InteropServices;
 
@@ -5660,6 +5820,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             using System;
             using System.Runtime.InteropServices;
 
@@ -5677,6 +5838,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     public virtual int M(string c) { return 1; }
                 }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -5744,12 +5906,15 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void NestedClassGeneric_Insert()
     {
         var src1 = """
+
             using System;
             class C<T>
             {
             }
+
             """;
         var src2 = """
+
             using System;
             class C<T>
             {
@@ -5762,8 +5927,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
             class D<T>
             {
-
+                
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
@@ -6051,8 +6217,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Type_Partial_Attribute_AddMultiple()
     {
         var attributes = """
+
             class A : System.Attribute {}
             class B : System.Attribute {}
+
             """;
 
         var srcA1 = "partial class C { }" + attributes;
@@ -6673,6 +6841,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void PartialMember_DeleteInsert_SingleDocument()
     {
         var src1 = """
+
             using System;
 
             partial class C
@@ -6691,8 +6860,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
             partial class C
             {
             }
+
             """;
         var src2 = """
+
             using System;
 
             partial class C
@@ -6710,6 +6881,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 event Action EF;
                 int F1, F2;
             }
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -7029,31 +7201,39 @@ public sealed class TopLevelEditingTests : EditingTestBase
     {
         EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
+
                 using System.Collections.Generic;
 
                 partial class C
                 {
                     IEnumerable<int> F() { yield return 1; }
                 }
+
                 """, """
+
                 using System.Collections.Generic;
 
                 partial class C
                 {
                 }
+
                 """), GetTopEdits("""
+
                          using System.Collections.Generic;
 
                          partial class C
                          {
                          }
+
                          """, """
+
                          using System.Collections.Generic;
 
                          partial class C
                          {
                              IEnumerable<int> F() { yield return 1; yield return 2; }
                          }
+
                          """)],
             [
                 DocumentResults(),
@@ -7266,12 +7446,14 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_ReadOnlyModifier_Add_InMutableStruct()
     {
         var src1 = """
+
             struct S
             {
                 public int M() => 1;
             }
             """;
         var src2 = """
+
             struct S
             {
                 public readonly int M() => 1;
@@ -7286,6 +7468,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_ReadOnlyModifier_Add_InReadOnlyStruct1()
     {
         var src1 = """
+
             readonly struct S
             {
                 public int M()
@@ -7293,6 +7476,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             readonly struct S
             {
                 public readonly int M()
@@ -7311,12 +7495,14 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_ReadOnlyModifier_Add_InReadOnlyStruct2()
     {
         var src1 = """
+
             readonly struct S
             {
                 public int M() => 1;
             }
             """;
         var src2 = """
+
             struct S
             {
                 public readonly int M() => 1;
@@ -7331,6 +7517,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_AsyncModifier_Remove()
     {
         var src1 = """
+
             class Test
             {
                 public async Task<int> WaitAsync()
@@ -7340,6 +7527,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class Test
             {
                 public Task<int> WaitAsync()
@@ -7357,6 +7545,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_AsyncModifier_Add()
     {
         var src1 = """
+
             class Test
             {
                 public Task<int> WaitAsync()
@@ -7366,6 +7555,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class Test
             {
                 public async Task<int> WaitAsync()
@@ -7386,6 +7576,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_AsyncModifier_Add_NotSupported()
     {
         var src1 = """
+
             class Test
             {
                 public Task<int> WaitAsync()
@@ -7395,6 +7586,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class Test
             {
                 public async Task<int> WaitAsync()
@@ -7541,6 +7733,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_Update()
     {
         var src1 = """
+
             class C
             {
                 static void F()
@@ -7550,8 +7743,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     System.Console.WriteLine(a + b);
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static void F()
@@ -7590,13 +7785,16 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodWithExpressionBody_Update()
     {
         var src1 = """
+
             class C
             {
                 static int M() => F(1);
                 static int F(int a) => 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static int M() => F(2);
@@ -7651,6 +7849,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodWithLambda_Update()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -7661,8 +7860,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
                 }
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -7688,6 +7889,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_LocalVariableDeclaration()
     {
         var src1 = """
+
             class C
             {
                 static void F()
@@ -7696,8 +7898,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     Console.WriteLine(x);
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static void F()
@@ -7727,12 +7931,15 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_Delete()
     {
         var src1 = """
+
             class C
             {
                 void goo() { }
             }
+
             """;
         var src2 = """
+
             class C
             {
             }
@@ -7790,12 +7997,15 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodWithExpressionBody_Delete()
     {
         var src1 = """
+
             class C
             {
                 int goo() => 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
             }
@@ -7815,13 +8025,16 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodDelete_WithParameterAndAttribute()
     {
         var src1 = """
+
             class C
             {
                 [Obsolete]
                 void goo(int a) { }
             }
+
             """;
         var src2 = """
+
             class C
             {
             }
@@ -7845,6 +8058,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodDelete_PInvoke()
     {
         var src1 = """
+
             using System;
             using System.Runtime.InteropServices;
 
@@ -7853,8 +8067,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 [DllImport("msvcrt.dll")]
                 public static extern int puts(string c);
             }
+
             """;
         var src2 = """
+
             using System;
             using System.Runtime.InteropServices;
 
@@ -7894,6 +8110,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void PrivateMethodInsert()
     {
         var src1 = """
+
             class C
             {
                 static void F()
@@ -7903,6 +8120,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 void goo() { }
@@ -7912,6 +8130,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     Console.ReadLine();
                 }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -7927,6 +8146,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void PrivateMethodInsert_WithParameters()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -7938,6 +8158,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -7949,6 +8170,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     Console.ReadLine();
                 }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -7966,6 +8188,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void PrivateMethodInsert_WithAttribute()
     {
         var src1 = """
+
             class C
             {
                 static void F()
@@ -7975,6 +8198,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 [System.Obsolete]
@@ -7985,6 +8209,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     Console.ReadLine();
                 }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -8004,15 +8229,18 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodInsert_Virtual()
     {
         var src1 = """
+
             class C
             {
             }
             """;
         var src2 = """
+
             class C
             {
                 public virtual void F() {}
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -8024,15 +8252,18 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodInsert_Abstract()
     {
         var src1 = """
+
             abstract class C
             {
             }
             """;
         var src2 = """
+
             abstract class C
             {
                 public abstract void F();
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -8044,15 +8275,18 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodInsert_Override()
     {
         var src1 = """
+
             class C
             {
             }
             """;
         var src2 = """
+
             class C
             {
                 public override void F() { }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -8064,6 +8298,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void ExternMethod_Insert()
     {
         var src1 = """
+
             using System;
             using System.Runtime.InteropServices;
 
@@ -8072,6 +8307,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             using System;
             using System.Runtime.InteropServices;
 
@@ -8080,6 +8316,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 [DllImport("msvcrt.dll")]
                 private static extern int puts(string c);
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -8102,6 +8339,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         // TODO: The method does not need to be updated since there are no sequence points generated for it.
         EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
+
                 using System;
                 using System.Runtime.InteropServices;
 
@@ -8111,12 +8349,17 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     private static extern int puts(string c);
                 }
                 """, """
+
                 using System;
                 using System.Runtime.InteropServices;
+
                 """), GetTopEdits("""
+
                          using System;
                          using System.Runtime.InteropServices;
+
                          """, """
+
                          using System;
                          using System.Runtime.InteropServices;
 
@@ -8125,6 +8368,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                              [DllImport("msvcrt.dll")]
                              private static extern int puts(string c);
                          }
+
                          """)],
             [
                 DocumentResults(),
@@ -8140,6 +8384,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     {
         EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
+
                 using System;
                 using System.Runtime.InteropServices;
 
@@ -8149,12 +8394,17 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     private static extern int puts(string c);
                 }
                 """, """
+
                 using System;
                 using System.Runtime.InteropServices;
+
                 """), GetTopEdits("""
+
                          using System;
                          using System.Runtime.InteropServices;
+
                          """, """
+
                          using System;
                          using System.Runtime.InteropServices;
 
@@ -8164,6 +8414,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                              [Obsolete]
                              private static extern int puts(string c);
                          }
+
                          """)],
             [
                 DocumentResults(),
@@ -8351,20 +8602,22 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_Update_Parameter_Insert()
     {
         var src1 = """
+
             class C
             {
                 static void F()
                 {
-
+                    
                 }
             }
             """;
         var src2 = """
+
             class C
             {
                 static void F(int a)
                 {
-
+                    
                 }
             }
             """;
@@ -8389,6 +8642,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_Update_Parameter_Insert_Multiple()
     {
         var src1 = """
+
             class C
             {
                 void M(int a)
@@ -8397,6 +8651,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 void M(int a, int b, int c)
@@ -8422,6 +8677,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_Update_Parameter_Insert_Partial()
     {
         var src1 = """
+
             class C
             {
                 partial void M(int a);
@@ -8432,6 +8688,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 partial void M(int a, int/*1*/b, int c);
@@ -8462,20 +8719,22 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_Update_Type()
     {
         var src1 = """
+
             class C
             {
                 static void Main(bool x)
                 {
-
+                    
                 }
             }
             """;
         var src2 = """
+
             class C
             {
                 static void Main(int x)
                 {
-
+                    
                 }
             }
             """;
@@ -8500,20 +8759,22 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_Update_Parameter_Type_WithRename()
     {
         var src1 = """
+
             class C
             {
                 static void Main(bool someBool)
                 {
-
+                    
                 }
             }
             """;
         var src2 = """
+
             class C
             {
                 static void Main(int someInt)
                 {
-
+                    
                 }
             }
             """;
@@ -8534,20 +8795,22 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_Update_Parameter_Delete()
     {
         var src1 = """
+
             class C
             {
                 static void F(int a)
                 {
-
+                    
                 }
             }
             """;
         var src2 = """
+
             class C
             {
                 static void F()
                 {
-
+                    
                 }
             }
             """;
@@ -8572,6 +8835,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_Update_Parameter_Delete_Multiple()
     {
         var src1 = """
+
             class C
             {
                 void M(int a, int b, int c)
@@ -8580,6 +8844,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 void M(int a)
@@ -8607,20 +8872,22 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_Update_Parameter_Rename()
     {
         var src1 = """
+
             class C
             {
                 static void F(int a)
                 {
-
+                    
                 }
             }
             """;
         var src2 = """
+
             class C
             {
                 static void F(int b)
                 {
-
+                    
                 }
             }
             """;
@@ -8644,15 +8911,17 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_Update_Parameter_Rename_WithBodyUpdate()
     {
         var src1 = """
+
             class C
             {
                 static void F(int a)
                 {
-
+                    
                 }
             }
             """;
         var src2 = """
+
             class C
             {
                 static void F(int b)
@@ -8737,20 +9006,22 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_Rename()
     {
         var src1 = """
+
             class C
             {
                 static void F(int a)
                 {
-
+                    
                 }
             }
             """;
         var src2 = """
+
             class C
             {
                 static void G(int a)
                 {
-
+                    
                 }
             }
             """;
@@ -8758,10 +9029,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifyEdits("""
             Update [static void F(int a)
                 {
-
+                    
                 }]@18 -> [static void G(int a)
                 {
-
+                    
                 }]@18
             """);
 
@@ -8781,6 +9052,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_Rename_GenericType()
     {
         var src1 = """
+
             class C<T>
             {
                 static void F()
@@ -8789,6 +9061,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C<T>
             {
                 static void G()
@@ -8827,6 +9100,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_Rename_GenericMethod()
     {
         var src1 = """
+
             class C
             {
                 static void F<T>()
@@ -8835,6 +9109,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 static void G<T>()
@@ -8913,6 +9188,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_AsyncMethod0()
     {
         var src1 = """
+
             class C
             {
                 public async Task F()
@@ -8922,6 +9198,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 public async Task F()
@@ -9001,6 +9278,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_AsyncMethod_Generic()
     {
         var src1 = """
+
             class C
             {
                 public async Task F<T>()
@@ -9010,6 +9288,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 public async Task F<T>()
@@ -9039,6 +9318,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_AddReturnTypeAttribute()
     {
         var src1 = """
+
             using System;
 
             class Test
@@ -9050,6 +9330,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             using System;
 
             class Test
@@ -9083,6 +9364,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_AddAttribute()
     {
         var src1 = """
+
             using System;
 
             class Test
@@ -9094,6 +9376,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             using System;
 
             class Test
@@ -9199,6 +9482,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_Attribute_ArrayParameter()
     {
         var src1 = """
+
             class AAttribute : System.Attribute
             {
                 public AAttribute(int[] nums) { }
@@ -9213,6 +9497,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class AAttribute : System.Attribute
             {
                 public AAttribute(int[] nums) { }
@@ -9238,6 +9523,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_Attribute_ArrayParameter_NoChange()
     {
         var src1 = """
+
             class AAttribute : System.Attribute
             {
                 public AAttribute(int[] nums) { }
@@ -9253,6 +9539,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class AAttribute : System.Attribute
             {
                 public AAttribute(int[] nums) { }
@@ -9280,6 +9567,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_AddAttribute2()
     {
         var src1 = """
+
             using System;
 
             class Test
@@ -9292,6 +9580,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             using System;
 
             class Test
@@ -9314,6 +9603,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_AddAttribute3()
     {
         var src1 = """
+
             using System;
 
             class Test
@@ -9326,6 +9616,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             using System;
 
             class Test
@@ -9349,6 +9640,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_AddAttribute4()
     {
         var src1 = """
+
             using System;
 
             class Test
@@ -9360,6 +9652,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             using System;
 
             class Test
@@ -9382,6 +9675,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_UpdateAttribute()
     {
         var src1 = """
+
             using System;
 
             class Test
@@ -9394,6 +9688,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             using System;
 
             class Test
@@ -9416,6 +9711,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_DeleteAttribute()
     {
         var src1 = """
+
             using System;
 
             class Test
@@ -9428,6 +9724,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             using System;
 
             class Test
@@ -9449,6 +9746,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_DeleteAttribute2()
     {
         var src1 = """
+
             using System;
 
             class Test
@@ -9461,6 +9759,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             using System;
 
             class Test
@@ -9483,6 +9782,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_DeleteAttribute3()
     {
         var src1 = """
+
             using System;
 
             class Test
@@ -9496,6 +9796,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             using System;
 
             class Test
@@ -9518,6 +9819,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_ExplicitlyImplemented1()
     {
         var src1 = """
+
             class C : I, J
             {
                 void I.Goo() { Console.WriteLine(2); }
@@ -9525,6 +9827,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C : I, J
             {
                 void I.Goo() { Console.WriteLine(1); }
@@ -9544,24 +9847,30 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_ExplicitlyImplemented2()
     {
         var interfaces = """
+
             interface I { void Goo(); }
             interface J { void Goo(); }
+
             """;
 
         var src1 = """
+
             class C : I, J
             {
                 void I.Goo() { Console.WriteLine(1); }
                 void J.Goo() { Console.WriteLine(2); }
             }
+
             """ + interfaces;
 
         var src2 = """
+
             class C : I, J
             {
                 void Goo() { Console.WriteLine(1); }
                 void J.Goo() { Console.WriteLine(2); }
             }
+
             """ + interfaces;
 
         var edits = GetTopEdits(src1, src2);
@@ -9577,6 +9886,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_StackAlloc_Update()
     {
         var src1 = """
+
             class C
             {
                 static void Main() 
@@ -9591,6 +9901,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 static void Main() 
@@ -9617,6 +9928,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_StackAlloc_Insert()
     {
         var src1 = """
+
             class C
             {
                 static void F() 
@@ -9630,6 +9942,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 static void F() 
@@ -9653,6 +9966,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_StackAlloc_Delete()
     {
         var src1 = """
+
             class C
             {
                 static void F() 
@@ -9667,6 +9981,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 static void F() 
@@ -9843,12 +10158,13 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MethodUpdate_LabeledStatement()
     {
         var src1 = """
+
             class C
             {
                 static void F()
                 {
                     goto Label1;
-
+             
                 Label1:
                     {
                         Console.WriteLine(1);
@@ -9857,12 +10173,13 @@ public sealed class TopLevelEditingTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 static void F()
                 {
                     goto Label1;
-
+             
                 Label1:
                     {
                         Console.WriteLine(2);
@@ -10000,6 +10317,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Method_ImplementingInterface_Add()
     {
         var src1 = """
+
             using System;
 
             public interface ISample
@@ -10021,8 +10339,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
             {
                 public override string Get() => string.Empty;
             }
+
             """;
         var src2 = """
+
             using System;
 
             public interface ISample
@@ -10046,6 +10366,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 string IConflict.Get() => String.Empty;
             }
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -10368,11 +10689,14 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void OperatorInsert()
     {
         var src1 = """
+
             class C
             {
             }
+
             """;
         var src2 = """
+
             class C
             {
                 public static implicit operator bool (C c) 
@@ -10397,6 +10721,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void OperatorDelete()
     {
         var src1 = """
+
             class C
             {
                 public static implicit operator bool (C c) 
@@ -10409,8 +10734,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     return c;
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
             }
@@ -10429,16 +10756,20 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void OperatorInsertDelete()
     {
         var srcA1 = """
+
             partial class C
             {
                 public static implicit operator bool (C c)  => false;
             }
+
             """;
         var srcB1 = """
+
             partial class C
             {
                 public static C operator +(C c, C d) => c;
             }
+
             """;
 
         var srcA2 = srcB1;
@@ -10465,6 +10796,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void OperatorUpdate()
     {
         var src1 = """
+
             class C
             {
                 public static implicit operator bool (C c) 
@@ -10477,8 +10809,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     return c;
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 public static implicit operator bool (C c) 
@@ -10505,13 +10839,16 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void OperatorWithExpressionBody_Update()
     {
         var src1 = """
+
             class C
             {
                 public static implicit operator bool (C c) => false;
                 public static C operator +(C c, C d) => c;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 public static implicit operator bool (C c) => true;
@@ -10563,12 +10900,15 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Operator_Rename()
     {
         var src1 = """
+
             class C
             {
                 public static C operator +(C c, C d) { return c; }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 public static C operator -(C c, C d) { return d; }
@@ -10588,13 +10928,16 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void OperatorReorder1()
     {
         var src1 = """
+
             class C
             {
                 public static implicit operator bool (C c) { return false; }
                 public static implicit operator int (C c) { return 1; }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 public static implicit operator int (C c) { return 1; }
@@ -10613,13 +10956,16 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void OperatorReorder2()
     {
         var src1 = """
+
             class C
             {
                 public static C operator +(C c, C d) { return c; }
                 public static C operator -(C c, C d) { return d; }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 public static C operator -(C c, C d) { return d; }
@@ -11009,14 +11355,18 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Parameter_Delete_Primary_Record_LayoutClass()
     {
         var src1 = """
+
             using System.Runtime.InteropServices;
             [StructLayoutAttribute(LayoutKind.Sequential)]
             record C(int X, int Y);
+
             """;
         var src2 = """
+
             using System.Runtime.InteropServices;
             [StructLayoutAttribute(LayoutKind.Sequential)]
             record C(int X);
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -11291,20 +11641,24 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Parameter_Delete_Primary_LayoutClass_NotCaptured()
     {
         var src1 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Sequential)]
             class C(int x, int y) 
             { 
             }
+
             """;
         var src2 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Sequential)]
             class C(int x)
             { 
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -11321,6 +11675,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Parameter_Delete_Primary_LayoutClass_Captured()
     {
         var src1 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Sequential)]
@@ -11328,8 +11683,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
             {
                 public int M() => x + y;
             }
+
             """;
         var src2 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Sequential)]
@@ -11337,6 +11694,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             {
                 public int M() => x;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -11456,17 +11814,21 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Parameter_Insert_Primary_Record_ClassWithLayout()
     {
         var src1 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Sequential)]
             record C(int X) { }
+
             """;
 
         var src2 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Sequential)]
             record C(int X, int Y) { }
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -11479,14 +11841,18 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Parameter_Insert_Primary_Record_Struct()
     {
         var src1 = """
+
             record struct C(int x) 
             {
             }
+
             """;
         var src2 = """
+
             record struct C(int x, int y)
             {
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -11658,20 +12024,24 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Parameter_Insert_Primary_IntoLayoutClass_NotLifted()
     {
         var src1 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Sequential)]
             class C(int x) 
             { 
             }
+
             """;
         var src2 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Sequential)]
             class C(int x, int y)
             { 
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -11688,6 +12058,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Parameter_Insert_Primary_IntoLayoutClass_Lifted()
     {
         var src1 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Sequential)]
@@ -11695,8 +12066,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
             {
                 public int M() => x;
             }
+
             """;
         var src2 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Sequential)]
@@ -11704,6 +12077,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             {
                 public int M() => x + y;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -11718,6 +12092,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Parameter_Insert_Primary_IntoLayoutClass_LiftedInLambda()
     {
         var src1 = """
+
             using System;
             using System.Runtime.InteropServices;
 
@@ -11726,8 +12101,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
             {
                 public Func<int> M() => () => x;
             }
+
             """;
         var src2 = """
+
             using System;
             using System.Runtime.InteropServices;
 
@@ -11736,6 +12113,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             {
                 public Func<int> M() => () => x + y;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -11835,16 +12213,20 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Parameter_Capture_Primary_Class()
     {
         var src1 = """
+
             class C(int x) 
             {
                 public int M() => 1;
             }
+
             """;
         var src2 = """
+
             class C(int x)
             {
                 public int M() => x;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -11856,18 +12238,22 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Parameter_Capture_Primary_Struct()
     {
         var src1 = """
+
             struct C(int x, int y) 
             {
                 public int M1() => 1;
                 public int M2() => y;
             }
+
             """;
         var src2 = """
+
             struct C(int x, int y)
             {
                 public int M1() => y;
                 public int M2() => x;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -11880,6 +12266,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Parameter_Capture_Primary_ClassWithLayout()
     {
         var src1 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Sequential)]
@@ -11888,8 +12275,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public int M1() => 1;
                 public int M2() => y;
             }
+
             """;
         var src2 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Sequential)]
@@ -11898,6 +12287,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public int M1() => y;
                 public int M2() => x;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -11910,20 +12300,24 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Parameter_CeaseCapturing_Primary_Struct()
     {
         var src1 = """
+
             struct C(int x, int y) 
             {
                 public int M1() => 1;
                 public int M2() => x;
                 public int M3() => y;
             }
+
             """;
         var src2 = """
+
             struct C(int x, int y)
             {
                 public int M1() => y;
                 public int M2() => 1;
                 public int M3() => 2;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -11936,6 +12330,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Parameter_CeaseCapturing_Primary_ClassWithLayout()
     {
         var src1 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Sequential)]
@@ -11945,8 +12340,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public int M2() => x;
                 public int M3() => y;
             }
+
             """;
         var src2 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Sequential)]
@@ -11956,6 +12353,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public int M2() => 1;
                 public int M3() => 2;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -12209,12 +12607,14 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_Update_Initializer_Update()
     {
         var src1 = """
+
             class C
             {
                 public C(int a) : base(a) { }
             }
             """;
         var src2 = """
+
             class C
             {
                 public C(int a) : base(a + 1) { }
@@ -12233,12 +12633,14 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_Update_Initializer_Update_Generic()
     {
         var src1 = """
+
             class C<T>
             {
                 public C(int a) : base(a) { }
             }
             """;
         var src2 = """
+
             class C<T>
             {
                 public C(int a) : base(a + 1) { }
@@ -12292,12 +12694,14 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_Update_Initializer_Delete()
     {
         var src1 = """
+
             class C<T>
             {
                 public C(int a) : base(a) { }
             }
             """;
         var src2 = """
+
             class C<T>
             {
                 public C(int a) { }
@@ -12342,12 +12746,14 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_Update_Initializer_Insert()
     {
         var src1 = """
+
             class C
             {
                 public C(int a) { }
             }
             """;
         var src2 = """
+
             class C
             {
                 public C(int a) : base(a) { }
@@ -12444,20 +12850,24 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_Update_BlockBodyToExpressionBody()
     {
         var src1 = """
+
             public class C
             {
                 private int _value;
 
                 public C(int value) { _value = value; }
             }
+
             """;
         var src2 = """
+
             public class C
             {
                 private int _value;
 
                 public C(int value) => _value = value;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -12474,20 +12884,24 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_Update_BlockBodyToExpressionBody_WithInitializer()
     {
         var src1 = """
+
             public class B { B(int value) {} }
             public class C : B
             {
                 private int _value;
                 public C(int value) : base(value) { _value = value; }
             }
+
             """;
         var src2 = """
+
             public class B { B(int value) {} }
             public class C : B
             {
                 private int _value;
                 public C(int value) : base(value) => _value = value;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -12504,20 +12918,24 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_Update_ExpressionBodyToBlockBody()
     {
         var src1 = """
+
             public class C
             {
                 private int _value;
 
                 public C(int value) => _value = value;
             }
+
             """;
         var src2 = """
+
             public class C
             {
                 private int _value;
 
                 public C(int value) { _value = value; }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -12534,20 +12952,24 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_Update_ExpressionBodyToBlockBody_WithInitializer()
     {
         var src1 = """
+
             public class B { B(int value) {} }
             public class C : B
             {
                 private int _value;
                 public C(int value) : base(value) => _value = value;
             }
+
             """;
         var src2 = """
+
             public class B { B(int value) {} }
             public class C : B
             {
                 private int _value;
                 public C(int value) : base(value) { _value = value; }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -12564,6 +12986,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_Update_SemanticError_Partial()
     {
         var src1 = """
+
             partial class C
             {
                 partial void C(int x);
@@ -12576,8 +12999,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     System.Console.WriteLine(1);
                 }
             }
+
             """;
         var src2 = """
+
             partial class C
             {
                 partial void C(int x);
@@ -12590,6 +13015,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     System.Console.WriteLine(2);
                 }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -12756,14 +13182,17 @@ public sealed class TopLevelEditingTests : EditingTestBase
     {
         var src1 = """
 
+
             """ + typeKind + """
              C
             {
                 private int a = 10;
                 private int b;
             }
+
             """;
         var src2 = """
+
 
             """ + typeKind + """
              C
@@ -12773,6 +13202,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 public C() { b = 3; }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -13203,6 +13633,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_Delete_Parameterless()
     {
         var src1 = """
+
             class C
             {
                 private int a = 10;
@@ -13210,13 +13641,16 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 public C() { b = 3; }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 private int a = 10;
                 private int b;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -13458,12 +13892,16 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_InsertDelete_Primary_Partial_Class()
     {
         var src1 = """
+
             partial class C { }
             partial class C(int P);
+
             """;
         var src2 = """
+
             partial class C(int P) { }
             partial class C;
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -13476,12 +13914,16 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_InsertDelete_Primary_Partial_Record()
     {
         var src1 = """
+
             partial record C { }
             partial record C(int P);
+
             """;
         var src2 = """
+
             partial record C(int P) { }
             partial record C;
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -13640,6 +14082,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_Partial_Update_LambdaInInitializer1()
     {
         var src1 = """
+
             using System;
 
             partial class C
@@ -13658,8 +14101,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     F(<N:0.2>c => c + 1</N:0.2>);
                 }</N:0.3>
             }
+
             """;
         var src2 = """
+
             using System;
 
             partial class C
@@ -13678,6 +14123,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     F(<N:0.2>c => c + 2</N:0.2>);
                 }</N:0.3>
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -13691,6 +14137,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_Partial_Update_LambdaInInitializer_Trivia1()
     {
         var src1 = """
+
             using System;
 
             partial class C
@@ -13706,8 +14153,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 public C() { F(<N:0.2>c => c + 1</N:0.2>); }
             }
+
             """;
         var src2 = """
+
             using System;
 
             partial class C
@@ -13723,6 +14172,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 /*new trivia*/public C() { F(<N:0.2>c => c + 1</N:0.2>); }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -13736,6 +14186,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_Partial_Update_LambdaInInitializer_ExplicitInterfaceImpl1()
     {
         var src1 = """
+
             using System;
 
             public interface I { int B { get; } }
@@ -13758,8 +14209,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     F(<N:0.3>c => c + 1</N:0.3>);
                 }
             }
+
             """;
         var src2 = """
+
             using System;
 
             public interface I { int B { get; } }
@@ -13782,6 +14235,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     F(<N:0.3>c => c + 2</N:0.3>);
                 }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -13795,6 +14249,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_Partial_Insert_Parameterless_LambdaInInitializer1()
     {
         var src1 = """
+
             using System;
 
             partial class C
@@ -13808,8 +14263,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
             {
                 int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
             }
+
             """;
         var src2 = """
+
             using System;
 
             partial class C
@@ -13828,6 +14285,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     F(c => c + 1);
                 }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -13846,6 +14304,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_Partial_Insert_WithParameters_LambdaInInitializer1()
     {
         var src1 = """
+
             using System;
 
             partial class C
@@ -13859,8 +14318,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
             {
                 int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
             }
+
             """;
         var src2 = """
+
             using System;
 
             partial class C
@@ -13879,6 +14340,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     F(c => c + 1);
                 }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         _ = GetSyntaxMap(src1, src2);
@@ -13896,6 +14358,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Constructor_Instance_Partial_Explicit_Update()
     {
         var srcB1 = """
+
             using System;
 
             partial class C
@@ -13904,8 +14367,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 C(uint arg) => Console.WriteLine(2);
             }
+
             """;
         var srcB2 = """
+
             using System;
 
             partial class C
@@ -13915,11 +14380,13 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 C(uint arg) => Console.WriteLine(2);
                 C(byte arg) => Console.WriteLine(3);  // new ctor
             }
+
             """;
         var syntaxMapB = GetSyntaxMap(srcB1, srcB2)[0];
 
         EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
+
                 using System;
 
                 partial class C
@@ -13927,7 +14394,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     C(int arg) => Console.WriteLine(0);
                     C(bool arg) => Console.WriteLine(1);
                 }
+
                 """, """
+
                 using System;
 
                 partial class C
@@ -13935,6 +14404,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     C(int arg) => Console.WriteLine(0);
                     C(bool arg) => Console.WriteLine(1);
                 }
+
                 """), GetTopEdits(srcB1, srcB2)],
             [
                 // No changes in document A
@@ -13957,6 +14427,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     {
         EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
+
                 using System;
 
                 partial class C
@@ -13964,7 +14435,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     C(int arg) => Console.WriteLine(0);
                     C(int arg) => Console.WriteLine(1);
                 }
+
                 """, """
+
                 using System;
 
                 partial class C
@@ -13972,14 +14445,18 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     C(int arg) => Console.WriteLine(0);
                     C(int arg) => Console.WriteLine(1);
                 }
+
                 """), GetTopEdits("""
+
                          using System;
 
                          partial class C
                          {
                              int a = 1;
                          }
+
                          """, """
+
                          using System;
 
                          partial class C
@@ -13988,6 +14465,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                              C(int arg) => Console.WriteLine(2);
                          }
+
                          """)],
             [
                 // No changes in document A
@@ -14234,16 +14712,20 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Destructor_BlockBodyToExpressionBody()
     {
         var src1 = """
+
             public class C
             {
                 ~C() { Console.WriteLine(0); }
             }
+
             """;
         var src2 = """
+
             public class C
             {
                 ~C() => Console.WriteLine(0);
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -14260,16 +14742,20 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void Destructor_ExpressionBodyToBlockBody()
     {
         var src1 = """
+
             public class C
             {
                 ~C() => Console.WriteLine(0);
             }
+
             """;
         var src2 = """
+
             public class C
             {
                 ~C() { Console.WriteLine(0); }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -15361,6 +15847,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MemberInitializer_Update_Lambda_ImplicitCtor_EditInitializerWithLambda1()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -15370,8 +15857,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 int A = F(<N:0.0>a => a + 1</N:0.0>);
                 int B = F(<N:0.1>b => b + 1</N:0.1>);
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -15381,6 +15870,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 int A = F(<N:0.0>a => a + 1</N:0.0>);
                 int B = F(<N:0.1>b => b + 2</N:0.1>);
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -15394,6 +15884,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MemberInitializer_Update_Lambda_ImplicitCtor_EditInitializerWithoutLambda1()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -15403,8 +15894,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 int A = 1;
                 int B = F(<N:0.0>b => b + 1</N:0.0>);
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -15414,6 +15907,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 int A = 2;
                 int B = F(<N:0.0>b => b + 1</N:0.0>);
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -15427,6 +15921,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MemberInitializer_Update_Lambda_CtorIncludingInitializers_EditInitializerWithLambda1()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -15438,8 +15933,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 <N:0.2>public C() {}</N:0.2>
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -15451,6 +15948,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 <N:0.2>public C() {}</N:0.2>
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -15464,6 +15962,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MemberInitializer_Update_Lambda_CtorIncludingInitializers_EditInitializerWithoutLambda1()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -15475,8 +15974,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 public C() {}
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -15488,6 +15989,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 public C() {}
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -15501,6 +16003,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MemberInitializer_Update_Lambda_MultipleCtorsIncludingInitializers_EditInitializerWithLambda1()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -15513,8 +16016,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public C(int a) {}
                 public C(bool b) {}
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -15527,6 +16032,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public C(int a) {}
                 public C(bool b) {}
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -15543,6 +16049,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MemberInitializer_Update_Lambda_MultipleCtorsIncludingInitializersContainingLambdas_EditInitializerWithLambda1()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -15555,8 +16062,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
                 public C(bool b) { F(<N:0.3>d => d + 1</N:0.3>); }
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -15569,6 +16078,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
                 public C(bool b) { F(<N:0.3>d => d + 1</N:0.3>); }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -15585,6 +16095,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MemberInitializer_Update_Lambda_MultipleCtorsIncludingInitializersContainingLambdas_EditInitializerWithLambda_Trivia1()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -15597,8 +16108,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
                 public C(bool b) { F(<N:0.3>d => d + 1</N:0.3>); }
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -15611,6 +16124,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
                 public C(bool b) { F(<N:0.3>d => d + 1</N:0.3>); }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -15627,6 +16141,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MemberInitializer_Update_Lambda_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithLambda1()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -15639,8 +16154,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
                 public C(bool b) { F(d => d + 1); }
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -15653,6 +16170,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public C(int a) { F(<N:0.2>c => c + 2</N:0.2>); }
                 public C(bool b) { F(d => d + 1); }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -15668,6 +16186,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MemberInitializer_Update_Lambda_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithLambda_Trivia1()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -15680,8 +16199,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
                 public C(bool b) { F(d => d + 1); }
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -15694,6 +16215,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
                 public C(bool b) { F(d => d + 1); }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -15709,6 +16231,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MemberInitializer_Update_Lambda_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithoutLambda1()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -15721,8 +16244,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public C(int a) { F(c => c + 1); }
                 public C(bool b) { Console.WriteLine(1); }
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -15735,6 +16260,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public C(int a) { F(c => c + 1); }
                 public C(bool b) { Console.WriteLine(2); }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -15750,6 +16276,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MemberInitializer_Update_Lambda_EditConstructorNotIncludingInitializers()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -15762,8 +16289,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public C(int a) { F(c => c + 1); }
                 public C(bool b) : this(1) { Console.WriteLine(1); }
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -15776,6 +16305,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public C(int a) { F(c => c + 1); }
                 public C(bool b) : this(1) { Console.WriteLine(2); }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -15791,6 +16321,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MemberInitializer_Update_Lambda_RemoveCtorInitializer1()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -15803,8 +16334,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 unsafe public C(int a) { char* buffer = stackalloc char[16]; F(c => c + 1); }
                 public C(bool b) : this(1) { Console.WriteLine(1); }
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -15817,6 +16350,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 unsafe public C(int a) { char* buffer = stackalloc char[16]; F(c => c + 1); }
                 public C(bool b) { Console.WriteLine(1); }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -15832,6 +16366,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MemberInitializer_Update_Lambda_AddCtorInitializer1()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -15844,8 +16379,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public C(int a) { F(c => c + 1); }
                 public C(bool b) { Console.WriteLine(1); }
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -15858,6 +16395,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 public C(int a) { F(c => c + 1); }
                 public C(bool b) : this(1) { Console.WriteLine(1); }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -15872,6 +16410,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     public void MemberInitializer_Update_Lambda_UpdateBaseCtorInitializerWithLambdas1()
     {
         var src1 = """
+
             using System;
 
             class B
@@ -15892,8 +16431,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     F(<N:0.3>d => d + 1</N:0.3>);
                 }
             }
+
             """;
         var src2 = """
+
             using System;
 
             class B
@@ -15914,6 +16455,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     F(<N:0.3>d => d + 1</N:0.3>);
                 }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -15945,6 +16487,7 @@ class C : B
 }
 """;
         var src2 = """
+
             using System;
 
             class C : B
@@ -15953,6 +16496,7 @@ class C : B
 
                 int A = F(<N:0.0>a => a + 1</N:0.0>);
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -15979,6 +16523,7 @@ class C() : B{{initializer}}
 }
 """;
         var src2 = """
+
             using System;
 
             class C : B
@@ -15987,6 +16532,7 @@ class C() : B{{initializer}}
 
                 int A = F(<N:0.0>a => a + 1</N:0.0>);
             }
+
             """;
         if (isInsert)
         {
@@ -16007,6 +16553,7 @@ class C() : B{{initializer}}
     public void MemberInitializer_Update_Lambda_PartialDeclarationDelete_SingleDocument()
     {
         var src1 = """
+
             partial class C
             {
                 int x = F(<N:0.0>a => a + 1</N:0.0>);
@@ -16022,9 +16569,11 @@ class C() : B{{initializer}}
                 public C() { }
                 static int F(Func<int, int> x) => 1;
             }
+
             """;
 
         var src2 = """
+
             partial class C
             {
                 int x = F(<N:0.0>a => a + 1</N:0.0>);
@@ -16036,6 +16585,7 @@ class C() : B{{initializer}}
 
                 static int F(Func<int, int> x) => 1;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -16069,6 +16619,7 @@ class C() : B{{initializer}}
     public void MemberInitializer_Update_ActiveStatements1()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -16079,8 +16630,10 @@ class C() : B{{initializer}}
                 public C(int a) { Console.WriteLine(1); }
                 public C(bool b) { Console.WriteLine(1); }
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -16091,6 +16644,7 @@ class C() : B{{initializer}}
                 public C(int a) { Console.WriteLine(1); }
                 public C(bool b) { Console.WriteLine(1); }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -16108,6 +16662,7 @@ class C() : B{{initializer}}
     public void MemberInitializer_Update_Partial_SemanticError()
     {
         var src1 = """
+
             partial class C
             {
                 partial int P => 1;
@@ -16117,8 +16672,10 @@ class C() : B{{initializer}}
             {
                 partial int P => 1;
             }
+
             """;
         var src2 = """
+
             partial class C
             {
                 partial int P => 1;
@@ -16130,6 +16687,7 @@ class C() : B{{initializer}}
 
                 public C() { }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -16588,14 +17146,17 @@ class C() : B{{initializer}}
     public void Field_Insert_IntoStruct()
     {
         var src1 = """
+
             struct S 
             { 
                 public int a; 
 
                 public S(int z) { this = default(S); a = z; }
             }
+
             """;
         var src2 = """
+
             struct S 
             { 
                 public int a; 
@@ -16607,6 +17168,7 @@ class C() : B{{initializer}}
 
                 public S(int z) { this = default(S); a = z; }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -16621,6 +17183,7 @@ class C() : B{{initializer}}
     public void Field_Insert_IntoLayoutClass_Auto()
     {
         var src1 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Auto)]
@@ -16628,8 +17191,10 @@ class C() : B{{initializer}}
             { 
                 private int a; 
             }
+
             """;
         var src2 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Auto)]
@@ -16640,6 +17205,7 @@ class C() : B{{initializer}}
                 private int c; 
                 private static int d; 
             }
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -16657,6 +17223,7 @@ class C() : B{{initializer}}
     public void Field_Insert_IntoLayoutClass_Explicit()
     {
         var src1 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Explicit)]
@@ -16665,8 +17232,10 @@ class C() : B{{initializer}}
                 [FieldOffset(0)]
                 private int a; 
             }
+
             """;
         var src2 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Explicit)]
@@ -16683,6 +17252,7 @@ class C() : B{{initializer}}
 
                 private static int d; 
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -16696,6 +17266,7 @@ class C() : B{{initializer}}
     public void Field_Insert_IntoLayoutClass_Sequential()
     {
         var src1 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Sequential)]
@@ -16703,8 +17274,10 @@ class C() : B{{initializer}}
             { 
                 private int a; 
             }
+
             """;
         var src2 = """
+
             using System.Runtime.InteropServices;
 
             [StructLayoutAttribute(LayoutKind.Sequential)]
@@ -16715,6 +17288,7 @@ class C() : B{{initializer}}
                 private int c; 
                 private static int d; 
             }
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -16729,6 +17303,7 @@ class C() : B{{initializer}}
     public void Field_Insert_WithInitializersAndLambdas1()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -16742,8 +17317,10 @@ class C() : B{{initializer}}
                     F(<N:0.1>c => c + 1</N:0.1>);
                 }
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -16758,6 +17335,7 @@ class C() : B{{initializer}}
                     F(<N:0.1>c => c + 1</N:0.1>);
                 }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -16774,6 +17352,7 @@ class C() : B{{initializer}}
     public void Field_Insert_ConstructorReplacingImplicitConstructor_WithInitializersAndLambdas()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -16782,8 +17361,10 @@ class C() : B{{initializer}}
 
                 int A = F(<N:0.0>a => a + 1</N:0.0>);
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -16798,6 +17379,7 @@ class C() : B{{initializer}}
                     F(c => c + 1);
                 }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -16825,6 +17407,7 @@ class C() : B{{initializer}}
     public void Field_Insert_ParameterlessConstructorInsert_WithInitializersAndLambdas()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -16835,8 +17418,10 @@ class C() : B{{initializer}}
 
                 public C(int x) {}
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -16852,6 +17437,7 @@ class C() : B{{initializer}}
                     F(c => c + 1);
                 }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -16872,6 +17458,7 @@ class C() : B{{initializer}}
     public void Field_Insert_ConstructorInsert_WithInitializersAndLambdas1()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -16880,8 +17467,10 @@ class C() : B{{initializer}}
 
                 int A = F(<N:0.0>a => a + 1</N:0.0>);
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -16896,6 +17485,7 @@ class C() : B{{initializer}}
                     F(c => c + 1);
                 }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         _ = GetSyntaxMap(src1, src2);
@@ -16917,6 +17507,7 @@ class C() : B{{initializer}}
     public void Field_Insert_ConstructorInsert_WithInitializersButNoExistingLambdas1()
     {
         var src1 = """
+
             using System;
 
             class C
@@ -16925,8 +17516,10 @@ class C() : B{{initializer}}
 
                 int A = F(null);
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
@@ -16941,6 +17534,7 @@ class C() : B{{initializer}}
                     F(c => c + 1);
                 }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -16984,12 +17578,14 @@ class C() : B{{initializer}}
     public void Field_Attribute_Add_NotSupportedByRuntime()
     {
         var src1 = """
+
             class C
             {
                 public int a = 1, x = 1;
             }
             """;
         var src2 = """
+
             class C
             {
                 [System.Obsolete]public int a = 1, x = 1;
@@ -17013,12 +17609,14 @@ class C() : B{{initializer}}
     public void Field_Attribute_Add()
     {
         var src1 = """
+
             class C
             {
                 public int a, b;
             }
             """;
         var src2 = """
+
             class C
             {
                 [System.Obsolete]public int a, b;
@@ -17040,12 +17638,14 @@ class C() : B{{initializer}}
     public void Field_Attribute_Add_WithInitializer()
     {
         var src1 = """
+
             class C
             {
                 int a;
             }
             """;
         var src2 = """
+
             class C
             {
                 [System.Obsolete]int a = 0;
@@ -18246,6 +18846,7 @@ class C() : B{{initializer}}
     public void Property_Insert_PInvoke()
     {
         var src1 = """
+
             using System;
             using System.Runtime.InteropServices;
 
@@ -18254,6 +18855,7 @@ class C() : B{{initializer}}
             }
             """;
         var src2 = """
+
             using System;
             using System.Runtime.InteropServices;
 
@@ -18263,6 +18865,7 @@ class C() : B{{initializer}}
                 private static extern int P2 { [DllImport("x.dll")]set; }
                 private static extern int P3 { [DllImport("x.dll")]get; [DllImport("x.dll")]set; }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -18313,14 +18916,17 @@ class C() : B{{initializer}}
     public void Property_Insert_IntoStruct_Static()
     {
         var src1 = """
+
             struct S 
             { 
                 public int a; 
-
+                
                 public S(int z) { a = z; } 
             }
+
             """;
         var src2 = """
+
             struct S 
             { 
                 public int a; 
@@ -18334,6 +18940,7 @@ class C() : B{{initializer}}
                 static int m { get => 1; set => k; }
                 public S(int z) { a = z; }
             }
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -19021,12 +19628,14 @@ class C() : B{{initializer}}
     public void Property_Auto_ReadOnly_Add()
     {
         var src1 = """
+
             struct S
             {
                 int P { get; }
             }
             """;
         var src2 = """
+
             struct S
             {
                 readonly int P { get; }
@@ -19040,6 +19649,7 @@ class C() : B{{initializer}}
     public void Property_InMutableStruct_ReadOnly_Add()
     {
         var src1 = """
+
             struct S
             {
                  int P1 { get => 1; }
@@ -19049,6 +19659,7 @@ class C() : B{{initializer}}
             }
             """;
         var src2 = """
+
             struct S
             {
                  readonly int P1 { get => 1; }
@@ -19075,6 +19686,7 @@ class C() : B{{initializer}}
         // indent to align accessor bodies and avoid updates caused by sequence point location changes
 
         var src1 = """
+
             readonly struct S
             {
                           int P1 { get => 1; }
@@ -19084,6 +19696,7 @@ class C() : B{{initializer}}
             }
             """;
         var src2 = """
+
             readonly struct S
             {
                  readonly int P1 { get => 1; }
@@ -19106,20 +19719,24 @@ class C() : B{{initializer}}
     public void Property_Rename_ShadowingPrimaryParameter()
     {
         var src1 = """
+
             class C(int A, int B)
             {
                 public int B { get; init; }
 
                 public int F() => B;
             }
+
             """;
         var src2 = """
+
             class C(int A, int B)
             {
                 public int D { get; init; }
 
                 public int F() => B;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -19143,20 +19760,24 @@ class C() : B{{initializer}}
     public void Property_Rename_ShadowingPrimaryParameter_WithInitializer()
     {
         var src1 = """
+
             class C(int A, int B)
             {
                 public int B { get; init; } = B;
 
                 public int F() => B;
             }
+
             """;
         var src2 = """
+
             class C(int A, int B)
             {
                 public int D { get; init; } = B;
 
                 public int F() => B;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -20164,20 +20785,24 @@ class C() : B{{initializer}}
     public void Indexer_Parameter_Reorder_Stackalloc()
     {
         var src1 = """
+
             using System;
 
             class C
             {
                 int this[int a, byte b] { get { return stackalloc int[1].Length; } }
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
             {
                 int this[byte b, int a] { get { return stackalloc int[1].Length; } }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -20190,20 +20815,24 @@ class C() : B{{initializer}}
     public void Indexer_Parameter_Reorder_Stackalloc_WithGetter_WithExpressionBody()
     {
         var src1 = """
+
             using System;
 
             class C
             {
                 int this[int a, byte b] { get => stackalloc int[1].Length; }
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
             {
                 int this[byte b, int a] { get => stackalloc int[1].Length; }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -20216,20 +20845,24 @@ class C() : B{{initializer}}
     public void Indexer_Parameter_Reorder_Stackalloc_WithExpressionBody()
     {
         var src1 = """
+
             using System;
 
             class C
             {
                 int this[int a, byte b] => stackalloc int[1].Length;
             }
+
             """;
         var src2 = """
+
             using System;
 
             class C
             {
                 int this[byte b, int a] => stackalloc int[1].Length;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -20242,12 +20875,14 @@ class C() : B{{initializer}}
     public void Indexer_AddSetAccessor()
     {
         var src1 = """
+
             class C
             {
                 public int this[int i] { get { return default; } }
             }
             """;
         var src2 = """
+
             class C
             {
                 public int this[int i] { get { return default; } set { } }
@@ -20266,6 +20901,7 @@ class C() : B{{initializer}}
     public void Indexer_Delete()
     {
         var src1 = """
+
             class C<T>
             {
                 public T this[int i]
@@ -20276,6 +20912,7 @@ class C() : B{{initializer}}
             }
             """;
         var src2 = """
+
             class C<T>
             {
             }
@@ -20295,6 +20932,7 @@ class C() : B{{initializer}}
     public void Indexer_DeleteGetAccessor()
     {
         var src1 = """
+
             class C<T>
             {
                 public T this[int i]
@@ -20305,6 +20943,7 @@ class C() : B{{initializer}}
             }
             """;
         var src2 = """
+
             class C<T>
             {
                 public T this[int i]
@@ -20326,12 +20965,14 @@ class C() : B{{initializer}}
     public void Indexer_DeleteSetAccessor()
     {
         var src1 = """
+
             class C
             {
                 public int this[int i] { get { return 0; } set { } }
             }
             """;
         var src2 = """
+
             class C
             {
                 public int this[int i] { get { return 0; } }
@@ -20499,12 +21140,14 @@ class C() : B{{initializer}}
     public void AutoIndexer_ReadOnly_Add()
     {
         var src1 = """
+
             struct S
             {
                 int this[int x] { get; }
             }
             """;
         var src2 = """
+
             struct S
             {
                 readonly int this[int x] { get; }
@@ -20525,6 +21168,7 @@ class C() : B{{initializer}}
     public void Indexer_InMutableStruct_ReadOnly_Add()
     {
         var src1 = """
+
             struct S
             {
                  int this[int x] { get => 1; }
@@ -20534,6 +21178,7 @@ class C() : B{{initializer}}
             }
             """;
         var src2 = """
+
             struct S
             {
                  readonly int this[int x] { get => 1; }
@@ -20558,6 +21203,7 @@ class C() : B{{initializer}}
     public void Indexer_InReadOnlyStruct_ReadOnly_Add()
     {
         var src1 = """
+
             readonly struct S
             {
                           int this[int x] { get => 1; }
@@ -20567,6 +21213,7 @@ class C() : B{{initializer}}
             }
             """;
         var src2 = """
+
             readonly struct S
             {
                  readonly int this[int x] { get => 1; }
@@ -20713,6 +21360,7 @@ class C() : B{{initializer}}
     public void Event_Insert_TypeLayout()
     {
         var src1 = """
+
             using System;
             using System.Runtime.InteropServices;
 
@@ -20720,8 +21368,10 @@ class C() : B{{initializer}}
             class C 
             { 
             }
+
             """;
         var src2 = """
+
             using System;
             using System.Runtime.InteropServices;
 
@@ -20730,6 +21380,7 @@ class C() : B{{initializer}}
             { 
                 private event Action c { add { } remove { } } 
             }
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -20741,6 +21392,7 @@ class C() : B{{initializer}}
     public void EventField_Insert_TypeLayout()
     {
         var src1 = """
+
             using System;
             using System.Runtime.InteropServices;
 
@@ -20748,8 +21400,10 @@ class C() : B{{initializer}}
             class C 
             { 
             }
+
             """;
         var src2 = """
+
             using System;
             using System.Runtime.InteropServices;
 
@@ -20758,6 +21412,7 @@ class C() : B{{initializer}}
             { 
                 private event Action c;
             }
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -20771,18 +21426,22 @@ class C() : B{{initializer}}
     public void Event_ExpressionBodyToBlockBody()
     {
         var src1 = """
+
             using System;
             public class C
             {
                 event Action E { add => F(); remove => F(); }
             }
+
             """;
         var src2 = """
+
             using System;
             public class C
             {
                event Action E { add { F(); } remove { } }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -20798,18 +21457,22 @@ class C() : B{{initializer}}
     public void Event_BlockBodyToExpressionBody()
     {
         var src1 = """
+
             using System;
             public class C
             {
                event Action E { add { F(); } remove { } }
             }
+
             """;
         var src2 = """
+
             using System;
             public class C
             {
                 event Action E { add => F(); remove => F(); }
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -20842,6 +21505,7 @@ class C() : B{{initializer}}
     public void Event_InMutableStruct_ReadOnly_Add()
     {
         var src1 = """
+
             struct S
             {
                 public event Action E
@@ -20851,6 +21515,7 @@ class C() : B{{initializer}}
             }
             """;
         var src2 = """
+
             struct S
             {
                 public readonly event Action E
@@ -20870,6 +21535,7 @@ class C() : B{{initializer}}
     public void Event_InReadOnlyStruct_ReadOnly_Add1()
     {
         var src1 = """
+
             readonly struct S
             {
                 public event Action E
@@ -20879,6 +21545,7 @@ class C() : B{{initializer}}
             }
             """;
         var src2 = """
+
             readonly struct S
             {
                 public readonly event Action E
@@ -20896,12 +21563,14 @@ class C() : B{{initializer}}
     public void EventField_Attribute_Add()
     {
         var src1 = """
+
             class C
             {
                 event Action F;
             }
             """;
         var src2 = """
+
             class C
             {
                 [System.Obsolete]event Action F;
@@ -20928,12 +21597,14 @@ class C() : B{{initializer}}
     public void Event_Attribute_Add_CustomAccessors()
     {
         var src1 = """
+
             class C
             {
                 event Action F { add {} remove {} }
             }
             """;
         var src2 = """
+
             class C
             {
                 [System.Obsolete]event Action F { add {} remove {} }
@@ -20962,12 +21633,14 @@ class C() : B{{initializer}}
     public void Event_Accessor_Attribute_Add()
     {
         var src1 = """
+
             class C
             {
                 event Action F { add {} remove {} }
             }
             """;
         var src2 = """
+
             class C
             {
                 event Action F { add {} [System.Obsolete]remove {} }
@@ -20992,12 +21665,14 @@ class C() : B{{initializer}}
     public void EventField_Attribute_Delete()
     {
         var src1 = """
+
             class C
             {
                 [System.Obsolete]event Action F;
             }
             """;
         var src2 = """
+
             class C
             {
                 event Action F;
@@ -21022,12 +21697,14 @@ class C() : B{{initializer}}
     public void Event_Attribute_Delete()
     {
         var src1 = """
+
             class C
             {
                 [System.Obsolete]event Action F { add {} remove {} }
             }
             """;
         var src2 = """
+
             class C
             {
                 event Action F { add {} remove {} }
@@ -21056,12 +21733,14 @@ class C() : B{{initializer}}
     public void Event_Accessor_Attribute_Delete()
     {
         var src1 = """
+
             class C
             {
                 event Action F { add {} [System.Obsolete]remove {} }
             }
             """;
         var src2 = """
+
             class C
             {
                 event Action F { add {} remove {} }
@@ -21722,12 +22401,16 @@ class C() : B{{initializer}}
     public void Parameter_Update_Type_Nullable()
     {
         var src1 = """
+
             #nullable enable
             class C { static void M(string a) { } }
+
             """;
         var src2 = """
+
             #nullable disable
             class C { static void M(string a) { } }
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -22436,8 +23119,10 @@ class C() : B{{initializer}}
     public void TypeTypeParameter_Partial_Attribute_AddMultiple()
     {
         var attributes = """
+
             class A : System.Attribute {}
             class B : System.Attribute {}
+
             """;
 
         var srcA1 = "partial class C<T> { }" + attributes;
@@ -22461,8 +23146,10 @@ class C() : B{{initializer}}
     public void TypeTypeParameter_Partial_Attribute_AddMultiple_Reloadable()
     {
         var attributes = """
+
             class A : System.Attribute {}
             class B : System.Attribute {}
+
             """;
 
         var srcA1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C<T> { }" + attributes;
@@ -22649,14 +23336,18 @@ class C() : B{{initializer}}
     public void TopLevelStatements_Update()
     {
         var src1 = """
+
             using System;
 
             Console.WriteLine("Hello");
+
             """;
         var src2 = """
+
             using System;
 
             Console.WriteLine("Hello World");
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -22673,16 +23364,20 @@ class C() : B{{initializer}}
     public void TopLevelStatements_InsertAndUpdate()
     {
         var src1 = """
+
             using System;
 
             Console.WriteLine("Hello");
+
             """;
         var src2 = """
+
             using System;
 
             Console.WriteLine("Hello World");
             Console.WriteLine("What is your name?");
             var name = Console.ReadLine();
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -22702,12 +23397,16 @@ class C() : B{{initializer}}
     public void TopLevelStatements_Insert_NoImplicitMain()
     {
         var src1 = """
+
             using System;
+
             """;
         var src2 = """
+
             using System;
 
             Console.WriteLine("Hello World");
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -22722,15 +23421,19 @@ class C() : B{{initializer}}
     public void TopLevelStatements_Insert_ImplicitMain()
     {
         var src1 = """
+
             using System;
 
             Console.WriteLine("Hello");
+
             """;
         var src2 = """
+
             using System;
 
             Console.WriteLine("Hello");
             Console.WriteLine("World");
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -22745,12 +23448,17 @@ class C() : B{{initializer}}
     public void TopLevelStatements_Delete_NoImplicitMain()
     {
         var src1 = """
+
             using System;
 
             Console.WriteLine("Hello World");
+
             """;
         var src2 = """
+
             using System;
+
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -22764,15 +23472,19 @@ class C() : B{{initializer}}
     public void TopLevelStatements_Delete_ImplicitMain()
     {
         var src1 = """
+
             using System;
 
             Console.WriteLine("Hello");
             Console.WriteLine("World");
+
             """;
         var src2 = """
+
             using System;
 
             Console.WriteLine("Hello");
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -22832,15 +23544,19 @@ class C() : B{{initializer}}
     public void TopLevelStatements_VoidToInt1()
     {
         var src1 = """
+
             using System;
 
             Console.Write(1);
+
             """;
         var src2 = """
+
             using System;
 
             Console.Write(1);
             return 1;
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -22854,17 +23570,21 @@ class C() : B{{initializer}}
     public void TopLevelStatements_VoidToInt2()
     {
         var src1 = """
+
             using System;
 
             Console.Write(1);
 
             return;
+
             """;
         var src2 = """
+
             using System;
 
             Console.Write(1);
             return 1;
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -22878,6 +23598,7 @@ class C() : B{{initializer}}
     public void TopLevelStatements_VoidToInt3()
     {
         var src1 = """
+
             using System;
 
             Console.Write(1);
@@ -22886,8 +23607,10 @@ class C() : B{{initializer}}
             {
                 return 1;
             }
+
             """;
         var src2 = """
+
             using System;
 
             Console.Write(1);
@@ -22897,6 +23620,7 @@ class C() : B{{initializer}}
             {
                 return 1;
             }
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -22910,15 +23634,19 @@ class C() : B{{initializer}}
     public void TopLevelStatements_Await_Insert_First()
     {
         var src1 = """
+
             using System.Threading.Tasks;
 
             return 1;
+
             """;
         var src2 = """
+
             using System.Threading.Tasks;
 
             await Task.Delay(200);
             return 1;
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -22934,15 +23662,19 @@ class C() : B{{initializer}}
     public void TopLevelStatements_Await_Insert_Second()
     {
         var src1 = """
+
             using System.Threading.Tasks;
 
             await Task.Delay(100);
+
             """;
         var src2 = """
+
             using System.Threading.Tasks;
 
             await Task.Delay(100);
             await Task.Delay(200);
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -22964,15 +23696,19 @@ class C() : B{{initializer}}
     public void TopLevelStatements_Await_Delete_Last()
     {
         var src1 = """
+
             using System.Threading.Tasks;
 
             await Task.Delay(100);
             return 1;
+
             """;
         var src2 = """
+
             using System.Threading.Tasks;
 
             return 1;
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -22990,15 +23726,19 @@ class C() : B{{initializer}}
     public void TopLevelStatements_Await_Delete_Second()
     {
         var src1 = """
+
             using System.Threading.Tasks;
 
             await Task.Delay(100);
             await Task.Delay(200);
+
             """;
         var src2 = """
+
             using System.Threading.Tasks;
 
             await Task.Delay(100);
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -23020,17 +23760,21 @@ class C() : B{{initializer}}
     public void TopLevelStatements_VoidToTask()
     {
         var src1 = """
+
             using System;
             using System.Threading.Tasks;
 
             Console.Write(1);
+
             """;
         var src2 = """
+
             using System;
             using System.Threading.Tasks;
 
             await Task.Delay(100);
             Console.Write(1);
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -23044,19 +23788,23 @@ class C() : B{{initializer}}
     public void TopLevelStatements_TaskToTaskInt()
     {
         var src1 = """
+
             using System;
             using System.Threading.Tasks;
 
             await Task.Delay(100);
             Console.Write(1);
+
             """;
         var src2 = """
+
             using System;
             using System.Threading.Tasks;
 
             await Task.Delay(100);
             Console.Write(1);
             return 1;
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -23070,12 +23818,15 @@ class C() : B{{initializer}}
     public void TopLevelStatements_VoidToTaskInt()
     {
         var src1 = """
+
             using System;
             using System.Threading.Tasks;
 
             Console.Write(1);
+
             """;
         var src2 = """
+
             using System;
             using System.Threading.Tasks;
 
@@ -23086,6 +23837,7 @@ class C() : B{{initializer}}
             {
                 return Task.FromResult(1);
             }
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -23099,16 +23851,20 @@ class C() : B{{initializer}}
     public void TopLevelStatements_IntToVoid1()
     {
         var src1 = """
+
             using System;
 
             Console.Write(1);
 
             return 1;
+
             """;
         var src2 = """
+
             using System;
 
             Console.Write(1);
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -23122,17 +23878,21 @@ class C() : B{{initializer}}
     public void TopLevelStatements_IntToVoid2()
     {
         var src1 = """
+
             using System;
 
             Console.Write(1);
 
             return 1;
+
             """;
         var src2 = """
+
             using System;
 
             Console.Write(1);
             return;
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -23146,6 +23906,7 @@ class C() : B{{initializer}}
     public void TopLevelStatements_IntToVoid3()
     {
         var src1 = """
+
             using System;
 
             Console.Write(1);
@@ -23155,8 +23916,10 @@ class C() : B{{initializer}}
             {
                 return 1;
             }
+
             """;
         var src2 = """
+
             using System;
 
             Console.Write(1);
@@ -23165,6 +23928,7 @@ class C() : B{{initializer}}
             {
                 return 1;
             }
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -23178,6 +23942,7 @@ class C() : B{{initializer}}
     public void TopLevelStatements_IntToVoid4()
     {
         var src1 = """
+
             using System;
 
             Console.Write(1);
@@ -23190,8 +23955,10 @@ class C() : B{{initializer}}
                     return 1;
                 }
             }
+
             """;
         var src2 = """
+
             using System;
 
             Console.Write(1);
@@ -23203,6 +23970,7 @@ class C() : B{{initializer}}
                     return 1;
                 }
             }
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -23216,17 +23984,21 @@ class C() : B{{initializer}}
     public void TopLevelStatements_TaskToVoid()
     {
         var src1 = """
+
             using System;
             using System.Threading.Tasks;
 
             await Task.Delay(100);
             Console.Write(1);
+
             """;
         var src2 = """
+
             using System;
             using System.Threading.Tasks;
 
             Console.Write(1);
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -23241,19 +24013,23 @@ class C() : B{{initializer}}
     public void TopLevelStatements_TaskIntToTask()
     {
         var src1 = """
+
             using System;
             using System.Threading.Tasks;
 
             await Task.Delay(100);
             Console.Write(1);
             return 1;
+
             """;
         var src2 = """
+
             using System;
             using System.Threading.Tasks;
 
             await Task.Delay(100);
             Console.Write(1);
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -23267,6 +24043,7 @@ class C() : B{{initializer}}
     public void TopLevelStatements_TaskIntToVoid()
     {
         var src1 = """
+
             using System;
             using System.Threading.Tasks;
 
@@ -23277,12 +24054,15 @@ class C() : B{{initializer}}
             {
                 return Task.FromResult(1);
             }
+
             """;
         var src2 = """
+
             using System;
             using System.Threading.Tasks;
 
             Console.Write(1);
+
             """;
 
         var edits = GetTopEdits(src1, src2);
@@ -23297,18 +24077,22 @@ class C() : B{{initializer}}
     public void TopLevelStatements_WithLambda_Insert()
     {
         var src1 = """
+
             using System;
 
             Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
             Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+
             """;
         var src2 = """
+
             using System;
 
             Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
             Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
 
             Console.WriteLine(1);
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -23322,6 +24106,7 @@ class C() : B{{initializer}}
     public void TopLevelStatements_WithLambda_Update()
     {
         var src1 = """
+
             using System;
 
             Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
@@ -23330,8 +24115,10 @@ class C() : B{{initializer}}
             Console.WriteLine(1);
 
             public class C { }
+
             """;
         var src2 = """
+
             using System;
 
             Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
@@ -23340,6 +24127,7 @@ class C() : B{{initializer}}
             Console.WriteLine(2);
 
             public class C { }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -23353,6 +24141,7 @@ class C() : B{{initializer}}
     public void TopLevelStatements_WithLambda_Delete()
     {
         var src1 = """
+
             using System;
 
             Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
@@ -23361,14 +24150,17 @@ class C() : B{{initializer}}
             Console.WriteLine(1);
 
             public class C { }
+
             """;
         var src2 = """
+
             using System;
 
             Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
             Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
 
             public class C { }
+
             """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -23382,20 +24174,24 @@ class C() : B{{initializer}}
     public void TopLevelStatements_UpdateMultiple()
     {
         var src1 = """
+
             using System;
 
             Console.WriteLine(1);
             Console.WriteLine(2);
 
             public class C { }
+
             """;
         var src2 = """
+
             using System;
 
             Console.WriteLine(3);
             Console.WriteLine(4);
 
             public class C { }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -23411,6 +24207,7 @@ class C() : B{{initializer}}
     {
         EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
+
                 using System;
 
                 Console.WriteLine(1);
@@ -23419,18 +24216,21 @@ class C() : B{{initializer}}
                 {
                 }
                 """, """
+
                 using System;
 
                 public class A
                 {
                 }
                 """), GetTopEdits("""
+
                          using System;
 
                          public class B
                          {
                          }
                          """, """
+
                          using System;
 
                          Console.WriteLine(2);
@@ -23451,12 +24251,16 @@ class C() : B{{initializer}}
     public void TopLevelStatements_BlockReorder()
     {
         var src1 = """
+
             { int a; }
             { int b; }
+
             """;
         var src2 = """
+
             { int b; }
             { int a; }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -23471,12 +24275,16 @@ class C() : B{{initializer}}
     public void TopLevelStatements_Reorder()
     {
         var src1 = """
+
             System.Console.Write(1);
             System.Console.Write(2);
+
             """;
         var src2 = """
+
             System.Console.Write(2);
             System.Console.Write(1);
+
             """;
         var edits = GetTopEdits(src1, src2);
 

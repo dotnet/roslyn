@@ -48,6 +48,7 @@ public sealed class EditAndContinueMethodDebugInfoReaderTests
     public void DebugInfo(DebugInformationFormat format, bool useSymReader)
     {
         var source = """
+
             using System;
             delegate void D();
             class C
@@ -59,6 +60,7 @@ public sealed class EditAndContinueMethodDebugInfoReaderTests
                     d();
                 }
             }
+
             """;
         var tree = CSharpTestSource.Parse(source, path: "/a/c.cs", options: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), checksumAlgorithm: SourceHashAlgorithm.Sha1);
         var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(tree, options: TestOptions.DebugDll);

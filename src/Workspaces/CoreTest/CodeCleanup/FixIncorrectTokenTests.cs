@@ -22,6 +22,7 @@ public sealed class FixIncorrectTokensTests
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
     public Task FixEndIfKeyword_WithMatchingIf()
         => VerifyAsync("""
+
             Module Program
                 Sub Main(args As String())
                     [|If args IsNot Nothing Then
@@ -30,6 +31,7 @@ public sealed class FixIncorrectTokensTests
                 End Sub
             End Module
             """, """
+
             Module Program
                 Sub Main(args As String())
                     If args IsNot Nothing Then
@@ -46,6 +48,7 @@ public sealed class FixIncorrectTokensTests
             #If c = 0 Then
             #Endif|]
             """, """
+
             #If c = 0 Then
             #End If
             """);
@@ -53,12 +56,14 @@ public sealed class FixIncorrectTokensTests
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
     public Task FixEndIfKeyword_WithoutMatchingIf()
         => VerifyAsync("""
+
             Module Program
                 Sub Main(args As String())
                     [|EndIf|]
                 End Sub
             End Module
             """, """
+
             Module Program
                 Sub Main(args As String())
                     End If
@@ -75,6 +80,7 @@ public sealed class FixIncorrectTokensTests
 
             #Endif|]
             """, """
+
             Class X
             End Class
 
@@ -85,12 +91,14 @@ public sealed class FixIncorrectTokensTests
     [WorkItem(17313, "DevDiv_Projects/Roslyn")]
     public Task FixEndIfKeyword_SameLineAsIf()
         => VerifyAsync("""
+
             Module Program
                 Sub Main(args As String())
                     If args IsNot Nothing Then [|EndIf|]        
                 End Sub
             End Module
             """, """
+
             Module Program
                 Sub Main(args As String())
                     If args IsNot Nothing Then
@@ -102,12 +110,14 @@ public sealed class FixIncorrectTokensTests
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
     public Task FixEndIfKeyword_SameLineAsIf_Invalid()
         => VerifyAsync("""
+
             Module Program
                 Sub Main(args As String())
                     If args IsNot Nothing [|EndIf|]
                 End Sub
             End Module
             """, """
+
             Module Program
                 Sub Main(args As String())
                     If args IsNot Nothing EndIf
@@ -121,12 +131,14 @@ public sealed class FixIncorrectTokensTests
             [|
             #If c = 0 Then #Endif|]
             """, """
+
             #If c = 0 Then #Endif
             """);
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
     public Task FixEndIfKeyword_WithLeadingTrivia()
         => VerifyAsync("""
+
             Module Program
                 Sub Main(args As String())
                     [|If args IsNot Nothing Then
@@ -136,6 +148,7 @@ public sealed class FixIncorrectTokensTests
                 End Sub
             End Module
             """, """
+
             Module Program
                 Sub Main(args As String())
                     If args IsNot Nothing Then
@@ -155,14 +168,17 @@ public sealed class FixIncorrectTokensTests
             #Endif
             |]
             """, """
+
             #If c = 0 Then
             '#Endif
             #End If
+
             """);
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
     public Task FixEndIfKeyword_InvocationExpressionArgument()
         => VerifyAsync("""
+
             Module Program
                 Sub Main(args As String())
                     [|If args IsNot Nothing Then
@@ -171,6 +187,7 @@ public sealed class FixIncorrectTokensTests
                 End Sub
             End Module
             """, """
+
             Module Program
                 Sub Main(args As String())
                     If args IsNot Nothing Then
@@ -209,6 +226,7 @@ public sealed class FixIncorrectTokensTests
             #Endif
             |]
             """, """
+
             ' BadDirective cases
             #If c = 0 Then
             #InvocationExpression #Endif
@@ -232,11 +250,13 @@ public sealed class FixIncorrectTokensTests
             #If c = 0 Then
             InvocationExpression
             #End If
+
             """);
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
     public Task FixEndIfKeyword_WithTrailingTrivia()
         => VerifyAsync("""
+
             Module Program
                 Sub Main(args As String())
                     [|If args IsNot Nothing Then
@@ -245,6 +265,7 @@ public sealed class FixIncorrectTokensTests
                 End Sub
             End Module
             """, """
+
             Module Program
                 Sub Main(args As String())
                     If args IsNot Nothing Then
@@ -262,13 +283,16 @@ public sealed class FixIncorrectTokensTests
             #Endif '#Endif
             |]
             """, """
+
             #If c = 0 Then
             #End If '#Endif
+
             """);
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
     public Task FixEndIfKeyword_WithIdentifierTokenTrailingTrivia()
         => VerifyAsync("""
+
             Module Program
                 Sub Main(args As String())
                     [|If args IsNot Nothing Then
@@ -277,6 +301,7 @@ public sealed class FixIncorrectTokensTests
                 End Sub
             End Module
             """, """
+
             Module Program
                 Sub Main(args As String())
                     If args IsNot Nothing Then
@@ -315,6 +340,7 @@ public sealed class FixIncorrectTokensTests
             IdentifierToken
             |]
             """, """
+
             ' BadDirective cases
             #If c = 0 Then
             #End If #IdentifierToken
@@ -338,11 +364,13 @@ public sealed class FixIncorrectTokensTests
             #If c = 0 Then
             #End If
             IdentifierToken
+
             """);
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
     public Task FixEndIfKeyword_WithLeadingAndTrailingTrivia()
         => VerifyAsync("""
+
             Module Program
                 Sub Main(args As String())
                     [|If args IsNot Nothing Then
@@ -353,6 +381,7 @@ public sealed class FixIncorrectTokensTests
                 End Sub
             End Module
             """, """
+
             Module Program
                 Sub Main(args As String())
                     If args IsNot Nothing Then
@@ -373,14 +402,17 @@ public sealed class FixIncorrectTokensTests
             #Endif '#Endif
             |]
             """, """
+
             #If c = 0 Then
             '#Endif
             #End If '#Endif
+
             """);
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
     public Task FixEndIfKeyword_WithLeadingAndTrailingInvocationExpressions()
         => VerifyAsync("""
+
             Module Program
                 Sub Main(args As String())
                     [|If args IsNot Nothing Then
@@ -391,6 +423,7 @@ public sealed class FixIncorrectTokensTests
                 End Sub
             End Module
             """, """
+
             Module Program
                 Sub Main(args As String())
                     If args IsNot Nothing Then
@@ -431,6 +464,7 @@ public sealed class FixIncorrectTokensTests
             #Endif InvalidTrivia#
             |]
             """, """
+
             ' BadDirective cases
             #If c = 0 Then
             #InvalidTrivia #Endif #InvalidTrivia
@@ -454,6 +488,7 @@ public sealed class FixIncorrectTokensTests
             #If c = 0 Then
             InvalidTrivia#
             #End If InvalidTrivia#
+
             """);
 
     [Fact, WorkItem(5722, "DevDiv_Projects/Roslyn")]
@@ -502,6 +537,7 @@ public sealed class FixIncorrectTokensTests
             End Module
             |]
             """, """
+
             Imports SystemAlias = System
             Imports SystemInt16Alias = System.Int16
             Imports SystemUInt16Alias = System.UInt16
@@ -542,6 +578,7 @@ public sealed class FixIncorrectTokensTests
                     Dim c7 As SystemDateTimeAlias = Nothing
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem(5722, "DevDiv_Projects/Roslyn")]
@@ -550,6 +587,7 @@ public sealed class FixIncorrectTokensTests
         // With a user defined type named System
         // No fixups as System binds to type not a namespace.
         var code = """
+
             Imports SystemAlias = System
             Imports SystemInt16Alias = System.Short
             Imports SystemUInt16Alias = System.ushort
@@ -607,12 +645,14 @@ public sealed class FixIncorrectTokensTests
                     Dim e7 As Date = 0
                 End Sub
             End Module
+
             """;
 
         await VerifyAsync(@"[|" + code + @"|]", expectedResult: code);
 
         // No Fixes in trivia
         code = """
+
             Imports SystemAlias = System
             'Imports SystemInt16Alias = System.Short
 
@@ -622,6 +662,7 @@ public sealed class FixIncorrectTokensTests
                     ' Dim b1 As SystemAlias.SHORT = a1
                 End Sub
             End Module
+
             """;
 
         await VerifyAsync(@"[|" + code + @"|]", expectedResult: code);
@@ -640,6 +681,7 @@ public sealed class FixIncorrectTokensTests
             ‘’‘’ｆｕｌｌｗｉｄｔｈ 7
             '‘’‘’ｆｕｌｌｗｉｄｔｈ 8|]
             """, """
+
             'ｆｕｌｌｗｉｄｔｈ 1　
             'ｆｕｌｌｗｉｄｔｈ 2
             '‘ｆｕｌｌｗｉｄｔｈ 3

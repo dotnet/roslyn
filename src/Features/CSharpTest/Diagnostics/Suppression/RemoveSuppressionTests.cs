@@ -63,6 +63,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         public Task TestRemovePragmaSuppression()
             => TestAsync(
     """
+
     using System;
 
     #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
@@ -76,6 +77,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
     }
     """,
     """
+
     using System;
 
     class Class
@@ -91,6 +93,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         public Task TestRemovePragmaSuppression_AdjacentTrivia()
             => TestAsync(
     """
+
     using System;
 
     #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
@@ -107,6 +110,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
     }
     """,
     """
+
     using System;
 
     #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
@@ -125,6 +129,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         public Task TestRemovePragmaSuppression_TriviaWithMultipleIDs()
             => TestAsync(
     """
+
     using System;
 
     #pragma warning disable InfoDiagnostic, SomeOtherDiagnostic
@@ -138,6 +143,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
     }
     """,
     """
+
     using System;
 
     #pragma warning disable InfoDiagnostic, SomeOtherDiagnostic
@@ -157,6 +163,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         public Task TestRemovePragmaSuppression_WithEnclosingSuppression()
             => TestAsync(
     """
+
     #pragma warning disable InfoDiagnostic
     using System;
 
@@ -171,6 +178,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
     }
     """,
     """
+
     #pragma warning disable InfoDiagnostic
     using System;
 
@@ -189,6 +197,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         public Task TestRemoveLocalAttributeSuppression()
             => TestAsync(
     $$"""
+
     using System;
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{{FeaturesResources.Pending}}")]
@@ -201,6 +210,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
     }
     """,
     """
+
     using System;
 
     class Class
@@ -216,6 +226,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         public Task TestRemoveLocalAttributeSuppression2()
             => TestAsync(
     $$"""
+
     using System;
 
     class Class1
@@ -231,6 +242,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
     }
     """,
     """
+
     using System;
 
     class Class1
@@ -249,6 +261,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         public Task TestRemoveGlobalAttributeSuppression()
             => TestAsync(
     $$"""
+
     using System;
 
     [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{{FeaturesResources.Pending}}", Scope = "type", Target = "~T:Class")]
@@ -262,6 +275,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
     }
     """,
     """
+
     using System;
 
     class Class
@@ -282,6 +296,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public Task TestFixAllInDocument_RemovePragmaSuppressions()
             => TestInRegularAndScriptAsync("""
+
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document>
@@ -326,6 +341,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
                     </Project>
                 </Workspace>
                 """, """
+
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document>
@@ -372,6 +388,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public Task TestFixAllInProject_RemovePragmaSuppressions()
             => TestInRegularAndScriptAsync("""
+
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document>
@@ -418,6 +435,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
                     </Project>
                 </Workspace>
                 """, """
+
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document>
@@ -464,6 +482,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public Task TestFixAllInSolution()
             => TestInRegularAndScriptAsync("""
+
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document>
@@ -514,6 +533,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
                     </Project>
                 </Workspace>
                 """, """
+
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document>
@@ -565,6 +585,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         public async Task TestFixAllInDocument_RemoveAttributeSuppressions()
         {
             var addedGlobalSuppressions = $"""
+
                 // This file is used by Code Analysis to maintain SuppressMessage 
                 // attributes that are applied to this project.
                 // Project-level suppressions either have no target or are given 
@@ -574,9 +595,12 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
                 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class1")]
                 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
                 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class3")]
+
+
                 """.Replace("<", "&lt;").Replace(">", "&gt;");
 
             var input = """
+
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document>
@@ -627,6 +651,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
                 """;
 
             var newGlobalSuppressionsFile = $"""
+
                 // This file is used by Code Analysis to maintain SuppressMessage 
                 // attributes that are applied to this project.
                 // Project-level suppressions either have no target or are given 
@@ -634,8 +659,11 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
 
                 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "member", Target = "~M:Class1.Method~System.Int32")]
                 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class3")]
+
+
                 """.Replace("<", "&lt;").Replace(">", "&gt;");
             var expected = """
+
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document>
@@ -694,6 +722,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         public async Task TestFixAllInProject_RemoveAttributeSuppressions()
         {
             var addedGlobalSuppressions = $"""
+
                 // This file is used by Code Analysis to maintain SuppressMessage 
                 // attributes that are applied to this project.
                 // Project-level suppressions either have no target or are given 
@@ -702,9 +731,12 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
                 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class1")]
                 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
                 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class3")]
+
+
                 """.Replace("<", "&lt;").Replace(">", "&gt;");
 
             var input = """
+
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document>
@@ -755,12 +787,17 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
                 """;
 
             var newGlobalSuppressionsFile = $"""
+
                 // This file is used by Code Analysis to maintain SuppressMessage 
                 // attributes that are applied to this project.
                 // Project-level suppressions either have no target or are given 
                 // a specific target and scoped to a namespace, type, member, etc.
+
+
+
                 """;
             var expected = """
+
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document>
@@ -819,6 +856,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         public async Task TestFixAllInSolution_RemoveAttributeSuppression()
         {
             var addedGlobalSuppressionsProject1 = $"""
+
                 // This file is used by Code Analysis to maintain SuppressMessage 
                 // attributes that are applied to this project.
                 // Project-level suppressions either have no target or are given 
@@ -827,9 +865,12 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
                 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class1")]
                 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
                 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class3")]
+
+
                 """.Replace("<", "&lt;").Replace(">", "&gt;");
 
             var addedGlobalSuppressionsProject2 = $"""
+
                 // This file is used by Code Analysis to maintain SuppressMessage 
                 // attributes that are applied to this project.
                 // Project-level suppressions either have no target or are given 
@@ -837,9 +878,12 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
 
                 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class1")]
                 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
+
+
                 """.Replace("<", "&lt;").Replace(">", "&gt;");
 
             var input = """
+
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document>
@@ -890,12 +934,17 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
                 """;
 
             var newGlobalSuppressionsFile = $"""
+
                 // This file is used by Code Analysis to maintain SuppressMessage 
                 // attributes that are applied to this project.
                 // Project-level suppressions either have no target or are given 
                 // a specific target and scoped to a namespace, type, member, etc.
+
+
+
                 """;
             var expected = """
+
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document>
@@ -963,15 +1012,19 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         public async Task TestFixAllInProject_RemoveAttributeSuppressions()
         {
             var addedGlobalSuppressions = $"""
+
                 // This file is used by Code Analysis to maintain SuppressMessage 
                 // attributes that are applied to this project.
                 // Project-level suppressions either have no target or are given 
                 // a specific target and scoped to a namespace, type, member, etc.
 
                 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}")]
+
+
                 """.Replace("<", "&lt;").Replace(">", "&gt;");
 
             var input = """
+
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document>{|FixAllInProject:|}
@@ -1022,12 +1075,17 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
                 """;
 
             var newGlobalSuppressionsFile = $"""
+
                 // This file is used by Code Analysis to maintain SuppressMessage 
                 // attributes that are applied to this project.
                 // Project-level suppressions either have no target or are given 
                 // a specific target and scoped to a namespace, type, member, etc.
+
+
+
                 """;
             var expected = """
+
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document>

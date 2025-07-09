@@ -27,9 +27,10 @@ public sealed class AddMissingTokensTests
                         Dim a = 1
                     End If|]
             """), CreateMethod("""
-                                        If True Then
-                                            Dim a = 1
-                                        End If
+
+                                                If True Then
+                                                    Dim a = 1
+                                                End If
                                         """));
 
     [Fact]
@@ -38,7 +39,8 @@ public sealed class AddMissingTokensTests
             [|
                     Dim a As List(Integer)|]
             """), CreateMethod("""
-                                        Dim a As List(Of Integer)
+
+                                                Dim a As List(Of Integer)
                                         """));
 
     [Fact]
@@ -378,11 +380,13 @@ public sealed class AddMissingTokensTests
     [Fact]
     public Task DelegateInvocation()
         => VerifyAsync(CreateMethod("""
-            Dim a As Action
-            [|a|]
+
+                    Dim a As Action
+                    [|a|]
             """), CreateMethod("""
-                                        Dim a As Action
-                                        a()
+
+                                                Dim a As Action
+                                                a()
                                         """));
 
     [Fact]
@@ -497,9 +501,10 @@ public sealed class AddMissingTokensTests
                         Dim a = 1
                     End If|]
             """), CreateMethod("""
-                                        If True Then ' test
-                                            Dim a = 1
-                                        End If
+
+                                                If True Then ' test
+                                                    Dim a = 1
+                                                End If
                                         """));
 
     [Fact]
@@ -509,8 +514,9 @@ public sealed class AddMissingTokensTests
                     Dim a As List( ' test
                                   Integer)|]
             """), CreateMethod("""
-                                        Dim a As List( ' test
-                                                      Integer)
+
+                                                Dim a As List( ' test
+                                                              Integer)
                                         """));
 
     [Fact]
@@ -909,7 +915,7 @@ public sealed class AddMissingTokensTests
         => VerifyAsync("""
             [|Structure s1
                 Sub Goo() Handles Me.Goo
-
+             
                 End Sub
             End Structure|]
             """, """
@@ -927,7 +933,7 @@ public sealed class AddMissingTokensTests
                 Sub Main()
                     For Each goo in {} 
                 End Sub
-
+             
                 Sub Goo()
                 End Sub
             End Module|]
@@ -949,7 +955,7 @@ public sealed class AddMissingTokensTests
                 Sub Main()
                     For goo to 
                 End Sub
-
+             
                 Sub Goo()
                 End Sub
             End Module|]
@@ -1004,7 +1010,8 @@ public sealed class AddMissingTokensTests
             [|
                     If True OrElse|]
             """), CreateMethod("""
-                                        If True OrElse
+
+                                                If True OrElse
                                         """));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546581")]
@@ -1013,7 +1020,8 @@ public sealed class AddMissingTokensTests
             [|
                     If True|]
             """), CreateMethod("""
-                                        If True Then
+
+                                                If True Then
                                         """));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546797")]
@@ -1022,7 +1030,8 @@ public sealed class AddMissingTokensTests
             [|
                         System.Diagnostics.Debug.Assert _ (True)|]
             """), CreateMethod("""
-                                        System.Diagnostics.Debug.Assert _ (True)
+
+                                                System.Diagnostics.Debug.Assert _ (True)
                                         """));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546806")]
@@ -1033,6 +1042,7 @@ public sealed class AddMissingTokensTests
                         ' blah
             #End If|]
             """), CreateMethod("""
+
                                         #If Condition _ Then
                                                 ' blah
                                         #End If
@@ -1067,6 +1077,7 @@ public sealed class AddMissingTokensTests
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607792")]
     public Task CaseKeywordInSelectStatement()
         => VerifyAsync("""
+
             Module Program
                 Sub Main()
             [|
@@ -1083,6 +1094,7 @@ public sealed class AddMissingTokensTests
                 End Sub
             End Module
             """, """
+
             Module Program
                 Sub Main()
 
@@ -1179,6 +1191,7 @@ public sealed class AddMissingTokensTests
 
             End Class|]
             """, """
+
             Interface I
                 Function Goo() As System.Threading.Tasks.Task
             End Interface
@@ -1265,6 +1278,7 @@ public sealed class AddMissingTokensTests
 
             End Class|]
             """, """
+
             Imports System
             Imports System.Threading.Tasks
 
@@ -1348,6 +1362,7 @@ public sealed class AddMissingTokensTests
 
             End Class|]
             """, """
+
             Interface I
                 Function Goo() As System.Collections.IEnumerable
             End Interface
@@ -1429,6 +1444,7 @@ public sealed class AddMissingTokensTests
 
             End Class|]
             """, """
+
             Imports System
             Imports System.Collections
             Imports System.Collections.Generic
@@ -1554,6 +1570,7 @@ public sealed class AddMissingTokensTests
 
             End Class|]
             """, """
+
             Interface I
                 Function Goo() As System.Threading.Tasks.Task
             End Interface
@@ -1722,6 +1739,7 @@ public sealed class AddMissingTokensTests
 
             End Class|]
             """, """
+
             Imports System
             Imports System.Threading.Tasks
 
@@ -1903,6 +1921,7 @@ public sealed class AddMissingTokensTests
 
             End Class|]
             """, """
+
             Interface I
                 Function Goo() As System.Collections.IEnumerable
             End Interface
@@ -2097,6 +2116,7 @@ public sealed class AddMissingTokensTests
 
             End Class|]
             """, """
+
             Imports System
             Imports System.Collections.Generic
 
@@ -2208,6 +2228,7 @@ public sealed class AddMissingTokensTests
                 Async Function Bar() As Y.Tasks.Task
             End Class|]
             """, """
+
             Imports System
             Imports System.Threading.Tasks
             Imports X = System.Threading.Tasks.Task
@@ -2233,6 +2254,7 @@ public sealed class AddMissingTokensTests
                 Iterator Function Bar() As Y.IEnumerable
             End Class|]
             """, """
+
             Imports System
             Imports System.Collections
             Imports X = System.Collections.IEnumerable
@@ -2257,6 +2279,7 @@ public sealed class AddMissingTokensTests
                 End Function
             End Class|]
             """, """
+
             Imports System
             Imports System.Threading.Tasks
             Imports Y = System.Int32
@@ -2280,6 +2303,7 @@ public sealed class AddMissingTokensTests
                 End Function
             End Class|]
             """, """
+
             Imports System
             Imports System.Threading.Tasks
             Imports Y = System.Int32
@@ -2302,6 +2326,7 @@ public sealed class AddMissingTokensTests
                 End Function
             End Class|]
             """, """
+
             Imports System
             Imports System.Threading.Tasks
 
@@ -2323,6 +2348,7 @@ public sealed class AddMissingTokensTests
                 End Function
             End Class|]
             """, """
+
             Imports System
             Imports System.Collections
 
@@ -2365,6 +2391,7 @@ public sealed class AddMissingTokensTests
                 End Function
             End Class|]
             """, """
+
             Imports System
             Imports System.Threading.Tasks
 
@@ -2428,6 +2455,7 @@ public sealed class AddMissingTokensTests
                 End Function
             End Class|]
             """, """
+
             Imports System
             Imports System.Collections.Generic
 
@@ -2475,6 +2503,7 @@ public sealed class AddMissingTokensTests
                 End Sub
             End Class|]
             """, """
+
             Imports System
             Imports System.Collections.Generic
 
@@ -2499,6 +2528,7 @@ public sealed class AddMissingTokensTests
                 End Sub
             End Module|]
             """, """
+
             Module M
                 Sub Main()
                     Dim s = NameOf(Main)
@@ -2510,18 +2540,21 @@ public sealed class AddMissingTokensTests
     public Task OptionExplicitOn()
         => VerifyAsync(@"[|Option Explicit|]", """
             Option Explicit On
+
             """);
 
     [Fact]
     public Task OptionInferOn()
         => VerifyAsync(@"[|Option Infer|]", """
             Option Infer On
+
             """);
 
     [Fact]
     public Task OptionStrictOn()
         => VerifyAsync(@"[|Option Strict|]", """
             Option Strict On
+
             """);
 
     private static string CreateMethod(string body)
@@ -2531,6 +2564,7 @@ public sealed class AddMissingTokensTests
             Class C
                 Public Sub Method()
             """ + body + """
+
                 End Sub
             End Class
             """;

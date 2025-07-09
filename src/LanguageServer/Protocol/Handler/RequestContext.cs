@@ -320,29 +320,6 @@ internal readonly struct RequestContext
         return _trackedDocuments[documentUri].Text;
     }
 
-    public TDocument? GetTrackedDocument<TDocument>() where TDocument : TextDocument
-    {
-        // Note: context.Document may be null in the case where the client is asking about a document that we have
-        // since removed from the workspace.  In this case, we don't really have anything to process.
-        // GetPreviousResults will be used to properly realize this and notify the client that the doc is gone.
-        //
-        // Only consider open documents here (and only closed ones in the WorkspacePullDiagnosticHandler).  Each
-        // handler treats those as separate worlds that they are responsible for.
-        if (TextDocument is not TDocument document)
-        {
-            TraceDebug($"Ignoring diagnostics request because no {typeof(TDocument).Name} was provided");
-            return null;
-        }
-
-        if (!IsTracking(document.GetURI()))
-        {
-            TraceDebug($"Ignoring diagnostics request for untracked document: {document.GetURI()}");
-            return null;
-        }
-
-        return document;
-    }
-
     /// <summary>
     /// Allows a mutating request to close a document and stop it being tracked.
     /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.

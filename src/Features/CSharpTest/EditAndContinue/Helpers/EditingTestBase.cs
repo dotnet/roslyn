@@ -25,15 +25,20 @@ public abstract class EditingTestBase : CSharpTestBase
         "namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttribute : Attribute {} }";
 
     public static readonly string ReloadableAttributeSrc = $"""
+
         using System.Runtime.CompilerServices;
         {ReloadableAttributeDefSrc}
+
         """;
 
     public static readonly string RestartRequiredOnMetadataUpdateAttributeDefSrc = """
+
         namespace System.Runtime.CompilerServices { class RestartRequiredOnMetadataUpdateAttribute : Attribute {} }
+
         """;
 
     public static readonly string RestartRequiredOnMetadataUpdateAttributeSrc = $"""
+
         using System.Runtime.CompilerServices;
         {RestartRequiredOnMetadataUpdateAttributeDefSrc}
         """;

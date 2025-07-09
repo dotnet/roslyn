@@ -19,13 +19,8 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-public sealed partial class AddUsingTests : AbstractAddUsingTests
+public sealed partial class AddUsingTests(ITestOutputHelper logger) : AbstractAddUsingTests(logger)
 {
-    public AddUsingTests(ITestOutputHelper logger)
-        : base(logger)
-    {
-    }
-
     [Theory, CombinatorialData]
     public Task TestTypeFromMultipleNamespaces1(TestHost testHost)
         => TestAsync(
@@ -1902,23 +1897,23 @@ testHost, options: Option(GenerationOptions.PlaceSystemNamespaceFirst, false));
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538220")]
     public Task TestAddUsingForFieldWithFormatting(TestHost testHost)
         => TestAsync(
-@"class C { [|DateTime|] t; }",
-"""
-using System;
+            @"class C { [|DateTime|] t; }",
+            """
+            using System;
 
-class C { DateTime t; }
-""", testHost);
+            class C { DateTime t; }
+            """, testHost);
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539657")]
     public Task BugFix5688(TestHost testHost)
         => TestAsync(
-@"class Program { static void Main ( string [ ] args ) { [|Console|] . Out . NewLine = ""\r\n\r\n"" ; } } ",
-"""
-using System;
+            @"class Program { static void Main ( string [ ] args ) { [|Console|] . Out . NewLine = ""\r\n\r\n"" ; } }",
+            """
+            using System;
 
-class Program { static void Main ( string [ ] args ) { Console . Out . NewLine = "\r\n\r\n" ; } }
-""", testHost);
+            class Program { static void Main ( string [ ] args ) { Console . Out . NewLine = "\r\n\r\n" ; } }
+            """, testHost);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
     public Task BugFix5950()
@@ -2179,12 +2174,12 @@ TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
     public Task TestAssemblyAttribute(TestHost testHost)
         => TestAsync(
-@"[assembly: [|InternalsVisibleTo|](""Project"")]",
-"""
-using System.Runtime.CompilerServices;
+            @"[assembly: [|InternalsVisibleTo|](""Project"")]",
+            """
+            using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Project")]
-""", testHost);
+            [assembly: InternalsVisibleTo("Project")]
+            """, testHost);
 
     [Fact]
     public Task TestDoNotAddIntoHiddenRegion()
@@ -2265,12 +2260,12 @@ using System.Runtime.CompilerServices;
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
     public Task TestAttribute(TestHost testHost)
         => TestAsync(
-@"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ",
-"""
-using System.Runtime.InteropServices;
+            @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ]",
+            """
+            using System.Runtime.InteropServices;
 
-[assembly : Guid ( "9ed54f84-a89d-4fcd-a854-44251e925f09" ) ]
-""", testHost);
+            [assembly : Guid ( "9ed54f84-a89d-4fcd-a854-44251e925f09" ) ]
+            """, testHost);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546833")]
     public Task TestNotOnOverloadResolutionError()
@@ -2526,19 +2521,16 @@ testHost);
         const string InitialWorkspace = """
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
-                    <Document FilePath="lib.cs">
-            namespace ProjectLib
+                    <Document FilePath="lib.cs">namespace ProjectLib
             {
                 public class Project
                 {
                 }
-            }
-                    </Document>
+            }</Document>
                 </Project>
                 <Project Language="C#" AssemblyName="Console" CommonReferences="true">
                     <ProjectReference Alias="P">lib</ProjectReference>
-                    <Document FilePath="Program.cs">
-            namespace ExternAliases
+                    <Document FilePath="Program.cs">namespace ExternAliases
             {
                 class Program
                 {
@@ -2547,8 +2539,7 @@ testHost);
                         Project p = new [|Project()|];
                     }
                 }
-            } 
-            </Document>
+            }</Document>
                 </Project>
             </Workspace>
             """;
@@ -2579,8 +2570,7 @@ testHost);
         const string InitialWorkspace = """
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
-                    <Document FilePath="lib.cs">
-            namespace ProjectLib
+                    <Document FilePath="lib.cs">namespace ProjectLib
             {
                 public class Project
                 {
@@ -2592,13 +2582,11 @@ testHost);
                 public class AnotherClass
                 {
                 }
-            }
-                    </Document>
+            }</Document>
                 </Project>
                 <Project Language="C#" AssemblyName="Console" CommonReferences="true">
                     <ProjectReference Alias="P">lib</ProjectReference>
-                    <Document FilePath="Program.cs">
-            extern alias P;
+                    <Document FilePath="Program.cs">extern alias P;
             using P::ProjectLib;
             namespace ExternAliases
             {
@@ -2610,8 +2598,7 @@ testHost);
                         var x = new [|AnotherClass()|];
                     }
                 }
-            } 
-            </Document>
+            }</Document>
                 </Project>
             </Workspace>
             """;
@@ -2643,8 +2630,7 @@ testHost);
         const string InitialWorkspace = """
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
-                    <Document FilePath="lib.cs">
-            namespace ProjectLib;
+                    <Document FilePath="lib.cs">namespace ProjectLib;
             {
                 public class Project
                 {
@@ -2656,13 +2642,11 @@ testHost);
                 public class AnotherClass
                 {
                 }
-            }
-                    </Document>
+            }</Document>
                 </Project>
                 <Project Language="C#" AssemblyName="Console" CommonReferences="true">
                     <ProjectReference Alias="P">lib</ProjectReference>
-                    <Document FilePath="Program.cs">
-            extern alias P;
+                    <Document FilePath="Program.cs">extern alias P;
             using P::ProjectLib;
             namespace ExternAliases;
 
@@ -2673,8 +2657,7 @@ testHost);
                     Project p = new Project();
                     var x = new [|AnotherClass()|];
                 }
-            } 
-            </Document>
+            }</Document>
                 </Project>
             </Workspace>
             """;
@@ -2705,19 +2688,16 @@ testHost);
         const string InitialWorkspace = """
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
-                    <Document FilePath="lib.cs">
-            namespace AnotherNS
+                    <Document FilePath="lib.cs">namespace AnotherNS
             {
                 public class AnotherClass
                 {
                 }
-            }
-                    </Document>
+            }</Document>
                 </Project>
                 <Project Language="C#" AssemblyName="Console" CommonReferences="true">
                     <ProjectReference Alias="P">lib</ProjectReference>
-                    <Document FilePath="Program.cs">
-            using P::AnotherNS;
+                    <Document FilePath="Program.cs">using P::AnotherNS;
             namespace ExternAliases
             {
                 class Program
@@ -2727,8 +2707,7 @@ testHost);
                         var x = new [|AnotherClass()|];
                     }
                 }
-            } 
-            </Document>
+            }</Document>
                 </Project>
             </Workspace>
             """;
@@ -2758,18 +2737,15 @@ testHost);
         const string InitialWorkspace = """
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
-                    <Document FilePath="lib.cs">
-            namespace AnotherNS;
+                    <Document FilePath="lib.cs">namespace AnotherNS;
 
             public class AnotherClass
             {
-            }
-                    </Document>
+            }</Document>
                 </Project>
                 <Project Language="C#" AssemblyName="Console" CommonReferences="true">
                     <ProjectReference Alias="P">lib</ProjectReference>
-                    <Document FilePath="Program.cs">
-            using P::AnotherNS;
+                    <Document FilePath="Program.cs">using P::AnotherNS;
             namespace ExternAliases;
 
             class Program
@@ -2778,8 +2754,7 @@ testHost);
                 {
                     var x = new [|AnotherClass()|];
                 }
-            } 
-            </Document>
+            }</Document>
                 </Project>
             </Workspace>
             """;
@@ -3279,24 +3254,20 @@ testHost);
         => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="CSAssembly" CommonReferences="true">
-                    <Document FilePath = "Program">
-            public class C
+                    <Document FilePath = "Program">public class C
             {
                 void Main(C a)
                 {
                     C x = a?[|.B()|];
                 }
-            }
-                   </Document>
-                   <Document FilePath = "Extensions">
-            namespace Extensions
+            }</Document>
+                   <Document FilePath = "Extensions">namespace Extensions
             {
                 public static class E
                 {
                     public static C B(this C c) { return c; }
                 }
-            }
-                    </Document>
+            }</Document>
                 </Project>
             </Workspace>
             """, """
@@ -3317,8 +3288,7 @@ testHost);
         => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="CSAssembly" CommonReferences="true">
-                    <Document FilePath = "Program">
-            public class C
+                    <Document FilePath = "Program">public class C
             {
                 public E B { get; private set; }
 
@@ -3330,17 +3300,14 @@ testHost);
                 public class E
                 {
                 }
-            }
-                   </Document>
-                   <Document FilePath = "Extensions">
-            namespace Extensions
+            }</Document>
+                   <Document FilePath = "Extensions">namespace Extensions
             {
                 public static class D
                 {
                     public static C.E C(this C.E c) { return c; }
                 }
-            }
-                    </Document>
+            }</Document>
                 </Project>
             </Workspace>
             """, """
@@ -6334,25 +6301,21 @@ testHost);
         const string InitialWorkspace = """
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
-                    <Document FilePath="lib.cs">
-            using System.ComponentModel;
+                    <Document FilePath="lib.cs">using System.ComponentModel;
             namespace ProjectLib
             {
                 [EditorBrowsable(EditorBrowsableState.Never)]
                 public class Project
                 {
                 }
-            }
-                    </Document>
-                    <Document FilePath="Program.cs">
-            class Program
+            }</Document>
+                    <Document FilePath="Program.cs">class Program
             {
                 static void Main(string[] args)
                 {
                     Project p = new [|Project()|];
                 }
-            }
-            </Document>
+            }</Document>
                 </Project>
             </Workspace>
             """;
@@ -6412,26 +6375,22 @@ testHost);
         const string InitialWorkspace = """
             <Workspace>
                 <Project Language="Visual Basic" AssemblyName="lib" CommonReferences="true">
-                    <Document FilePath="lib.vb">
-            imports System.ComponentModel
+                    <Document FilePath="lib.vb">imports System.ComponentModel
             namespace ProjectLib
                 &lt;EditorBrowsable(EditorBrowsableState.Advanced)&gt;
                 public class Project
                 end class
-            end namespace
-                    </Document>
+            end namespace</Document>
                 </Project>
                 <Project Language="C#" AssemblyName="Console" CommonReferences="true">
                     <ProjectReference>lib</ProjectReference>
-                    <Document FilePath="Program.cs">
-            class Program
+                    <Document FilePath="Program.cs">class Program
             {
                 static void Main(string[] args)
                 {
                     [|Project|] p = new Project();
                 }
-            }
-            </Document>
+            }</Document>
                 </Project>
             </Workspace>
             """;

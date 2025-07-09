@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 }
                 """, """
                 #nullable enable
+
                 """, newUnshippedApiText: unshippedText);
         }
 
@@ -107,6 +108,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 }
                 """, """
                 #nullable enable
+
                 """, newUnshippedApiText: unshippedText);
         }
 

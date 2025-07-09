@@ -26,7 +26,9 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             {
                 void M(bool a, bool b)
                 {
+                    
             """ + ifLine + """
+
                     {
                     }
                     else if (b)
@@ -245,7 +247,9 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             {
                 void M(bool a, bool b)
                 {
+                    
             """ + ifLine + """
+
                     {
                     }
                     else if (b)

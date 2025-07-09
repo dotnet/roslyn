@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         {
             DiagnosticResult[] expected =
             [
-                GetCSharpExpectedDiagnostic(27, 9, unsupportedDescriptorName: "descriptor2"),
-                GetCSharpExpectedDiagnostic(30, 9, unsupportedDescriptorName: "descriptor2"),
-                GetCSharpExpectedDiagnostic(35, 9, unsupportedDescriptorName: "descriptor2"),
-                GetCSharpExpectedDiagnostic(38, 9, unsupportedDescriptorName: "descriptor2"),
-                GetCSharpExpectedDiagnostic(43, 9, unsupportedDescriptorName: "descriptor2"),
-                GetCSharpExpectedDiagnostic(46, 9, unsupportedDescriptorName: "descriptor2")
+                GetCSharpExpectedDiagnostic(26, 9, unsupportedDescriptorName: "descriptor2"),
+                GetCSharpExpectedDiagnostic(29, 9, unsupportedDescriptorName: "descriptor2"),
+                GetCSharpExpectedDiagnostic(34, 9, unsupportedDescriptorName: "descriptor2"),
+                GetCSharpExpectedDiagnostic(37, 9, unsupportedDescriptorName: "descriptor2"),
+                GetCSharpExpectedDiagnostic(42, 9, unsupportedDescriptorName: "descriptor2"),
+                GetCSharpExpectedDiagnostic(45, 9, unsupportedDescriptorName: "descriptor2")
             ];
 
             await VerifyCS.VerifyAnalyzerAsync("""
@@ -86,8 +86,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         {
             DiagnosticResult[] expected =
             [
-                GetCSharpExpectedDiagnostic(21, 9, unsupportedDescriptorName: "descriptor2"),
-                GetCSharpExpectedDiagnostic(24, 9, unsupportedDescriptorName: "descriptor2")
+                GetCSharpExpectedDiagnostic(20, 9, unsupportedDescriptorName: "descriptor2"),
+                GetCSharpExpectedDiagnostic(23, 9, unsupportedDescriptorName: "descriptor2")
             ];
 
             await VerifyCS.VerifyAnalyzerAsync("""
@@ -124,12 +124,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         {
             DiagnosticResult[] expected =
             [
-                GetBasicExpectedDiagnostic(24, 9, unsupportedDescriptorName: "descriptor2"),
-                GetBasicExpectedDiagnostic(27, 9, unsupportedDescriptorName: "descriptor2"),
-                GetBasicExpectedDiagnostic(31, 9, unsupportedDescriptorName: "descriptor2"),
-                GetBasicExpectedDiagnostic(34, 9, unsupportedDescriptorName: "descriptor2"),
-                GetBasicExpectedDiagnostic(38, 9, unsupportedDescriptorName: "descriptor2"),
-                GetBasicExpectedDiagnostic(41, 9, unsupportedDescriptorName: "descriptor2")
+                GetBasicExpectedDiagnostic(23, 9, unsupportedDescriptorName: "descriptor2"),
+                GetBasicExpectedDiagnostic(26, 9, unsupportedDescriptorName: "descriptor2"),
+                GetBasicExpectedDiagnostic(30, 9, unsupportedDescriptorName: "descriptor2"),
+                GetBasicExpectedDiagnostic(33, 9, unsupportedDescriptorName: "descriptor2"),
+                GetBasicExpectedDiagnostic(37, 9, unsupportedDescriptorName: "descriptor2"),
+                GetBasicExpectedDiagnostic(40, 9, unsupportedDescriptorName: "descriptor2")
             ];
 
             await VerifyVB.VerifyAnalyzerAsync("""

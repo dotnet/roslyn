@@ -472,6 +472,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 End Class
 
                 """, """
+
                 C
                 C.New() -> Void
                 C.Property() -> Integer
@@ -482,6 +483,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 C.ReadOnlyProperty1() -> Integer
                 C.ReadOnlyProperty2() -> Integer
                 C.WriteOnlyProperty0(Value As Integer) -> Void
+
                 """, @"");
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
@@ -493,6 +495,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     private C() { }
                 }
                 """, """
+
                 C
                 C -> void()
                 """, @"",
@@ -507,6 +510,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 {
                 }
                 """, """
+
                 C
                 C.C() -> void
                 """, @"");
@@ -519,8 +523,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 {
                 }
                 """, """
+
                 C
                 """, """
+
                 C.C() -> void
                 """);
 
@@ -532,6 +538,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 {
                 }
                 """, """
+
                 C
                 """, @"",
                 // Test0.cs(2,14): warning RS0016: Symbol 'C.C() -> void' is not part of the declared API.
@@ -546,6 +553,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     private C() { }
                 }
                 """, """
+
                 C
                 C.C() -> void
                 """, @"",
@@ -564,12 +572,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 }
 
                 """, """
+
                 C
                 C.C() -> void
                 C.Field -> int
                 C.Property.get -> int
                 C.Property.set -> void
                 C.Method() -> void
+
                 """, @"");
 
         [Fact]
@@ -583,13 +593,17 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     {{EnabledModifierCSharp}} void Method() { } 
                 }
                 """, """
+
                 C
                 C.C() -> void
                 C.Field -> int
                 C.Property.get -> int
                 C.Property.set -> void
+
                 """, """
+
                 C.Method() -> void
+
                 """);
 
         [Fact]
@@ -604,11 +618,15 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 }
 
                 """, """
+
                 E
                 E.V1 = 1 -> E
                 E.V2 = 2 -> E
+
                 """, """
+
                 E.V3 = 3 -> E
+
                 """);
 
         [Fact]
@@ -621,14 +639,18 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     public int Property { get; set; }
                 }
                 """, """
+
                 C
                 C.C() -> void
                 C.Field -> int
                 C.Property.get -> int
                 C.Property.set -> void
                 C.Method() -> void
+
                 """, $"""
+
                 {DeclarePublicApiAnalyzer.RemovedApiPrefix}C.Method() -> void
+
                 """);
 
         [Theory]
@@ -647,22 +669,27 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 """;
 
             var shippedText = """
+
                 C
                 C.C() -> void
                 C.Field -> int
                 C.Property.get -> int
                 C.Property.set -> void
+
                 """;
 
             if (includeInShipped)
             {
                 shippedText += """
                     C.Method() -> void
+
                     """;
             }
 
             string unshippedText = $"""
+
                 {DeclarePublicApiAnalyzer.RemovedApiPrefix}C.Method() -> void
+
                 """;
 
             var diagnostics = new[] {
@@ -695,11 +722,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     {{EnabledModifierCSharp}} int Property { get; set; }
                 }
                 """, $"""
+
                 C
                 C.Field -> int
                 C.Property.get -> int
                 C.Property.set -> void
                 {DeclarePublicApiAnalyzer.RemovedApiPrefix}C.Method() -> void
+
                 """, $@"", expected);
         }
 
@@ -724,11 +753,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     {{EnabledModifierCSharp}} int Property { get; set; }
                 }
                 """, """
+
                 C
                 C.Field -> int
                 C.Property.get -> int
                 C.Property.set -> void
                 C.Property.get -> int
+
                 """, @"", expected);
         }
 
@@ -754,12 +785,15 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 }
 
                 """, """
+
                 C
                 C.C() -> void
                 C.Field -> int
                 C.Property.get -> int
                 C.Property.set -> void
+
                 """, """
+
                 C.Property.get -> int
                 """, expected);
         }
@@ -822,6 +856,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 C.Field -> int
                 ~C.Property.get -> int
                 C.Property.set -> void
+
                 """, $$"""
                 #nullable enable
                 {|{{DuplicatedSymbolInApiFileId}}:C.Property.get -> int|}
@@ -845,6 +880,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 C.Field -> int
                 C.Property.get -> int
                 C.Property.set -> void
+
                 """, $$"""
                 #nullable enable
                 {|{{DuplicatedSymbolInApiFileId}}:~C.Property.get -> int|}
@@ -864,12 +900,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 }
 
                 """, $"""
+
                 C
                 C.C() -> void
                 C.Field -> int
                 C.Property.get -> int
                 C.Property.set -> void
                 C.Method() -> void
+
                 """, $@"",
                 // PublicAPI.Shipped.txt(7,1): warning RS0017: Symbol 'C.Method() -> void' is part of the declared API, but is either not public or could not be found
                 GetAdditionalFileResultAt(7, 1, ShippedFileName, RemoveDeletedApiRule, "C.Method() -> void"));
@@ -892,12 +930,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     private void Method() { }
                 }
                 """, $"""
+
                 C
                 C.C() -> void
                 C.Field -> int
                 C.Property.get -> int
                 C.Property.set -> void
                 C.Method() -> void
+
                 """, $@"", shippedFilePath, unshippedFilePath,
                 // <%TEMP_PATH%>\PublicAPI.Shipped.txt(7,1): warning RS0017: Symbol 'C.Method() -> void' is part of the declared API, but is either not public or could not be found
                 GetAdditionalFileResultAt(7, 1, shippedFilePath, RemoveDeletedApiRule, "C.Method() -> void"));
@@ -918,8 +958,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 #endif
 
             await VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparison))]
+
                 """, $"""
+
                 System.StringComparison (forwarded, contained in {containingAssembly})
                 System.StringComparison.CurrentCulture = 0 -> System.StringComparison (forwarded, contained in {containingAssembly})
                 System.StringComparison.CurrentCultureIgnoreCase = 1 -> System.StringComparison (forwarded, contained in {containingAssembly})
@@ -927,6 +970,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 System.StringComparison.InvariantCultureIgnoreCase = 3 -> System.StringComparison (forwarded, contained in {containingAssembly})
                 System.StringComparison.Ordinal = 4 -> System.StringComparison (forwarded, contained in {containingAssembly})
                 System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison (forwarded, contained in {containingAssembly})
+
                 """, $@"");
         }
 
@@ -948,6 +992,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             const string NullableSuffix = "";
 #endif
             string shippedText = $"""
+
                 System.StringComparer (forwarded, contained in {containingAssembly})
                 static System.StringComparer.InvariantCulture.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
                 static System.StringComparer.InvariantCultureIgnoreCase.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
@@ -963,20 +1008,25 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 abstract System.StringComparer.Equals(string{NullableSuffix} x, string{NullableSuffix} y) -> bool (forwarded, contained in {containingAssembly})
                 abstract System.StringComparer.GetHashCode(string{NonNullSuffix} obj) -> int (forwarded, contained in {containingAssembly})
                 System.StringComparer.StringComparer() -> void (forwarded, contained in {containingAssembly})
+
                 """;
 
 #if NETCOREAPP
             shippedText = $"""
+
                 #nullable enable
                 {shippedText}
                 static System.StringComparer.Create(System.Globalization.CultureInfo{NonNullSuffix} culture, System.Globalization.CompareOptions options) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
                 static System.StringComparer.FromComparison(System.StringComparison comparisonType) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+
                 """;
 
 #endif
 
             await VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparer))]
+
                 """, shippedText, $@"");
         }
 
@@ -995,7 +1045,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 #endif
 
             await VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Collections.Generic.IEnumerable<>))]
+
                 """, "", "",
                 // /0/Test0.cs(2,12): warning RS0016: Symbol 'System.Collections.Generic.IEnumerable<T> (forwarded, contained in System.Runtime)' is not part of the declared API
                 GetCSharpResultAt(2, 12, DeclareNewApiRule, $"System.Collections.Generic.IEnumerable<T> (forwarded, contained in {containingAssembly})"),
@@ -1023,7 +1075,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 #endif
 
             await VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Collections.Generic.IEnumerable<string>))]
+
                 """, "", "",
                 // /0/Test0.cs(2,12): warning RS0016: Symbol 'System.Collections.Generic.IEnumerable<string> (forwarded, contained in System.Runtime)' is not part of the declared API
                 GetCSharpResultAt(2, 12, DeclareNewApiRule, $"System.Collections.Generic.IEnumerable<string> (forwarded, contained in {containingAssembly})"),
@@ -1235,11 +1289,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     {{EnabledModifierCSharp}} void M(char p1, int p2) { }
                 }
                 """, shippedText, """
+
                 C
                 C.C() -> void
 
                 C.M(char p1, int p2) -> void
                 C.M(int p1 = 0) -> void
+
                 """);
         }
 
@@ -1408,6 +1464,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 E.E() -> void
                 ~E.F<T>
                 E.F<T>.F() -> void
+
                 """, @"",
                 GetCSharpResultAt(4, 11 + EnabledModifierCSharp.Length, ObliviousApiRule, "M<T>"),
                 GetCSharpResultAt(11, 8 + EnabledModifierCSharp.Length, ObliviousApiRule, "D<T>"),
@@ -1432,6 +1489,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 C.C() -> void
                 C.M<T>(T t) -> void
                 C.M2<T>(T t) -> void
+
                 """, @"");
 
         [Fact]
@@ -1462,6 +1520,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 C.M1b<T>() -> void
                 C.M2b<T>() -> void
                 C.M3b<T, U>() -> void
+
                 """, @"",
                 GetCSharpResultAt(5, 11 + EnabledModifierCSharp.Length, ObliviousApiRule, "M1<T>"),
                 GetCSharpResultAt(6, 11 + EnabledModifierCSharp.Length, ObliviousApiRule, "M2<T>"),
@@ -1490,6 +1549,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 C
                 C.C() -> void
                 ~C.M1<T>() -> void
+
                 """, @"",
                 GetCSharpResultAt(6, 11 + EnabledModifierCSharp.Length, ObliviousApiRule, "M1<T>")
                 );
@@ -1775,6 +1835,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 {
                 }
                 """, """
+
                 C
                 """, unshippedText, "C.C() -> void");
         }
@@ -1789,6 +1850,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     private C(string x) {}
                 }
                 """, """
+
                 C
                 """, unshippedText, "C.C() -> void");
         }
@@ -1805,6 +1867,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     }
                 }
                 """, """
+
                 C
                 C.C(int value) -> void
                 """, unshippedText, "C.C() -> void");
@@ -2127,8 +2190,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 }
 
                 """, $"""
+
                 #nullable enable
                 #nullable enable
+
                 """, $@"", expected);
         }
 
@@ -2143,8 +2208,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 {
                 }
                 """, $@"", $"""
+
                 #nullable enable
                 #nullable enable
+
                 """, expected);
         }
 

@@ -26,7 +26,9 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             {
                 void M(bool a, bool b)
                 {
+                    
             """ + ifLine + """
+
                         return;
                     if (b)
                         return;
@@ -137,7 +139,9 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             {
                 void M(bool a, bool b)
                 {
+                    
             """ + ifLine + """
+
                         return;
                     if (b)
                         return;

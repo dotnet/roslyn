@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public Task RS1007_RS1015_CSharp_VerifyDiagnosticAsync()
             => VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public Task RS1007_RS1015_VisualBasic_VerifyDiagnosticAsync()
             => VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -75,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """,
                 GetRS1007ExpectedDiagnostic(0),
                 GetRS1015ExpectedDiagnostic(1),
@@ -83,6 +86,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public Task RS1007_RS1015_CSharp_VerifyDiagnostic_NamedArgumentCasesAsync()
             => VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -120,6 +124,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public Task RS1007_RS1015_VisualBasic_VerifyDiagnostic_NamedArgumentCasesAsync()
             => VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -140,6 +145,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """,
                 GetRS1007ExpectedDiagnostic(0),
                 GetRS1028ResultAt(1),
@@ -151,6 +157,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public Task RS1007_RS1015_CSharp_NoDiagnosticCasesAsync()
             => VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -182,6 +189,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     {
                     }
                 }
+
                 """,
                 GetRS1028ResultAt(0),
                 GetRS1028ResultAt(1),
@@ -190,6 +198,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public Task RS1007_RS1015_VisualBasic_NoDiagnosticCasesAsync()
             => VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -213,6 +222,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """,
                 GetRS1028ResultAt(0),
                 GetRS1028ResultAt(1),
@@ -225,6 +235,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public Task RS1017_RS1019_CSharp_VerifyDiagnosticAsync()
             => VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -286,6 +297,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public Task RS1017_RS1019_CSharp_VerifyDiagnostic_CreateHelperAsync()
             => VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -344,6 +356,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public Task RS1017_RS1019_VisualBasic_VerifyDiagnosticAsync()
             => VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -382,6 +395,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """,
                 GetRS1028ResultAt(0),
                 GetRS1017ExpectedDiagnostic(1, "descriptor"),
@@ -392,6 +406,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public Task RS1017_RS1019_VisualBasic_VerifyDiagnostic_CreateHelperAsync()
             => VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -430,6 +445,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """ + VisualBasicDiagnosticDescriptorCreationHelper,
                 GetRS1017ExpectedDiagnostic(0, "descriptor"),
                 GetRS1019ExpectedDiagnostic(1, "DuplicateDiagnosticId", "MyAnalyzer"));
@@ -437,6 +453,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public Task RS1017_RS1019_CSharp_NoDiagnosticCasesAsync()
             => VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -470,6 +487,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     {
                     }
                 }
+
                 """,
                 GetRS1028ResultAt(0),
                 GetRS1028ResultAt(1),
@@ -478,6 +496,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public Task RS1017_RS1019_CSharp_NoDiagnosticCases_CreateHelperAsync()
             => VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -511,11 +530,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     {
                     }
                 }
+
                 """ + CSharpDiagnosticDescriptorCreationHelper);
 
         [Fact]
         public Task RS1017_RS1019_VisualBasic_NoDiagnosticCasesAsync()
             => VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -540,6 +561,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """,
                 GetRS1028ResultAt(0),
                 GetRS1028ResultAt(1),
@@ -548,6 +570,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public Task RS1017_RS1019_VisualBasic_NoDiagnosticCases_CreateHelperAsync()
             => VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -572,6 +595,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """ + VisualBasicDiagnosticDescriptorCreationHelper);
 
         #endregion
@@ -582,6 +606,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1018_RS1020_CSharp_VerifyDiagnosticAsync()
         {
             var source = """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -622,6 +647,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     {
                     }
                 }
+
                 """;
             await new VerifyCS.Test
             {
@@ -629,6 +655,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 {
                     Sources = { source },
                     AdditionalFiles = { (AdditionalFileName, """
+
                     # FORMAT:
                     # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -637,6 +664,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     CategoryWithRange: Prefix000-Prefix099
                     CategoryWithId: Prefix100
                     CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
+
                     """) },
                     ExpectedDiagnostics =
                     {
@@ -662,6 +690,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1018_RS1020_CSharp_VerifyDiagnostic_CreateHelperAsync()
         {
             var source = """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -709,6 +738,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 {
                     Sources = { source },
                     AdditionalFiles = { (AdditionalFileName, """
+
                     # FORMAT:
                     # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -717,6 +747,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     CategoryWithRange: Prefix000-Prefix099
                     CategoryWithId: Prefix100
                     CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
+
                     """) },
                     ExpectedDiagnostics =
                     {
@@ -736,6 +767,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1018_RS1020_VisualBasic_VerifyDiagnosticAsync()
         {
             var source = """
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -762,6 +794,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     Public Overrides Sub Initialize(ByVal context As AnalysisContext)
                     End Sub
                 End Class
+
                 """;
             await new VerifyVB.Test
             {
@@ -769,6 +802,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 {
                     Sources = { source },
                     AdditionalFiles = { (AdditionalFileName, """
+
                     # FORMAT:
                     # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -777,6 +811,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     CategoryWithRange: Prefix000-Prefix099
                     CategoryWithId: Prefix100
                     CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
+
                     """) },
                     ExpectedDiagnostics =
                     {
@@ -802,6 +837,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1018_RS1020_VisualBasic_VerifyDiagnostic_CreateHelperAsync()
         {
             var source = """
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -828,6 +864,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     Public Overrides Sub Initialize(ByVal context As AnalysisContext)
                     End Sub
                 End Class
+
                 """ + VisualBasicDiagnosticDescriptorCreationHelper;
             await new VerifyVB.Test
             {
@@ -835,6 +872,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 {
                     Sources = { source },
                     AdditionalFiles = { (AdditionalFileName, """
+
                     # FORMAT:
                     # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -843,6 +881,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     CategoryWithRange: Prefix000-Prefix099
                     CategoryWithId: Prefix100
                     CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
+
                     """) },
                     ExpectedDiagnostics =
                     {
@@ -862,6 +901,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1018_RS1020_CSharp_NoDiagnosticCasesAsync()
         {
             var source = """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -908,6 +948,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     {
                     }
                 }
+
                 """;
             await new VerifyCS.Test
             {
@@ -915,6 +956,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 {
                     Sources = { source },
                     AdditionalFiles = { (AdditionalFileName, """
+
                     # FORMAT:
                     # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -923,6 +965,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     CategoryWithRange: Prefix000-Prefix099
                     CategoryWithId: Prefix100
                     CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
+
                     """) },
                     ExpectedDiagnostics =
                     {
@@ -944,6 +987,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1018_RS1020_CSharp_NoDiagnosticCases_CreateHelperAsync()
         {
             var source = """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -997,6 +1041,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 {
                     Sources = { source },
                     AdditionalFiles = { (AdditionalFileName, """
+
                     # FORMAT:
                     # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -1005,6 +1050,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     CategoryWithRange: Prefix000-Prefix099
                     CategoryWithId: Prefix100
                     CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
+
                     """) }
                 },
                 SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
@@ -1015,6 +1061,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1018_RS1020_VisualBasic_NoDiagnosticCasesAsync()
         {
             var source = """
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -1043,6 +1090,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     Public Overrides Sub Initialize(ByVal context As AnalysisContext)
                     End Sub
                 End Class
+
                 """;
             await new VerifyVB.Test
             {
@@ -1050,6 +1098,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 {
                     Sources = { source },
                     AdditionalFiles = { (AdditionalFileName, """
+
                     # FORMAT:
                     # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -1058,6 +1107,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     CategoryWithRange: Prefix000-Prefix099
                     CategoryWithId: Prefix100
                     CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
+
                     """) },
                     ExpectedDiagnostics =
                     {
@@ -1079,6 +1129,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1018_RS1020_VisualBasic_NoDiagnosticCases_CreateHelperAsync()
         {
             var source = """
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -1107,6 +1158,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     Public Overrides Sub Initialize(ByVal context As AnalysisContext)
                     End Sub
                 End Class
+
                 """ + VisualBasicDiagnosticDescriptorCreationHelper;
             await new VerifyVB.Test
             {
@@ -1114,6 +1166,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 {
                     Sources = { source },
                     AdditionalFiles = { (AdditionalFileName, """
+
                     # FORMAT:
                     # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -1122,6 +1175,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     CategoryWithRange: Prefix000-Prefix099
                     CategoryWithId: Prefix100
                     CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
+
                     """) }
                 },
                 SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
@@ -1136,6 +1190,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1021_VerifyDiagnosticAsync()
         {
             var source = """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -1176,6 +1231,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     {
                     }
                 }
+
                 """;
             await new VerifyCS.Test
             {
@@ -1183,6 +1239,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 {
                     Sources = { source },
                     AdditionalFiles = { (AdditionalFileName, """
+
                     # FORMAT:
                     # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -1209,6 +1266,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 
                     # Illegal: Different prefixes in ID range
                     {|#15:CategoryWithBadId5: Prefix000-DifferentPrefix099|}
+
                     """) },
                     ExpectedDiagnostics =
                     {
@@ -1241,6 +1299,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task ReportOnMissingCustomTagsAsync()
         {
             await VerifyCSharpAnalyzerAsync("""
+
                 using Microsoft.CodeAnalysis;
                 public class MyAnalyzer
                 {
@@ -1260,6 +1319,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 GetRS1028ResultAt(1));
 
             await VerifyBasicAnalyzerAsync("""
+
                 Imports Microsoft.CodeAnalysis
                 Public Class MyAnalyzer
                     Friend Shared Rule1 As DiagnosticDescriptor = {|#0:New {|#1:DiagnosticDescriptor|}("", "", "", "", DiagnosticSeverity.Warning, False)|}
@@ -1279,6 +1339,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public Task DoNotReportOnNamedCustomTagsAsync()
             => VerifyCSharpAnalyzerAsync("""
+
                 using Microsoft.CodeAnalysis;
                 public class MyAnalyzer
                 {
@@ -1299,6 +1360,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task DoNotReportOnCustomTagsAsync()
         {
             await VerifyCSharpAnalyzerAsync("""
+
                 using Microsoft.CodeAnalysis;
                 public class MyAnalyzer
                 {
@@ -1320,6 +1382,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 GetRS1015ExpectedDiagnostic(3));
 
             await VerifyBasicAnalyzerAsync("""
+
                 Imports Microsoft.CodeAnalysis
                 Public Class MyAnalyzer
                     Friend Shared Rule1 As DiagnosticDescriptor = {|#0:New DiagnosticDescriptor("", "", "", "", DiagnosticSeverity.Warning, False, Nothing, {|#1:Nothing|}, "")|}
@@ -1344,6 +1407,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1029_AlreadyUsedId_DiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -1393,6 +1457,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 GetRS1029ResultAt(5, "BC00000000000000000000"));
 
             await VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -1432,6 +1497,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1029_DiagnosticIdSimilarButNotReserved_NoDiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -1475,6 +1541,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 """);
 
             await VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -1508,6 +1575,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1029_DiagnosticIdSimilarButTooShort_NoDiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -1542,6 +1610,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 """);
 
             await VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -1590,6 +1659,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             await new VerifyCS.Test
             {
                 TestCode = """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -1626,6 +1696,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             await new VerifyVB.Test
             {
                 TestCode = """
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -1664,6 +1735,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1031_TitleStringEndsWithPeriod_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -1694,6 +1766,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """, """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -1732,6 +1805,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(6).WithLocation(7));
 
             await VerifyBasicCodeFixAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -1756,7 +1830,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """, """
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -1781,6 +1857,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """,
                 GetRS1007ExpectedDiagnostic(0),
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1).WithLocation(1),
@@ -1813,6 +1890,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         {
             string additionalFileName = "Resources.resx";
             string additionalFileTextFormat = """
+
                 <root>
                   <data name="AnalyzerTitle" xml:space="preserve">
                     <value>{0}</value>
@@ -1822,6 +1900,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 """;
 
             string csharpSourceFormat = """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -1855,6 +1934,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 ]);
 
             string basicSourceFormat = """
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -1893,6 +1973,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1031_TitleIsMultiSentence_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -1921,6 +2002,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """, """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -1955,6 +2037,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(3).WithLocation(4));
 
             await VerifyBasicCodeFixAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -1978,7 +2061,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """, """
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -2002,6 +2087,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """,
                 GetRS1007ExpectedDiagnostic(0),
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1).WithLocation(1),
@@ -2040,6 +2126,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             {
                 string additionalFileName = "Resources.resx";
                 string additionalFileTextFormat = """
+
                     <root>
                       <data name="AnalyzerTitle" xml:space="preserve">
                         <value>{0}</value>
@@ -2049,6 +2136,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     """;
 
                 string csharpSourceFormat = """
+
                     using System;
                     using System.Collections.Immutable;
                     using Microsoft.CodeAnalysis;
@@ -2082,6 +2170,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     ]);
 
                 string basicSourceFormat = """
+
                     Imports System
                     Imports System.Collections.Immutable
                     Imports Microsoft.CodeAnalysis
@@ -2121,6 +2210,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1031_TitleIsMultiSentence_MultipleDescriptorsUsingSameTitle_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -2148,6 +2238,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """, """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -2182,6 +2273,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     );
 
             await VerifyBasicCodeFixAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -2204,7 +2296,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """, """
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -2227,6 +2321,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """,
             GetRS1007ExpectedDiagnostic(0),
             VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1).WithLocation(4),
@@ -2245,6 +2340,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         {
             string additionalFileName = "Resources.resx";
             string additionalFileTextFormat = """
+
                 <root>
                   <data name="AnalyzerTitle" space="preserve">
                     <value>{0}</value>
@@ -2253,6 +2349,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 """;
 
             string csharpSourceFormat = """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -2290,6 +2387,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 ]);
 
             string basicSourceFormat = """
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -2332,6 +2430,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1031_TitleStringContainsLineReturn_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -2362,6 +2461,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """, """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -2401,6 +2501,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 
             // NOTE: Code fix does not handle binary operations.
             var vbCode = """
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -2426,6 +2527,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """;
             await VerifyBasicCodeFixAsync(vbCode, vbCode,
                 GetRS1007ExpectedDiagnostic(0),
@@ -2478,6 +2580,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             {
                 string additionalFileName = "Resources.resx";
                 string additionalFileTextFormat = """
+
                     <root>
                       <data name="AnalyzerTitle" xml:space="preserve">
                         <value>{0}</value>
@@ -2487,6 +2590,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     """;
 
                 string csharpSourceFormat = """
+
                     using System;
                     using System.Collections.Immutable;
                     using Microsoft.CodeAnalysis;
@@ -2520,6 +2624,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     ]);
 
                 string basicSourceFormat = """
+
                     Imports System
                     Imports System.Collections.Immutable
                     Imports Microsoft.CodeAnalysis
@@ -2559,6 +2664,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1031_ValidTitleString_NoDiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -2594,6 +2700,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 GetRS1007ExpectedDiagnostic(2));
 
             await VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -2618,6 +2725,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """,
                 GetRS1007ExpectedDiagnostic(0),
                 GetRS1007ExpectedDiagnostic(1),
@@ -2645,6 +2753,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             {
                 string additionalFileName = "Resources.resx";
                 string additionalFileTextFormat = """
+
                     <root>
                       <data name="AnalyzerTitle" xml:space="preserve">
                         <value>{0}</value>
@@ -2653,6 +2762,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     """;
 
                 string csharpSourceFormat = """
+
                     using System;
                     using System.Collections.Immutable;
                     using Microsoft.CodeAnalysis;
@@ -2686,6 +2796,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     ]);
 
                 string basicSourceFormat = """
+
                     Imports System
                     Imports System.Collections.Immutable
                     Imports Microsoft.CodeAnalysis
@@ -2729,6 +2840,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1032_MessageStringEndsWithPeriodAndIsNotMultiSentence_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -2757,6 +2869,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """, """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -2791,6 +2904,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(3).WithLocation(4));
 
             await VerifyBasicCodeFixAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -2814,7 +2928,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """, """
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -2838,6 +2954,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """,
                 GetRS1007ExpectedDiagnostic(0),
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(1).WithLocation(1),
@@ -2876,6 +2993,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             {
                 string additionalFileName = "Resources.resx";
                 string additionalFileTextFormat = """
+
                     <root>
                       <data name="AnalyzerMessage" xml:space="preserve">
                         <value>{0}</value>
@@ -2885,6 +3003,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     """;
 
                 string csharpSourceFormat = """
+
                     using System;
                     using System.Collections.Immutable;
                     using Microsoft.CodeAnalysis;
@@ -2918,6 +3037,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     ]);
 
                 string basicSourceFormat = """
+
                     Imports System
                     Imports System.Collections.Immutable
                     Imports Microsoft.CodeAnalysis
@@ -2957,6 +3077,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1032_MessageStringIsMultiSentenceAndDoesNotEndWithPeriod_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -2981,6 +3102,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """, """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -3009,6 +3131,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(1).WithLocation(1));
 
             await VerifyBasicCodeFixAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -3029,7 +3152,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """, """
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -3050,6 +3175,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """,
                 GetRS1007ExpectedDiagnostic(0),
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(1).WithLocation(1));
@@ -3059,6 +3185,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1032_MessageStringContainsLineReturn_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -3089,6 +3216,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """, """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -3128,6 +3256,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 
             // NOTE: Code fix does not handle binary operations.
             var vbCode = """
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -3153,6 +3282,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """;
             await VerifyBasicCodeFixAsync(vbCode, vbCode,
                 GetRS1007ExpectedDiagnostic(0),
@@ -3202,6 +3332,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             {
                 string additionalFileName = "Resources.resx";
                 string additionalFileTextFormat = """
+
                     <root>
                       <data name="AnalyzerMessage" xml:space="preserve">
                         <value>{0}</value>
@@ -3211,6 +3342,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     """;
 
                 string csharpSourceFormat = """
+
                     using System;
                     using System.Collections.Immutable;
                     using Microsoft.CodeAnalysis;
@@ -3244,6 +3376,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     ]);
 
                 string basicSourceFormat = """
+
                     Imports System
                     Imports System.Collections.Immutable
                     Imports Microsoft.CodeAnalysis
@@ -3283,6 +3416,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1032_ValidMessageString_NoDiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -3322,6 +3456,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 GetRS1007ExpectedDiagnostic(3));
 
             await VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -3348,6 +3483,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """,
                 GetRS1007ExpectedDiagnostic(0),
                 GetRS1007ExpectedDiagnostic(1),
@@ -3388,6 +3524,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             {
                 string additionalFileName = "Resources.resx";
                 string additionalFileTextFormat = """
+
                     <root>
                       <data name="AnalyzerMessage" xml:space="preserve">
                         <value>{0}</value>
@@ -3397,6 +3534,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     """;
 
                 string csharpSourceFormat = """
+
                     using System;
                     using System.Collections.Immutable;
                     using Microsoft.CodeAnalysis;
@@ -3430,6 +3568,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     ]);
 
                 string basicSourceFormat = """
+
                     Imports System
                     Imports System.Collections.Immutable
                     Imports Microsoft.CodeAnalysis
@@ -3473,6 +3612,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1033_DescriptionStringDoesNotEndWithPunctuation_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -3500,6 +3640,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """, """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -3533,6 +3674,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(4).WithLocation(5));
 
             await VerifyBasicCodeFixAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -3555,7 +3697,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """, """
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -3578,6 +3722,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """,
                 GetRS1007ExpectedDiagnostic(0),
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(1).WithLocation(1),
@@ -3616,6 +3761,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             {
                 string additionalFileName = "Resources.resx";
                 string additionalFileTextFormat = """
+
                     <root>
                       <data name="AnalyzerDescription" xml:space="preserve">
                         <value>{0}</value>
@@ -3625,6 +3771,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     """;
 
                 string csharpSourceFormat = """
+
                     using System;
                     using System.Collections.Immutable;
                     using Microsoft.CodeAnalysis;
@@ -3658,6 +3805,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     ]);
 
                 string basicSourceFormat = """
+
                     Imports System
                     Imports System.Collections.Immutable
                     Imports Microsoft.CodeAnalysis
@@ -3697,6 +3845,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1033_DescriptionEndsWithPunctuation_NoDiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -3735,6 +3884,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 GetRS1007ExpectedDiagnostic(2));
 
             await VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -3763,6 +3913,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	Public Overrides Sub Initialize(context As AnalysisContext)
                 	End Sub
                 End Class
+
                 """,
                 GetRS1007ExpectedDiagnostic(0),
                 GetRS1007ExpectedDiagnostic(1),
@@ -3802,6 +3953,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             {
                 string additionalFileName = "Resources.resx";
                 string additionalFileTextFormat = """
+
                     <root>
                       <data name="AnalyzerDescription" xml:space="preserve">
                         <value>{0}</value>
@@ -3811,6 +3963,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     """;
 
                 string csharpSourceFormat = """
+
                     using System;
                     using System.Collections.Immutable;
                     using Microsoft.CodeAnalysis;
@@ -3844,6 +3997,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     ]);
 
                 string basicSourceFormat = """
+
                     Imports System
                     Imports System.Collections.Immutable
                     Imports Microsoft.CodeAnalysis
@@ -3886,6 +4040,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1037_WithRequiredCustomTag_NoDiagnostic()
         {
             await VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -3920,6 +4075,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 GetRS1007ExpectedDiagnostic(0));
 
             await VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -3945,6 +4101,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                         End Function)
                     End Sub
                 End Class
+
                 """,
                 GetRS1007ExpectedDiagnostic(0));
         }
@@ -3953,6 +4110,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1037_NonInlinedCustomTags_NoDiagnostic()
         {
             await VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -3988,6 +4146,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 GetRS1007ExpectedDiagnostic(0));
 
             await VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -4014,6 +4173,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                         End Function)
                     End Sub
                 End Class
+
                 """,
                 GetRS1007ExpectedDiagnostic(0));
         }
@@ -4022,6 +4182,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1037_WithoutRequiredCustomTag_Diagnostic()
         {
             await VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -4062,6 +4223,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 GetRS1007ExpectedDiagnostic(2));
 
             await VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -4090,6 +4252,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                         End Function)
                     End Sub
                 End Class
+
                 """,
                 GetRS1037ExpectedDiagnostic(0, "descriptor1"),
                 GetRS1007ExpectedDiagnostic(1),
@@ -4100,6 +4263,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1037_DiagnosticStoredInLocal_WithInitializer_Diagnostic()
         {
             await VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -4141,6 +4305,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 GetRS1007ExpectedDiagnostic(2));
 
             await VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -4170,6 +4335,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                         End Function)
                     End Sub
                 End Class
+
                 """,
                 GetRS1037ExpectedDiagnostic(0, "descriptor1"),
                 GetRS1007ExpectedDiagnostic(1),
@@ -4180,6 +4346,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task RS1037_DiagnosticStoredInLocal_WithAssignment_Diagnostic()
         {
             await VerifyCSharpAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -4223,6 +4390,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 GetRS1007ExpectedDiagnostic(3));
 
             await VerifyBasicAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -4253,6 +4421,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                         End Function)
                     End Sub
                 End Class
+
                 """,
                 GetRS1037ExpectedDiagnostic(0, "descriptor1"),
                 GetRS1007ExpectedDiagnostic(1),
@@ -4266,6 +4435,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task VerifyFieldReferenceForFieldDefinedInSeparateFile()
         {
             var file1 = """
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -4292,6 +4462,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 """;
 
             var file2 = """
+
                 public class HelperType
                 {
                     public const string Id = "Id";
@@ -4509,6 +4680,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         private const string AdditionalFileName = "DiagnosticCategoryAndIdRanges.txt";
 
         private const string CSharpDiagnosticDescriptorCreationHelper = """
+
             internal static class DiagnosticDescriptorHelper
             {
                 // Dummy DiagnosticDescriptor creation helper.
@@ -4521,6 +4693,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             }
             """;
         private const string VisualBasicDiagnosticDescriptorCreationHelper = """
+
             Friend Partial Module DiagnosticDescriptorHelper
                 ' Dummy DiagnosticDescriptor creation helper.
                 Function Create(id As String, title As LocalizableString, messageFormat As LocalizableString, category As String) As DiagnosticDescriptor

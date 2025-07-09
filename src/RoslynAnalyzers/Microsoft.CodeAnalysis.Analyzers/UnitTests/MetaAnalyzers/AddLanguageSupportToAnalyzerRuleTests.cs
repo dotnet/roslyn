@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """;
-            DiagnosticResult expected = GetCSharpExpectedDiagnostic(7, 2, "MyAnalyzer", missingLanguageName: LanguageNames.VisualBasic);
+            DiagnosticResult expected = GetCSharpExpectedDiagnostic(6, 2, "MyAnalyzer", missingLanguageName: LanguageNames.VisualBasic);
 
             // Verify diagnostic if analyzer assembly doesn't reference C# code analysis assembly.
             await new VerifyCS.Test
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 	End Sub
                 End Class
                 """;
-            DiagnosticResult expected = GetBasicExpectedDiagnostic(7, 2, "MyAnalyzer", missingLanguageName: LanguageNames.CSharp);
+            DiagnosticResult expected = GetBasicExpectedDiagnostic(6, 2, "MyAnalyzer", missingLanguageName: LanguageNames.CSharp);
 
             // Verify diagnostic if analyzer assembly doesn't reference VB code analysis assembly.
             await new VerifyVB.Test

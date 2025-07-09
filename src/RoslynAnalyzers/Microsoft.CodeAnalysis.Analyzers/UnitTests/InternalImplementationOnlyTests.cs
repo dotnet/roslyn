@@ -14,19 +14,24 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
     public class InternalImplementationOnlyTests
     {
         private const string AttributeStringCSharp = """
+
             namespace System.Runtime.CompilerServices
             {
                 internal class InternalImplementationOnlyAttribute : System.Attribute {}
             }
+
             """;
         [Fact]
         public async Task CSharp_VerifySameAssemblyAsync()
         {
             string source = AttributeStringCSharp + """
+
+
                 [System.Runtime.CompilerServices.InternalImplementationOnly]
                 public interface IMyInterface { }
 
                 class SomeClass : IMyInterface { }
+
                 """;
 
             // Verify no diagnostic since interface is in the same assembly.
@@ -41,13 +46,17 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
         public async Task CSharp_VerifyDifferentAssemblyAsync()
         {
             string source1 = AttributeStringCSharp + """
+
+
                 [System.Runtime.CompilerServices.InternalImplementationOnly]
                 public interface IMyInterface { }
 
                 public interface IMyOtherInterface : IMyInterface { }
+
                 """;
 
             var source2 = """
+
                 class SomeClass : IMyInterface { }
 
                 class SomeOtherClass : IMyOtherInterface { }
@@ -83,15 +92,21 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
         public async Task CSharp_VerifyDifferentFriendAssemblyAsync()
         {
             string source1 = """
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("TestProject")]
+
                 """ + AttributeStringCSharp + """
+
+
                 [System.Runtime.CompilerServices.InternalImplementationOnly]
                 public interface IMyInterface { }
 
                 public interface IMyOtherInterface : IMyInterface { }
+
                 """;
 
             var source2 = """
+
                 class SomeClass : IMyInterface { }
 
                 class SomeOtherClass : IMyOtherInterface { }
@@ -120,9 +135,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
         public async Task CSharp_VerifyISymbolAsync()
         {
             var source = """
+
                 // Causes many compile errors, because not all members are implemented.
                 class SomeClass : Microsoft.CodeAnalysis.ISymbol { }
                 class SomeOtherClass : Microsoft.CodeAnalysis.IAssemblySymbol { }
+
                 """;
 
             // Verify that ISymbol is not implementable.
@@ -300,9 +317,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
         public async Task CSharp_VerifyIOperationAsync()
         {
             var source = """
+
                 // Causes many compile errors, because not all members are implemented.
                 class SomeClass : Microsoft.CodeAnalysis.IOperation { }
                 class SomeOtherClass : Microsoft.CodeAnalysis.Operations.IInvocationOperation { }
+
                 """;
 
             // Verify that IOperation is not implementable.
@@ -375,17 +394,21 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
         }
 
         private const string AttributeStringBasic = """
+
             Namespace System.Runtime.CompilerServices
                 Friend Class InternalImplementationOnlyAttribute 
                     Inherits System.Attribute
                 End Class
             End Namespace
+
             """;
 
         [Fact]
         public async Task Basic_VerifySameAssemblyAsync()
         {
             string source = AttributeStringBasic + """
+
+
                 <System.Runtime.CompilerServices.InternalImplementationOnly>
                 Public Interface IMyInterface
                 End Interface
@@ -393,6 +416,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                 Class SomeClass 
                     Implements IMyInterface 
                 End Class
+
                 """;
 
             // Verify no diagnostic since interface is in the same assembly.
@@ -407,6 +431,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
         public async Task Basic_VerifyDifferentAssemblyAsync()
         {
             string source1 = AttributeStringBasic + """
+
+
                 <System.Runtime.CompilerServices.InternalImplementationOnly>
                 Public Interface IMyInterface
                 End Interface
@@ -414,9 +440,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                 Public Interface IMyOtherInterface
                     Inherits IMyInterface
                 End Interface
+
                 """;
 
             var source2 = """
+
                 Class SomeClass 
                     Implements IMyInterface 
                 End Class
@@ -424,6 +452,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                 Class SomeOtherClass
                     Implements IMyOtherInterface
                 End Class
+
                 """;
 
             // Verify errors since interface is not in a friend assembly.
@@ -456,8 +485,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
         public async Task Basic_VerifyDifferentFriendAssemblyAsync()
         {
             string source1 = """
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("TestProject")>
+
                 """ + AttributeStringBasic + """
+
+
                 <System.Runtime.CompilerServices.InternalImplementationOnly>
                 Public Interface IMyInterface
                 End Interface
@@ -465,9 +498,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                 Public Interface IMyOtherInterface
                     Inherits IMyInterface
                 End Interface
+
                 """;
 
             var source2 = """
+
                 Class SomeClass 
                     Implements IMyInterface 
                 End Class
@@ -475,6 +510,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                 Class SomeOtherClass
                     Implements IMyOtherInterface
                 End Class
+
                 """;
 
             // Verify no diagnostic since interface is in a friend assembly.
@@ -499,6 +535,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
         [Fact]
         public Task Basic_VerifyISymbolAsync()
             => VerifyVB.VerifyAnalyzerAsync("""
+
                 ' Causes many compile errors, because not all members are implemented.
                 Class C1
                     Implements Microsoft.CodeAnalysis.ISymbol
@@ -506,6 +543,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                 Class C2
                     Implements Microsoft.CodeAnalysis.IAssemblySymbol
                 End Class
+
                 """,
                 // Test0.vb(3,7): error RS1009: Type C1 cannot implement interface ISymbol because ISymbol is not available for public implementation.
                 VerifyVB.Diagnostic().WithSpan(3, 7, 3, 9).WithArguments("C1", "ISymbol"),
@@ -670,6 +708,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
         [Fact]
         public Task Basic_VerifyIOperationAsync()
             => VerifyVB.VerifyAnalyzerAsync("""
+
                 ' Causes many compile errors, because not all members are implemented.
                 Class C1
                     Implements Microsoft.CodeAnalysis.IOperation
@@ -677,6 +716,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                 Class C2
                     Implements Microsoft.CodeAnalysis.Operations.IInvocationOperation
                 End Class
+
                 """,
                 // Test0.vb(3,7): error RS1009: Type C1 cannot implement interface IOperation because IOperation is not available for public implementation.
                 VerifyVB.Diagnostic().WithSpan(3, 7, 3, 9).WithArguments("C1", "IOperation"),

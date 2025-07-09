@@ -30,6 +30,7 @@ public sealed class DiagnosticDataTests
     {
         var code = """
 
+
             """;
 
         await VerifyTextSpanAsync(code, 30, 30, 40, 40, new TextSpan(code.Length, 0));
@@ -39,6 +40,7 @@ public sealed class DiagnosticDataTests
     public async Task DiagnosticData_GetText2()
     {
         var code = """
+
 
             """;
 
@@ -50,6 +52,7 @@ public sealed class DiagnosticDataTests
     {
         var code = """
 
+
             """;
 
         await VerifyTextSpanAsync(code, 0, 30, 0, 40, new TextSpan(code.Length, 0));
@@ -59,6 +62,7 @@ public sealed class DiagnosticDataTests
     public async Task DiagnosticData_GetText4()
     {
         var code = """
+
 
             """;
 
@@ -70,6 +74,7 @@ public sealed class DiagnosticDataTests
     {
         var code = """
 
+
             """;
 
         await VerifyTextSpanAsync(code, 1, 30, 1, 40, new TextSpan(code.Length, 0));
@@ -79,6 +84,7 @@ public sealed class DiagnosticDataTests
     public async Task DiagnosticData_GetText6()
     {
         var code = """
+
 
             """;
 
@@ -90,6 +96,7 @@ public sealed class DiagnosticDataTests
     {
         var code = """
 
+
             """;
 
         await VerifyTextSpanAsync(code, 1, 0, 1, 2, new TextSpan(code.Length, 0));
@@ -98,12 +105,14 @@ public sealed class DiagnosticDataTests
     [Fact]
     public Task DiagnosticData_GetText8()
         => VerifyTextSpanAsync("""
+
             namespace B
             {
                 class A
                 {
                 }
             }
+
             """, 3, 10, 3, 11, new TextSpan(28, 1));
 
     private static async Task VerifyTextSpanAsync(string code, int startLine, int startColumn, int endLine, int endColumn, TextSpan span)
@@ -208,12 +217,14 @@ public sealed class DiagnosticDataTests
     public async Task DiagnosticData_SourceGeneratedDocumentLocationIsPreserved()
     {
         var content = """
+
             namespace B
             {
                 class A
                 {
                 }
             }
+
             """;
         using var workspace = TestWorkspace.CreateCSharp(files: [], sourceGeneratedFiles: [content], composition: EditorTestCompositions.EditorFeatures);
         var hostDocument = workspace.Documents.Single();

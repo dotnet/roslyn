@@ -23,19 +23,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         {
             DiagnosticResult[] expected =
             [
-                GetCSharpExpectedDiagnostic(21, 13, unsupportedSymbolKind: SymbolKind.Alias),
-                GetCSharpExpectedDiagnostic(22, 13, unsupportedSymbolKind: SymbolKind.ArrayType),
-                GetCSharpExpectedDiagnostic(23, 13, unsupportedSymbolKind: SymbolKind.Assembly),
-                GetCSharpExpectedDiagnostic(24, 13, unsupportedSymbolKind: SymbolKind.Discard),
-                GetCSharpExpectedDiagnostic(25, 13, unsupportedSymbolKind: SymbolKind.DynamicType),
-                GetCSharpExpectedDiagnostic(26, 13, unsupportedSymbolKind: SymbolKind.ErrorType),
-                GetCSharpExpectedDiagnostic(29, 13, unsupportedSymbolKind: SymbolKind.Label),
-                GetCSharpExpectedDiagnostic(30, 13, unsupportedSymbolKind: SymbolKind.Local),
-                GetCSharpExpectedDiagnostic(32, 13, unsupportedSymbolKind: SymbolKind.NetModule),
-                GetCSharpExpectedDiagnostic(36, 13, unsupportedSymbolKind: SymbolKind.PointerType),
-                GetCSharpExpectedDiagnostic(38, 13, unsupportedSymbolKind: SymbolKind.Preprocessing),
-                GetCSharpExpectedDiagnostic(39, 13, unsupportedSymbolKind: SymbolKind.RangeVariable),
-                GetCSharpExpectedDiagnostic(40, 13, unsupportedSymbolKind: SymbolKind.TypeParameter),
+                GetCSharpExpectedDiagnostic(20, 13, unsupportedSymbolKind: SymbolKind.Alias),
+                GetCSharpExpectedDiagnostic(21, 13, unsupportedSymbolKind: SymbolKind.ArrayType),
+                GetCSharpExpectedDiagnostic(22, 13, unsupportedSymbolKind: SymbolKind.Assembly),
+                GetCSharpExpectedDiagnostic(23, 13, unsupportedSymbolKind: SymbolKind.Discard),
+                GetCSharpExpectedDiagnostic(24, 13, unsupportedSymbolKind: SymbolKind.DynamicType),
+                GetCSharpExpectedDiagnostic(25, 13, unsupportedSymbolKind: SymbolKind.ErrorType),
+                GetCSharpExpectedDiagnostic(28, 13, unsupportedSymbolKind: SymbolKind.Label),
+                GetCSharpExpectedDiagnostic(29, 13, unsupportedSymbolKind: SymbolKind.Local),
+                GetCSharpExpectedDiagnostic(31, 13, unsupportedSymbolKind: SymbolKind.NetModule),
+                GetCSharpExpectedDiagnostic(35, 13, unsupportedSymbolKind: SymbolKind.PointerType),
+                GetCSharpExpectedDiagnostic(37, 13, unsupportedSymbolKind: SymbolKind.Preprocessing),
+                GetCSharpExpectedDiagnostic(38, 13, unsupportedSymbolKind: SymbolKind.RangeVariable),
+                GetCSharpExpectedDiagnostic(39, 13, unsupportedSymbolKind: SymbolKind.TypeParameter),
             ];
 
             await VerifyCS.VerifyAnalyzerAsync("""
@@ -92,19 +92,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         {
             DiagnosticResult[] expected =
             [
-                GetBasicExpectedDiagnostic(18, 13, unsupportedSymbolKind: SymbolKind.Alias),
-                GetBasicExpectedDiagnostic(19, 13, unsupportedSymbolKind: SymbolKind.ArrayType),
-                GetBasicExpectedDiagnostic(20, 13, unsupportedSymbolKind: SymbolKind.Assembly),
-                GetBasicExpectedDiagnostic(21, 13, unsupportedSymbolKind: SymbolKind.Discard),
-                GetBasicExpectedDiagnostic(22, 13, unsupportedSymbolKind: SymbolKind.DynamicType),
-                GetBasicExpectedDiagnostic(23, 13, unsupportedSymbolKind: SymbolKind.ErrorType),
-                GetBasicExpectedDiagnostic(26, 13, unsupportedSymbolKind: SymbolKind.Label),
-                GetBasicExpectedDiagnostic(27, 13, unsupportedSymbolKind: SymbolKind.Local),
-                GetBasicExpectedDiagnostic(29, 13, unsupportedSymbolKind: SymbolKind.NetModule),
-                GetBasicExpectedDiagnostic(33, 13, unsupportedSymbolKind: SymbolKind.PointerType),
-                GetBasicExpectedDiagnostic(35, 13, unsupportedSymbolKind: SymbolKind.Preprocessing),
-                GetBasicExpectedDiagnostic(36, 13, unsupportedSymbolKind: SymbolKind.RangeVariable),
-                GetBasicExpectedDiagnostic(37, 13, unsupportedSymbolKind: SymbolKind.TypeParameter),
+                GetBasicExpectedDiagnostic(17, 13, unsupportedSymbolKind: SymbolKind.Alias),
+                GetBasicExpectedDiagnostic(18, 13, unsupportedSymbolKind: SymbolKind.ArrayType),
+                GetBasicExpectedDiagnostic(19, 13, unsupportedSymbolKind: SymbolKind.Assembly),
+                GetBasicExpectedDiagnostic(20, 13, unsupportedSymbolKind: SymbolKind.Discard),
+                GetBasicExpectedDiagnostic(21, 13, unsupportedSymbolKind: SymbolKind.DynamicType),
+                GetBasicExpectedDiagnostic(22, 13, unsupportedSymbolKind: SymbolKind.ErrorType),
+                GetBasicExpectedDiagnostic(25, 13, unsupportedSymbolKind: SymbolKind.Label),
+                GetBasicExpectedDiagnostic(26, 13, unsupportedSymbolKind: SymbolKind.Local),
+                GetBasicExpectedDiagnostic(28, 13, unsupportedSymbolKind: SymbolKind.NetModule),
+                GetBasicExpectedDiagnostic(32, 13, unsupportedSymbolKind: SymbolKind.PointerType),
+                GetBasicExpectedDiagnostic(34, 13, unsupportedSymbolKind: SymbolKind.Preprocessing),
+                GetBasicExpectedDiagnostic(35, 13, unsupportedSymbolKind: SymbolKind.RangeVariable),
+                GetBasicExpectedDiagnostic(36, 13, unsupportedSymbolKind: SymbolKind.TypeParameter),
             ];
 
             await VerifyVB.VerifyAnalyzerAsync("""

@@ -17,6 +17,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     public class DoNotMixAttributesFromDifferentVersionsOfMEFTests
     {
         private const string CSharpWellKnownAttributesDefinition = """
+
             namespace System.Composition
             {
                 public class ExportAttribute : System.Attribute
@@ -91,8 +92,10 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
             public class SystemComponentModelCompositionMetadataAttribute : System.Attribute
             {
             }
+
             """;
         private const string BasicWellKnownAttributesDefinition = """
+
             Namespace System.Composition
             	Public Class ExportAttribute
             		Inherits System.Attribute
@@ -154,6 +157,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
             Public Class SystemComponentModelCompositionMetadataAttribute
             	Inherits System.Attribute
             End Class
+
             """;
 
         #region No Diagnostic Tests
@@ -162,6 +166,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task NoDiagnosticCases_SingleMefAttributeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
+
                 using System;
 
                 [System.Composition.Export(typeof(C))]
@@ -173,9 +178,11 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 public class C2
                 {
                 }
+
                 """ + CSharpWellKnownAttributesDefinition);
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                 Imports System
 
                 <System.Composition.Export(GetType(C))> _
@@ -185,6 +192,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 <System.ComponentModel.Composition.Export(GetType(C2))> _
                 Public Class C2
                 End Class
+
                 """ + BasicWellKnownAttributesDefinition);
         }
 
@@ -192,6 +200,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task NoDiagnosticCases_SingleMefAttributeAndValidMetadataAttributeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
+
                 using System;
 
                 [System.Composition.Export(typeof(C))]
@@ -205,9 +214,11 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 public class C2
                 {
                 }
+
                 """ + CSharpWellKnownAttributesDefinition);
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                 Imports System
 
                 <System.Composition.Export(GetType(C))> _
@@ -219,6 +230,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 <SystemComponentModelCompositionMetadataAttribute> _
                 Public Class C2
                 End Class
+
                 """ + BasicWellKnownAttributesDefinition);
         }
 
@@ -226,6 +238,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task NoDiagnosticCases_SingleMefAttributeAndAnotherExportAttributeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
+
                 using System;
 
                 [System.Composition.Export(typeof(C)), MyNamespace.Export(typeof(C))]
@@ -245,9 +258,11 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         public ExportAttribute(System.Type contractType){ }
                     }
                 }
+
                 """ + CSharpWellKnownAttributesDefinition);
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                 Imports System
 
                 <System.Composition.Export(GetType(C)), MyNamespace.Export(GetType(C))> _
@@ -265,6 +280,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 		End Sub
                 	End Class
                 End Namespace
+
                 """ + BasicWellKnownAttributesDefinition);
         }
 
@@ -272,6 +288,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task NoDiagnosticCases_SingleMefAttributeOnTypeAndValidMefAttributeOnMemberAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
+
                 using System;
 
                 public class B { }
@@ -295,9 +312,11 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     [System.ComponentModel.Composition.Import]
                     public B PropertyB { get; }
                 }
+
                 """ + CSharpWellKnownAttributesDefinition);
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                 Public Class B
                 End Class
 
@@ -320,6 +339,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 	<System.ComponentModel.Composition.Import> _
                 	Public ReadOnly Property PropertyB() As B
                 End Class
+
                 """ + BasicWellKnownAttributesDefinition);
         }
 
@@ -333,6 +353,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     Sources =
                     {
                         """
+
                         using System;
 
                         public class B { }
@@ -343,6 +364,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                             [System.ComponentModel.{|CS0234:Composition|}.Import]
                             public B PropertyB { get; }
                         }
+
                         """
                     },
                 },
@@ -356,6 +378,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     Sources =
                     {
                         """
+
                         Public Class B
                         End Class
 
@@ -364,6 +387,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         	<{|BC30002:System.ComponentModel.Composition.Import|}> _
                         	Public ReadOnly Property PropertyB() As B
                         End Class
+
                         """
                     },
                 },
@@ -375,6 +399,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task NoDiagnosticCases_MultiMefMetadataAttributeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
+
                 using System;
 
                 [System.ComponentModel.Composition.Export(typeof(C)), MyNamespace.MultiMefMetadataAttribute]
@@ -389,9 +414,11 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     {
                     }
                 }
+
                 """ + CSharpWellKnownAttributesDefinition);
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                 Imports System
 
                 <System.ComponentModel.Composition.Export(GetType(C)), MyNamespace.MultiMefMetadataAttribute> _
@@ -404,6 +431,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 		Inherits System.Attribute
                 	End Class
                 End Namespace
+
                 """ + BasicWellKnownAttributesDefinition);
         }
 
@@ -415,6 +443,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task DiagnosticCases_BadMetadataAttributeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
+
                 using System;
 
                 [System.Composition.Export(typeof(C))]
@@ -428,6 +457,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 public class C2
                 {
                 }
+
                 """ + CSharpWellKnownAttributesDefinition,
     // Test0.cs(5,2): warning RS0006: Attribute 'SystemComponentModelCompositionMetadataAttribute' comes from a different version of MEF than the export attribute on 'C'
     GetCSharpResultAt(5, 2, "SystemComponentModelCompositionMetadataAttribute", "C"),
@@ -435,6 +465,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     GetCSharpResultAt(11, 2, "SystemCompositionMetadataAttribute", "C2"));
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                 Imports System
 
                 <System.Composition.Export(GetType(C))> _
@@ -446,6 +477,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 <SystemCompositionMetadataAttribute> _
                 Public Class C2
                 End Class
+
                 """ + BasicWellKnownAttributesDefinition,
     // Test0.vb(5,2): warning RS0006: Attribute 'SystemComponentModelCompositionMetadataAttribute' comes from a different version of MEF than the export attribute on 'C'
     GetBasicResultAt(5, 2, "SystemComponentModelCompositionMetadataAttribute", "C"),
@@ -457,6 +489,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task DiagnosticCases_BadMefAttributeOnMemberAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
+
                 using System;
 
                 public class B { }
@@ -480,6 +513,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     [System.Composition.Import]
                     public B PropertyB { get; }
                 }
+
                 """ + CSharpWellKnownAttributesDefinition,
     // Test0.cs(9,6): warning RS0006: Attribute 'ImportingConstructorAttribute' comes from a different version of MEF than the export attribute on 'C'
     GetCSharpResultAt(9, 6, "ImportingConstructorAttribute", "C"),
@@ -492,6 +526,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
 );
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                 Public Class B
                 End Class
 
@@ -514,6 +549,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 	<System.Composition.Import> _
                 	Public ReadOnly Property PropertyB() As B
                 End Class
+
                 """ + BasicWellKnownAttributesDefinition,
     // Test0.vb(7,3): warning RS0006: Attribute 'ImportingConstructorAttribute' comes from a different version of MEF than the export attribute on 'C'
     GetBasicResultAt(7, 3, "ImportingConstructorAttribute", "C"),
@@ -530,6 +566,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task DiagnosticCases_BadMefAttributeOnParameterAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
+
                 using System;
 
                 public class B { }
@@ -553,6 +590,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     [System.ComponentModel.Composition.Import]
                     public B PropertyB { get; }
                 }
+
                 """ + CSharpWellKnownAttributesDefinition,
     // Test0.cs(10,15): warning RS0006: Attribute 'ImportAttribute' comes from a different version of MEF than the export attribute on 'C'
     GetCSharpResultAt(10, 15, "ImportAttribute", "C"),
@@ -560,6 +598,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     GetCSharpResultAt(20, 16, "ImportAttribute", "C2"));
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                 Public Class B
                 End Class
 
@@ -582,6 +621,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 	<System.ComponentModel.Composition.Import> _
                 	Public ReadOnly Property PropertyB() As B
                 End Class
+
                 """ + BasicWellKnownAttributesDefinition,
     // Test0.vb(8,18): warning RS0006: Attribute 'ImportAttribute' comes from a different version of MEF than the export attribute on 'C'
     GetBasicResultAt(8, 18, "ImportAttribute", "C"),

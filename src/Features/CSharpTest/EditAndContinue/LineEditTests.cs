@@ -26,10 +26,15 @@ public sealed class LineEditTests : EditingTestBase
     public void TopLevelCode_LineChange()
     {
         var src1 = """
+
             Console.ReadLine(1);
+
             """;
         var src2 = """
+
+
             Console.ReadLine(1);
+
             """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -40,17 +45,21 @@ public sealed class LineEditTests : EditingTestBase
     public void TopLevelCode_LocalFunction_LineChange()
     {
         var src1 = """
+
             void F()
             {
                 Console.ReadLine(1);
             }
+
             """;
         var src2 = """
+
             void F()
             {
 
                 Console.ReadLine(1);
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -65,6 +74,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_Reorder1()
     {
         var src1 = """
+
             class C
             {
                 static void G()
@@ -77,8 +87,10 @@ public sealed class LineEditTests : EditingTestBase
                     Console.ReadLine(2);
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static void F()
@@ -108,6 +120,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_Reorder2()
     {
         var src1 = """
+
             class C
             {
                 static void Main()
@@ -128,6 +141,7 @@ public sealed class LineEditTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 static int F()
@@ -165,6 +179,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_MultilineBreakpointSpans()
     {
         var src1 = """
+
             class C
             {
                 void F()
@@ -173,8 +188,10 @@ public sealed class LineEditTests : EditingTestBase
             1;
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 void F()
@@ -197,6 +214,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_BlockBody_EntireBody1()
     {
         var src1 = """
+
             class C
             {
                 static void Bar()
@@ -204,8 +222,10 @@ public sealed class LineEditTests : EditingTestBase
                     Console.ReadLine(2);
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
 
@@ -225,6 +245,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_BlockBody_EntireBody2()
     {
         var src1 = """
+
             class C
             {
                 static void Bar()
@@ -232,8 +253,10 @@ public sealed class LineEditTests : EditingTestBase
                     Console.ReadLine(2);
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static void Bar()
@@ -252,6 +275,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_BlockBody1()
     {
         var src1 = """
+
             class C
             {
                 static void Bar()
@@ -259,8 +283,10 @@ public sealed class LineEditTests : EditingTestBase
                     Console.ReadLine(2);
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static void Bar()
@@ -279,6 +305,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_BlockBody2()
     {
         var src1 = """
+
             class C
             {
                 static void Bar()
@@ -287,8 +314,10 @@ public sealed class LineEditTests : EditingTestBase
                     Console.ReadLine(2);
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static void Bar()
@@ -306,6 +335,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_BlockBody3()
     {
         var src1 = """
+
             class C
             {
                 static void Bar()
@@ -314,8 +344,10 @@ public sealed class LineEditTests : EditingTestBase
                     Console.ReadLine(2);
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static void Bar()
@@ -334,6 +366,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_BlockBody4()
     {
         var src1 = """
+
             class C
             {
                 static void Bar()
@@ -341,8 +374,10 @@ public sealed class LineEditTests : EditingTestBase
                     Console.ReadLine(2);
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static void Bar()
@@ -361,6 +396,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_BlockBody5()
     {
         var src1 = """
+
             class C
             {
                 static void Bar()
@@ -371,8 +407,10 @@ public sealed class LineEditTests : EditingTestBase
                     }
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static void Bar()
@@ -394,9 +432,12 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_BlockBody_Recompile()
     {
         var src1 = """
+
             class C { static void Bar() { } }
+
             """;
         var src2 = """
+
             class C { /*--*/static void Bar() { } }
             """;
 
@@ -410,14 +451,17 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_ExpressionBody_EntireBody()
     {
         var src1 = """
+
             class C
             {
                 static int X() => 1;
 
                 static int Y() => 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
 
@@ -437,6 +481,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_Statement_Recompile1()
     {
         var src1 = """
+
             class C
             {
                 static void Bar()
@@ -444,8 +489,10 @@ public sealed class LineEditTests : EditingTestBase
                     Console.ReadLine(2);
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static void Bar()
@@ -464,6 +511,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_Statement_Recompile2()
     {
         var src1 = """
+
             class C
             {
                 static void Bar()
@@ -473,8 +521,10 @@ public sealed class LineEditTests : EditingTestBase
                     <AS:0>System.Console.WriteLine(1);</AS:0>
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static void Bar()
@@ -502,6 +552,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_GenericType_LineChange()
     {
         var src1 = """
+
             class C<T>
             {
                 static void Bar()
@@ -510,8 +561,10 @@ public sealed class LineEditTests : EditingTestBase
                     Console.ReadLine(2);
                 }
             }
+
             """;
         var src2 = """
+
             class C<T>
             {
                 static void Bar()
@@ -530,6 +583,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_GenericType_Recompile()
     {
         var src1 = """
+
             class C<T>
             {
                 static void Bar()
@@ -537,8 +591,10 @@ public sealed class LineEditTests : EditingTestBase
             /******/Console.ReadLine(2);
                 }
             }
+
             """;
         var src2 = """
+
             class C<T>
             {
                 static void Bar()
@@ -565,6 +621,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_GenericMethod_Recompile()
     {
         var src1 = """
+
             class C
             {
                 static void Bar<T>()
@@ -572,8 +629,10 @@ public sealed class LineEditTests : EditingTestBase
             /******//*edit*/Console.ReadLine(2);
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static void Bar<T>()
@@ -599,6 +658,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_Async_Recompile()
     {
         var src1 = """
+
             class C
             {
                 static async Task<int> Bar()
@@ -606,8 +666,10 @@ public sealed class LineEditTests : EditingTestBase
                     Console.ReadLine(2);
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static async Task<int> Bar()
@@ -629,6 +691,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_StackAlloc_LineChange()
     {
         var src1 = """
+
             class C
             {
                 void F()
@@ -636,8 +699,10 @@ public sealed class LineEditTests : EditingTestBase
                     Span<bool> x = stackalloc bool[64];
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 void F()
@@ -657,6 +722,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_StackAlloc_Recompile()
     {
         var src1 = """
+
             class C
             {
                 void F()
@@ -664,8 +730,10 @@ public sealed class LineEditTests : EditingTestBase
                     <N:0.0>Span<bool> x = stackalloc bool[64];</N:0.0>
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 void F()
@@ -693,6 +761,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Method_StackAlloc_NonActive()
     {
         var src1 = """
+
             class C
             {
                 void F()
@@ -700,8 +769,10 @@ public sealed class LineEditTests : EditingTestBase
                     Span<bool> x = stackalloc bool[64];
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 void F()
@@ -722,6 +793,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Lambda_Recompile()
     {
         var src1 = """
+
             class C
             {
                 void F()
@@ -734,6 +806,7 @@ public sealed class LineEditTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 void F()
@@ -761,6 +834,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_Reorder()
     {
         var src1 = """
+
             class C
             {
                 public C(int a)
@@ -771,8 +845,10 @@ public sealed class LineEditTests : EditingTestBase
                 {
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 public C(bool a)
@@ -803,14 +879,17 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ImplicitInitializer_BlockBody_LineChange()
     {
         var src1 = """
+
             class C
             {
                 public C(int a)
 
                 {}
             }
+
             """;
         var src2 = """
+
             class C
             {
 
@@ -830,14 +909,17 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ImplicitInitializer_BlockBody_Recompile()
     {
         var src1 = """
+
             class C
             {
                 public C(int a
                 )
                 {}
             }
+
             """;
         var src2 = """
+
             class C
             {
                 public C(int a
@@ -856,14 +938,17 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ImplicitInitializer_ExpressionBodied_LineChange1()
     {
         var src1 = """
+
             class C
             {
                 int _a;
                 public C(int a) => 
                   _a = a;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int _a;
@@ -881,14 +966,17 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ImplicitInitializer_ExpressionBodied_LineChange2()
     {
         var src1 = """
+
             class C
             {
                 int _a;
                 public C(int a) 
                   => _a = a;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int _a;
@@ -906,14 +994,17 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ImplicitInitializer_ExpressionBodied_LineChange3()
     {
         var src1 = """
+
             class C
             {
                 int _a;
                 public C(int a) => 
                   _a = a;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int _a;
@@ -931,6 +1022,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ImplicitInitializer_ExpressionBodied_LineChange4()
     {
         var src1 = """
+
             class C
             {
                 int _a;
@@ -938,13 +1030,15 @@ public sealed class LineEditTests : EditingTestBase
                   => 
                   _a = a;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int _a;
                 public C(int a) 
-
+                  
                   => 
 
                   _a = a;
@@ -959,9 +1053,12 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ImplicitInitializer_Primary_LineChange()
     {
         var src1 = """
+
             class C(int a);
+
             """;
         var src2 = """
+
             class
                   C(int a);
             """;
@@ -977,10 +1074,14 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ImplicitInitializer_Primary_Recompile1()
     {
         var src1 = """
+
             class C (int a);
+
             """;
         var src2 = """
+
             class  C(int a);
+
             """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -993,10 +1094,14 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ImplicitInitializer_Primary_Recompile2()
     {
         var src1 = """
+
             class C(int a);
+
             """;
         var src2 = """
+
             class C(int a );
+
             """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -1009,10 +1114,14 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ImplicitInitializer_PrimaryRecord_Recompile1()
     {
         var src1 = """
+
             record C (int P);
+
             """;
         var src2 = """
+
             record  C(int P);
+
             """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -1028,10 +1137,14 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ImplicitInitializer_PrimaryRecord_Recompile2()
     {
         var src1 = """
+
             record C(int P);
+
             """;
         var src2 = """
+
             record C(int P );
+
             """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -1047,10 +1160,14 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ImplicitInitializer_PrimaryAndParameter_Recompile3()
     {
         var src1 = """
+
             record C(int P);
+
             """;
         var src2 = """
+
             record C( int P);
+
             """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -1068,10 +1185,14 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ImplicitInitializer_PrimaryAndCopyCtorAndParameter_Recompile3()
     {
         var src1 = """
+
             record C<T>(int P);
+
             """;
         var src2 = """
+
             record C<T >(int P);
+
             """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -1091,6 +1212,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ExplicitInitializer_BlockBody_LineChange1()
     {
         var src1 = """
+
             class C
             {
                 public C(int a)
@@ -1098,8 +1220,10 @@ public sealed class LineEditTests : EditingTestBase
                 {
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 public C(int a) 
@@ -1118,6 +1242,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ExplicitInitializer_BlockBody_Recompile()
     {
         var src1 = """
+
             class C
             {
                 public C(int a)
@@ -1125,8 +1250,10 @@ public sealed class LineEditTests : EditingTestBase
                 {
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 public C(int a)
@@ -1145,6 +1272,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ExplicitInitializer_BlockBody_PartialBodyLineChange1()
     {
         var src1 = """
+
             class C
             {
                 public C(int a)
@@ -1152,8 +1280,10 @@ public sealed class LineEditTests : EditingTestBase
                 {
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 public C(int a)
@@ -1172,6 +1302,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ExplicitInitializer_BlockBody_RudeRecompile1()
     {
         var src1 = """
+
             class C<T>
             {
                 public C(int a)
@@ -1179,8 +1310,10 @@ public sealed class LineEditTests : EditingTestBase
                 {
                 }
             }
+
             """;
         var src2 = """
+
             class C<T>
             {
                 public C(int a)
@@ -1205,14 +1338,17 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ExplicitInitializer_ExpressionBodied_LineChange1()
     {
         var src1 = """
+
             class C
             {
                 int _a;
                 public C(int a)
                   : base() => _a = a;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int _a;
@@ -1230,6 +1366,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ExplicitInitializer_ExpressionBodied_LineChange2()
     {
         var src1 = """
+
             class C
             {
                 int _a;
@@ -1237,8 +1374,10 @@ public sealed class LineEditTests : EditingTestBase
                   : base() => 
                               _a = a;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int _a;
@@ -1256,6 +1395,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Constructor_ExplicitInitializer_ExpressionBodied_Recompile1()
     {
         var src1 = """
+
             class C
             {
                 int _a;
@@ -1263,8 +1403,10 @@ public sealed class LineEditTests : EditingTestBase
                   : base() => _a 
                                  = a;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int _a;
@@ -1286,6 +1428,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Destructor_LineChange1()
     {
         var src1 = """
+
             class C
             {
                 ~C()
@@ -1293,8 +1436,10 @@ public sealed class LineEditTests : EditingTestBase
                 {
                 }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 ~C()
@@ -1311,12 +1456,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Destructor_ExpressionBodied_LineChange1()
     {
         var src1 = """
+
             class C
             {
                 ~C() => F();
             }
+
             """;
         var src2 = """
+
             class C
             {
                 ~C() => 
@@ -1332,12 +1480,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Destructor_ExpressionBodied_LineChange2()
     {
         var src1 = """
+
             class C
             {
                 ~C() => F();
             }
+
             """;
         var src2 = """
+
             class C
             {
                 ~C() 
@@ -1357,12 +1508,15 @@ public sealed class LineEditTests : EditingTestBase
     public void ConstantField()
     {
         var src1 = """
+
             class C
             {
                 const int Goo = 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 const int Goo = 
@@ -1378,12 +1532,15 @@ public sealed class LineEditTests : EditingTestBase
     public void NoInitializer()
     {
         var src1 = """
+
             class C
             {
                 int Goo;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int 
@@ -1399,13 +1556,16 @@ public sealed class LineEditTests : EditingTestBase
     public void Field_Reorder()
     {
         var src1 = """
+
             class C
             {
                 static int Goo = 1;
                 static int Bar = 2;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static int Bar = 1;
@@ -1423,12 +1583,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Field_LineChange1()
     {
         var src1 = """
+
             class C
             {
                 static int Goo = 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
 
@@ -1446,12 +1609,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Field_LineChange2()
     {
         var src1 = """
+
             class C
             {
                 int Goo = 1, Bar = 2;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int Goo = 1,
@@ -1471,12 +1637,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Field_LineChange3()
     {
         var src1 = """
+
             class C
             {
                 [A]static int Goo = 1, Bar = 2;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 [A]
@@ -1492,13 +1661,16 @@ public sealed class LineEditTests : EditingTestBase
     public void Field_LineChange_Reloadable()
     {
         var src1 = ReloadableAttributeSrc + """
+
             [CreateNewOnMetadataUpdate]
             class C
             {
                 int Goo = 1, Bar = 2;
             }
+
             """;
         var src2 = ReloadableAttributeSrc + """
+
             [CreateNewOnMetadataUpdate]
             class C
             {
@@ -1520,12 +1692,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Field_Recompile1a()
     {
         var src1 = """
+
             class C
             {
                 static int Goo = 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static int Goo = 
@@ -1545,12 +1720,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Field_Recompile1b()
     {
         var src1 = """
+
             class C
             {
                 static int Goo = 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static int Goo 
@@ -1570,12 +1748,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Field_Recompile1c()
     {
         var src1 = """
+
             class C
             {
                 static int Goo = 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static int 
@@ -1595,12 +1776,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Field_Recompile1d()
     {
         var src1 = """
+
             class C
             {
                 static int Goo = 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static 
@@ -1620,12 +1804,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Field_Recompile1e()
     {
         var src1 = """
+
             class C
             {
                 static int Goo = 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static int Goo = 1
@@ -1645,12 +1832,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Field_Recompile2()
     {
         var src1 = """
+
             class C
             {
                 static int Goo = 1 + 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 static int Goo = 1 +  1;
@@ -1669,12 +1859,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Field_RudeRecompile1()
     {
         var src1 = """
+
             class C<T>
             {
                 static int Goo = 1 + 1;
             }
+
             """;
         var src2 = """
+
             class C<T>
             {
                 static int Goo = 1 +/**/1;
@@ -1700,13 +1893,16 @@ public sealed class LineEditTests : EditingTestBase
     public void Field_Generic_Reloadable()
     {
         var src1 = ReloadableAttributeSrc + """
+
             [CreateNewOnMetadataUpdate]
             class C<T>
             {
                 static int Goo = 1 + 1;
             }
+
             """;
         var src2 = ReloadableAttributeSrc + """
+
             [CreateNewOnMetadataUpdate]
             class C<T>
             {
@@ -1731,12 +1927,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Property1()
     {
         var src1 = """
+
             class C
             {
                 int P { get { return 1; } }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int P { get { return 
@@ -1753,12 +1952,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Property2()
     {
         var src1 = """
+
             class C
             {
                 int P { get { return 1; } }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int P { get 
@@ -1773,15 +1975,18 @@ public sealed class LineEditTests : EditingTestBase
     public void Property3()
     {
         var src1 = """
+
             class C
             {
                 int P { get { return 1; } set { } }
             }
+
             """;
         var src2 = """
+
             class C
             {
-
+                
                 int P { get { return 1; } set { } }
             }
             """;
@@ -1794,12 +1999,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Property_ExpressionBody1()
     {
         var src1 = """
+
             class C
             {
                 int P => 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int P => 
@@ -1815,12 +2023,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Property_GetterExpressionBody1()
     {
         var src1 = """
+
             class C
             {
                 int P { get => 1; }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int P { get => 
@@ -1836,12 +2047,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Property_SetterExpressionBody1()
     {
         var src1 = """
+
             class C
             {
                 int P { set => F(); }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int P { set => 
@@ -1857,12 +2071,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Property_Initializer1()
     {
         var src1 = """
+
             class C
             {
                 int P { get; } = 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int P { 
@@ -1878,12 +2095,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Property_Initializer2()
     {
         var src1 = """
+
             class C
             {
                 int P { get; } = 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int P { get; } = 
@@ -1901,12 +2121,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Property_Initializer3()
     {
         var src1 = """
+
             class C
             {
                 int P { get; } = 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int P
@@ -1925,12 +2148,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Property_Initializer4()
     {
         var src1 = """
+
             class C
             {
                 int P { get; } = 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int P { get; } =  1;
@@ -1950,12 +2176,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Indexer1()
     {
         var src1 = """
+
             class C
             {
                 int this[int a] { get { return 1; } }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int this[int a] { get { return 
@@ -1972,12 +2201,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Indexer2()
     {
         var src1 = """
+
             class C
             {
                 int this[int a] { get { return 1; } }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int this[int a] { get 
@@ -1992,15 +2224,18 @@ public sealed class LineEditTests : EditingTestBase
     public void Indexer3()
     {
         var src1 = """
+
             class C
             {
                 int this[int a] { get { return 1; } set { } }
             }
+
             """;
         var src2 = """
+
             class C
             {
-
+                
                 int this[int a] { get { return 1; } set { } }
             }
             """;
@@ -2012,12 +2247,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Indexer_ExpressionBody1()
     {
         var src1 = """
+
             class C
             {
                 int this[int a] => 1;
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int this[int a] => 
@@ -2033,12 +2271,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Indexer_GetterExpressionBody1()
     {
         var src1 = """
+
             class C
             {
                 int this[int a] { get => 1; }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int this[int a] { get => 
@@ -2054,12 +2295,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Indexer_SetterExpressionBody1()
     {
         var src1 = """
+
             class C
             {
                 int this[int a] { set => F(); }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 int this[int a] { set => 
@@ -2079,12 +2323,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Event_LineChange1()
     {
         var src1 = """
+
             class C
             {
                 event Action E { add { } remove { } }
             }
+
             """;
         var src2 = """
+
             class C
             {
 
@@ -2100,13 +2347,16 @@ public sealed class LineEditTests : EditingTestBase
     public void Event_LineChange2()
     {
         var src1 = """
+
             class C
             {
                 event Action E { add 
                                      { } remove { } }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 event Action E { add { } remove { } }
@@ -2121,13 +2371,16 @@ public sealed class LineEditTests : EditingTestBase
     public void Event_LineChange3()
     {
         var src1 = """
+
             class C
             {
                 event Action E { add {
                                        } remove { } }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 event Action E { add { } remove { } }
@@ -2142,13 +2395,16 @@ public sealed class LineEditTests : EditingTestBase
     public void Event_LineChange4()
     {
         var src1 = """
+
             class C
             {
                 event Action E { add { } remove {
                                                   } }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 event Action E { add { } remove { } }
@@ -2163,12 +2419,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Event_Recompile1()
     {
         var src1 = """
+
             class C
             {
                 event Action E { add { } remove { } }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 event Action E { add { } remove 
@@ -2186,12 +2445,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Event_Recompile2()
     {
         var src1 = """
+
             class C
             {
                 event Action E { add { } remove { } }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 event Action E { add { } remove {
@@ -2209,12 +2471,15 @@ public sealed class LineEditTests : EditingTestBase
     public void Event_ExpressionBody_MultipleBodiesOnTheSameLine1()
     {
         var src1 = """
+
             class C
             {
                 event Action E { add => F(); remove => F(); }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 event Action E { add => 
@@ -2232,14 +2497,17 @@ public sealed class LineEditTests : EditingTestBase
     public void Event_ExpressionBody()
     {
         var src1 = """
+
             class C
             {
                 event Action E { add 
                                      => F(); remove 
                                                     => F(); }
             }
+
             """;
         var src2 = """
+
             class C
             {
                 event Action E { add => F(); remove => F(); }
@@ -2258,6 +2526,7 @@ public sealed class LineEditTests : EditingTestBase
     public void Type_Reorder1()
     {
         var src1 = """
+
             class C
             {
                 static int F1() => 1;
@@ -2269,8 +2538,10 @@ public sealed class LineEditTests : EditingTestBase
                 static int G1() => 1;
                 static int G2() => 1;
             }
+
             """;
         var src2 = """
+
             class D
             {
                 static int G1() => 1;
@@ -2282,6 +2553,7 @@ public sealed class LineEditTests : EditingTestBase
                 static int F1() => 1;
                 static int F2() => 1;
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -2300,6 +2572,7 @@ public sealed class LineEditTests : EditingTestBase
     public void LineMapping_ChangeLineNumber_WithinMethod_NoSequencePointImpact()
     {
         var src1 = """
+
             class C
             {
                 static void F()
@@ -2313,6 +2586,7 @@ public sealed class LineEditTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 static void F()
@@ -2340,6 +2614,7 @@ public sealed class LineEditTests : EditingTestBase
     public void LineMapping_ChangeLineNumber_OutsideOfMethod()
     {
         var src1 = """
+
             #line 1 "a"
             class C
             {
@@ -2360,6 +2635,7 @@ public sealed class LineEditTests : EditingTestBase
             }
             """;
         var src2 = """
+
             #line 11 "a"
             class C
             {
@@ -2376,6 +2652,7 @@ public sealed class LineEditTests : EditingTestBase
                 void F3() {}
                 void F4() {}
             }
+
             """;
         var edits = GetTopEdits(src1, src2);
 
@@ -2395,6 +2672,7 @@ public sealed class LineEditTests : EditingTestBase
     public void LineMapping_LineDirectivesAndWhitespace()
     {
         var src1 = """
+
             class C
             {
             #line 5 "a"
@@ -2406,6 +2684,7 @@ public sealed class LineEditTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
             #line 9 "a"
@@ -2421,6 +2700,7 @@ public sealed class LineEditTests : EditingTestBase
     public void LineMapping_MultipleFiles()
     {
         var src1 = """
+
             class C
             {
                 static void F()
@@ -2434,6 +2714,7 @@ public sealed class LineEditTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 static void F()
@@ -2460,6 +2741,7 @@ public sealed class LineEditTests : EditingTestBase
     public void LineMapping_FileChange_Recompile()
     {
         var src1 = """
+
             class C
             {
                 static void F()
@@ -2476,6 +2758,7 @@ public sealed class LineEditTests : EditingTestBase
             }
             """;
         var src2 = """
+
             class C
             {
                 static void F()
@@ -2507,10 +2790,13 @@ public sealed class LineEditTests : EditingTestBase
     public void LineMapping_FileChange_RudeEdit()
     {
         var src1 = """
+
             #line 1 "a"
             class C { static void F<T>() { } }
+
             """;
         var src2 = """
+
             #line 1 "b"
             class C { static void F<T>() { } }
             """;

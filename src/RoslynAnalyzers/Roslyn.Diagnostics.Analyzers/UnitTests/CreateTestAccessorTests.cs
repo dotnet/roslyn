@@ -169,6 +169,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task CreateTestAccessorVisualBasicAsync(string typeHeader)
         {
             var fixedSourceBody = """
+
                     Friend Function GetTestAccessor() As TestAccessor
                         Return New TestAccessor(Me)
                     End Function
@@ -203,6 +204,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task CreateTestAccessorStructureVisualBasicAsync(string typeHeader)
         {
             var fixedSourceBody = """
+
                     Friend Function GetTestAccessor() As TestAccessor
                         Return New TestAccessor(Me)
                     End Function

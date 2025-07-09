@@ -25,7 +25,8 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             [|
                     ::: Console.WriteLine(")|]
             """), CreateMethod("""
-                                        Console.WriteLine(")
+
+                                                Console.WriteLine(")
                                         """));
 
     [Fact]
@@ -36,7 +37,10 @@ public sealed class RemoveUnnecessaryLineContinuationTests
 
                     Console.WriteLine(")|]
             """), CreateMethod("""
-                                        Console.WriteLine(")
+
+
+
+                                                Console.WriteLine(")
                                         """));
 
     [Fact]
@@ -48,7 +52,11 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                     _
                     Console.WriteLine(")|]
             """), CreateMethod("""
-                                        Console.WriteLine(")
+
+
+
+
+                                                Console.WriteLine(")
                                         """));
 
     [Fact]
@@ -60,7 +68,11 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                     _
                     Console.WriteLine(")|]
             """), CreateMethod("""
-                                        Console.WriteLine(")
+
+
+
+
+                                                Console.WriteLine(")
                                         """));
 
     [Fact]
@@ -69,10 +81,14 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             [|
                     ::: 
                     _
-
+                    
                     Console.WriteLine(")|]
             """), CreateMethod("""
-                                        Console.WriteLine(")
+
+
+
+
+                                                Console.WriteLine(")
                                         """));
 
     [Fact]
@@ -84,9 +100,11 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                     ' test
                     Console.WriteLine(")|]
             """), CreateMethod("""
-                                                       _
-                                        ' test
-                                        Console.WriteLine(")
+
+
+                                                               _
+                                                ' test
+                                                Console.WriteLine(")
                                         """));
 
     [Fact]
@@ -97,9 +115,10 @@ public sealed class RemoveUnnecessaryLineContinuationTests
 
                     Console.WriteLine("")|]
             """), CreateMethod("""
-                                        Console.WriteLine("")
 
-                                        Console.WriteLine("")
+                                                Console.WriteLine("")
+
+                                                Console.WriteLine("")
                                         """));
 
     [Fact]
@@ -111,10 +130,11 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                     _
                     Console.WriteLine("")|]
             """), CreateMethod("""
-                                        Console.WriteLine("") _
-                                        _
-                                        _
-                                        Console.WriteLine("")
+
+                                                Console.WriteLine("") _
+                                                _
+                                                _
+                                                Console.WriteLine("")
                                         """));
 
     [Fact]
@@ -127,11 +147,12 @@ public sealed class RemoveUnnecessaryLineContinuationTests
 
                     Console.WriteLine("")|]
             """), CreateMethod("""
-                                        Console.WriteLine("")
+
+                                                Console.WriteLine("")
 
 
 
-                                        Console.WriteLine("")
+                                                Console.WriteLine("")
                                         """));
 
     [Fact]
@@ -144,11 +165,12 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                     _
                     Console.WriteLine()|]
             """), CreateMethod("""
-                                        Console.WriteLine() _             _ 
-                                        ' test 
-                                         ' test
-                                        _
-                                        Console.WriteLine()
+
+                                                Console.WriteLine() _             _ 
+                                                ' test 
+                                                 ' test
+                                                _
+                                                Console.WriteLine()
                                         """));
 
     [Fact]
@@ -157,7 +179,8 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             [|
                      Console.WriteLine() : Console.WriteLine()|]
             """), CreateMethod("""
-                                        Console.WriteLine() : Console.WriteLine()
+
+                                                Console.WriteLine() : Console.WriteLine()
                                         """));
 
     [Fact]
@@ -166,7 +189,8 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             [|
                      Console.WriteLine() :::: Console.WriteLine()|]
             """), CreateMethod("""
-                                        Console.WriteLine() : Console.WriteLine()
+
+                                                Console.WriteLine() : Console.WriteLine()
                                         """));
 
     [Fact]
@@ -175,7 +199,8 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             [|
                      Console.WriteLine() _ : Console.WriteLine()|]
             """), CreateMethod("""
-                                        Console.WriteLine() _ : Console.WriteLine()
+
+                                                Console.WriteLine() _ : Console.WriteLine()
                                         """));
 
     [Fact]
@@ -185,8 +210,9 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                      Console.WriteLine() _ 
                      : Console.WriteLine()|]
             """), CreateMethod("""
-                                        Console.WriteLine()
-                                        Console.WriteLine()
+
+                                                Console.WriteLine()
+                                                Console.WriteLine()
                                         """));
 
     [Fact]
@@ -196,8 +222,9 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                      Console.WriteLine() _  _
                      : Console.WriteLine()|]
             """), CreateMethod("""
-                                        Console.WriteLine() _  _
-                                          Console.WriteLine()
+
+                                                Console.WriteLine() _  _
+                                                  Console.WriteLine()
                                         """));
 
     [Fact]
@@ -207,8 +234,9 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                      Console.WriteLine() _ ' test
                      : Console.WriteLine()|]
             """), CreateMethod("""
-                                        Console.WriteLine() _ ' test
-                                        Console.WriteLine()
+
+                                                Console.WriteLine() _ ' test
+                                                Console.WriteLine()
                                         """), LanguageVersion.VisualBasic15);
 
     [Fact]
@@ -218,8 +246,9 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                      Console.WriteLine() _ ' test
                      : Console.WriteLine()|]
             """), CreateMethod("""
-                                        Console.WriteLine() _ ' test
-                                        Console.WriteLine()
+
+                                                Console.WriteLine() _ ' test
+                                                Console.WriteLine()
                                         """), LanguageVersion.VisualBasic16);
 
     [Fact]
@@ -229,8 +258,9 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                      Console.WriteLine() : 
                      Console.WriteLine()|]
             """), CreateMethod("""
-                                        Console.WriteLine()
-                                        Console.WriteLine()
+
+                                                Console.WriteLine()
+                                                Console.WriteLine()
                                         """));
 
     [Fact]
@@ -240,8 +270,9 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                      Console.WriteLine() : _
                      Console.WriteLine()|]
             """), CreateMethod("""
-                                        Console.WriteLine()
-                                        Console.WriteLine()
+
+                                                Console.WriteLine()
+                                                Console.WriteLine()
                                         """));
 
     [Fact]
@@ -252,9 +283,10 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                      _
                      Console.WriteLine()|]
             """), CreateMethod("""
-                                        Console.WriteLine()
 
-                                        Console.WriteLine()
+                                                Console.WriteLine()
+
+                                                Console.WriteLine()
                                         """));
 
     [Fact]
@@ -265,7 +297,10 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                      _
                      _|]
             """), CreateMethod("""
-                                        Console.WriteLine()
+
+                                                Console.WriteLine()
+
+
                                         """));
 
     [Fact]
@@ -278,11 +313,12 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                      _
                      Console.WriteLine()|]
             """), CreateMethod("""
-                                        Console.WriteLine()
+
+                                                Console.WriteLine()
 
 
 
-                                        Console.WriteLine()
+                                                Console.WriteLine()
                                         """));
 
     [Fact]
@@ -295,11 +331,12 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                      _
                      Console.WriteLine()|]
             """), CreateMethod("""
-                                        Console.WriteLine() _
-                                                            _
-                                        ' test
-                                        _
-                                        Console.WriteLine()
+
+                                                Console.WriteLine() _
+                                                                    _
+                                                ' test
+                                                _
+                                                Console.WriteLine()
                                         """));
 
     [Fact]
@@ -312,11 +349,12 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                      _
                      Console.WriteLine()|]
             """), CreateMethod("""
-                                        Console.WriteLine() _  _
-                                         _
-                                          ' test
-                                         _
-                                         Console.WriteLine()
+
+                                                Console.WriteLine() _  _
+                                                 _
+                                                  ' test
+                                                 _
+                                                 Console.WriteLine()
                                         """));
 
     [Fact]
@@ -326,8 +364,9 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                     If True Then :
                     End If|]
             """), CreateMethod("""
-                                        If True Then
-                                        End If
+
+                                                If True Then
+                                                End If
                                         """));
 
     [Fact]
@@ -338,9 +377,10 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                             1 + _
                             2|]
             """), CreateMethod("""
-                                        Dim i =
-                                                1 +
-                                                2
+
+                                                Dim i =
+                                                        1 +
+                                                        2
                                         """));
 
     [Fact]
@@ -352,10 +392,11 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                             1 + _
                             2|]
             """), CreateMethod("""
-                                        Dim i = _
-                                                _
-                                                1 +
-                                                2
+
+                                                Dim i = _
+                                                        _
+                                                        1 +
+                                                        2
                                         """));
 
     [Fact]
@@ -465,10 +506,11 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                             1 + _ _
                             2|]
             """), CreateMethod("""
-                                        Dim i = _ _
-                                                _ _
-                                                1 + _ _
-                                                2
+
+                                                Dim i = _ _
+                                                        _ _
+                                                        1 + _ _
+                                                        2
                                         """));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544470")]
@@ -489,6 +531,8 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             |]
             """, """
             Imports System
+
+
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529425")]
@@ -650,6 +694,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             |]
             """, """
 
+
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545538")]
@@ -779,6 +824,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                     End With
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607791")]
@@ -809,7 +855,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
     public Task InsideObjectInitializer()
         => VerifyAsync("""
             [|Imports System.Runtime.CompilerServices
-
+             
             Module Program
                 Sub Main()
                     Dim s = New StrongBox(Of Object) With {
@@ -911,7 +957,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             [|Interface I
                 Property A As Action
             End Interface
-
+             
             Class C
                 Implements I
                 Property A As Action = Sub() Return _
@@ -935,7 +981,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             [|Interface I
                 Property A As Action
             End Interface
-
+             
             Class C
                 Implements I
                 Property A As Action = Sub()
@@ -964,8 +1010,9 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                     System.Diagnostics. _
                         Debug.Assert(True)|]
             """), CreateMethod("""
-                                        System.Diagnostics.
-                                            Debug.Assert(True)
+
+                                                System.Diagnostics.
+                                                    Debug.Assert(True)
                                         """));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530621")]
@@ -999,6 +1046,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             End Module
             |]
             """, """
+
             Module Program
                 Sub Main()
                     ' Single Line If with explicit line continuations
@@ -1008,6 +1056,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                     Return
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609481")]
@@ -1040,6 +1089,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             End Module
             |]
             """, """
+
             Module Program
                 Sub Main()
                     ' Nested Single Line If with explicit line continuations
@@ -1063,6 +1113,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
 
                 End Sub
             End Module
+
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/710")]
@@ -1075,10 +1126,12 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             End Module
             |]
             """, """
+
             Module Program
                 Dim x = $"{ _
                         1}"
             End Module
+
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/710")]
@@ -1091,10 +1144,12 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             End Module
             |]
             """, """
+
             Module Program
                 Dim x = $"{1 _
                            }"
             End Module
+
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/710")]
@@ -1110,6 +1165,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             End Module
             |]
             """, """
+
             Module Program
                 Dim x = $"{ _
 
@@ -1117,6 +1173,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
 
             }"
             End Module
+
             """);
 
     [Theory]
@@ -1133,11 +1190,13 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             End Module
             |]
             """, $"""
+
             Module Program
                 Dim x = "1" {continuation}
                         & "2" {continuation}
                         & "3"
             End Module
+
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69696")]
@@ -1151,11 +1210,13 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             End Module
             |]
             """, $"""
+
             Module Program
                 Dim x = "1" &
                         "2" &
                         "3"
             End Module
+
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69696")]
@@ -1169,11 +1230,13 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             End Module
             |]
             """, $"""
+
             Module Program
                 Dim x = "1" & ' Comment
                         "2" & ' Comment
                         "3"
             End Module
+
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085887")]
@@ -1191,6 +1254,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             End Module
             |]
             """, """
+
             Module Program
                 Function Add( _
                     i As Integer, _
@@ -1200,6 +1264,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                     Return i + j
                 End Function
             End Module
+
             """, langVersion: LanguageVersion.VisualBasic9);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085887")]
@@ -1220,6 +1285,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             """;
 
         var expected = """
+
             Module Program
                 Function Add(
                     i As Integer,
@@ -1229,6 +1295,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                     Return i + j
                 End Function
             End Module
+
             """;
 
         await VerifyAsync(code, expected, langVersion: LanguageVersion.VisualBasic10);
@@ -1244,6 +1311,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             Class C
                 Public Sub Method()
             """ + body + """
+
                 End Sub
             End Class
             """;

@@ -17,16 +17,20 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     public class SpecializedEnumerableCreationAnalyzerTests
     {
         private readonly string _csharpSpecializedCollectionsDefinition = """
+
             namespace Roslyn.Utilities
             {
                 public class SpecializedCollections { }
             }
+
             """;
         private readonly string _basicSpecializedCollectionsDefinition = """
+
             Namespace Roslyn.Utilities
                 Public Class SpecializedCollections
                 End Class
             End Namespace
+
             """;
 
         private static DiagnosticResult GetCSharpEmptyEnumerableResultAt(int line, int column) =>
@@ -52,6 +56,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public Task ReturnEmptyArrayCSharpAsync()
             => VerifyCS.VerifyAnalyzerAsync("""
+
                 using System.Collections.Generic;
 
                 class C
@@ -60,6 +65,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     IEnumerable<int> M2() { return new int[0] { }; }
                     int[] M3() { return new int[0]; }
                 }
+
                 """ + _csharpSpecializedCollectionsDefinition,
                 GetCSharpEmptyEnumerableResultAt(6, 36),
                 GetCSharpEmptyEnumerableResultAt(7, 36));
@@ -67,6 +73,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public Task ReturnSingletonArrayCSharpAsync()
             => VerifyCS.VerifyAnalyzerAsync("""
+
                 using System.Collections.Generic;
 
                 class C
@@ -76,6 +83,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     IEnumerable<int> M3() { return new[] { 1 }; }
                     int[] M4() { return new[] { 1 }; }
                 }
+
                 """ + _csharpSpecializedCollectionsDefinition,
                 GetCSharpSingletonEnumerableResultAt(6, 36),
                 GetCSharpSingletonEnumerableResultAt(7, 36),
@@ -84,6 +92,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public Task ReturnLinqEmptyEnumerableCSharpAsync()
             => VerifyCS.VerifyAnalyzerAsync("""
+
                 using System.Collections.Generic;
                 using System.Linq;
 
@@ -91,12 +100,14 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     IEnumerable<int> M1() { return Enumerable.Empty<int>(); }
                 }
+
                 """ + _csharpSpecializedCollectionsDefinition,
                 GetCSharpEmptyEnumerableResultAt(7, 36));
 
         [Fact(Skip = "855425")]
         public Task ReturnArrayWithinExpressionCSharpAsync()
             => VerifyCS.VerifyAnalyzerAsync("""
+
                 using System.Collections.Generic;
 
                 class C
@@ -104,6 +115,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     IEnumerable<int> M1() { return 0 == 1 ? new[] { 1 } : new[] { 2 }; }
                     IEnumerable<int> M2() { return null ?? new int[0]; }
                 }
+
                 """ + _csharpSpecializedCollectionsDefinition,
                 GetCSharpSingletonEnumerableResultAt(6, 45),
                 GetCSharpSingletonEnumerableResultAt(6, 59),
@@ -112,6 +124,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public Task ReturnLinqEmptyEnumerableWithinExpressionCSharpAsync()
             => VerifyCS.VerifyAnalyzerAsync("""
+
                 using System.Collections.Generic;
                 using System.Linq;
 
@@ -120,6 +133,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     IEnumerable<int> M1() { return 0 == 1 ? Enumerable.Empty<int>() : null; }
                     IEnumerable<int> M2() { return null ?? Enumerable.Empty<int>(); }
                 }
+
                 """ + _csharpSpecializedCollectionsDefinition,
                 GetCSharpEmptyEnumerableResultAt(7, 45),
                 GetCSharpEmptyEnumerableResultAt(8, 44));
@@ -127,6 +141,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public Task ReturnMultiElementArrayCSharpAsync()
             => VerifyCS.VerifyAnalyzerAsync("""
+
                 using System.Collections.Generic;
 
                 class C
@@ -136,11 +151,13 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     IEnumerable<int> M3() { return new[] { 1, 2 }; }
                     int[] M4() { return new[] { 1, 2 }; }
                 }
+
                 """ + _csharpSpecializedCollectionsDefinition);
 
         [Fact]
         public Task ReturnJaggedArrayCSharpAsync()
             => VerifyCS.VerifyAnalyzerAsync("""
+
                 using System.Collections.Generic;
 
                 class C
@@ -149,18 +166,21 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     IEnumerable<int[]> M2() { return new[] { new[] { 1 } }; }
                     IEnumerable<int[]> M3() { return new[] { new[] { 1, 2, 3 }, new[] { 1 } }; }
                 }
+
                 """ + _csharpSpecializedCollectionsDefinition,
                 GetCSharpSingletonEnumerableResultAt(7, 38));
 
         [Fact(Skip = "855425")]
         public Task ImplicitConversionToNestedEnumerableCSharpAsync()
             => VerifyCS.VerifyAnalyzerAsync("""
+
                 using System.Collections.Generic;
 
                 class C
                 {
                     IEnumerable<IEnumerable<int>> M1() { return new[] { new[] { 1 } }; }
                 }
+
                 """ + _csharpSpecializedCollectionsDefinition,
                 GetCSharpSingletonEnumerableResultAt(5, 49),
                 GetCSharpSingletonEnumerableResultAt(5, 57));
@@ -168,6 +188,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public Task ReturnEmptyArrayBasicAsync()
             => VerifyVB.VerifyAnalyzerAsync("""
+
                 Imports System.Collections.Generic
 
                 Class C
@@ -178,6 +199,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         Return {}
                     End Function
                 End Class
+
                 """ + _basicSpecializedCollectionsDefinition,
             GetBasicEmptyEnumerableResultAt(6, 16),
             GetBasicEmptyEnumerableResultAt(9, 16));
@@ -185,6 +207,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public Task ReturnLinqEmptyEnumerableBasicAsync()
             => VerifyVB.VerifyAnalyzerAsync("""
+
                 Imports System.Collections.Generic
                 Imports System.Linq
 
@@ -193,12 +216,14 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         Return Enumerable.Empty(Of Integer)()
                     End Function
                 End Class
+
                 """ + _basicSpecializedCollectionsDefinition,
                 GetBasicEmptyEnumerableResultAt(7, 16));
 
         [Fact]
         public Task ReturnSingletonArrayBasicAsync()
             => VerifyVB.VerifyAnalyzerAsync("""
+
                 Imports System.Collections.Generic
 
                 Class C
@@ -209,6 +234,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         Return {1}
                     End Function
                 End Class
+
                 """ + _basicSpecializedCollectionsDefinition,
                 GetBasicSingletonEnumerableResultAt(6, 16),
                 GetBasicSingletonEnumerableResultAt(9, 16));
@@ -216,6 +242,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact(Skip = "855425")]
         public Task ReturnArrayWithinExpressionBasicAsync()
             => VerifyVB.VerifyAnalyzerAsync("""
+
                 Imports System.Collections.Generic
 
                 Class C
@@ -226,6 +253,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         Return If(True, {1})
                     End Function
                 End Class
+
                 """ + _basicSpecializedCollectionsDefinition,
                 GetBasicSingletonEnumerableResultAt(6, 25),
                 GetBasicSingletonEnumerableResultAt(6, 30),
@@ -234,6 +262,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public Task ReturnLinqEmptyEnumerableWithinExpressionBasicAsync()
             => VerifyVB.VerifyAnalyzerAsync("""
+
                 Imports System.Collections.Generic
                 Imports System.Linq
 
@@ -245,6 +274,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         Return If({|BC33107:True|}, Enumerable.Empty(Of Integer)())
                     End Function
                 End Class
+
                 """ + _basicSpecializedCollectionsDefinition,
                 GetBasicEmptyEnumerableResultAt(7, 25),
                 GetBasicEmptyEnumerableResultAt(10, 25));
@@ -252,6 +282,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public Task ReturnMultiElementArrayBasicAsync()
             => VerifyVB.VerifyAnalyzerAsync("""
+
                 Imports System.Collections.Generic
 
                 Class C
@@ -262,11 +293,13 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         Return {1, 2}
                     End Function
                 End Class
+
                 """ + _basicSpecializedCollectionsDefinition);
 
         [Fact]
         public Task ReturnJaggedArrayBasicAsync()
             => VerifyVB.VerifyAnalyzerAsync("""
+
                 Imports System.Collections.Generic
 
                 Class C
@@ -280,12 +313,14 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         Return {({1, 2, 3}), ({1})}
                     End Function
                 End Class
+
                 """ + _basicSpecializedCollectionsDefinition,
                 GetBasicSingletonEnumerableResultAt(9, 16));
 
         [Fact(Skip = "855425")]
         public Task ImplicitConversionToNestedEnumerableBasicAsync()
             => VerifyVB.VerifyAnalyzerAsync("""
+
                 Imports System.Collections.Generic
 
                 Class C
@@ -293,6 +328,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         Return {({1})}
                     End Function
                 End Class
+
                 """ + _basicSpecializedCollectionsDefinition,
                 GetBasicSingletonEnumerableResultAt(6, 16),
                 GetBasicSingletonEnumerableResultAt(6, 17));

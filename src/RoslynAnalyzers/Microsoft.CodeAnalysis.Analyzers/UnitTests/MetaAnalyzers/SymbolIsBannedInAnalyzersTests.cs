@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                 """,
                 ExpectedDiagnostics = {
                     // /0/Test0.cs(15,13): error RS1035: The symbol 'File' is banned for use by analyzers: Do not do file IO in analyzers
-                    VerifyCS.Diagnostic("RS1035").WithSpan(15, 13, 15, 37).WithArguments("File", ": Do not do file IO in analyzers"),
+                    VerifyCS.Diagnostic("RS1035").WithSpan(14, 13, 14, 37).WithArguments("File", ": Do not do file IO in analyzers"),
                 },
                 TestState = {
                     AnalyzerConfigFiles = { ("/.editorconfig", $"""
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                 """,
                 ExpectedDiagnostics = {
                     // /0/Test0.cs(19,13): error RS1035: The symbol 'File' is banned for use by analyzers: Do not do file IO in analyzers
-                    VerifyCS.Diagnostic("RS1035").WithSpan(19, 13, 19, 37).WithArguments("File", ": Do not do file IO in analyzers"),
+                    VerifyCS.Diagnostic("RS1035").WithSpan(18, 13, 18, 37).WithArguments("File", ": Do not do file IO in analyzers"),
                 },
                 TestState = {
                     AnalyzerConfigFiles = { ("/.editorconfig", $"""
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                 """,
                 ExpectedDiagnostics = {
                     // /0/Test0.cs(7,7): warning RS1036: 'MyAnalyzer': A project containing analyzers or source generators should specify the property '<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>'
-                    VerifyCS.Diagnostic("RS1036").WithSpan(7, 7, 7, 17).WithArguments("MyAnalyzer"),
+                    VerifyCS.Diagnostic("RS1036").WithSpan(6, 7, 6, 17).WithArguments("MyAnalyzer"),
                 }
             }.RunAsync();
 
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                 ExpectedDiagnostics =
                 {
                     // /0/Test0.vb(12,9,12,33): error RS1035: The symbol 'File' is banned for use by analyzers: Do not do file IO in analyzers
-                    VerifyVB.Diagnostic("RS1035").WithSpan(12, 9, 12, 33).WithArguments("File", ": Do not do file IO in analyzers"),
+                    VerifyVB.Diagnostic("RS1035").WithSpan(11, 9, 11, 33).WithArguments("File", ": Do not do file IO in analyzers"),
                 },
                 TestState = {
                     AnalyzerConfigFiles = { ("/.editorconfig", $"""
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                 ExpectedDiagnostics =
                 {
                     // /0/Test0.vb(7,7): warning RS1036: 'MyDiagnosticAnalyzer': A project containing analyzers or source generators should specify the  property '<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>'
-                    VerifyVB.Diagnostic("RS1036").WithSpan(7, 7, 7, 27).WithArguments("MyDiagnosticAnalyzer"),
+                    VerifyVB.Diagnostic("RS1036").WithSpan(6, 7, 6, 27).WithArguments("MyDiagnosticAnalyzer"),
                 }
             }.RunAsync();
 

@@ -435,7 +435,7 @@ public sealed class CSharpVirtualCharServiceTests
         => Test(""""
             """
                 goo
-
+                
                 bar
                 """
             """", @"['g',[9,10]]['o',[10,11]]['o',[11,12]]['\u000D',[12,13]]['\u000A',[13,14]]['\u000D',[18,19]]['\u000A',[19,20]]['b',[24,25]]['a',[25,26]]['r',[26,27]]");
@@ -445,7 +445,7 @@ public sealed class CSharpVirtualCharServiceTests
         => Test(""""
             """
                 goo
-
+                  
                 bar
                 """
             """", @"['g',[9,10]]['o',[10,11]]['o',[11,12]]['\u000D',[12,13]]['\u000A',[13,14]][' ',[18,19]][' ',[19,20]]['\u000D',[20,21]]['\u000A',[21,22]]['b',[26,27]]['a',[27,28]]['r',[28,29]]");
@@ -468,7 +468,7 @@ public sealed class CSharpVirtualCharServiceTests
                 goo
 
                 bar
-
+                
                 """
             """", @"['g',[9,10]]['o',[10,11]]['o',[11,12]]['\u000D',[12,13]]['\u000A',[13,14]]['\u000D',[14,15]]['\u000A',[15,16]]['b',[20,21]]['a',[21,22]]['r',[22,23]]['\u000D',[23,24]]['\u000A',[24,25]]");
 
@@ -479,7 +479,7 @@ public sealed class CSharpVirtualCharServiceTests
                 goo
 
                 bar
-
+                  
                 """
             """", @"['g',[9,10]]['o',[10,11]]['o',[11,12]]['\u000D',[12,13]]['\u000A',[13,14]]['\u000D',[14,15]]['\u000A',[15,16]]['b',[20,21]]['a',[21,22]]['r',[22,23]]['\u000D',[23,24]]['\u000A',[24,25]][' ',[29,30]][' ',[30,31]]");
 
@@ -518,7 +518,7 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestMultiLineRawString14()
         => Test(""""
             """
-
+                
                 goo
 
                 bar
@@ -529,7 +529,7 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestMultiLineRawString15()
         => Test(""""
             """
-
+                  
                 goo
 
                 bar
@@ -548,7 +548,7 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestMultiLineRawString17()
         => Test(""""
             """
-
+                
                 """
             """", @"");
 
@@ -556,7 +556,7 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestMultiLineRawString18()
         => Test(""""
             """
-
+                  
                 """
             """", @"[' ',[9,10]][' ',[10,11]]");
 
@@ -678,7 +678,7 @@ public sealed class CSharpVirtualCharServiceTests
         => Test(""""
             $"""
                 goo
-
+                
                 bar
                 """
             """", @"['g',[10,11]]['o',[11,12]]['o',[12,13]]['\u000D',[13,14]]['\u000A',[14,15]]['\u000D',[19,20]]['\u000A',[20,21]]['b',[25,26]]['a',[26,27]]['r',[27,28]]");
@@ -688,7 +688,7 @@ public sealed class CSharpVirtualCharServiceTests
         => Test(""""
             $"""
                 goo
-
+                  
                 bar
                 """
             """", @"['g',[10,11]]['o',[11,12]]['o',[12,13]]['\u000D',[13,14]]['\u000A',[14,15]][' ',[19,20]][' ',[20,21]]['\u000D',[21,22]]['\u000A',[22,23]]['b',[27,28]]['a',[28,29]]['r',[29,30]]");
@@ -711,7 +711,7 @@ public sealed class CSharpVirtualCharServiceTests
                 goo
 
                 bar
-
+                
                 """
             """", @"['g',[10,11]]['o',[11,12]]['o',[12,13]]['\u000D',[13,14]]['\u000A',[14,15]]['\u000D',[15,16]]['\u000A',[16,17]]['b',[21,22]]['a',[22,23]]['r',[23,24]]['\u000D',[24,25]]['\u000A',[25,26]]");
 
@@ -722,7 +722,7 @@ public sealed class CSharpVirtualCharServiceTests
                 goo
 
                 bar
-
+                  
                 """
             """", @"['g',[10,11]]['o',[11,12]]['o',[12,13]]['\u000D',[13,14]]['\u000A',[14,15]]['\u000D',[15,16]]['\u000A',[16,17]]['b',[21,22]]['a',[22,23]]['r',[23,24]]['\u000D',[24,25]]['\u000A',[25,26]][' ',[30,31]][' ',[31,32]]");
 
@@ -761,7 +761,7 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestMultiLineInterpolatedRawString14()
         => Test(""""
             $"""
-
+                
                 goo
 
                 bar
@@ -772,7 +772,7 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestMultiLineInterpolatedRawString15()
         => Test(""""
             $"""
-
+                  
                 goo
 
                 bar
@@ -791,7 +791,7 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestMultiLineInterpolatedRawString17()
         => Test(""""
             $"""
-
+                
                 """
             """", @"");
 
@@ -799,7 +799,7 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestMultiLineInterpolatedRawString18()
         => Test(""""
             $"""
-
+                  
                 """
             """", @"[' ',[10,11]][' ',[11,12]]");
 
@@ -886,7 +886,7 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestMultiLineInterpolatedRawString28()
         => Test(""""
             $"""
-
+                
                 goo
                 {1}
                 """
@@ -896,7 +896,7 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestMultiLineInterpolatedRawString29()
         => Test(""""
             $"""
-
+                  
                 goo
                 {1}
                 """
@@ -917,7 +917,7 @@ public sealed class CSharpVirtualCharServiceTests
         => Test(""""
             $"""
                 goo
-
+                
                 {1}
                 """
             """", @"['g',[10,11]]['o',[11,12]]['o',[12,13]]['\u000D',[13,14]]['\u000A',[14,15]]['\u000D',[19,20]]['\u000A',[20,21]]");
@@ -927,7 +927,7 @@ public sealed class CSharpVirtualCharServiceTests
         => Test(""""
             $"""
                 goo
-
+                  
                 {1}
                 """
             """", @"['g',[10,11]]['o',[11,12]]['o',[12,13]]['\u000D',[13,14]]['\u000A',[14,15]][' ',[19,20]][' ',[20,21]]['\u000D',[21,22]]['\u000A',[22,23]]");
@@ -948,7 +948,7 @@ public sealed class CSharpVirtualCharServiceTests
             $"""
                 goo
                 {1}
-
+                
                 """
             """", @"['g',[10,11]]['o',[11,12]]['o',[12,13]]['\u000D',[13,14]]['\u000A',[14,15]]['\u000D',[22,23]]['\u000A',[23,24]]");
 
@@ -958,7 +958,7 @@ public sealed class CSharpVirtualCharServiceTests
             $"""
                 goo
                 {1}
-
+                  
                 """
             """", @"['g',[10,11]]['o',[11,12]]['o',[12,13]]['\u000D',[13,14]]['\u000A',[14,15]]['\u000D',[22,23]]['\u000A',[23,24]][' ',[28,29]][' ',[29,30]]");
 
@@ -966,10 +966,10 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestMultiLineInterpolatedRawString36()
         => Test(""""
             $"""
-
+                  
                 goo
                 {1}
-
+                  
                 """
             """", @"[' ',[10,11]][' ',[11,12]]['\u000D',[12,13]]['\u000A',[13,14]]['g',[18,19]]['o',[19,20]]['o',[20,21]]['\u000D',[21,22]]['\u000A',[22,23]]['\u000D',[30,31]]['\u000A',[31,32]][' ',[36,37]][' ',[37,38]]");
 
@@ -977,11 +977,11 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestMultiLineInterpolatedRawString37()
         => Test(""""
             $"""
-
+                  
                 goo
-
+                  
                 {1}
-
+                  
                 """
             """", @"[' ',[10,11]][' ',[11,12]]['\u000D',[12,13]]['\u000A',[13,14]]['g',[18,19]]['o',[19,20]]['o',[20,21]]['\u000D',[21,22]]['\u000A',[22,23]][' ',[27,28]][' ',[28,29]]['\u000D',[29,30]]['\u000A',[30,31]]['\u000D',[38,39]]['\u000A',[39,40]][' ',[44,45]][' ',[45,46]]");
 
@@ -989,11 +989,11 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestMultiLineInterpolatedRawString38()
         => Test(""""
             $"""  
-
+                  
                 goo
-
+                  
                 {1}
-
+                  
                 """
             """", @"[' ',[12,13]][' ',[13,14]]['\u000D',[14,15]]['\u000A',[15,16]]['g',[20,21]]['o',[21,22]]['o',[22,23]]['\u000D',[23,24]]['\u000A',[24,25]][' ',[29,30]][' ',[30,31]]['\u000D',[31,32]]['\u000A',[32,33]]['\u000D',[40,41]]['\u000A',[41,42]][' ',[46,47]][' ',[47,48]]");
 
@@ -1087,7 +1087,7 @@ public sealed class CSharpVirtualCharServiceTests
         => Test(""""
             $"""
                 goo
-
+                
                 {1}
                 bar
                 """
@@ -1098,7 +1098,7 @@ public sealed class CSharpVirtualCharServiceTests
         => Test(""""
             $"""
                 goo
-
+                  
                 {1}
                 bar
                 """
@@ -1109,7 +1109,7 @@ public sealed class CSharpVirtualCharServiceTests
         => Test(""""
             $"""
                 goo
-
+                  
                 {1}
 
                 bar
@@ -1121,9 +1121,9 @@ public sealed class CSharpVirtualCharServiceTests
         => Test(""""
             $"""
                 goo
-
+                  
                 {1}
-
+                
                 bar
                 """
             """", @"['g',[10,11]]['o',[11,12]]['o',[12,13]]['\u000D',[13,14]]['\u000A',[14,15]][' ',[19,20]][' ',[20,21]]['\u000D',[21,22]]['\u000A',[22,23]]['\u000D',[30,31]]['\u000A',[31,32]]['\u000D',[36,37]]['\u000A',[37,38]]['b',[42,43]]['a',[43,44]]['r',[44,45]]");
@@ -1133,9 +1133,9 @@ public sealed class CSharpVirtualCharServiceTests
         => Test(""""
             $"""
                 goo
-
+                  
                 {1}
-
+                  
                 bar
                 """
             """", @"['g',[10,11]]['o',[11,12]]['o',[12,13]]['\u000D',[13,14]]['\u000A',[14,15]][' ',[19,20]][' ',[20,21]]['\u000D',[21,22]]['\u000A',[22,23]]['\u000D',[30,31]]['\u000A',[31,32]][' ',[36,37]][' ',[37,38]]['\u000D',[38,39]]['\u000A',[39,40]]['b',[44,45]]['a',[45,46]]['r',[46,47]]");
@@ -1145,9 +1145,9 @@ public sealed class CSharpVirtualCharServiceTests
         => Test(""""
             $"""
                 goo
-
+                  
                 {1}
-
+                  
                 bar
 
                 """
@@ -1158,11 +1158,11 @@ public sealed class CSharpVirtualCharServiceTests
         => Test(""""
             $"""
                 goo
-
+                  
                 {1}
-
+                  
                 bar
-
+                
                 """
             """", @"['g',[10,11]]['o',[11,12]]['o',[12,13]]['\u000D',[13,14]]['\u000A',[14,15]][' ',[19,20]][' ',[20,21]]['\u000D',[21,22]]['\u000A',[22,23]]['\u000D',[30,31]]['\u000A',[31,32]][' ',[36,37]][' ',[37,38]]['\u000D',[38,39]]['\u000A',[39,40]]['b',[44,45]]['a',[45,46]]['r',[46,47]]['\u000D',[47,48]]['\u000A',[48,49]]");
 
@@ -1171,11 +1171,11 @@ public sealed class CSharpVirtualCharServiceTests
         => Test(""""
             $"""
                 goo
-
+                  
                 {1}
-
+                  
                 bar
-
+                  
                 """
             """", @"['g',[10,11]]['o',[11,12]]['o',[12,13]]['\u000D',[13,14]]['\u000A',[14,15]][' ',[19,20]][' ',[20,21]]['\u000D',[21,22]]['\u000A',[22,23]]['\u000D',[30,31]]['\u000A',[31,32]][' ',[36,37]][' ',[37,38]]['\u000D',[38,39]]['\u000A',[39,40]]['b',[44,45]]['a',[45,46]]['r',[46,47]]['\u000D',[47,48]]['\u000A',[48,49]][' ',[53,54]][' ',[54,55]]");
 
@@ -1210,9 +1210,9 @@ public sealed class CSharpVirtualCharServiceTests
                 goo
 
                 {1}
-
+                
                   bar{2}
-
+                    
                         baz
                 """
             """", @"['g',[12,13]]['o',[13,14]]['o',[14,15]]['\u000D',[15,16]]['\u000A',[16,17]]['\u000D',[17,18]]['\u000A',[18,19]]['\u000D',[26,27]]['\u000A',[27,28]]['\u000D',[32,33]]['\u000A',[33,34]][' ',[38,39]][' ',[39,40]]['b',[40,41]]['a',[41,42]]['r',[42,43]]['\u000D',[46,47]]['\u000A',[47,48]][' ',[52,53]][' ',[53,54]][' ',[54,55]][' ',[55,56]]['\u000D',[56,57]]['\u000A',[57,58]][' ',[62,63]][' ',[63,64]][' ',[64,65]][' ',[65,66]][' ',[66,67]][' ',[67,68]][' ',[68,69]][' ',[69,70]]['b',[70,71]]['a',[71,72]]['z',[72,73]]");

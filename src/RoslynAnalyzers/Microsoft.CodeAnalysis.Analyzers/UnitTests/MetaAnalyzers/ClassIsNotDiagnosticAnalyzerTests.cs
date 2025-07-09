@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 }
                 """,
 #pragma warning disable RS0030 // Do not use banned APIs
-                VerifyCS.Diagnostic().WithLocation(8, 20).WithArguments("NotAnAnalyzer"));
+                VerifyCS.Diagnostic().WithLocation(7, 20).WithArguments("NotAnAnalyzer"));
 #pragma warning restore RS0030 // Do not use banned APIs
 
             await VerifyVB.VerifyAnalyzerAsync("""
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 End Namespace
                 """,
 #pragma warning disable RS0030 // Do not use banned APIs
-                VerifyVB.Diagnostic().WithLocation(7, 18).WithArguments("NotAnAnalyzer"));
+                VerifyVB.Diagnostic().WithLocation(6, 18).WithArguments("NotAnAnalyzer"));
 #pragma warning restore RS0030 // Do not use banned APIs
         }
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 }
                 """,
 #pragma warning disable RS0030 // Do not use banned APIs
-                VerifyCS.Diagnostic().WithLocation(8, 27).WithArguments("NotAnAnalyzer"));
+                VerifyCS.Diagnostic().WithLocation(7, 27).WithArguments("NotAnAnalyzer"));
 #pragma warning restore RS0030 // Do not use banned APIs
 
             await VerifyVB.VerifyAnalyzerAsync("""

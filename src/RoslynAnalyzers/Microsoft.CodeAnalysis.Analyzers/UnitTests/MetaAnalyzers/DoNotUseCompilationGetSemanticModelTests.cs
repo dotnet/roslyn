@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """,
-                GetCSharpExpectedDiagnostic(14, 13));
+                GetCSharpExpectedDiagnostic(13, 13));
 
             await VerifyVB.VerifyAnalyzerAsync("""
                 Imports System.Collections.Immutable
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     End Sub
                 End Class
                 """,
-                GetBasicExpectedDiagnostic(18, 17));
+                GetBasicExpectedDiagnostic(17, 17));
         }
 
         [Fact]
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """,
-                GetCSharpExpectedDiagnostic(19, 33));
+                GetCSharpExpectedDiagnostic(18, 33));
 
             await VerifyVB.VerifyAnalyzerAsync("""
                 Imports System.Collections.Immutable
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     End Sub
                 End Class
                 """,
-                GetBasicExpectedDiagnostic(22, 37));
+                GetBasicExpectedDiagnostic(21, 37));
         }
 
         [Fact]
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """,
-                GetCSharpExpectedDiagnostic(16, 13));
+                GetCSharpExpectedDiagnostic(15, 13));
 
             await VerifyVB.VerifyAnalyzerAsync("""
                 Imports System.Collections.Immutable
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     End Sub
                 End Class
                 """,
-                GetBasicExpectedDiagnostic(20, 17));
+                GetBasicExpectedDiagnostic(19, 17));
         }
 
         [Fact]

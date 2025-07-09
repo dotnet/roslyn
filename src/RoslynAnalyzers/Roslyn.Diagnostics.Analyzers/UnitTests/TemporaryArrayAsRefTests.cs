@@ -18,6 +18,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     public class TemporaryArrayAsRefTests
     {
         public const string TemporaryArraySource_CSharp = """
+
             namespace Microsoft.CodeAnalysis.Shared.Collections
             {
                 internal struct TemporaryArray<T> : System.IDisposable
@@ -30,8 +31,10 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     public static ref TemporaryArray<T> AsRef<T>(this in TemporaryArray<T> array) => throw null;
                 }
             }
+
             """;
         public const string TemporaryArraySource_VisualBasic = """
+
             Namespace Microsoft.CodeAnalysis.Shared.Collections
                 Friend Structure TemporaryArray(Of T)
                     Implements System.IDisposable
@@ -47,12 +50,14 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     End Function
                 End Module
             End Namespace
+
             """;
 
         [Fact]
         public async Task TestUsingVariable_CSharpAsync()
         {
             var code = """
+
                 using Microsoft.CodeAnalysis.Shared.Collections;
 
                 class C
@@ -66,6 +71,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         }
                     }
                 }
+
+
                 """ + TemporaryArraySource_CSharp;
 
             await new VerifyCS.Test
@@ -79,6 +86,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task TestUsingVariable_VisualBasicAsync()
         {
             var code = """
+
                 Imports Microsoft.CodeAnalysis.Shared.Collections
 
                 Class C
@@ -89,6 +97,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         End Using
                     End Sub
                 End Class
+
+
                 """ + TemporaryArraySource_VisualBasic;
 
             await new VerifyVB.Test
@@ -102,6 +112,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task TestUsingDeclarationVariable_CSharpAsync()
         {
             var code = """
+
                 using Microsoft.CodeAnalysis.Shared.Collections;
 
                 class C
@@ -113,6 +124,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         ref var arrayRef2 = ref TemporaryArrayExtensions.AsRef(in array);
                     }
                 }
+
+
                 """ + TemporaryArraySource_CSharp;
 
             await new VerifyCS.Test
@@ -126,6 +139,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task TestNonUsingVariable_CSharpAsync()
         {
             var code = """
+
                 using Microsoft.CodeAnalysis.Shared.Collections;
 
                 class C
@@ -137,6 +151,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         ref var arrayRef2 = ref [|TemporaryArrayExtensions.AsRef(in array)|];
                     }
                 }
+
+
                 """ + TemporaryArraySource_CSharp;
 
             await new VerifyCS.Test
@@ -150,6 +166,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task TestNonUsingVariable_VisualBasicAsync()
         {
             var code = """
+
                 Imports Microsoft.CodeAnalysis.Shared.Collections
 
                 Class C
@@ -159,6 +176,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         Dim arrayRef2 = [|TemporaryArrayExtensions.AsRef(array)|]
                     End Sub
                 End Class
+
+
                 """ + TemporaryArraySource_VisualBasic;
 
             await new VerifyVB.Test

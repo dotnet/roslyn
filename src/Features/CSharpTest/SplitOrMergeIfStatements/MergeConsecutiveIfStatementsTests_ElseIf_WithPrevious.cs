@@ -41,7 +41,9 @@ public sealed partial class MergeConsecutiveIfStatementsTests : AbstractCSharpCo
                     if (a)
                     {
                     }
+                    
             """ + elseIfLine + """
+
                     {
                     }
                 }
@@ -220,7 +222,9 @@ public sealed partial class MergeConsecutiveIfStatementsTests : AbstractCSharpCo
                     if (a)
                     {
                     }
+                    
             """ + elseIfLine + """
+
                     {
                     }
                 }

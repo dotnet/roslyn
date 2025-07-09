@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         private const string VisualBasicApiProviderFileName = "ApiProviderFileName.vb";
 
         private const string CSharpRestrictedInternalsVisibleToAttribute = """
+
             namespace System.Runtime.CompilerServices
             {
                 [System.AttributeUsage(System.AttributeTargets.Assembly, AllowMultiple = true)]
@@ -53,6 +54,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
             }
             """;
         private const string VisualBasicRestrictedInternalsVisibleToAttribute = """
+
             Namespace System.Runtime.CompilerServices
                 <System.AttributeUsage(System.AttributeTargets.Assembly, AllowMultiple:=True)>
                 Friend Class RestrictedInternalsVisibleToAttribute
@@ -130,11 +132,13 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_NoIVT_NoRestrictedIVT_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 namespace N1
                 {
                     internal class C1 { }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.{|CS0122:C1|} c)
@@ -146,11 +150,13 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_NoIVT_NoRestrictedIVT_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 Namespace N1
                     Friend Class C1
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c As {|BC30389:N1.C1|})
                     End Sub
@@ -160,6 +166,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_NoRestrictedIVT_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
 
                 namespace N1
@@ -167,6 +174,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     internal class C1 { }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.C1 c)
@@ -178,6 +186,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_NoRestrictedIVT_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
 
                 Namespace N1
@@ -185,6 +194,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c As N1.C1)
                     End Sub
@@ -194,6 +204,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_NoIVT_RestrictedIVT_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "NonExistentNamespace")]
 
                 namespace N1
@@ -201,6 +212,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     internal class C1 { }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.{|CS0122:C1|} c)
@@ -212,6 +224,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_NoIVT_RestrictedIVT_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "NonExistentNamespace")>
 
                 Namespace N1
@@ -219,6 +232,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c As {|BC30389:N1.C1|})
                     End Sub
@@ -228,6 +242,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_BasicScenario_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")]
 
@@ -236,6 +251,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     internal class C1 { }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.C1 c)
@@ -247,6 +263,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_BasicScenario_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")>
 
@@ -255,6 +272,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c As N1.C1)
                     End Sub
@@ -264,6 +282,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_BasicScenario_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
 
@@ -272,6 +291,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     internal class C1 { }
                 }
                 """, """
+
                 class C2
                 {
                     void M({|#0:N1.C1|} c)
@@ -284,6 +304,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_BasicScenario_DiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")>
 
@@ -292,6 +313,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c As {|#0:N1.C1|})
                     End Sub
@@ -302,6 +324,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_MultipleAttributes_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
@@ -316,6 +339,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     internal class C2 { }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.C1 c1, N2.C2 c2)
@@ -327,6 +351,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_MultipleAttributes_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")>
@@ -341,6 +366,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c1 As N1.C1, c2 As N2.C2)
                     End Sub
@@ -350,6 +376,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_MultipleAttributes_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
@@ -369,6 +396,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     internal class C3 { }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.C1 c1, N2.C2 c2, {|#0:N3.C3|} c3)
@@ -381,6 +409,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_MultipleAttributes_DiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")>
@@ -400,6 +429,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c1 As N1.C1, c2 As N2.C2, c3 As {|#0:N3.C3|})
                     End Sub
@@ -410,6 +440,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_ProjectNameMismatch_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("XYZ", "NonExistentNamespace")]
 
@@ -418,6 +449,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     internal class C1 { }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.C1 c)
@@ -429,6 +461,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_ProjectNameMismatch_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("XYZ", "NonExistentNamespace")>
 
@@ -437,6 +470,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c As N1.C1)
                     End Sub
@@ -446,6 +480,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_ProjectNameMismatch_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("XYZ", "N1")]
@@ -455,6 +490,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     internal class C1 { }
                 }
                 """, """
+
                 class C2
                 {
                     void M({|#0:N1.C1|} c)
@@ -467,6 +503,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_ProjectNameMismatch_DiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("XYZ", "N1")>
@@ -476,6 +513,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c As {|#0:N1.C1|})
                     End Sub
@@ -486,6 +524,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_NoRestrictedNamespace_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName")]
 
@@ -494,6 +533,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     internal class C1 { }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.C1 c)
@@ -505,6 +545,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_NoRestrictedNamespace_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName")>
 
@@ -513,6 +554,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c As N1.C1)
                     End Sub
@@ -522,6 +564,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_QualifiedNamespace_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1.N2")]
 
@@ -533,6 +576,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.N2.C1 c)
@@ -544,6 +588,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_QualifiedNamespace_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1.N2")>
 
@@ -554,6 +599,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Namespace
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c As N1.N2.C1)
                     End Sub
@@ -563,6 +609,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_QualifiedNamespace_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1.N2")]
 
@@ -576,6 +623,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     internal class C3 { }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.N2.C1 c1, {|#0:N1.C3|} c3)
@@ -588,6 +636,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_QualifiedNamespace_DiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1.N2")>
 
@@ -601,6 +650,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c1 As N1.N2.C1, c3 As {|#0:N1.C3|})
                     End Sub
@@ -611,6 +661,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_AncestorNamespace_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")]
 
@@ -622,6 +673,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.N2.C1 c)
@@ -633,6 +685,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_AncestorNamespace_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")>
 
@@ -643,6 +696,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Namespace
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c As N1.N2.C1)
                     End Sub
@@ -652,6 +706,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_AncestorNamespace_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1.N2")]
 
@@ -665,6 +720,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     internal class C2 { }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.N2.C1 c1, {|#0:N1.C2|} c2)
@@ -677,6 +733,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_AncestorNamespace_DiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1.N2")>
 
@@ -690,6 +747,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c1 As N1.N2.C1, c2 As {|#0:N1.C2|})
                     End Sub
@@ -700,6 +758,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_QualifiedAndAncestorNamespace_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1", "N1.N2")]
 
@@ -711,6 +770,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.N2.C1 c)
@@ -722,6 +782,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_QualifiedAndAncestorNamespace_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1", "N1.N2")>
 
@@ -732,6 +793,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Namespace
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c As N1.N2.C1)
                     End Sub
@@ -741,6 +803,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_NestedType_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")]
 
@@ -749,6 +812,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     internal class C1 { internal class Nested { } }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.C1 c, N1.C1.Nested nested)
@@ -760,6 +824,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_NestedType_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")>
 
@@ -770,6 +835,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c As N1.C1, nested As N1.C1.Nested)
                     End Sub
@@ -779,6 +845,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_NestedType_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
 
@@ -787,6 +854,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     public class C1 { internal class Nested { } }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.C1 c, {|#0:N1.C1.Nested|} nested)
@@ -799,6 +867,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_NestedType_DiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")>
 
@@ -809,6 +878,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c As N1.C1, nested As {|#0:N1.C1.Nested|})
                     End Sub
@@ -819,6 +889,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_UsageInAttributes_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")]
 
@@ -830,6 +901,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     }
                 }
                 """, """
+
                 [N1.C1(typeof(N1.C1))]
                 class C2
                 {
@@ -854,6 +926,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_UsageInAttributes_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")>
 
@@ -865,6 +938,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 <N1.C1(GetType(N1.C1))>
                 Class C2
                     <N1.C1(GetType(N1.C1))>
@@ -886,6 +960,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_UsageInAttributes_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
 
@@ -897,6 +972,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     }
                 }
                 """, """
+
                 [{|#16:{|#0:N1.C1|}(typeof({|#1:N1.C1|}))|}]
                 class C2
                 {
@@ -946,6 +1022,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_UsageInAttributes_DiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")>
 
@@ -957,6 +1034,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 <{|#14:{|#0:N1.C1|}(GetType({|#1:N1.C1|}))|}>
                 Class C2
                     <{|#15:{|#2:N1.C1|}(GetType({|#3:N1.C1|}))|}>
@@ -1000,6 +1078,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_UsageInDeclaration_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")]
 
@@ -1008,6 +1087,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     internal class C1 { }
                 }
                 """, """
+
                 class C2 : N1.C1
                 {
                     private readonly N1.C1 field;
@@ -1023,6 +1103,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_UsageInDeclaration_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")>
 
@@ -1031,6 +1112,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Inherits N1.C1
 
@@ -1052,6 +1134,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_UsageInDeclaration_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
 
@@ -1066,6 +1149,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     internal class C7 { }
                 }
                 """, """
+
                 class B : {|#0:N1.C1|}
                 {
                     private readonly {|#1:N1.C2|} field;
@@ -1088,6 +1172,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_UsageInDeclaration_DiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")>
 
@@ -1108,6 +1193,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class B
                     Inherits {|#0:N1.C1|}
 
@@ -1136,6 +1222,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_UsageInExecutableCode_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")]
 
@@ -1152,6 +1239,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     }
                 }
                 """, """
+
                 class C2
                 {
                     // Field initializer
@@ -1175,6 +1263,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_UsageInExecutableCode_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")>
 
@@ -1202,6 +1291,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private ReadOnly field As N1.C1 = New N1.C1(Nothing)
                     Private ReadOnly Property [Property] As N1.C1 = New N1.C1(Nothing)
@@ -1220,6 +1310,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_PublicTypeInternalMember_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")]
 
@@ -1231,6 +1322,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     }
                 }
                 """, """
+
                 class C2
                 {
                     int M(N1.C1 c)
@@ -1243,6 +1335,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_PublicTypeInternalMember_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")>
 
@@ -1252,6 +1345,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Function M(c As N1.C1) As Integer
                         Return c.Field
@@ -1262,6 +1356,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_PublicTypeInternalField_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
 
@@ -1273,6 +1368,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     }
                 }
                 """, """
+
                 class C2
                 {
                     int M(N1.C1 c)
@@ -1286,6 +1382,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_PublicTypeInternalField_DiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")>
 
@@ -1295,6 +1392,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Function M(c As N1.C1) As Integer
                         Return {|#0:c.Field|}
@@ -1306,6 +1404,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_PublicTypeInternalMethod_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
 
@@ -1317,6 +1416,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     }
                 }
                 """, """
+
                 class C2
                 {
                     int M(N1.C1 c)
@@ -1330,6 +1430,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_PublicTypeInternalMethod_DiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")>
 
@@ -1341,6 +1442,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Function M(c As N1.C1) As Integer
                         Return {|#0:c.Method()|}
@@ -1352,6 +1454,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")]
 
@@ -1380,6 +1483,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")>
 
@@ -1406,6 +1510,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
 
@@ -1435,6 +1540,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_DiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")>
 
@@ -1462,6 +1568,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_PublicTypeInternalProperty_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
 
@@ -1473,6 +1580,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     }
                 }
                 """, """
+
                 class C2
                 {
                     int M(N1.C1 c)
@@ -1486,6 +1594,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_PublicTypeInternalProperty_DiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")>
 
@@ -1495,6 +1604,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Function M(c As N1.C1) As Integer
                         Return {|#0:c.[Property]|}
@@ -1519,6 +1629,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.C1 c)
@@ -1543,6 +1654,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M(c As N1.C1)
                         Dim unused = {|BC32022:c.[Event]|}
@@ -1554,6 +1666,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_PublicTypeInternalConstructor_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
 
@@ -1565,6 +1678,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     }
                 }
                 """, """
+
                 class C2
                 {
                     void M()
@@ -1578,6 +1692,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_PublicTypeInternalConstructor_DiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")>
 
@@ -1588,6 +1703,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Sub M()
                         Dim c = {|#0:New N1.C1()|}
@@ -1599,6 +1715,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_Conversions_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
 
@@ -1608,6 +1725,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     public class C1 : I1 { }
                 }
                 """, """
+
                 class C2
                 {
                     void M(N1.C1 c)
@@ -1623,6 +1741,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_Conversions_DiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")>
 
@@ -1635,6 +1754,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Class C2
                     Private Function M(c As N1.C1) As Integer
                         Dim x = CType(c, {|#0:N1.I1|})
@@ -1648,6 +1768,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_UsageInTypeArgument_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")]
 
@@ -1661,6 +1782,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     internal class C3 { }
                 }
                 """, """
+
                 using N1;
                 class C2 : C1<C3>
                 {
@@ -1675,6 +1797,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_UsageInTypeArgument_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")>
 
@@ -1689,6 +1812,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Imports N1
 
                 Class C2
@@ -1704,6 +1828,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_UsageInTypeArgument_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
 
@@ -1723,7 +1848,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         public C1<object> GetC1<U>() => null;
                     }
                 }
+
                 """, """
+
                 using N1;
                 using N2;
 
@@ -1744,6 +1871,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_UsageInTypeArgument_DiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")>
 
@@ -1766,6 +1894,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     End Class
                 End Namespace
                 """, """
+
                 Imports N1
                 Imports N2
 
@@ -1786,6 +1915,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_UsingAlias_NoDiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")]
 
@@ -1806,6 +1936,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_UsingAlias_NoDiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N1")>
 
@@ -1824,6 +1955,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task CSharp_IVT_RestrictedIVT_UsingAlias_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
 
@@ -1845,6 +1977,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [Fact]
         public Task Basic_IVT_RestrictedIVT_UsingAlias_DiagnosticAsync()
             => VerifyBasicAsync("""
+
                 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")>
                 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")>
 
@@ -1865,6 +1998,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [WorkItem(2655, "https://github.com/dotnet/roslyn-analyzers/issues/2655")]
         public Task CSharp_IVT_RestrictedIVT_InternalOperators_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
 
@@ -1880,6 +2014,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     }
                 }
                 """, """
+
                 using N1;
                 class C2
                 {
@@ -1905,6 +2040,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         [WorkItem(2655, "https://github.com/dotnet/roslyn-analyzers/issues/2655")]
         public Task CSharp_IVT_RestrictedIVT_TypeArgumentUsage_DiagnosticAsync()
             => VerifyCSharpAsync("""
+
                 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ApiConsumerProjectName")]
                 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo("ApiConsumerProjectName", "N2")]
 
@@ -1913,6 +2049,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     internal struct C {}
                 }
                 """, """
+
                 using N1;
                 namespace N2
                 {

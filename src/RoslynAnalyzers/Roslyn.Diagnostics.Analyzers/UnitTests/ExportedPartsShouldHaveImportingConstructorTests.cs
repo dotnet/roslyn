@@ -438,7 +438,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(3, 2, 3, 8).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -476,7 +476,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(3, 2, 3, 8).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -512,7 +512,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(2, 2, 2, mefNamespace.Length + 9).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(1, 2, 1, mefNamespace.Length + 9).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -548,7 +548,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(2, 2, 2, mefNamespace.Length + 9).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(1, 2, 1, mefNamespace.Length + 9).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -594,7 +594,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(3, 2, 3, 8).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -647,7 +647,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(3, 2, 3, 8).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -685,7 +685,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(6, 5, 6, 19).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(5, 5, 5, 19).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -725,7 +725,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(6, 5, 6, 21).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(5, 5, 5, 21).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -761,7 +761,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(4, 5, 4, 19).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(3, 5, 3, 19).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -799,7 +799,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(4, 5, 4, 21).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(3, 5, 3, 21).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -838,7 +838,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(6, 6, 6, 26).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(5, 6, 5, 26).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -879,7 +879,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(6, 6, 6, 26).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(5, 6, 5, 26).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -915,8 +915,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic().WithSpan(9, 5, 9, 29).WithArguments("C"),
-                        VerifyCS.Diagnostic().WithSpan(11, 5, 11, 25).WithArguments("C"),
+                        VerifyCS.Diagnostic().WithSpan(8, 5, 8, 29).WithArguments("C"),
+                        VerifyCS.Diagnostic().WithSpan(10, 5, 10, 25).WithArguments("C"),
                     },
                 },
                 FixedState =
@@ -957,8 +957,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics =
                     {
-                        VerifyVB.Diagnostic().WithSpan(10, 5, 10, 32).WithArguments("C"),
-                        VerifyVB.Diagnostic().WithSpan(13, 5, 13, 34).WithArguments("C"),
+                        VerifyVB.Diagnostic().WithSpan(9, 5, 9, 32).WithArguments("C"),
+                        VerifyVB.Diagnostic().WithSpan(12, 5, 12, 34).WithArguments("C"),
                     },
                 },
                 FixedState =

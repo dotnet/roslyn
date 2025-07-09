@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             ];
 
             await VerifyCS.VerifyAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Generic;
                 using System.Collections.Immutable;
@@ -90,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             ];
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Generic
                 Imports System.Collections.Immutable
@@ -124,6 +126,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     Public Overrides Sub Initialize(context As AnalysisContext)
                     End Sub
                 End Class
+
                 """, expected);
         }
 
@@ -131,6 +134,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task CSharp_NoDiagnosticCasesAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Generic;
                 using System.Collections.Immutable;
@@ -210,6 +214,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task VisualBasic_NoDiagnosticCasesAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync("""
+
                 Imports System
                 Imports System.Collections.Generic
                 Imports System.Collections.Immutable
@@ -273,6 +278,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                         Throw New NotImplementedException()
                     End Sub
                 End Class
+
                 """);
         }
 
@@ -280,6 +286,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public async Task CSharp_NestedStruct_NoDiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
+
                 using System;
                 using System.Collections.Concurrent;
                 using System.Collections.Generic;
@@ -347,6 +354,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public Task CSharp_Func_NoDiagnostic(string delegateType)
         {
             return VerifyCS.VerifyAnalyzerAsync($$"""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -380,6 +388,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public Task CSharp_NestedFunc_NoDiagnostic(string delegateType)
         {
             return VerifyCS.VerifyAnalyzerAsync($$"""
+
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -413,6 +422,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public Task CSharp_NestedNestedFunc_NoDiagnostic(string delegateType)
         {
             return VerifyCS.VerifyAnalyzerAsync($$"""
+
                 using System;
                 using System.Collections.Generic;
                 using System.Collections.Immutable;
@@ -446,6 +456,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public Task CSharp_MultiFunc_NoDiagnostic([CombinatorialValues("Func", "Action")] string delegateType, [CombinatorialValues("bool", "int, string")] string types)
         {
             return VerifyCS.VerifyAnalyzerAsync($$"""
+
                 using System;
                 using System.Collections.Generic;
                 using System.Collections.Immutable;
@@ -480,6 +491,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public Task VisualBasic_Func_NoDiagnostic(string delegateType)
         {
             return VerifyVB.VerifyAnalyzerAsync($"""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -512,6 +524,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public Task VisualBasic_NestedFunc_NoDiagnostic(string delegateType)
         {
             return VerifyVB.VerifyAnalyzerAsync($"""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis
@@ -544,6 +557,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public Task VisualBasic_NestedNestedFunc_NoDiagnostic(string delegateType)
         {
             return VerifyVB.VerifyAnalyzerAsync($"""
+
                 Imports System
                 Imports System.Collections.Generic
                 Imports System.Collections.Immutable
@@ -576,6 +590,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         public Task VisualBasic_MultiFunc_NoDiagnostic([CombinatorialValues("Func", "Action")] string delegateType, [CombinatorialValues("Int32", "Int32, String")] string types)
         {
             return VerifyVB.VerifyAnalyzerAsync($"""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports Microsoft.CodeAnalysis

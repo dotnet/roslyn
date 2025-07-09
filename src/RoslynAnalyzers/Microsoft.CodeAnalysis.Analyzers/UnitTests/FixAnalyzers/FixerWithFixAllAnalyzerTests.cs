@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
         #region CSharp tests
 
         private const string CSharpCustomCodeActions = """
+
             public class MyCodeActionNoEquivalenceKey : CodeAction
             {
                 public override string Title
@@ -75,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
             public class MyDerivedCodeActionWithEquivalenceKey : MyAbstractCodeActionWithEquivalenceKey
             {
             }
+
             """;
         private async Task TestCSharpCoreAsync(string source, DiagnosticResult missingGetFixAllProviderOverrideDiagnostic,
             bool withCustomCodeActions = false, params DiagnosticResult[] expected)
@@ -87,6 +89,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
                 """;
 
             var sourceSuffix = """
+
                 }
                 """;
 
@@ -125,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
             // Test0.cs(10,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
             var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C1");
             await TestCSharpCoreAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using System.Threading.Tasks;
@@ -157,6 +161,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
 
                         return null;
                     }
+
                 """, missingGetFixAllProviderOverrideDiagnostic, expected: expected);
         }
 
@@ -168,6 +173,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
             var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C1");
 
             await TestCSharpCoreAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using System.Threading.Tasks;
@@ -220,6 +226,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
                     {
                         return null;
                     }
+
                 """, missingGetFixAllProviderOverrideDiagnostic);
         }
 
@@ -236,6 +243,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
             var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C2");
 
             await TestCSharpCoreAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using System.Threading.Tasks;
@@ -263,6 +271,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
                         var codeAction1_1 = CodeAction.Create("Title1_1", _ => Task.FromResult(context.Document));
                         return null;
                     }
+
                 """, missingGetFixAllProviderOverrideDiagnostic, expected: expected);
         }
 
@@ -279,6 +288,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
             var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C1");
 
             await TestCSharpCoreAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using System.Threading.Tasks;
@@ -302,6 +312,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
                         var codeAction = new MyCodeActionNoEquivalenceKey();
                         return null;
                     }
+
                 """, missingGetFixAllProviderOverrideDiagnostic, withCustomCodeActions: true, expected: expected);
         }
 
@@ -312,6 +323,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
             var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C1");
 
             await TestCSharpCoreAsync("""
+
                 using System;
                 using System.Collections.Immutable;
                 using System.Threading.Tasks;
@@ -334,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
                     {
                         CodeAction codeAction = new MyCodeActionWithEquivalenceKey();        
                         context.RegisterCodeFix(codeAction, context.Diagnostics);
-
+                        
                         codeAction = new MyDerivedCodeActionWithEquivalenceKey();        
                         context.RegisterCodeFix(codeAction, context.Diagnostics);
                         return null;
@@ -344,6 +356,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
                     {
                         return null;
                     }
+
                 """, missingGetFixAllProviderOverrideDiagnostic, withCustomCodeActions: true);
         }
 
@@ -353,6 +366,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
             {
                 ReferenceAssemblies = ReferenceAssemblies.Default.AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "3.3.0"))),
                 TestCode = """
+
                 using System;
                 using System.Collections.Immutable;
                 using System.Threading.Tasks;
@@ -410,6 +424,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
         #region VisualBasic tests
 
         private const string VisualBasicCustomCodeActions = """
+
+
             Public Class MyCodeActionNoEquivalenceKey
             	Inherits CodeAction
             	Public Overrides ReadOnly Property Title() As String
@@ -452,6 +468,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
             Public Class MyDerivedCodeActionWithEquivalenceKey
             	Inherits MyAbstractCodeActionWithEquivalenceKey
             End Class
+
             """;
         private async Task TestBasicCoreAsync(string source, DiagnosticResult missingGetFixAllProviderOverrideDiagnostic,
             bool withCustomCodeActions = false, params DiagnosticResult[] expected)
@@ -460,10 +477,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
                 Public Overrides Function GetFixAllProvider() As FixAllProvider
                 	Return WellKnownFixAllProviders.BatchFixer
                 End Function
+
                 """;
 
             var sourceSuffix = """
+
                 End Class
+
                 """;
 
             if (withCustomCodeActions)
@@ -502,6 +522,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
             var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C1");
 
             await TestBasicCoreAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports System.Threading.Tasks
@@ -531,6 +552,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
 
                 		Return Nothing
                 	End Function
+
                 """, missingGetFixAllProviderOverrideDiagnostic, expected: expected);
         }
 
@@ -541,6 +563,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
             var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C1");
 
             await TestBasicCoreAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports System.Threading.Tasks
@@ -589,6 +612,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
                 	Private Function GetKey() As String
                 		Return Nothing
                 	End Function
+
                 """, missingGetFixAllProviderOverrideDiagnostic);
         }
 
@@ -605,6 +629,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
             var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C2");
 
             await TestBasicCoreAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports System.Threading.Tasks
@@ -633,6 +658,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
                 	Private Function GetKey() As String
                 		Return Nothing
                 	End Function
+
                 """, missingGetFixAllProviderOverrideDiagnostic, expected: expected);
         }
 
@@ -649,6 +675,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
             var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C1");
 
             await TestBasicCoreAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports System.Threading.Tasks
@@ -669,6 +696,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
                 		Dim codeAction = New MyCodeActionNoEquivalenceKey()
                 		Return Nothing
                 	End Function
+
                 """, missingGetFixAllProviderOverrideDiagnostic, withCustomCodeActions: true, expected: expected);
         }
 
@@ -679,6 +707,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
             var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C1");
 
             await TestBasicCoreAsync("""
+
                 Imports System
                 Imports System.Collections.Immutable
                 Imports System.Threading.Tasks
@@ -708,6 +737,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
                 	Private Function GetKey() As String
                 		Return Nothing
                 	End Function
+
                 """, missingGetFixAllProviderOverrideDiagnostic, withCustomCodeActions: true);
         }
 

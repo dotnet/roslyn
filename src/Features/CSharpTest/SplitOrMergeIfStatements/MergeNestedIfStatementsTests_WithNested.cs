@@ -54,6 +54,7 @@ public sealed partial class MergeNestedIfStatementsTests
                 {
                 }
             }
+
             """,
             """
             var a = true;
@@ -62,6 +63,7 @@ public sealed partial class MergeNestedIfStatementsTests
             if (a && b)
             {
             }
+
             """);
 
     [Theory]
@@ -86,7 +88,9 @@ public sealed partial class MergeNestedIfStatementsTests
                     if (true)
                     {
                     }
+                    
             """ + elseIfLine + """
+
                     {
                         if (b)
                         {
@@ -299,7 +303,9 @@ public sealed partial class MergeNestedIfStatementsTests
                     if (true)
                     {
                     }
+                    
             """ + elseIfLine + """
+
                     {
                         if (b)
                         {

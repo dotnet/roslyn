@@ -93,6 +93,7 @@ public sealed class ActiveStatementsMapTests
         using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
 
         var source = """
+
             class C
             {
                 void F()
@@ -161,6 +162,7 @@ public sealed class ActiveStatementsMapTests
         using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
 
         var source = """
+
             class C
             {
                 void F()
@@ -203,6 +205,7 @@ public sealed class ActiveStatementsMapTests
         using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
 
         var source = """
+
             using System;
 
             class C

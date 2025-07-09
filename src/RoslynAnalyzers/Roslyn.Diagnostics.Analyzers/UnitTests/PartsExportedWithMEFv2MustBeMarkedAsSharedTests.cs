@@ -17,6 +17,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     public class PartsExportedWithMEFv2MustBeMarkedAsSharedTests
     {
         private const string CSharpWellKnownAttributesDefinition = """
+
             namespace System.Composition
             {
                 public class ExportAttribute : System.Attribute
@@ -28,8 +29,10 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                 }
             }
+
             """;
         private const string BasicWellKnownAttributesDefinition = """
+
             Namespace System.Composition
             	Public Class ExportAttribute
             		Inherits System.Attribute
@@ -41,6 +44,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
             		Inherits System.Attribute
             	End Class
             End Namespace
+
+
             """;
 
         #region No Diagnostic Tests
@@ -49,6 +54,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task NoDiagnosticCases_ResolvedTypesAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
+
                 using System;
                 using System.Composition;
 
@@ -56,15 +62,18 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 public class C
                 {
                 }
+
                 """ + CSharpWellKnownAttributesDefinition);
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                 Imports System
                 Imports System.Composition
 
                 <Export(GetType(C)), [Shared]> _
                 Public Class C
                 End Class
+
                 """ + BasicWellKnownAttributesDefinition);
         }
 
@@ -78,6 +87,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     Sources =
                     {
                         """
+
                         using System;
                         using System.{|CS0234:Composition|};
 
@@ -85,6 +95,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         public class C
                         {
                         }
+
                         """,
                     },
                 },
@@ -98,12 +109,14 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     Sources =
                     {
                         """
+
                         Imports System
                         Imports System.Composition
 
                         <{|BC30002:Export|}(GetType(C)), {|BC30002:[Shared]|}> _
                         Public Class C
                         End Class
+
                         """
                     },
                 },
@@ -119,6 +132,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task DiagnosticCases_NoSharedAttributeAsync()
         {
             await VerifyCS.VerifyCodeFixAsync("""
+
                 using System;
                 using System.Composition;
 
@@ -126,7 +140,9 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 public class C
                 {
                 }
+
                 """ + CSharpWellKnownAttributesDefinition, """
+
                 using System;
                 using System.Composition;
 
@@ -135,16 +151,20 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 public class C
                 {
                 }
+
                 """ + CSharpWellKnownAttributesDefinition);
 
             await VerifyVB.VerifyCodeFixAsync("""
+
                 Imports System
                 Imports System.Composition
 
                 <[|Export(GetType(C))|]> _
                 Public Class C
                 End Class
+
                 """ + BasicWellKnownAttributesDefinition, """
+
                 Imports System
                 Imports System.Composition
 
@@ -152,6 +172,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 <[Shared]>
                 Public Class C
                 End Class
+
                 """ + BasicWellKnownAttributesDefinition);
         }
 
@@ -159,6 +180,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public async Task DiagnosticCases_DifferentSharedAttributeAsync()
         {
             await VerifyCS.VerifyCodeFixAsync("""
+
                 using System;
 
                 [[|System.Composition.Export(typeof(C))|], Shared]
@@ -169,7 +191,9 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 public class SharedAttribute: Attribute
                 {
                 }
+
                 """ + CSharpWellKnownAttributesDefinition, """
+
                 using System;
 
                 [System.Composition.Export(typeof(C)), Shared]
@@ -181,9 +205,11 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 public class SharedAttribute: Attribute
                 {
                 }
+
                 """ + CSharpWellKnownAttributesDefinition);
 
             await VerifyVB.VerifyCodeFixAsync("""
+
                 Imports System
 
                 <[|System.Composition.Export(GetType(C))|], [Shared]> _
@@ -193,7 +219,9 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 Public Class SharedAttribute
                     Inherits Attribute
                 End Class
+
                 """ + BasicWellKnownAttributesDefinition, """
+
                 Imports System
 
                 <System.Composition.Export(GetType(C)), [Shared]> _
@@ -204,6 +232,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 Public Class SharedAttribute
                     Inherits Attribute
                 End Class
+
                 """ + BasicWellKnownAttributesDefinition);
         }
 

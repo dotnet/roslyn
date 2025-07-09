@@ -897,7 +897,6 @@ public sealed class TypeImportCompletionProviderTests : AbstractCSharpCompletion
         await VerifyCustomCommitProviderAsync(markup, "Bar", """
             using Foo;
 
-
             Bar$$
             """, sourceCodeKind: kind);
     }
@@ -971,8 +970,7 @@ public sealed class TypeImportCompletionProviderTests : AbstractCSharpCompletion
         => VerifyCustomCommitProviderAsync($$"""
             <Workspace>
                 <Project Language="{{LanguageNames.CSharp}}" CommonReferences="true">
-                    <Document FilePath="CSharpDocument">
-            class Bar
+                    <Document FilePath="CSharpDocument">class Bar
             {
                  $$
             }</Document>

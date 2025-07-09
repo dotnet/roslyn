@@ -41,7 +41,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(3, 2, 3, 8).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -73,7 +73,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(2, 2, 2, mefNamespace.Length + 9).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(1, 2, 1, mefNamespace.Length + 9).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -132,7 +132,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(3, 2, 3, 8).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -166,7 +166,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(2, 2, 2, mefNamespace.Length + 9).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(1, 2, 1, mefNamespace.Length + 9).WithArguments("C") },
                 },
                 FixedState =
                 {

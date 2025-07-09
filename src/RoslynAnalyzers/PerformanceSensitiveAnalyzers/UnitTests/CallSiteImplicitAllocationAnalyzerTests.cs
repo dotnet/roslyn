@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysisPerformanceSensitiveAnalyzers.UnitTests
                     ExpectedDiagnostics =
                     {
 #pragma warning disable RS0030 // Do not use banned APIs
-                        VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(10, 9),
+                        VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(9, 9),
 #pragma warning restore RS0030 // Do not use banned APIs
                     },
                 },
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysisPerformanceSensitiveAnalyzers.UnitTests
                 """,
                 // Test0.cs(10,22): warning HAA0102: Non-overridden virtual method call on a value type adds a boxing or constrained instruction
 #pragma warning disable RS0030 // Do not use banned APIs
-                VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ValueTypeNonOverridenCallRule).WithLocation(10, 22));
+                VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ValueTypeNonOverridenCallRule).WithLocation(9, 22));
 
         [Fact]
         public Task CallSiteImplicitAllocation_DoNotReportNonOverriddenMethodCallForStaticCallsAsync()
@@ -201,6 +201,6 @@ namespace Microsoft.CodeAnalysisPerformanceSensitiveAnalyzers.UnitTests
                 """,
                 // Test0.cs(12,9): warning HAA0102: Non-overridden virtual method call on a value type adds a boxing or constrained instruction
 #pragma warning disable RS0030 // Do not use banned APIs
-                VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ValueTypeNonOverridenCallRule).WithLocation(12, 9));
+                VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ValueTypeNonOverridenCallRule).WithLocation(11, 9));
     }
 }

@@ -963,8 +963,7 @@ parseOptions: null);
         => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="CSAssembly" CommonReferences="true">
-                    <Document FilePath = "Program">
-            namespace Sample
+                    <Document FilePath = "Program">namespace Sample
             {
                 class Program
                 {
@@ -974,10 +973,8 @@ parseOptions: null);
                         var other = myString?[|.StringExtension()|].Substring(0);
                     }
                 }
-            }
-                   </Document>
-                   <Document FilePath = "Extensions">
-            namespace Sample.Extensions
+            }</Document>
+                   <Document FilePath = "Extensions">namespace Sample.Extensions
             {
                 public static class StringExtensions
                 {
@@ -986,8 +983,7 @@ parseOptions: null);
                         return "Ok";
                     }
                 }
-            }
-                    </Document>
+            }</Document>
                 </Project>
             </Workspace>
             """, """
@@ -1011,17 +1007,14 @@ parseOptions: null);
         => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="CSAssembly" CommonReferences="true">
-                    <Document FilePath = "Program">
-            public class C
+                    <Document FilePath = "Program">public class C
             {
                 public T F&lt;T&gt;(T x)
                 {
                     return F(new C())?.F(new C())?[|.Extn()|];
                 }
-            }
-                   </Document>
-                   <Document FilePath = "Extensions">
-            namespace Sample.Extensions
+            }</Document>
+                   <Document FilePath = "Extensions">namespace Sample.Extensions
             {
                 public static class Extensions
                 {
@@ -1030,8 +1023,7 @@ parseOptions: null);
                         return obj.F(new C());
                     }
                 }
-            }
-                    </Document>
+            }</Document>
                 </Project>
             </Workspace>
             """, """
@@ -1051,17 +1043,14 @@ parseOptions: null);
         => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="CSAssembly" CommonReferences="true">
-                    <Document FilePath = "Program">
-            public class C
+                    <Document FilePath = "Program">public class C
             {
                 public T F&lt;T&gt;(T x)
                 {
                     return F(new C())?.F(new C())[|.Extn()|]?.F(newC());
                 }
-            }
-                   </Document>
-                   <Document FilePath = "Extensions">
-            namespace Sample.Extensions
+            }</Document>
+                   <Document FilePath = "Extensions">namespace Sample.Extensions
             {
                 public static class Extensions
                 {
@@ -1070,8 +1059,7 @@ parseOptions: null);
                         return obj.F(new C());
                     }
                 }
-            }
-                    </Document>
+            }</Document>
                 </Project>
             </Workspace>
             """, """

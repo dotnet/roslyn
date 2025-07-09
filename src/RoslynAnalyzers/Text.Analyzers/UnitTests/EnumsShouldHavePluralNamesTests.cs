@@ -22,20 +22,22 @@ namespace Text.Analyzers.UnitTests
         public async Task CA1714_CA1717_Test_EnumWithNoFlags_SingularNameAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
-                public class A 
-                { 
-                   public enum Day 
-                    {
-                        Sunday = 0,
-                        Monday = 1,
-                        Tuesday = 2
 
-                    };
-                }
+                                            public class A 
+                                            { 
+                                               public enum Day 
+                                                {
+                                                    Sunday = 0,
+                                                    Monday = 1,
+                                                    Tuesday = 2
+                                                       
+                                                };
+                                            }
                 """
                           );
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                                         Public Class A
                 	                        Public Enum Day
                 		                           Sunday = 0
@@ -44,6 +46,7 @@ namespace Text.Analyzers.UnitTests
 
                 	                        End Enum
                                         End Class
+                                        
                 """);
         }
 
@@ -51,20 +54,22 @@ namespace Text.Analyzers.UnitTests
         public async Task CA1714_CA1717__Test_EnumWithNoFlags_PluralNameAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
-                public class A 
-                { 
-                   public enum Days 
-                    {
-                        sunday = 0,
-                        Monday = 1,
-                        Tuesday = 2
 
-                    };
-                }
+                                            public class A 
+                                            { 
+                                               public enum Days 
+                                                {
+                                                    sunday = 0,
+                                                    Monday = 1,
+                                                    Tuesday = 2
+                                                       
+                                                };
+                                            }
                 """,
                             GetCSharpNoPluralResultAt(4, 44));
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                                         Public Class A
                 	                        Public Enum Days
                 		                           Sunday = 0
@@ -73,6 +78,7 @@ namespace Text.Analyzers.UnitTests
 
                 	                        End Enum
                                         End Class
+                                        
                 """,
                         GetBasicNoPluralResultAt(3, 38));
         }
@@ -81,6 +87,7 @@ namespace Text.Analyzers.UnitTests
         public async Task CA1714_CA1717__Test_EnumWithNoFlags_PluralName_InternalAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
+
                 class A 
                 { 
                     enum Days 
@@ -88,7 +95,7 @@ namespace Text.Analyzers.UnitTests
                         sunday = 0,
                         Monday = 1,
                         Tuesday = 2
-
+                                                       
                     };
                 }
 
@@ -99,7 +106,7 @@ namespace Text.Analyzers.UnitTests
                         sunday = 0,
                         Monday = 1,
                         Tuesday = 2
-
+                                                       
                     };
                 }
 
@@ -110,12 +117,14 @@ namespace Text.Analyzers.UnitTests
                         sunday = 0,
                         Monday = 1,
                         Tuesday = 2
-
+                                                       
                     };
                 }
+
                 """);
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                 Class A
                 	Private Enum Days
                 		Sunday = 0
@@ -139,6 +148,7 @@ namespace Text.Analyzers.UnitTests
                 		Tuesday = 2
                 	End Enum
                 End Class
+
                 """);
         }
 
@@ -146,20 +156,22 @@ namespace Text.Analyzers.UnitTests
         public async Task CA1714_CA1717__Test_EnumWithNoFlags_PluralName_UpperCaseAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
-                public class A 
-                { 
-                   public enum DAYS 
-                    {
-                        sunday = 0,
-                        Monday = 1,
-                        Tuesday = 2
 
-                    };
-                }
+                                            public class A 
+                                            { 
+                                               public enum DAYS 
+                                                {
+                                                    sunday = 0,
+                                                    Monday = 1,
+                                                    Tuesday = 2
+                                                       
+                                                };
+                                            }
                 """,
                             GetCSharpNoPluralResultAt(4, 44));
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                                         Public Class A
                 	                        Public Enum DAYS
                 		                           Sunday = 0
@@ -168,6 +180,7 @@ namespace Text.Analyzers.UnitTests
 
                 	                        End Enum
                                         End Class
+                                        
                 """,
                         GetBasicNoPluralResultAt(3, 38));
         }
@@ -176,21 +189,23 @@ namespace Text.Analyzers.UnitTests
         public async Task CA1714_CA1717_Test_EnumWithFlags_SingularNameAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
-                public class A 
-                { 
-                   [System.Flags] 
-                   public enum Day 
-                   {
-                        sunday = 0,
-                        Monday = 1,
-                        Tuesday = 2
 
-                    };
-                }
+                                            public class A 
+                                            { 
+                                               [System.Flags] 
+                                               public enum Day 
+                                               {
+                                                    sunday = 0,
+                                                    Monday = 1,
+                                                    Tuesday = 2
+                                                       
+                                                };
+                                            }
                 """,
                             GetCSharpPluralResultAt(5, 44));
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                                        Public Class A
                 	                    <System.Flags> _
                 	                    Public Enum Day
@@ -207,6 +222,7 @@ namespace Text.Analyzers.UnitTests
         public async Task CA1714_CA1717_Test_EnumWithFlags_SingularName_InternalAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
+
                 class A 
                 { 
                     [System.Flags] 
@@ -215,7 +231,7 @@ namespace Text.Analyzers.UnitTests
                         sunday = 0,
                         Monday = 1,
                         Tuesday = 2
-
+                                                       
                     }
                 }
 
@@ -227,7 +243,7 @@ namespace Text.Analyzers.UnitTests
                         sunday = 0,
                         Monday = 1,
                         Tuesday = 2
-
+                                                       
                     }
                 }
 
@@ -239,12 +255,14 @@ namespace Text.Analyzers.UnitTests
                         sunday = 0,
                         Monday = 1,
                         Tuesday = 2
-
+                                                       
                     }
                 }
+
                 """);
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                 Class A
                     <System.Flags> _
                     Enum Day
@@ -271,6 +289,7 @@ namespace Text.Analyzers.UnitTests
                 	    Tuesday = 2
                     End Enum
                 End Class
+
                 """);
         }
 
@@ -278,20 +297,22 @@ namespace Text.Analyzers.UnitTests
         public async Task CA1714_CA1717_Test_EnumWithFlags_PluralNameAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
-                public class A 
-                { 
-                   [System.Flags] 
-                   public enum Days 
-                   {
-                        sunday = 0,
-                        Monday = 1,
-                        Tuesday = 2
 
-                    };
-                }
+                                            public class A 
+                                            { 
+                                               [System.Flags] 
+                                               public enum Days 
+                                               {
+                                                    sunday = 0,
+                                                    Monday = 1,
+                                                    Tuesday = 2
+                                                       
+                                                };
+                                            }
                 """);
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                                        Public Class A
                 	                    <System.Flags> _
                 	                    Public Enum Days
@@ -307,20 +328,22 @@ namespace Text.Analyzers.UnitTests
         public async Task CA1714_CA1717_Test_EnumWithFlags_PluralName_UpperCaseAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
-                public class A 
-                { 
-                   [System.Flags] 
-                   public enum DAYS 
-                   {
-                        sunday = 0,
-                        Monday = 1,
-                        Tuesday = 2
 
-                    };
-                }
+                                            public class A 
+                                            { 
+                                               [System.Flags] 
+                                               public enum DAYS 
+                                               {
+                                                    sunday = 0,
+                                                    Monday = 1,
+                                                    Tuesday = 2
+
+                                                };
+                                            }
                 """);
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                                        Public Class A
                 	                    <System.Flags> _
                 	                    Public Enum DAYS
@@ -336,21 +359,23 @@ namespace Text.Analyzers.UnitTests
         public async Task CA1714_CA1717_Test_EnumWithFlags_NonPluralNameEndsWithSAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
-                public class A 
-                { 
-                   [System.Flags] 
-                   public enum Axis 
-                   {
-                        x = 0,
-                        y = 1,
-                        z = 2
 
-                    };
-                }
+                                            public class A 
+                                            { 
+                                               [System.Flags] 
+                                               public enum Axis 
+                                               {
+                                                    x = 0,
+                                                    y = 1,
+                                                    z = 2
+                                                       
+                                                };
+                                            }
                 """,
                             GetCSharpPluralResultAt(5, 44));
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                                        Public Class A
                 	                    <System.Flags> _
                 	                    Public Enum Axis
@@ -367,20 +392,22 @@ namespace Text.Analyzers.UnitTests
         public async Task CA1714_CA1717_Test_EnumWithFlags_PluralNameEndsWithSAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
-                public class A 
-                { 
-                   [System.Flags] 
-                   public enum Axes 
-                   {
-                        x = 0,
-                        y = 1,
-                        z = 2
 
-                    };
-                }
+                                            public class A 
+                                            { 
+                                               [System.Flags] 
+                                               public enum Axes 
+                                               {
+                                                    x = 0,
+                                                    y = 1,
+                                                    z = 2
+                                                       
+                                                };
+                                            }
                 """);
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                                        Public Class A
                 	                    <System.Flags> _
                 	                    Public Enum Axes
@@ -396,28 +423,30 @@ namespace Text.Analyzers.UnitTests
         public async Task CA1714_CA1717_Test_EnumWithFlags_PluralName_NotEndingWithSAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
-                public class A 
-                { 
-                   [System.Flags] 
-                   public enum Men 
-                   {
-                        M1 = 0,
-                        M2 = 1,
-                        M3 = 2
 
-                    };
-                }
+                                            public class A 
+                                            { 
+                                               [System.Flags] 
+                                               public enum Men 
+                                               {
+                                                    M1 = 0,
+                                                    M2 = 1,
+                                                    M3 = 2
+                                                       
+                                                };
+                                            }
                 """);
 
             await VerifyVB.VerifyAnalyzerAsync("""
-                Public Class A
-                 < System.Flags > _
-                 Public Enum Men
-                     M1 = 0
-                     M2 = 1
-                     M3 = 2
-                 End Enum
-                 End Class
+
+                                       Public Class A
+                                        < System.Flags > _
+                                        Public Enum Men
+                                            M1 = 0
+                                            M2 = 1
+                                            M3 = 2
+                                        End Enum
+                                        End Class
                 """);
         }
 
@@ -425,27 +454,29 @@ namespace Text.Analyzers.UnitTests
         public async Task CA1714_CA1717_Test_EnumWithNoFlags_PluralWord_NotEndingWithSAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("""
-                public class A 
-                { 
-                   public enum Men 
-                   {
-                        M1 = 0,
-                        M2 = 1,
-                        M3 = 2
 
-                    };
-                }
+                                            public class A 
+                                            { 
+                                               public enum Men 
+                                               {
+                                                    M1 = 0,
+                                                    M2 = 1,
+                                                    M3 = 2
+                                                       
+                                                };
+                                            }
                 """,
                             GetCSharpNoPluralResultAt(4, 44));
 
             await VerifyVB.VerifyAnalyzerAsync("""
-                Public Class A
-                 Public Enum Men
-                     M1 = 0
-                     M2 = 1
-                     M3 = 2
-                 End Enum
-                 End Class
+
+                                       Public Class A
+                                        Public Enum Men
+                                            M1 = 0
+                                            M2 = 1
+                                            M3 = 2
+                                        End Enum
+                                        End Class
                 """,
                         GetBasicNoPluralResultAt(3, 37));
         }
@@ -455,28 +486,30 @@ namespace Text.Analyzers.UnitTests
         {
             // Humanizer does not recognize 'formulae' as plural, but we skip words ending with 'ae'
             await VerifyCS.VerifyAnalyzerAsync("""
-                public class A 
-                { 
-                   [System.Flags] 
-                   public enum formulae 
-                   {
-                        M1 = 0,
-                        M2 = 1,
-                        M3 = 2
 
-                    };
-                }
+                                            public class A 
+                                            { 
+                                               [System.Flags] 
+                                               public enum formulae 
+                                               {
+                                                    M1 = 0,
+                                                    M2 = 1,
+                                                    M3 = 2
+
+                                                };
+                                            }
                 """);
 
             await VerifyVB.VerifyAnalyzerAsync("""
-                Public Class A
-                 < System.Flags > _
-                 Public Enum formulae
-                     M1 = 0
-                     M2 = 1
-                     M3 = 2
-                 End Enum
-                 End Class
+
+                                       Public Class A
+                                        < System.Flags > _
+                                        Public Enum formulae
+                                            M1 = 0
+                                            M2 = 1
+                                            M3 = 2
+                                        End Enum
+                                        End Class
                 """);
         }
 
@@ -485,28 +518,30 @@ namespace Text.Analyzers.UnitTests
         {
             // Humanizer does not recognize 'trophi' as plural, but we skip words ending with 'i'
             await VerifyCS.VerifyAnalyzerAsync("""
-                public class A 
-                { 
-                   [System.Flags] 
-                   public enum trophi 
-                   {
-                        M1 = 0,
-                        M2 = 1,
-                        M3 = 2
 
-                    };
-                }
+                                            public class A 
+                                            { 
+                                               [System.Flags] 
+                                               public enum trophi 
+                                               {
+                                                    M1 = 0,
+                                                    M2 = 1,
+                                                    M3 = 2
+                                                       
+                                                };
+                                            }
                 """);
 
             await VerifyVB.VerifyAnalyzerAsync("""
-                Public Class A
-                 < System.Flags > _
-                 Public Enum trophi
-                     M1 = 0
-                     M2 = 1
-                     M3 = 2
-                 End Enum
-                 End Class
+
+                                       Public Class A
+                                        < System.Flags > _
+                                        Public Enum trophi
+                                            M1 = 0
+                                            M2 = 1
+                                            M3 = 2
+                                        End Enum
+                                        End Class
                 """);
         }
 
@@ -515,28 +550,30 @@ namespace Text.Analyzers.UnitTests
         {
             // We skip non-ASCII names.
             await VerifyCS.VerifyAnalyzerAsync("""
-                public class A 
-                { 
-                   [System.Flags] 
-                   public enum UnicodeNameΔ
-                   {
-                        M1 = 0,
-                        M2 = 1,
-                        M3 = 2
 
-                    };
-                }
+                                            public class A 
+                                            { 
+                                               [System.Flags] 
+                                               public enum UnicodeNameΔ
+                                               {
+                                                    M1 = 0,
+                                                    M2 = 1,
+                                                    M3 = 2
+
+                                                };
+                                            }
                 """);
 
             await VerifyVB.VerifyAnalyzerAsync("""
-                Public Class A
-                 < System.Flags > _
-                 Public Enum UnicodeNameΔ
-                     M1 = 0
-                     M2 = 1
-                     M3 = 2
-                 End Enum
-                 End Class
+
+                                       Public Class A
+                                        < System.Flags > _
+                                        Public Enum UnicodeNameΔ
+                                            M1 = 0
+                                            M2 = 1
+                                            M3 = 2
+                                        End Enum
+                                        End Class
                 """);
         }
 
@@ -552,20 +589,22 @@ namespace Text.Analyzers.UnitTests
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.GetCultureInfo(culture);
 
             await VerifyCS.VerifyAnalyzerAsync("""
-                public class A 
-                { 
-                   public enum Days 
-                    {
-                        sunday = 0,
-                        Monday = 1,
-                        Tuesday = 2
 
-                    };
-                }
+                                            public class A 
+                                            { 
+                                               public enum Days 
+                                                {
+                                                    sunday = 0,
+                                                    Monday = 1,
+                                                    Tuesday = 2
+                                                       
+                                                };
+                                            }
                 """,
                             GetCSharpNoPluralResultAt(4, 44));
 
             await VerifyVB.VerifyAnalyzerAsync("""
+
                                         Public Class A
                 	                        Public Enum Days
                 		                           Sunday = 0
@@ -574,6 +613,7 @@ namespace Text.Analyzers.UnitTests
 
                 	                        End Enum
                                         End Class
+                                        
                 """,
                         GetBasicNoPluralResultAt(3, 38));
 

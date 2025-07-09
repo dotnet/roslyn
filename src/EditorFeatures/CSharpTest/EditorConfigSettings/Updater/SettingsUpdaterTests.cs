@@ -146,12 +146,16 @@ public sealed partial class SettingsUpdaterTests : TestBase
     public Task TestAddNewWhitespaceOptionToExistingFileAsync()
         => TestAsync(
             """
+
             [*.{cs,vb}]
 
             # CA1000: Do not declare static members on generic types
             dotnet_diagnostic.CA1000.severity = false
+
+
             """,
             """
+
             [*.{cs,vb}]
 
             # CA1000: Do not declare static members on generic types
@@ -167,6 +171,7 @@ public sealed partial class SettingsUpdaterTests : TestBase
     public Task TestAddNewWhitespaceOptionToWithNonMathcingGroupsAsync()
         => TestAsync(
             """
+
             root = true
 
             # Xml files
@@ -174,6 +179,7 @@ public sealed partial class SettingsUpdaterTests : TestBase
             indent_size = 2
             """,
             """
+
             root = true
 
             # Xml files
@@ -188,6 +194,7 @@ public sealed partial class SettingsUpdaterTests : TestBase
     public Task TestAddNewWhitespaceOptionWithStarGroup()
         => TestAsync(
             """
+
             root = true
 
             # Xml files
@@ -201,6 +208,7 @@ public sealed partial class SettingsUpdaterTests : TestBase
             [*.cs]
             """,
             """
+
             root = true
 
             # Xml files
@@ -229,6 +237,7 @@ public sealed partial class SettingsUpdaterTests : TestBase
     public Task TestAddOptionThatAppliesToBothLanguages()
         => TestAsync(
             """
+
             root = true
 
             # Xml files
@@ -242,6 +251,7 @@ public sealed partial class SettingsUpdaterTests : TestBase
             [*.cs]
             """,
             """
+
             root = true
 
             # Xml files
@@ -261,6 +271,7 @@ public sealed partial class SettingsUpdaterTests : TestBase
     public Task TestAddOptionWithRelativePathGroupingPresent()
         => TestAsync(
             """
+
             root = true
 
             # Xml files
@@ -277,6 +288,7 @@ public sealed partial class SettingsUpdaterTests : TestBase
             [*.cs]
             """,
             """
+
             root = true
 
             # Xml files
@@ -408,6 +420,7 @@ public sealed partial class SettingsUpdaterTests : TestBase
 
     private readonly string ExpectedInitialEditorConfig =
         $$"""
+
         [*.{cs,vb}]
         #### {{CompilerExtensionsResources.Naming_styles}} ####
 
@@ -455,10 +468,12 @@ public sealed partial class SettingsUpdaterTests : TestBase
         dotnet_naming_style.{{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}}.required_suffix = 
         dotnet_naming_style.{{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}}.word_separator = 
         dotnet_naming_style.{{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}}.capitalization = pascal_case
+
         """;
 
     private readonly string ExpectedEditorConfigAfterAllSeveritiesChanged =
         $$"""
+
         [*.{cs,vb}]
         #### {{CompilerExtensionsResources.Naming_styles}} ####
 
@@ -506,10 +521,12 @@ public sealed partial class SettingsUpdaterTests : TestBase
         dotnet_naming_style.{{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}}.required_suffix = 
         dotnet_naming_style.{{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}}.word_separator = 
         dotnet_naming_style.{{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}}.capitalization = pascal_case
+
         """;
 
     private readonly string ExpectedEditorConfigAfterSymbolSpecChange =
         $$"""
+
         [*.{cs,vb}]
         #### {{CompilerExtensionsResources.Naming_styles}} ####
 
@@ -557,6 +574,7 @@ public sealed partial class SettingsUpdaterTests : TestBase
         dotnet_naming_style.{{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}}.required_suffix = 
         dotnet_naming_style.{{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}}.word_separator = 
         dotnet_naming_style.{{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}}.capitalization = pascal_case
+
         """;
 
     private sealed class TestViewModel : ISettingsEditorViewModel

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
                         }
                     }
                 }
-                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(13, 20, 13, 35), $$"""
+                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(12, 20, 12, 35), $$"""
                 using System;
                 using System.Collections.Generic;
                 using Roslyn.Utilities;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
                         }
                     }
                 }
-                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(13, 20, 13, 30), """
+                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(12, 20, 12, 30), """
                 using System;
                 using System.Collections.Generic;
                 using Roslyn.Utilities;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
                         public IEnumerable<int> DoSomething => new List<int>();
                     }
                 }
-                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(11, 48, 11, 63), """
+                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(10, 48, 10, 63), """
                 using System;
                 using System.Collections.Generic;
                 using Roslyn.Utilities;
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
                         public IEnumerable<int> DoSomething { get {return new List<int>();}}
                     }
                 }
-                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(11, 59, 11, 74), """
+                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(10, 59, 10, 74), """
                 using System;
                 using System.Collections.Generic;
                 using Roslyn.Utilities;
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
                         }
                     }
                 }
-                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(13, 20, 13, 37), """
+                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(12, 20, 12, 37), """
                 using System;
                 using System.Collections.Generic;
                 using Roslyn.Utilities;
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
                 }
                 """;
 
-            await VerifyCS.VerifyCodeFixAsync(code, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(13, 20, 13, 41), code);
+            await VerifyCS.VerifyCodeFixAsync(code, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(12, 20, 12, 41), code);
         }
         [Fact]
         public async Task ShouldNotProposeCodeFixWhenReturnTypeInheritFormEnumerableAsync()
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
                 }
                 """;
 
-            await VerifyCS.VerifyCodeFixAsync(code, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(13, 20, 13, 35), code);
+            await VerifyCS.VerifyCodeFixAsync(code, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(12, 20, 12, 35), code);
         }
         [Fact]
         public async Task ShouldNotProposeCodeFixWhenForCollectionCreationUsingCopyConstructorAsync()
@@ -252,8 +252,8 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
 
             await VerifyCS.VerifyCodeFixAsync(code,
                 [
-                    VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(14, 29, 14, 50),
-                    VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(15, 20, 15, 58),
+                    VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(13, 29, 13, 50),
+                    VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(14, 20, 14, 58),
                 ], code);
         }
         [Fact]
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
                         }
                     }
                 }
-                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(14, 20, 14, 41), """
+                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(13, 20, 13, 41), """
                 using System;
                 using System.Collections.Generic;
                 using System.Collections.ObjectModel;
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
                         }
                     }
                 }
-                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(13, 20, 13, 30), """
+                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(12, 20, 12, 30), """
                 using System;
                 using System.Collections.Generic;
                 using Roslyn.Utilities;
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
                 }
                 """;
 
-            await VerifyCS.VerifyCodeFixAsync(code, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(13, 20, 13, 35), code);
+            await VerifyCS.VerifyCodeFixAsync(code, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(12, 20, 12, 35), code);
         }
         [Fact]
         public Task ShouldReplaceEmptyArrayCreationWithInitBlockWithArrayEmptyAsync()
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
                         }
                     }
                 }
-                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(13, 20, 13, 33), """
+                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(12, 20, 12, 33), """
                 using System;
                 using System.Collections.Generic;
                 using Roslyn.Utilities;
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
                         }
                     }
                 }
-                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(13, 16, 13, 31), """
+                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(12, 16, 12, 31), """
                 using System;
                 using System.Collections.Generic;
                 using Roslyn.Utilities;
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
                         }
                     }
                 }
-                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(13, 16, 13, 26), """
+                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(12, 16, 12, 26), """
                 using System;
                 using System.Collections.Generic;
                 using Roslyn.Utilities;
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
                         }
                     }
                 }
-                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(13, 19, 13, 29), """
+                """, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(12, 19, 12, 29), """
                 using System;
                 using System.Collections.Generic;
                 using Roslyn.Utilities;
