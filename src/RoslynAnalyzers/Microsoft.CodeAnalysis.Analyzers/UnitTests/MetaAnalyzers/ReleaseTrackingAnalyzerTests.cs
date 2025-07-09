@@ -615,7 +615,7 @@ class MyAnalyzer : DiagnosticAnalyzer
 }";
 
             var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
-            var diagnosticText = (shippedText.Length > 0 ? shippedText : unshippedText).Split(new[] { Environment.NewLine }, StringSplitOptions.None).ElementAt(line - 1);
+            var diagnosticText = (shippedText.Length > 0 ? shippedText : unshippedText).Split([Environment.NewLine], StringSplitOptions.None).ElementAt(line - 1);
             await VerifyCSharpAsync(source, shippedText, unshippedText,
                     GetAdditionalFileResultAt(line, 1,
                         fileWithDiagnostics,
@@ -851,7 +851,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     public override void Initialize(AnalysisContext context) { }
 }";
             var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
-            var lineCount = (shippedText.Length > 0 ? shippedText : unshippedText).Split(new[] { Environment.NewLine }, StringSplitOptions.None).Length;
+            var lineCount = (shippedText.Length > 0 ? shippedText : unshippedText).Split([Environment.NewLine], StringSplitOptions.None).Length;
             await VerifyCSharpAsync(source, shippedText, unshippedText,
                     GetAdditionalFileResultAt(lineCount, 1,
                         fileWithDiagnostics,
@@ -884,7 +884,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     public override void Initialize(AnalysisContext context) { }
 }";
             var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
-            var lineCount = (shippedText.Length > 0 ? shippedText : unshippedText).Split(new[] { Environment.NewLine }, StringSplitOptions.None).Length;
+            var lineCount = (shippedText.Length > 0 ? shippedText : unshippedText).Split([Environment.NewLine], StringSplitOptions.None).Length;
             await VerifyCSharpAsync(source, shippedText, unshippedText,
                     GetAdditionalFileResultAt(lineCount, 1,
                         fileWithDiagnostics,

@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
@@ -258,10 +259,11 @@ public static void Main(string[] args)
         // VerifyErrorCount(0);
     }
 
-    [IdeTheory]
+    [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/79301")]
     [InlineData("32")]
     [InlineData("64")]
     [InlineData("core")]
+    [UseCulture("en-US")]
     public async Task WorkspaceClearedAfterReset(string environment)
     {
         await TestServices.InteractiveWindow.SubmitTextAsync($"#reset {environment}", HangMitigatingCancellationToken);

@@ -1878,10 +1878,10 @@ public sealed class MyAnalyzer : DiagnosticAnalyzer
                 additionalFileName: additionalFileName,
                 additionalFileText: string.Format(additionalFileTextFormat, "My Analyzer Title."),
                 fixedAdditionalFileText: string.Format(additionalFileTextFormat, "My Analyzer Title"),
-                expected: new[]
-                {
+                expected:
+                [
                     VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0)
-                });
+                ]);
 
             string basicSourceFormat = @"
 Imports System
@@ -1911,10 +1911,10 @@ End Class";
                 additionalFileName: additionalFileName,
                 additionalFileText: string.Format(additionalFileTextFormat, "My Analyzer Title."),
                 fixedAdditionalFileText: string.Format(additionalFileTextFormat, "My Analyzer Title"),
-                expected: new[]
-                {
+                expected:
+                [
                     VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0)
-                });
+                ]);
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
@@ -2100,10 +2100,10 @@ public sealed class MyAnalyzer : DiagnosticAnalyzer
                     additionalFileName: additionalFileName,
                     additionalFileText: string.Format(additionalFileTextFormat, title),
                     fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedTitle),
-                    expected: new[]
-                    {
+                    expected:
+                    [
                                     VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0)
-                    });
+                    ]);
 
                 string basicSourceFormat = @"
 Imports System
@@ -2133,10 +2133,10 @@ End Class";
                     additionalFileName: additionalFileName,
                     additionalFileText: string.Format(additionalFileTextFormat, title),
                     fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedTitle),
-                    expected: new[]
-                    {
+                    expected:
+                    [
                         VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0)
-                    });
+                    ]);
             }
         }
 
@@ -2302,11 +2302,11 @@ public sealed class MyAnalyzer : DiagnosticAnalyzer
                 additionalFileName: additionalFileName,
                 additionalFileText: string.Format(additionalFileTextFormat, "MyDiagnostic. Title."),
                 fixedAdditionalFileText: string.Format(additionalFileTextFormat, "MyDiagnostic"),
-                expected: new[]
-                {
+                expected:
+                [
                     VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0),
                     VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1)
-                });
+                ]);
 
             string basicSourceFormat = @"
 Imports System
@@ -2339,11 +2339,11 @@ End Class";
                 additionalFileName: additionalFileName,
                 additionalFileText: string.Format(additionalFileTextFormat, "MyDiagnostic. Title."),
                 fixedAdditionalFileText: string.Format(additionalFileTextFormat, "MyDiagnostic"),
-                expected: new[]
-                {
+                expected:
+                [
                     VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0),
                     VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1)
-                });
+                ]);
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
@@ -2524,10 +2524,10 @@ public sealed class MyAnalyzer : DiagnosticAnalyzer
                     additionalFileName: additionalFileName,
                     additionalFileText: string.Format(additionalFileTextFormat, title),
                     fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedTitle),
-                    expected: new[]
-                    {
+                    expected:
+                    [
                         VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0)
-                    });
+                    ]);
 
                 string basicSourceFormat = @"
 Imports System
@@ -2557,10 +2557,10 @@ End Class";
                     additionalFileName: additionalFileName,
                     additionalFileText: string.Format(additionalFileTextFormat, title),
                     fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedTitle),
-                    expected: new[]
-                    {
+                    expected:
+                    [
                         VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0)
-                    });
+                    ]);
             }
         }
 
@@ -2686,10 +2686,10 @@ public sealed class MyAnalyzer : DiagnosticAnalyzer
                     additionalFileName: additionalFileName,
                     additionalFileText: string.Format(additionalFileTextFormat, title),
                     fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedTitle),
-                    expected: new[]
-                    {
+                    expected:
+                    [
                         VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0)
-                    });
+                    ]);
 
                 string basicSourceFormat = @"
 Imports System
@@ -2719,10 +2719,10 @@ End Class";
                     additionalFileName: additionalFileName,
                     additionalFileText: string.Format(additionalFileTextFormat, title),
                     fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedTitle),
-                    expected: new[]
-                    {
+                    expected:
+                    [
                         VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0)
-                    });
+                    ]);
             }
         }
 
@@ -2913,10 +2913,10 @@ public sealed class MyAnalyzer : DiagnosticAnalyzer
                     additionalFileName: additionalFileName,
                     additionalFileText: string.Format(additionalFileTextFormat, message),
                     fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedMessage),
-                    expected: new[]
-                    {
+                    expected:
+                    [
                         VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0)
-                    });
+                    ]);
 
                 string basicSourceFormat = @"
 Imports System
@@ -2946,10 +2946,10 @@ End Class";
                     additionalFileName: additionalFileName,
                     additionalFileText: string.Format(additionalFileTextFormat, message),
                     fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedMessage),
-                    expected: new[]
-                    {
+                    expected:
+                    [
                         VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0)
-                    });
+                    ]);
             }
         }
 
@@ -3228,10 +3228,10 @@ public sealed class MyAnalyzer : DiagnosticAnalyzer
                     additionalFileName: additionalFileName,
                     additionalFileText: string.Format(additionalFileTextFormat, message),
                     fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedMessage),
-                    expected: new[]
-                    {
+                    expected:
+                    [
                         VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0)
-                    });
+                    ]);
 
                 string basicSourceFormat = @"
 Imports System
@@ -3261,10 +3261,10 @@ End Class";
                     additionalFileName: additionalFileName,
                     additionalFileText: string.Format(additionalFileTextFormat, message),
                     fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedMessage),
-                    expected: new[]
-                    {
+                    expected:
+                    [
                         VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0)
-                    });
+                    ]);
             }
         }
 
@@ -3410,10 +3410,10 @@ public sealed class MyAnalyzer : DiagnosticAnalyzer
                     additionalFileName: additionalFileName,
                     additionalFileText: string.Format(additionalFileTextFormat, message),
                     fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedMessage),
-                    expected: new[]
-                    {
+                    expected:
+                    [
                         VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0)
-                    });
+                    ]);
 
                 string basicSourceFormat = @"
 Imports System
@@ -3443,10 +3443,10 @@ End Class";
                     additionalFileName: additionalFileName,
                     additionalFileText: string.Format(additionalFileTextFormat, message),
                     fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedMessage),
-                    expected: new[]
-                    {
+                    expected:
+                    [
                         VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0)
-                    });
+                    ]);
             }
         }
 
@@ -3633,10 +3633,10 @@ public sealed class MyAnalyzer : DiagnosticAnalyzer
                     additionalFileName: additionalFileName,
                     additionalFileText: string.Format(additionalFileTextFormat, description),
                     fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedDescription),
-                    expected: new[]
-                    {
+                    expected:
+                    [
                         VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(0)
-                    });
+                    ]);
 
                 string basicSourceFormat = @"
 Imports System
@@ -3666,10 +3666,10 @@ End Class";
                     additionalFileName: additionalFileName,
                     additionalFileText: string.Format(additionalFileTextFormat, description),
                     fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedDescription),
-                    expected: new[]
-                    {
+                    expected:
+                    [
                         VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(0)
-                    });
+                    ]);
             }
         }
 
@@ -3815,10 +3815,10 @@ public sealed class MyAnalyzer : DiagnosticAnalyzer
                     additionalFileName: additionalFileName,
                     additionalFileText: string.Format(additionalFileTextFormat, description),
                     fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedDescription),
-                    expected: new[]
-                    {
+                    expected:
+                    [
                         VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(0)
-                    });
+                    ]);
 
                 string basicSourceFormat = @"
 Imports System
@@ -3848,10 +3848,10 @@ End Class";
                     additionalFileName: additionalFileName,
                     additionalFileText: string.Format(additionalFileTextFormat, description),
                     fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedDescription),
-                    expected: new[]
-                    {
+                    expected:
+                    [
                         VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(0)
-                    });
+                    ]);
             }
         }
 

@@ -148,6 +148,14 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         _updateUIContextJoinableTasks = new JoinableTaskCollection(_threadingContext.JoinableTaskContext);
 
         _workspaceListener = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
+
+        // Set up our telemetry session and log an event for the version
+        var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
+        var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
+        telemetryService.InitializeTelemetrySession(TelemetryService.DefaultSession, logDelta);
+
+        Logger.Log(FunctionId.Run_Environment, KeyValueLogMessage.Create(
+            static m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
     }
 
     internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;
@@ -204,12 +212,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         // Create services that are bound to the UI thread
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _threadingContext.DisposalToken);
 
-        // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
-        // the background thread then we will experience hangs like we see in this bug:
-        // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=190808 or
-        // https://devdiv.visualstudio.com/DevDiv/_workitems?id=296981&_a=edit
-        var telemetrySession = TelemetryService.DefaultSession;
-
         _solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
         _solutionClosingContext.UIContextChanged += SolutionClosingContext_UIContextChanged;
 
@@ -228,16 +230,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         // This must be called after the _openFileTracker was assigned; this way we know that a file added from the project system either got checked
         // in CheckForAddedFileBeingOpenMaybeAsync, or we catch it here.
         openFileTracker.CheckForOpenFilesThatWeMissed();
-
-        // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
-        await TaskScheduler.Default;
-
-        var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
-        var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
-        telemetryService.InitializeTelemetrySession(telemetrySession, logDelta);
-
-        Logger.Log(FunctionId.Run_Environment, KeyValueLogMessage.Create(
-            static m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
     }
 
     public Task CheckForAddedFileBeingOpenMaybeAsync(bool useAsync, ImmutableArray<string> newFileNames)
@@ -1304,8 +1296,8 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             }
 
             // Must save the document first for things like Breakpoints to be preserved.
-            // WORKAROUND: Check if the document needs to be saved before calling save. 
-            // Should remove the if below and just call save() once 
+            // WORKAROUND: Check if the document needs to be saved before calling save.
+            // Should remove the if below and just call save() once
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163405
             // is fixed
             if (!projectItemForDocument.Saved)
@@ -1322,8 +1314,8 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             // Get the current undoManager before any file renames/documentId changes happen
             var undoManager = TryGetUndoManager();
 
-            // By setting this property, Visual Studio will perform the file rename, which 
-            // will cause the workspace's current solution to update and will fire the 
+            // By setting this property, Visual Studio will perform the file rename, which
+            // will cause the workspace's current solution to update and will fire the
             // necessary workspace changed events.
             projectItemForDocument.Name = uniqueName;
 
@@ -1335,7 +1327,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     }
 
     /// <summary>
-    /// The <see cref="VisualStudioWorkspace"/> currently supports only a subset of <see cref="DocumentInfo"/> 
+    /// The <see cref="VisualStudioWorkspace"/> currently supports only a subset of <see cref="DocumentInfo"/>
     /// changes.
     /// </summary>
     private static void FailIfDocumentInfoChangesNotSupported(CodeAnalysis.Document document, DocumentInfo updatedInfo)
@@ -1641,14 +1633,14 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         {
             var isContextActive = _languageToProjectExistsUIContextState.GetOrAdd(language, false);
 
-            // Determine if there is a project with a matching language. Uses _projectSystemNameToProjectsMap as 
+            // Determine if there is a project with a matching language. Uses _projectSystemNameToProjectsMap as
             // that data structure is updated before calling into this method, whereas CurrentSolution may not be.
             var projectExistsWithLanguage = _projectSystemNameToProjectsMap.Any(projects => projects.Value.Any(project => project.Language == language));
             if (projectExistsWithLanguage != isContextActive)
             {
                 _languageToProjectExistsUIContextState[language] = projectExistsWithLanguage;
 
-                // Create a task to update the UI context, and add it to the task collection that all callers to 
+                // Create a task to update the UI context, and add it to the task collection that all callers to
                 // this method will wait on before returning.
                 var joinableTask = _threadingContext.JoinableTaskFactory.RunAsync(() => UpdateUIContextAsync(language, cancellationToken));
 

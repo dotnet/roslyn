@@ -96,7 +96,7 @@ public class MyDerivedCodeActionWithEquivalenceKey : MyAbstractCodeActionWithEqu
             await VerifyCS.VerifyAnalyzerAsync(source + fixAllProviderString + sourceSuffix, expected);
 
             // Verify RS1016 (OverrideGetFixAllProviderRule) diagnostic for fixer that does not support FixAllProvider.
-            expected = new[] { missingGetFixAllProviderOverrideDiagnostic };
+            expected = [missingGetFixAllProviderOverrideDiagnostic];
             await VerifyCS.VerifyAnalyzerAsync(source + sourceSuffix, expected);
         }
 
@@ -480,7 +480,7 @@ End Class
             await VerifyVB.VerifyAnalyzerAsync(source + fixAllProviderString + sourceSuffix, expected);
 
             // Verify RS1016 (OverrideGetFixAllProviderRule) diagnostic for fixer that does not support FixAllProvider.
-            expected = new[] { missingGetFixAllProviderOverrideDiagnostic };
+            expected = [missingGetFixAllProviderOverrideDiagnostic];
             await VerifyVB.VerifyAnalyzerAsync(source + sourceSuffix, expected);
         }
 
