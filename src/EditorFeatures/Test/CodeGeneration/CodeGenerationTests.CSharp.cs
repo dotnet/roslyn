@@ -225,7 +225,7 @@ public sealed partial class CodeGenerationTests
             var expected = """
                 namespace N
                 {
-                    file
+                    file 
                 """ + kindString + """
                  C
                     {

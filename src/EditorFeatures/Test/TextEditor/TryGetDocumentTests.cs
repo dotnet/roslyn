@@ -21,6 +21,7 @@ public sealed class TryGetDocumentTests
     {
         var code = """
             class C
+
             """;
         using var workspace = EditorTestWorkspace.CreateCSharp(code);
         var hostDocument = workspace.Documents.First();
