@@ -3529,7 +3529,7 @@ namespace N
 
             diff1.VerifySynthesizedMembers(
                  "Microsoft.CodeAnalysis.EmbeddedAttribute",
-                "System.Runtime.CompilerServices.IsReadOnlyAttribute");
+                 "System.Runtime.CompilerServices.IsReadOnlyAttribute");
 
             diff1.VerifyIL("N.C.Main", @"
 {

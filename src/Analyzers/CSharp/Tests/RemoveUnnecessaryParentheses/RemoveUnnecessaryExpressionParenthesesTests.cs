@@ -1890,7 +1890,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: false);
+            offeredWhenRequireForClarityIsEnabled: false);
 
     [Fact]
     public Task TestGuardPatternMissing()
@@ -1926,7 +1926,7 @@ offeredWhenRequireForClarityIsEnabled: false);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
     public Task TestParensAroundMultiplicationInAddEquals()
@@ -1949,7 +1949,7 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
     public Task TestParensAroundAddInMultipleEquals()
@@ -1972,7 +1972,7 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
     public Task TestNecessaryCast()
@@ -2008,7 +2008,7 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
     public Task TestParensAroundUnchecked()
@@ -2031,7 +2031,7 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
     public Task TestParensAroundNameof()
@@ -2054,7 +2054,7 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
     public Task TestParensIsCheck()
@@ -2077,7 +2077,7 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
     public Task TestNecessaryParensAroundIs()
@@ -2115,7 +2115,7 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
     public Task TestParensAroundLambda1()
@@ -2138,7 +2138,7 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
     public Task TestParensAroundLambda2()
@@ -2161,7 +2161,7 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
     public Task TestParensAroundCastedLambda1()
@@ -2223,7 +2223,7 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
     public Task TestParensAroundReturnValue2()
@@ -2246,7 +2246,7 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
     public Task TestParensAroundPPDirective1()
@@ -2271,7 +2271,7 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
     public Task TestParensAroundPPDirective2()
@@ -2296,7 +2296,7 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true, index: 1);
+            offeredWhenRequireForClarityIsEnabled: true, index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57768")]
     public Task TestParensAroundPPDirective3()
@@ -2323,7 +2323,7 @@ offeredWhenRequireForClarityIsEnabled: true, index: 1);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29454")]
     public Task TestMissingForPreIncrement()
@@ -2523,7 +2523,7 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
+            parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32085")]
     public Task TestMissingForNestedConditionalExpressionInLambda()

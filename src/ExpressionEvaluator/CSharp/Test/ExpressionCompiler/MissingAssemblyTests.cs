@@ -833,7 +833,7 @@ class UseLinq
   IL_0000:  ldloc.1
   IL_0001:  ret
 }",
-LanguageVersion.CSharp7_1);
+                LanguageVersion.CSharp7_1);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16879")]
@@ -890,7 +890,7 @@ LanguageVersion.CSharp7_1);
   IL_0000:  ldloc.0
   IL_0001:  ret
 }",
-LanguageVersion.CSharp7_1);
+                LanguageVersion.CSharp7_1);
         }
 
         private static void TupleContextNoSystemRuntime(string source, string methodName, string expression, string expectedIL,

@@ -808,10 +808,10 @@ public class C {}",
         }
     }
 }",
-                new[] { new CSharpCompilationReference(other) },
-                assemblyName: "WantsIVTAccessButCantHave",
-                options: TestOptions.SigningReleaseDll,
-                parseOptions: parseOptions);
+    new[] { new CSharpCompilationReference(other) },
+    assemblyName: "WantsIVTAccessButCantHave",
+    options: TestOptions.SigningReleaseDll,
+    parseOptions: parseOptions);
 
             //compilation should not succeed, and internals should not be imported.
             c.VerifyDiagnostics(
@@ -832,9 +832,9 @@ public class C {}",
         }
     }
 }",
-                new[] { new CSharpCompilationReference(other) },
-                assemblyName: "WantsIVTAccess",
-                options: TestOptions.SigningReleaseDll);
+    new[] { new CSharpCompilationReference(other) },
+    assemblyName: "WantsIVTAccess",
+    options: TestOptions.SigningReleaseDll);
 
             Assert.Empty(c2.GetDiagnostics());
         }
@@ -859,10 +859,10 @@ public class C {}",
         }
     }
 }",
-            references: new[] { AssemblyMetadata.CreateFromStream(otherStream, leaveOpen: true).GetReference() },
-            assemblyName: "WantsIVTAccessButCantHave",
-            options: TestOptions.SigningReleaseDll,
-            parseOptions: parseOptions);
+    references: new[] { AssemblyMetadata.CreateFromStream(otherStream, leaveOpen: true).GetReference() },
+    assemblyName: "WantsIVTAccessButCantHave",
+    options: TestOptions.SigningReleaseDll,
+    parseOptions: parseOptions);
 
             //compilation should not succeed, and internals should not be imported.
             c.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Goo").WithArguments("C", "Goo"));
@@ -880,10 +880,10 @@ public class C {}",
         }
     }
 }",
-                new[] { MetadataReference.CreateFromStream(otherStream) },
-                assemblyName: "WantsIVTAccess",
-                options: TestOptions.SigningReleaseDll,
-                parseOptions: parseOptions);
+    new[] { MetadataReference.CreateFromStream(otherStream) },
+    assemblyName: "WantsIVTAccess",
+    options: TestOptions.SigningReleaseDll,
+    parseOptions: parseOptions);
 
             Assert.Empty(c2.GetDiagnostics());
         }
@@ -913,10 +913,10 @@ public class C {}",
         }
     }
 }",
-                new MetadataReference[] { new CSharpCompilationReference(other) },
-                TestOptions.SigningReleaseDll.WithCryptoKeyContainer("roslynTestContainer"),
-                assemblyName: "John",
-                parseOptions: parseOptions);
+    new MetadataReference[] { new CSharpCompilationReference(other) },
+    TestOptions.SigningReleaseDll.WithCryptoKeyContainer("roslynTestContainer"),
+    assemblyName: "John",
+    parseOptions: parseOptions);
 
             Assert.Empty(requestor.GetDiagnostics());
         }
@@ -942,10 +942,10 @@ public class C {}",
         }
     }
 }",
-                references: new[] { new CSharpCompilationReference(other) },
-                assemblyName: "John",
-                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
-                parseOptions: parseOptions);
+    references: new[] { new CSharpCompilationReference(other) },
+    assemblyName: "John",
+    options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
+    parseOptions: parseOptions);
 
             // We allow John to access Paul's internal Goo even though strong-named John should not be referencing weak-named Paul.
             // Paul has, after all, specifically granted access to John.
@@ -1067,10 +1067,10 @@ public class Test
         }
     }
 }",
-                references: new[] { MetadataReference.CreateFromImage(other.EmitToArray()) },
-                assemblyName: "John",
-                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
-                parseOptions: parseOptions);
+    references: new[] { MetadataReference.CreateFromImage(other.EmitToArray()) },
+    assemblyName: "John",
+    options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
+    parseOptions: parseOptions);
 
             // We allow John to access Paul's internal Goo even though strong-named John should not be referencing weak-named Paul.
             // Paul has, after all, specifically granted access to John.
@@ -1101,10 +1101,10 @@ public class Test
 public class A
 {
 }",
-                new[] { new CSharpCompilationReference(other) },
-                assemblyName: "John",
-                options: TestOptions.SigningReleaseDll,
-                parseOptions: parseOptions);
+    new[] { new CSharpCompilationReference(other) },
+    assemblyName: "John",
+    options: TestOptions.SigningReleaseDll,
+    parseOptions: parseOptions);
 
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
             Assert.Empty(requestor.GetDiagnostics());
@@ -1131,9 +1131,9 @@ public class A
 public class A
 {
 }",
-                new[] { new CSharpCompilationReference(other) },
-                assemblyName: "John",
-                options: TestOptions.SigningReleaseDll);
+    new[] { new CSharpCompilationReference(other) },
+    assemblyName: "John",
+    options: TestOptions.SigningReleaseDll);
 
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
             requestor.VerifyDiagnostics();
@@ -1160,9 +1160,9 @@ public class A
 public class A
 {
 }",
-                new[] { new CSharpCompilationReference(other) },
-                assemblyName: "John",
-                options: TestOptions.SigningReleaseDll);
+    new[] { new CSharpCompilationReference(other) },
+    assemblyName: "John",
+    options: TestOptions.SigningReleaseDll);
 
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
             requestor.VerifyDiagnostics(
@@ -1191,10 +1191,10 @@ public class A
 public class A
 {
 }",
-                new MetadataReference[] { new CSharpCompilationReference(other) },
-                assemblyName: "John",
-                options: TestOptions.SigningReleaseDll,
-                parseOptions: parseOptions);
+    new MetadataReference[] { new CSharpCompilationReference(other) },
+    assemblyName: "John",
+    options: TestOptions.SigningReleaseDll,
+    parseOptions: parseOptions);
 
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
             requestor.VerifyDiagnostics(
@@ -1226,10 +1226,10 @@ public class A
 public class A
 {
 }",
-                new MetadataReference[] { new CSharpCompilationReference(other) },
-                assemblyName: "John",
-                options: TestOptions.SigningReleaseDll,
-                parseOptions: parseOptions);
+    new MetadataReference[] { new CSharpCompilationReference(other) },
+    assemblyName: "John",
+    options: TestOptions.SigningReleaseDll,
+    parseOptions: parseOptions);
 
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
             requestor.VerifyDiagnostics(
@@ -1266,10 +1266,10 @@ public class A
 public class A
 {
 }",
-                new MetadataReference[] { new CSharpCompilationReference(other) },
-                options: TestOptions.SigningReleaseDll,
-                assemblyName: "John",
-                parseOptions: parseOptions);
+    new MetadataReference[] { new CSharpCompilationReference(other) },
+    options: TestOptions.SigningReleaseDll,
+    assemblyName: "John",
+    parseOptions: parseOptions);
 
             Assert.True(other.Assembly.GivesAccessTo(requestor.Assembly));
             Assert.Empty(requestor.GetDiagnostics());
@@ -1298,10 +1298,10 @@ public class A
 public class A
 {
 }",
-                new MetadataReference[] { new CSharpCompilationReference(other) },
-                TestOptions.SigningReleaseDll,
-                assemblyName: "John",
-                parseOptions: parseOptions);
+    new MetadataReference[] { new CSharpCompilationReference(other) },
+    TestOptions.SigningReleaseDll,
+    assemblyName: "John",
+    parseOptions: parseOptions);
 
             Assert.False(other.Assembly.GivesAccessTo(requestor.Assembly));
             requestor.VerifyDiagnostics(
@@ -1334,10 +1334,10 @@ public class A
 public class A
 {
 }",
-                new MetadataReference[] { new CSharpCompilationReference(other) },
-                TestOptions.SigningReleaseDll,
-                assemblyName: "John",
-                parseOptions: parseOptions);
+    new MetadataReference[] { new CSharpCompilationReference(other) },
+    TestOptions.SigningReleaseDll,
+    assemblyName: "John",
+    parseOptions: parseOptions);
 
             Assert.False(other.Assembly.GivesAccessTo(requestor.Assembly));
             requestor.VerifyDiagnostics(
@@ -1379,10 +1379,10 @@ namespace ClassLibrary2
         }
     }
 }",
-                new MetadataReference[] { new CSharpCompilationReference(giver) },
-                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
-                assemblyName: "John",
-                parseOptions: parseOptions);
+    new MetadataReference[] { new CSharpCompilationReference(giver) },
+    options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
+    assemblyName: "John",
+    parseOptions: parseOptions);
 
             Assert.True(giver.Assembly.GivesAccessTo(requestor.Assembly));
             Assert.Empty(requestor.GetDiagnostics());
@@ -1499,7 +1499,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), parseOptions: parseOptions);
+            options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -1813,7 +1813,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile), parseOptions: parseOptions);
+            options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile), parseOptions: parseOptions);
 
             var outStrm = new MemoryStream();
             var emitResult = other.Emit(outStrm);
@@ -1883,7 +1883,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll, parseOptions: parseOptions);
+                options: TestOptions.SigningReleaseDll, parseOptions: parseOptions);
 
             var outStrm = new MemoryStream();
             var emitResult = other.Emit(outStrm);
@@ -1904,7 +1904,7 @@ public class C
 {
   static void Goo() {}
 }",
-    options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), parseOptions: parseOptions);
+                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), parseOptions: parseOptions);
             var outStrm = new MemoryStream();
             var emitResult = other.Emit(outStrm);
             Assert.True(emitResult.Success);
@@ -2508,9 +2508,9 @@ public class C
 {
   static void Goo() {}
 }",
-                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
-                references: new[] { MscorlibRef_v4_0_30316_17626 },
-                parseOptions: parseOptions);
+            options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
+            references: new[] { MscorlibRef_v4_0_30316_17626 },
+            parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2537,7 +2537,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
+            options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2596,9 +2596,9 @@ public class C
 {
   static void Goo() {}
 }",
-                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true),
-                references: new[] { MscorlibRef_v4_0_30316_17626 },
-                parseOptions: parseOptions);
+            options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true),
+            references: new[] { MscorlibRef_v4_0_30316_17626 },
+            parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2628,7 +2628,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
+            options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2653,7 +2653,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
+            options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2683,7 +2683,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
+            options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2720,10 +2720,10 @@ internal class B
         return new A();
     }
 }",
-                options: TestOptions.SigningReleaseModule,
-                assemblyName: "Bug781312_B",
-                references: new[] { new CSharpCompilationReference(ca) },
-                parseOptions: parseOptions);
+    options: TestOptions.SigningReleaseModule,
+    assemblyName: "Bug781312_B",
+    references: new[] { new CSharpCompilationReference(ca) },
+    parseOptions: parseOptions);
 
             CompileAndVerify(cb, verify: Verification.Fails).Diagnostics.Verify();
         }

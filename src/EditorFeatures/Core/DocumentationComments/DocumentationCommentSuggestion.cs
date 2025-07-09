@@ -96,7 +96,7 @@ internal sealed class DocumentationCommentSuggestion(CopilotGenerateDocumentatio
         _suggestionSession = await RunWithEnqueueActionAsync(
             "StartWork",
             async () => await SuggestionManager.TryDisplaySuggestionAsync(this, cancellationToken).ConfigureAwait(false),
-        cancellationToken).ConfigureAwait(false);
+            cancellationToken).ConfigureAwait(false);
 
         if (_suggestionSession is null)
         {

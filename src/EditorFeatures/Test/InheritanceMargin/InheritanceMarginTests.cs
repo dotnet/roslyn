@@ -1883,7 +1883,7 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
             End Sub
         End Class",
             LanguageNames.VisualBasic,
-             testHost,
+            testHost,
             itemForBar1,
             itemForBar,
             itemForFooInBar1,

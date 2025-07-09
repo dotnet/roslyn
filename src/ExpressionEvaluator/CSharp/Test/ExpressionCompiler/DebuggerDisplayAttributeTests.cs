@@ -40,7 +40,7 @@ class C
                 var context = CreateTypeContext(runtime, "C");
                 // Static field.
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                    CompileExpression(context, "F"),
+    CompileExpression(context, "F"),
     @"{
   // Code size        6 (0x6)
   .maxstack  1
@@ -49,7 +49,7 @@ class C
 }");
                 // Instance field.
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                    CompileExpression(context, "G"),
+    CompileExpression(context, "G"),
     @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -59,7 +59,7 @@ class C
 }");
                 // Static property.
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                    CompileExpression(context, "P"),
+    CompileExpression(context, "P"),
     @"{
   // Code size        6 (0x6)
   .maxstack  1
@@ -68,7 +68,7 @@ class C
 }");
                 // Instance property.
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                    CompileExpression(context, "Q"),
+    CompileExpression(context, "Q"),
     @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -95,7 +95,7 @@ class C
             {
                 var context = CreateTypeContext(runtime, "C");
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                    CompileExpression(context, "F[G]"),
+    CompileExpression(context, "F[G]"),
     @"{
   // Code size       12 (0xc)
   .maxstack  2
@@ -125,7 +125,7 @@ class C
             {
                 var context = CreateTypeContext(runtime, "C");
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                    CompileExpression(context, "F(this)"),
+    CompileExpression(context, "F(this)"),
     @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -161,7 +161,7 @@ class B : A
             {
                 var context = CreateTypeContext(runtime, "B");
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                    CompileExpression(context, "base.F()"),
+    CompileExpression(context, "base.F()"),
     @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -197,7 +197,7 @@ class A<T> where T : class
                 var result = context.CompileExpression("F(default(T), default(U))", out error, testData);
                 string actualIL = testData.GetMethodData("<>x<T, U>.<>m0").GetMethodIL();
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                    actualIL,
+    actualIL,
     @"{
   // Code size       24 (0x18)
   .maxstack  2
@@ -251,7 +251,7 @@ namespace N
                 var result = context.CompileExpression("typeof(N.C) ?? typeof(C)", out error, testData);
                 Assert.Null(error);
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                    testData.GetMethodData("<>x.<>m0").GetMethodIL(),
+    testData.GetMethodData("<>x.<>m0").GetMethodIL(),
     @"{
   // Code size       25 (0x19)
   .maxstack  2
@@ -370,7 +370,7 @@ class C
   IL_0017:  call       ""object C.F(System.Func<object>)""
   IL_001c:  ret
 }",
-                CompileExpression(context, "F(() => this.o)"));
+    CompileExpression(context, "F(() => this.o)"));
             });
         }
 
