@@ -999,7 +999,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 // If this is a pointer-to-ref assignment, keep the local so GC knows to re-track it.
-                else if (localSymbol.RefKind != RefKind.None && right.Kind == BoundKind.PointerIndirectionOperator)
+                else if (localSymbol.RefKind != RefKind.None &&
+                    localSymbol.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
+                    right.Kind == BoundKind.PointerIndirectionOperator)
                 {
                     ShouldNotSchedule(localSymbol);
                 }

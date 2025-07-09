@@ -809,6 +809,50 @@ unsafe struct S
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79051")]
+        public void Retrack_PointerToRefLocal_Synthesized()
+        {
+            // Implicit (synthesized) ref locals can be elided.
+            var source = """
+                class C
+                {
+                    unsafe void M(byte* p)
+                    {
+                        (*p)++;
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size        9 (0x9)
+                  .maxstack  3
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  dup
+                  IL_0003:  ldind.u1
+                  IL_0004:  ldc.i4.1
+                  IL_0005:  add
+                  IL_0006:  conv.u1
+                  IL_0007:  stind.i1
+                  IL_0008:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size        8 (0x8)
+                  .maxstack  3
+                  IL_0000:  ldarg.1
+                  IL_0001:  dup
+                  IL_0002:  ldind.u1
+                  IL_0003:  ldc.i4.1
+                  IL_0004:  add
+                  IL_0005:  conv.u1
+                  IL_0006:  stind.i1
+                  IL_0007:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79051")]
         public void Retrack_RefLocalToRefLocal()
         {
             // There is no pointer-to-ref conversion, so the ref local b2 can be elided in Release mode.
