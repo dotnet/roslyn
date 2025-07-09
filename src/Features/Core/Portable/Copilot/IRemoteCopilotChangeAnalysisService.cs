@@ -15,5 +15,5 @@ internal interface IRemoteCopilotChangeAnalysisService : IWorkspaceService
 {
     /// <inheritdoc cref="ICopilotChangeAnalysisService.AnalyzeChangeAsync"/>
     ValueTask<CopilotChangeAnalysis> AnalyzeChangeAsync(
-        Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> edits, CancellationToken cancellationToken);
+        Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
