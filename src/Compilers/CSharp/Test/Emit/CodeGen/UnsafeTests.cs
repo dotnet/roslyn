@@ -809,6 +809,58 @@ unsafe struct S
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79051")]
+        public void Retrack_PointerToRefLocal_Arg_EvaluationOrder()
+        {
+            // Perhaps the pointer-to-ref conversion should be preserved in the IL (via a ref local)
+            // so GC can re-track it before evaulating other arguments (which can have side effects),
+            // but there is no ref local in the C# source, so the current behavior might be expected.
+            var source = """
+                class C
+                {
+                    unsafe void M1(byte* p)
+                    {
+                        ref byte b = ref M2(ref *p, M3());
+                        b.ToString();
+                    }
+                    ref byte M2(ref byte b, int i) => ref b;
+                    int M3() => 42;
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M1", """
+                {
+                  // Code size       23 (0x17)
+                  .maxstack  3
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.0
+                  IL_0002:  ldarg.1
+                  IL_0003:  ldarg.0
+                  IL_0004:  call       "int C.M3()"
+                  IL_0009:  call       "ref byte C.M2(ref byte, int)"
+                  IL_000e:  stloc.0
+                  IL_000f:  ldloc.0
+                  IL_0010:  call       "string byte.ToString()"
+                  IL_0015:  pop
+                  IL_0016:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M1", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  ldarg.0
+                  IL_0003:  call       "int C.M3()"
+                  IL_0008:  call       "ref byte C.M2(ref byte, int)"
+                  IL_000d:  call       "string byte.ToString()"
+                  IL_0012:  pop
+                  IL_0013:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79051")]
         public void Retrack_PointerToRefLocal_Synthesized()
         {
             // Implicit (synthesized) ref locals can be elided.
