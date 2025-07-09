@@ -52,7 +52,8 @@ namespace Roslyn.Utilities
         public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
             => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, DefaultVerifier>.Diagnostic(descriptor);
 
-        public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
+        public static async Task VerifyAnalyzerAsync(
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source, params DiagnosticResult[] expected)
         {
             var test = new Test
             {
@@ -70,7 +71,9 @@ namespace Roslyn.Utilities
             await test.RunAsync();
         }
 
-        public static Task VerifyCodeFixAsync(string source, string fixedSource)
+        public static Task VerifyCodeFixAsync(
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedSource)
             => VerifyCodeFixAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
 
         public static Task VerifyCodeFixAsync(
@@ -79,7 +82,10 @@ namespace Roslyn.Utilities
             [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedSource)
             => VerifyCodeFixAsync(source, [expected], fixedSource);
 
-        public static async Task VerifyCodeFixAsync(string source, DiagnosticResult[] expected, string fixedSource)
+        public static async Task VerifyCodeFixAsync(
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
+            DiagnosticResult[] expected,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedSource)
         {
             var test = new Test
             {
