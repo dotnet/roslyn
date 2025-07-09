@@ -170,7 +170,6 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
         _featureService = featureServiceFactory.GlobalFeatureService;
         _completionDisabledToken = _featureService.Disable(PredefinedEditorFeatureNames.Completion, this);
         RenameService = renameService;
-        _uiThreadOperationExecutor = uiThreadOperationExecutor;
         _asyncListener = asyncListener;
         _triggerView = textBufferAssociatedViewService.GetAssociatedTextViews(triggerSpan.Snapshot.TextBuffer).FirstOrDefault(v => v.HasAggregateFocus) ??
             textBufferAssociatedViewService.GetAssociatedTextViews(triggerSpan.Snapshot.TextBuffer).First();
