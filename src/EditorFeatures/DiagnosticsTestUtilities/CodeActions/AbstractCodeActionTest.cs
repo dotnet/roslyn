@@ -166,10 +166,7 @@ public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserD
     internal static void EnableOption(ImmutableArray<PickMembersOption> options, string id)
     {
         var option = options.FirstOrDefault(o => o.Id == id);
-        if (option != null)
-        {
-            option.Value = true;
-        }
+        option?.Value = true;
     }
 
     internal Task TestWithPickMembersDialogAsync(
