@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -246,6 +247,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Verify ExtensionAttribute is available.
                     CheckExtensionAttributeAvailability(DeclaringCompilation, syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword).GetLocation(), diagnostics);
                 }
+            }
+            else if (ContainingType is { IsExtension: true, ExtensionParameter.Name: "" } && !IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, _location, Name);
             }
         }
 
@@ -754,12 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Static;
             }
 
-            allowedModifiers |= DeclarationModifiers.Async;
-
-            if (!isExtension)
-            {
-                allowedModifiers |= DeclarationModifiers.Extern;
-            }
+            allowedModifiers |= DeclarationModifiers.Async | DeclarationModifiers.Extern;
 
             if (containingType.IsStructType())
             {
@@ -918,10 +918,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
-            }
-            else if (ContainingType is { IsExtension: true, ExtensionParameter.Name: "" } && !IsStatic)
-            {
-                diagnostics.Add(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, location, Name);
             }
             else if (ContainingType.IsStatic && !IsStatic)
             {

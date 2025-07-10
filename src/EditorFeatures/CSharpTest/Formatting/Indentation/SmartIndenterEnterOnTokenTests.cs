@@ -26,235 +26,190 @@ public sealed class SmartIndenterEnterOnTokenTests : CSharpFormatterTestsBase
     public SmartIndenterEnterOnTokenTests(ITestOutputHelper output) : base(output) { }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537808")]
-    public async Task MethodBody1()
-    {
-        var code = @"class Class1
+    public Task MethodBody1()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"class Class1
 {
     void method()
                 { }
 }
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '{',
             indentationLine: 3,
             expectedIndentation: 4);
-    }
 
     [WpfFact]
-    public async Task Preprocessor1()
-    {
-        var code = @"class A
+    public Task Preprocessor1()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class A
 {
     #region T
 #endregion
 }
-";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+",
             indentationLine: 3,
             expectedIndentation: 4);
-    }
 
     [WpfFact]
-    public async Task Preprocessor2()
-    {
-        var code = @"class A
+    public Task Preprocessor2()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class A
 {
 #line 1
 #lien 2
 }
-";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+",
             indentationLine: 3,
             expectedIndentation: 4);
-    }
 
     [WpfFact]
-    public async Task Preprocessor3()
-    {
-        var code = @"#region stuff
+    public Task Preprocessor3()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"#region stuff
 #endregion
-";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+",
             indentationLine: 2,
             expectedIndentation: 0);
-    }
 
     [WpfFact]
-    public async Task Comments()
-    {
-        var code = @"using System;
+    public Task Comments()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"using System;
 
 class Class
 {
     // Comments
 // Comments
-";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+",
             indentationLine: 5,
             expectedIndentation: 4);
-    }
 
     [WpfFact]
-    public async Task UsingDirective()
-    {
-        var code = @"using System;
+    public Task UsingDirective()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"using System;
 using System.Linq;
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             'u',
             indentationLine: 1,
             expectedIndentation: 0);
-    }
 
     [WpfFact]
-    public async Task AfterTopOfFileComment()
-    {
-        var code = @"// comment
+    public Task AfterTopOfFileComment()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"// comment
 
 class
-";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+",
             indentationLine: 2,
             expectedIndentation: 0);
-    }
 
     [WpfFact]
-    public async Task DottedName()
-    {
-        var code = @"using System.
+    public Task DottedName()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"using System.
 Collection;
-";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+",
             indentationLine: 1,
             expectedIndentation: 4);
-    }
 
     [WpfFact]
-    public async Task Namespace()
-    {
-        var code = @"using System;
+    public Task Namespace()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"using System;
 
 namespace NS
 {
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '{',
             indentationLine: 3,
             expectedIndentation: 0);
-    }
 
     [WpfFact]
-    public async Task NamespaceDottedName()
-    {
-        var code = @"using System;
+    public Task NamespaceDottedName()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"using System;
 
 namespace NS.
 NS2
-";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+",
             indentationLine: 3,
             expectedIndentation: 4);
-    }
 
     [WpfFact]
-    public async Task NamespaceBody()
-    {
-        var code = @"using System;
+    public Task NamespaceBody()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"using System;
 
 namespace NS
 {
 class
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             'c',
             indentationLine: 4,
             expectedIndentation: 4);
-    }
 
     [WpfFact]
-    public async Task NamespaceCloseBrace()
-    {
-        var code = @"using System;
+    public Task NamespaceCloseBrace()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"using System;
 
 namespace NS
 {
 }
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '}',
             indentationLine: 4,
             expectedIndentation: 0);
-    }
 
     [WpfFact]
-    public async Task Class()
-    {
-        var code = @"using System;
+    public Task Class()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"using System;
 
 namespace NS
 {
     class Class
 {
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '{',
             indentationLine: 5,
             expectedIndentation: 4);
-    }
 
     [WpfFact]
-    public async Task ClassBody()
-    {
-        var code = @"using System;
+    public Task ClassBody()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"using System;
 
 namespace NS
 {
     class Class
     {
 int
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             'i',
             indentationLine: 6,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
-    public async Task ClassCloseBrace()
-    {
-        var code = @"using System;
+    public Task ClassCloseBrace()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"using System;
 
 namespace NS
 {
     class Class
     {
 }
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '}',
             indentationLine: 6,
             expectedIndentation: 4);
-    }
 
     [WpfFact]
-    public async Task Method()
-    {
-        var code = @"using System;
+    public Task Method()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"using System;
 
 namespace NS
 {
@@ -262,19 +217,15 @@ namespace NS
     {
         void Method()
 {
-";
-
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '{',
             indentationLine: 7,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
-    public async Task MethodBody()
-    {
-        var code = @"using System;
+    public Task MethodBody()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"using System;
 
 namespace NS
 {
@@ -283,19 +234,15 @@ namespace NS
         void Method()
         {
 int
-";
-
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             'i',
             indentationLine: 8,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
-    public async Task MethodCloseBrace()
-    {
-        var code = @"using System;
+    public Task MethodCloseBrace()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"using System;
 
 namespace NS
 {
@@ -304,19 +251,15 @@ namespace NS
         void Method()
         {
 }
-";
-
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '}',
             indentationLine: 8,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
-    public async Task Statement()
-    {
-        var code = @"using System;
+    public Task Statement()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"using System;
 
 namespace NS
 {
@@ -326,19 +269,15 @@ namespace NS
         {
             int i = 10;
 int
-";
-
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             'i',
             indentationLine: 9,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
-    public async Task MethodCall()
-    {
-        var code = @"class c
+    public Task MethodCall()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class c
 {
     void Method()
     {
@@ -346,18 +285,14 @@ int
 a: 1, 
             b: 1);
     }
-}";
-
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
-    public async Task Switch()
-    {
-        var code = @"using System;
+    public Task Switch()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"using System;
 
 namespace NS
 {
@@ -367,19 +302,15 @@ namespace NS
         {
             switch (10)
 {
-";
-
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '{',
             indentationLine: 9,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
-    public async Task SwitchBody()
-    {
-        var code = @"using System;
+    public Task SwitchBody()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"using System;
 
 namespace NS
 {
@@ -390,19 +321,15 @@ namespace NS
             switch (10)
             {
 case
-";
-
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             'c',
             indentationLine: 10,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
-    public async Task SwitchCase()
-    {
-        var code = @"using System;
+    public Task SwitchCase()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"using System;
 
 namespace NS
 {
@@ -414,19 +341,15 @@ namespace NS
             {
                 case 10 :
 int
-";
-
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             'i',
             indentationLine: 11,
             expectedIndentation: 20);
-    }
 
     [WpfFact]
-    public async Task SwitchCaseBlock()
-    {
-        var code = @"using System;
+    public Task SwitchCaseBlock()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"using System;
 
 namespace NS
 {
@@ -438,19 +361,15 @@ namespace NS
             {
                 case 10 :
 {
-";
-
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '{',
             indentationLine: 11,
             expectedIndentation: 20);
-    }
 
     [WpfFact]
-    public async Task Block()
-    {
-        var code = @"using System;
+    public Task Block()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"using System;
 
 namespace NS
 {
@@ -463,19 +382,15 @@ namespace NS
                 case 10 :
                 {
 int
-";
-
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             'i',
             indentationLine: 12,
             expectedIndentation: 24);
-    }
 
     [WpfFact]
-    public async Task MultilineStatement1()
-    {
-        var code = @"using System;
+    public Task MultilineStatement1()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"using System;
 
 namespace NS
 {
@@ -485,18 +400,14 @@ namespace NS
         {
             int i = 10 +
 1
-";
-
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+",
             indentationLine: 9,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
-    public async Task MultilineStatement2()
-    {
-        var code = @"using System;
+    public Task MultilineStatement2()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"using System;
 
 namespace NS
 {
@@ -507,19 +418,15 @@ namespace NS
             int i = 10 +
                     20 +
 30
-";
-
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+",
             indentationLine: 10,
             expectedIndentation: 20);
-    }
 
     // Bug number 902477
     [WpfFact]
-    public async Task Comments2()
-    {
-        var code = @"class Class
+    public Task Comments2()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"class Class
 {
     void Method()
     {
@@ -527,18 +434,15 @@ namespace NS
 int
     }
 }
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             'i',
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
-    public async Task AfterCompletedBlock()
-    {
-        var code = @"class Program
+    public Task AfterCompletedBlock()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"class Program
 {
     static void Main(string[] args)
     {
@@ -547,35 +451,29 @@ int
     }
 }
 
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             'i',
             indentationLine: 5,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
-    public async Task AfterTopLevelAttribute()
-    {
-        var code = @"class Program
+    public Task AfterTopLevelAttribute()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"class Program
 {
     [Attr]
 [
 }
 
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '[',
             indentationLine: 3,
             expectedIndentation: 4);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537802")]
-    public async Task EmbededStatement()
-    {
-        var code = @"class Program
+    public Task EmbededStatement()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"class Program
 {
     static void Main(string[] args)
     {
@@ -585,51 +483,42 @@ int
     }
 }
 
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             'i',
             indentationLine: 6,
             expectedIndentation: 8);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537808")]
-    public async Task MethodBraces1()
-    {
-        var code = @"class Class1
+    public Task MethodBraces1()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"class Class1
 {
     void method()
 { }
 }
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '{',
             indentationLine: 3,
             expectedIndentation: 4);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537808")]
-    public async Task MethodBraces2()
-    {
-        var code = @"class Class1
+    public Task MethodBraces2()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"class Class1
 {
     void method()
     {
 }
 }
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '}',
             indentationLine: 4,
             expectedIndentation: 4);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537795")]
-    public async Task Property1()
-    {
-        var code = @"class C
+    public Task Property1()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"class C
 {
     string Name
     { 
@@ -637,66 +526,54 @@ int
         set;
 }
 }
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '}',
             indentationLine: 6,
             expectedIndentation: 4);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537563")]
-    public async Task Class1()
-    {
-        var code = @"class C
+    public Task Class1()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"class C
 {
 }
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '}',
             indentationLine: 2,
             expectedIndentation: 0);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-    public async Task ArrayInitializer1()
-    {
-        var code = @"class C
+    public Task ArrayInitializer1()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class C
 {
     var a = new [] 
 { 1, 2, 3 }
 }
-";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+",
             indentationLine: 3,
             expectedIndentation: 4);
-    }
 
     [WpfFact]
-    public async Task ArrayInitializer2()
-    {
-        var code = @"class C
+    public Task ArrayInitializer2()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"class C
 {
     var a = new [] 
     {
         1, 2, 3 
 }
 }
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '}',
             indentationLine: 5,
             expectedIndentation: 4);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
     [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-    public async Task ArrayInitializer3()
-    {
-        var code = @"namespace NS
+    public Task ArrayInitializer3()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"namespace NS
 {
     class Class
     {
@@ -704,18 +581,14 @@ int
         {
             var a = new []
 {
-        }";
-
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+        }",
             indentationLine: 7,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
-    public async Task QueryExpression2()
-    {
-        var code = @"class C
+    public Task QueryExpression2()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"class C
 {
     void Method()
     {
@@ -723,18 +596,15 @@ int
     where
     }
 }
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             'w',
             indentationLine: 5,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
-    public async Task QueryExpression3()
-    {
-        var code = @"class C
+    public Task QueryExpression3()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"class C
 {
     void Method()
     {
@@ -742,18 +612,15 @@ int
     where select
     }
 }
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             'w',
             indentationLine: 5,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
-    public async Task QueryExpression4()
-    {
-        var code = @"class C
+    public Task QueryExpression4()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"class C
 {
     void Method()
     {
@@ -761,18 +628,15 @@ int
         select
     }
 }
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             's',
             indentationLine: 5,
             expectedIndentation: 16);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853748")]
-    public async Task ArrayInitializer()
-    {
-        var code = @"class C
+    public Task ArrayInitializer()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"class C
 {
     void Method()
     {
@@ -780,19 +644,16 @@ int
         }
     }
 }
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '}',
             indentationLine: 5,
             expectedIndentation: 8);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939305")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-    public async Task ArrayExpression()
-    {
-        var code = @"class C
+    public Task ArrayExpression()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class C
 {
     void M(object[] q)
     {
@@ -801,17 +662,14 @@ int
 { });
     }
 }
-";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+",
             indentationLine: 6,
             expectedIndentation: 14);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-    public async Task CollectionExpression()
-    {
-        var code = @"class C
+    public Task CollectionExpression()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"class C
 {
     void M(List<int> e)
     {
@@ -820,18 +678,15 @@ int
 { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 });
     }
 }
-";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+",
             '{',
             indentationLine: 6,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-    public async Task ObjectInitializer()
-    {
-        var code = @"class C
+    public Task ObjectInitializer()
+        => AssertIndentUsingSmartTokenFormatterAsync(
+            @"class C
 {
     void M(What dd)
     {
@@ -845,91 +700,72 @@ class What
 {
     public int d;
     public string dd;
-}";
-        await AssertIndentUsingSmartTokenFormatterAsync(
-            code,
+}",
             '{',
             indentationLine: 6,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
-    public async Task Preprocessor()
-    {
-        var code = @"
-#line 1 """"Bar""""class Goo : [|IComparable|]#line default#line hidden";
-
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+    public Task Preprocessor()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"
+#line 1 """"Bar""""class Goo : [|IComparable|]#line default#line hidden",
             indentationLine: 1,
             expectedIndentation: 0);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
-    public async Task InsideInitializerWithTypeBody_Implicit()
-    {
-        var code = @"class X {
+    public Task InsideInitializerWithTypeBody_Implicit()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class X {
     int[] a = {
         1,
 
     };
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 3,
             expectedIndentation: 8);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
-    public async Task InsideInitializerWithTypeBody_ImplicitNew()
-    {
-        var code = @"class X {
+    public Task InsideInitializerWithTypeBody_ImplicitNew()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class X {
     int[] a = new[] {
         1,
 
     };
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 3,
             expectedIndentation: 8);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
-    public async Task InsideInitializerWithTypeBody_Explicit()
-    {
-        var code = @"class X {
+    public Task InsideInitializerWithTypeBody_Explicit()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class X {
     int[] a = new int[] {
         1,
 
     };
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 3,
             expectedIndentation: 8);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
-    public async Task InsideInitializerWithTypeBody_Collection()
-    {
-        var code = @"using System.Collections.Generic;
+    public Task InsideInitializerWithTypeBody_Collection()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"using System.Collections.Generic;
 class X {
     private List<int> a = new List<int>() {
         1,
 
     };
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 4,
             expectedIndentation: 8);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
-    public async Task InsideInitializerWithTypeBody_ObjectInitializers()
-    {
-        var code = @"class C
+    public Task InsideInitializerWithTypeBody_ObjectInitializers()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class C
 {
     private What sdfsd = new What
     {
@@ -942,17 +778,14 @@ class What
 {
     public int d;
     public string dd;
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 5,
             expectedIndentation: 8);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/872")]
-    public async Task InsideInterpolationString_1()
-    {
-        var code = @"class Program
+    public Task InsideInterpolationString_1()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class Program
 {
     static void Main(string[] args)
     {
@@ -961,17 +794,14 @@ class What
     }
 
     static int number;
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 5,
             expectedIndentation: 0);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/872")]
-    public async Task InsideInterpolationString_2()
-    {
-        var code = @"class Program
+    public Task InsideInterpolationString_2()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class Program
 {
     static void Main(string[] args)
     {
@@ -980,17 +810,14 @@ class What
     }
 
     static int number;
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 5,
             expectedIndentation: 0);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/872")]
-    public async Task InsideInterpolationString_3()
-    {
-        var code = @"class Program
+    public Task InsideInterpolationString_3()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class Program
 {
     static void Main(string[] args)
     {
@@ -999,17 +826,14 @@ class What
     }
 
     static int number;
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 5,
             expectedIndentation: 0);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/872")]
-    public async Task InsideInterpolationString_4()
-    {
-        var code = @"class Program
+    public Task InsideInterpolationString_4()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class Program
 {
     static void Main(string[] args)
     {
@@ -1018,17 +842,14 @@ class What
     }
 
     static int number;
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 5,
             expectedIndentation: 0);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/872")]
-    public async Task OutsideInterpolationString()
-    {
-        var code = @"class Program
+    public Task OutsideInterpolationString()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class Program
 {
     static void Main(string[] args)
     {
@@ -1037,17 +858,14 @@ class What
     }
 
     static int number;
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/872")]
-    public async Task InsideInterpolationSyntax_1()
-    {
-        var code = @"class Program
+    public Task InsideInterpolationSyntax_1()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class Program
 {
     static void Main(string[] args)
     {
@@ -1056,17 +874,14 @@ Program.number}"";
     }
 
     static int number;
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/872")]
-    public async Task InsideInterpolationSyntax_2()
-    {
-        var code = @"class Program
+    public Task InsideInterpolationSyntax_2()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class Program
 {
     static void Main(string[] args)
     {
@@ -1076,17 +891,14 @@ Program.number}"";
     }
 
     static int number;
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 6,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/872")]
-    public async Task InsideInterpolationSyntax_3()
-    {
-        var code = @"class Program
+    public Task InsideInterpolationSyntax_3()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class Program
 {
     static void Main(string[] args)
     {
@@ -1095,17 +907,14 @@ Program.number}"";
     }
 
     static int number;
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/872")]
-    public async Task InsideInterpolationSyntax_4()
-    {
-        var code = @"class Program
+    public Task InsideInterpolationSyntax_4()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class Program
 {
     static void Main(string[] args)
     {
@@ -1114,17 +923,14 @@ Program.number}"";
     }
 
     static int number;
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/872")]
-    public async Task InsideInterpolationSyntax_5()
-    {
-        var code = @"class Program
+    public Task InsideInterpolationSyntax_5()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class Program
 {
     static void Main(string[] args)
     {
@@ -1133,17 +939,14 @@ Program.number}"";
     }
 
     static int number;
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/872")]
-    public async Task InsideInterpolationSyntax_6()
-    {
-        var code = @"class Program
+    public Task InsideInterpolationSyntax_6()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class Program
 {
     static void Main(string[] args)
     {
@@ -1152,17 +955,14 @@ Program.number}"";
     }
 
     static int number;
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/872")]
-    public async Task InsideInterpolationSyntax_7()
-    {
-        var code = @"class Program
+    public Task InsideInterpolationSyntax_7()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class Program
 {
     static void Main(string[] args)
     {
@@ -1171,17 +971,14 @@ Program.number}"";
     }
 
     static int number;
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 5,
             expectedIndentation: 8);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/872")]
-    public async Task IndentLambdaBodyOneIndentationToFirstTokenOfTheStatement()
-    {
-        var code = @"class Program
+    public Task IndentLambdaBodyOneIndentationToFirstTokenOfTheStatement()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class Program
 {
     static void Main(string[] args)
     {
@@ -1190,34 +987,28 @@ Program.number}"";
     }
 
     static int number;
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 5,
             expectedIndentation: 8);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/1339")]
-    public async Task IndentAutoPropertyInitializerAsPartOfTheDeclaration()
-    {
-        var code = @"class Program
+    public Task IndentAutoPropertyInitializerAsPartOfTheDeclaration()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"class Program
 {
     public int d { get; } 
 = 3;
     static void Main(string[] args)
     {
     }
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 3,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
-    public async Task IndentPatternPropertyFirst()
-    {
-        var code = @"
+    public Task IndentPatternPropertyFirst()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"
 class C
 {
     void Main(object o)
@@ -1227,17 +1018,14 @@ class C
 
         }
     }
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 7,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
-    public async Task IndentPatternPropertySecond()
-    {
-        var code = @"
+    public Task IndentPatternPropertySecond()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"
 class C
 {
     void Main(object o)
@@ -1248,17 +1036,14 @@ class C
 
         }
     }
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 8,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
-    public async Task IndentListPattern()
-    {
-        var code = @"
+    public Task IndentListPattern()
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @"
 class C
 {
     void Main(object o)
@@ -1268,12 +1053,9 @@ class C
 
         ]
     }
-}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}",
             indentationLine: 7,
             expectedIndentation: 12);
-    }
 
     [WpfTheory]
     [InlineData("x", "is < 7 and (>= 3 or > 50) or not <= 0;", 12)]
@@ -1292,9 +1074,9 @@ class C
     [InlineData("x is < 7 and (>= 3 or > 50) or not", "<= 0;", 12)]
     [InlineData("x is < 7 and (>= 3 or > 50) or not <=", "0;", 12)]
     [InlineData("x is < 7 and (>= 3 or > 50) or not <= 0", ";", 12)]
-    public async Task IndentPatternsInLocalDeclarationCSharp9(string line1, string line2, int expectedIndentation)
-    {
-        var code = @$"
+    public Task IndentPatternsInLocalDeclarationCSharp9(string line1, string line2, int expectedIndentation)
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @$"
 class C
 {{
     void M()
@@ -1303,12 +1085,9 @@ class C
         var y = {line1}
 {line2}
     }}
-}}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}}",
             indentationLine: 7,
             expectedIndentation);
-    }
 
     [WpfTheory]
     [InlineData("x", "is < 7 and (>= 3 or > 50) or not <= 0;", 8)]
@@ -1327,20 +1106,17 @@ class C
     [InlineData("x is < 7 and (>= 3 or > 50) or not", "<= 0;", 8)]
     [InlineData("x is < 7 and (>= 3 or > 50) or not <=", "0;", 8)]
     [InlineData("x is < 7 and (>= 3 or > 50) or not <= 0", ";", 8)]
-    public async Task IndentPatternsInFieldDeclarationCSharp9(string line1, string line2, int expectedIndentation)
-    {
-        var code = @$"
+    public Task IndentPatternsInFieldDeclarationCSharp9(string line1, string line2, int expectedIndentation)
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @$"
 class C
 {{
     static int x = 7;
     bool y = {line1}
 {line2}
-}}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}}",
             indentationLine: 5,
             expectedIndentation);
-    }
 
     [WpfTheory]
     [InlineData("<", "7 and (>= 3 or > 50) or not <= 0", 12)]
@@ -1356,9 +1132,9 @@ class C
     [InlineData("< 7 and (>= 3 or > 50) or", "not <= 0", 12)]
     [InlineData("< 7 and (>= 3 or > 50) or not", "<= 0", 12)]
     [InlineData("< 7 and (>= 3 or > 50) or not <=", "0", 12)]
-    public async Task IndentPatternsInSwitchCSharp9(string line1, string line2, int expectedIndentation)
-    {
-        var code = @$"
+    public Task IndentPatternsInSwitchCSharp9(string line1, string line2, int expectedIndentation)
+        => AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            @$"
 class C
 {{
     void M()
@@ -1371,12 +1147,9 @@ class C
             _ => false
         }};
     }}
-}}";
-        await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
-            code,
+}}",
             indentationLine: 9,
             expectedIndentation);
-    }
 
     private static async Task AssertIndentUsingSmartTokenFormatterAsync(
         string code,

@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -244,8 +243,10 @@ class A
         var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.CompletionItem>(
             testLspServer,
             label: "AMethod").ConfigureAwait(false);
-
-        var expected = @"```csharp
+        var results = await RunResolveCompletionItemAsync(
+            testLspServer,
+            clientCompletionItem).ConfigureAwait(false);
+        Assert.Equal(@"```csharp
 void A.AMethod(int i)
 ```
   
@@ -257,12 +258,7 @@ _italic text_
 •&nbsp;Item 1\.  
 •&nbsp;Item 2\.  
   
-[link text](https://google.com)";
-
-        var results = await RunResolveCompletionItemAsync(
-            testLspServer,
-            clientCompletionItem).ConfigureAwait(false);
-        Assert.Equal(expected, results.Documentation.Value.Second.Value);
+[link text](https://google.com)", results.Documentation.Value.Second.Value);
     }
 
     [Theory, CombinatorialData]
@@ -305,8 +301,10 @@ class A
         var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.CompletionItem>(
             testLspServer,
             label: "AMethod").ConfigureAwait(false);
-
-        var expected = @"void A.AMethod(int i)
+        var results = await RunResolveCompletionItemAsync(
+            testLspServer,
+            clientCompletionItem).ConfigureAwait(false);
+        Assert.Equal(@"void A.AMethod(int i)
 A cref A.AMethod(int)
 strong text
 italic text
@@ -315,12 +313,7 @@ underline text
 • Item 1.
 • Item 2.
 
-link text";
-
-        var results = await RunResolveCompletionItemAsync(
-            testLspServer,
-            clientCompletionItem).ConfigureAwait(false);
-        Assert.Equal(expected, results.Documentation.Value.Second.Value);
+link text", results.Documentation.Value.Second.Value);
     }
 
     [Theory, CombinatorialData]

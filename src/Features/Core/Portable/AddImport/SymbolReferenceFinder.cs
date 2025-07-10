@@ -227,7 +227,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             var typeReferences = typesContainedDirectlyInTypes.SelectAsArray(
                 r => searchScope.CreateReference(r.WithSymbol(r.Symbol.ContainingType)));
 
-            return namespaceReferences.Concat(typeReferences);
+            return [.. namespaceReferences, .. typeReferences];
         }
 
         private bool ArityAccessibilityAndAttributeContextAreCorrect(

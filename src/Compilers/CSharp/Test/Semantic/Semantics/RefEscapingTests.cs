@@ -10657,6 +10657,130 @@ public struct Vec4
             CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
         }
 
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78964")]
+        public void UserDefinedIncrementOperator_RefStruct_Scoped_Prefix([CombinatorialValues("++", "--")] string op)
+        {
+            //      r1 = ++r2;
+            // is equivalent to
+            //      var tmp = R.op_Increment(r2);
+            //      r2 = tmp;
+            //      r1 = tmp;
+            // which is ref safe
+            var source = $$"""
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static R operator {{op}}(scoped R r) => default;
+                }
+                class Program
+                {
+                    static R F1(R r1, scoped R r2)
+                    {
+                        r1 = {{op}}r2;
+                        return r1;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78964")]
+        public void UserDefinedIncrementOperator_RefStruct_Scoped_Prefix_Arg([CombinatorialValues("++", "--")] string op)
+        {
+            //      F2(out var r1, ++r2); return r1;
+            // is equivalent to
+            //      var tmp = R.op_Increment(r2);
+            //      r2 = tmp;
+            //      F2(out var r1, tmp); return r1;
+            // which is ref safe
+            var source = $$"""
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static R operator {{op}}(scoped R r) => default;
+                }
+                class Program
+                {
+                    static R F1(scoped R r2)
+                    {
+                        F2(out var r1, {{op}}r2);
+                        return r1;
+                    }
+                    static void F2(out R r1, R r2) => r1 = r2;
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78964")]
+        public void UserDefinedIncrementOperator_RefStruct_Scoped_Postfix([CombinatorialValues("++", "--")] string op)
+        {
+            //      r1 = r2++;
+            // is equivalent to
+            //      var tmp = r2;
+            //      r2 = R.op_Increment(r2);
+            //      r1 = tmp;
+            // which is *not* ref safe (scoped r2 cannot be assigned to unscoped r1)
+            var source = $$"""
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static R operator {{op}}(scoped R r) => default;
+                }
+                class Program
+                {
+                    static R F1(R r1, scoped R r2)
+                    {
+                        r1 = r2{{op}};
+                        return r1;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (11,14): error CS8352: Cannot use variable 'scoped R r2' in this context because it may expose referenced variables outside of their declaration scope
+                //         r1 = r2++;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, $"r2{op}").WithArguments("scoped R r2").WithLocation(11, 14));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78964")]
+        public void UserDefinedIncrementOperator_RefStruct_Scoped_Postfix_Arg([CombinatorialValues("++", "--")] string op)
+        {
+            //      F2(out var r1, r2++); return r1;
+            // is equivalent to
+            //      var tmp = r2;
+            //      r2 = R.op_Increment(r2);
+            //      F2(out var r1, tmp); return r1;
+            // which is *not* ref safe (r1 is inferred as scoped from r2 but scoped r1 cannot be returned)
+            var source = $$"""
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static R operator {{op}}(scoped R r) => default;
+                }
+                class Program
+                {
+                    static R F1(scoped R r2)
+                    {
+                        F2(out var r1, r2{{op}});
+                        return r1;
+                    }
+                    static void F2(out R r1, R r2) => r1 = r2;
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (12,16): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("r1").WithLocation(12, 16));
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
         public void UserDefinedLogicalOperator_RefStruct()
         {
@@ -11299,6 +11423,163 @@ public struct Vec4
                 ref struct R;
                 """;
             CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78711")]
+        [InlineData("public void UseSpan(Span<int> span)", 17)]
+        [InlineData("void I.UseSpan(Span<int> span)", 12)]
+        public void RefStructInterface_ScopedDifference(string implSignature, int column)
+        {
+            // This is a case where interface methods need to be treated specially in scoped variance checks.
+            // Because a ref struct can implement the interface, we need to compare the signatures as if the interface has a receiver parameter which is ref-to-ref-struct.
+            var source = $$"""
+                using System;
+
+                interface I
+                {
+                    void UseSpan(scoped Span<int> span);
+                }
+
+                ref struct RS : I
+                {
+                    public Span<int> Span { get; set; }
+                    public RS(Span<int> span) => Span = span;
+
+                    {{implSignature}} // 1
+                    {
+                        this.Span = span;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (13,17): error CS8987: The 'scoped' modifier of parameter 'span' doesn't match overridden or implemented member.
+                //     public void UseSpan(Span<int> span)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "UseSpan").WithArguments("span").WithLocation(13, column));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78711")]
+        [InlineData("public readonly void UseSpan(Span<int> span)")]
+        [InlineData("readonly void I.UseSpan(Span<int> span)")]
+        public void RefStructInterface_ScopedDifference_ReadonlyImplementation(string implSignature)
+        {
+            var source = $$"""
+                using System;
+
+                interface I
+                {
+                    void UseSpan(scoped Span<int> span);
+                }
+
+                ref struct RS : I
+                {
+                    public Span<int> Span { get; set; }
+                    public RS(Span<int> span) => Span = span;
+
+                    {{implSignature}}
+                    {
+                        Span = span; // 1
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (15,9): error CS1604: Cannot assign to 'Span' because it is read-only
+                //         Span = span; // 1
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "Span").WithArguments("Span").WithLocation(15, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78711")]
+        public void SimilarScenarioAs78711InvolvingNonReceiverParameter()
+        {
+            // Demonstrate a scenario similar to https://github.com/dotnet/roslyn/issues/78711 involving a non-receiver parameter has consistent behavior
+            // In this case, the interface and implementation parameters cannot differ by type. But it as close as we can get to the receiver parameter case.
+            var source = """
+                using System;
+
+                interface I
+                {
+                    void UseSpan1(ref RS rs, scoped Span<int> span);
+                    void UseSpan2(ref readonly RS rs, scoped Span<int> span);
+                }
+
+                class C : I
+                {
+                    public void UseSpan1(ref RS rs, Span<int> span) // 1
+                    {
+                        rs.Span = span;
+                    }
+
+                    public void UseSpan2(ref readonly RS rs, Span<int> span)
+                    {
+                        rs.Span = span; // 2
+                    }
+                }
+
+                ref struct RS
+                {
+                    public Span<int> Span { get; set; }
+                    public RS(Span<int> span) => Span = span;
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (11,17): error CS8987: The 'scoped' modifier of parameter 'span' doesn't match overridden or implemented member.
+                //     public void UseSpan1(ref RS rs, Span<int> span) // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "UseSpan1").WithArguments("span").WithLocation(11, 17),
+                // (18,9): error CS8332: Cannot assign to a member of variable 'rs' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         rs.Span = span; // 2
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "rs.Span").WithArguments("variable", "rs").WithLocation(18, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78711")]
+        public void Repro_78711()
+        {
+            var source = """
+                using System;
+
+                public static class Demo
+                {
+                    public static void Show()
+                    {
+                        var stru = new Stru();
+
+                        Unsafe(ref stru);
+
+                        Console.Out.WriteLine(stru.Span);
+                    }
+
+                    private static void Unsafe<T>(ref T stru) where T : IStru, allows ref struct
+                    {
+                        Span<char> span = stackalloc char[10];
+
+                        "bug".CopyTo(span);
+
+                        stru.UseSpan(span);
+                    }
+                }
+
+                internal interface IStru
+                {
+                    public void UseSpan(scoped Span<char> span);
+                }
+
+                internal ref struct Stru : IStru
+                {
+                    public Span<char> Span;
+
+                    public void UseSpan(Span<char> span) => Span = span; // 1
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (33,17): error CS8987: The 'scoped' modifier of parameter 'span' doesn't match overridden or implemented member.
+                //     public void UseSpan(Span<char> span) => Span = span;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "UseSpan").WithArguments("span").WithLocation(33, 17));
         }
     }
 }

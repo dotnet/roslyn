@@ -27,11 +27,9 @@ using Microsoft.CodeAnalysis.GoToImplementation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
-using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -1065,15 +1063,11 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
         return TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.FORMATSELECTION, cancellationToken);
     }
 
-    private async Task WaitForSignatureHelpAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SignatureHelp, cancellationToken);
-    }
+    private Task WaitForSignatureHelpAsync(CancellationToken cancellationToken)
+        => TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SignatureHelp, cancellationToken);
 
-    private async Task WaitForCompletionSetAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
-    }
+    private Task WaitForCompletionSetAsync(CancellationToken cancellationToken)
+        => TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
 
     public async Task AddWinFormButtonAsync(string buttonName, CancellationToken cancellationToken)
     {

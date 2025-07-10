@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -32,7 +31,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.Logging;
-using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
@@ -529,11 +527,9 @@ public sealed partial class ServiceHubServicesTests
     }
 
     [Fact]
-    public async Task InProcAndRemoteWorkspaceAgree1()
-    {
-        await TestInProcAndRemoteWorkspace(
+    public Task InProcAndRemoteWorkspaceAgree1()
+        => TestInProcAndRemoteWorkspace(
             ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))));
-    }
 
     [Fact]
     public async Task InProcAndRemoteWorkspaceAgree2()
@@ -554,20 +550,16 @@ public sealed partial class ServiceHubServicesTests
     }
 
     [Fact]
-    public async Task InProcAndRemoteWorkspaceAgree4()
-    {
-        await TestInProcAndRemoteWorkspace(
+    public Task InProcAndRemoteWorkspaceAgree4()
+        => TestInProcAndRemoteWorkspace(
             [("SG.cs", CreateText(Guid.NewGuid().ToString()))],
             [("SG.cs", CreateText(Guid.NewGuid().ToString()))]);
-    }
 
     [Fact]
-    public async Task InProcAndRemoteWorkspaceAgree5()
-    {
-        await TestInProcAndRemoteWorkspace(
+    public Task InProcAndRemoteWorkspaceAgree5()
+        => TestInProcAndRemoteWorkspace(
             [("SG.cs", CreateText(Guid.NewGuid().ToString()))],
             [("NewName.cs", CreateText(Guid.NewGuid().ToString()))]);
-    }
 
     [Fact]
     public async Task InProcAndRemoteWorkspaceAgree6()
@@ -588,44 +580,34 @@ public sealed partial class ServiceHubServicesTests
     }
 
     [Fact]
-    public async Task InProcAndRemoteWorkspaceAgree8()
-    {
-        await TestInProcAndRemoteWorkspace(
+    public Task InProcAndRemoteWorkspaceAgree8()
+        => TestInProcAndRemoteWorkspace(
             [("SG.cs", CreateText(Guid.NewGuid().ToString()))],
             [("NewName.cs", CreateText(Guid.NewGuid().ToString()))]);
-    }
 
     [Fact]
-    public async Task InProcAndRemoteWorkspaceAgree9()
-    {
-        await TestInProcAndRemoteWorkspace(
+    public Task InProcAndRemoteWorkspaceAgree9()
+        => TestInProcAndRemoteWorkspace(
             [("SG.cs", CreateText("X", Encoding.ASCII))],
             [("SG.cs", CreateText("X", Encoding.UTF8))]);
-    }
 
     [Fact]
-    public async Task InProcAndRemoteWorkspaceAgree10()
-    {
-        await TestInProcAndRemoteWorkspace(
+    public Task InProcAndRemoteWorkspaceAgree10()
+        => TestInProcAndRemoteWorkspace(
             [("SG.cs", CreateText("X", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha1))],
             [("SG.cs", CreateText("X", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256))]);
-    }
 
     [Fact]
-    public async Task InProcAndRemoteWorkspaceAgree11()
-    {
-        await TestInProcAndRemoteWorkspace(
+    public Task InProcAndRemoteWorkspaceAgree11()
+        => TestInProcAndRemoteWorkspace(
             [("SG.cs", CreateText(Guid.NewGuid().ToString()))],
             []);
-    }
 
     [Fact]
-    public async Task InProcAndRemoteWorkspaceAgree12()
-    {
-        await TestInProcAndRemoteWorkspace(
+    public Task InProcAndRemoteWorkspaceAgree12()
+        => TestInProcAndRemoteWorkspace(
             [],
             [("SG.cs", CreateText(Guid.NewGuid().ToString()))]);
-    }
 
     [Fact]
     public async Task InProcAndRemoteWorkspaceAgree13()
@@ -1758,12 +1740,10 @@ public sealed partial class ServiceHubServicesTests
     }
 
     private static async Task UpdatePrimaryWorkspace(RemoteHostClient client, Solution solution)
-    {
-        await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+        => await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
             solution,
             async (service, solutionInfo, cancellationToken) => await service.SynchronizePrimaryWorkspaceAsync(solutionInfo, cancellationToken),
             CancellationToken.None);
-    }
 
     private static Solution Populate(Solution solution)
     {

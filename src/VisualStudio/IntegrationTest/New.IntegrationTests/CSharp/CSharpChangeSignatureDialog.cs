@@ -304,8 +304,7 @@ End Class
 ", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.SaveAllAsync(HangMitigatingCancellationToken);
         var project = ProjectName;
-        var vbProjectReference = "VBProject";
-        await TestServices.SolutionExplorer.AddProjectReferenceAsync(project, vbProjectReference, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddProjectReferenceAsync(project, "VBProject", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Class1.cs", HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
@@ -327,12 +326,11 @@ End Class
         Assert.Contains(@"x.Method(0, ""str"", 3.0, ""str2"")", actualText);
         await TestServices.SolutionExplorer.OpenFileAsync(vbProject, "Class1.vb", HangMitigatingCancellationToken);
         actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        var expectedText = @"
+        Assert.Contains(@"
 Public Class VBClass
     Public Function Method(a As Integer, b As String, c As Double, d As String) As Integer
         Return 1
     End Function
-End Class";
-        Assert.Contains(expectedText, actualText);
+End Class", actualText);
     }
 }

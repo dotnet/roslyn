@@ -19,6 +19,7 @@ using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 #pragma warning disable IDE0010 // Add missing cases (noise)
 #pragma warning disable IDE0057 // Use range operator (incorrectly reported when Range is not defined)
@@ -203,7 +204,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                     }
                     catch (Exception ex)
                     {
-                        var exceptionLines = ex.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                        var exceptionLines = ex.ToString().Split([Environment.NewLine], StringSplitOptions.None);
                         var text = string.Join("", exceptionLines.Select(line => "#error " + line + Environment.NewLine));
                         var errorText = SourceText.From(text, Encoding.UTF8, SourceHashAlgorithm.Sha256);
                         context.AddSource($"{resourceInformation.ResourceHintName}.Error", errorText);
@@ -380,7 +381,8 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                     return false;
                 }
 
-                var resourceAccessName = RoslynString.IsNullOrEmpty(ResourceInformation.ResourceClassName) ? ResourceInformation.ResourceName : ResourceInformation.ResourceClassName;
+                var resourceAccessName = string.IsNullOrEmpty(ResourceInformation.ResourceClassName) ? ResourceInformation.ResourceName : ResourceInformation.ResourceClassName;
+                Contract.ThrowIfNull(resourceAccessName);
                 SplitName(resourceAccessName, out var namespaceName, out var className);
 
                 var classIndent = namespaceName == null ? "" : "    ";
@@ -766,7 +768,7 @@ Imports System.Reflection
 
                 var escapedTrimmedValue = new XElement("summary", value).ToString();
 
-                foreach (var line in escapedTrimmedValue.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
+                foreach (var line in escapedTrimmedValue.Split(["\r\n", "\r", "\n"], StringSplitOptions.None))
                 {
                     strings.Append(memberIndent).Append(docCommentStart).Append(' ');
                     strings.AppendLine(line);

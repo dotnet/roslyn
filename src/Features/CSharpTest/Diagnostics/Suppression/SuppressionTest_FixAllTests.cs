@@ -24,9 +24,8 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
         {
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public async Task TestFixAllInDocument()
-            {
-                var input = """
+            public Task TestFixAllInDocument()
+                => TestInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -67,9 +66,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                             </Document>
                         </Project>
                     </Workspace>
-                    """;
-
-                var expected = """
+                    """, """
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -116,16 +113,12 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                             </Document>
                         </Project>
                     </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected);
-            }
+                    """);
 
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public async Task TestFixAllInProject()
-            {
-                var input = """
+            public Task TestFixAllInProject()
+                => TestInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -165,9 +158,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                             </Document>
                         </Project>
                     </Workspace>
-                    """;
-
-                var expected = """
+                    """, """
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -213,16 +204,12 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                             </Document>
                         </Project>
                     </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected);
-            }
+                    """);
 
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public async Task TestFixAllInSolution()
-            {
-                var input = """
+            public Task TestFixAllInSolution()
+                => TestInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -262,9 +249,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                             </Document>
                         </Project>
                     </Workspace>
-                    """;
-
-                var expected = """
+                    """, """
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -314,16 +299,12 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                             </Document>
                         </Project>
                     </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected);
-            }
+                    """);
 
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public async Task TestFixAllInContainingMember()
-            {
-                var input = """
+            public Task TestFixAllInContainingMember()
+                => TestMissingInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -344,16 +325,12 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                             </Document>
                         </Project>
                     </Workspace>
-                    """;
-
-                await TestMissingInRegularAndScriptAsync(input);
-            }
+                    """);
 
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public async Task TestFixAllInContainingType()
-            {
-                var input = """
+            public Task TestFixAllInContainingType()
+                => TestInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -394,9 +371,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                             </Document>
                         </Project>
                     </Workspace>
-                    """;
-
-                var expected = """
+                    """, """
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -441,10 +416,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                             </Document>
                         </Project>
                     </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected);
-            }
+                    """);
         }
     }
 
@@ -460,48 +432,6 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
             public async Task TestFixAllInDocument()
             {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document>
-                    using System;
-
-                    {|FixAllInDocument:class Class1|}
-                    {
-                        int Method()
-                        {
-                            int x = 0;
-                        }
-                    }
-
-                    class Class2
-                    {
-                    }
-                            </Document>
-                            <Document>
-                    class Class3
-                    {
-                    }
-                            </Document>
-                        </Project>
-                        <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
-                            <Document>
-                    class Class1
-                    {
-                        int Method()
-                        {
-                            int x = 0;
-                        }
-                    }
-
-                    class Class2
-                    {
-                    }
-                            </Document>
-                        </Project>
-                    </Workspace>
-                    """;
-
                 var addedGlobalSuppressions =
 $@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
@@ -562,20 +492,13 @@ using System.Diagnostics.CodeAnalysis;
     </Workspace>
     """;
 
-                await TestInRegularAndScriptAsync(input, expected, index: 1);
-            }
-
-            [Fact]
-            [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public async Task TestFixAllInProject()
-            {
-                var input = """
+                await TestInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
                     using System;
 
-                    {|FixAllInProject:class Class1|}
+                    {|FixAllInDocument:class Class1|}
                     {
                         int Method()
                         {
@@ -609,8 +532,13 @@ using System.Diagnostics.CodeAnalysis;
                             </Document>
                         </Project>
                     </Workspace>
-                    """;
+                    """, expected, index: 1);
+            }
 
+            [Fact]
+            [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+            public async Task TestFixAllInProject()
+            {
                 var addedGlobalSuppressions =
 $@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
@@ -672,20 +600,13 @@ using System.Diagnostics.CodeAnalysis;
     </Workspace>
     """;
 
-                await TestInRegularAndScriptAsync(input, expected, index: 1);
-            }
-
-            [Fact(Skip = "TODO: File a GitHubIssue for test framework unable to handle multiple projects in solution with same file name.")]
-            [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public async Task TestFixAllInSolution()
-            {
-                var input = """
+                await TestInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
                     using System;
 
-                    {|FixAllInSolution:class Class1|}
+                    {|FixAllInProject:class Class1|}
                     {
                         int Method()
                         {
@@ -719,8 +640,13 @@ using System.Diagnostics.CodeAnalysis;
                             </Document>
                         </Project>
                     </Workspace>
-                    """;
+                    """, expected, index: 1);
+            }
 
+            [Fact(Skip = "TODO: File a GitHubIssue for test framework unable to handle multiple projects in solution with same file name.")]
+            [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+            public async Task TestFixAllInSolution()
+            {
                 var addedGlobalSuppressionsProject1 =
 $@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
@@ -800,14 +726,53 @@ using System.Diagnostics.CodeAnalysis;
     </Workspace>
     """;
 
-                await TestInRegularAndScriptAsync(input, expected);
+                await TestInRegularAndScriptAsync("""
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                            <Document>
+                    using System;
+
+                    {|FixAllInSolution:class Class1|}
+                    {
+                        int Method()
+                        {
+                            int x = 0;
+                        }
+                    }
+
+                    class Class2
+                    {
+                    }
+                            </Document>
+                            <Document>
+                    class Class3
+                    {
+                    }
+                            </Document>
+                        </Project>
+                        <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                            <Document>
+                    class Class1
+                    {
+                        int Method()
+                        {
+                            int x = 0;
+                        }
+                    }
+
+                    class Class2
+                    {
+                    }
+                            </Document>
+                        </Project>
+                    </Workspace>
+                    """, expected);
             }
 
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public async Task TestFixAllInContainingMember()
-            {
-                var input = """
+            public Task TestFixAllInContainingMember()
+                => TestMissingInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -827,50 +792,12 @@ using System.Diagnostics.CodeAnalysis;
                             </Document>
                         </Project>
                     </Workspace>
-                    """;
-
-                await TestMissingInRegularAndScriptAsync(input);
-            }
+                    """);
 
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
             public async Task TestFixAllInContainingType()
             {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document>
-                    using System;
-
-                    {|FixAllInContainingType:partial class Class1|}
-                    {
-                        int Method1()
-                        {
-                            int x = 0;
-                        }
-                    }
-
-                    class Class2
-                    {
-                    }
-                            </Document>
-                            <Document>
-                    partial class Class1
-                    {
-                        int Method2()
-                        {
-                            int x = 0;
-                        }
-                    }
-
-                    class Class3
-                    {
-                    }
-                            </Document>
-                        </Project>
-                    </Workspace>
-                    """;
-
                 var addedGlobalSuppressions =
 $@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
@@ -924,7 +851,40 @@ using System.Diagnostics.CodeAnalysis;
     </Workspace>
     """;
 
-                await TestInRegularAndScriptAsync(input, expected, index: 1);
+                await TestInRegularAndScriptAsync("""
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                            <Document>
+                    using System;
+
+                    {|FixAllInContainingType:partial class Class1|}
+                    {
+                        int Method1()
+                        {
+                            int x = 0;
+                        }
+                    }
+
+                    class Class2
+                    {
+                    }
+                            </Document>
+                            <Document>
+                    partial class Class1
+                    {
+                        int Method2()
+                        {
+                            int x = 0;
+                        }
+                    }
+
+                    class Class3
+                    {
+                    }
+                            </Document>
+                        </Project>
+                    </Workspace>
+                    """, expected, index: 1);
             }
         }
     }
@@ -936,48 +896,6 @@ using System.Diagnostics.CodeAnalysis;
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject()
         {
-            var input = """
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document>{|FixAllInProject:|}
-                using System;
-
-                class Class1
-                {
-                    int Method()
-                    {
-                        int x = 0;
-                    }
-                }
-
-                class Class2
-                {
-                }
-                        </Document>
-                        <Document>
-                class Class3
-                {
-                }
-                        </Document>
-                    </Project>
-                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
-                        <Document>
-                class Class1
-                {
-                    int Method()
-                    {
-                        int x = 0;
-                    }
-                }
-
-                class Class2
-                {
-                }
-                        </Document>
-                    </Project>
-                </Workspace>
-                """;
-
             var addedGlobalSuppressions =
 $@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
@@ -1036,7 +954,47 @@ class Class2
 </Workspace>
 """;
 
-            await TestInRegularAndScriptAsync(input, expected);
+            await TestInRegularAndScriptAsync("""
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>{|FixAllInProject:|}
+                using System;
+
+                class Class1
+                {
+                    int Method()
+                    {
+                        int x = 0;
+                    }
+                }
+
+                class Class2
+                {
+                }
+                        </Document>
+                        <Document>
+                class Class3
+                {
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                        <Document>
+                class Class1
+                {
+                    int Method()
+                    {
+                        int x = 0;
+                    }
+                }
+
+                class Class2
+                {
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """, expected);
         }
     }
 

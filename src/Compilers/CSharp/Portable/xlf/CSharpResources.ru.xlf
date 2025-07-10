@@ -227,9 +227,29 @@
         <target state="translated">Не удается использовать коллекцию динамического типа в асинхронном операторе foreach</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadExtensionBinaryOperatorSignature">
+        <source>One of the parameters of a binary operator must be the extended type.</source>
+        <target state="new">One of the parameters of a binary operator must be the extended type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadExtensionContainingType">
         <source>Extensions must be declared in a top-level, non-generic, static class</source>
         <target state="new">Extensions must be declared in a top-level, non-generic, static class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadExtensionIncDecSignature">
+        <source>The parameter type for ++ or -- operator must be the extended type.</source>
+        <target state="new">The parameter type for ++ or -- operator must be the extended type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadExtensionShiftOperatorSignature">
+        <source>The first operand of an overloaded shift operator must have the same type as the extended type</source>
+        <target state="new">The first operand of an overloaded shift operator must have the same type as the extended type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadExtensionUnaryOperatorSignature">
+        <source>The parameter of a unary operator must be the extended type.</source>
+        <target state="new">The parameter of a unary operator must be the extended type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
@@ -732,6 +752,11 @@
         <target state="translated">Дерево выражения не может содержать выражение коллекции.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator">
+        <source>An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</source>
+        <target state="new">An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
         <source>An expression tree may not contain an extension property access</source>
         <target state="new">An expression tree may not contain an extension property access</target>
@@ -788,8 +813,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
-        <source>Extension declarations can include only methods or properties</source>
-        <target state="new">Extension declarations can include only methods or properties</target>
+        <source>This member is not allowed in an extension block</source>
+        <target state="new">This member is not allowed in an extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsName">
@@ -1100,6 +1125,16 @@
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
         <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
         <target state="new">'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceOperatorExtensionWrongReceiverType">
+        <source>Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</source>
+        <target state="new">Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceOperatorStructExtensionWrongReceiverRefKind">
+        <source>Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter</source>
+        <target state="new">Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -1472,6 +1507,11 @@
         <target state="translated">Нет перегруженного метода для "{0}", который соответствует указателю на функцию "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MisplacedExtension">
+        <source>An extension member syntax is disallowed in nested position within an extension member syntax</source>
+        <target state="new">An extension member syntax is disallowed in nested position within an extension member syntax</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
         <target state="translated">Непредвиденное ключевое слово \"record\". Возможно, вы имели в виду \"record struct\" или \"record class\"?</target>
@@ -1550,6 +1590,11 @@
       <trans-unit id="ERR_NamedArgumentForInlineArray">
         <source>An inline array access may not have a named argument specifier</source>
         <target state="translated">Доступ к встроенному массиву может не иметь спецификатора именованного аргумента.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NameofExtensionMember">
+        <source>Extension members are not allowed as an argument to 'nameof'.</source>
+        <target state="new">Extension members are not allowed as an argument to 'nameof'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1690,6 +1735,11 @@
       <trans-unit id="ERR_OperatorCantBeChecked">
         <source>User-defined operator '{0}' cannot be declared checked</source>
         <target state="translated">Невозможно объявить определяемый пользователем оператор "{0}" как проверенный</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorInExtensionOfStaticClass">
+        <source>An extension block extending a static class cannot contain user-defined operators</source>
+        <target state="new">An extension block extending a static class cannot contain user-defined operators</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorMismatchOnOverride">
@@ -7598,7 +7648,7 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">Предопределенный тип "{0}" не определен или не импортирован</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PredefinedValueTupleTypeAmbiguous3">
+      <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
         <target state="translated">Предопределенный тип "{0}" объявлен в нескольких сборках, на которые имеются ссылки: "{1}" и "{2}"</target>
         <note />
@@ -7914,8 +7964,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInvalidMethod">
-        <source>The DllImport attribute must be specified on a method marked 'static' and 'extern'</source>
-        <target state="translated">Атрибут DllImport должен быть указан для метода, который помечен как "static" и "extern".</target>
+        <source>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</source>
+        <target state="needs-review-translation">Атрибут DllImport должен быть указан для метода, который помечен как "static" и "extern".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">

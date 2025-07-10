@@ -13,9 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Snippets;
 public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : AbstractCSharpSnippetProviderTests
 {
     [Fact]
-    public async Task InsertSnippetInMethodTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertSnippetInMethodTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -35,12 +34,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertSnippetInGlobalContextTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertSnippetInGlobalContextTest()
+        => VerifySnippetAsync("""
             $$
             """, $$"""
             {{SnippetIdentifier}} ({|0:true|})
@@ -48,33 +45,27 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task NoSnippetInBlockNamespaceTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoSnippetInBlockNamespaceTest()
+        => VerifySnippetIsAbsentAsync("""
             namespace Namespace
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task NoSnippetInFileScopedNamespaceTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoSnippetInFileScopedNamespaceTest()
+        => VerifySnippetIsAbsentAsync("""
             namespace Namespace;
 
             $$
             """);
-    }
 
     [Fact]
-    public async Task InsertSnippetInConstructorTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertSnippetInConstructorTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public Program()
@@ -96,12 +87,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertSnippetInLocalFunctionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertSnippetInLocalFunctionTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -129,12 +118,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertSnippetInAnonymousFunctionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertSnippetInAnonymousFunctionTest()
+        => VerifySnippetAsync("""
             public delegate void Print(int value);
 
             static void Main(string[] args)
@@ -160,12 +147,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
 
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertSnippetInParenthesizedLambdaExpressionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertSnippetInParenthesizedLambdaExpressionTest()
+        => VerifySnippetAsync("""
             using System;
 
             Func<int, int, bool> testForEquality = (x, y) =>
@@ -185,12 +170,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 return x == y;
             };
             """);
-    }
 
     [Fact]
-    public async Task NoSnippetInSwitchExpression()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoSnippetInSwitchExpression()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -208,12 +191,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoSnippetInSingleLambdaExpression()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoSnippetInSingleLambdaExpression()
+        => VerifySnippetIsAbsentAsync("""
             using System;
 
             class Program
@@ -224,12 +205,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoSnippetInStringTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoSnippetInStringTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -238,12 +217,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoSnippetInConstructorArgumentsTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoSnippetInConstructorArgumentsTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -259,12 +236,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoSnippetInParameterListTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoSnippetInParameterListTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method(int x, $$)
@@ -272,12 +247,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoSnippetInRecordDeclarationTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoSnippetInRecordDeclarationTest()
+        => VerifySnippetIsAbsentAsync("""
             public record Person
             {
                 $$
@@ -285,12 +258,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 public string LastName { get; init; }
             };
             """);
-    }
 
     [Fact]
-    public async Task NoSnippetInVariableDeclarationTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoSnippetInVariableDeclarationTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -299,12 +270,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertInlineSnippetForCorrectTypeTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInlineSnippetForCorrectTypeTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 void M(bool arg)
@@ -324,12 +293,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineSnippetForIncorrectTypeTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineSnippetForIncorrectTypeTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 void M(int arg)
@@ -338,12 +305,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineSnippetWhenNotDirectlyExpressionStatementTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineSnippetWhenNotDirectlyExpressionStatementTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 void M(bool arg)
@@ -352,15 +317,13 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("// comment")]
     [InlineData("/* comment */")]
     [InlineData("#region test")]
-    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest1(string trivia)
-    {
-        await VerifySnippetAsync($$"""
+    public Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest1(string trivia)
+        => VerifySnippetAsync($$"""
             class Program
             {
                 void M(bool arg)
@@ -382,15 +345,13 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("#if true")]
     [InlineData("#pragma warning disable CS0108")]
     [InlineData("#nullable enable")]
-    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest2(string trivia)
-    {
-        await VerifySnippetAsync($$"""
+    public Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest2(string trivia)
+        => VerifySnippetAsync($$"""
             class Program
             {
                 void M(bool arg)
@@ -412,14 +373,12 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("// comment")]
     [InlineData("/* comment */")]
-    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest1(string trivia)
-    {
-        await VerifySnippetAsync($"""
+    public Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest1(string trivia)
+        => VerifySnippetAsync($"""
             {trivia}
             true.$$
             """, $$"""
@@ -429,16 +388,14 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 $$
             }
             """);
-    }
 
     [Theory]
     [InlineData("#region test")]
     [InlineData("#if true")]
     [InlineData("#pragma warning disable CS0108")]
     [InlineData("#nullable enable")]
-    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest2(string trivia)
-    {
-        await VerifySnippetAsync($"""
+    public Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest2(string trivia)
+        => VerifySnippetAsync($"""
             {trivia}
             true.$$
             """, $$"""
@@ -449,12 +406,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 $$
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
-    public async Task InsertInlineSnippetWhenDottingBeforeContextualKeywordTest1()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInlineSnippetWhenDottingBeforeContextualKeywordTest1()
+        => VerifySnippetAsync("""
             class C
             {
                 void M(bool flag)
@@ -476,12 +431,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
-    public async Task InsertInlineSnippetWhenDottingBeforeContextualKeywordTest2()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInlineSnippetWhenDottingBeforeContextualKeywordTest2()
+        => VerifySnippetAsync("""
             class C
             {
                 async void M(bool flag, Task t)
@@ -503,15 +456,13 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
     [InlineData("Task")]
     [InlineData("Task<int>")]
     [InlineData("System.Threading.Tasks.Task<int>")]
-    public async Task InsertInlineSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertInlineSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
+        => VerifySnippetAsync($$"""
             using System.Threading.Tasks;
 
             class C
@@ -537,12 +488,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertInlineSnippetWhenDottingBeforeMemberAccessExpressionOnTheNextLineTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInlineSnippetWhenDottingBeforeMemberAccessExpressionOnTheNextLineTest()
+        => VerifySnippetAsync("""
             using System;
 
             class C
@@ -568,12 +517,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineSnippetWhenDottingBeforeMemberAccessExpressionOnTheSameLineTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineSnippetWhenDottingBeforeMemberAccessExpressionOnTheSameLineTest()
+        => VerifySnippetIsAbsentAsync("""
             class C
             {
                 void M(bool flag)
@@ -582,12 +529,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineSnippetWhenDottingBeforeContextualKeywordOnTheSameLineTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineSnippetWhenDottingBeforeContextualKeywordOnTheSameLineTest()
+        => VerifySnippetIsAbsentAsync("""
             class C
             {
                 void M(bool flag)
@@ -596,12 +541,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineSnippetForTypeItselfTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineSnippetForTypeItselfTest()
+        => VerifySnippetIsAbsentAsync("""
             class C
             {
                 void M()
@@ -610,12 +553,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineSnippetForTypeItselfTest_Parenthesized()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineSnippetForTypeItselfTest_Parenthesized()
+        => VerifySnippetIsAbsentAsync("""
             class C
             {
                 void M()
@@ -624,12 +565,10 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineSnippetForTypeItselfTest_BeforeContextualKeyword()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineSnippetForTypeItselfTest_BeforeContextualKeyword()
+        => VerifySnippetIsAbsentAsync("""
             using System.Threading.Tasks;
 
             class C
@@ -641,5 +580,4 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
                 }
             }
             """);
-    }
 }

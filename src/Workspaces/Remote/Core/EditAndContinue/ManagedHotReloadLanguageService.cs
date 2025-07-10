@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -10,11 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -275,7 +276,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
     {
         if (_disabled)
         {
-            return new ManagedHotReloadUpdates([], []);
+            return new ManagedHotReloadUpdates([], [], [], []);
         }
 
         try
@@ -310,12 +311,19 @@ internal sealed partial class ManagedHotReloadLanguageService(
                 _pendingUpdatedDesignTimeSolution = designTimeSolution;
             }
 
-            return new ManagedHotReloadUpdates(results.ModuleUpdates.Updates, results.GetAllDiagnostics());
+            return new ManagedHotReloadUpdates(
+                results.ModuleUpdates.Updates,
+                results.GetAllDiagnostics(),
+                GetProjectPaths(results.ProjectsToRebuild),
+                GetProjectPaths(results.ProjectsToRestart.Keys));
+
+            ImmutableArray<string> GetProjectPaths(IEnumerable<ProjectId> ids)
+                => ids.SelectAsArray(id => solution.GetRequiredProject(id).FilePath!);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
             Disable();
-            return new ManagedHotReloadUpdates([], []);
+            return new ManagedHotReloadUpdates([], [], [], []);
         }
     }
 }

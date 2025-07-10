@@ -336,9 +336,8 @@ Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
         [InlineData("TheoryAttribute")]
         [InlineData("CustomTheory")]
         [InlineData("CustomTheoryAttribute")]
-        public async Task RunIterationsOfTheory_CSharp(string attributeName)
-        {
-            await new VerifyCS.Test
+        public Task RunIterationsOfTheory_CSharp(string attributeName)
+            => new VerifyCS.Test
             {
                 ReferenceAssemblies = xunitWithCombinatorial,
                 TestCode = $@"using Xunit;
@@ -373,16 +372,14 @@ class CustomFactAttribute : FactAttribute {{ }}
 class CustomTheoryAttribute : TheoryAttribute {{ }}
 ",
             }.RunAsync();
-        }
 
         [Theory]
         [InlineData("Theory")]
         [InlineData("TheoryAttribute")]
         [InlineData("CustomTheory")]
         [InlineData("CustomTheoryAttribute")]
-        public async Task RunIterationsOfTheory_VisualBasic(string attributeName)
-        {
-            await new VerifyVB.Test
+        public Task RunIterationsOfTheory_VisualBasic(string attributeName)
+            => new VerifyVB.Test
             {
                 ReferenceAssemblies = xunitWithCombinatorial,
                 TestCode = $@"Imports Xunit
@@ -410,6 +407,5 @@ Class CustomFactAttribute : Inherits FactAttribute : End Class
 Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
 ",
             }.RunAsync();
-        }
     }
 }

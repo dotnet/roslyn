@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -73,6 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static BoundExpression visitArgumentsAndFinishRewrite(BoundTreeRewriter rewriter, BoundCall node, BoundExpression? rewrittenReceiver)
             {
+                Debug.Assert(node.Method.MethodKind == MethodKind.LocalFunction || node.Method.IsStatic || node.ReceiverOpt is not null);
+
                 return updateCall(
                     node,
                     VisitMethodSymbolWithExtensionRewrite(rewriter, node.Method),
@@ -112,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        argumentRefKinds = argumentRefKinds.Insert(0, argumentRefKindFromReceiverRefKind(receiverRefKind)); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                        argumentRefKinds = argumentRefKinds.Insert(0, argumentRefKindFromReceiverRefKind(receiverRefKind));
                     }
 
                     invokedAsExtensionMethod = true;
@@ -176,7 +179,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                              { Name: nameof(VisitReadOnlySpanFromArray) } => method is { Name: "op_Implicit", IsExtensionMethod: false }, // Conversion operator from array to span cannot be an extension method
                              { Name: nameof(VisitLoweredConditionalAccess) } => // Nullable.HasValue cannot be an extension method
                                             method.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue) == (object)method.OriginalDefinition,
-                             { Name: nameof(VisitUnaryOperator) } => !method.IsExtensionMethod, // Expression tree context. At the moment an operator cannot be an extension method
                              { Name: nameof(VisitUserDefinedConditionalLogicalOperator) } => !method.IsExtensionMethod, // Expression tree context. At the moment an operator cannot be an extension method
                              { Name: nameof(VisitCollectionElementInitializer) } => !method.IsExtensionMethod, // Expression tree context. At the moment an extension method cannot be used in expression tree here.
                              { Name: nameof(VisitAwaitableInfo) } => method is { Name: "GetResult", IsExtensionMethod: false }, // Cannot be an extension method
@@ -190,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
         {
             MethodSymbol method = node.Method;
-            Debug.Assert(method.IsDefinition); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : From the code coverage and other instrumentations perspective, should we remap the index to the implementation symbol? 
+            Debug.Assert(method.IsDefinition); // Tracked by https://github.com/dotnet/roslyn/issues/78962 : From the code coverage and other instrumentations perspective, should we remap the index to the implementation symbol? 
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(method, type);
         }
@@ -231,10 +233,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundBinaryOperator.UncommonData? VisitBinaryOperatorData(BoundBinaryOperator node)
         {
-            Debug.Assert(node.Method is null ||
-                         (!node.Method.IsExtensionMethod && !node.Method.GetIsNewExtensionMember())); // Expression tree context. At the moment an operator cannot be an extension method
+            return VisitBinaryOperatorData(this, node);
+        }
 
-            return base.VisitBinaryOperatorData(node);
+        public static BoundBinaryOperator.UncommonData? VisitBinaryOperatorData(BoundTreeRewriter rewriter, BoundBinaryOperator node)
+        {
+            // Local rewriter should have already rewritten interpolated strings into their final form of calls and gotos
+            Debug.Assert(node.InterpolatedStringHandlerData is null);
+
+            MethodSymbol? method = VisitMethodSymbolWithExtensionRewrite(rewriter, node.Method);
+            TypeSymbol? constrainedToType = rewriter.VisitType(node.ConstrainedToType);
+
+            if (Symbol.Equals(method, node.Method, TypeCompareKind.AllIgnoreOptions) && TypeSymbol.Equals(constrainedToType, node.ConstrainedToType, TypeCompareKind.AllIgnoreOptions))
+            {
+                return node.Data;
+            }
+
+            return BoundBinaryOperator.UncommonData.CreateIfNeeded(
+                node.ConstantValueOpt,
+                method,
+                constrainedToType,
+                node.OriginalUserDefinedOperatorsOpt);
         }
 
         [return: NotNullIfNotNull(nameof(symbol))]
@@ -242,6 +261,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(symbol?.GetIsNewExtensionMember() != true);
             return base.VisitPropertySymbol(symbol);
+        }
+
+        public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
+        {
+            return VisitUnaryOperator(this, node);
+        }
+
+        public static BoundNode VisitUnaryOperator(BoundTreeRewriter rewriter, BoundUnaryOperator node)
+        {
+            MethodSymbol? methodOpt = VisitMethodSymbolWithExtensionRewrite(rewriter, node.MethodOpt);
+            ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt = rewriter.VisitSymbols<MethodSymbol>(node.OriginalUserDefinedOperatorsOpt);
+            BoundExpression operand = (BoundExpression)rewriter.Visit(node.Operand);
+            TypeSymbol? constrainedToTypeOpt = rewriter.VisitType(node.ConstrainedToTypeOpt);
+            TypeSymbol? type = rewriter.VisitType(node.Type);
+            return node.Update(node.OperatorKind, operand, node.ConstantValueOpt, methodOpt, constrainedToTypeOpt, node.ResultKind, originalUserDefinedOperatorsOpt, type);
         }
     }
 }

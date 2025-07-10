@@ -132,7 +132,7 @@ class C
         // Make sure that sending the tab works correctly. Note the 4 spaces after the +=
         testState.SendTab();
         await testState.WaitForAsynchronousOperationsAsync();
-        var expectedCode = @"
+        testState.AssertCodeIs(@"
 class C
 {
     void Goo()
@@ -140,9 +140,7 @@ class C
         int x = 7;
         x +=    
     }
-}";
-
-        testState.AssertCodeIs(expectedCode);
+}");
     }
 
     [WpfFact]
@@ -378,8 +376,7 @@ class C
         testState.SendTypeChar('=');
         testState.SendTab();
         await testState.WaitForAsynchronousOperationsAsync();
-
-        var expectedCode = @"
+        testState.AssertCodeIs(@"
 class C
 {
     event System.Action MyEvent;
@@ -398,8 +395,7 @@ class C
     {
         throw new System.NotImplementedException();
     }
-}";
-        testState.AssertCodeIs(expectedCode);
+}");
     }
 
     [WpfFact]
@@ -424,8 +420,7 @@ class C
         testState.SendTypeChar('=');
         testState.SendTab();
         await testState.WaitForAsynchronousOperationsAsync();
-
-        var expectedCode = @"
+        testState.AssertCodeIs(@"
 class C
 {
     event System.Action MyEvent;
@@ -444,8 +439,7 @@ class C
     {
         throw new System.NotImplementedException();
     }
-}";
-        testState.AssertCodeIs(expectedCode);
+}");
     }
 
     [WpfFact]
@@ -468,8 +462,7 @@ class C
         testState.SendTypeChar('=');
         testState.SendTab();
         await testState.WaitForAsynchronousOperationsAsync();
-
-        var expectedCode = @"
+        testState.AssertCodeIs(@"
 class C
 {
     event System.Action MyEvent;
@@ -486,8 +479,7 @@ class C
     private void Goo(Action a)
     {
     }
-}";
-        testState.AssertCodeIs(expectedCode);
+}");
     }
 
     [WpfFact]
@@ -503,8 +495,7 @@ class C
         testState.SendTypeChar('=');
         testState.SendTab();
         await testState.WaitForAsynchronousOperationsAsync();
-
-        var expectedCode = @"
+        testState.AssertCodeIs(@"
 class C
 {
     static event System.Action MyEvent;
@@ -514,8 +505,7 @@ class C
     {
         throw new System.NotImplementedException();
     }
-}";
-        testState.AssertCodeIs(expectedCode);
+}");
     }
 
     [WpfFact]
@@ -534,8 +524,7 @@ class C
         testState.SendTypeChar('=');
         testState.SendTab();
         await testState.WaitForAsynchronousOperationsAsync();
-
-        var expectedCode = @"
+        testState.AssertCodeIs(@"
 class C
 {
     static event System.Action MyEvent;
@@ -548,8 +537,7 @@ class C
     {
         throw new System.NotImplementedException();
     }
-}";
-        testState.AssertCodeIs(expectedCode);
+}");
     }
 
     [WpfFact]
@@ -567,8 +555,7 @@ class C
         testState.SendTypeChar('=');
         testState.SendTab();
         await testState.WaitForAsynchronousOperationsAsync();
-
-        var expectedCode = @"
+        testState.AssertCodeIs(@"
 class C
 {
     event System.Action MyEvent;
@@ -581,8 +568,7 @@ class C
     {
         throw new System.NotImplementedException();
     }
-}";
-        testState.AssertCodeIs(expectedCode);
+}");
     }
 
     [WpfFact]
@@ -612,8 +598,7 @@ class C
 
         testState.SendTab();
         await testState.WaitForAsynchronousOperationsAsync();
-
-        var expectedCode = @"
+        testState.AssertCodeIs(@"
 class C
 {
     event System.Action MyEvent;
@@ -632,8 +617,7 @@ class C
     {
         throw new System.NotImplementedException();
     }
-}";
-        testState.AssertCodeIs(expectedCode);
+}");
     }
 
     [WpfFact]
@@ -681,8 +665,7 @@ class C
 
         await testState.WaitForAsynchronousOperationsAsync();
         testState.AssertNotShowing();
-
-        var expectedCode = @"
+        testState.AssertCodeIs(@"
 class C
 {
     event System.Action MyEvent;
@@ -695,9 +678,7 @@ class C
     {
         throw new System.NotImplementedException();
     }
-}";
-
-        testState.AssertCodeIs(expectedCode);
+}");
     }
 
     [WpfFact]
@@ -808,8 +789,7 @@ class C
         testState.SendTypeChar('=');
         testState.SendTab();
         await testState.WaitForAsynchronousOperationsAsync();
-
-        var expectedCode = @"
+        testState.AssertCodeIs(@"
 class C
 {
     delegate int D(double d);
@@ -824,8 +804,7 @@ class C
     {
         throw new System.NotImplementedException();
     }
-}";
-        testState.AssertCodeIs(expectedCode);
+}");
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553660")]
@@ -871,8 +850,7 @@ class TestClass_T1_S1_4 : Scenarios.DelegateTest_Generics_NonGenericClass
         testState.SendTypeChar('=');
         testState.SendTab();
         await testState.WaitForAsynchronousOperationsAsync();
-
-        var expectedCode = @"
+        testState.AssertCodeIs(@"
 namespace Scenarios
 {
     public class DelegateTest_Generics_NonGenericClass
@@ -893,8 +871,7 @@ class TestClass_T1_S1_4 : Scenarios.DelegateTest_Generics_NonGenericClass
     {
         throw new System.NotImplementedException();
     }
-}";
-        testState.AssertCodeIs(expectedCode);
+}");
     }
 
     [WpfFact]
@@ -913,8 +890,7 @@ class C
         testState.SendTypeChar('=');
         testState.SendTab();
         await testState.WaitForAsynchronousOperationsAsync();
-
-        var expectedCode = @"
+        testState.AssertCodeIs(@"
 class C
 {
     event System.Action MyEvent;
@@ -927,8 +903,7 @@ class C
     {
         throw new System.NotImplementedException();
     }
-}";
-        testState.AssertCodeIs(expectedCode);
+}");
     }
 
     [WpfFact]
@@ -967,8 +942,7 @@ class D
         testState.SendTypeChar('=');
         testState.SendTab();
         await testState.WaitForAsynchronousOperationsAsync();
-
-        var expectedCode = @"
+        testState.AssertCodeIs(@"
 class D
 {
     void M()
@@ -980,8 +954,7 @@ class D
     {
         throw new System.NotImplementedException();
     }
-}";
-        testState.AssertCodeIs(expectedCode);
+}");
     }
 
     [WpfFact]
@@ -1003,8 +976,7 @@ class C
         testState.SendTypeChar('=');
         testState.SendTab();
         await testState.WaitForAsynchronousOperationsAsync();
-
-        var expectedCode = @"
+        testState.AssertCodeIs(@"
 class C
 {
     event System.Action MyEvent;
@@ -1017,8 +989,7 @@ class C
     {
         throw new System.NotImplementedException();
     }
-}";
-        testState.AssertCodeIs(expectedCode);
+}");
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/58474")]
@@ -1033,16 +1004,14 @@ System.AppDomain.CurrentDomain.UnhandledException +$$
         testState.SendTypeChar('=');
         testState.SendTab();
         await testState.WaitForAsynchronousOperationsAsync();
-
-        var expectedCode = @"
+        testState.AssertCodeIs(@"
 
 System.AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
 void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
 {
     throw new System.NotImplementedException();
-}";
-        testState.AssertCodeIs(expectedCode);
+}");
     }
 
     [WpfFact]

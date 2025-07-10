@@ -10,9 +10,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -209,14 +209,14 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
             static e => new EditAndContinue.RunningProjectInfo()
             {
                 RestartWhenChangesHaveNoEffect = e.Value.RestartWhenChangesHaveNoEffect,
-                AllowPartialUpdate = true
+                AllowPartialUpdate = RequireCommit
             });
 
         var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, runningProjectsImpl, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
         // If the changes fail to apply dotnet-watch fails.
         // We don't support discarding the changes and letting the user retry.
-        if (!RequireCommit && results.ModuleUpdates.Status is ModuleUpdateStatus.Ready)
+        if (!RequireCommit && results.ModuleUpdates.Status is ModuleUpdateStatus.Ready && results.ProjectsToRebuild.IsEmpty)
         {
             _encService.CommitSolutionUpdate(sessionId);
         }

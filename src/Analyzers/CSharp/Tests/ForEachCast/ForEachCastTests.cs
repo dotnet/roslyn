@@ -18,10 +18,9 @@ using VerifyCS = CSharpCodeFixVerifier<
 
 public sealed class ForEachCastTests
 {
-    private static async Task TestWorkerAsync(
+    private static Task TestWorkerAsync(
         string testCode, string fixedCode, string optionValue, ReferenceAssemblies? referenceAssemblies)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = testCode,
             FixedCode = fixedCode,
@@ -31,7 +30,6 @@ public sealed class ForEachCastTests
             """ + optionValue,
             ReferenceAssemblies = referenceAssemblies ?? ReferenceAssemblies.Default,
         }.RunAsync();
-    }
 
     private static Task TestAlwaysAsync(string markup, string alwaysMarkup, ReferenceAssemblies? referenceAssemblies = null)
         => TestWorkerAsync(markup, alwaysMarkup, "always", referenceAssemblies);
@@ -270,9 +268,8 @@ public sealed class ForEachCastTests
     }
 
     [Fact]
-    public async Task NonGenericObjectCollection_Always()
-    {
-        var test = """
+    public Task NonGenericObjectCollection_Always()
+        => TestAlwaysAsync("""
             using System.Collections;
             namespace ConsoleApplication1
             {
@@ -287,8 +284,7 @@ public sealed class ForEachCastTests
                     }
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System.Collections;
             using System.Linq;
             namespace ConsoleApplication1
@@ -304,10 +300,7 @@ public sealed class ForEachCastTests
                     }
                 }
             }
-            """;
-
-        await TestAlwaysAsync(test, fixedCode);
-    }
+            """);
 
     [Fact]
     public async Task NonGenericObjectCollection_NonLegacy()

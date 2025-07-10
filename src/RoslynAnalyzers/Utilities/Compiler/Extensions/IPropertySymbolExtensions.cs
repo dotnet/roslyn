@@ -19,23 +19,6 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsAutoProperty(this IPropertySymbol propertySymbol)
             => propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(f => f.IsImplicitlyDeclared && propertySymbol.Equals(f.AssociatedSymbol));
 
-        public static bool IsIsCompletedFromAwaiterPattern(
-            [NotNullWhen(true)] this IPropertySymbol? property,
-            [NotNullWhen(true)] INamedTypeSymbol? inotifyCompletionType,
-            [NotNullWhen(true)] INamedTypeSymbol? icriticalNotifyCompletionType)
-        {
-            if (property is null
-                || !property.Name.Equals("IsCompleted", StringComparison.Ordinal)
-                || property.Type?.SpecialType != SpecialType.System_Boolean)
-            {
-                return false;
-            }
-
-            var containingType = property.ContainingType?.OriginalDefinition;
-            return containingType.DerivesFrom(inotifyCompletionType)
-                || containingType.DerivesFrom(icriticalNotifyCompletionType);
-        }
-
         public static ImmutableArray<IPropertySymbol> GetOriginalDefinitions(this IPropertySymbol propertySymbol)
         {
             ImmutableArray<IPropertySymbol>.Builder originalDefinitionsBuilder = ImmutableArray.CreateBuilder<IPropertySymbol>();

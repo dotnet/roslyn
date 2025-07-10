@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
-Imports Microsoft.CodeAnalysis.Utilities
 Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="0a01b394b186e190a80cb55740c13f6293cf5446" BarId="269884" />
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="f451e5d3036a4f140a989e0a7f3f1ae432420e71" BarId="274568" />
   <ProductDependencies>
     <!-- RoslynAnalyzers reference older builds of Roslyn and this is necessary for SourceBuild. -->
     <Dependency Name="Microsoft.CodeAnalysis" Version="3.11.0">
@@ -110,13 +110,13 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="9.0.0-beta.25271.1">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.25259.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>086a1771875b63404b4a710d27250fe384dc2810</Sha>
+      <Sha>80c4e4d26cb85c86f7e1be77d2d9eceeef0f3493</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="9.0.0-beta.25271.1">
+    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="10.0.0-beta.25259.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>086a1771875b63404b4a710d27250fe384dc2810</Sha>
+      <Sha>80c4e4d26cb85c86f7e1be77d2d9eceeef0f3493</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DiaSymReader" Version="2.0.0">
       <Uri>https://github.com/dotnet/symreader</Uri>
@@ -126,9 +126,9 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>5d10d428050c0d6afef30a072c4ae68776621877</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="9.0.0-beta.25271.1">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="10.0.0-beta.25259.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>086a1771875b63404b4a710d27250fe384dc2810</Sha>
+      <Sha>80c4e4d26cb85c86f7e1be77d2d9eceeef0f3493</Sha>
     </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview.23468.1">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
