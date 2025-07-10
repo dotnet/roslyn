@@ -20,10 +20,6 @@ internal abstract partial class VisualStudioWorkspaceImpl
         if (_isSubscribedToSourceGeneratorImpactingEvents)
             return;
 
-        // UIContextImpl requires IVsMonitorSelection service:
-        if (ServiceProvider.GlobalProvider.GetService(typeof(IVsMonitorSelection)) == null)
-            return;
-
         _isSubscribedToSourceGeneratorImpactingEvents = true;
 
         // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
