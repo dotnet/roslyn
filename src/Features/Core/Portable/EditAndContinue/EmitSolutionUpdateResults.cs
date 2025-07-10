@@ -279,26 +279,7 @@ internal readonly struct EmitSolutionUpdateResults
         // At this point the restart set contains all running projects transitively affected by rude edits.
         // Next, find projects that were successfully updated and affect running projects.
 
-        // Remove once https://github.com/dotnet/roslyn/issues/78244 is implemented.
-        if (!runningProjects.Any(static p => p.Value.AllowPartialUpdate))
-        {
-            // Partial solution update not supported.
-            if (projectsToRestartBuilder.Any())
-            {
-                foreach (var update in moduleUpdates)
-                {
-                    foreach (var ancestor in GetAncestorsAndSelf(update.ProjectId))
-                    {
-                        if (runningProjects.ContainsKey(ancestor))
-                        {
-                            projectsToRebuildBuilder.TryAdd(ancestor, []);
-                            projectsToRestartBuilder.Add(ancestor);
-                        }
-                    }
-                }
-            }
-        }
-        else if (!moduleUpdates.IsEmpty && projectsToRebuildBuilder.Count > 0)
+        if (!moduleUpdates.IsEmpty && projectsToRebuildBuilder.Count > 0)
         {
             // The set of updated projects is usually much smaller than the number of all projects in the solution.
             // We iterate over this set updating the restart set until no new project is added to the restart set.

@@ -1043,6 +1043,8 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             [$"proj: <no location>: Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, moduleFile.Path, expectedErrorMessage)}"],
             InspectDiagnostics(results.Diagnostics));
 
+        debuggingSession.DiscardSolutionUpdate();
+       
         // correct the error:
         EmitLibrary(projectId, source2);
 
@@ -1124,6 +1126,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             [$"proj: {document2.FilePath}: (0,0)-(0,0): Error ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"],
             InspectDiagnostics(results.Diagnostics));
 
+        debuggingSession.DiscardSolutionUpdate();
         EndDebuggingSession(debuggingSession);
 
         AssertEx.Equal(
@@ -1172,6 +1175,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             [$"test: {document1.FilePath}: (0,0)-(0,0): Error ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"],
             InspectDiagnostics(results.Diagnostics));
 
+        debuggingSession.DiscardSolutionUpdate();
         fileLock.Dispose();
 
         // try apply changes again:
@@ -1483,6 +1487,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             [$"proj: {document2.FilePath}: (5,0)-(5,32): Error ENC2016: {string.Format(FeaturesResources.EditAndContinueDisallowedByProject, document2.Project.Name, "*message*")}"],
             InspectDiagnostics(results.Diagnostics));
 
+        debuggingSession.DiscardSolutionUpdate();
         EndDebuggingSession(debuggingSession);
 
         AssertEx.SetEqual([moduleId], debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
@@ -1579,6 +1584,8 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
         AssertEx.SequenceEqual(["ENC0110"], InspectDiagnosticIds(results.Diagnostics));
+
+        debuggingSession.DiscardSolutionUpdate();
 
         if (breakMode)
         {
@@ -1722,6 +1729,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.Empty(results.ModuleUpdates.Updates);
         AssertEx.Equal(["ENC0110"], InspectDiagnosticIds(results.Diagnostics));
 
+        debuggingSession.DiscardSolutionUpdate();
         EndDebuggingSession(debuggingSession);
     }
 
@@ -1795,11 +1803,15 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             [$"{document2.FilePath}: (0,11)-(0,22): Error ENC0110: {string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method)}"],
             InspectDiagnostics(docDiagnostics));
 
+        debuggingSession.DiscardSolutionUpdate();
+
         results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: false);
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
         AssertEx.SequenceEqual(["ENC0110"], InspectDiagnosticIds(results.Diagnostics));
 
+        debuggingSession.DiscardSolutionUpdate();
+        
         if (breakMode)
         {
             ExitBreakState(debuggingSession);
@@ -1872,6 +1884,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.Empty(results.ModuleUpdates.Updates);
         AssertEx.SequenceEqual(["ENC0023"], InspectDiagnosticIds(results.Diagnostics));
 
+        debuggingSession.DiscardSolutionUpdate();
         EndDebuggingSession(debuggingSession);
     }
 
@@ -1914,6 +1927,8 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.Empty(results.ModuleUpdates.Updates);
         AssertEx.SequenceEqual(["ENC0110"], InspectDiagnosticIds(results.Diagnostics));
 
+        debuggingSession.DiscardSolutionUpdate();
+
         // load library to the debuggee:
         LoadLibraryToDebuggee(moduleId);
 
@@ -1928,12 +1943,13 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.Empty(results.ModuleUpdates.Updates);
         AssertEx.SequenceEqual(["ENC0110"], InspectDiagnosticIds(results.Diagnostics));
 
+        debuggingSession.DiscardSolutionUpdate();
         EndDebuggingSession(debuggingSession);
     }
 
     [Theory]
     [CombinatorialData]
-    public async Task RudeEdits_UpdateBaseline(bool validChangeBeforeRudeEdit, bool allowPartialUpdates)
+    public async Task RudeEdits_UpdateBaseline(bool validChangeBeforeRudeEdit)
     {
         var source3 = "abstract class C { void F() {} public abstract void G(); }";
         var projectDir = Temp.CreateDirectory();
@@ -1956,7 +1972,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         {
             solution = solution.WithDocumentText(documentId, CreateText("abstract class C { void F() {} }"));
 
-            results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdates);
+            results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
             Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
             Assert.Empty(results.ProjectsToRebuild);
             Assert.Empty(results.ProjectsToRestart);
@@ -1985,28 +2001,20 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             InspectDiagnostics(docDiagnostics));
 
         // validate solution update status and emit:
-        results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdates);
+        results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
         AssertEx.SequenceEqual(["ENC0023"], InspectDiagnosticIds(results.GetAllDiagnostics()));
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
         AssertEx.Equal([projectId], results.ProjectsToRebuild);
         AssertEx.Equal([projectId], results.ProjectsToRestart.Keys);
 
-        if (allowPartialUpdates)
-        {
-            // assuming user approved restart and rebuild:
-            CommitSolutionUpdate(debuggingSession);
-        }
+        // assuming user approved restart and rebuild:
+        CommitSolutionUpdate(debuggingSession);
 
         // rebuild and restart:
         _debuggerService.LoadedModules.Remove(moduleId);
         File.WriteAllText(sourceFilePath, source3, Encoding.UTF8);
         moduleId = EmitAndLoadLibraryToDebuggee(solution.GetRequiredDocument(documentId));
-
-        if (!allowPartialUpdates)
-        {
-            debuggingSession.UpdateBaselines(solution, results.ProjectsToRebuild);
-        }
 
         if (validChangeBeforeRudeEdit)
         {
@@ -2027,7 +2035,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.Empty(await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentId), s_noActiveSpans, CancellationToken.None));
 
         // apply valid change:
-        results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdates);
+        results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
         CommitSolutionUpdate(debuggingSession);
 
@@ -2877,6 +2885,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // no emitted delta:
         Assert.Empty(updates.Updates);
 
+        debuggingSession.DiscardSolutionUpdate();
         EndDebuggingSession(debuggingSession);
     }
 
@@ -3517,10 +3526,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         EndDebuggingSession(debuggingSession);
     }
 
-    [Theory]
-    [CombinatorialData]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78244")]
-    public async Task MultiProjectUpdates_ValidSignificantChange_RudeEdit(bool allowPartialUpdate)
+    public async Task MultiProjectUpdates_ValidSignificantChange_RudeEdit()
     {
         using var _ = CreateWorkspace(out var solution, out var service);
 
@@ -3580,31 +3588,21 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             InspectDiagnostics(docDiagnostics));
 
         // validate solution update status and emit:
-        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate);
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
 
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
         AssertEx.SequenceEqual(["ENC0023"], InspectDiagnosticIds(results.Diagnostics));
 
-        if (allowPartialUpdate)
-        {
-            AssertEx.SetEqual([documentBId.ProjectId], results.ProjectsToRebuild);
-            AssertEx.SetEqual([documentBId.ProjectId], results.ProjectsToRestart.Keys);
+        AssertEx.SetEqual([documentBId.ProjectId], results.ProjectsToRebuild);
+        AssertEx.SetEqual([documentBId.ProjectId], results.ProjectsToRestart.Keys);
 
-            var delta = results.ModuleUpdates.Updates.Single();
-            Assert.NotEmpty(delta.ILDelta);
-            Assert.NotEmpty(delta.MetadataDelta);
-            Assert.NotEmpty(delta.PdbDelta);
-            Assert.Equal(1, delta.UpdatedMethods.Length);
+        var delta = results.ModuleUpdates.Updates.Single();
+        Assert.NotEmpty(delta.ILDelta);
+        Assert.NotEmpty(delta.MetadataDelta);
+        Assert.NotEmpty(delta.PdbDelta);
+        Assert.Equal(1, delta.UpdatedMethods.Length);
 
-            debuggingSession.DiscardSolutionUpdate();
-        }
-        else
-        {
-            AssertEx.SetEqual([documentAId.ProjectId, documentBId.ProjectId], results.ProjectsToRebuild);
-            AssertEx.SetEqual([documentAId.ProjectId, documentBId.ProjectId], results.ProjectsToRestart.Keys);
-
-            Assert.Empty(results.ModuleUpdates.Updates);
-        }
+        debuggingSession.DiscardSolutionUpdate();
 
         EndDebuggingSession(debuggingSession);
     }
@@ -3673,8 +3671,8 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // TODO: Set RestartWhenChangesHaveNoEffect=true and AllowPartialUpdate=true
         // https://github.com/dotnet/roslyn/issues/78244
         var runningProjects = ImmutableDictionary<ProjectId, RunningProjectOptions>.Empty
-            .Add(projectAId, new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = false })
-            .Add(projectBId, new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = false });
+            .Add(projectAId, new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = false })
+            .Add(projectBId, new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = false });
 
         // emit updates:
         var result = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, s_noActiveSpans, CancellationToken.None);
@@ -5054,6 +5052,8 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: false);
         AssertEx.SequenceEqual(["ENC0063"], InspectDiagnosticIds(results.Diagnostics));
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+
+        debuggingSession.DiscardSolutionUpdate();
 
         // undo the change
         solution = solution.WithDocumentText(document.Id, CreateText(source1));

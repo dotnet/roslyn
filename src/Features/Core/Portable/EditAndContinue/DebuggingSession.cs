@@ -536,8 +536,6 @@ internal sealed class DebuggingSession : IDisposable
 
         var solutionUpdate = await EditSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, updateId, runningProjects, cancellationToken).ConfigureAwait(false);
 
-        var allowPartialUpdates = runningProjects.Any(p => p.Value.AllowPartialUpdate);
-
         solutionUpdate.Log(SessionLog, updateId);
         _lastModuleUpdatesLog = solutionUpdate.ModuleUpdates.Updates;
 
@@ -549,29 +547,13 @@ internal sealed class DebuggingSession : IDisposable
                 // We have updates to be applied or processes to restart. The debugger will call Commit/Discard on the solution
                 // based on whether the updates will be applied successfully or not.
 
-                if (allowPartialUpdates)
-                {
-                    StorePendingUpdate(new PendingSolutionUpdate(
-                        solution,
-                        solutionUpdate.StaleProjects,
-                        solutionUpdate.ProjectsToRebuild,
-                        solutionUpdate.ProjectBaselines,
-                        solutionUpdate.ModuleUpdates.Updates,
-                        solutionUpdate.NonRemappableRegions));
-                }
-                else if (solutionUpdate.ProjectsToRebuild.IsEmpty)
-                {
-                    // no rude edits
-
-                    StorePendingUpdate(new PendingSolutionUpdate(
-                        solution,
-                        solutionUpdate.StaleProjects,
-                        // if partial updates are not allowed we don't treat rebuild as part of solution update:
-                        projectsToRebuild: [],
-                        solutionUpdate.ProjectBaselines,
-                        solutionUpdate.ModuleUpdates.Updates,
-                        solutionUpdate.NonRemappableRegions));
-                }
+                StorePendingUpdate(new PendingSolutionUpdate(
+                    solution,
+                    solutionUpdate.StaleProjects,
+                    solutionUpdate.ProjectsToRebuild,
+                    solutionUpdate.ProjectBaselines,
+                    solutionUpdate.ModuleUpdates.Updates,
+                    solutionUpdate.NonRemappableRegions));
 
                 break;
 
@@ -594,10 +576,7 @@ internal sealed class DebuggingSession : IDisposable
         return new EmitSolutionUpdateResults()
         {
             Solution = solution,
-            // If partial updates are disabled the debugger does not expect module updates when rude edits are reported:
-            ModuleUpdates = allowPartialUpdates || solutionUpdate.ProjectsToRebuild.IsEmpty
-                ? solutionUpdate.ModuleUpdates
-                : new ModuleUpdates(solutionUpdate.ModuleUpdates.Status, []),
+            ModuleUpdates = solutionUpdate.ModuleUpdates,
             Diagnostics = solutionUpdate.Diagnostics,
             SyntaxError = solutionUpdate.SyntaxError,
             ProjectsToRestart = solutionUpdate.ProjectsToRestart,

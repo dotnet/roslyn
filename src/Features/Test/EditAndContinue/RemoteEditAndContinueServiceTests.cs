@@ -178,7 +178,7 @@ public sealed class RemoteEditAndContinueServiceTests
 
         var runningProjects1 = new Dictionary<ProjectId, RunningProjectOptions>
         {
-            { project.Id, new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = true, AllowPartialUpdate = true} }
+            { project.Id, new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = true } }
         }.ToImmutableDictionary();
 
         mockEncService.EmitSolutionUpdateImpl = (solution, runningProjects, activeStatementSpanProvider) =>

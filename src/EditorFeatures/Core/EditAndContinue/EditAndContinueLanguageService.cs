@@ -356,6 +356,14 @@ internal sealed class EditAndContinueLanguageService(
         }
     }
 
+    [Obsolete]
+    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+        => throw new NotImplementedException();
+
+    [Obsolete]
+    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
+        => throw new NotImplementedException();
+
     public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
     {
         if (_disabled)
@@ -373,7 +381,7 @@ internal sealed class EditAndContinueLanguageService(
         // TODO: Update once implemented: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2449700
         var runningProjectInfos = solution.Projects.Where(p => p.FilePath != null && runningProjectPaths.Contains(p.FilePath)).ToImmutableDictionary(
             keySelector: static p => p.Id,
-            elementSelector: static p => new RunningProjectOptions { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = false });
+            elementSelector: static p => new RunningProjectOptions { RestartWhenChangesHaveNoEffect = false });
 
         var result = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, runningProjectInfos, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 

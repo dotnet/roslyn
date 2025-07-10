@@ -14,11 +14,4 @@ internal readonly struct RunningProjectOptions
     /// </summary>
     [DataMember]
     public required bool RestartWhenChangesHaveNoEffect { get; init; }
-
-    /// <summary>
-    /// TODO: remove when implemented: https://github.com/dotnet/roslyn/issues/78244
-    /// Indicates that the info has been passed from debugger.
-    /// </summary>
-    [DataMember]
-    public required bool AllowPartialUpdate { get; init; }
 }
