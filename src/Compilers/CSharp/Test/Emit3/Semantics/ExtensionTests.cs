@@ -13128,6 +13128,91 @@ static class E
         CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
+    public void ExtensionGetEnumerator_NullReceiver()
+    {
+        var src = """
+            #nullable enable
+            C? c = null;
+            foreach (var x in c) // 1
+            {
+                System.Console.Write(x);
+                break;
+            }
+
+            class C
+            {
+                public bool MoveNext() => true;
+                public int Current => 42;
+            }
+
+            static class E
+            {
+                extension(C c)
+                {
+                    public System.Collections.Generic.IEnumerator<int> GetEnumerator() => throw null!;
+                }
+            }
+            """;
+        var comp = CreateCompilation(src);
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality consider reporting a better containing symbol
+        comp.VerifyEmitDiagnostics(
+            // (3,19): warning CS8604: Possible null reference argument for parameter 'c' in 'extension(C)'.
+            // foreach (var x in c) // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "c").WithArguments("c", "extension(C)").WithLocation(3, 19));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
+    public void ExtensionGetEnumerator_Reinference()
+    {
+        // TODO2: assertion failure
+        // C:\Users\rikki\src\roslyn\src\Compilers\Test\Core\ThrowingTraceListener.cs(26): error TESTERROR:
+        //   Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.ExtensionTests.ExtensionGetEnumerator_Reinference (866ms): Error Message: System.InvalidOperationException : false
+        //   Stack Trace:
+        //      at Microsoft.CodeAnalysis.ThrowingTraceListener.Fail(String message, String detailMessage) in C:\Users\rikki\src\roslyn\src\Compilers\Test\Core\ThrowingTraceListener.cs:line 26
+        //      at System.Diagnostics.TraceInternal.Fail(String message, String detailMessage)
+        //      at System.Diagnostics.Debug.Fail(String message, String detailMessage)
+        //      at Microsoft.CodeAnalysis.CSharp.NullableWalker.AsMemberOfType(TypeSymbol type, Symbol symbol) in C:\Users\rikki\src\roslyn\src\Compilers\CSharp\Portable\FlowAnalysis\NullableWalker.cs:line 8735
+        //      at Microsoft.CodeAnalysis.CSharp.NullableWalker.ReInferMethodAndVisitArguments(BoundNode node, BoundExpression receiverOpt, TypeWithState receiverType, MethodSymbol method, ImmutableArray`1 arguments, ImmutableArray`1 refKindsOpt, ImmutableArray`1 argsToParamsOpt, BitVector defaultArg
+        //   uments, Boolean expanded, Boolean invokedAsExtensionMethod, Boolean suppressAdjustmentForNewExtension, Nullable`1 firstArgumentResult) in C:\Users\rikki\src\roslyn\src\Compilers\CSharp\Portable\FlowAnalysis\NullableWalker.cs:line 6621
+        //      at Microsoft.CodeAnalysis.CSharp.NullableWalker.VisitForEachExpression(BoundNode node, BoundExpression collectionExpression, Conversion conversion, BoundExpression expr, ForEachEnumeratorInfo enumeratorInfoOpt, BoundAwaitableInfo awaitOpt) in C:\Users\rikki\src\roslyn\src\Compilers\CS
+        //   harp\Portable\FlowAnalysis\NullableWalker.cs:line 11597
+        //      at Microsoft.CodeAnalysis.CSharp.NullableWalker.VisitForEachExpression(BoundForEachStatement node) in C:\Users\rikki\src\roslyn\src\Compilers\CSharp\Portable\FlowAnalysis\NullableWalker.cs:line 11539
+        //      at Microsoft.CodeAnalysis.CSharp.AbstractFlowPass`2.VisitForEachStatement(BoundForEachStatement node) in C:\Users\rikki\src\roslyn\src\Compilers\CSharp\Portable\FlowAnalysis\AbstractFlowPass.cs:line 2900
+        //      at Microsoft.CodeAnalysis.CSharp.NullableWalker.VisitForEachStatement(BoundForEachStatement node) in C:\Users\rikki\src\roslyn\src\Compilers\CSharp\Portable\FlowAnalysis\NullableWalker.cs:line 3573
+        var src = """
+            #nullable enable
+            var s = "a";
+            if (string.Empty == "")
+                s = null;
+
+            var c = M(s); // 'C<string?>'
+            foreach (var x in c)
+            {
+                System.Console.Write(x); // 1
+                break;
+            }
+
+            C<T> M<T>(T item) => throw null!;
+
+            class C<T>
+            {
+                public bool MoveNext() => true;
+                public T Current => default!;
+            }
+
+            static class E
+            {
+                extension<T>(C<T> c)
+                {
+                    public System.Collections.Generic.IEnumerator<T> GetEnumerator() => throw null!;
+                }
+            }
+            """;
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
     [Fact]
     public void InstanceMethodInvocation_NameOf_SingleParameter()
     {
