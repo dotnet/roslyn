@@ -13165,21 +13165,6 @@ static class E
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
     public void ExtensionGetEnumerator_Reinference()
     {
-        // TODO2: assertion failure
-        // C:\Users\rikki\src\roslyn\src\Compilers\Test\Core\ThrowingTraceListener.cs(26): error TESTERROR:
-        //   Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.ExtensionTests.ExtensionGetEnumerator_Reinference (866ms): Error Message: System.InvalidOperationException : false
-        //   Stack Trace:
-        //      at Microsoft.CodeAnalysis.ThrowingTraceListener.Fail(String message, String detailMessage) in C:\Users\rikki\src\roslyn\src\Compilers\Test\Core\ThrowingTraceListener.cs:line 26
-        //      at System.Diagnostics.TraceInternal.Fail(String message, String detailMessage)
-        //      at System.Diagnostics.Debug.Fail(String message, String detailMessage)
-        //      at Microsoft.CodeAnalysis.CSharp.NullableWalker.AsMemberOfType(TypeSymbol type, Symbol symbol) in C:\Users\rikki\src\roslyn\src\Compilers\CSharp\Portable\FlowAnalysis\NullableWalker.cs:line 8735
-        //      at Microsoft.CodeAnalysis.CSharp.NullableWalker.ReInferMethodAndVisitArguments(BoundNode node, BoundExpression receiverOpt, TypeWithState receiverType, MethodSymbol method, ImmutableArray`1 arguments, ImmutableArray`1 refKindsOpt, ImmutableArray`1 argsToParamsOpt, BitVector defaultArg
-        //   uments, Boolean expanded, Boolean invokedAsExtensionMethod, Boolean suppressAdjustmentForNewExtension, Nullable`1 firstArgumentResult) in C:\Users\rikki\src\roslyn\src\Compilers\CSharp\Portable\FlowAnalysis\NullableWalker.cs:line 6621
-        //      at Microsoft.CodeAnalysis.CSharp.NullableWalker.VisitForEachExpression(BoundNode node, BoundExpression collectionExpression, Conversion conversion, BoundExpression expr, ForEachEnumeratorInfo enumeratorInfoOpt, BoundAwaitableInfo awaitOpt) in C:\Users\rikki\src\roslyn\src\Compilers\CS
-        //   harp\Portable\FlowAnalysis\NullableWalker.cs:line 11597
-        //      at Microsoft.CodeAnalysis.CSharp.NullableWalker.VisitForEachExpression(BoundForEachStatement node) in C:\Users\rikki\src\roslyn\src\Compilers\CSharp\Portable\FlowAnalysis\NullableWalker.cs:line 11539
-        //      at Microsoft.CodeAnalysis.CSharp.AbstractFlowPass`2.VisitForEachStatement(BoundForEachStatement node) in C:\Users\rikki\src\roslyn\src\Compilers\CSharp\Portable\FlowAnalysis\AbstractFlowPass.cs:line 2900
-        //      at Microsoft.CodeAnalysis.CSharp.NullableWalker.VisitForEachStatement(BoundForEachStatement node) in C:\Users\rikki\src\roslyn\src\Compilers\CSharp\Portable\FlowAnalysis\NullableWalker.cs:line 3573
         var src = """
             #nullable enable
             var s = "a";
@@ -13189,8 +13174,7 @@ static class E
             var c = M(s); // 'C<string?>'
             foreach (var x in c)
             {
-                System.Console.Write(x); // 1
-                break;
+                x.ToString(); // 1
             }
 
             C<T> M<T>(T item) => throw null!;
@@ -13210,7 +13194,10 @@ static class E
             }
             """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (9,5): warning CS8602: Dereference of a possibly null reference.
+            //     x.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(9, 5));
     }
 
     [Fact]
@@ -42257,8 +42244,10 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        // Missing warning: https://github.com/dotnet/roslyn/issues/78022
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (6,5): warning CS8602: Dereference of a possibly null reference.
+            //     x.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 5));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);

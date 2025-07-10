@@ -7099,7 +7099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (node is BoundForEachStatement { EnumeratorInfoOpt: { GetEnumeratorInfo: { Method: { TypeArgumentsWithAnnotations: { IsEmpty: false } } } } })
+            if (node is BoundForEachStatement { EnumeratorInfoOpt: { GetEnumeratorInfo: { Method: var getEnumeratorMethod } } } && getEnumeratorMethod.GetMemberArityIncludingExtension() > 0)
             {
                 return true;
             }
@@ -8662,6 +8662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static Symbol AsMemberOfType(TypeSymbol? type, Symbol symbol)
         {
             Debug.Assert((object)symbol != null);
+            Debug.Assert(!symbol.GetIsNewExtensionMember());
 
             var containingType = type as NamedTypeSymbol;
             if (containingType is null || containingType.IsErrorType() || symbol is ErrorMethodSymbol)
@@ -11593,11 +11594,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We do not need to do this same analysis for non-extension methods because they do not have generic parameters that
                 // can be inferred from usage like extension methods can. We don't warn about default arguments at the call site, so
                 // there's nothing that can be learned from the non-extension case.
-                var (receiverOpt, receiverType) = enumeratorMethodInfo.Method.GetIsNewExtensionMember() ? (expr, resultTypeWithState) : default;
                 (reinferredGetEnumeratorMethod, var results, _) = ReInferMethodAndVisitArguments(
                     node: node,
-                    receiverOpt: receiverOpt,
-                    receiverType: receiverType,
+                    receiverOpt: expr,
+                    receiverType: default,
                     method: enumeratorMethodInfo.Method,
                     arguments: enumeratorMethodInfo.Arguments,
                     refKindsOpt: default,
