@@ -21,8 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 [Shared]
-[Export(typeof(IManagedHotReloadLanguageService))]
-[Export(typeof(IManagedHotReloadLanguageService2))]
+[Export(typeof(IManagedHotReloadLanguageService3))]
 [Export(typeof(IEditAndContinueSolutionProvider))]
 [Export(typeof(EditAndContinueLanguageService))]
 [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
@@ -34,7 +33,7 @@ internal sealed class EditAndContinueLanguageService(
     Lazy<IManagedHotReloadService> debuggerService,
     PdbMatchingSourceTextProvider sourceTextProvider,
     IEditAndContinueLogReporter logReporter,
-    IDiagnosticsRefresher diagnosticRefresher) : IManagedHotReloadLanguageService2, IEditAndContinueSolutionProvider
+    IDiagnosticsRefresher diagnosticRefresher) : IManagedHotReloadLanguageService3
 {
     private sealed class NoSessionException : InvalidOperationException
     {
@@ -357,11 +356,7 @@ internal sealed class EditAndContinueLanguageService(
         }
     }
 
-    [Obsolete]
-    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
-        => GetUpdatesAsync(runningProjects: [], cancellationToken);
-
-    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
     {
         if (_disabled)
         {
@@ -373,12 +368,12 @@ internal sealed class EditAndContinueLanguageService(
         var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
 
         using var _ = PooledHashSet<string>.GetInstance(out var runningProjectPaths);
-        runningProjectPaths.AddAll(runningProjects);
+        runningProjectPaths.AddAll(runningProjects.Select(p => p.ProjectInstanceId.ProjectFilePath));
 
         // TODO: Update once implemented: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2449700
         var runningProjectInfos = solution.Projects.Where(p => p.FilePath != null && runningProjectPaths.Contains(p.FilePath)).ToImmutableDictionary(
             keySelector: static p => p.Id,
-            elementSelector: static p => new RunningProjectInfo { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = false });
+            elementSelector: static p => new RunningProjectOptions { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = false });
 
         var result = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, runningProjectInfos, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 

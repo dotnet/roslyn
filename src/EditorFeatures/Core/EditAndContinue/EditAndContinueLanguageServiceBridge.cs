@@ -34,9 +34,13 @@ internal sealed partial class ManagedEditAndContinueLanguageServiceBridge(EditAn
 
     [Obsolete]
     public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
-        => service.GetUpdatesAsync(cancellationToken);
+        => throw new NotImplementedException();
 
+    [Obsolete]
     public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
+        => throw new NotImplementedException();
+
+    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
         => service.GetUpdatesAsync(runningProjects, cancellationToken);
 
     public ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)

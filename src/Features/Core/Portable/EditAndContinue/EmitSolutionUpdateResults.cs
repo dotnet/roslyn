@@ -73,7 +73,7 @@ internal readonly struct EmitSolutionUpdateResults
             return builder.ToImmutableAndClear();
         }
 
-        public static Data CreateFromInternalError(Solution solution, string errorMessage, ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects)
+        public static Data CreateFromInternalError(Solution solution, string errorMessage, ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects)
         {
             ImmutableArray<DiagnosticData> diagnostics = [];
             var firstProject = solution.GetProject(runningProjects.FirstOrDefault().Key) ?? solution.Projects.First();
@@ -183,7 +183,7 @@ internal readonly struct EmitSolutionUpdateResults
         Solution solution,
         ImmutableArray<ManagedHotReloadUpdate> moduleUpdates,
         ImmutableArray<ProjectDiagnostics> diagnostics,
-        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
         out ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> projectsToRestart,
         out ImmutableArray<ProjectId> projectsToRebuild)
     {
