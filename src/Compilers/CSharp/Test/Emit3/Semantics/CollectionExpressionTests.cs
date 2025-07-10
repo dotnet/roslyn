@@ -14046,17 +14046,13 @@ namespace System
                 }
                 """;
 
+            // We should check conversion to the iteration type
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (8,9): warning CS8602: Dereference of a possibly null reference.
                 //         x[0].ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(8, 9),
-                // (9,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         List<object> y = [null]; // 2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 27),
-                // (11,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         y = [2, null]; // 3
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 17));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(8, 9));
         }
 
         [Fact]
@@ -14077,9 +14073,9 @@ namespace System
                     {
                         S<object?> x = [1];
                         x[0].ToString(); // 1
-                        S<object> y = [null]; // 2
+                        S<object> y = [null];
                         y[0].ToString();
-                        y = [2, null]; // 3
+                        y = [2, null];
                         y[1].ToString();
                     }
                 }
@@ -14088,13 +14084,7 @@ namespace System
             comp.VerifyEmitDiagnostics(
                 // (14,9): warning CS8602: Dereference of a possibly null reference.
                 //         x[0].ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(14, 9),
-                // (15,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         S<object> y = [null]; // 2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 24),
-                // (17,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         y = [2, null]; // 3
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(17, 17));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(14, 9));
         }
 
         [Fact]
@@ -31972,10 +31962,8 @@ partial class Program
                 }
                 """;
 
-            CreateCompilation(src).VerifyEmitDiagnostics(
-                // (5,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                // CNotNull x1 = [null];
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 16));
+            // We don't analyze the Add methods
+            CreateCompilation(src).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -31998,7 +31986,7 @@ partial class Program
                 M(CreateUnannotated(maybeNull), [maybeNull]);
                 M(CreateUnannotated(maybeNull), [notNull]);
 
-                M(CreateUnannotated(notNull), [maybeNull]); // 1
+                M(CreateUnannotated(notNull), [maybeNull]);
                 M(CreateUnannotated(notNull), [notNull]);
 
                 void M<T>(T t1, T t2) { }
@@ -32019,10 +32007,8 @@ partial class Program
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics(
-                // (17,32): warning CS8604: Possible null reference argument for parameter 't' in 'void CUnannotated<object>.Add(object t)'.
-                // M(CreateUnannotated(notNull), [maybeNull]);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("t", "void CUnannotated<object>.Add(object t)").WithLocation(17, 32));
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -32051,10 +32037,8 @@ partial class Program
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics(
-                // (8,13): warning CS8604: Possible null reference argument for parameter 't' in 'void C.Add<object>(object t)'.
-                // M(new C(), [maybeNull]);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("t", "void C.Add<object>(object t)").WithLocation(8, 13));
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -32100,10 +32084,11 @@ partial class Program
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics(
-                // (17,32): warning CS8604: Possible null reference argument for parameter 't' in 'void CUnannotated<object>.Add(object t)'.
-                // M(CreateUnannotated(notNull), [maybeNull]); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("t", "void CUnannotated<object>.Add(object t)").WithLocation(17, 32));
+            // Should we also produce W-warnings on `M(CreateAnnotated(notNull), [maybeNull])` and `M(CreateUnannotated(notNull), [maybeNull])`?
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
+
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -32117,7 +32102,7 @@ partial class Program
                 object? maybeNull = null;
                 object? notNull = new object();
 
-                M(new C(), [maybeNull]); // 1
+                M(new C(), [maybeNull]);
                 C c1 = [maybeNull];
 
                 M(new C(), [notNull]);
@@ -32133,10 +32118,8 @@ partial class Program
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics(
-                // (8,13): warning CS8604: Possible null reference argument for parameter 't' in 'void C.Add<object>(object t)'.
-                // M(new C(), [maybeNull]); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("t", "void C.Add<object>(object t)").WithLocation(8, 13));
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -32150,13 +32133,13 @@ partial class Program
                 object? maybeNull = null;
                 object notNull = new object();
 
-                CAnnotated<object> c1 = [maybeNull];
+                CAnnotated<object> c1 = [maybeNull]; // 1
                 CAnnotated<object?> c2 = [maybeNull];
 
                 CAnnotated<object> c3 = [notNull];
                 CAnnotated<object?> c4 = [notNull];
 
-                CUnannotated<object> c5 = [maybeNull]; // 1
+                CUnannotated<object> c5 = [maybeNull]; // 2
                 CUnannotated<object?> c6 = [maybeNull];
 
                 CUnannotated<object> c7 = [notNull];
@@ -32177,10 +32160,10 @@ partial class Program
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics(
-                // (14,28): warning CS8604: Possible null reference argument for parameter 't' in 'void CUnannotated<object>.Add(object t)'.
-                // CUnannotated<object> c5 = [maybeNull]; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("t", "void CUnannotated<object>.Add(object t)").WithLocation(14, 28));
+            // We should produce W-warnings on `c1` and `c5` for implicit conversion from the element to the iteration type.
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -32200,10 +32183,10 @@ partial class Program
                 M(CreateAnnotated(notNull), [maybeNull]);
                 M(CreateAnnotated(notNull), [notNull]);
 
-                M(CreateUnannotated(maybeNull), [maybeNull]); // 1
+                M(CreateUnannotated(maybeNull), [maybeNull]);
                 M(CreateUnannotated(maybeNull), [notNull]);
 
-                M(CreateUnannotated(notNull), [maybeNull]); // 1
+                M(CreateUnannotated(notNull), [maybeNull]);
                 M(CreateUnannotated(notNull), [notNull]);
 
                 void M<T>(T t1, T t2) { }
@@ -32226,10 +32209,8 @@ partial class Program
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics(
-                // (14,34): warning CS8604: Possible null reference argument for parameter 'u' in 'void CUnannotated<object?>.Add<object>(object u)'.
-                // M(CreateUnannotated(maybeNull), [maybeNull]);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("u", "void CUnannotated<object?>.Add<object>(object u)").WithLocation(14, 34));
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -32492,10 +32473,9 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(src).VerifyEmitDiagnostics(
-                // (6,26): warning CS8620: Argument of type 'Container<string?>' cannot be used for parameter 'item' of type 'Container<string>' in 'void List<Container<string>>.Add(Container<string> item)' due to differences in the nullability of reference types.
-                // var collection = IdList([element1, element2]); // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "element1").WithArguments("Container<string?>", "Container<string>", "item", "void List<Container<string>>.Add(Container<string> item)").WithLocation(6, 26));
+            // We should check conversion to the iteration type
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
+            var comp = CreateCompilation(src).VerifyEmitDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
             var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element1, element2])");
@@ -40120,63 +40100,6 @@ partial class Program
                 // (8,37): error CS1950: The best overloaded Add method 'MyCollection<int>.Add(string)' for the collection initializer has some invalid arguments
                 //         MyCollection<int> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("MyCollection<int>.Add(string)").WithLocation(8, 37));
-        }
-
-        [Fact]
-        public void AddMethod_Extension_Nullability()
-        {
-            string sourceA = """
-                using System.Collections;
-                using System.Collections.Generic;
-                public class MyCollection<T> : IEnumerable
-                {
-                    private readonly List<T> _list = new();
-                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
-                    internal void __AddInternal(T t) { _list.Add(t); }
-                }
-                namespace N
-                {
-                    internal static class Extensions
-                    {
-                        public static void Add<T>(this MyCollection<T> collection, T t) { collection.__AddInternal(t); }
-                    }
-                }
-                """;
-            var comp = CreateCompilation(sourceA);
-            var refA = comp.EmitToImageReference();
-
-            string sourceB = """
-                using N;
-                class Program
-                {
-                    static void Main()
-                    {
-                        MyCollection<string> c1 = [null]; // missing warning
-                        c1.Report();
-                        c1 = ["a"];
-                        c1.Report();
-                        c1 = [..(string[])["a"], "b"];
-                        c1.Report();
-                    }
-                }
-                """;
-
-            // https://github.com/dotnet/roslyn/issues/68786
-            // Warnings for element conversions to reinferred extension Add parameter types are not implemented.
-            var verifier = CompileAndVerify([sourceB, sourceA, s_collectionExtensions], expectedOutput: "[null], [a], [a, b],");
-            verifier.VerifyDiagnostics();
-
-            comp = CreateCompilation([sourceB, s_collectionExtensions], references: [refA]);
-            comp.VerifyEmitDiagnostics(
-                // (6,35): error CS1061: 'MyCollection<string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<string>' could be found (are you missing a using directive or an assembly reference?)
-                //         MyCollection<string> c1 = [null];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[null]").WithArguments("MyCollection<string>", "Add").WithLocation(6, 35),
-                // (8,14): error CS1061: 'MyCollection<string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<string>' could be found (are you missing a using directive or an assembly reference?)
-                //         c1 = ["a"];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[""a""]").WithArguments("MyCollection<string>", "Add").WithLocation(8, 14),
-                // (10,14): error CS1061: 'MyCollection<string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<string>' could be found (are you missing a using directive or an assembly reference?)
-                //         c1 = [..(string[])["a"], "b"];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[..(string[])[""a""], ""b""]").WithArguments("MyCollection<string>", "Add").WithLocation(10, 14));
         }
 
         [Fact]
