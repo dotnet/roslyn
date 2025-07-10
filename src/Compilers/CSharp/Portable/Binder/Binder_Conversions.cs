@@ -1069,7 +1069,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
-            Debug.Assert(!collectionBuilderMethod.GetIsNewExtensionMember());
 
             return collectionBuilderMethod;
         }
@@ -1431,14 +1430,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     addMethodBinder.ReportDiagnosticsIfObsolete(diagnostics, addMethods[0], syntax, hasBaseReceiver: false);
                                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, addMethods[0], syntax, isDelegateConversion: false);
-                                    Debug.Assert(!IsDisallowedExtensionInOlderLangVer(addMethods[0]));
                                 }
                             }
                         }
                         else
                         {
-                            Debug.Assert(!resolution.OverloadResolutionResult.Succeeded);
-
                             result = bindInvocationExpressionContinued(
                                 addMethodBinder, syntax, expression, resolution.OverloadResolutionResult, resolution.AnalyzedArguments,
                                 resolution.MethodGroup, diagnostics: diagnostics, out var addMethod);
@@ -1626,7 +1622,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 addMethodBinder.ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
-                ReportDiagnosticsIfDisallowedExtension(diagnostics, method, node);
 
                 // No use site errors, but there could be use site warnings.
                 // If there are any use site warnings, they have already been reported by overload resolution.
@@ -3056,7 +3051,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, syntax, isDelegateConversion: true);
             }
             ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
-            ReportDiagnosticsIfDisallowedExtension(diagnostics, selectedMethod, syntax);
 
             // No use site errors, but there could be use site warnings.
             // If there are use site warnings, they were reported during the overload resolution process
