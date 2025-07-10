@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new ArgumentNullException(nameof(text));
             }
 
-            // span.Start and span.End are valid wrt eachother by nature of being passed in as a TextSpan,
-            // so there is no need to verify span.Start against text.Length or span.End against zero.
             if (span.Start < 0
+                || span.Start >= text.Length
+                || span.End < 0
                 || span.End > text.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(span));
