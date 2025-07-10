@@ -175,13 +175,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             return;
         }
 
-        // TODO: https://github.com/dotnet/roslyn/issues/36065
-        // UIContextImpl requires IVsMonitorSelection service:
-        if (ServiceProvider.GlobalProvider.GetService(typeof(IVsMonitorSelection)) == null)
-        {
-            return;
-        }
-
         // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
         KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
         {
