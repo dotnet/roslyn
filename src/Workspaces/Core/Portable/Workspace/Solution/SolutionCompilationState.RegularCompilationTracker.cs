@@ -612,7 +612,7 @@ internal sealed partial class SolutionCompilationState
                 if (workspacePreference != SourceGeneratorExecutionPreference.Automatic)
                 {
                     if (creationPolicy.GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.Create)
-                        creationPolicy = creationPolicy with { GeneratedDocumentCreationPolicy = GeneratedDocumentCreationPolicy.DoNotCreate };
+                        creationPolicy = creationPolicy with { GeneratedDocumentCreationPolicy = GeneratedDocumentCreationPolicy.CreateRequired };
 
                     if (creationPolicy.SkeletonReferenceCreationPolicy == SkeletonReferenceCreationPolicy.Create)
                         creationPolicy = creationPolicy with { SkeletonReferenceCreationPolicy = SkeletonReferenceCreationPolicy.CreateIfAbsent };
