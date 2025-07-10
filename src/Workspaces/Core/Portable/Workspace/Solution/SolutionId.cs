@@ -24,6 +24,8 @@ public sealed class SolutionId : IEquatable<SolutionId>
     /// </summary>
     [DataMember(Order = 0)]
     public Guid Id { get; }
+    [DataMember(Order = 1)]
+    internal string DebugName { get; }
 
     private SolutionId(Guid id, string debugName)
     {
@@ -49,9 +51,6 @@ public sealed class SolutionId : IEquatable<SolutionId>
 
         return new SolutionId(id, debugName);
     }
-
-    [field: DataMember(Order = 1)]
-    internal string DebugName { get; }
 
     private string GetDebuggerDisplay()
         => string.Format("({0}, #{1} - {2})", GetType().Name, this.Id, DebugName);

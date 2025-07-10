@@ -24,7 +24,7 @@ public sealed class DocumentId : IEquatable<DocumentId>
     public Guid Id { get; }
     [DataMember(Order = 2)]
     internal bool IsSourceGenerated { get; }
-    [field: DataMember(Order = 3)]
+    [DataMember(Order = 3)]
     internal string? DebugName { get; }
 
     private DocumentId(ProjectId projectId, Guid guid, bool isSourceGenerated, string? debugName)

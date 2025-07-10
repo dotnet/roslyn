@@ -40,7 +40,7 @@ public sealed class ProjectId : IEquatable<ProjectId>, IComparable<ProjectId>
     /// purpose.  Importantly, it must not be part of the equality/hashing/comparable contract of this type (including
     /// <see cref="_lazyChecksum"/>).
     /// </summary>
-    [field: DataMember(Order = 1)]
+    [DataMember(Order = 1)]
     internal string? DebugName { get; }
 
     private ProjectId(Guid guid, string? debugName)
