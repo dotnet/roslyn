@@ -173,35 +173,35 @@ public sealed class IndexerCompletionProviderTests : AbstractCSharpCompletionPro
     [InlineData("(true ? c : c).$$",
                 "(true ? c : c)[$$]")]
     public Task IndexerCompletionForDifferentExpressions(string expression, string fixedCode)
-        => VerifyCustomCommitProviderAsync($@"
-public class C
-{{
-    public int this[int i] => i;
-}}
+        => VerifyCustomCommitProviderAsync($$"""
+            public class C
+            {
+                public int this[int i] => i;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        {expression}
-    }}
-}}
-", "this", @$"
-public class C
-{{
-    public int this[int i] => i;
-}}
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    {{expression}}
+                }
+            }
+            """, "this", $$"""
+            public class C
+            {
+                public int this[int i] => i;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        {fixedCode}
-    }}
-}}
-");
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    {{fixedCode}}
+                }
+            }
+            """);
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     [InlineData("/* Leading trivia */c.$$",
@@ -211,35 +211,35 @@ public class Program
     [InlineData("c./* Trivia in between */$$",
                 "c[$$]/* Trivia in between */")]
     public Task IndexerCompletionTriviaTest(string expression, string fixedCode)
-        => VerifyCustomCommitProviderAsync($@"
-public class C
-{{
-    public int this[int i] => i;
-}}
+        => VerifyCustomCommitProviderAsync($$"""
+            public class C
+            {
+                public int this[int i] => i;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        {expression}
-    }}
-}}
-", "this", @$"
-public class C
-{{
-    public int this[int i] => i;
-}}
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    {{expression}}
+                }
+            }
+            """, "this", $$"""
+            public class C
+            {
+                public int this[int i] => i;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        {fixedCode}
-    }}
-}}
-");
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    {{fixedCode}}
+                }
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     public Task IndexerDescriptionIncludesDocCommentsAndOverloadsHint()
@@ -269,8 +269,10 @@ public class Program
                     c.$$
                 }
             }
-            """, "this", displayTextSuffix: "[]", expectedDescriptionOrNull: @$"int C.this[int i] {{ get; }} (+ 1 {FeaturesResources.overload})
-Returns the index i");
+            """, "this", displayTextSuffix: "[]", expectedDescriptionOrNull: $$"""
+            int C.this[int i] { get; } (+ 1 {{FeaturesResources.overload}})
+            Returns the index i
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     public Task IndexerOfBaseTypeIsSuggestedAfterDot()

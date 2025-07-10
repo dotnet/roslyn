@@ -27,273 +27,274 @@ public sealed class ConvertNamespaceRefactoringFixAllTests : AbstractCSharpCodeA
 
     [Fact]
     public Task TestConvertToFileScope_FixAllInProject()
-        => TestInRegularAndScript1Async(@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-namespace {|FixAllInProject:|}N1
-{
-}
-        </Document>
-        <Document>
-namespace N2
-{
-    class C { }
-}
-        </Document>
-        <Document>
-namespace N3.N4
-{
-    class C2 { }
-}
-        </Document>
-        <Document>
-namespace N5;
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-namespace N6
-{
-}
-        </Document>
-    </Project>
-</Workspace>
-", @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-namespace N1;
-        </Document>
-        <Document>
-namespace N2;
+        => TestInRegularAndScript1Async("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            namespace {|FixAllInProject:|}N1
+            {
+            }
+                    </Document>
+                    <Document>
+            namespace N2
+            {
+                class C { }
+            }
+                    </Document>
+                    <Document>
+            namespace N3.N4
+            {
+                class C2 { }
+            }
+                    </Document>
+                    <Document>
+            namespace N5;
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document>
+            namespace N6
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            namespace N1;
+                    </Document>
+                    <Document>
+            namespace N2;
 
-class C { }
-    </Document>
-        <Document>
-namespace N3.N4;
+            class C { }
+                </Document>
+                    <Document>
+            namespace N3.N4;
 
-class C2 { }
-    </Document>
-        <Document>
-namespace N5;
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-namespace N6
-{
-}
-        </Document>
-    </Project>
-</Workspace>
-", new TestParameters(options: PreferBlockScopedNamespace));
+            class C2 { }
+                </Document>
+                    <Document>
+            namespace N5;
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document>
+            namespace N6
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, new TestParameters(options: PreferBlockScopedNamespace));
 
     [Fact]
     public Task TestConvertToFileScope_FixAllInSolution()
-        => TestInRegularAndScript1Async(@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-namespace {|FixAllInSolution:|}N1
-{
-}
-        </Document>
-        <Document>
-namespace N2
-{
-    class C { }
-}
-        </Document>
-        <Document>
-namespace N3.N4
-{
-    class C2 { }
-}
-        </Document>
-        <Document>
-namespace N5;
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-namespace N6
-{
-}
-        </Document>
-    </Project>
-</Workspace>
-", @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-namespace N1;
-        </Document>
-        <Document>
-namespace N2;
+        => TestInRegularAndScript1Async("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            namespace {|FixAllInSolution:|}N1
+            {
+            }
+                    </Document>
+                    <Document>
+            namespace N2
+            {
+                class C { }
+            }
+                    </Document>
+                    <Document>
+            namespace N3.N4
+            {
+                class C2 { }
+            }
+                    </Document>
+                    <Document>
+            namespace N5;
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document>
+            namespace N6
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            namespace N1;
+                    </Document>
+                    <Document>
+            namespace N2;
 
-class C { }
-    </Document>
-        <Document>
-namespace N3.N4;
+            class C { }
+                </Document>
+                    <Document>
+            namespace N3.N4;
 
-class C2 { }
-    </Document>
-        <Document>
-namespace N5;
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-namespace N6;
-        </Document>
-    </Project>
-</Workspace>
-", new TestParameters(options: PreferBlockScopedNamespace));
+            class C2 { }
+                </Document>
+                    <Document>
+            namespace N5;
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document>
+            namespace N6;
+                    </Document>
+                </Project>
+            </Workspace>
+            """, new TestParameters(options: PreferBlockScopedNamespace));
 
     [Theory]
     [InlineData("FixAllInDocument")]
     [InlineData("FixAllInContainingType")]
     [InlineData("FixAllInContainingMember")]
     public Task TestConvertToFileScope_UnsupportedFixAllScopes(string fixAllScope)
-        => TestMissingInRegularAndScriptAsync($@"
-namespace {{|{fixAllScope}:|}}N1
-{{
-}}", new TestParameters(options: PreferBlockScopedNamespace));
+        => TestMissingInRegularAndScriptAsync($$"""
+            namespace {|{{fixAllScope}}:|}N1
+            {
+            }
+            """, new TestParameters(options: PreferBlockScopedNamespace));
 
     [Fact]
     public Task TestConvertToBlockScope_FixAllInProject()
-        => TestInRegularAndScript1Async(@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-namespace {|FixAllInProject:|}N1;
-        </Document>
-        <Document>
-namespace N2;
+        => TestInRegularAndScript1Async("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            namespace {|FixAllInProject:|}N1;
+                    </Document>
+                    <Document>
+            namespace N2;
 
-class C { }
-        </Document>
-        <Document>
-namespace N3.N4;
+            class C { }
+                    </Document>
+                    <Document>
+            namespace N3.N4;
 
-class C2 { }
-        </Document>
-        <Document>
-namespace N5
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-namespace N6;
-        </Document>
-    </Project>
-</Workspace>
-", @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-namespace N1
-{
-}        </Document>
-        <Document>
-namespace N2
-{
-    class C { }
+            class C2 { }
+                    </Document>
+                    <Document>
+            namespace N5
+            {
+            }
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document>
+            namespace N6;
+                    </Document>
+                </Project>
+            </Workspace>
+            """, """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            namespace N1
+            {
+            }        </Document>
+                    <Document>
+            namespace N2
+            {
+                class C { }
 
-}        </Document>
-        <Document>
-namespace N3.N4
-{
-    class C2 { }
+            }        </Document>
+                    <Document>
+            namespace N3.N4
+            {
+                class C2 { }
 
-}        </Document>
-        <Document>
-namespace N5
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-namespace N6;
-        </Document>
-    </Project>
-</Workspace>
-", new TestParameters(options: PreferFileScopedNamespace));
+            }        </Document>
+                    <Document>
+            namespace N5
+            {
+            }
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document>
+            namespace N6;
+                    </Document>
+                </Project>
+            </Workspace>
+            """, new TestParameters(options: PreferFileScopedNamespace));
 
     [Fact]
     public Task TestConvertToBlockScope_FixAllInSolution()
-        => TestInRegularAndScript1Async(@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-namespace {|FixAllInSolution:|}N1;
-        </Document>
-        <Document>
-namespace N2;
+        => TestInRegularAndScript1Async("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            namespace {|FixAllInSolution:|}N1;
+                    </Document>
+                    <Document>
+            namespace N2;
 
-class C { }
-        </Document>
-        <Document>
-namespace N3.N4;
+            class C { }
+                    </Document>
+                    <Document>
+            namespace N3.N4;
 
-class C2 { }
-        </Document>
-        <Document>
-namespace N5
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-namespace N6;
-        </Document>
-    </Project>
-</Workspace>
-", @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-namespace N1
-{
-}        </Document>
-        <Document>
-namespace N2
-{
-    class C { }
+            class C2 { }
+                    </Document>
+                    <Document>
+            namespace N5
+            {
+            }
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document>
+            namespace N6;
+                    </Document>
+                </Project>
+            </Workspace>
+            """, """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            namespace N1
+            {
+            }        </Document>
+                    <Document>
+            namespace N2
+            {
+                class C { }
 
-}        </Document>
-        <Document>
-namespace N3.N4
-{
-    class C2 { }
+            }        </Document>
+                    <Document>
+            namespace N3.N4
+            {
+                class C2 { }
 
-}        </Document>
-        <Document>
-namespace N5
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-namespace N6
-{
-}        </Document>
-    </Project>
-</Workspace>
-", new TestParameters(options: PreferFileScopedNamespace));
+            }        </Document>
+                    <Document>
+            namespace N5
+            {
+            }
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document>
+            namespace N6
+            {
+            }        </Document>
+                </Project>
+            </Workspace>
+            """, new TestParameters(options: PreferFileScopedNamespace));
 
     [Theory]
     [InlineData("FixAllInDocument")]
     [InlineData("FixAllInContainingType")]
     [InlineData("FixAllInContainingMember")]
     public Task TestConvertToBlockScope_UnsupportedFixAllScopes(string fixAllScope)
-        => TestMissingInRegularAndScriptAsync($@"
-namespace {{|{fixAllScope}:|}}N1;
-", new TestParameters(options: PreferFileScopedNamespace));
+        => TestMissingInRegularAndScriptAsync($$"""
+            namespace {|{{fixAllScope}}:|}N1;
+            """, new TestParameters(options: PreferFileScopedNamespace));
 }

@@ -142,11 +142,12 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
             var sourceText = SourceText.From(metadataSource, Encoding.UTF8);
             var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
 
@@ -204,11 +205,12 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
             var pdbFilePath = Path.Combine(path, "implementation.pdb");
             var assemblyName = "implementation";
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -260,11 +262,12 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
             var pdbFilePath = Path.Combine(path, "implementation.pdb");
             var assemblyName = "implementation";
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -310,11 +313,12 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
             var pdbFilePath = Path.Combine(path, "implementation.pdb");
             var assemblyName = "implementation";
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -356,11 +360,12 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
             var pdbFilePath = Path.Combine(path, "implementation.pdb");
             var assemblyName = "implementation";
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -413,11 +418,12 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
             var pdbFilePath = Path.Combine(path, "implementation.pdb");
             var assemblyName = "implementation";
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -474,11 +480,12 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
             var pdbFilePath = Path.Combine(path, "implementation.pdb");
             var assemblyName = "implementation";
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);

@@ -40,12 +40,14 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
         // Open an empty loose file with a file URI.
         var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
-        await testLspServer.OpenDocumentAsync(looseFileUri, @"class A
-{
-    void M()
-    {
-    }
-}", languageId: "csharp").ConfigureAwait(false);
+        await testLspServer.OpenDocumentAsync(looseFileUri, """
+            class A
+            {
+                void M()
+                {
+                }
+            }
+            """, languageId: "csharp").ConfigureAwait(false);
 
         // Verify file is added to the misc file workspace.
         var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri }, CancellationToken.None);
@@ -64,12 +66,14 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
         // Open an empty loose file that hasn't been saved with a name.
         var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"untitled:untitledFile");
-        await testLspServer.OpenDocumentAsync(looseFileUri, @"class A
-{
-    void M()
-    {
-    }
-}", languageId: "csharp").ConfigureAwait(false);
+        await testLspServer.OpenDocumentAsync(looseFileUri, """
+            class A
+            {
+                void M()
+                {
+                }
+            }
+            """, languageId: "csharp").ConfigureAwait(false);
 
         // Verify file is added to the misc file workspace.
         var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri }, CancellationToken.None);

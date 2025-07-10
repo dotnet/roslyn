@@ -24,16 +24,18 @@ public sealed class FindImplementationsTests : AbstractLanguageServerProtocolTes
     public async Task TestFindImplementationAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"interface IA
-{
-    void {|caret:|}M();
-}
-class A : IA
-{
-    void IA.{|implementation:M|}()
-    {
-    }
-}";
+            """
+            interface IA
+            {
+                void {|caret:|}M();
+            }
+            class A : IA
+            {
+                void IA.{|implementation:M|}()
+                {
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
@@ -45,22 +47,26 @@ class A : IA
     {
         var markups = new string[]
         {
-@"namespace One
-{
-    interface IA
-    {
-        void {|caret:|}M();
-    }
-}",
-@"namespace One
-{
-    class A : IA
-    {
-        void IA.{|implementation:M|}()
-        {
-        }
-    }
-}"
+            """
+            namespace One
+            {
+                interface IA
+                {
+                    void {|caret:|}M();
+                }
+            }
+            """,
+            """
+            namespace One
+            {
+                class A : IA
+                {
+                    void IA.{|implementation:M|}()
+                    {
+                    }
+                }
+            }
+            """
         };
 
         await using var testLspServer = await CreateTestLspServerAsync(markups, mutatingLspWorkspace);
@@ -74,16 +80,18 @@ class A : IA
     {
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
 
-        AddMappedDocument(testLspServer.TestWorkspace, @"interface IA
-{
-    void M();
-}
-class A : IA
-{
-    void IA.M()
-    {
-    }
-}");
+        AddMappedDocument(testLspServer.TestWorkspace, """
+            interface IA
+            {
+                void M();
+            }
+            class A : IA
+            {
+                void IA.M()
+                {
+                }
+            }
+            """);
 
         var position = new LSP.Position { Line = 2, Character = 9 };
         var results = await RunFindImplementationAsync(testLspServer, new LSP.Location
@@ -98,13 +106,15 @@ class A : IA
     public async Task TestFindImplementationAsync_InvalidLocation(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    {|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
@@ -115,11 +125,13 @@ class A : IA
     public async Task TestFindImplementationAsync_MultipleLocations(bool mutatingLspWorkspace)
     {
         var markup =
-@"class {|caret:|}A { }
+            """
+            class {|caret:|}A { }
 
-class {|implementation:B|} : A { }
+            class {|implementation:B|} : A { }
 
-class {|implementation:C|} : A { }";
+            class {|implementation:C|} : A { }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
@@ -129,16 +141,17 @@ class {|implementation:C|} : A { }";
     [Theory, CombinatorialData]
     public async Task TestFindImplementationAsync_NoMetadataResults(bool mutatingLspWorkspace)
     {
-        var markup = @"
-using System;
-class C : IDisposable
-{
-    public void {|implementation:Dispose|}()
-    {
-        IDisposable d;
-        d.{|caret:|}Dispose();
-    }
-}";
+        var markup = """
+            using System;
+            class C : IDisposable
+            {
+                public void {|implementation:Dispose|}()
+                {
+                    IDisposable d;
+                    d.{|caret:|}Dispose();
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());

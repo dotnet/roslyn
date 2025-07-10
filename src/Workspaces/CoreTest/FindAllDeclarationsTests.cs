@@ -155,14 +155,14 @@ public sealed partial class FindAllDeclarationsTests : TestBase
         solution = solution
             .AddProject(submission0Id, submission0Name, submission0Name, LanguageNames.CSharp)
             .AddMetadataReference(submission0Id, MscorlibRef)
-            .AddDocument(submission0DocId, submission0Name, @"
-public class Outer
-{
-    public class Inner
-    {
-    }
-}
-");
+            .AddDocument(submission0DocId, submission0Name, """
+            public class Outer
+            {
+                public class Inner
+                {
+                }
+            }
+            """);
 
         var submission1Id = ProjectId.CreateNewId();
         var submission1DocId = DocumentId.CreateNewId(submission1Id);
@@ -171,9 +171,9 @@ public class Outer
             .AddProject(submission1Id, submission1Name, submission1Name, LanguageNames.CSharp)
             .AddMetadataReference(submission1Id, MscorlibRef)
             .AddProjectReference(submission1Id, new ProjectReference(submission0Id))
-            .AddDocument(submission1DocId, submission1Name, @"
-Inner i;
-");
+            .AddDocument(submission1DocId, submission1Name, """
+            Inner i;
+            """);
 
         var actualSymbol = (await SymbolFinder.FindDeclarationsAsync(solution.GetProject(submission1Id), "Inner", ignoreCase: false)).SingleOrDefault();
         var expectedSymbol = (await solution.GetProject(submission0Id).GetCompilationAsync()).GlobalNamespace.GetMembers("Outer").SingleOrDefault().GetMembers("Inner").SingleOrDefault();
@@ -652,12 +652,12 @@ Inner i;
             .AddProject(pid, "VBProject", "VBProject", LanguageNames.VisualBasic)
             .AddMetadataReference(pid, MscorlibRef);
         var did = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did, "VBDocument.vb", SourceText.From(@"
-' missing `Class` keyword
-Public Class1
-    Public Event MyEvent(ByVal a As String)
-End Class
-"));
+        solution = solution.AddDocument(did, "VBDocument.vb", SourceText.From("""
+            ' missing `Class` keyword
+            Public Class1
+                Public Event MyEvent(ByVal a As String)
+            End Class
+            """));
         var project = solution.Projects.Single();
 
         // perform the search

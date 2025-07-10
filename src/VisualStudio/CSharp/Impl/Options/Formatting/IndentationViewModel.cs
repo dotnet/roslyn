@@ -17,64 +17,69 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting;
 /// </summary>
 internal sealed class IndentationViewModel : AbstractOptionPreviewViewModel
 {
-    private const string BlockContentPreview = @"
-class C {
-//[
-    int Method() {
-        int x;
-        int y;
-    }
-//]
-}";
-
-    private const string IndentBracePreview = @"
-class C {
-//[
-    int Method() {
-        return 0;
-    }
-//]
-}";
-
-    private const string SwitchCasePreview = @"
-class MyClass
-{
-    int Method(int goo){
-//[
-        switch (goo){
-        case 2:
-            break;
+    private const string BlockContentPreview = """
+        class C {
+        //[
+            int Method() {
+                int x;
+                int y;
+            }
+        //]
         }
-//]
-    }
-}";
+        """;
 
-    private const string SwitchCaseWhenBlockPreview = @"
-class MyClass
-{
-    int Method(int goo){
-//[
-        switch (goo){
-        case 2:
-            {
-                break;
+    private const string IndentBracePreview = """
+        class C {
+        //[
+            int Method() {
+                return 0;
+            }
+        //]
+        }
+        """;
+
+    private const string SwitchCasePreview = """
+        class MyClass
+        {
+            int Method(int goo){
+        //[
+                switch (goo){
+                case 2:
+                    break;
+                }
+        //]
             }
         }
-//]
-    }
-}";
+        """;
 
-    private const string GotoLabelPreview = @"
-class MyClass
-{
-    int Method(int goo){
-//[
-    MyLabel:
-        goto MyLabel;
-        return 0;
-//]
-    }
-}";
+    private const string SwitchCaseWhenBlockPreview = """
+        class MyClass
+        {
+            int Method(int goo){
+        //[
+                switch (goo){
+                case 2:
+                    {
+                        break;
+                    }
+                }
+        //]
+            }
+        }
+        """;
+
+    private const string GotoLabelPreview = """
+        class MyClass
+        {
+            int Method(int goo){
+        //[
+            MyLabel:
+                goto MyLabel;
+                return 0;
+        //]
+            }
+        }
+        """;
 
     public IndentationViewModel(OptionStore optionStore, IServiceProvider serviceProvider) : base(optionStore, serviceProvider, LanguageNames.CSharp)
     {

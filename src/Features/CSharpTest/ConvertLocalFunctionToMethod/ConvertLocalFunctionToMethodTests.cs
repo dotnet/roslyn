@@ -549,16 +549,18 @@ public sealed class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeAction
         async Task TestAsync(string signature)
         {
             await TestInRegularAndScriptAsync(
-$@"class C
-{{
-    void M()
-    {{
-        {signature}
-        {{
-            return null;
-        }}
-    }}
-}}",
+                $$"""
+                class C
+                {
+                    void M()
+                    {
+                        {{signature}}
+                        {
+                            return null;
+                        }
+                    }
+                }
+                """,
 """
 class C
 {
@@ -577,16 +579,18 @@ class C
         async Task TestMissingAsync(string signature)
         {
             await this.TestMissingAsync(
-$@"class C
-{{
-    void M()
-    {{
-        {signature}
-        {{
-            return null;
-        }}
-    }}
-}}");
+                $$"""
+                class C
+                {
+                    void M()
+                    {
+                        {{signature}}
+                        {
+                            return null;
+                        }
+                    }
+                }
+                """);
         }
     }
 

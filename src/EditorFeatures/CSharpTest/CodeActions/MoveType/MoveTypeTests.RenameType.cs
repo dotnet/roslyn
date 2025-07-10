@@ -20,13 +20,17 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
 
     [Fact]
     public Task MoreThanOneTypeInFile_RenameType()
-        => TestRenameTypeToMatchFileAsync(@"[||]class Class1
-{ 
-    class Inner { }
-}", @"class [|test1|]
-{ 
-    class Inner { }
-}");
+        => TestRenameTypeToMatchFileAsync("""
+            [||]class Class1
+            { 
+                class Inner { }
+            }
+            """, """
+            class [|test1|]
+            { 
+                class Inner { }
+            }
+            """);
 
     [Fact]
     public Task TestMissing_TypeNameMatchesFileName_RenameType()
@@ -34,20 +38,30 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
 
     [Fact]
     public Task TestMissing_MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameType()
-        => TestRenameTypeToMatchFileAsync(@"[||]class Class1 { }
-class test1 { }", expectedCodeAction: false);
+        => TestRenameTypeToMatchFileAsync("""
+            [||]class Class1 { }
+            class test1 { }
+            """, expectedCodeAction: false);
 
     [Fact]
     public Task MultipleTopLevelTypesInFileAndNoneMatchFileName1_RenameType()
-        => TestRenameTypeToMatchFileAsync(@"[||]class Class1 { }
-class Class2 { }", @"class [|test1|] { }
-class Class2 { }");
+        => TestRenameTypeToMatchFileAsync("""
+            [||]class Class1 { }
+            class Class2 { }
+            """, """
+            class [|test1|] { }
+            class Class2 { }
+            """);
 
     [Fact]
     public Task MultipleTopLevelTypesInFileAndNoneMatchFileName2_RenameType()
-        => TestRenameTypeToMatchFileAsync(@"class Class1 { }
-[||]class Class2 { }", @"class Class1 { }
-class [|test1|] { }");
+        => TestRenameTypeToMatchFileAsync("""
+            class Class1 { }
+            [||]class Class2 { }
+            """, """
+            class Class1 { }
+            class [|test1|] { }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40043")]
     public Task NothingOfferedWhenTypeHasNoNameYet1()

@@ -35,17 +35,21 @@ public sealed partial class GenerateTypeWithUnboundAnalyzerTests : AbstractCShar
     [WorkItem("https://github.com/dotnet/roslyn/issues/13211")]
     public Task TestGenerateOffOfIncompleteMember()
         => TestInRegularAndScriptAsync(
-@"class Class
-{
-    public [|Goo|]
-}",
-@"class Class
-{
-    public Goo
-}
+            """
+            class Class
+            {
+                public [|Goo|]
+            }
+            """,
+            """
+            class Class
+            {
+                public Goo
+            }
 
-internal class Goo
-{
-}",
+            internal class Goo
+            {
+            }
+            """,
 index: 1);
 }

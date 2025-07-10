@@ -26,246 +26,330 @@ public class RoslynLSPSnippetConvertTests
     [Fact]
     public Task TestExtendSnippetTextChangeForwardsForCaret()
     {
-        return TestAsync(@"[|if ({|placeholder:true|})
-{
-}|] $$", @"if (${1:true})
-{
-} $0");
+        return TestAsync("""
+            [|if ({|placeholder:true|})
+            {
+            }|] $$
+            """, """
+            if (${1:true})
+            {
+            } $0
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeBackwardsForCaret()
     {
-        return TestAsync(@"$$ [|if ({|placeholder:true|})
-{
-}|]", @"$0 if (${1:true})
-{
-}");
+        return TestAsync("""
+            $$ [|if ({|placeholder:true|})
+            {
+            }|]
+            """, """
+            $0 if (${1:true})
+            {
+            }
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeForwardsForPlaceholder()
     {
-        return TestAsync(@"[|if (true)
-{$$
-}|] {|placeholder:test|}", @"if (true)
-{$0
-} ${1:test}");
+        return TestAsync("""
+            [|if (true)
+            {$$
+            }|] {|placeholder:test|}
+            """, """
+            if (true)
+            {$0
+            } ${1:test}
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeBackwardsForPlaceholder()
     {
-        return TestAsync(@"{|placeholder:test|} [|if (true)
-{$$
-}|]", @"${1:test} if (true)
-{$0
-}");
+        return TestAsync("""
+            {|placeholder:test|} [|if (true)
+            {$$
+            }|]
+            """, """
+            ${1:test} if (true)
+            {$0
+            }
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeForwardsForPlaceholderThenCaret()
     {
-        return TestAsync(@"[|if (true)
-{
-}|] {|placeholder:test|} $$", @"if (true)
-{
-} ${1:test} $0");
+        return TestAsync("""
+            [|if (true)
+            {
+            }|] {|placeholder:test|} $$
+            """, """
+            if (true)
+            {
+            } ${1:test} $0
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeForwardsForCaretThenPlaceholder()
     {
-        return TestAsync(@"[|if (true)
-{
-}|] $$ {|placeholder:test|}", @"if (true)
-{
-} $0 ${1:test}");
+        return TestAsync("""
+            [|if (true)
+            {
+            }|] $$ {|placeholder:test|}
+            """, """
+            if (true)
+            {
+            } $0 ${1:test}
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeBackwardsForPlaceholderThenCaret()
     {
-        return TestAsync(@"{|placeholder:test|} $$ [|if (true)
-{
-}|]", @"${1:test} $0 if (true)
-{
-}");
+        return TestAsync("""
+            {|placeholder:test|} $$ [|if (true)
+            {
+            }|]
+            """, """
+            ${1:test} $0 if (true)
+            {
+            }
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeBackwardsForCaretThenPlaceholder()
     {
-        return TestAsync(@"$$ {|placeholder:test|} [|if (true)
-{
-}|]", @"$0 ${1:test} if (true)
-{
-}");
+        return TestAsync("""
+            $$ {|placeholder:test|} [|if (true)
+            {
+            }|]
+            """, """
+            $0 ${1:test} if (true)
+            {
+            }
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeBackwardsForCaretForwardsForPlaceholder()
     {
-        return TestAsync(@"$$ [|if (true)
-{
-}|] {|placeholder:test|}", @"$0 if (true)
-{
-} ${1:test}");
+        return TestAsync("""
+            $$ [|if (true)
+            {
+            }|] {|placeholder:test|}
+            """, """
+            $0 if (true)
+            {
+            } ${1:test}
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeBackwardsForPlaceholderForwardsForCaret()
     {
-        return TestAsync(@"{|placeholder:test|} [|if (true)
-{
-}|] $$", @"${1:test} if (true)
-{
-} $0");
+        return TestAsync("""
+            {|placeholder:test|} [|if (true)
+            {
+            }|] $$
+            """, """
+            ${1:test} if (true)
+            {
+            } $0
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodForwardsForCaret()
     {
-        return TestAsync(@"public void Method()
-{
-    [|if ({|placeholder:true|})
-    {
-    }|] $$
-}", @"if (${1:true})
-    {
-    } $0");
+        return TestAsync("""
+            public void Method()
+            {
+                [|if ({|placeholder:true|})
+                {
+                }|] $$
+            }
+            """, """
+            if (${1:true})
+                {
+                } $0
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodBackwardsForCaret()
     {
-        return TestAsync(@"public void Method()
-{
-    $$ [|if ({|placeholder:true|})
-    {
-    }|]
-}", @"$0 if (${1:true})
-    {
-    }");
+        return TestAsync("""
+            public void Method()
+            {
+                $$ [|if ({|placeholder:true|})
+                {
+                }|]
+            }
+            """, """
+            $0 if (${1:true})
+                {
+                }
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodForwardsForPlaceholder()
     {
-        return TestAsync(@"public void Method()
-{
-    [|if (true)
-     {$$
-     }|] {|placeholder:test|}
-}", @"if (true)
-     {$0
-     } ${1:test}");
+        return TestAsync("""
+            public void Method()
+            {
+                [|if (true)
+                 {$$
+                 }|] {|placeholder:test|}
+            }
+            """, """
+            if (true)
+                 {$0
+                 } ${1:test}
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodBackwardsForPlaceholder()
     {
-        return TestAsync(@"public void Method()
-{
-    {|placeholder:test|} [|if (true)
-    {$$
-    }|]", @"${1:test} if (true)
-    {$0
-    }");
+        return TestAsync("""
+            public void Method()
+            {
+                {|placeholder:test|} [|if (true)
+                {$$
+                }|]
+            """, """
+            ${1:test} if (true)
+                {$0
+                }
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodForwardsForPlaceholderThenCaret()
     {
-        return TestAsync(@"public void Method()
-{
-    [|if (true)
-    {
-    }|] {|placeholder:test|} $$
-}", @"if (true)
-    {
-    } ${1:test} $0");
+        return TestAsync("""
+            public void Method()
+            {
+                [|if (true)
+                {
+                }|] {|placeholder:test|} $$
+            }
+            """, """
+            if (true)
+                {
+                } ${1:test} $0
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodForwardsForCaretThenPlaceholder()
     {
-        return TestAsync(@"public void Method()
-{
-    [|if (true)
-    {
-    }|] $$ {|placeholder:test|}
-}", @"if (true)
-    {
-    } $0 ${1:test}");
+        return TestAsync("""
+            public void Method()
+            {
+                [|if (true)
+                {
+                }|] $$ {|placeholder:test|}
+            }
+            """, """
+            if (true)
+                {
+                } $0 ${1:test}
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodBackwardsForPlaceholderThenCaret()
     {
-        return TestAsync(@"public void Method()
-{
-    {|placeholder:test|} $$ [|if (true)
-    {
-    }|]
-}", @"${1:test} $0 if (true)
-    {
-    }");
+        return TestAsync("""
+            public void Method()
+            {
+                {|placeholder:test|} $$ [|if (true)
+                {
+                }|]
+            }
+            """, """
+            ${1:test} $0 if (true)
+                {
+                }
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodBackwardsForCaretThenPlaceholder()
     {
-        return TestAsync(@"public void Method()
-{
-    $$ {|placeholder:test|} [|if (true)
-    {
-    }|]
-}", @"$0 ${1:test} if (true)
-    {
-    }");
+        return TestAsync("""
+            public void Method()
+            {
+                $$ {|placeholder:test|} [|if (true)
+                {
+                }|]
+            }
+            """, """
+            $0 ${1:test} if (true)
+                {
+                }
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodBackwardsForCaretForwardsForPlaceholder()
     {
-        return TestAsync(@"public void Method()
-{
-    $$ [|if (true)
-    {
-    }|] {|placeholder:test|}
-}", @"$0 if (true)
-    {
-    } ${1:test}");
+        return TestAsync("""
+            public void Method()
+            {
+                $$ [|if (true)
+                {
+                }|] {|placeholder:test|}
+            }
+            """, """
+            $0 if (true)
+                {
+                } ${1:test}
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodBackwardsForPlaceholderForwardsForCaret()
     {
-        return TestAsync(@"public void Method()
-{
-    {|placeholder:test|} [|if (true)
-    {
-    }|] $$
-}", @"${1:test} if (true)
-    {
-    } $0");
+        return TestAsync("""
+            public void Method()
+            {
+                {|placeholder:test|} [|if (true)
+                {
+                }|] $$
+            }
+            """, """
+            ${1:test} if (true)
+                {
+                } $0
+            """);
     }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodWithCodeBeforeAndAfterBackwardsForPlaceholderForwardsForCaret()
     {
-        return TestAsync(@"public void Method()
-{
-    var x = 5;
-    {|placeholder:test|} [|if (true)
-    {
-    }|] $$
-    
-    x = 3;
-}", @"${1:test} if (true)
-    {
-    } $0");
+        return TestAsync("""
+            public void Method()
+            {
+                var x = 5;
+                {|placeholder:test|} [|if (true)
+                {
+                }|] $$
+
+                x = 3;
+            }
+            """, """
+            ${1:test} if (true)
+                {
+                } $0
+            """);
     }
 
     [Fact]
@@ -297,43 +381,55 @@ public class RoslynLSPSnippetConvertTests
     [Fact]
     public Task TestForLoopSnippet()
     {
-        return TestAsync(@"[|for (var {|placeholder1:i|} = 0; {|placeholder1:i|} < {|placeholder2:length|}; {|placeholder1:i|}++)
-{$$
-}|]", @"for (var ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++)
-{$0
-}");
+        return TestAsync("""
+            [|for (var {|placeholder1:i|} = 0; {|placeholder1:i|} < {|placeholder2:length|}; {|placeholder1:i|}++)
+            {$$
+            }|]
+            """, """
+            for (var ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++)
+            {$0
+            }
+            """);
     }
 
     [Fact]
     public Task TestIfSnippetSamePlaceholderCursorLocation()
     {
-        return TestAsync(@"public void Method()
-{
-    var x = 5;
-    [|if ({|placeholder:true|}$$)
-    {
-    }|]
-    
-    x = 3;
-}", @"if (${1:true}$0)
-    {
-    }");
+        return TestAsync("""
+            public void Method()
+            {
+                var x = 5;
+                [|if ({|placeholder:true|}$$)
+                {
+                }|]
+
+                x = 3;
+            }
+            """, """
+            if (${1:true}$0)
+                {
+                }
+            """);
     }
 
     [Fact]
     public Task TestIfSnippetSameCursorPlaceholderLocation()
     {
-        return TestAsync(@"public void Method()
-{
-    var x = 5;
-    [|if ($${|placeholder:true|})
-    {
-    }|]
-    
-    x = 3;
-}", @"if ($0${1:true})
-    {
-    }");
+        return TestAsync("""
+            public void Method()
+            {
+                var x = 5;
+                [|if ($${|placeholder:true|})
+                {
+                }|]
+
+                x = 3;
+            }
+            """, """
+            if ($0${1:true})
+                {
+                }
+            """);
     }
 
     #endregion

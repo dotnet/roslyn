@@ -28,16 +28,16 @@ public sealed class BatchFixAllProviderTests
     public Task TestDefaultSelectionNestedFixers()
         => new CSharpTest([[1], [2], [3]], nested: true)
         {
-            TestCode = @"
-class TestClass {
-  int field = [|0|];
-}
-",
-            FixedCode = $@"
-class TestClass {{
-  int field = 1;
-}}
-",
+            TestCode = """
+            class TestClass {
+              int field = [|0|];
+            }
+            """,
+            FixedCode = $$"""
+            class TestClass {
+              int field = 1;
+            }
+            """,
         }.RunAsync();
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]

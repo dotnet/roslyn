@@ -31,13 +31,14 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [InlineData("class")]
     [InlineData("interface")]
     public Task TestEnum2(string typeKind)
-        => VerifyBlockSpansAsync($@"
-{{|hint:$$enum E{{|textspan:
-{{
-}}|}}|}}
-{typeKind} Following
-{{
-}}",
+        => VerifyBlockSpansAsync($$"""
+            {|hint:$$enum E{|textspan:
+            {
+            }|}|}
+            {{typeKind}} Following
+            {
+            }
+            """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 
     [Theory]
@@ -46,14 +47,15 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [InlineData("class")]
     [InlineData("interface")]
     public Task TestEnum3(string typeKind)
-        => VerifyBlockSpansAsync($@"
-{{|hint:$$enum E{{|textspan:
-{{
-}}|}}|}}
+        => VerifyBlockSpansAsync($$"""
+            {|hint:$$enum E{|textspan:
+            {
+            }|}|}
 
-{typeKind} Following
-{{
-}}",
+            {{typeKind}} Following
+            {
+            }
+            """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 
     [Fact]

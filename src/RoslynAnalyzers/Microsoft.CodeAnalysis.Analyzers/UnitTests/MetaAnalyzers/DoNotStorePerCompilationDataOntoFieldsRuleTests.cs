@@ -34,44 +34,46 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 GetCSharpExpectedDiagnostic(25, 29, violatingTypeName: typeof(IOperation).FullName)
             ];
 
-            await VerifyCS.VerifyAnalyzerAsync(@"
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
-using MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol;
+            await VerifyCS.VerifyAnalyzerAsync("""
 
-abstract class {|CS1729:MyCompilation|} : Compilation
-{
-    // Compile error: no public constructor exists on Compilation.
-}
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
+                using Microsoft.CodeAnalysis.Diagnostics;
+                using Microsoft.CodeAnalysis.Operations;
+                using MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly ITypeSymbol x1;
-    public static readonly CSharpCompilation x2;
-    private readonly List<MyNamedType> x3;
-    private static Dictionary<MyCompilation, MyNamedType> x4;
-    private static readonly IBinaryOperation x5;
-    private static readonly ISymbol x6;
-    private static readonly IOperation x7;
+                abstract class {|CS1729:MyCompilation|} : Compilation
+                {
+                    // Compile error: no public constructor exists on Compilation.
+                }
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly ITypeSymbol x1;
+                    public static readonly CSharpCompilation x2;
+                    private readonly List<MyNamedType> x3;
+                    private static Dictionary<MyCompilation, MyNamedType> x4;
+                    private static readonly IBinaryOperation x5;
+                    private static readonly ISymbol x6;
+                    private static readonly IOperation x7;
 
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}", expected);
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+
+                    public override void Initialize(AnalysisContext context)
+                    {
+                    }
+                }
+                """, expected);
         }
 
         [Fact, WorkItem(7196, "https://github.com/dotnet/roslyn-analyzers/issues/7196")]
@@ -88,254 +90,262 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetBasicExpectedDiagnostic(25, 35, violatingTypeName: typeof(IOperation).FullName)
             ];
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
-Imports System
-Imports System.Collections.Generic
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Operations
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol
+            await VerifyVB.VerifyAnalyzerAsync("""
 
-MustInherit Class {|BC31399:MyCompilation|}
-    Inherits Compilation ' Compile error: no public constructor exists on Compilation.
-End Class
+                Imports System
+                Imports System.Collections.Generic
+                Imports System.Collections.Immutable
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
+                Imports Microsoft.CodeAnalysis.Operations
+                Imports Microsoft.CodeAnalysis.VisualBasic
+                Imports MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Class MyAnalyzer
-    Inherits DiagnosticAnalyzer
+                MustInherit Class {|BC31399:MyCompilation|}
+                    Inherits Compilation ' Compile error: no public constructor exists on Compilation.
+                End Class
 
-    Private Shared ReadOnly x1 As ITypeSymbol
-    Public Shared ReadOnly x2 As VisualBasicCompilation
-    Private ReadOnly x3 As List(Of MyNamedType)
-    Private Shared x4 As Dictionary(Of MyCompilation, MyNamedType)
-    Private Shared ReadOnly x5 As IBinaryOperation
-    Private Shared ReadOnly x6 As ISymbol
-    Private Shared ReadOnly x7 As IOperation
+                <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+                Class MyAnalyzer
+                    Inherits DiagnosticAnalyzer
 
-    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-        Get
-            Throw New NotImplementedException
-        End Get
-    End Property
+                    Private Shared ReadOnly x1 As ITypeSymbol
+                    Public Shared ReadOnly x2 As VisualBasicCompilation
+                    Private ReadOnly x3 As List(Of MyNamedType)
+                    Private Shared x4 As Dictionary(Of MyCompilation, MyNamedType)
+                    Private Shared ReadOnly x5 As IBinaryOperation
+                    Private Shared ReadOnly x6 As ISymbol
+                    Private Shared ReadOnly x7 As IOperation
 
-    Public Overrides Sub Initialize(context As AnalysisContext)
-    End Sub
-End Class
-", expected);
+                    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+                        Get
+                            Throw New NotImplementedException
+                        End Get
+                    End Property
+
+                    Public Overrides Sub Initialize(context As AnalysisContext)
+                    End Sub
+                End Class
+
+                """, expected);
         }
 
         [Fact]
         public async Task CSharp_NoDiagnosticCasesAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
-using MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol;
+            await VerifyCS.VerifyAnalyzerAsync("""
 
-abstract class {|CS1729:MyCompilation|} : Compilation
-{
-    // Compile error: no public constructor exists on Compilation.
-}
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
+                using Microsoft.CodeAnalysis.Diagnostics;
+                using MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor x1;
-    private readonly List<LocalizableResourceString> x2;
+                abstract class {|CS1729:MyCompilation|} : Compilation
+                {
+                    // Compile error: no public constructor exists on Compilation.
+                }
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor x1;
+                    private readonly List<LocalizableResourceString> x2;
 
-    public override void Initialize(AnalysisContext context)
-    {
-        var analyzer = new NestedCompilationAnalyzer();
-        context.RegisterCompilationStartAction(analyzer.StartCompilation);
-    }
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
 
-    private class NestedCompilationAnalyzer
-    {
-        // Ok to store per-compilation data here.
-        private readonly Dictionary<MyCompilation, MyNamedType> x;
+                    public override void Initialize(AnalysisContext context)
+                    {
+                        var analyzer = new NestedCompilationAnalyzer();
+                        context.RegisterCompilationStartAction(analyzer.StartCompilation);
+                    }
 
-        internal void StartCompilation(CompilationStartAnalysisContext context)
-        {
-        }
-    }
+                    private class NestedCompilationAnalyzer
+                    {
+                        // Ok to store per-compilation data here.
+                        private readonly Dictionary<MyCompilation, MyNamedType> x;
 
-    private struct NestedStructCompilationAnalyzer
-    {
-        // Ok to store per-compilation data here.
-        private readonly Dictionary<MyCompilation, MyNamedType> y;
+                        internal void StartCompilation(CompilationStartAnalysisContext context)
+                        {
+                        }
+                    }
 
-        internal void StartCompilation(CompilationStartAnalysisContext context)
-        {
-        }
-    }
-}
+                    private struct NestedStructCompilationAnalyzer
+                    {
+                        // Ok to store per-compilation data here.
+                        private readonly Dictionary<MyCompilation, MyNamedType> y;
 
-class MyAnalyzerWithoutAttribute : DiagnosticAnalyzer
-{
-    // Ok to store per-compilation data here.
-    private static ITypeSymbol x;
+                        internal void StartCompilation(CompilationStartAnalysisContext context)
+                        {
+                        }
+                    }
+                }
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+                class MyAnalyzerWithoutAttribute : DiagnosticAnalyzer
+                {
+                    // Ok to store per-compilation data here.
+                    private static ITypeSymbol x;
 
-    public override void Initialize(AnalysisContext context)
-    {
-        throw new NotImplementedException();
-    }
-}");
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+
+                    public override void Initialize(AnalysisContext context)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task VisualBasic_NoDiagnosticCasesAsync()
         {
-            await VerifyVB.VerifyAnalyzerAsync(@"
-Imports System
-Imports System.Collections.Generic
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol
+            await VerifyVB.VerifyAnalyzerAsync("""
 
-MustInherit Class {|BC31399:MyCompilation|}
-    Inherits Compilation ' Compile error: no public constructor exists on Compilation.
-End Class
+                Imports System
+                Imports System.Collections.Generic
+                Imports System.Collections.Immutable
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
+                Imports Microsoft.CodeAnalysis.VisualBasic
+                Imports MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Class MyAnalyzer
-    Inherits DiagnosticAnalyzer
+                MustInherit Class {|BC31399:MyCompilation|}
+                    Inherits Compilation ' Compile error: no public constructor exists on Compilation.
+                End Class
 
-    Private Shared ReadOnly x1 As DiagnosticDescriptor
-    Private ReadOnly x2 As List(Of LocalizableResourceString)
+                <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+                Class MyAnalyzer
+                    Inherits DiagnosticAnalyzer
 
-    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-        Get
-            Throw New NotImplementedException
-        End Get
-    End Property
+                    Private Shared ReadOnly x1 As DiagnosticDescriptor
+                    Private ReadOnly x2 As List(Of LocalizableResourceString)
 
-    Public Overrides Sub Initialize(context As AnalysisContext)
-        Dim compilationAnalyzer = New NestedCompilationAnalyzer
-        context.RegisterCompilationStartAction(AddressOf compilationAnalyzer.StartCompilation)
-    End Sub
+                    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+                        Get
+                            Throw New NotImplementedException
+                        End Get
+                    End Property
 
-    Class NestedCompilationAnalyzer
-        ' Ok to store per-compilation data here.
-        Private ReadOnly x As Dictionary(Of MyCompilation, MyNamedType)
+                    Public Overrides Sub Initialize(context As AnalysisContext)
+                        Dim compilationAnalyzer = New NestedCompilationAnalyzer
+                        context.RegisterCompilationStartAction(AddressOf compilationAnalyzer.StartCompilation)
+                    End Sub
 
-        Friend Sub StartCompilation(context As CompilationStartAnalysisContext)
-        End Sub
-    End Class
+                    Class NestedCompilationAnalyzer
+                        ' Ok to store per-compilation data here.
+                        Private ReadOnly x As Dictionary(Of MyCompilation, MyNamedType)
 
-    Structure NestedStructCompilationAnalyzer
-        ' Ok to store per-compilation data here.
-        Private ReadOnly y As Dictionary(Of MyCompilation, MyNamedType)
+                        Friend Sub StartCompilation(context As CompilationStartAnalysisContext)
+                        End Sub
+                    End Class
 
-        Friend Sub StartCompilation(context As CompilationStartAnalysisContext)
-        End Sub
-    End Structure
-End Class
+                    Structure NestedStructCompilationAnalyzer
+                        ' Ok to store per-compilation data here.
+                        Private ReadOnly y As Dictionary(Of MyCompilation, MyNamedType)
 
-Class MyAnalyzerWithoutAttribute
-    Inherits DiagnosticAnalyzer
+                        Friend Sub StartCompilation(context As CompilationStartAnalysisContext)
+                        End Sub
+                    End Structure
+                End Class
 
-    ' Ok to store per-compilation data here.
-    Private Shared x As ITypeSymbol
+                Class MyAnalyzerWithoutAttribute
+                    Inherits DiagnosticAnalyzer
 
-    Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
-        Get
-            Throw New NotImplementedException()
-        End Get
-    End Property
+                    ' Ok to store per-compilation data here.
+                    Private Shared x As ITypeSymbol
 
-    Public Overrides Sub Initialize(context As AnalysisContext)
-        Throw New NotImplementedException()
-    End Sub
-End Class
-");
+                    Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                        Get
+                            Throw New NotImplementedException()
+                        End Get
+                    End Property
+
+                    Public Overrides Sub Initialize(context As AnalysisContext)
+                        Throw New NotImplementedException()
+                    End Sub
+                End Class
+
+                """);
         }
 
         [Fact, WorkItem(4308, "https://github.com/dotnet/roslyn-analyzers/issues/4308")]
         public async Task CSharp_NestedStruct_NoDiagnosticAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
+            await VerifyCS.VerifyAnalyzerAsync("""
 
-namespace MyNamespace
-{
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class AnyInstanceInjectionAnalyzer : DiagnosticAnalyzer
-    {
-        public struct DependencyAccess
-        {
-            public IMethodSymbol method;
-            public string expectedName;
-        }
+                using System;
+                using System.Collections.Concurrent;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
+                using Microsoft.CodeAnalysis.Diagnostics;
+                using Microsoft.CodeAnalysis.Operations;
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException();
+                namespace MyNamespace
+                {
+                    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                    public class AnyInstanceInjectionAnalyzer : DiagnosticAnalyzer
+                    {
+                        public struct DependencyAccess
+                        {
+                            public IMethodSymbol method;
+                            public string expectedName;
+                        }
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            context.EnableConcurrentExecution();
-            context.RegisterCompilationStartAction(OnCompilationStart);
-        }
+                        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException();
 
-        public void OnCompilationStart(CompilationStartAnalysisContext context)
-        {
-            var accessors = new ConcurrentBag<DependencyAccess>();
+                        public override void Initialize(AnalysisContext context)
+                        {
+                            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+                            context.EnableConcurrentExecution();
+                            context.RegisterCompilationStartAction(OnCompilationStart);
+                        }
 
-            context.RegisterSymbolAction(
-                symbolContext => AnalyzeSymbol(symbolContext, accessors),
-                SymbolKind.Property,
-                SymbolKind.Field
-            );
+                        public void OnCompilationStart(CompilationStartAnalysisContext context)
+                        {
+                            var accessors = new ConcurrentBag<DependencyAccess>();
 
-            context.RegisterSemanticModelAction(
-                semanticModelContext => AnalyzeSemanticModel(semanticModelContext, accessors)
-            );
-        }
+                            context.RegisterSymbolAction(
+                                symbolContext => AnalyzeSymbol(symbolContext, accessors),
+                                SymbolKind.Property,
+                                SymbolKind.Field
+                            );
 
-        public void AnalyzeSymbol(SymbolAnalysisContext context, ConcurrentBag<DependencyAccess> accessors)
-        {
-            // collect symbols for analysis
-        }
+                            context.RegisterSemanticModelAction(
+                                semanticModelContext => AnalyzeSemanticModel(semanticModelContext, accessors)
+                            );
+                        }
 
-        public void AnalyzeSemanticModel(SemanticModelAnalysisContext context, ConcurrentBag<DependencyAccess> accessors)
-        {
-            foreach (var access in accessors)
-            {
-                // analyze
-            }
-        }
-    }
-}");
+                        public void AnalyzeSymbol(SymbolAnalysisContext context, ConcurrentBag<DependencyAccess> accessors)
+                        {
+                            // collect symbols for analysis
+                        }
+
+                        public void AnalyzeSemanticModel(SemanticModelAnalysisContext context, ConcurrentBag<DependencyAccess> accessors)
+                        {
+                            foreach (var access in accessors)
+                            {
+                                // analyze
+                            }
+                        }
+                    }
+                }
+                """);
         }
 
         [Theory]
@@ -343,31 +353,33 @@ namespace MyNamespace
         [InlineData("Action")]
         public Task CSharp_Func_NoDiagnostic(string delegateType)
         {
-            return VerifyCS.VerifyAnalyzerAsync($@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
+            return VerifyCS.VerifyAnalyzerAsync($$"""
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer : DiagnosticAnalyzer
-{{
-    private static readonly {delegateType}<IBinaryOperation> x;
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
+                using Microsoft.CodeAnalysis.Diagnostics;
+                using Microsoft.CodeAnalysis.Operations;
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {{
-        get
-        {{
-            throw new NotImplementedException();
-        }}
-    }}
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly {{delegateType}}<IBinaryOperation> x;
 
-    public override void Initialize(AnalysisContext context)
-    {{
-    }}
-}}");
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+
+                    public override void Initialize(AnalysisContext context)
+                    {
+                    }
+                }
+                """);
         }
 
         [Theory]
@@ -375,31 +387,33 @@ class MyAnalyzer : DiagnosticAnalyzer
         [InlineData("Action")]
         public Task CSharp_NestedFunc_NoDiagnostic(string delegateType)
         {
-            return VerifyCS.VerifyAnalyzerAsync($@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
+            return VerifyCS.VerifyAnalyzerAsync($$"""
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer : DiagnosticAnalyzer
-{{
-    private static readonly ImmutableArray<{delegateType}<IBinaryOperation>> x;
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
+                using Microsoft.CodeAnalysis.Diagnostics;
+                using Microsoft.CodeAnalysis.Operations;
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {{
-        get
-        {{
-            throw new NotImplementedException();
-        }}
-    }}
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly ImmutableArray<{{delegateType}}<IBinaryOperation>> x;
 
-    public override void Initialize(AnalysisContext context)
-    {{
-    }}
-}}");
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+
+                    public override void Initialize(AnalysisContext context)
+                    {
+                    }
+                }
+                """);
         }
 
         [Theory]
@@ -407,64 +421,68 @@ class MyAnalyzer : DiagnosticAnalyzer
         [InlineData("Action")]
         public Task CSharp_NestedNestedFunc_NoDiagnostic(string delegateType)
         {
-            return VerifyCS.VerifyAnalyzerAsync($@"
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
+            return VerifyCS.VerifyAnalyzerAsync($$"""
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer : DiagnosticAnalyzer
-{{
-    private static readonly {delegateType}<List<IBinaryOperation>> x;
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
+                using Microsoft.CodeAnalysis.Diagnostics;
+                using Microsoft.CodeAnalysis.Operations;
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {{
-        get
-        {{
-            throw new NotImplementedException();
-        }}
-    }}
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly {{delegateType}}<List<IBinaryOperation>> x;
 
-    public override void Initialize(AnalysisContext context)
-    {{
-    }}
-}}");
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+
+                    public override void Initialize(AnalysisContext context)
+                    {
+                    }
+                }
+                """);
         }
 
         [Theory]
         [CombinatorialData]
         public Task CSharp_MultiFunc_NoDiagnostic([CombinatorialValues("Func", "Action")] string delegateType, [CombinatorialValues("bool", "int, string")] string types)
         {
-            return VerifyCS.VerifyAnalyzerAsync($@"
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
+            return VerifyCS.VerifyAnalyzerAsync($$"""
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer : DiagnosticAnalyzer
-{{
-    private static readonly {delegateType}<IBinaryOperation, {types}> x;
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
+                using Microsoft.CodeAnalysis.Diagnostics;
+                using Microsoft.CodeAnalysis.Operations;
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {{
-        get
-        {{
-            throw new NotImplementedException();
-        }}
-    }}
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly {{delegateType}}<IBinaryOperation, {{types}}> x;
 
-    public override void Initialize(AnalysisContext context)
-    {{
-    }}
-}}");
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+
+                    public override void Initialize(AnalysisContext context)
+                    {
+                    }
+                }
+                """);
         }
 
         [Theory]
@@ -472,30 +490,32 @@ class MyAnalyzer : DiagnosticAnalyzer
         [InlineData("Action")]
         public Task VisualBasic_Func_NoDiagnostic(string delegateType)
         {
-            return VerifyVB.VerifyAnalyzerAsync($@"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Operations
-Imports Microsoft.CodeAnalysis.VisualBasic
+            return VerifyVB.VerifyAnalyzerAsync($"""
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Class MyAnalyzer
-    Inherits DiagnosticAnalyzer
+                Imports System
+                Imports System.Collections.Immutable
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
+                Imports Microsoft.CodeAnalysis.Operations
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-    Private Shared ReadOnly x1 As {delegateType}(Of IBinaryOperation)
+                <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+                Class MyAnalyzer
+                    Inherits DiagnosticAnalyzer
 
-    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-        Get
-            Throw New NotImplementedException
-        End Get
-    End Property
+                    Private Shared ReadOnly x1 As {delegateType}(Of IBinaryOperation)
 
-    Public Overrides Sub Initialize(context As AnalysisContext)
-        
-    End Sub
-End Class");
+                    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+                        Get
+                            Throw New NotImplementedException
+                        End Get
+                    End Property
+
+                    Public Overrides Sub Initialize(context As AnalysisContext)
+
+                    End Sub
+                End Class
+                """);
         }
 
         [Theory]
@@ -503,30 +523,32 @@ End Class");
         [InlineData("Action")]
         public Task VisualBasic_NestedFunc_NoDiagnostic(string delegateType)
         {
-            return VerifyVB.VerifyAnalyzerAsync($@"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Operations
-Imports Microsoft.CodeAnalysis.VisualBasic
+            return VerifyVB.VerifyAnalyzerAsync($"""
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Class MyAnalyzer
-    Inherits DiagnosticAnalyzer
+                Imports System
+                Imports System.Collections.Immutable
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
+                Imports Microsoft.CodeAnalysis.Operations
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-    Private Shared ReadOnly x1 As ImmutableArray(Of {delegateType}(Of IBinaryOperation))
+                <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+                Class MyAnalyzer
+                    Inherits DiagnosticAnalyzer
 
-    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-        Get
-            Throw New NotImplementedException
-        End Get
-    End Property
+                    Private Shared ReadOnly x1 As ImmutableArray(Of {delegateType}(Of IBinaryOperation))
 
-    Public Overrides Sub Initialize(context As AnalysisContext)
-        
-    End Sub
-End Class");
+                    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+                        Get
+                            Throw New NotImplementedException
+                        End Get
+                    End Property
+
+                    Public Overrides Sub Initialize(context As AnalysisContext)
+
+                    End Sub
+                End Class
+                """);
         }
 
         [Theory]
@@ -534,61 +556,65 @@ End Class");
         [InlineData("Action")]
         public Task VisualBasic_NestedNestedFunc_NoDiagnostic(string delegateType)
         {
-            return VerifyVB.VerifyAnalyzerAsync($@"
-Imports System
-Imports System.Collections.Generic
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Operations
-Imports Microsoft.CodeAnalysis.VisualBasic
+            return VerifyVB.VerifyAnalyzerAsync($"""
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Class MyAnalyzer
-    Inherits DiagnosticAnalyzer
+                Imports System
+                Imports System.Collections.Generic
+                Imports System.Collections.Immutable
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
+                Imports Microsoft.CodeAnalysis.Operations
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-    Private Shared ReadOnly x1 As {delegateType}(Of List(Of IBinaryOperation))
+                <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+                Class MyAnalyzer
+                    Inherits DiagnosticAnalyzer
 
-    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-        Get
-            Throw New NotImplementedException
-        End Get
-    End Property
+                    Private Shared ReadOnly x1 As {delegateType}(Of List(Of IBinaryOperation))
 
-    Public Overrides Sub Initialize(context As AnalysisContext)
-        
-    End Sub
-End Class");
+                    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+                        Get
+                            Throw New NotImplementedException
+                        End Get
+                    End Property
+
+                    Public Overrides Sub Initialize(context As AnalysisContext)
+
+                    End Sub
+                End Class
+                """);
         }
 
         [Theory]
         [CombinatorialData]
         public Task VisualBasic_MultiFunc_NoDiagnostic([CombinatorialValues("Func", "Action")] string delegateType, [CombinatorialValues("Int32", "Int32, String")] string types)
         {
-            return VerifyVB.VerifyAnalyzerAsync($@"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Operations
-Imports Microsoft.CodeAnalysis.VisualBasic
+            return VerifyVB.VerifyAnalyzerAsync($"""
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Class MyAnalyzer
-    Inherits DiagnosticAnalyzer
+                Imports System
+                Imports System.Collections.Immutable
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
+                Imports Microsoft.CodeAnalysis.Operations
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-    Private Shared ReadOnly x1 As {delegateType}(Of IBinaryOperation, {types})
+                <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+                Class MyAnalyzer
+                    Inherits DiagnosticAnalyzer
 
-    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-        Get
-            Throw New NotImplementedException
-        End Get
-    End Property
+                    Private Shared ReadOnly x1 As {delegateType}(Of IBinaryOperation, {types})
 
-    Public Overrides Sub Initialize(context As AnalysisContext)
-        
-    End Sub
-End Class");
+                    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+                        Get
+                            Throw New NotImplementedException
+                        End Get
+                    End Property
+
+                    Public Overrides Sub Initialize(context As AnalysisContext)
+
+                    End Sub
+                End Class
+                """);
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string violatingTypeName) =>

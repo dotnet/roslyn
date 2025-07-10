@@ -87,28 +87,28 @@ public sealed class ConvertTryCastToDirectCastTests
     public Task ConvertFromAsToExplicit_Nested(string asExpression, string cast)
         => new VerifyCS.Test
         {
-            TestCode = @$"
-class C {{ }}
+            TestCode = $$"""
+            class C { }
 
-class Program
-{{
-    public static void Main()
-    {{
-        var x = {asExpression};
-    }}
-}}
-",
-            FixedCode = @$"
-class C {{ }}
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = {{asExpression}};
+                }
+            }
+            """,
+            FixedCode = $$"""
+            class C { }
 
-class Program
-{{
-    public static void Main()
-    {{
-        var x = {cast};
-    }}
-}}
-",
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = {{cast}};
+                }
+            }
+            """,
             CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
@@ -120,24 +120,24 @@ class Program
     public Task ConvertFromAsToExplicit_OtherBinaryExpressions(string asExpression, string cast)
         => new VerifyCS.Test
         {
-            TestCode = @$"
-class Program
-{{
-    public static void Main()
-    {{
-        var x = {asExpression};
-    }}
-}}
-",
-            FixedCode = @$"
-class Program
-{{
-    public static void Main()
-    {{
-        var x = {cast};
-    }}
-}}
-",
+            TestCode = $$"""
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = {{asExpression}};
+                }
+            }
+            """,
+            FixedCode = $$"""
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = {{cast}};
+                }
+            }
+            """,
             CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
         }.RunAsync();
 
@@ -155,24 +155,24 @@ class Program
     public Task ConvertFromAsToExplicit_TriviaHandling(string asExpression, string cast)
         => new VerifyCS.Test
         {
-            TestCode = @$"
-class Program
-{{
-    public static void Main()
-    {{
-        var x = {asExpression};
-    }}
-}}
-",
-            FixedCode = @$"
-class Program
-{{
-    public static void Main()
-    {{
-        var x = {cast};
-    }}
-}}
-",
+            TestCode = $$"""
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = {{asExpression}};
+                }
+            }
+            """,
+            FixedCode = $$"""
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = {{cast}};
+                }
+            }
+            """,
             CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
         }.RunAsync();
 

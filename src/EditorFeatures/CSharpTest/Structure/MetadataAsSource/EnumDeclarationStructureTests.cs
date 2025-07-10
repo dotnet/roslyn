@@ -76,13 +76,14 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [InlineData("class")]
     [InlineData("interface")]
     public Task TestEnum3(string typeKind)
-        => VerifyBlockSpansAsync($@"
-{{|#0:$$enum E{{|textspan:
-{{
-}}|#0}}
-|}}
-{typeKind} Following
-{{
-}}",
+        => VerifyBlockSpansAsync($$"""
+            {|#0:$$enum E{|textspan:
+            {
+            }|#0}
+            |}
+            {{typeKind}} Following
+            {
+            }
+            """,
             Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 }

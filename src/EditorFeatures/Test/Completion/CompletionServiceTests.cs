@@ -27,14 +27,14 @@ public sealed class CompletionServiceTests
     [Fact]
     public async Task TestNuGetCompletionProvider()
     {
-        var code = @"
-using System.Diagnostics;
-class Test {
-    void Method() {
-        Debug.Assert(true, ""$$"");
-    }
-}
-";
+        var code = """
+            using System.Diagnostics;
+            class Test {
+                void Method() {
+                    Debug.Assert(true, "$$");
+                }
+            }
+            """;
 
         using var workspace = TestWorkspace.CreateCSharp(code, openDocuments: true);
 

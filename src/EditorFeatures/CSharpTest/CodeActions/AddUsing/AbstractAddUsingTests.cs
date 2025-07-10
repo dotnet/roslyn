@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -30,8 +31,8 @@ public abstract class AbstractAddUsingTests : AbstractCSharpDiagnosticProviderBa
     private protected OptionsCollection SeparateGroups => Option(GenerationOptions.SeparateImportDirectiveGroups, true);
 
     internal Task TestAsync(
-        string initialMarkup,
-        string expectedMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
         TestHost testHost,
         int index = 0,
         CodeActionPriority? priority = null,
