@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -114,11 +115,13 @@ internal sealed partial class InvisibleEditor : IInvisibleEditor
         }
     }
 
+    [AllowNull]
     public IVsTextLines VsTextLines { get; private set; }
 
     /// <summary>
     /// The text buffer. null if the object has been disposed.
     /// </summary>
+    [AllowNull]
     public ITextBuffer TextBuffer
     {
         get
@@ -141,8 +144,8 @@ internal sealed partial class InvisibleEditor : IInvisibleEditor
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
-        TextBuffer = null!;
-        VsTextLines = null!;
+        TextBuffer = null;
+        VsTextLines = null;
 
         try
         {
