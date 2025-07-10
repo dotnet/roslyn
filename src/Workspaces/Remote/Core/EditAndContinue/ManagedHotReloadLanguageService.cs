@@ -292,7 +292,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
             // TODO: Update once implemented: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2449700
             var runningProjectInfos = solution.Projects.Where(p => p.FilePath != null && runningProjectPaths.Contains(p.FilePath)).ToImmutableDictionary(
                 keySelector: static p => p.Id,
-                elementSelector: static p => new RunningProjectOptions { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = false });
+                elementSelector: static p => new RunningProjectOptions { RestartWhenChangesHaveNoEffect = false });
 
             EmitSolutionUpdateResults.Data results;
 
