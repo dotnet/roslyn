@@ -18,9 +18,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
 {
     [Fact]
-    public async Task TestCastMethod()
-    {
-        await new VerifyCS.Test
+    public Task TestCastMethod()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -45,12 +44,10 @@ public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCastMethod_Incorrect1()
-    {
-        await new VerifyCS.Test
+    public Task TestCastMethod_Incorrect1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -64,12 +61,10 @@ public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCastMethod_Incorrect2()
-    {
-        await new VerifyCS.Test
+    public Task TestCastMethod_Incorrect2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -83,12 +78,10 @@ public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCastMethod_Incorrect3()
-    {
-        await new VerifyCS.Test
+    public Task TestCastMethod_Incorrect3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -102,12 +95,10 @@ public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCastMethod_Incorrect4()
-    {
-        await new VerifyCS.Test
+    public Task TestCastMethod_Incorrect4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -121,12 +112,10 @@ public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCastMethod_Incorrect5()
-    {
-        await new VerifyCS.Test
+    public Task TestCastMethod_Incorrect5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -140,12 +129,10 @@ public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCastMethod_Incorrect6()
-    {
-        await new VerifyCS.Test
+    public Task TestCastMethod_Incorrect6()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -159,12 +146,10 @@ public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCastMethod_Incorrect7()
-    {
-        await new VerifyCS.Test
+    public Task TestCastMethod_Incorrect7()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -178,12 +163,10 @@ public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSelectWithCast()
-    {
-        await new VerifyCS.Test
+    public Task TestSelectWithCast()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -208,12 +191,10 @@ public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSelectWithCast_Incorrect1()
-    {
-        await new VerifyCS.Test
+    public Task TestSelectWithCast_Incorrect1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -227,12 +208,10 @@ public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSelectWithCast_Incorrect2()
-    {
-        await new VerifyCS.Test
+    public Task TestSelectWithCast_Incorrect2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -246,12 +225,10 @@ public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSelectWithCast_Incorrect3()
-    {
-        await new VerifyCS.Test
+    public Task TestSelectWithCast_Incorrect3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -265,12 +242,10 @@ public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSelectWithCast_Incorrect4()
-    {
-        await new VerifyCS.Test
+    public Task TestSelectWithCast_Incorrect4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -284,12 +259,10 @@ public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSelectWithCast_Incorrect5()
-    {
-        await new VerifyCS.Test
+    public Task TestSelectWithCast_Incorrect5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -303,12 +276,10 @@ public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSelectWithCast_Incorrect6()
-    {
-        await new VerifyCS.Test
+    public Task TestSelectWithCast_Incorrect6()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -322,12 +293,10 @@ public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSelectWithCast_Incorrect7()
-    {
-        await new VerifyCS.Test
+    public Task TestSelectWithCast_Incorrect7()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -341,5 +310,4 @@ public sealed partial class CSharpSimplifyLinqTypeCheckAndCast
                 }
                 """,
         }.RunAsync();
-    }
 }

@@ -23,10 +23,7 @@ public sealed partial class FormattingTests : TestBase
     [Fact]
     public void TestCSharpFormatting()
     {
-        var text = @"public class C{public int X;}";
-        var expectedFormattedText = @"public class C { public int X; }";
-
-        AssertFormatCSharp(expectedFormattedText, text);
+        AssertFormatCSharp(@"public class C { public int X; }", @"public class C{public int X;}");
     }
 
     [Fact]
@@ -43,18 +40,15 @@ public sealed partial class FormattingTests : TestBase
     [Fact]
     public void TestVisualBasicFormatting()
     {
-        var text = @"
-Public Class C
-Public X As Integer
-End Class
-";
-        var expectedFormattedText = @"
+        AssertFormatVB(@"
 Public Class C
     Public X As Integer
 End Class
-";
-
-        AssertFormatVB(expectedFormattedText, text);
+", @"
+Public Class C
+Public X As Integer
+End Class
+");
     }
 
     [Fact]

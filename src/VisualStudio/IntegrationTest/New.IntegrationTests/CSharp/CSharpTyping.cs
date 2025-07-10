@@ -37,7 +37,7 @@ public partial class Test
     }
 }
 ", HangMitigatingCancellationToken);
-        var secondPartialDecl = @"
+        await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "PartialType2.cs", @"
 public partial class Test
 {
     int val1 = 1, val2 = 2;
@@ -46,18 +46,15 @@ public partial class Test
         TestB();
     }
 }
-";
-        var thirdPartialDecl = @"
+", open: false, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "PartialType3.cs", @"
 public partial class Test
 {
     public void TestB()
     {
         int val1x = this.val1, val2x = this.val2;
     }
-}";
-
-        await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "PartialType2.cs", secondPartialDecl, open: false, HangMitigatingCancellationToken);
-        await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "PartialType3.cs", thirdPartialDecl, open: false, HangMitigatingCancellationToken);
+}", open: false, HangMitigatingCancellationToken);
 
         // Typing intermixed with explicit Wait operations to ensure that
         // we trigger multiple open file analyses along with cancellations.

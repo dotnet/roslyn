@@ -15,9 +15,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     public class CSharpAvoidOptSuffixForNullableEnableCodeTests
     {
         [Fact]
-        public async Task RS0046_CSharp8_NullableEnabledCode_DiagnosticAsync()
-        {
-            await new VerifyCS.Test
+        public Task RS0046_CSharp8_NullableEnabledCode_DiagnosticAsync()
+            => new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp8,
                 TestCode = @"
@@ -54,12 +53,10 @@ public class Class1
 }",
 
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task RS0046_CSharp8_NullableEnabledCodeNonNullableType_NoDiagnosticAsync()
-        {
-            await new VerifyCS.Test
+        public Task RS0046_CSharp8_NullableEnabledCodeNonNullableType_NoDiagnosticAsync()
+            => new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp8,
                 TestCode = @"
@@ -78,12 +75,10 @@ public class Class1
 }",
 
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task RS0046_CSharp8_NullableEnabledCodeValueType_DiagnosticAsync()
-        {
-            await new VerifyCS.Test
+        public Task RS0046_CSharp8_NullableEnabledCodeValueType_DiagnosticAsync()
+            => new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp8,
                 TestCode = @"
@@ -124,12 +119,10 @@ public class Class1
 }",
 
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task RS0046_CSharp8_NullableEnabledCodeNonNullableValueType_NoDiagnosticAsync()
-        {
-            await new VerifyCS.Test
+        public Task RS0046_CSharp8_NullableEnabledCodeNonNullableValueType_NoDiagnosticAsync()
+            => new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp8,
                 TestCode = @"
@@ -150,12 +143,10 @@ public class Class1
 }",
 
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task RS0046_CSharp8_NonNullableEnabledCode_NoDiagnosticAsync()
-        {
-            await new VerifyCS.Test
+        public Task RS0046_CSharp8_NonNullableEnabledCode_NoDiagnosticAsync()
+            => new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp8,
                 TestCode =
@@ -172,12 +163,10 @@ public class Class1
     }
 }",
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task RS0046_CSharp8_NullableDisabledCode_NoDiagnosticAsync()
-        {
-            await new VerifyCS.Test
+        public Task RS0046_CSharp8_NullableDisabledCode_NoDiagnosticAsync()
+            => new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp8,
                 TestCode =
@@ -196,12 +185,10 @@ public class Class1
     }
 }",
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task RS0046_PriorToCSharp8_NoDiagnosticAsync()
-        {
-            await new VerifyCS.Test
+        public Task RS0046_PriorToCSharp8_NoDiagnosticAsync()
+            => new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp7_3,
                 TestCode =
@@ -218,12 +205,10 @@ public class Class1
     }
 }",
             }.RunAsync();
-        }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/3707")]
-        public async Task RS0046_CSharp8_VariableWithoutOptAlreadyExists_DiagnosticButNoCodeFixAsync()
-        {
-            await new VerifyCS.Test
+        public Task RS0046_CSharp8_VariableWithoutOptAlreadyExists_DiagnosticButNoCodeFixAsync()
+            => new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp8,
                 TestCode = @"
@@ -257,12 +242,10 @@ public class Class1
     }
 }",
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task RS0046_CSharp8_UnknownType_DiagnosticAndCodeFixAsync()
-        {
-            await new VerifyCS.Test
+        public Task RS0046_CSharp8_UnknownType_DiagnosticAndCodeFixAsync()
+            => new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp8,
                 TestCode = @"
@@ -294,12 +277,10 @@ public class Class1
     }
 }",
             }.RunAsync();
-        }
 
         [Fact, WorkItem(3813, "https://github.com/dotnet/roslyn-analyzers/issues/3813")]
-        public async Task RS0046_CSharp8_NullableEnabledCode_InterfaceImplementation_NoDiagnosticAsync()
-        {
-            await new VerifyCS.Test
+        public Task RS0046_CSharp8_NullableEnabledCode_InterfaceImplementation_NoDiagnosticAsync()
+            => new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp8,
                 TestCode = @"
@@ -344,12 +325,10 @@ public class Class1 : ISomething
 }",
 
             }.RunAsync();
-        }
 
         [Fact, WorkItem(3813, "https://github.com/dotnet/roslyn-analyzers/issues/3813")]
-        public async Task RS0046_CSharp8_NullableEnabledCode_Override_NoDiagnosticAsync()
-        {
-            await new VerifyCS.Test
+        public Task RS0046_CSharp8_NullableEnabledCode_Override_NoDiagnosticAsync()
+            => new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp8,
                 TestCode = @"
@@ -402,6 +381,5 @@ public class Derived : Base
 }",
 
             }.RunAsync();
-        }
     }
 }

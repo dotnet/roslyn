@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Services.TestResults.WebApi;
 using Microsoft.VisualStudio.Services.WebApi;
 
 namespace RunTests;
+
 internal class TestHistoryManager
 {
     /// <summary>

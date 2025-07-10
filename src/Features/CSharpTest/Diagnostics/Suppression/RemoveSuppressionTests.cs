@@ -60,9 +60,8 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-        public async Task TestRemovePragmaSuppression()
-        {
-            await TestAsync(
+        public Task TestRemovePragmaSuppression()
+            => TestAsync(
     @"
 using System;
 
@@ -85,12 +84,10 @@ class Class
         int x = 0;
     }
 }");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-        public async Task TestRemovePragmaSuppression_AdjacentTrivia()
-        {
-            await TestAsync(
+        public Task TestRemovePragmaSuppression_AdjacentTrivia()
+            => TestAsync(
     @"
 using System;
 
@@ -119,12 +116,10 @@ class Class2
         int x = 0;
     }
 }");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-        public async Task TestRemovePragmaSuppression_TriviaWithMultipleIDs()
-        {
-            await TestAsync(
+        public Task TestRemovePragmaSuppression_TriviaWithMultipleIDs()
+            => TestAsync(
     @"
 using System;
 
@@ -151,12 +146,10 @@ class Class
         int x = 0;
     }
 }");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-        public async Task TestRemovePragmaSuppression_WithEnclosingSuppression()
-        {
-            await TestAsync(
+        public Task TestRemovePragmaSuppression_WithEnclosingSuppression()
+            => TestAsync(
     @"
 #pragma warning disable InfoDiagnostic
 using System;
@@ -183,12 +176,10 @@ class Class
         int x = 0;
     }
 }");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-        public async Task TestRemoveLocalAttributeSuppression()
-        {
-            await TestAsync(
+        public Task TestRemoveLocalAttributeSuppression()
+            => TestAsync(
     $@"
 using System;
 
@@ -210,12 +201,10 @@ class Class
         int x = 0;
     }
 }");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-        public async Task TestRemoveLocalAttributeSuppression2()
-        {
-            await TestAsync(
+        public Task TestRemoveLocalAttributeSuppression2()
+            => TestAsync(
     $@"
 using System;
 
@@ -243,12 +232,10 @@ class Class1
         }
     }
 }");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-        public async Task TestRemoveGlobalAttributeSuppression()
-        {
-            await TestAsync(
+        public Task TestRemoveGlobalAttributeSuppression()
+            => TestAsync(
     $@"
 using System;
 
@@ -271,7 +258,6 @@ class Class
         int x = 0;
     }
 }");
-        }
 
         #region "Fix all occurrences tests"
 
@@ -280,9 +266,8 @@ class Class
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInDocument_RemovePragmaSuppressions()
-        {
-            var input = @"
+        public Task TestFixAllInDocument_RemovePragmaSuppressions()
+            => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -325,9 +310,7 @@ class Class2
 }
         </Document>
     </Project>
-</Workspace>";
-
-            var expected = @"
+</Workspace>", @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -366,17 +349,13 @@ class Class2
 }
         </Document>
     </Project>
-</Workspace>";
-
-            await TestInRegularAndScriptAsync(input, expected);
-        }
+</Workspace>");
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInProject_RemovePragmaSuppressions()
-        {
-            var input = @"
+        public Task TestFixAllInProject_RemovePragmaSuppressions()
+            => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -421,9 +400,7 @@ class Class2
 }
         </Document>
     </Project>
-</Workspace>";
-
-            var expected = @"
+</Workspace>", @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -462,17 +439,13 @@ class Class2
 }
         </Document>
     </Project>
-</Workspace>";
-
-            await TestInRegularAndScriptAsync(input, expected);
-        }
+</Workspace>");
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInSolution()
-        {
-            var input = @"
+        public Task TestFixAllInSolution()
+            => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -521,9 +494,7 @@ class Class2
 }
         </Document>
     </Project>
-</Workspace>";
-
-            var expected = @"
+</Workspace>", @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -562,10 +533,7 @@ class Class2
 }
         </Document>
     </Project>
-</Workspace>";
-
-            await TestInRegularAndScriptAsync(input, expected);
-        }
+</Workspace>");
 
         #endregion
 

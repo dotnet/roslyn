@@ -74,12 +74,10 @@ public sealed class ReferenceDirectiveCompletionProviderTests : AbstractInteract
         => await VerifyItemExistsAsync("#r \"$$", "System.Windows.Forms", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
     [ConditionalFact(typeof(WindowsOnly))]
-    public async Task GacReferenceFullyQualified()
-    {
-        await VerifyItemExistsAsync(
+    public Task GacReferenceFullyQualified()
+        => VerifyItemExistsAsync(
             "#r \"System.Windows.Forms,$$",
             "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
-    }
 
     [ConditionalFact(typeof(WindowsOnly))]
     public async Task FileSystemReference()

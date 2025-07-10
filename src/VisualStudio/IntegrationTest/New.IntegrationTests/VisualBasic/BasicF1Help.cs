@@ -23,9 +23,9 @@ public class BasicF1Help : AbstractEditorTest
     }
 
     [IdeFact]
-    private async Task F1Help()
+    public async Task F1Help()
     {
-        var text = @"
+        await SetUpEditorAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -40,9 +40,7 @@ Module Program$$
     Public Function F() As Object
         Return Nothing
     End Function
-End Module";
-
-        await SetUpEditorAsync(text, HangMitigatingCancellationToken);
+End Module", HangMitigatingCancellationToken);
         await VerifyAsync("Linq", "System.Linq", HangMitigatingCancellationToken);
         await VerifyAsync("String", "vb.String", HangMitigatingCancellationToken);
         await VerifyAsync("Any", "System.Linq.Enumerable.Any", HangMitigatingCancellationToken);

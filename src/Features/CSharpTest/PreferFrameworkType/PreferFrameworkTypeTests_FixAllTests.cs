@@ -15,9 +15,8 @@ public partial class PreferFrameworkTypeTests : AbstractCSharpDiagnosticProvider
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument_DeclarationContext()
-    {
-        var input = @"
+    public Task TestFixAllInDocument_DeclarationContext()
+        => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -65,9 +64,7 @@ class Program2
 }
         </Document>
     </Project>
-</Workspace>";
-
-        var expected = @"
+</Workspace>", @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -115,17 +112,13 @@ class Program2
 }
         </Document>
     </Project>
-</Workspace>";
-
-        await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere);
-    }
+</Workspace>", options: FrameworkTypeEverywhere);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject_DeclarationContext()
-    {
-        var input = @"
+    public Task TestFixAllInProject_DeclarationContext()
+        => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -173,9 +166,7 @@ class Program2
 }
         </Document>
     </Project>
-</Workspace>";
-
-        var expected = @"
+</Workspace>", @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -223,17 +214,13 @@ class Program2
 }
         </Document>
     </Project>
-</Workspace>";
-
-        await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere);
-    }
+</Workspace>", options: FrameworkTypeEverywhere);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution_DeclarationContext()
-    {
-        var input = @"
+    public Task TestFixAllInSolution_DeclarationContext()
+        => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -281,9 +268,7 @@ class Program2
 }
         </Document>
     </Project>
-</Workspace>";
-
-        var expected = @"
+</Workspace>", @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -331,17 +316,13 @@ class Program2
 }
         </Document>
     </Project>
-</Workspace>";
-
-        await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere);
-    }
+</Workspace>", options: FrameworkTypeEverywhere);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution_MemberAccessContext()
-    {
-        var input = @"
+    public Task TestFixAllInSolution_MemberAccessContext()
+        => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -407,9 +388,7 @@ class ProgramA3
 }
         </Document>
     </Project>
-</Workspace>";
-
-        var expected = @"
+</Workspace>", @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -475,7 +454,5 @@ class ProgramA3
 }
         </Document>
     </Project>
-</Workspace>";
-        await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere);
-    }
+</Workspace>", options: FrameworkTypeEverywhere);
 }

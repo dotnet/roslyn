@@ -24,8 +24,6 @@ public sealed partial class SyntaxNodeTests : TestBase
     public async Task TestReplaceOneNodeAsync()
     {
         var text = @"public class C { public int X; }";
-        var expected = @"public class C { public int Y; }";
-
         var tree = SyntaxFactory.ParseSyntaxTree(text);
         var root = tree.GetRoot();
 
@@ -38,15 +36,13 @@ public sealed partial class SyntaxNodeTests : TestBase
 
         var actual = newRoot.ToString();
 
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"public class C { public int Y; }", actual);
     }
 
     [Fact]
     public async Task TestReplaceNestedNodesAsync()
     {
         var text = @"public class C { public int X; }";
-        var expected = @"public class C1 { public int X1; }";
-
         var tree = SyntaxFactory.ParseSyntaxTree(text);
         var root = tree.GetRoot();
 
@@ -72,7 +68,7 @@ public sealed partial class SyntaxNodeTests : TestBase
 
         var actual = newRoot.ToString();
 
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"public class C1 { public int X1; }", actual);
         Assert.Equal(computations, nodes.Count);
     }
 

@@ -13,9 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
 public sealed partial class MergeNestedIfStatementsTests
 {
     [Fact]
-    public async Task MergedOnOuterIf()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedOnOuterIf()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -37,12 +36,10 @@ public sealed partial class MergeNestedIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55563")]
-    public async Task MergedOnOuterIf_TopLevelStatements()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedOnOuterIf_TopLevelStatements()
+        => TestInRegularAndScriptAsync(
 @"var a = true;
 var b = true;
 
@@ -60,7 +57,6 @@ if (a && b)
 {
 }
 ");
-    }
 
     [Theory]
     [InlineData("[||]else if (a)")]
@@ -74,9 +70,8 @@ if (a && b)
     [InlineData("else [|if|] (a)")]
     [InlineData("else [|if (a)|]")]
     [InlineData("[|else if (a)|]")]
-    public async Task MergedOnOuterElseIfSpans(string elseIfLine)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedOnOuterElseIfSpans(string elseIfLine)
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -104,12 +99,10 @@ if (a && b)
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedOnOuterElseIfExtendedHeaderSelection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedOnOuterElseIfExtendedHeaderSelection()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -137,12 +130,10 @@ if (a && b)
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedOnOuterElseIfFullSelection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedOnOuterElseIfFullSelection()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -170,12 +161,10 @@ if (a && b)
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedOnOuterElseIfFullSelectionWithElseClause()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedOnOuterElseIfFullSelectionWithElseClause()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -212,12 +201,10 @@ if (a && b)
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnOuterElseIfFullSelectionWithoutElseClause()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnOuterElseIfFullSelectionWithoutElseClause()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -239,12 +226,10 @@ if (a && b)
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnOuterElseIfFullSelectionWithParentIf()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnOuterElseIfFullSelectionWithParentIf()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -266,7 +251,6 @@ if (a && b)
         }|]
     }
 }");
-    }
 
     [Theory]
     [InlineData("else if ([||]a)")]
@@ -279,9 +263,8 @@ if (a && b)
     [InlineData("else if (a[|)|]")]
     [InlineData("else if ([|a|])")]
     [InlineData("else if [|(a)|]")]
-    public async Task NotMergedOnOuterElseIfSpans(string elseIfLine)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnOuterElseIfSpans(string elseIfLine)
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -297,12 +280,10 @@ if (a && b)
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnOuterElseIfOverreachingSelection1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnOuterElseIfOverreachingSelection1()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -318,12 +299,10 @@ if (a && b)
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnOuterElseIfOverreachingSelection2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnOuterElseIfOverreachingSelection2()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -339,12 +318,10 @@ if (a && b)
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnOuterElseIfBodySelection()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnOuterElseIfBodySelection()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -360,12 +337,10 @@ if (a && b)
         }|]
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnOuterElseIfBodyCaret1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnOuterElseIfBodyCaret1()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -381,12 +356,10 @@ if (a && b)
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnOuterElseIfBodyCaret2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnOuterElseIfBodyCaret2()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -402,7 +375,6 @@ if (a && b)
         }[||]
     }
 }");
-    }
 
     [Fact]
     public async Task MergedOnMiddleIfMergableWithNestedOnly()

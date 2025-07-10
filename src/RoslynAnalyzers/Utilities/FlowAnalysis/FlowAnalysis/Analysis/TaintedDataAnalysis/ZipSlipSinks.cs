@@ -35,8 +35,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: null,
                 sinkMethodParameters: new[] {
                     ("Open", new[] { "path" } ),
-                    ("OpenWrite", new[] { "path" } ),
-                    ("OpenCreate", new[] { "path" } ),
+                    ("OpenWrite", ["path"] ),
+                    ("OpenCreate", ["path"] ),
                 });
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemDirectoryDirectoryEntry,

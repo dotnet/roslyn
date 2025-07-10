@@ -45,7 +45,6 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     /// </summary>
     private CancellationTokenSource _cancellationTokenSource = new();
     private bool _isDisposed;
-    private TimeSpan AutomaticFetchDelay => _smartRenameSession.AutomaticFetchDelay;
     private TimeSpan _semanticContextDelay;
     private bool _semanticContextError;
     private bool _semanticContextUsed;
@@ -62,7 +61,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     /// <summary>
     /// Indicates whether a request to get suggestions is in progress.
-    /// The request to get suggestions is comprised of initial short delay, <see cref="AutomaticFetchDelay"/>
+    /// The request to get suggestions is comprised of initial short delay, see AutomaticFetchDelay
     /// and call to <see cref="ISmartRenameSessionWrapper.GetSuggestionsAsync(ImmutableDictionary{string, ImmutableArray{ValueTuple{string, string}}}, CancellationToken)"/>.
     /// When <c>true</c>, the UI shows the progress bar, and prevents <see cref="FetchSuggestions(bool)"/> from making parallel request.
     /// </summary>
@@ -189,7 +188,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     /// <summary>
     /// The request for rename suggestions. It's made of three parts:
-    /// 1. Short delay of duration <see cref="AutomaticFetchDelay"/>.
+    /// 1. Short delay of duration AutomaticFetchDelay.
     /// 2. Get definition and references if <see cref="IsUsingSemanticContext"/> is set.
     /// 3. Call to <see cref="ISmartRenameSessionWrapper.GetSuggestionsAsync(ImmutableDictionary{string, ImmutableArray{ValueTuple{string, string}}}, CancellationToken)"/>.
     /// </summary>

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         internal const string FileName = "FileName";
 
         private const char ObliviousMarker = '~';
-        private static readonly char[] ObliviousMarkerArray = { ObliviousMarker };
+        private static readonly char[] ObliviousMarkerArray = [ObliviousMarker];
 
         /// <summary>
         /// Boolean option to configure if public API analyzer should bail out silently if public API files are missing.
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     return false;
                 }
 
-                var options = getOptionsMethod.Invoke(provider, new object[] { tree });
+                var options = getOptionsMethod.Invoke(provider, [tree]);
                 var tryGetValueMethod = options.GetType().GetRuntimeMethods().FirstOrDefault(m => m.Name == "TryGetValue");
                 if (tryGetValueMethod == null)
                 {
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 return false;
             }
 
-            var namespaceStrings = namespacesString.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            var namespaceStrings = namespacesString.Split([','], StringSplitOptions.RemoveEmptyEntries);
             if (namespaceStrings.Length == 0)
             {
                 return false;

@@ -31,7 +31,7 @@ public sealed class SyntaxUtilitiesTests
     [Fact]
     public void FindPartner1()
     {
-        var source1 = @"
+        VerifySyntaxMap(@"
 using System;
 
 class C
@@ -47,9 +47,7 @@ class C
         } while (b == true);
     }
 }
-";
-
-        var source2 = @"
+", @"
 using System;
 
 class C
@@ -63,8 +61,7 @@ class C
         } while (b == true);
     }
 }
-";
-        VerifySyntaxMap(source1, source2);
+");
     }
 
     [Fact]

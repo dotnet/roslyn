@@ -35,12 +35,9 @@ public sealed class TryGetDocumentTests
 
         var newDocument = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault();
         Assert.NotNull(newDocument);
-
-        var expected = @"class C
-{ }";
-
         var newSourceText = newDocument.GetTextAsync().Result;
-        Assert.Equal(expected, newSourceText.ToString());
+        Assert.Equal(@"class C
+{ }", newSourceText.ToString());
 
         Assert.True(container == newSourceText.Container);
     }
