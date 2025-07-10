@@ -138,14 +138,15 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         ProjectSystemProjectFactory = new ProjectSystemProjectFactory(
             this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps, _threadingContext.DisposalToken);
 
+        var solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
+        solutionClosingContext.UIContextChanged += (_, e) => ProjectSystemProjectFactory.SolutionClosing = e.Activated;
+
         _openFileTracker = new OpenFileTracker(
             this,
             ProjectSystemProjectFactory,
             exportProvider.GetExport<Microsoft.VisualStudio.Text.Editor.IEditorOptionsFactoryService>(),
             _workspaceListener,
             exportProvider.GetExportedValue<OpenTextBufferProvider>());
-
-        InitializeUIAffinitizedServicesAsync().Forget();
 
         _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
             exportProvider.GetExportedValue<ExternalErrorDiagnosticUpdateSource>(),
@@ -196,16 +197,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         });
 
         _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents = true;
-    }
-
-    public async Task InitializeUIAffinitizedServicesAsync()
-    {
-        // Yield the thread, so the caller can proceed and return immediately.
-        // Create services that are bound to the UI thread
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _threadingContext.DisposalToken);
-
-        var solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
-        solutionClosingContext.UIContextChanged += (_, e) => ProjectSystemProjectFactory.SolutionClosing = e.Activated;
     }
 
     public Task CheckForAddedFileBeingOpenMaybeAsync(bool useAsync, ImmutableArray<string> newFileNames)
