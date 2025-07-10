@@ -3136,6 +3136,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 get { return _underlyingParameter.ContainingSymbol; }
             }
 
+            internal override ScopedKind DeclaredScope => throw ExceptionUtilities.Unreachable();
+
             internal override ScopedKind EffectiveScope
             {
                 get

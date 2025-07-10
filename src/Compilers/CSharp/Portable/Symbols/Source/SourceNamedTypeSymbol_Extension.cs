@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -98,54 +99,132 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builder.Append("(");
             if (this.ExtensionParameter is { } extensionParameter)
             {
-                appendType(extensionParameter.Type, builder);
-                if (extensionParameter.RefKind != RefKind.None)
-                {
-                    builder.Append('&');
-                }
+                TypeWithAnnotations extendedType = extensionParameter.TypeWithAnnotations;
+                AppendClrType(extendedType.Type, extendedType.CustomModifiers, builder);
+                Debug.Assert(extendedType.CustomModifiers.IsEmpty);
+                // We intentionally ignore refness
             }
 
             builder.Append(")");
 
             return pooledBuilder.ToStringAndFree();
 
-            static void appendType(TypeSymbol type, StringBuilder builder)
+            static void appendTypeParameterDeclaration(TypeParameterSymbol typeParameter, StringBuilder builder)
             {
-                if (type is NamedTypeSymbol namedType)
+                if (typeParameter.HasReferenceTypeConstraint)
                 {
-                    appendNamedType(type, builder, namedType);
+                    builder.Append("class ");
                 }
-                else if (type is TypeParameterSymbol typeParameter)
+                else if (typeParameter.HasValueTypeConstraint || typeParameter.HasUnmanagedTypeConstraint)
                 {
-                    appendTypeParameterReference(typeParameter, builder);
+                    builder.Append("valuetype ");
                 }
-                else if (type is ArrayTypeSymbol array)
+
+                if (typeParameter.AllowsRefLikeType)
                 {
-                    appendArrayType(array, builder);
+                    builder.Append("byreflike ");
                 }
-                else if (type is PointerTypeSymbol pointer)
+
+                if (typeParameter.HasConstructorConstraint || typeParameter.HasValueTypeConstraint || typeParameter.HasUnmanagedTypeConstraint)
                 {
-                    appendType(pointer.PointedAtType, builder);
-                    builder.Append('*');
+                    builder.Append(".ctor ");
                 }
-                else if (type is FunctionPointerTypeSymbol functionPointer)
+
+                appendTypeParameterTypeConstraints(typeParameter, builder);
+
+                // Note: skipping identifier and variance
+                if (builder[builder.Length - 1] == ' ')
                 {
-                    appendFunctionPointerType(functionPointer, builder);
-                }
-                else if (type is DynamicTypeSymbol)
-                {
-                    builder.Append("System.Object");
-                }
-                else
-                {
-                    throw ExceptionUtilities.UnexpectedValue(type);
+                    builder.Remove(startIndex: builder.Length - 1, length: 1);
                 }
             }
 
+            static void appendTypeParameterTypeConstraints(TypeParameterSymbol typeParameter, StringBuilder builder)
+            {
+                ImmutableArray<TypeWithAnnotations> typeConstraints = typeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty);
+                if (typeConstraints.IsEmpty && !typeParameter.HasUnmanagedTypeConstraint && !typeParameter.HasValueTypeConstraint)
+                {
+                    return;
+                }
+
+                var typeConstraintStrings = ArrayBuilder<string>.GetInstance(typeConstraints.Length);
+                foreach (var typeConstraint in typeConstraints)
+                {
+                    var constraintBuilder = PooledStringBuilder.GetInstance();
+                    Debug.Assert(typeConstraint.CustomModifiers.IsEmpty);
+                    AppendClrType(typeConstraint.Type, typeConstraint.CustomModifiers, constraintBuilder.Builder);
+                    typeConstraintStrings.Add(constraintBuilder.ToStringAndFree());
+                }
+
+                if (typeParameter.HasUnmanagedTypeConstraint)
+                {
+                    typeConstraintStrings.Add("System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType)");
+                }
+                else if (typeParameter.HasValueTypeConstraint)
+                {
+                    typeConstraintStrings.Add("System.ValueType");
+                }
+
+                typeConstraintStrings.Sort(StringComparer.Ordinal); // Actual order doesn't matter - just want to be deterministic
+
+                builder.Append('(');
+                for (int i = 0; i < typeConstraintStrings.Count; i++)
+                {
+                    if (i > 0)
+                    {
+                        builder.Append(", ");
+                    }
+
+                    builder.Append(typeConstraintStrings[i]);
+                }
+
+                typeConstraintStrings.Free();
+                builder.Append(")");
+            }
+        }
+
+        /// <summary>
+        /// Outputs the CLR-level information for a type in an IL-looking format.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when appending to a StringBuilder past the <see cref="StringBuilder.MaxCapacity"/> limit.</exception>
+        static void AppendClrType(TypeSymbol type, ImmutableArray<CustomModifier> modifiers, StringBuilder builder)
+        {
+            if (type is NamedTypeSymbol namedType)
+            {
+                appendNamedType(type, builder, namedType);
+            }
+            else if (type is TypeParameterSymbol typeParameter)
+            {
+                appendTypeParameterReference(typeParameter, builder);
+            }
+            else if (type is ArrayTypeSymbol array)
+            {
+                appendArrayType(array, builder);
+            }
+            else if (type is PointerTypeSymbol pointer)
+            {
+                TypeWithAnnotations pointedAtType = pointer.PointedAtTypeWithAnnotations;
+                AppendClrType(pointedAtType.Type, pointedAtType.CustomModifiers, builder);
+                builder.Append('*');
+            }
+            else if (type is FunctionPointerTypeSymbol functionPointer)
+            {
+                appendFunctionPointerType(functionPointer, builder);
+            }
+            else if (type is DynamicTypeSymbol)
+            {
+                builder.Append("System.Object");
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(type);
+            }
+
+            appendModifiers(modifiers, builder);
+            return;
+
             static void appendNamedType(TypeSymbol type, StringBuilder builder, NamedTypeSymbol namedType)
             {
-                Debug.Assert(type.CustomModifierCount() == 0);
-
                 if (namedType.SpecialType == SpecialType.System_Void)
                 {
                     builder.Append("void");
@@ -200,44 +279,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             builder.Append(", ");
                         }
 
-                        appendType(typeArguments[i].Type, builder);
-                        Debug.Assert(typeArguments[i].CustomModifiers.IsEmpty);
+                        TypeWithAnnotations typeArgument = typeArguments[i];
+                        AppendClrType(typeArgument.Type, typeArgument.CustomModifiers, builder);
                     }
 
                     builder.Append('>');
                 }
 
                 typeArguments.Free();
-            }
-
-            static void appendTypeParameterDeclaration(TypeParameterSymbol typeParameter, StringBuilder builder)
-            {
-                if (typeParameter.HasReferenceTypeConstraint)
-                {
-                    builder.Append("class ");
-                }
-                else if (typeParameter.HasValueTypeConstraint || typeParameter.HasUnmanagedTypeConstraint)
-                {
-                    builder.Append("valuetype ");
-                }
-
-                if (typeParameter.AllowsRefLikeType)
-                {
-                    builder.Append("byreflike ");
-                }
-
-                if (typeParameter.HasConstructorConstraint || typeParameter.HasValueTypeConstraint || typeParameter.HasUnmanagedTypeConstraint)
-                {
-                    builder.Append(".ctor ");
-                }
-
-                appendTypeParameterTypeConstraints(typeParameter, builder);
-
-                // Note: skipping identifier and variance
-                if (builder[builder.Length - 1] == ' ')
-                {
-                    builder.Remove(startIndex: builder.Length - 1, length: 1);
-                }
             }
 
             static void appendTypeParameterReference(TypeParameterSymbol typeParameter, StringBuilder builder)
@@ -255,53 +304,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static void appendTypeParameterTypeConstraints(TypeParameterSymbol typeParameter, StringBuilder builder)
-            {
-                ImmutableArray<TypeWithAnnotations> typeConstraints = typeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty);
-                if (typeConstraints.IsEmpty && !typeParameter.HasUnmanagedTypeConstraint && !typeParameter.HasValueTypeConstraint)
-                {
-                    return;
-                }
-
-                var typeConstraintStrings = ArrayBuilder<string>.GetInstance(typeConstraints.Length);
-                foreach (var typeConstraint in typeConstraints)
-                {
-                    var constraintBuilder = PooledStringBuilder.GetInstance();
-                    appendType(typeConstraint.Type, constraintBuilder.Builder);
-                    typeConstraintStrings.Add(constraintBuilder.ToStringAndFree());
-                }
-
-                if (typeParameter.HasUnmanagedTypeConstraint)
-                {
-                    typeConstraintStrings.Add("System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType)");
-                }
-                else if (typeParameter.HasValueTypeConstraint)
-                {
-                    typeConstraintStrings.Add("System.ValueType");
-                }
-
-                typeConstraintStrings.Sort(StringComparer.Ordinal); // Actual order doesn't matter - just want to be deterministic
-
-                builder.Append('(');
-                for (int i = 0; i < typeConstraintStrings.Count; i++)
-                {
-                    if (i > 0)
-                    {
-                        builder.Append(", ");
-                    }
-
-                    builder.Append(typeConstraintStrings[i]);
-                }
-
-                typeConstraintStrings.Free();
-                builder.Append(")");
-            }
-
             static void appendArrayType(ArrayTypeSymbol array, StringBuilder builder)
             {
                 Debug.Assert(array.Sizes.IsEmpty && array.LowerBounds.IsDefault); // We only deal with source array types
 
-                appendType(array.ElementType, builder);
+                TypeWithAnnotations elementType = array.ElementTypeWithAnnotations;
+                AppendClrType(elementType.Type, elementType.CustomModifiers, builder);
                 builder.Append('[');
                 for (int i = 1; i < array.Rank; i++)
                 {
@@ -317,7 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // When calling convention is a single one of the four special calling conventions, we just use flags
                 // Otherwise, we use "unmanaged" flag and also add return modifiers below
-                var callingConvention = functionPointer.Signature.CallingConvention switch
+                FunctionPointerMethodSymbol signature = functionPointer.Signature;
+                string? callingConvention = signature.CallingConvention switch
                 {
                     Cci.CallingConvention.Default => null, // managed is the default
                     Cci.CallingConvention.Unmanaged => "unmanaged ",
@@ -325,25 +334,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Cci.CallingConvention.Standard => "unmanaged stdcall ",
                     Cci.CallingConvention.ThisCall => "unmanaged thiscall ",
                     Cci.CallingConvention.FastCall => "unmanaged fastcall ",
-                    _ => throw ExceptionUtilities.UnexpectedValue(functionPointer.Signature.CallingConvention)
+                    _ => throw ExceptionUtilities.UnexpectedValue(signature.CallingConvention)
                 };
 
                 builder.Append(callingConvention);
 
-                appendType(functionPointer.Signature.ReturnType, builder);
-                if (functionPointer.Signature.RefKind != RefKind.None)
+                TypeWithAnnotations returnType = signature.ReturnTypeWithAnnotations;
+                AppendClrType(returnType.Type, returnType.CustomModifiers, builder);
+                if (signature.RefKind != RefKind.None)
                 {
                     builder.Append('&');
-                    appendModifiers(functionPointer.Signature.RefCustomModifiers, builder);
-                    Debug.Assert(functionPointer.Signature.ReturnTypeWithAnnotations.CustomModifiers.IsEmpty); // We're only dealing with source function pointers
-                }
-                else
-                {
-                    appendModifiers(functionPointer.Signature.ReturnTypeWithAnnotations.CustomModifiers, builder);
+                    appendModifiers(signature.RefCustomModifiers, builder);
                 }
 
                 builder.Append(" *(");
-                var parameters = functionPointer.Signature.Parameters;
+                var parameters = signature.Parameters;
                 for (int i = 0; i < parameters.Length; i++)
                 {
                     if (i > 0)
@@ -352,8 +357,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     ParameterSymbol parameter = parameters[i];
-                    appendType(parameter.Type, builder);
-                    Debug.Assert(parameter.TypeWithAnnotations.CustomModifiers.IsEmpty);
+                    TypeWithAnnotations parameterType = parameter.TypeWithAnnotations;
+                    AppendClrType(parameterType.Type, parameterType.CustomModifiers, builder);
                     if (parameter.RefKind != RefKind.None)
                     {
                         builder.Append('&');
@@ -372,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var modifierBuilder = PooledStringBuilder.GetInstance();
                     modifierBuilder.Builder.Append(modifier.IsOptional ? " modopt(" : " modreq(");
 
-                    appendType(((CSharpCustomModifier)modifier).ModifierSymbol, modifierBuilder.Builder);
+                    AppendClrType(((CSharpCustomModifier)modifier).ModifierSymbol, modifiers: [], modifierBuilder.Builder);
                     modifierBuilder.Builder.Append(')');
 
                     builder.Append(modifierBuilder.ToStringAndFree());
@@ -414,7 +419,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builder.Append("(");
             if (this.ExtensionParameter is { } extensionParameter)
             {
-                // We intentionally ignore "scoped" and "params"
+                // We ignore "params" because it's not legal
+                if (extensionParameter.DeclaredScope != ScopedKind.None)
+                {
+                    builder.Append("scoped ");
+                }
+
                 appendRefKind(extensionParameter.RefKind, builder, forParameter: true);
                 appendAttributes(extensionParameter.GetAttributes(), builder);
                 appendTypeWithAnnotation(extensionParameter.TypeWithAnnotations, builder);
@@ -449,6 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static void appendTypeWithAnnotation(TypeWithAnnotations type, StringBuilder builder)
             {
                 appendType(type.Type, builder);
+                Debug.Assert(type.CustomModifiers.IsEmpty);
 
                 if (!type.Type.IsValueType)
                 {
@@ -480,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (type is NamedTypeSymbol namedType)
                 {
-                    appendNamedType(type, builder, namedType);
+                    appendNamedType(namedType, builder);
                 }
                 else if (type is TypeParameterSymbol { Name: var typeParameterName })
                 {
@@ -509,9 +520,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static void appendNamedType(TypeSymbol type, StringBuilder builder, NamedTypeSymbol namedType)
+            static void appendNamedType(NamedTypeSymbol namedType, StringBuilder builder)
             {
-                Debug.Assert(type.CustomModifierCount() == 0);
+                Debug.Assert(namedType.CustomModifierCount() == 0);
 
                 if (namedType.SpecialType == SpecialType.System_Void)
                 {
@@ -519,36 +530,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return;
                 }
 
-                if (namedType.IsTopLevelType() && namedType.ContainingNamespace.IsGlobalNamespace)
-                {
-                    if (namedType.Name == "dynamic")
-                    {
-                        builder.Append("@dynamic");
-                        return;
-                    }
-
-                    if (namedType.Name == "unmanaged")
-                    {
-                        // We technically only need to escape in type constraints, but do it generally for simplicity
-                        builder.Append("@unmanaged");
-                        return;
-                    }
-
-                    if (namedType.Name == "notnull")
-                    {
-                        // We technically only need to escape in type constraints, but do it generally for simplicity
-                        builder.Append("@notnull");
-                        return;
-                    }
-                }
-
                 if (namedType.IsTupleType)
                 {
                     builder.Append('(');
                     ImmutableArray<string?> elementNames = namedType.TupleElementNames;
-                    for (int i = 0; i < namedType.TupleElementTypesWithAnnotations.Length; i++)
+                    ImmutableArray<TypeWithAnnotations> tupleElementTypes = namedType.TupleElementTypesWithAnnotations;
+                    for (int i = 0; i < tupleElementTypes.Length; i++)
                     {
-                        TypeWithAnnotations elementType = namedType.TupleElementTypesWithAnnotations[i];
+                        TypeWithAnnotations elementType = tupleElementTypes[i];
                         if (i > 0)
                         {
                             builder.Append(", ");
@@ -577,8 +566,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void appendIdentifier(string name, StringBuilder builder, bool forTypeConstraint = false)
             {
-                if ((forTypeConstraint && name is "unmanaged" or "notnull")
-                    || SyntaxFacts.GetKeywordKind(name) != SyntaxKind.None)
+                // We technically only need to escape all contextual keywords, but do it generally for simplicity and robustness
+                if (SyntaxFacts.GetKeywordKind(name) != SyntaxKind.None
+                    || SyntaxFacts.GetContextualKeywordKind(name) != SyntaxKind.None
+                    || name is "dynamic" or "notnull")
                 {
                     builder.Append('@');
                 }
@@ -698,11 +689,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void appendTypeConstraints(TypeParameterSymbol typeParam, StringBuilder builder, ref bool needComma)
             {
-                var typeConstraintsBuilder = ArrayBuilder<string>.GetInstance();
-                for (int i = 0; i < typeParam.ConstraintTypesNoUseSiteDiagnostics.Length; i++)
+                ImmutableArray<TypeWithAnnotations> contraintTypes = typeParam.ConstraintTypesNoUseSiteDiagnostics;
+                var typeConstraintsBuilder = ArrayBuilder<string>.GetInstance(contraintTypes.Length);
+                for (int i = 0; i < contraintTypes.Length; i++)
                 {
                     var stringBuilder = PooledStringBuilder.GetInstance();
-                    appendTypeWithAnnotation(typeParam.ConstraintTypesNoUseSiteDiagnostics[i], stringBuilder.Builder);
+                    appendTypeWithAnnotation(contraintTypes[i], stringBuilder.Builder);
                     typeConstraintsBuilder.Add(stringBuilder.ToStringAndFree());
                 }
 
@@ -767,7 +759,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ParameterSymbol parameter = parameters[i];
                     appendRefKind(parameter.RefKind, builder, forParameter: true);
                     appendTypeWithAnnotation(parameter.TypeWithAnnotations, builder);
-                    Debug.Assert(parameter.TypeWithAnnotations.CustomModifiers.IsEmpty);
                     needComma = true;
                 }
 
@@ -777,7 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 appendRefKind(signature.RefKind, builder);
-                appendTypeWithAnnotation(signature.ReturnTypeWithAnnotations, builder);
+                appendTypeWithAnnotation(signature.ReturnTypeWithAnnotations.WithModifiers([]), builder);
 
                 builder.Append('>');
             }
@@ -813,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     Debug.Assert(callingConventionTypes[i].Name.StartsWith("CallConv", StringComparison.Ordinal));
 
-                    builder.Append(callingConventionTypes[i].Name.Remove(0, "CallConv".Length));
+                    builder.Append(callingConventionTypes[i].Name["CallConv".Length..]);
                 }
 
                 builder.Append(']');
@@ -851,6 +842,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(attribute.AttributeClass is not null);
                 appendType(attribute.AttributeClass, builder);
+
+                if (attribute.AttributeConstructor is { } attributeConstructor)
+                {
+                    appendAttributeSignature(attributeConstructor, builder);
+                }
 
                 if (attribute.CommonConstructorArguments.IsEmpty && attribute.CommonNamedArguments.IsEmpty)
                 {
@@ -909,10 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (argument.IsNull)
                 {
-                    Debug.Assert(argument.Type is not null);
-                    builder.Append('(');
-                    appendType(((PublicModel.TypeSymbol)argument.Type).UnderlyingTypeSymbol, builder);
-                    builder.Append(')');
+                    Debug.Assert(argument.TypeInternal is not null);
                     builder.Append("null");
                     return;
                 }
@@ -920,49 +913,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (argument.Kind)
                 {
                     case TypedConstantKind.Primitive:
-                        appendPrimitive(argument.Value, builder, withCast: true);
+                        appendPrimitive(argument.Value, builder);
                         break;
 
                     case TypedConstantKind.Enum:
-                        Debug.Assert(argument.Type is not null);
-                        builder.Append('(');
-                        appendType(((PublicModel.TypeSymbol)argument.Type).UnderlyingTypeSymbol, builder);
-                        builder.Append(')');
-                        appendPrimitive(argument.Value, builder, withCast: false);
+                        Debug.Assert(argument.TypeInternal is not null);
+
+                        appendPrimitive(argument.Value, builder);
                         break;
 
                     case TypedConstantKind.Type:
-                        Debug.Assert(argument.Value is not null);
+                        Debug.Assert(argument.ValueInternal is not null);
                         builder.Append("typeof(");
-                        appendType(((PublicModel.TypeSymbol)argument.Value).UnderlyingTypeSymbol, builder);
+                        appendType((TypeSymbol)argument.ValueInternal, builder);
                         builder.Append(')');
                         break;
 
                     case TypedConstantKind.Array:
-                        Debug.Assert(argument.Type is not null);
-                        if (argument.Values.IsEmpty)
+                        Debug.Assert(argument.TypeInternal is not null);
+                        builder.Append("[");
+                        bool needComma = false;
+                        foreach (TypedConstant element in argument.Values)
                         {
-                            builder.Append("new ");
-                            appendType(((PublicModel.TypeSymbol)argument.Type).UnderlyingTypeSymbol, builder);
-                            builder.Append(" { }");
-                        }
-                        else
-                        {
-                            builder.Append('[');
-                            bool needComma = false;
-                            foreach (TypedConstant element in argument.Values)
+                            if (needComma)
                             {
-                                if (needComma)
-                                {
-                                    builder.Append(", ");
-                                }
-
-                                appendAttributeArgument(element, builder);
-                                needComma = true;
+                                builder.Append(", ");
                             }
 
-                            builder.Append(']');
+                            appendAttributeArgument(element, builder);
+                            needComma = true;
                         }
+
+                        builder.Append("]");
                         break;
 
                     default:
@@ -977,27 +959,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 appendAttributeArgument(namedArgument.Value, builder);
             }
 
-            static void appendPrimitive(object? value, StringBuilder builder, bool withCast)
+            static void appendPrimitive(object? value, StringBuilder builder)
             {
-                var options = ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters;
-                if (withCast)
-                {
-                    string cast = value switch
-                    {
-                        sbyte => "(sbyte)",
-                        short => "(short)",
-                        int => "(int)",
-                        long => "(long)",
-                        byte => "(byte)",
-                        ushort => "(ushort)",
-                        uint => "(uint)",
-                        ulong => "(ulong)",
-                        float => "(float)",
-                        double => "(double)",
-                        _ => "",
-                    };
-                    builder.Append(cast);
-                }
+                const ObjectDisplayOptions options = ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters;
 
                 switch (value)
                 {
@@ -1030,11 +994,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                     case float f:
                         // Note: we're printing as bits to avoid any loss
-                        builder.Append(BitConverter.ToInt32(BitConverter.GetBytes(f), startIndex: 0));
+                        int i2 = BitConverter.ToInt32(BitConverter.GetBytes(f), startIndex: 0);
+                        if (!BitConverter.IsLittleEndian)
+                        {
+                            i2 = BinaryPrimitives.ReverseEndianness(i2);
+                        }
+
+                        builder.Append(i2.ToString(CultureInfo.InvariantCulture));
                         break;
                     case double d:
                         // Note: we're printing as bits to avoid any loss
-                        builder.Append(BitConverter.DoubleToInt64Bits(d));
+                        long l2 = BitConverter.DoubleToInt64Bits(d);
+                        if (!BitConverter.IsLittleEndian)
+                        {
+                            l2 = BinaryPrimitives.ReverseEndianness(l2);
+                        }
+
+                        builder.Append(l2.ToString(CultureInfo.InvariantCulture));
                         break;
                     case char c:
                         builder.Append(ObjectDisplay.FormatLiteral(c, options));
@@ -1043,6 +1019,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         builder.Append(ObjectDisplay.FormatLiteral(s, options));
                         break;
                 }
+            }
+
+            static void appendAttributeSignature(MethodSymbol constructor, StringBuilder builder)
+            {
+                builder.Append("/*(");
+                bool needComma = false;
+                foreach (var parameter in constructor.Parameters)
+                {
+                    if (needComma)
+                    {
+                        builder.Append(", ");
+                    }
+
+                    TypeWithAnnotations parameterType = parameter.TypeWithAnnotations;
+                    AppendClrType(parameterType.Type, parameterType.CustomModifiers, builder);
+                    needComma = true;
+                }
+
+                builder.Append(")*/");
             }
         }
 
