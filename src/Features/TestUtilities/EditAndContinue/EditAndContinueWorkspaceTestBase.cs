@@ -219,7 +219,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal static void EndDebuggingSession(DebuggingSession session)
         => session.EndSession(out _);
 
-    internal static async Task<(ModuleUpdates updates, ImmutableArray<DiagnosticData> diagnostics)> EmitSolutionUpdateAsync(
+    internal static async Task<(ModuleUpdates updates, ImmutableArray<DiagnosticData> diagnostics)> EmitSolutionUpdateAsyncOld(
         DebuggingSession session,
         Solution solution,
         ActiveStatementSpanProvider? activeStatementSpanProvider = null)
@@ -235,7 +235,6 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal static async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
         DebuggingSession session,
         Solution solution,
-        bool allowPartialUpdate,
         ActiveStatementSpanProvider? activeStatementSpanProvider = null)
     {
         var runningProjects = solution.ProjectIds.ToImmutableDictionary(
@@ -248,12 +247,6 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
 
         Assert.Equal(hasTransientError, results.ProjectsToRestart.Any());
         Assert.Equal(hasTransientError, results.ProjectsToRebuild.Any());
-
-        if (!allowPartialUpdate)
-        {
-            // No updates should be produced if transient error is reported:
-            Assert.True(!hasTransientError || results.ModuleUpdates.Updates.IsEmpty);
-        }
 
         return results;
     }
