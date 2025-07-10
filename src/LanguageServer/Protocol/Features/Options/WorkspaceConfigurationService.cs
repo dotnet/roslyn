@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
@@ -16,8 +17,9 @@ internal sealed class WorkspaceConfigurationService(IGlobalOptionService globalO
 {
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
+    [AllowNull]
     public WorkspaceConfigurationOptions Options { get => field ??= _globalOptions.GetWorkspaceConfigurationOptions(); private set; }
 
     internal void Clear()
-        => Options = null!;
+        => Options = null;
 }
