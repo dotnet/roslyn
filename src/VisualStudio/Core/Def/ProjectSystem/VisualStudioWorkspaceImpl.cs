@@ -185,7 +185,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
         KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
         {
-            KnownUIContexts.SolutionBuildingContext.UIContextChanged += (object _, UIContextChangedEventArgs e) =>
+            KnownUIContexts.SolutionBuildingContext.UIContextChanged += (_, e) =>
             {
                 if (e.Activated)
                 {
