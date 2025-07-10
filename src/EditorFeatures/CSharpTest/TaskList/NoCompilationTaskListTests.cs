@@ -41,12 +41,8 @@ $@"<Workspace>
     }
 
     [Theory, CombinatorialData, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1192024")]
-    public async Task TodoCommentInNoCompilationProject(TestHost host)
-    {
-        var code = @"(* [|Message|] *)";
-
-        await TestAsync(code, host);
-    }
+    public Task TodoCommentInNoCompilationProject(TestHost host)
+        => TestAsync(@"(* [|Message|] *)", host);
 }
 
 [PartNotDiscoverable]

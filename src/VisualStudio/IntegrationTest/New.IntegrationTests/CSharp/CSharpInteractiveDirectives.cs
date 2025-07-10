@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
@@ -182,12 +183,8 @@ Script directives:
     }
 
     [IdeFact]
-    public async Task VerifyHashCls()
-    {
-        await TestServices.InteractiveWindow.SubmitTextAsync("#cls", HangMitigatingCancellationToken);
-        // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
-        // VerifyErrorCount(0);
-    }
+    public Task VerifyHashCls()
+        => TestServices.InteractiveWindow.SubmitTextAsync("#cls", HangMitigatingCancellationToken);
 
     [IdeFact]
     public async Task VerifyHashReset()
@@ -258,10 +255,11 @@ public static void Main(string[] args)
         // VerifyErrorCount(0);
     }
 
-    [IdeTheory]
+    [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/79301")]
     [InlineData("32")]
     [InlineData("64")]
     [InlineData("core")]
+    [UseCulture("en-US")]
     public async Task WorkspaceClearedAfterReset(string environment)
     {
         await TestServices.InteractiveWindow.SubmitTextAsync($"#reset {environment}", HangMitigatingCancellationToken);

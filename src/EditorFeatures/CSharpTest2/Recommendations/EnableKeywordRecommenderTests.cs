@@ -17,14 +17,12 @@ public sealed class EnableKeywordRecommenderTests : KeywordRecommenderTests
         => await VerifyKeywordAsync(@"#nullable $$");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31130")]
-    public async Task TestNotAfterNullableAndNewline()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterNullableAndNewline()
+        => VerifyAbsenceAsync("""
             #nullable 
             $$
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31130")]
     public async Task TestNotAfterHash()
@@ -35,34 +33,28 @@ public sealed class EnableKeywordRecommenderTests : KeywordRecommenderTests
         => await VerifyAbsenceAsync(SourceCodeKind.Script, @"$$");
 
     [Fact]
-    public async Task TestNotAfterClass_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalStatement_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
     public async Task TestNotInUsingAlias()

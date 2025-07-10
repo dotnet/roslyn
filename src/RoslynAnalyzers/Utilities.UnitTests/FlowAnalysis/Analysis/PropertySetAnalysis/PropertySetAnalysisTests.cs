@@ -61,7 +61,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
             expectedResults ??= Array.Empty<(int Line, int Column, string? MethodName, HazardousUsageEvaluationResult Result)>();
 
-            Project project = CreateProject(new string[] { source, TestTypeToTrackSource });
+            Project project = CreateProject([source, TestTypeToTrackSource]);
             Compilation? compilation = project.GetCompilationAsync().Result;
             Assert.NotNull(compilation);
             CompilationUtils.ValidateNoCompileErrors(compilation.GetDiagnostics());

@@ -25,26 +25,20 @@ namespace Microsoft.CodeAnalysis.UnitTests;
 public sealed class BatchFixAllProviderTests
 {
     [Fact]
-    public async Task TestDefaultSelectionNestedFixers()
-    {
-        var testCode = @"
+    public Task TestDefaultSelectionNestedFixers()
+        => new CSharpTest([[1], [2], [3]], nested: true)
+        {
+            TestCode = @"
 class TestClass {
   int field = [|0|];
 }
-";
-        var fixedCode = $@"
+",
+            FixedCode = $@"
 class TestClass {{
   int field = 1;
 }}
-";
-
-        // Three CodeFixProviders provide three actions
-        await new CSharpTest([[1], [2], [3]], nested: true)
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+",
         }.RunAsync();
-    }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     private sealed class LiteralZeroAnalyzer : DiagnosticAnalyzer

@@ -33,13 +33,11 @@ internal sealed class SplitCommentCommandHandler(
     ITextUndoHistoryRegistry undoHistoryRegistry,
     IEditorOperationsFactoryService editorOperationsFactoryService,
     EditorOptionsService editorOptionsService,
-    IIndentationManagerService indentationManager,
     IGlobalOptionService globalOptions) : ICommandHandler<ReturnKeyCommandArgs>
 {
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
     private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
-    private readonly IIndentationManagerService _indentationManager = indentationManager;
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     public string DisplayName => EditorFeaturesResources.Split_comment;

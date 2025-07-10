@@ -25,24 +25,6 @@ public sealed class FormattingEngineElasticTriviaTests : CSharpFormattingTestBas
     [Fact(Skip = "530167")]
     public void FormatElasticTrivia()
     {
-        var expected = @"extern alias A1;
-
-#line 99
-
-[assembly: My]
-
-class My : System.Attribute
-{
-}
-
-class A
-{
-}
-
-[My]
-class B
-{
-}";
         var compilation = CompilationUnit(
             externs: [ExternAliasDirective("A1")],
             usings: default,
@@ -87,7 +69,24 @@ class B
 
         using var workspace = new AdhocWorkspace();
         var newCompilation = Formatter.Format(compilation, workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
-        Assert.Equal(expected, newCompilation.ToFullString());
+        Assert.Equal(@"extern alias A1;
+
+#line 99
+
+[assembly: My]
+
+class My : System.Attribute
+{
+}
+
+class A
+{
+}
+
+[My]
+class B
+{
+}", newCompilation.ToFullString());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1947")]
@@ -139,12 +138,6 @@ public class SomeAttribute : System.Attribute { }
     [Fact, WorkItem("https://roslyn.codeplex.com/workitem/408")]
     public void FormatElasticTriviaBetweenPropertiesWithoutAccessors()
     {
-        var expected = @"class PropertyTest
-{
-    string MyProperty => ""42"";
-
-    string MyProperty => ""42"";
-}";
         var property = PropertyDeclaration(
             attributeLists: default,
             modifiers: [],
@@ -183,6 +176,11 @@ public class SomeAttribute : System.Attribute { }
 
         using var workspace = new AdhocWorkspace();
         var newCompilation = Formatter.Format(compilation, workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
-        Assert.Equal(expected, newCompilation.ToFullString());
+        Assert.Equal(@"class PropertyTest
+{
+    string MyProperty => ""42"";
+
+    string MyProperty => ""42"";
+}", newCompilation.ToFullString());
     }
 }

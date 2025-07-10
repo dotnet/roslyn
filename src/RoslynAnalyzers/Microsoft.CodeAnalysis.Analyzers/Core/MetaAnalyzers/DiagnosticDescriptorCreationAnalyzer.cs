@@ -680,8 +680,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             else
             {
                 var span = fixLocation.SourceSpan;
-                var locationInfo = $"{span.Start}{AdditionalDocumentLocationInfoSeparator}{span.Length}{AdditionalDocumentLocationInfoSeparator}{fixLocation.GetLineSpan().Path}";
-                properties = properties.Add(DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo, locationInfo);
+                properties = properties.Add(DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo, $"{span.Start}{AdditionalDocumentLocationInfoSeparator}{span.Length}{AdditionalDocumentLocationInfoSeparator}{fixLocation.GetLineSpan().Path}");
             }
 
             reportDiagnostic(argumentOperation.CreateDiagnostic(descriptor, additionalLocations, properties));
@@ -703,7 +702,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return false;
             }
 
-            var parts = locationInfo.Split(new[] { AdditionalDocumentLocationInfoSeparator }, StringSplitOptions.None);
+            var parts = locationInfo.Split([AdditionalDocumentLocationInfoSeparator], StringSplitOptions.None);
             if (parts.Length != 3 ||
                 !int.TryParse(parts[0], out var spanSpart) ||
                 !int.TryParse(parts[1], out var spanLength))
@@ -982,7 +981,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             Debug.Assert(ContainsLineReturn(s));
 
-            var parts = s.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var parts = s.Split(["\r\n", "\r", "\n"], StringSplitOptions.RemoveEmptyEntries);
             if (!allowMultisentences)
             {
                 return parts[0];

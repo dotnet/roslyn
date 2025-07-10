@@ -61,10 +61,8 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
 
     [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
     [MemberData(nameof(GetCSharpProjectTemplateNames), DisableDiscoveryEnumeration = false)]
-    public async Task ValidateCSharpTemplateProjects(string templateName)
-    {
-        await AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.CSharp);
-    }
+    public Task ValidateCSharpTemplateProjects(string templateName)
+        => AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.CSharp);
 
     [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
     [MemberData(nameof(GetVisualBasicProjectTemplateNames), DisableDiscoveryEnumeration = false)]

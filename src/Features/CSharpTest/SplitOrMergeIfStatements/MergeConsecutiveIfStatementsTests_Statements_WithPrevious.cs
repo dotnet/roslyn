@@ -19,9 +19,8 @@ public sealed partial class MergeConsecutiveIfStatementsTests
     [InlineData("if (b)[||]")]
     [InlineData("[|if|] (b)")]
     [InlineData("[|if (b)|]")]
-    public async Task MergedIntoPreviousStatementOnIfSpans(string ifLine)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoPreviousStatementOnIfSpans(string ifLine)
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -40,12 +39,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             return;
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoPreviousStatementOnIfExtendedHeaderSelection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoPreviousStatementOnIfExtendedHeaderSelection()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -64,12 +61,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             return;
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoPreviousStatementOnIfFullSelection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoPreviousStatementOnIfFullSelection()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -88,12 +83,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             return;
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoPreviousStatementOnIfExtendedFullSelection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoPreviousStatementOnIfExtendedFullSelection()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -112,12 +105,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             return;
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoPreviousStatementOnIfFullSelectionWithoutElseClause()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoPreviousStatementOnIfFullSelectionWithoutElseClause()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -142,12 +133,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoPreviousStatementOnIfExtendedFullSelectionWithoutElseClause()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoPreviousStatementOnIfExtendedFullSelectionWithoutElseClause()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -172,12 +161,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoPreviousStatementOnIfFullSelectionWithElseClause()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoPreviousStatementOnIfFullSelectionWithElseClause()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -191,12 +178,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }|]
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoPreviousStatementOnIfExtendedFullSelectionWithElseClause()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoPreviousStatementOnIfExtendedFullSelectionWithElseClause()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -210,7 +195,6 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
 |]    }
 }");
-    }
 
     [Theory]
     [InlineData("if ([||]b)")]
@@ -220,9 +204,8 @@ public sealed partial class MergeConsecutiveIfStatementsTests
     [InlineData("if (b[|)|]")]
     [InlineData("if ([|b|])")]
     [InlineData("if [|(b)|]")]
-    public async Task NotMergedIntoPreviousStatementOnIfSpans(string ifLine)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoPreviousStatementOnIfSpans(string ifLine)
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -233,12 +216,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             return;
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoPreviousStatementOnIfOverreachingSelection()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoPreviousStatementOnIfOverreachingSelection()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -249,12 +230,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
           |]return;
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoPreviousStatementOnIfBodySelection()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoPreviousStatementOnIfBodySelection()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -265,12 +244,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             [|return;|]
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoPreviousStatementIfControlFlowQuits1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoPreviousStatementIfControlFlowQuits1()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -289,12 +266,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             return;
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoPreviousStatementIfControlFlowQuits2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoPreviousStatementIfControlFlowQuits2()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -313,12 +288,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             throw new System.Exception();
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoPreviousStatementIfControlFlowQuits3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoPreviousStatementIfControlFlowQuits3()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -343,12 +316,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoPreviousStatementIfControlFlowQuits4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoPreviousStatementIfControlFlowQuits4()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -389,12 +360,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoPreviousStatementIfControlFlowQuits5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoPreviousStatementIfControlFlowQuits5()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -432,13 +401,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoPreviousStatementIfControlFlowQuitsInSwitchSection()
-    {
-        // Switch sections are interesting in that they are blocks of statements that aren't BlockSyntax.
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoPreviousStatementIfControlFlowQuitsInSwitchSection()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -467,12 +433,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoPreviousStatementIfControlFlowQuitsWithDifferenceInBlocks()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoPreviousStatementIfControlFlowQuitsWithDifferenceInBlocks()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -500,12 +464,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoPreviousStatementIncludingElseClauseIfControlFlowQuits()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoPreviousStatementIncludingElseClauseIfControlFlowQuits()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -528,12 +490,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             System.Console.WriteLine();
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoPreviousStatementIncludingElseIfClauseIfControlFlowQuits()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoPreviousStatementIncludingElseIfClauseIfControlFlowQuits()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -556,12 +516,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             System.Console.WriteLine();
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoPreviousStatementIfControlFlowQuitsWithPreservedSingleLineFormatting()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoPreviousStatementIfControlFlowQuitsWithPreservedSingleLineFormatting()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -577,14 +535,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         if (a || b) return;
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoPreviousStatementIfControlFlowContinues1()
-    {
-        // Even though there are no statements inside, we still can't merge these into one statement
-        // because it would change the semantics from always evaluating the second condition to short-circuiting.
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoPreviousStatementIfControlFlowContinues1()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -598,12 +552,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoPreviousStatementIfControlFlowContinues2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoPreviousStatementIfControlFlowContinues2()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -614,12 +566,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             System.Console.WriteLine();
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoPreviousStatementIfControlFlowContinues3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoPreviousStatementIfControlFlowContinues3()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -637,12 +587,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoPreviousStatementIfControlFlowContinues4()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoPreviousStatementIfControlFlowContinues4()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -660,12 +608,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoPreviousStatementIfControlFlowContinues5()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoPreviousStatementIfControlFlowContinues5()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -688,12 +634,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoPreviousStatementWithUnmatchingStatementsIfControlFlowQuits()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoPreviousStatementWithUnmatchingStatementsIfControlFlowQuits()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -704,12 +648,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             throw new System.Exception();
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoPreviousStatementThatHasElseClauseIfControlFlowQuits1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoPreviousStatementThatHasElseClauseIfControlFlowQuits1()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -723,12 +665,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             return;
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoPreviousStatementThatHasElseClauseIfControlFlowQuits2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoPreviousStatementThatHasElseClauseIfControlFlowQuits2()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -744,12 +684,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             return;
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoPreviousStatementAsEmbeddedStatementIfControlFlowQuits1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoPreviousStatementAsEmbeddedStatementIfControlFlowQuits1()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -762,12 +700,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
                 return;
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoPreviousStatementAsEmbeddedStatementIfControlFlowQuits2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoPreviousStatementAsEmbeddedStatementIfControlFlowQuits2()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -782,5 +718,4 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             return;
     }
 }");
-    }
 }

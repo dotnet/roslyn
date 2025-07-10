@@ -32,15 +32,13 @@ public class CSharpKeywordHighlighting : AbstractEditorTest
     [IdeFact]
     public async Task Foreach()
     {
-        var input = @"class C
+        MarkupTestFile.GetSpans(@"class C
 {
     void M()
     {
         [|foreach|](var c in """") { if(true) [|break|]; else [|continue|]; }
     }
-}";
-
-        MarkupTestFile.GetSpans(input, out var text, out var spans);
+}", out var text, out var spans);
 
         await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
 
@@ -53,7 +51,8 @@ public class CSharpKeywordHighlighting : AbstractEditorTest
     [IdeFact]
     public async Task PreprocessorConditionals()
     {
-        var input = @"
+        MarkupTestFile.GetSpans(
+            @"
 #define Debug
 #undef Trace
 class PurchaseTransaction
@@ -69,9 +68,7 @@ class PurchaseTransaction
         {|if:#endif|}
         CommitHelper();
     }
-}";
-        MarkupTestFile.GetSpans(
-            input,
+}",
             out var text,
             out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
@@ -85,7 +82,7 @@ class PurchaseTransaction
     [IdeFact]
     public async Task PreprocessorRegions()
     {
-        var input = @"
+        MarkupTestFile.GetSpans(@"
 class C
 {
     [|#region|] Main
@@ -93,9 +90,7 @@ class C
     {
     }
     [|#endregion|]
-}";
-
-        MarkupTestFile.GetSpans(input, out var text, out var spans);
+}", out var text, out var spans);
 
         await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
 

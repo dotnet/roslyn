@@ -1674,13 +1674,12 @@ public sealed class SolutionTests : TestBase
                         .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
 
         // any character is allowed
-        var projectName = "\0<>a/b/*";
 
         SolutionTestHelpers.TestProperty(
             solution,
             (s, value) => s.WithProjectName(projectId, value),
             s => s.GetRequiredProject(projectId).Name,
-            projectName,
+            "\0<>a/b/*",
             defaultThrows: true);
 
         Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectName(null!, "x"));
@@ -4612,26 +4611,16 @@ public class C : A {
         }
 
         solution = solution.AddProject(pid, "test", "test.dll", LanguageNames.CSharp);
-
-        var text1 = "public class Test1 {}";
         var did1 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did1, "test1.cs", text1);
-
-        var text2 = "public class Test2 {}";
+        solution = solution.AddDocument(did1, "test1.cs", "public class Test1 {}");
         var did2 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did2, "test2.cs", text2);
-
-        var text3 = "public class Test3 {}";
+        solution = solution.AddDocument(did2, "test2.cs", "public class Test2 {}");
         var did3 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did3, "test3.cs", text3);
-
-        var text4 = "public class Test4 {}";
+        solution = solution.AddDocument(did3, "test3.cs", "public class Test3 {}");
         var did4 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did4, "test4.cs", text4);
-
-        var text5 = "public class Test5 {}";
+        solution = solution.AddDocument(did4, "test4.cs", "public class Test4 {}");
         var did5 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did5, "test5.cs", text5);
+        solution = solution.AddDocument(did5, "test5.cs", "public class Test5 {}");
 
         var oldVersion = GetVersion();
 
@@ -4676,26 +4665,16 @@ public class C : A {
         var pid = ProjectId.CreateNewId();
 
         solution = solution.AddProject(pid, "test", "test.dll", LanguageNames.CSharp);
-
-        var text1 = "public class Test1 {}";
         var did1 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did1, "test1.cs", text1);
-
-        var text2 = "public class Test2 {}";
+        solution = solution.AddDocument(did1, "test1.cs", "public class Test1 {}");
         var did2 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did2, "test2.cs", text2);
-
-        var text3 = "public class Test3 {}";
+        solution = solution.AddDocument(did2, "test2.cs", "public class Test2 {}");
         var did3 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did3, "test3.cs", text3);
-
-        var text4 = "public class Test4 {}";
+        solution = solution.AddDocument(did3, "test3.cs", "public class Test3 {}");
         var did4 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did4, "test4.cs", text4);
-
-        var text5 = "public class Test5 {}";
+        solution = solution.AddDocument(did4, "test4.cs", "public class Test4 {}");
         var did5 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did5, "test5.cs", text5);
+        solution = solution.AddDocument(did5, "test5.cs", "public class Test5 {}");
 
         solution = solution.RemoveDocument(did5);
 
@@ -4870,15 +4849,14 @@ public class C : A {
         solution = solution.AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp)
             .WithProjectMetadataReferences(projectId, [NetFramework.mscorlib])
             .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithNullableContextOptions(NullableContextOptions.Enable));
-        var src = @"
+        solution = solution.AddDocument(sourceDocumentId, "Test.cs", @"
 class C
 {
     void M(C? c)
     {
         _ = c.ToString();   // warning CS8602: Dereference of a possibly null reference.
     }
-}";
-        solution = solution.AddDocument(sourceDocumentId, "Test.cs", src, filePath: @"Z:\Test.cs");
+}", filePath: @"Z:\Test.cs");
 
         var originalSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
         var originalCompilation = await solution.GetProject(projectId).GetCompilationAsync();

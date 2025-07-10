@@ -19,9 +19,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class UnsealClassTests
 {
     [Fact]
-    public async Task RemovedFromSealedClass()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task RemovedFromSealedClass()
+        => VerifyCS.VerifyCodeFixAsync("""
             sealed class C
             {
             }
@@ -36,12 +35,10 @@ public sealed class UnsealClassTests
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task RemovedFromSealedClassWithOtherModifiersPreserved()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task RemovedFromSealedClassWithOtherModifiersPreserved()
+        => VerifyCS.VerifyCodeFixAsync("""
             public sealed unsafe class C
             {
             }
@@ -56,12 +53,10 @@ public sealed class UnsealClassTests
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task RemovedFromSealedClassWithConstructedGeneric()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task RemovedFromSealedClassWithConstructedGeneric()
+        => VerifyCS.VerifyCodeFixAsync("""
             sealed class C<T>
             {
             }
@@ -76,7 +71,6 @@ public sealed class UnsealClassTests
             {
             }
             """);
-    }
 
     [Fact]
     public async Task NotOfferedForNonSealedClass()
@@ -162,9 +156,8 @@ public sealed class UnsealClassTests
     }
 
     [Fact]
-    public async Task RemovedFromAllPartialClassDeclarationsInSameFile()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task RemovedFromAllPartialClassDeclarationsInSameFile()
+        => VerifyCS.VerifyCodeFixAsync("""
             public sealed partial class C
             {
             }
@@ -191,7 +184,6 @@ public sealed class UnsealClassTests
             {
             }
             """);
-    }
 
     [Fact]
     public async Task RemovedFromAllPartialClassDeclarationsAcrossFiles()

@@ -15,9 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddObsoleteAttribute;
 public sealed class AddObsoleteAttributeTests
 {
     [Fact]
-    public async Task TestObsoleteClassNoMessage()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteClassNoMessage()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             [System.Obsolete]
             class Base {}
@@ -33,12 +32,10 @@ public sealed class AddObsoleteAttributeTests
             class Derived : Base {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteClassWithMessage()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteClassWithMessage()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             [System.Obsolete("message")]
             class Base {}
@@ -54,12 +51,10 @@ public sealed class AddObsoleteAttributeTests
             class Derived : Base {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteClassWithMessageAndErrorFalse()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteClassWithMessageAndErrorFalse()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             [System.Obsolete("message", error: false)]
             class Base {}
@@ -75,7 +70,6 @@ public sealed class AddObsoleteAttributeTests
             class Derived : Base {
             }
             """);
-    }
 
     [Fact]
     public async Task TestObsoleteClassWithMessageAndErrorTrue()
@@ -91,9 +85,8 @@ public sealed class AddObsoleteAttributeTests
     }
 
     [Fact]
-    public async Task TestObsoleteClassUsedInField()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteClassUsedInField()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             [System.Obsolete]
             class Base { public static int i; }
@@ -111,12 +104,10 @@ public sealed class AddObsoleteAttributeTests
                 int i = Base.i;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteClassUsedInMethod()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteClassUsedInMethod()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             [System.Obsolete]
             class Base { public static int i; }
@@ -138,12 +129,10 @@ public sealed class AddObsoleteAttributeTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteOverride()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteOverride()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Base { 
                 [System.Obsolete]
@@ -165,12 +154,10 @@ public sealed class AddObsoleteAttributeTests
                 protected override void ObMethod() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteClassFixAll1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteClassFixAll1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             [System.Obsolete]
             class Base { public static int i; }
@@ -194,12 +181,10 @@ public sealed class AddObsoleteAttributeTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteClassFixAll2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteClassFixAll2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             [System.Obsolete]
             class Base { public static int i; }
@@ -223,12 +208,10 @@ public sealed class AddObsoleteAttributeTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteClassFixAll3()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteClassFixAll3()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             [System.Obsolete]
             class Base { public static int i; }
@@ -259,12 +242,10 @@ public sealed class AddObsoleteAttributeTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteCollectionAddMethod()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteCollectionAddMethod()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Collection : System.Collections.Generic.IEnumerable<int> {
                 [System.Obsolete]
@@ -300,12 +281,10 @@ public sealed class AddObsoleteAttributeTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteCollectionAddMethodWithMessage()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteCollectionAddMethodWithMessage()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Collection : System.Collections.Generic.IEnumerable<int> {
                 [System.Obsolete("message")]
@@ -341,12 +320,10 @@ public sealed class AddObsoleteAttributeTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteCollectionAddMethodWithMessageAndErrorFalse()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteCollectionAddMethodWithMessageAndErrorFalse()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Collection : System.Collections.Generic.IEnumerable<int> {
                 [System.Obsolete("message", error: false)]
@@ -382,7 +359,6 @@ public sealed class AddObsoleteAttributeTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestObsoleteCollectionAddMethodWithMessageAndErrorTrue()

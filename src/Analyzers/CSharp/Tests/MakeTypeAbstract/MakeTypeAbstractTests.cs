@@ -26,9 +26,8 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
         => (null, new CSharpMakeTypeAbstractCodeFixProvider());
 
     [Fact]
-    public async Task TestMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMethod()
+        => TestInRegularAndScript1Async(
             """
             public class Goo
             {
@@ -41,12 +40,10 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
                 public abstract void M();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMethodEnclosingClassWithoutAccessibility()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMethodEnclosingClassWithoutAccessibility()
+        => TestInRegularAndScript1Async(
             """
             class Goo
             {
@@ -59,12 +56,10 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
                 public abstract void M();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMethodEnclosingClassDocumentationComment()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMethodEnclosingClassDocumentationComment()
+        => TestInRegularAndScript1Async(
             """
             /// <summary>
             /// Some class comment.
@@ -83,12 +78,10 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
                 public abstract void M();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPropertyGetter()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestPropertyGetter()
+        => TestInRegularAndScript1Async(
             """
             public class Goo
             {
@@ -101,12 +94,10 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
                 public abstract object P { get; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPropertySetter()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestPropertySetter()
+        => TestInRegularAndScript1Async(
             """
             public class Goo
             {
@@ -119,12 +110,10 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
                 public abstract object P { set; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIndexerGetter()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestIndexerGetter()
+        => TestInRegularAndScript1Async(
             """
             public class Goo
             {
@@ -137,12 +126,10 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
                 public abstract object this[object o] { get; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIndexerSetter()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestIndexerSetter()
+        => TestInRegularAndScript1Async(
             """
             public class Goo
             {
@@ -155,12 +142,10 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
                 public abstract object this[object o] { set; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54218")]
-    public async Task TestPartialClass()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestPartialClass()
+        => TestInRegularAndScript1Async(
             """
             public partial class Goo
             {
@@ -181,60 +166,50 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEventAdd()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestEventAdd()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class Goo
             {
                 public abstract event System.EventHandler E { [|add|]; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEventRemove()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestEventRemove()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class Goo
             {
                 public abstract event System.EventHandler E { [|remove|]; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMethodWithBody()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMethodWithBody()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class Goo
             {
                 public abstract int [|M|]() => 3;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPropertyGetterWithArrowBody()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestPropertyGetterWithArrowBody()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class Goo
             {
                 public abstract int [|P|] => 3;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPropertyGetterWithBody()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestPropertyGetterWithBody()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class Goo
             {
@@ -244,12 +219,10 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStructNestedInClass()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestStructNestedInClass()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class C
             {
@@ -259,24 +232,20 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMethodEnclosingClassStatic()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMethodEnclosingClassStatic()
+        => TestMissingInRegularAndScriptAsync(
             """
             public static class Goo
             {
                 public abstract void [|M|]();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRecord()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRecord()
+        => TestInRegularAndScript1Async(
             """
             public record Goo
             {
@@ -289,12 +258,10 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
                 public abstract void M();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRecordClass()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRecordClass()
+        => TestInRegularAndScript1Async(
             """
             public record class Goo
             {
@@ -307,23 +274,19 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
                 public abstract void M();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRecordStruct()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestRecordStruct()
+        => TestMissingInRegularAndScriptAsync("""
             public record struct Goo
             {
                 public abstract void [|M|]();
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAll()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAll()
+        => TestInRegularAndScript1Async(
             """
             namespace NS
             {
@@ -376,5 +339,4 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """);
-    }
 }

@@ -6728,8 +6728,8 @@ line""</StringToken>
     <EndOfFile />
   </CompilationUnit>
 </Tree>",
-    @"",
-    @"");
+            @"",
+            @"");
     }
 
     [Fact]

@@ -2333,25 +2333,25 @@ public abstract class SyntaxGenerator : ILanguageService
     /// Creates an expression that declares a single parameter value returning lambda expression.
     /// </summary>
     public SyntaxNode ValueReturningLambdaExpression(string parameterName, SyntaxNode expression)
-        => ValueReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, expression);
+        => ValueReturningLambdaExpression([LambdaParameter(parameterName)], expression);
 
     /// <summary>
     /// Creates an expression that declares a single parameter void returning lambda expression.
     /// </summary>
     public SyntaxNode VoidReturningLambdaExpression(string parameterName, SyntaxNode expression)
-        => VoidReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, expression);
+        => VoidReturningLambdaExpression([LambdaParameter(parameterName)], expression);
 
     /// <summary>
     /// Creates an expression that declares a single parameter value returning lambda expression.
     /// </summary>
     public SyntaxNode ValueReturningLambdaExpression(string parameterName, IEnumerable<SyntaxNode> statements)
-        => ValueReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, statements);
+        => ValueReturningLambdaExpression([LambdaParameter(parameterName)], statements);
 
     /// <summary>
     /// Creates an expression that declares a single parameter void returning lambda expression.
     /// </summary>
     public SyntaxNode VoidReturningLambdaExpression(string parameterName, IEnumerable<SyntaxNode> statements)
-        => VoidReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, statements);
+        => VoidReturningLambdaExpression([LambdaParameter(parameterName)], statements);
 
     /// <summary>
     /// Creates an expression that declares a zero parameter value returning lambda expression.

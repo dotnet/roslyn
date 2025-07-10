@@ -100,10 +100,7 @@ unsafe public struct DevDivBugs70194
     public void DocComment()
     {
         var testObject = GetCodeVariable("A", "intB");
-
-        var expected = "<doc>\r\n<summary>\r\nThis is a summary.\r\n</summary>\r\n</doc>";
-
-        Assert.Equal(expected, testObject.DocComment);
+        Assert.Equal("<doc>\r\n<summary>\r\nThis is a summary.\r\n</summary>\r\n</doc>", testObject.DocComment);
     }
 
     [WpfFact]

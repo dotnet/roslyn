@@ -260,21 +260,18 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
                 _logger.LogDebug($"{document.FilePath} found in workspace {workspaceKind}");
 
-                // As we found the document in a non-misc workspace, also attempt to remove it from the misc workspace
+                // If we found the document in a non-misc workspace, also attempt to remove it from the misc workspace
                 // if it happens to be in there as well.
-                if (workspace != _lspMiscellaneousFilesWorkspaceProvider?.Workspace)
+                if (_lspMiscellaneousFilesWorkspaceProvider is not null && !await _lspMiscellaneousFilesWorkspaceProvider.IsMiscellaneousFilesDocumentAsync(document, cancellationToken).ConfigureAwait(false))
                 {
-                    if (_lspMiscellaneousFilesWorkspaceProvider is not null)
+                    try
                     {
-                        try
-                        {
-                            // Do not attempt to remove the file from the metadata workspace (the document is still open).
-                            await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri, removeFromMetadataWorkspace: false).ConfigureAwait(false);
-                        }
-                        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-                        {
-                            _logger.LogException(ex);
-                        }
+                        // Do not attempt to remove the file from the metadata workspace (the document is still open).
+                        await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri, removeFromMetadataWorkspace: false).ConfigureAwait(false);
+                    }
+                    catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                    {
+                        _logger.LogException(ex);
                     }
                 }
 
@@ -569,7 +566,9 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         public Workspace? GetLspMiscellaneousFilesWorkspace()
         {
-            return _manager._lspMiscellaneousFilesWorkspaceProvider?.Workspace;
+            // For purposes of testing, we test against the implementation that is also a Workspace.
+            // TODO: once we also test the FileBasedPrograms implementation, we need to do something else here.
+            return _manager._lspMiscellaneousFilesWorkspaceProvider as Workspace;
         }
 
         public bool IsWorkspaceRegistered(Workspace workspace)

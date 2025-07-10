@@ -7647,7 +7647,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <target state="translated">Předdefinovaný typ {0} není definovaný ani importovaný.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PredefinedValueTupleTypeAmbiguous3">
+      <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
         <target state="translated">Předdefinovaný typ {0} je deklarovaný v několika odkazovaných sestaveních: {1} a {2}.</target>
         <note />

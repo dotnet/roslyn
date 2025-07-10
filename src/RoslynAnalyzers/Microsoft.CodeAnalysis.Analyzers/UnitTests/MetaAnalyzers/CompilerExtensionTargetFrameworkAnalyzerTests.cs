@@ -63,9 +63,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 
         [Theory]
         [CombinatorialData]
-        public async Task CSharpAnalyzerDefinedWithSupportedFramework(SupportedTargetFramework supportedFramework)
-        {
-            await new VerifyCS.Test
+        public Task CSharpAnalyzerDefinedWithSupportedFramework(SupportedTargetFramework supportedFramework)
+            => new VerifyCS.Test
             {
                 ReferenceAssemblies = GetReferenceAssembliesForTargetFramework(supportedFramework).AddPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.CodeAnalysis.Common", GetCodeAnalysisPackageVersion(supportedFramework)))),
@@ -78,13 +77,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     },
                 },
             }.RunAsync();
-        }
 
         [Theory]
         [CombinatorialData]
-        public async Task CSharpFeatureDefinedWithSupportedFramework(CompilerFeature feature)
-        {
-            await new VerifyCS.Test
+        public Task CSharpFeatureDefinedWithSupportedFramework(CompilerFeature feature)
+            => new VerifyCS.Test
             {
                 ReferenceAssemblies = GetReferenceAssembliesForTargetFramework(SupportedTargetFramework.NetStandard2_0).AddPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.CodeAnalysis.Common", GetCodeAnalysisPackageVersion(SupportedTargetFramework.NetStandard2_0)))),
@@ -97,13 +94,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     },
                 },
             }.RunAsync();
-        }
 
         [Theory]
         [CombinatorialData]
-        public async Task CSharpFeatureDefinedWithUnsupportedFramework(CompilerFeature feature, UnsupportedTargetFramework framework)
-        {
-            await new VerifyCS.Test
+        public Task CSharpFeatureDefinedWithUnsupportedFramework(CompilerFeature feature, UnsupportedTargetFramework framework)
+            => new VerifyCS.Test
             {
                 ReferenceAssemblies = GetReferenceAssembliesForTargetFramework(framework).AddPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.CodeAnalysis.Common", GetCodeAnalysisPackageVersion(framework)))),
@@ -120,13 +115,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     VerifyCS.Diagnostic().WithLocation(0).WithArguments(GetDisplayName(framework)),
                 },
             }.RunAsync();
-        }
 
         [Theory]
         [CombinatorialData]
-        public async Task VisualBasicAnalyzerDefinedWithSupportedFramework(SupportedTargetFramework supportedFramework)
-        {
-            await new VerifyVB.Test
+        public Task VisualBasicAnalyzerDefinedWithSupportedFramework(SupportedTargetFramework supportedFramework)
+            => new VerifyVB.Test
             {
                 ReferenceAssemblies = GetReferenceAssembliesForTargetFramework(supportedFramework).AddPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.CodeAnalysis.Common", GetCodeAnalysisPackageVersion(supportedFramework)))),
@@ -139,13 +132,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     },
                 },
             }.RunAsync();
-        }
 
         [Theory]
         [CombinatorialData]
-        public async Task VisualBasicFeatureDefinedWithSupportedFramework(CompilerFeature feature)
-        {
-            await new VerifyVB.Test
+        public Task VisualBasicFeatureDefinedWithSupportedFramework(CompilerFeature feature)
+            => new VerifyVB.Test
             {
                 ReferenceAssemblies = GetReferenceAssembliesForTargetFramework(SupportedTargetFramework.NetStandard2_0).AddPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.CodeAnalysis.Common", GetCodeAnalysisPackageVersion(SupportedTargetFramework.NetStandard2_0)))),
@@ -158,13 +149,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     },
                 },
             }.RunAsync();
-        }
 
         [Theory]
         [CombinatorialData]
-        public async Task VisualBasicFeatureDefinedWithUnsupportedFramework(CompilerFeature feature, UnsupportedTargetFramework framework)
-        {
-            await new VerifyVB.Test
+        public Task VisualBasicFeatureDefinedWithUnsupportedFramework(CompilerFeature feature, UnsupportedTargetFramework framework)
+            => new VerifyVB.Test
             {
                 ReferenceAssemblies = GetReferenceAssembliesForTargetFramework(framework).AddPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.CodeAnalysis.Common", GetCodeAnalysisPackageVersion(framework)))),
@@ -181,7 +170,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     VerifyVB.Diagnostic().WithLocation(0).WithArguments(GetDisplayName(framework)),
                 },
             }.RunAsync();
-        }
 
         private static ReferenceAssemblies GetReferenceAssembliesForTargetFramework(SupportedTargetFramework framework)
         {

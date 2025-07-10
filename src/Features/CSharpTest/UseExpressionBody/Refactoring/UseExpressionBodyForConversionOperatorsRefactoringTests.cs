@@ -35,9 +35,8 @@ public sealed class UseExpressionBodyForConversionOperatorsRefactoringTests : Ab
         => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None));
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
+        => TestMissingAsync(
             """
             class C
             {
@@ -48,12 +47,10 @@ public sealed class UseExpressionBodyForConversionOperatorsRefactoringTests : Ab
             }
             """,
             parameters: new TestParameters(options: UseExpressionBody));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -70,12 +67,10 @@ public sealed class UseExpressionBodyForConversionOperatorsRefactoringTests : Ab
             }
             """,
             parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -92,12 +87,10 @@ public sealed class UseExpressionBodyForConversionOperatorsRefactoringTests : Ab
             }
             """,
             parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task TestNotOfferedInLambda()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedInLambda()
+        => TestMissingAsync(
             """
             class C
             {
@@ -108,12 +101,10 @@ public sealed class UseExpressionBodyForConversionOperatorsRefactoringTests : Ab
             }
             """,
             parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
+        => TestMissingAsync(
             """
             class C
             {
@@ -121,12 +112,10 @@ public sealed class UseExpressionBodyForConversionOperatorsRefactoringTests : Ab
             }
             """,
             parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -143,12 +132,10 @@ public sealed class UseExpressionBodyForConversionOperatorsRefactoringTests : Ab
             }
             """,
             parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -165,12 +152,10 @@ public sealed class UseExpressionBodyForConversionOperatorsRefactoringTests : Ab
             }
             """,
             parameters: new TestParameters(options: UseExpressionBody));
-    }
 
     [Fact]
-    public async Task TestOfferedWithSelectionInsideBlockBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedWithSelectionInsideBlockBody()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -187,12 +172,10 @@ public sealed class UseExpressionBodyForConversionOperatorsRefactoringTests : Ab
             }
             """,
             parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task TestNotOfferedWithSelectionOutsideBlockBody()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedWithSelectionOutsideBlockBody()
+        => TestMissingAsync(
             """
             class C
             {
@@ -203,5 +186,4 @@ public sealed class UseExpressionBodyForConversionOperatorsRefactoringTests : Ab
             }|]
             """,
             parameters: new TestParameters(options: UseBlockBody));
-    }
 }

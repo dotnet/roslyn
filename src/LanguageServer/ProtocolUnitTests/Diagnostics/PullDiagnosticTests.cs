@@ -935,6 +935,37 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(LSP.DiagnosticSeverity.Information, results.Single().Diagnostics!.Single().Severity);
     }
 
+    [ConditionalTheory(typeof(UnixLikeOnly)), CombinatorialData]
+    public async Task TestDocumentDiagnosticsWhenClientRequestsWithDifferentCasing(bool useVSDiagnostics, bool mutatingLspWorkspace)
+    {
+        var markup = @"class A {";
+
+        var workspaceXml =
+            $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
+                    <Document FilePath="/Users/ConsoleApp1/Class1.cs">{markup}</Document>
+                </Project>
+            </Workspace>
+            """;
+
+        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+
+        var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+        var loweredUri = ProtocolConversions.CreateAbsoluteDocumentUri(document.FilePath!.ToLowerInvariant());
+        await testLspServer.OpenDocumentAsync(loweredUri);
+
+        var results = await RunGetDocumentPullDiagnosticsAsync(
+            testLspServer, loweredUri, useVSDiagnostics);
+
+        // When looking up the document based on a URI, the workspace ignores casing differences and can open the document with different casing.
+        // When diagnostics checks if the document is open, it should also be able to tell that the document is open, even though the URI casing is different from the file path.
+
+        Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
+        Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedUri);
+    }
+
     #endregion
 
     #region Workspace Diagnostics

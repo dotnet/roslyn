@@ -13,15 +13,14 @@ public sealed class InteractiveCSharpTestWorkspaceFixture : CSharpTestWorkspaceF
 {
     internal static EditorTestWorkspace CreateInteractiveWorkspace(string fileContent, TestComposition composition)
     {
-        var workspaceDefinition = $@"
+        return EditorTestWorkspace.Create(XElement.Parse($@"
 <Workspace>
     <Submission Language=""C#"" CommonReferences=""true"">
 <![CDATA[
             {fileContent}]]>
     </Submission>
 </Workspace>
-";
-        return EditorTestWorkspace.Create(XElement.Parse(workspaceDefinition), composition: composition, workspaceKind: WorkspaceKind.Interactive);
+"), composition: composition, workspaceKind: WorkspaceKind.Interactive);
     }
 
     protected override EditorTestWorkspace CreateWorkspace(TestComposition composition = null)
