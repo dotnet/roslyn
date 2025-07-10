@@ -161,6 +161,8 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         Logger.Log(FunctionId.Run_Environment, KeyValueLogMessage.Create(
             static m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
+
+        SubscribeToSourceGeneratorImpactingEvents();
     }
 
     internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;

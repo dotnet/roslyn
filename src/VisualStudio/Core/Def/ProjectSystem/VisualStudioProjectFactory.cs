@@ -68,7 +68,6 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
                 _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
                 _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
-                _visualStudioWorkspaceImpl.SubscribeToSourceGeneratorImpactingEvents();
             });
     }
 
