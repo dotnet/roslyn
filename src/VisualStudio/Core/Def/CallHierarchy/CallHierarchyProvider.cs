@@ -32,20 +32,7 @@ internal sealed partial class CallHierarchyProvider
     private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
     public IThreadingContext ThreadingContext { get; }
-
-    [AllowNull]
-    public IGlyphService GlyphService
-    {
-        get
-        {
-            // Work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2506733; we don't expect to need this in unit tests
-            // so we'll keep the property non-nullable. Once the editor bug is fixed, we can revert this to an autoprop again.
-            Contract.ThrowIfNull(field, "We must be in unit tests and didn't get a IGlyphService, but a test still needs it.");
-
-            return field;
-        }
-        set { field = value!; }
-    }
+    public IGlyphService GlyphService { get; }
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -53,13 +40,13 @@ internal sealed partial class CallHierarchyProvider
         IThreadingContext threadingContext,
         IUIThreadOperationExecutor threadOperationExecutor,
         IAsynchronousOperationListenerProvider listenerProvider,
-        [Import(AllowDefault = true)] IGlyphService? glyphService, // AllowDefault = true to work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2506733
+        IGlyphService glyphService,
         Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
     {
         AsyncListener = listenerProvider.GetListener(FeatureAttribute.CallHierarchy);
         ThreadingContext = threadingContext;
         ThreadOperationExecutor = threadOperationExecutor;
-        this.GlyphService = glyphService;
+        GlyphService = glyphService;
         _streamingPresenter = streamingPresenter;
     }
 
