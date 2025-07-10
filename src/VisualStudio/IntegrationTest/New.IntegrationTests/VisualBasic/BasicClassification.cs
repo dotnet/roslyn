@@ -73,6 +73,7 @@ public class BasicClassification : AbstractEditorTest
     public async Task Semantic_Classification()
     {
         await TestServices.Editor.SetTextAsync("""
+
             Imports System
             Class Goo
                 Inherits Attribute

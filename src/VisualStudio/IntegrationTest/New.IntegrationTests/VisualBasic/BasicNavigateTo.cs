@@ -28,6 +28,7 @@ public class BasicNavigateTo : AbstractEditorTest
         var project = ProjectName;
         var csProject = "CSProject";
         await TestServices.SolutionExplorer.AddFileAsync(project, "test1.vb", open: false, contents: """
+
             Class FirstClass
                 Sub FirstMethod()
                 End Sub
@@ -35,6 +36,7 @@ public class BasicNavigateTo : AbstractEditorTest
             """, cancellationToken: HangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.AddFileAsync(project, "test2.vb", open: true, contents: """
+
 
             """, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);

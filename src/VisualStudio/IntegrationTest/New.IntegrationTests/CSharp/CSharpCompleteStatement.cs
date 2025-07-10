@@ -23,6 +23,7 @@ public class CSharpCompleteStatement : AbstractEditorTest
     public async Task UndoRestoresCaretPosition1()
     {
         await SetUpEditorAsync("""
+
             public class Test
             {
                 private object f;
@@ -32,6 +33,7 @@ public class CSharpCompleteStatement : AbstractEditorTest
                     f.ToString($$)
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(';', HangMitigatingCancellationToken);
@@ -45,6 +47,7 @@ public class CSharpCompleteStatement : AbstractEditorTest
     public async Task UndoRestoresCaretPosition2()
     {
         await SetUpEditorAsync("""
+
             public class Test
             {
                 private object f;
@@ -54,6 +57,7 @@ public class CSharpCompleteStatement : AbstractEditorTest
                     Method(condition ? whenTrue $$)
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(';', HangMitigatingCancellationToken);
@@ -67,6 +71,7 @@ public class CSharpCompleteStatement : AbstractEditorTest
     public async Task UndoRestoresFormatBeforeRestoringCaretPosition()
     {
         await SetUpEditorAsync("""
+
             public class Test
             {
                 private object f;
@@ -76,6 +81,7 @@ public class CSharpCompleteStatement : AbstractEditorTest
                     f.ToString($$ )
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(';', HangMitigatingCancellationToken);

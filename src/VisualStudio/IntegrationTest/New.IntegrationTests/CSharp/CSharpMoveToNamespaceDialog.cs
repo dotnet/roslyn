@@ -26,12 +26,14 @@ public class CSharpMoveToNamespaceDialog : AbstractEditorTest
     {
         await SetUpEditorAsync(
             """
+
             namespace A
             {
                 class C$$
                 {
                 }
             }
+
             """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Move to namespace...",
@@ -45,12 +47,14 @@ public class CSharpMoveToNamespaceDialog : AbstractEditorTest
 
         await TestServices.EditorVerifier.TextContainsAsync(
             """
+
             namespace A
             {
                 class C
                 {
                 }
             }
+
             """, cancellationToken: HangMitigatingCancellationToken);
     }
 
@@ -59,12 +63,14 @@ public class CSharpMoveToNamespaceDialog : AbstractEditorTest
     {
         await SetUpEditorAsync(
             """
+
             namespace A
             {
                 class C$$
                 {
                 }
             }
+
             """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Move to namespace...",
@@ -79,12 +85,14 @@ public class CSharpMoveToNamespaceDialog : AbstractEditorTest
 
         await TestServices.EditorVerifier.TextContainsAsync(
             """
+
             namespace A
             {
                 class C
                 {
                 }
             }
+
             """, cancellationToken: HangMitigatingCancellationToken);
     }
 
@@ -93,12 +101,14 @@ public class CSharpMoveToNamespaceDialog : AbstractEditorTest
     {
         await SetUpEditorAsync(
             """
+
             namespace A
             {
                 class C$$
                 {
                 }
             }
+
             """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Move to namespace...",
@@ -112,12 +122,14 @@ public class CSharpMoveToNamespaceDialog : AbstractEditorTest
 
         await TestServices.EditorVerifier.TextContainsAsync(
             """
+
             namespace A
             {
                 class C
                 {
                 }
             }
+
             """, cancellationToken: HangMitigatingCancellationToken);
     }
 
@@ -132,6 +144,7 @@ public class CSharpMoveToNamespaceDialog : AbstractEditorTest
                 {
                 }
             }
+
             """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Move to namespace...",
@@ -152,6 +165,7 @@ public class CSharpMoveToNamespaceDialog : AbstractEditorTest
                 {
                 }
             }
+
             """, cancellationToken: HangMitigatingCancellationToken);
     }
 }

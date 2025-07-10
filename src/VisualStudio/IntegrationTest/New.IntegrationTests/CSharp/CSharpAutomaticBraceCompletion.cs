@@ -26,6 +26,7 @@ public class CSharpAutomaticBraceCompletion : AbstractEditorTest
     public async Task Braces_InsertionAndTabCompleting(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C {
                 void Goo() {
                     $$
@@ -46,6 +47,7 @@ public class CSharpAutomaticBraceCompletion : AbstractEditorTest
     public async Task Braces_Overtyping(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C {
                 void Goo() {
                     $$
@@ -75,6 +77,7 @@ public class CSharpAutomaticBraceCompletion : AbstractEditorTest
     public async Task Braces_Overtyping_Method()
     {
         await SetUpEditorAsync("""
+
             class C {
                 $$
             }
@@ -99,6 +102,7 @@ public class CSharpAutomaticBraceCompletion : AbstractEditorTest
     public async Task Braces_Overtyping_Property()
     {
         await SetUpEditorAsync("""
+
             class C {
                 $$
             }
@@ -123,6 +127,7 @@ public class CSharpAutomaticBraceCompletion : AbstractEditorTest
     public async Task Braces_Overtyping_CollectionInitializer()
     {
         await SetUpEditorAsync("""
+
             using System.Collections.Generic;
             class C {
                 void Method() {
@@ -150,6 +155,7 @@ public class CSharpAutomaticBraceCompletion : AbstractEditorTest
     public async Task Braces_Overtyping_ObjectInitializer()
     {
         await SetUpEditorAsync("""
+
             class C {
                 void Method() {
                     $$
@@ -167,6 +173,7 @@ public class CSharpAutomaticBraceCompletion : AbstractEditorTest
     public async Task Braces_OnReturnNoFormattingOnlyIndentationBeforeCloseBrace(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C {
                 void Goo() {
                     $$
@@ -185,6 +192,7 @@ public class CSharpAutomaticBraceCompletion : AbstractEditorTest
             HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             class C {
                 void Goo() {
                     if (true)
@@ -202,6 +210,7 @@ HangMitigatingCancellationToken);
     public async Task Braces_OnReturnOvertypingTheClosingBrace(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C {
                 void Goo() {
                     $$
@@ -221,6 +230,7 @@ HangMitigatingCancellationToken);
             HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             class C {
                 void Goo() {
                     if (true)
@@ -259,6 +269,7 @@ HangMitigatingCancellationToken);
     public async Task Paren_InsertionAndTabCompleting(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C {
                 $$
             }
@@ -277,6 +288,7 @@ HangMitigatingCancellationToken);
     public async Task Paren_Overtyping(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C {
                 $$
             }
@@ -299,6 +311,7 @@ HangMitigatingCancellationToken);
     public async Task SquareBracket_Insertion(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C {
                 $$
             }
@@ -314,6 +327,7 @@ HangMitigatingCancellationToken);
     public async Task SquareBracket_Overtyping(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C { 
                 $$
             }
@@ -330,6 +344,7 @@ HangMitigatingCancellationToken);
 
     {
         await SetUpEditorAsync("""
+
             class C {
                 $$
             }
@@ -347,6 +362,7 @@ HangMitigatingCancellationToken);
     public async Task DoubleQuote_InsertionAndOvertyping(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C {
                 $$
             }
@@ -362,6 +378,7 @@ HangMitigatingCancellationToken);
     public async Task DoubleQuote_FixedInterpolatedVerbatimString(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C
             {
                 void M()
@@ -377,7 +394,7 @@ HangMitigatingCancellationToken);
             var v = @$"
             """, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("""
-            var v = $@"$$"
+                    var v = $@"$$"
             """, assertCaretPosition: true, HangMitigatingCancellationToken);
 
         // Backspace removes quotes
@@ -403,6 +420,7 @@ HangMitigatingCancellationToken);
     public async Task AngleBracket_PossibleGenerics_InsertionAndCompletion(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C {
                 //field
                 $$
@@ -415,6 +433,7 @@ HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("    System.Action<>$$", assertCaretPosition: true, HangMitigatingCancellationToken);
 
         await SetUpEditorAsync("""
+
             class C {
                 //method decl
                 $$
@@ -425,6 +444,7 @@ HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("    void GenericMethod<>$$", assertCaretPosition: true, HangMitigatingCancellationToken);
 
         await SetUpEditorAsync("""
+
             class C {
                 //delegate
                 $$
@@ -435,16 +455,20 @@ HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("    delegate void Del<$$>", assertCaretPosition: true, HangMitigatingCancellationToken);
 
         await SetUpEditorAsync("""
+
             //using directive
             $$
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("using ActionOfT = System.Action<", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("using ActionOfT = System.Action<$$>", assertCaretPosition: true, HangMitigatingCancellationToken);
 
         await SetUpEditorAsync("""
+
             //class
             $$
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync(["class GenericClass<", '>'], HangMitigatingCancellationToken);
@@ -455,6 +479,7 @@ HangMitigatingCancellationToken);
     public async Task SingleQuote_InsertionAndCompletion(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C {
                 $$
             }
@@ -475,6 +500,7 @@ HangMitigatingCancellationToken);
     public async Task Nested_AllKinds(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class Bar<U>
             {
                 T Goo<T>(T t) { return t; }
@@ -516,6 +542,7 @@ HangMitigatingCancellationToken);
     public async Task Negative_NoCompletionInSingleLineComments(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C {
                 // $$
             }
@@ -531,6 +558,7 @@ HangMitigatingCancellationToken);
     public async Task Negative_NoCompletionInMultiLineComments(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C {
                 /*
                  $$
@@ -548,6 +576,7 @@ HangMitigatingCancellationToken);
     public async Task Negative_NoCompletionStringVerbatimStringOrCharLiterals(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C {
                 $$
             }
@@ -557,14 +586,14 @@ HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("string s = \"{([<'", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("""
-            string s = "{([<'$$"
+                string s = "{([<'$$"
             """, assertCaretPosition: true, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.END, ';', VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("string y = @\"{([<'", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("""
-            string y = @"{([<'$$"
+                string y = @"{([<'$$"
             """, assertCaretPosition: true, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.END, ';', VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
@@ -579,6 +608,7 @@ HangMitigatingCancellationToken);
     public async Task Negative_NoCompletionInXmlDocComments(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             $$
             class C { }
             """, HangMitigatingCancellationToken);
@@ -599,6 +629,7 @@ HangMitigatingCancellationToken);
     public async Task Negative_NoCompletionInDisabledPreprocesser(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C {
             #if false
             $$
@@ -616,9 +647,11 @@ HangMitigatingCancellationToken);
     public async Task Negative_NoCompletionAfterRegionPreprocesser(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             #region $$
 
             #endregion
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.SetTriggerCompletionInArgumentListsAsync(LanguageNames.CSharp, showCompletionInArgumentLists, HangMitigatingCancellationToken);
@@ -631,9 +664,11 @@ HangMitigatingCancellationToken);
     public async Task Negative_NoCompletionAfterEndregionPreprocesser(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             #region
 
             #endregion $$
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.SetTriggerCompletionInArgumentListsAsync(LanguageNames.CSharp, showCompletionInArgumentLists, HangMitigatingCancellationToken);
@@ -646,7 +681,9 @@ HangMitigatingCancellationToken);
     public async Task Negative_NoCompletionAfterIfPreprocesser(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             #if $$
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.SetTriggerCompletionInArgumentListsAsync(LanguageNames.CSharp, showCompletionInArgumentLists, HangMitigatingCancellationToken);
@@ -659,7 +696,9 @@ HangMitigatingCancellationToken);
     public async Task Negative_NoCompletionAfterPragmaPreprocesser(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             #pragma $$
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.SetTriggerCompletionInArgumentListsAsync(LanguageNames.CSharp, showCompletionInArgumentLists, HangMitigatingCancellationToken);
@@ -673,6 +712,7 @@ HangMitigatingCancellationToken);
     public async Task InteractionWithOverrideStubGeneration(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class A
             {
                 public virtual void Goo() { }
@@ -682,6 +722,7 @@ HangMitigatingCancellationToken);
                 // type "override Goo("
                 $$
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.SetTriggerCompletionInArgumentListsAsync(LanguageNames.CSharp, showCompletionInArgumentLists, HangMitigatingCancellationToken);
@@ -692,6 +733,7 @@ HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync("Goo(", HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains("""
+
             class B : A
             {
                 // type "override Goo("
@@ -708,6 +750,7 @@ HangMitigatingCancellationToken);
     public async Task InteractionWithCompletionList(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             using System.Collections.Generic;
             class C 
             {
@@ -716,6 +759,7 @@ HangMitigatingCancellationToken);
                     List<int> li = $$
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.SetTriggerCompletionInArgumentListsAsync(LanguageNames.CSharp, showCompletionInArgumentLists, HangMitigatingCancellationToken);
@@ -740,6 +784,7 @@ HangMitigatingCancellationToken);
     public async Task AutoBraceCompleteDoesNotFormatBracePairInInitializers(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C 
             {
                 void M()
@@ -747,6 +792,7 @@ HangMitigatingCancellationToken);
                     var x = $$
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.SetTriggerCompletionInArgumentListsAsync(LanguageNames.CSharp, showCompletionInArgumentLists, HangMitigatingCancellationToken);
@@ -760,6 +806,7 @@ HangMitigatingCancellationToken);
     public async Task AutoBraceCompleteDoesNotFormatBracePairInObjectCreationExpression(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C 
             {
                 void M()
@@ -767,6 +814,7 @@ HangMitigatingCancellationToken);
                     var x = $$
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.SetTriggerCompletionInArgumentListsAsync(LanguageNames.CSharp, showCompletionInArgumentLists, HangMitigatingCancellationToken);
@@ -780,7 +828,9 @@ HangMitigatingCancellationToken);
     public async Task AutoBraceCompleteFormatsBracePairInClassDeclarationAndAutoProperty(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class $$
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.SetTriggerCompletionInArgumentListsAsync(LanguageNames.CSharp, showCompletionInArgumentLists, HangMitigatingCancellationToken);
@@ -795,6 +845,7 @@ HangMitigatingCancellationToken);
             ],
             HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             class C
             {
                 int Prop { $$}
@@ -810,6 +861,7 @@ HangMitigatingCancellationToken);
     public async Task CompleteStatementTriggersCompletion(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class Program
             {
                 static void Main(string[] args)
@@ -837,6 +889,7 @@ HangMitigatingCancellationToken);
     public async Task Braces_InsertionOnNewLine(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C {
                 void Goo() {
                     $$
@@ -857,6 +910,7 @@ HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             class C {
                 void Goo() {
                     if (true)
@@ -869,6 +923,7 @@ HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("}", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             class C {
                 void Goo() {
                     if (true)

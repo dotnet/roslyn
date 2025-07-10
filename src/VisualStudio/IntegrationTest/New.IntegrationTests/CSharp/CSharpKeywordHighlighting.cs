@@ -55,6 +55,7 @@ public class CSharpKeywordHighlighting : AbstractEditorTest
     {
         MarkupTestFile.GetSpans(
             """
+
             #define Debug
             #undef Trace
             class PurchaseTransaction
@@ -86,6 +87,7 @@ public class CSharpKeywordHighlighting : AbstractEditorTest
     public async Task PreprocessorRegions()
     {
         MarkupTestFile.GetSpans("""
+
             class C
             {
                 [|#region|] Main

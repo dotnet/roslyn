@@ -33,6 +33,7 @@ public class BasicAutomaticBraceCompletion : AbstractEditorTest
         globalOptions.SetGlobalOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.VisualBasic, argumentCompletion);
 
         await SetUpEditorAsync("""
+
             Class C
                 Sub Goo()
                     $$
@@ -72,6 +73,7 @@ public class BasicAutomaticBraceCompletion : AbstractEditorTest
     public async Task Braces_Overtyping()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Goo()
                     $$
@@ -88,6 +90,7 @@ public class BasicAutomaticBraceCompletion : AbstractEditorTest
     public async Task ParenthesesTypeoverAfterStringLiterals()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Goo()
                     $$
@@ -112,6 +115,7 @@ public class BasicAutomaticBraceCompletion : AbstractEditorTest
     public async Task Braces_OnReturnNoFormattingOnlyIndentationBeforeCloseBrace()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Goo()
                     $$
@@ -123,6 +127,7 @@ public class BasicAutomaticBraceCompletion : AbstractEditorTest
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("            $$}", assertCaretPosition: true, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Class C
                 Sub Goo()
                     Dim x = {
@@ -138,6 +143,7 @@ HangMitigatingCancellationToken);
     public async Task Paren_InsertionAndTabCompleting()
     {
         await SetUpEditorAsync("""
+
             Class C
                 $$
             End Class
@@ -156,6 +162,7 @@ HangMitigatingCancellationToken);
     public async Task Paren_Overtyping()
     {
         await SetUpEditorAsync("""
+
             Class C
                 $$
             End Class
@@ -173,6 +180,7 @@ HangMitigatingCancellationToken);
     public async Task Bracket_Insertion()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Goo()
                     $$
@@ -188,6 +196,7 @@ HangMitigatingCancellationToken);
     public async Task Bracket_Overtyping()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Goo()
                     $$
@@ -206,6 +215,7 @@ HangMitigatingCancellationToken);
     public async Task DoubleQuote_InsertionAndTabCompletion()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Goo()
                     $$
@@ -217,7 +227,7 @@ HangMitigatingCancellationToken);
             Dim str = "
             """, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("""
-            Dim str = "$$"
+                    Dim str = "$$"
             """, assertCaretPosition: true, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
@@ -228,6 +238,7 @@ HangMitigatingCancellationToken);
     public async Task Nested_AllKinds_1()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub New([dim] As String)
                 End Sub
@@ -254,6 +265,7 @@ HangMitigatingCancellationToken);
     public async Task Nested_AllKinds_2()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub New([dim] As String)
                 End Sub
@@ -284,6 +296,7 @@ HangMitigatingCancellationToken);
     public async Task Negative_NoCompletionInComments()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Goo()
                     ' $$
@@ -301,6 +314,7 @@ HangMitigatingCancellationToken);
     public async Task Negative_NoCompletionInStringLiterals()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Goo()
                     $$
@@ -310,7 +324,7 @@ HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("Dim s = \"{([", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("""
-            Dim s = "{([$$"
+                    Dim s = "{([$$"
             """, assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 
@@ -318,6 +332,7 @@ HangMitigatingCancellationToken);
     public async Task Negative_NoCompletionInXmlDocComment()
     {
         await SetUpEditorAsync("""
+
             $$
             Class C
             End Class
@@ -335,6 +350,7 @@ HangMitigatingCancellationToken);
     public async Task Negative_NoCompletionInXmlDocCommentAtEndOfTag()
     {
         await SetUpEditorAsync("""
+
             Class C
                 ''' <summary>
                 ''' <see></see>$$
@@ -353,6 +369,7 @@ HangMitigatingCancellationToken);
     public async Task LineCommittingIssue()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Goo()
                     $$
@@ -369,6 +386,7 @@ HangMitigatingCancellationToken);
     public async Task VirtualWhitespaceIssue()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Goo()$$
                 End Sub
@@ -387,6 +405,7 @@ HangMitigatingCancellationToken);
     public async Task CompletionWithIntelliSenseWindowUp()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Goo()
                 End Sub
@@ -405,6 +424,7 @@ HangMitigatingCancellationToken);
     public async Task CompletionAtTheEndOfFile()
     {
         await SetUpEditorAsync("""
+
             Class C
                 $$
             """, HangMitigatingCancellationToken);

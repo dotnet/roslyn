@@ -33,6 +33,7 @@ public class CSharpGenerateTypeDialog : AbstractEditorTest
                     $$A a;    
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.CodeActionAsync("Generate new type...",
@@ -62,6 +63,7 @@ public class CSharpGenerateTypeDialog : AbstractEditorTest
                     $$A a;    
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.CodeActionAsync("Generate new type...",
@@ -82,6 +84,7 @@ public class CSharpGenerateTypeDialog : AbstractEditorTest
         Assert.Contains("""
             Public Interface A
             End Interface
+
             """, actualText);
 
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Class1.cs", HangMitigatingCancellationToken);
@@ -96,6 +99,7 @@ public class CSharpGenerateTypeDialog : AbstractEditorTest
                     A a;    
                 }
             }
+
             """, actualText);
 
     }

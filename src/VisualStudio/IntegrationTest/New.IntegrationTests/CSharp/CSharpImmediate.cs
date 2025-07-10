@@ -33,6 +33,7 @@ public class CSharpImmediate : AbstractEditorTest
     public async Task DumpLocalVariableValue()
     {
         await TestServices.Editor.SetTextAsync("""
+
             class Program
             {
                 static void Main(string[] args)
@@ -41,6 +42,7 @@ public class CSharpImmediate : AbstractEditorTest
                     int n2Var = 43;
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);

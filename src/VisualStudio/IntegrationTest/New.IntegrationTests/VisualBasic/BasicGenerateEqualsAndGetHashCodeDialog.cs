@@ -25,6 +25,7 @@ public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
     public async Task VerifyCodeRefactoringOfferedAndCanceled()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Dim i as Integer
                 Dim j as String
@@ -40,6 +41,7 @@ public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
         await TestServices.PickMembersDialog.ClickCancelAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains("""
+
             Class C
                 Dim i as Integer
                 Dim j as String
@@ -54,6 +56,7 @@ public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
     public async Task VerifyCodeRefactoringOfferedAndAccepted()
     {
         await SetUpEditorAsync("""
+
             Imports TestProj
 
             Class C
@@ -71,6 +74,7 @@ public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
         await TestServices.PickMembersDialog.ClickOKAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains("""
+
             Imports TestProj
 
             Class C

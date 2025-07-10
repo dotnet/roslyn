@@ -100,18 +100,18 @@ public class CSharpWinForms : AbstractEditorTest
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.cs", HangMitigatingCancellationToken);
         var codeFileActualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains("""
-            public partial class Form1 : Form
-            {
-                public Form1()
+                public partial class Form1 : Form
                 {
-                    InitializeComponent();
-                }
+                    public Form1()
+                    {
+                        InitializeComponent();
+                    }
 
-                private void ExecuteWhenButtonClicked(object sender, EventArgs e)
-                {
+                    private void ExecuteWhenButtonClicked(object sender, EventArgs e)
+                    {
 
+                    }
                 }
-            }
             """, codeFileActualText);
     }
 

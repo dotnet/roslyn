@@ -51,11 +51,13 @@ public class BasicFormatting : AbstractEditorTest
     public async Task VerifyCaseCorrection()
     {
         await SetUpEditorAsync("""
+
             $$module A
             end module
             """, HangMitigatingCancellationToken);
         await TestServices.Editor.FormatDocumentAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Module A
             End Module
             """, cancellationToken: HangMitigatingCancellationToken);
@@ -65,6 +67,7 @@ public class BasicFormatting : AbstractEditorTest
     public async Task ShiftEnterWithIntelliSenseAndBraceMatching()
     {
         await SetUpEditorAsync("""
+
             Module Program
                 Function Main(ooo As Object) As Object
                     Return Main$$
@@ -74,6 +77,7 @@ public class BasicFormatting : AbstractEditorTest
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync(["(o", (VirtualKeyCode.RETURN, VirtualKeyCode.SHIFT), "'comment"], HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Module Program
                 Function Main(ooo As Object) As Object
                     Return Main(ooo)

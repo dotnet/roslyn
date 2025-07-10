@@ -27,6 +27,7 @@ public abstract class CSharpErrorListCommon : AbstractEditorTest
     public virtual async Task ErrorList()
     {
         await TestServices.Editor.SetTextAsync("""
+
             class C
             {
                 void M(P p)
@@ -38,6 +39,7 @@ public abstract class CSharpErrorListCommon : AbstractEditorTest
                 {
                 }
             }
+
             """, HangMitigatingCancellationToken);
         await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
         var expectedContents = new[] {
@@ -66,6 +68,7 @@ public abstract class CSharpErrorListCommon : AbstractEditorTest
     public virtual async Task ErrorLevelWarning()
     {
         await TestServices.Editor.SetTextAsync("""
+
             class C
             {
                 static void Main(string[] args)
@@ -73,6 +76,7 @@ public abstract class CSharpErrorListCommon : AbstractEditorTest
                     int unused = 0;
                 }
             }
+
             """, HangMitigatingCancellationToken);
         await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
         var expectedContents = new[] {
@@ -89,6 +93,7 @@ public abstract class CSharpErrorListCommon : AbstractEditorTest
     public virtual async Task ErrorsDuringMethodBodyEditing()
     {
         await TestServices.Editor.SetTextAsync("""
+
             class Program2
             {
                 static void Main(string[] args)
@@ -97,6 +102,7 @@ public abstract class CSharpErrorListCommon : AbstractEditorTest
                     int a = aa;
                 }
             }
+
             """, HangMitigatingCancellationToken);
         await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
         var expectedContents = new string[] { };
@@ -137,6 +143,7 @@ public abstract class CSharpErrorListCommon : AbstractEditorTest
     public virtual async Task ErrorsAfterClosingFile()
     {
         await TestServices.Editor.SetTextAsync("""
+
             class Program2
             {
                 static void Main(string[] args)
@@ -145,6 +152,7 @@ public abstract class CSharpErrorListCommon : AbstractEditorTest
                     int a = aa;
                 }
             }
+
             """, HangMitigatingCancellationToken);
         await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
         var expectedContents = new string[] { };

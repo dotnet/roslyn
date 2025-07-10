@@ -26,6 +26,7 @@ public sealed class InfrastructureTests : AbstractEditorTest
     {
         await SetUpEditorAsync(
             """
+
             namespace MyNamespace
             {
             $$

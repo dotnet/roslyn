@@ -38,6 +38,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
     public async Task VerifyLocalVariableRename()
     {
         var markup = """
+
             Imports System
             Imports System.Collections.Generic
             Imports System.Linq
@@ -64,6 +65,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
         await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync("""
+
             Imports System
             Imports System.Collections.Generic
             Imports System.Linq
@@ -88,6 +90,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
         // "thix" below to ensure we don't change instances of "x" in comments that are part of
         // larger words
         var markup = """
+
             Imports System
             Imports System.Collections.Generic
             Imports System.Linq
@@ -116,6 +119,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
         await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync("""
+
             Imports System
             Imports System.Collections.Generic
             Imports System.Linq
@@ -138,6 +142,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
     public async Task VerifyLocalVariableRenameWithStringsUpdated()
     {
         var markup = """
+
             Imports System
             Imports System.Collections.Generic
             Imports System.Linq
@@ -163,6 +168,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
         await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync("""
+
             Imports System
             Imports System.Collections.Generic
             Imports System.Linq
@@ -181,6 +187,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
     public async Task VerifyOverloadsUpdated()
     {
         var markup = """
+
             Interface I
                 Sub [|TestMethod|]$$(y As Integer)
                 Sub [|TestMethod|](y As String)
@@ -205,6 +212,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
         await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync("""
+
             Interface I
                 Sub y$$(y As Integer)
                 Sub y(y As String)
@@ -222,6 +230,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
     public async Task VerifyAttributeRename()
     {
         var markup = """
+
             Imports System
 
             Public Class [|$$ustom|]Attribute 
@@ -239,6 +248,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
         await TestServices.Input.SendWithoutActivateAsync(["Custom", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync("""
+
             Imports System
 
             Public Class Custom$$Attribute
@@ -251,6 +261,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
     public async Task VerifyAttributeRenameWhileRenameClasss()
     {
         var markup = """
+
             Imports System
 
             Public Class [|$$ustom|]Attribute
@@ -269,6 +280,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
         await TestServices.Input.SendWithoutActivateAsync(["Custom", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync("""
+
             Imports System
 
             Public Class Custom$$Attribute
@@ -281,6 +293,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
     public async Task VerifyAttributeRenameWhileRenameAttribute()
     {
         var markup = """
+
             Imports System
 
             <[|$$ustom|]>
@@ -302,6 +315,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
         await TestServices.Input.SendWithoutActivateAsync(["Custom", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync("""
+
             Imports System
 
             <Custom$$>
@@ -318,6 +332,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
     public async Task VerifyAttributeRenameWhileRenameAttributeClass()
     {
         var markup = """
+
             Imports System
 
             <[|ustom|]>
@@ -339,6 +354,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
         await TestServices.Input.SendWithoutActivateAsync(["Custom", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync("""
+
             Imports System
 
             <Custom>
@@ -355,6 +371,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
     public async Task VerifyAttributeCapitalizedRename()
     {
         var markup = """
+
             Imports System
 
             Public Class [|$$ustom|]ATTRIBUTE
@@ -372,6 +389,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
         await TestServices.Input.SendWithoutActivateAsync(["Custom", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync("""
+
             Imports System
 
             Public Class CustomAttribute$$
@@ -384,6 +402,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
     public async Task VerifyAttributeNotCapitalizedRename()
     {
         var markup = """
+
             Imports System
 
             Public Class [|$$ustom|]attribute
@@ -404,6 +423,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
         {
             // This is the expected behavior
             await TestServices.EditorVerifier.TextEqualsAsync("""
+
                 Imports System
 
                 Public Class CustomAttribute$$
@@ -415,6 +435,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
         {
             // But sometimes we get this instead
             await TestServices.EditorVerifier.TextEqualsAsync("""
+
                 Imports System
 
                 Public Class CustomA$$ttribute

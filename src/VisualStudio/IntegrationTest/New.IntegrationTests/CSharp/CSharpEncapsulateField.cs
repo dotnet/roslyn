@@ -23,6 +23,7 @@ public class CSharpEncapsulateField : AbstractEditorTest
     protected override string LanguageName => LanguageNames.CSharp;
 
     private const string TestSource = """
+
         namespace myNamespace
         {
             class Program
@@ -66,6 +67,7 @@ public class CSharpEncapsulateField : AbstractEditorTest
         }
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             namespace myNamespace
             {
                 class Program
@@ -97,6 +99,7 @@ public class CSharpEncapsulateField : AbstractEditorTest
         }
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             namespace myNamespace
             {
                 class Program

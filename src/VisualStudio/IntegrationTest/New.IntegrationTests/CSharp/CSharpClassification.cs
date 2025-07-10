@@ -76,6 +76,7 @@ public class CSharpClassification : AbstractEditorTest
     public async Task SemanticClassification()
     {
         await TestServices.Editor.SetTextAsync("""
+
             using System;
             using System.Collections.Generic;
             class Program : Attribute
@@ -112,6 +113,7 @@ public class CSharpClassification : AbstractEditorTest
     public async Task VerifyProjectConfigChange()
     {
         await TestServices.Editor.SetTextAsync("""
+
             namespace ClassLibrary1
             {
                 public class Class1
@@ -127,6 +129,7 @@ public class CSharpClassification : AbstractEditorTest
             #endif
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.SolutionCfg, argument: "Debug", HangMitigatingCancellationToken);

@@ -33,6 +33,7 @@ public sealed class CSharpInheritanceMarginTests : AbstractEditorTest
 
         await TestServices.InheritanceMargin.SetTextAndEnsureGlyphsAppearAsync(
             """
+
             interface IBar
             {
             }
@@ -62,6 +63,7 @@ public sealed class CSharpInheritanceMarginTests : AbstractEditorTest
 
         await TestServices.InheritanceMargin.SetTextAndEnsureGlyphsAppearAsync(
             """
+
             using System;
             interface IBar
             {
@@ -97,6 +99,7 @@ public sealed class CSharpInheritanceMarginTests : AbstractEditorTest
 
         await TestServices.InheritanceMargin.SetTextAndEnsureGlyphsAppearAsync(
             """
+
             using System.Collections;
 
             class Implementation : IEnumerable
@@ -133,6 +136,7 @@ public sealed class CSharpInheritanceMarginTests : AbstractEditorTest
         await TestServices.SolutionExplorer.AddProjectAsync(
             vbProjectName, WellKnownProjectTemplates.VisualBasicNetStandardClassLibrary, LanguageNames.VisualBasic, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(vbProjectName, "Test.vb", """
+
             Namespace MyNs
                 Public Interface IBar
                 End Interface
@@ -145,6 +149,7 @@ public sealed class CSharpInheritanceMarginTests : AbstractEditorTest
 
         await TestServices.InheritanceMargin.SetTextAndEnsureGlyphsAppearAsync(
             """
+
             using TestVBProject.MyNs;
 
             class Implementation : IBar

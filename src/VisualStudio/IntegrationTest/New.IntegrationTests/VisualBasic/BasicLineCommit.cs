@@ -105,6 +105,7 @@ public class BasicLineCommit : AbstractEditorTest
                 Sub Main()
                 End Sub
             End Module
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.PlaceCaretAsync("(", charsOffset: 1, HangMitigatingCancellationToken);
@@ -123,6 +124,7 @@ public class BasicLineCommit : AbstractEditorTest
                 Sub Main(x As Integer)
                 End Sub
             End Module
+
             """, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
 
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
@@ -131,6 +133,7 @@ public class BasicLineCommit : AbstractEditorTest
                 Sub Main(x   As   Integer)
                 End Sub
             End Module
+
             """, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
         Assert.Equal(45, (await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken)).BufferPosition.Position);
     }

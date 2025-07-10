@@ -36,10 +36,10 @@ public class CSharpSendToInteractive : AbstractInteractiveWindowTest
                      public static void Main(string[] args)
                      {
                         /* 1 */int x = 1;/* 2 */
-
+                        
                         /* 3 */int y = 2;
                         int z = 3;/* 4 */
-
+                        
                         /* 5 */     string a = "alpha";
                         string b = "x *= 4;            ";/* 6 */
 
@@ -55,6 +55,7 @@ public class CSharpSendToInteractive : AbstractInteractiveWindowTest
                      }
                  }
              }
+
             """, HangMitigatingCancellationToken);
         await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
 

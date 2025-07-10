@@ -24,6 +24,7 @@ public class CSharpQuickInfo : AbstractEditorTest
     public async Task QuickInfo_MetadataDocumentation()
     {
         await SetUpEditorAsync("""
+
             ///<summary>Hello!</summary>
             class Program
             {
@@ -43,6 +44,7 @@ public class CSharpQuickInfo : AbstractEditorTest
     public async Task QuickInfo_Documentation()
     {
         await SetUpEditorAsync("""
+
             ///<summary>Hello!</summary>
             class Program$$
             {
@@ -60,6 +62,7 @@ public class CSharpQuickInfo : AbstractEditorTest
     public async Task International()
     {
         await SetUpEditorAsync("""
+
             /// <summary>
             /// This is an XML doc comment defined in code.
             /// </summary>
@@ -83,6 +86,7 @@ public class CSharpQuickInfo : AbstractEditorTest
     public async Task SectionOrdering()
     {
         await SetUpEditorAsync("""
+
             using System;
             using System.Threading.Tasks;
 

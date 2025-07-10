@@ -26,6 +26,7 @@ public class BasicF1Help : AbstractEditorTest
     public async Task F1Help()
     {
         await SetUpEditorAsync("""
+
             Imports System
             Imports System.Collections.Generic
             Imports System.Linq

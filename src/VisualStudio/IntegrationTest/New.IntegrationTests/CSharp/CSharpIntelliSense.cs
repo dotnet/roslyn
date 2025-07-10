@@ -62,6 +62,7 @@ public class CSharpIntelliSense : AbstractEditorTest
     public async Task SpeculativeTInList(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class C
             {
                 $$
@@ -84,6 +85,7 @@ public class CSharpIntelliSense : AbstractEditorTest
         await TestServices.Input.SendAsync(' ', HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync("Goo<T>() { }", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             class C
             {
                 public T Goo<T>() { }$$
@@ -97,6 +99,7 @@ HangMitigatingCancellationToken);
     public async Task VerifyCompletionListMembersOnStaticTypesAndCompleteThem(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             public class Program
             {
                 static void Main(string[] args)
@@ -239,12 +242,13 @@ HangMitigatingCancellationToken);
     public async Task XmlDocCommentIntelliSense(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class Class1
             {
                 ///$$
                 void Main(string[] args)
                 {
-
+                
                 }
             }
             """, HangMitigatingCancellationToken);
@@ -277,8 +281,10 @@ HangMitigatingCancellationToken);
     public async Task XmlTagCompletion(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             /// $$
             class C { }
+
             """, HangMitigatingCancellationToken);
 
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
@@ -289,8 +295,10 @@ HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("/// <summary>$$</summary>", assertCaretPosition: true, HangMitigatingCancellationToken);
 
         await SetUpEditorAsync("""
+
             /// <summary>$$
             class C { }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("</", HangMitigatingCancellationToken);
@@ -301,6 +309,7 @@ HangMitigatingCancellationToken);
     public async Task SignatureHelpShowsUp(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class Class1
             {
                 void Main(string[] args)
@@ -333,6 +342,7 @@ HangMitigatingCancellationToken);
     public async Task CompletionUsesTrackingPointsInTheFaceOfAutomaticBraceCompletion(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class Class1
             {
                 void Main(string[] args)
@@ -360,6 +370,7 @@ HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync('}', HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             class Class1
             {
                 void Main(string[] args)
@@ -376,6 +387,7 @@ HangMitigatingCancellationToken);
     public async Task CommitOnShiftEnter(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class Class1
             {
                 void Main(string[] args)
@@ -399,6 +411,7 @@ HangMitigatingCancellationToken);
             HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             class Class1
             {
                 void Main(string[] args)
@@ -416,6 +429,7 @@ HangMitigatingCancellationToken);
     public async Task LineBreakOnShiftEnter(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class Class1
             {
                 void Main(string[] args)
@@ -439,6 +453,7 @@ HangMitigatingCancellationToken);
             HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             class Class1
             {
                 void Main(string[] args)
@@ -457,6 +472,7 @@ HangMitigatingCancellationToken);
     public async Task CommitOnLeftCurly(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
+
             class Class1
             {
                 $$
@@ -475,6 +491,7 @@ HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync("{", HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             class Class1
             {
                 int P { get { $$} }
@@ -491,6 +508,7 @@ HangMitigatingCancellationToken);
         var visibleColumns = await TestServices.Editor.GetVisibleColumnCountAsync(HangMitigatingCancellationToken);
         var variableName = new string('a', (int)(0.75 * visibleColumns));
         await SetUpEditorAsync($$"""
+
             public class Program
             {
                 static void Main(string[] args)

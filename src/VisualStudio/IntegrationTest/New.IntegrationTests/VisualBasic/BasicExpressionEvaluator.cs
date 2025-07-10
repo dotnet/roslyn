@@ -133,6 +133,7 @@ public class BasicExpressionEvaluator : AbstractEditorTest
     public async Task StateMachineTypeParameters()
     {
         await TestServices.Editor.SetTextAsync("""
+
             Imports System
             Imports System.Collections.Generic
 
@@ -151,6 +152,7 @@ public class BasicExpressionEvaluator : AbstractEditorTest
                 End Function
 
             End Module
+
             """, HangMitigatingCancellationToken);
         await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
         Assert.Equal(("", ""), await TestServices.LocalsWindow.GetEntryAsync(["Type variables"], HangMitigatingCancellationToken));

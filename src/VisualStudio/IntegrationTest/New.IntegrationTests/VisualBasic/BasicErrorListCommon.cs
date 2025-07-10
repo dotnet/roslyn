@@ -27,6 +27,7 @@ public abstract class BasicErrorListCommon : AbstractEditorTest
     public virtual async Task ErrorList()
     {
         await TestServices.Editor.SetTextAsync("""
+
             Module Module1
 
                 Function Good() As P
@@ -38,6 +39,7 @@ public abstract class BasicErrorListCommon : AbstractEditorTest
                 End Sub
 
             End Module
+
             """, HangMitigatingCancellationToken);
         await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
         var expectedContents = new[] {
@@ -65,6 +67,7 @@ public abstract class BasicErrorListCommon : AbstractEditorTest
     public virtual async Task ErrorsDuringMethodBodyEditing()
     {
         await TestServices.Editor.SetTextAsync("""
+
             Namespace N
                 Class C
                     Private F As Integer
@@ -73,6 +76,7 @@ public abstract class BasicErrorListCommon : AbstractEditorTest
                     End Sub
                 End Class
             End Namespace
+
             """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync(" Comment", charsOffset: -2, HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync("F = 0", HangMitigatingCancellationToken);
@@ -115,6 +119,7 @@ public abstract class BasicErrorListCommon : AbstractEditorTest
         // Enter code with compiler error.
         await TestServices.Editor.SetTextAsync("""
             Class Class1
+
             """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.SaveAllAsync(HangMitigatingCancellationToken);
 

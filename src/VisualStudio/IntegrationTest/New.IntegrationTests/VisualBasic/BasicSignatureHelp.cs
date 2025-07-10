@@ -18,15 +18,16 @@ public class BasicSignatureHelp : AbstractEditorTest
     protected override string LanguageName => LanguageNames.VisualBasic;
 
     private const string Baseline = """
+
         Class C
             Sub M()
                 $$
             End Sub
-
+            
             Function Method(i As Integer) As C
                 Return Nothing
             End Function
-
+            
             ''' <summary>
             ''' Hello World 2.0!
             ''' </summary>
@@ -64,6 +65,7 @@ public class BasicSignatureHelp : AbstractEditorTest
             Sub OutAndParam(ByRef strings As String()(,), ByRef outArr As String(), ParamArray d As Object)
             End Sub
         End Class
+
         """;
 
     public BasicSignatureHelp()
@@ -128,12 +130,13 @@ public class BasicSignatureHelp : AbstractEditorTest
     public async Task GenericMethodSignatureHelp2()
     {
         await SetUpEditorAsync("""
+
             Imports System
             Class C(Of T, R)
                 Sub M()
                     $$
                 End Sub
-
+                
                 ''' <summary>
                 ''' Generic Method with 1 Type Param
                 ''' </summary>
@@ -180,16 +183,17 @@ public class BasicSignatureHelp : AbstractEditorTest
     public async Task GenericMethodSignatureHelp_InvokeSighelp()
     {
         await SetUpEditorAsync("""
+
             Imports System
             Class C
                 Sub M()
                     GenericMethod(Of String, $$Integer)(Nothing, 1)
                 End Sub
-
+                
                 Function GenericMethod(Of T1)(i As T1) As C
                     Return Nothing
                 End Function
-
+                
                 Function GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C
                     Return Nothing
                 End Function
@@ -223,6 +227,7 @@ public class BasicSignatureHelp : AbstractEditorTest
     public async Task VerifyActiveParameterChanges()
     {
         await SetUpEditorAsync("""
+
             Module M
                 Sub Method(a As Integer, b As Integer)
                     $$
@@ -246,6 +251,7 @@ public class BasicSignatureHelp : AbstractEditorTest
     public async Task HandleBufferTextChangesDuringComputation()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Goo()
                 End Sub
@@ -260,6 +266,7 @@ public class BasicSignatureHelp : AbstractEditorTest
         Assert.Equal("C.Goo()", signature.Content);
 
         await TestServices.Editor.SetTextAsync("""
+
             Class C
                 'Marker
             """, HangMitigatingCancellationToken);

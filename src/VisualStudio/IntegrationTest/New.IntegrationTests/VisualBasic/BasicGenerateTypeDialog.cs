@@ -32,11 +32,13 @@ public class BasicGenerateTypeDialog : AbstractEditorTest
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Class1.vb", HangMitigatingCancellationToken);
 
         await SetUpEditorAsync("""
+
             Class C
                 Sub Method()
                     $$Dim _A As A
                 End Sub
             End Class
+
             """, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Generate new type...",
             applyFix: true,
@@ -59,6 +61,7 @@ public class BasicGenerateTypeDialog : AbstractEditorTest
                     Dim _A As A
                 End Sub
             End Class
+
             """, actualText);
 
         await TestServices.SolutionExplorer.OpenFileAsync(csProj, "GenerateTypeTest.cs", HangMitigatingCancellationToken);
@@ -77,11 +80,13 @@ public class BasicGenerateTypeDialog : AbstractEditorTest
     public async Task SameProject()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Method()
                     $$Dim _A As A
                 End Sub
             End Class
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.CodeActionAsync("Generate new type...",
@@ -102,6 +107,7 @@ public class BasicGenerateTypeDialog : AbstractEditorTest
         Assert.Contains("""
             Public Structure A
             End Structure
+
             """, actualText);
 
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Class1.vb", HangMitigatingCancellationToken);
@@ -112,6 +118,7 @@ public class BasicGenerateTypeDialog : AbstractEditorTest
                     Dim _A As A
                 End Sub
             End Class
+
             """, actualText);
     }
 
@@ -127,6 +134,7 @@ public class BasicGenerateTypeDialog : AbstractEditorTest
                     $$Dim _A As A
                 End Sub
             End Class
+
             """, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Generate new type...",
             applyFix: true,

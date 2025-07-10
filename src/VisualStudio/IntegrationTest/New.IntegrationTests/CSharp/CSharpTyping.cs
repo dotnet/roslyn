@@ -26,6 +26,7 @@ public class CSharpTyping : AbstractEditorTest
     public async Task TypingInPartialType()
     {
         await SetUpEditorAsync("""
+
             public partial class Test
             {
                 private int f;
@@ -36,8 +37,10 @@ public class CSharpTyping : AbstractEditorTest
                     f = 1;$$
                 }
             }
+
             """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "PartialType2.cs", """
+
             public partial class Test
             {
                 int val1 = 1, val2 = 2;
@@ -46,8 +49,10 @@ public class CSharpTyping : AbstractEditorTest
                     TestB();
                 }
             }
+
             """, open: false, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "PartialType3.cs", """
+
             public partial class Test
             {
                 public void TestB()
@@ -70,6 +75,7 @@ public class CSharpTyping : AbstractEditorTest
 
         await TestServices.EditorVerifier.TextContainsAsync(
             """
+
             public partial class Test
             {
                 private int f;

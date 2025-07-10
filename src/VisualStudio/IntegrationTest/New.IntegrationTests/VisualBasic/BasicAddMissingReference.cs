@@ -52,6 +52,7 @@ public class BasicAddMissingReference : AbstractEditorTest
 
             End Sub
         End Class
+
         """;
     private const string FileInLibraryProject2 = """
         Public Class Class1
@@ -64,6 +65,7 @@ public class BasicAddMissingReference : AbstractEditorTest
             End Sub
             Public bar As ClassLibrary3.Class1
         End Class
+
         """;
     private const string FileInLibraryProject3 = """
         Public Class Class1
@@ -79,6 +81,7 @@ public class BasicAddMissingReference : AbstractEditorTest
 
 
         End Class
+
         """;
     private const string FileInConsoleProject1 = """
         Imports System.Data.XLinq
@@ -107,6 +110,7 @@ public class BasicAddMissingReference : AbstractEditorTest
             End Sub
 
         End Module
+
         """;
 
     private const string ClassLibrary1Name = "ClassLibrary1";

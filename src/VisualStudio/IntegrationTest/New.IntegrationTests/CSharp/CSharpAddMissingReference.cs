@@ -52,6 +52,7 @@ public class CSharpAddMissingReference : AbstractEditorTest
 
             End Sub
         End Class
+
         """;
     private const string FileInLibraryProject2 = """
         Public Class Class1
@@ -64,6 +65,7 @@ public class CSharpAddMissingReference : AbstractEditorTest
             End Sub
             Public bar As ClassLibrary3.Class1
         End Class
+
         """;
     private const string FileInLibraryProject3 = """
         Public Class Class1
@@ -79,8 +81,10 @@ public class CSharpAddMissingReference : AbstractEditorTest
 
 
         End Class
+
         """;
     private const string FileInConsoleProject1 = """
+
         class Program
         {
             static void Main(string[] args)
@@ -98,6 +102,7 @@ public class CSharpAddMissingReference : AbstractEditorTest
                 var d = a.bar;
             }
         }
+
         """;
 
     private const string ClassLibrary1Name = "ClassLibrary1";

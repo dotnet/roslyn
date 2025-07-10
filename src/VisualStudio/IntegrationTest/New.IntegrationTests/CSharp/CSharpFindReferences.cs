@@ -31,14 +31,17 @@ public class CSharpFindReferences : AbstractEditorTest
     public async Task FindReferencesToCtor()
     {
         await SetUpEditorAsync("""
+
             class Program
             {
             }$$
+
             """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "File2.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "File2.cs", HangMitigatingCancellationToken);
 
         await SetUpEditorAsync("""
+
             class SomeOtherClass
             {
                 void M()
@@ -46,6 +49,7 @@ public class CSharpFindReferences : AbstractEditorTest
                     Program p = new Progr$$am();
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
@@ -82,6 +86,7 @@ public class CSharpFindReferences : AbstractEditorTest
     {
         await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
         await SetUpEditorAsync("""
+
             class Program
             {
                 static void Main()
@@ -90,6 +95,7 @@ public class CSharpFindReferences : AbstractEditorTest
                     Console.WriteLine(local$$);
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
@@ -120,6 +126,7 @@ public class CSharpFindReferences : AbstractEditorTest
     public async Task FindReferencesToString()
     {
         await SetUpEditorAsync("""
+
             class Program
             {
                 static void Main()
@@ -127,6 +134,7 @@ public class CSharpFindReferences : AbstractEditorTest
                      string local = "1"$$;
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);

@@ -43,6 +43,7 @@ public class BasicIntelliSense : AbstractEditorTest
     public async Task IntelliSenseTriggersOnParenWithBraceCompletionAndCorrectUndoMerging()
     {
         await SetUpEditorAsync("""
+
             Module Module1
                 Sub Main()
                     $$
@@ -56,6 +57,7 @@ public class BasicIntelliSense : AbstractEditorTest
         Assert.Contains("Of", (await TestServices.Editor.GetCompletionItemsAsync(HangMitigatingCancellationToken)).Select(completion => completion.DisplayText));
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Module Module1
                 Sub Main()
                     Dim q As List($$)
@@ -73,6 +75,7 @@ HangMitigatingCancellationToken);
             HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Module Module1
                 Sub Main()
                     Dim q As List(Of$$)
@@ -88,6 +91,7 @@ HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync(')', HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Module Module1
                 Sub Main()
                     Dim q As List(Of Integer)$$
@@ -100,6 +104,7 @@ HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync((VirtualKeyCode.VK_Z, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Module Module1
                 Sub Main()
                     Dim q As List(Of inte)$$
@@ -112,6 +117,7 @@ HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync((VirtualKeyCode.VK_Z, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Module Module1
                 Sub Main()
                     Dim q As List(Of inte$$)
@@ -124,6 +130,7 @@ HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync((VirtualKeyCode.VK_Z, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Module Module1
                 Sub Main()
                     Dim q As List(Of$$)
@@ -136,6 +143,7 @@ HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync((VirtualKeyCode.VK_Z, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Module Module1
                 Sub Main()
                     Dim q As List($$)
@@ -148,6 +156,7 @@ HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync((VirtualKeyCode.VK_Z, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Module Module1
                 Sub Main()
                     Dim q As lis($$)
@@ -160,6 +169,7 @@ HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync((VirtualKeyCode.VK_Z, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Module Module1
                 Sub Main()
                     Dim q As lis($$
@@ -174,6 +184,7 @@ HangMitigatingCancellationToken);
     public async Task TypeAVariableDeclaration()
     {
         await SetUpEditorAsync("""
+
             Module Module1
                 Sub Main()
                     $$
@@ -235,6 +246,7 @@ HangMitigatingCancellationToken);
     public async Task DismissIntelliSenseOnApostrophe()
     {
         await SetUpEditorAsync("""
+
             Module Module1
                 Sub Main()
                     $$
@@ -263,6 +275,7 @@ HangMitigatingCancellationToken);
     public async Task TypeLeftAngleAfterImports()
     {
         await SetUpEditorAsync("""
+
             Imports$$
             """, HangMitigatingCancellationToken);
 
@@ -280,6 +293,7 @@ HangMitigatingCancellationToken);
     public async Task DismissAndRetriggerIntelliSenseOnEquals()
     {
         await SetUpEditorAsync("""
+
             Module Module1
                 Function M(val As Integer) As Integer
                     $$
@@ -297,6 +311,7 @@ HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(' ', HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Module Module1
                 Function M(val As Integer) As Integer
                     M=val $$
@@ -343,6 +358,7 @@ HangMitigatingCancellationToken);
     public async Task EnterTriggerCompletionListAndImplementInterface()
     {
         await SetUpEditorAsync("""
+
             Interface UFoo
                 Sub FooBar()
             End Interface
@@ -362,6 +378,7 @@ HangMitigatingCancellationToken);
         Assert.False(await TestServices.Editor.IsCompletionActiveAsync(HangMitigatingCancellationToken));
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains("""
+
             Interface UFoo
                 Sub FooBar()
             End Interface

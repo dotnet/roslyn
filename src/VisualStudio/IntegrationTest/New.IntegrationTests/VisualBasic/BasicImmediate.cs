@@ -33,12 +33,14 @@ public class BasicImmediate : AbstractEditorTest
     public async Task DumpLocalVariableValue()
     {
         await TestServices.Editor.SetTextAsync("""
+
             Module Module1
                 Sub Main()
                     Dim n1Var As Integer = 42
                     Dim n2Var As Integer = 43
                 End Sub
             End Module
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);

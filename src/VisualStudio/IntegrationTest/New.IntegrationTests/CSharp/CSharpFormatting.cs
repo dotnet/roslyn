@@ -28,6 +28,7 @@ public class CSharpFormatting : AbstractEditorTest
     {
         await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
         await SetUpEditorAsync("""
+
             $$class C
             {
                 void Main()
@@ -38,6 +39,7 @@ public class CSharpFormatting : AbstractEditorTest
 
         await TestServices.Editor.FormatDocumentAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             class C
             {
                 void Main()
@@ -52,6 +54,7 @@ public class CSharpFormatting : AbstractEditorTest
     public async Task FormatOnSemicolon()
     {
         await SetUpEditorAsync("""
+
             public class C
             {
                 void Goo()
@@ -65,6 +68,7 @@ public class CSharpFormatting : AbstractEditorTest
 
         await TestServices.Input.SendAsync([VirtualKeyCode.BACK, ';'], HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             public class C
             {
                 void Goo()
@@ -81,6 +85,7 @@ public class CSharpFormatting : AbstractEditorTest
     public async Task FormatSelection()
     {
         await SetUpEditorAsync("""
+
             public class C {
                 public void M( ) {$$
                     }
@@ -90,6 +95,7 @@ public class CSharpFormatting : AbstractEditorTest
         await TestServices.Editor.SelectTextInCurrentDocumentAsync("public void M( ) {", HangMitigatingCancellationToken);
         await TestServices.Editor.FormatSelectionAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             public class C {
                 public void M()
                 {
@@ -102,6 +108,7 @@ public class CSharpFormatting : AbstractEditorTest
     public async Task PasteCodeWithLambdaBody()
     {
         await SetUpEditorAsync("""
+
             using System;
             class Program
             {
@@ -118,13 +125,14 @@ public class CSharpFormatting : AbstractEditorTest
             }
             """, HangMitigatingCancellationToken);
         await TestServices.Editor.PasteAsync("""
-            Action b = () =>
-            {
+                    Action b = () =>
+                    {
 
-                };
+                        };
             """, HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             using System;
             class Program
             {
@@ -146,6 +154,7 @@ public class CSharpFormatting : AbstractEditorTest
         // Undo should only undo the formatting
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             using System;
             class Program
             {
@@ -170,6 +179,7 @@ public class CSharpFormatting : AbstractEditorTest
     public async Task PasteCodeWithLambdaBody2()
     {
         await SetUpEditorAsync("""
+
             using System;
             class Program
             {
@@ -186,13 +196,14 @@ public class CSharpFormatting : AbstractEditorTest
             }
             """, HangMitigatingCancellationToken);
         await TestServices.Editor.PasteAsync("""
-            Action<int> b = n =>
-            {
-                Console.Writeline(n);
-            };
+                    Action<int> b = n =>
+                    {
+                        Console.Writeline(n);
+                    };
             """, HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             using System;
             class Program
             {
@@ -217,6 +228,7 @@ public class CSharpFormatting : AbstractEditorTest
     public async Task PasteCodeWithLambdaBody3()
     {
         await SetUpEditorAsync("""
+
             using System;
             class Program
             {
@@ -240,6 +252,7 @@ public class CSharpFormatting : AbstractEditorTest
             """, HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             using System;
             class Program
             {
@@ -264,6 +277,7 @@ public class CSharpFormatting : AbstractEditorTest
     public async Task ShiftEnterWithIntelliSenseAndBraceMatching()
     {
         await SetUpEditorAsync("""
+
             class Program
             {
                 object M(object bar)
@@ -275,6 +289,7 @@ public class CSharpFormatting : AbstractEditorTest
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync(["(ba", (VirtualKeyCode.RETURN, VirtualKeyCode.SHIFT), "// comment"], HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             class Program
             {
                 object M(object bar)
@@ -292,6 +307,7 @@ public class CSharpFormatting : AbstractEditorTest
     public async Task ApplyEditorConfigAndFormatDocument()
     {
         var markup = """
+
             class C
             {
                 public int X1
@@ -335,6 +351,7 @@ public class CSharpFormatting : AbstractEditorTest
 
             [*.cs]
             indent_size = 2
+
             """;
 
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", editorConfig, open: false, HangMitigatingCancellationToken);
@@ -350,6 +367,7 @@ public class CSharpFormatting : AbstractEditorTest
         await TestServices.Editor.FormatDocumentAsync(HangMitigatingCancellationToken);
 
         Assert.Equal("""
+
             class C
             {
               public int X1

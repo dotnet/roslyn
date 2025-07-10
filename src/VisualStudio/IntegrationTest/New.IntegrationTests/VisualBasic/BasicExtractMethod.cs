@@ -19,6 +19,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
 public class BasicExtractMethod : AbstractEditorTest
 {
     private const string TestSource = """
+
         Imports System
         Imports System.Collections.Generic
         Imports System.Linq
@@ -55,6 +56,7 @@ public class BasicExtractMethod : AbstractEditorTest
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Refactor.ExtractMethod, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ExtractMethod, HangMitigatingCancellationToken);
         MarkupTestFile.GetSpans("""
+
             Imports System
             Imports System.Collections.Generic
             Imports System.Linq
@@ -84,9 +86,9 @@ public class BasicExtractMethod : AbstractEditorTest
 
         await TestServices.Input.SendAsync(["SayHello", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
-            Private Sub SayHello()
-                Console.WriteLine("Hello VB!")
-            End Sub
+                Private Sub SayHello()
+                    Console.WriteLine("Hello VB!")
+                End Sub
             """, cancellationToken: HangMitigatingCancellationToken);
     }
 
@@ -98,6 +100,7 @@ public class BasicExtractMethod : AbstractEditorTest
         await TestServices.Editor.PlaceCaretAsync("a * b", charsOffset: 1, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Extract method", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
         MarkupTestFile.GetSpans("""
+
             Imports System
             Imports System.Collections.Generic
             Imports System.Linq

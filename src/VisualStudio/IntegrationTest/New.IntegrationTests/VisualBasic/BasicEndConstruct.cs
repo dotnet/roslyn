@@ -25,6 +25,7 @@ public class BasicEndConstruct : AbstractEditorTest
     public async Task EndConstruct()
     {
         await SetUpEditorAsync("""
+
             Class Program
                 Sub Main()
                     If True Then $$
@@ -34,6 +35,7 @@ public class BasicEndConstruct : AbstractEditorTest
         // Send a space to convert virtual whitespace into real whitespace
         await TestServices.Input.SendAsync([VirtualKeyCode.RETURN, " "], HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Class Program
                 Sub Main()
                     If True Then
@@ -48,6 +50,7 @@ public class BasicEndConstruct : AbstractEditorTest
     public async Task IntelliSenseCompletedWhile()
     {
         await SetUpEditorAsync("""
+
             Class Program
                 Sub Main()
                     $$
@@ -57,6 +60,7 @@ public class BasicEndConstruct : AbstractEditorTest
         // Send a space to convert virtual whitespace into real whitespace
         await TestServices.Input.SendAsync(["While True", VirtualKeyCode.RETURN, " "], HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Class Program
                 Sub Main()
                     While True
@@ -71,6 +75,7 @@ public class BasicEndConstruct : AbstractEditorTest
     public async Task InterfaceToClassFixup()
     {
         await SetUpEditorAsync("""
+
             Interface$$ C
             End Interface
             """, HangMitigatingCancellationToken);
@@ -78,6 +83,7 @@ public class BasicEndConstruct : AbstractEditorTest
         await TestServices.Input.SendAsync((VirtualKeyCode.BACK, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync(["Class", VirtualKeyCode.TAB], HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Class C
             End Class
             """, cancellationToken: HangMitigatingCancellationToken);
@@ -87,6 +93,7 @@ public class BasicEndConstruct : AbstractEditorTest
     public async Task CaseInsensitiveSubToFunction()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Public Sub$$ Goo()
                 End Sub
@@ -96,6 +103,7 @@ public class BasicEndConstruct : AbstractEditorTest
         await TestServices.Input.SendAsync((VirtualKeyCode.BACK, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync(["fu", VirtualKeyCode.TAB], HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Class C
                 Public Function Goo()
                 End Function

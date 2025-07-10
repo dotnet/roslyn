@@ -20,6 +20,7 @@ public class CSharpUpdateProjectToAllowUnsafe : AbstractUpgradeProjectTest
     private async Task InvokeFixAsync(CancellationToken cancellationToken)
     {
         await TestServices.Editor.SetTextAsync("""
+
             unsafe class C
             {
             }

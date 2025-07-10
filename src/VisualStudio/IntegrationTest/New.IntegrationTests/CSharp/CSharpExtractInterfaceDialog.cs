@@ -30,6 +30,7 @@ public class CSharpExtractInterfaceDialog : AbstractEditorTest
             {
                 public void M() { }
             }
+
             """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Extract interface...",
@@ -46,6 +47,7 @@ public class CSharpExtractInterfaceDialog : AbstractEditorTest
             {
                 public void M() { }
             }
+
             """, cancellationToken: HangMitigatingCancellationToken);
     }
 
@@ -57,6 +59,7 @@ public class CSharpExtractInterfaceDialog : AbstractEditorTest
             {
                 public void M() { }
             }
+
             """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Extract interface...",
@@ -82,6 +85,7 @@ public class CSharpExtractInterfaceDialog : AbstractEditorTest
                 public void M1() { }
                 public void M2() { }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
@@ -122,6 +126,7 @@ public class CSharpExtractInterfaceDialog : AbstractEditorTest
                 public void M1() { }
                 public void M2() { }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
@@ -143,6 +148,7 @@ public class CSharpExtractInterfaceDialog : AbstractEditorTest
                 public void M1() { }
                 public void M2() { }
             }
+
             """, cancellationToken: HangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "IC.cs", HangMitigatingCancellationToken);
@@ -162,6 +168,7 @@ public class CSharpExtractInterfaceDialog : AbstractEditorTest
             {
                 public void M() { }
             }
+
             """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Extract interface...",
@@ -186,6 +193,7 @@ public class CSharpExtractInterfaceDialog : AbstractEditorTest
             {
                 public void M() { }
             }
+
             """, cancellationToken: HangMitigatingCancellationToken);
 
     }
@@ -199,6 +207,7 @@ public class CSharpExtractInterfaceDialog : AbstractEditorTest
                 public void M1() { }
                 public void M2() { }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
@@ -225,6 +234,7 @@ public class CSharpExtractInterfaceDialog : AbstractEditorTest
                 public void M1() { }
                 public void M2() { }
             }
+
             """, cancellationToken: HangMitigatingCancellationToken);
     }
 
@@ -239,6 +249,7 @@ public class CSharpExtractInterfaceDialog : AbstractEditorTest
                     public void M() { }
                 }
             }
+
             """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Extract interface...",
@@ -266,6 +277,7 @@ public class CSharpExtractInterfaceDialog : AbstractEditorTest
                     public void M() { }
                 }
             }
+
             """, cancellationToken: HangMitigatingCancellationToken);
     }
 
@@ -277,6 +289,7 @@ public class CSharpExtractInterfaceDialog : AbstractEditorTest
             {
                 public bool M() => false;
             }
+
             """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Extract interface...",
@@ -301,6 +314,7 @@ public class CSharpExtractInterfaceDialog : AbstractEditorTest
             {
                 public bool M() => false;
             }
+
             """, cancellationToken: HangMitigatingCancellationToken);
     }
 }

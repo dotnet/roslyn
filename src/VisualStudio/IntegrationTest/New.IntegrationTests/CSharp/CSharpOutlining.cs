@@ -31,6 +31,7 @@ public class CSharpOutlining : AbstractEditorTest
     public async Task Outlining()
     {
         MarkupTestFile.GetSpans("""
+
             using [|System;
             using System.Collections.Generic;
             using System.Text;|]
@@ -56,6 +57,7 @@ public class CSharpOutlining : AbstractEditorTest
     public async Task OutliningConfigChange()
     {
         MarkupTestFile.GetSpans("""
+
             namespace ClassLibrary1[|
             {
                 public class Class1[|
@@ -65,7 +67,7 @@ public class CSharpOutlining : AbstractEditorTest
                     void Goo(){|Debug:
                     {
                     }|}
-
+                    
                     void Goo2(){|Debug:
                     {
                     }|}

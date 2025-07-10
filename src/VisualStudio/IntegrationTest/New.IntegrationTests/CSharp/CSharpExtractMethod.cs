@@ -19,6 +19,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 public class CSharpExtractMethod : AbstractEditorTest
 {
     private const string TestSource = """
+
         using System;
         public class Program
         {
@@ -51,6 +52,7 @@ public class CSharpExtractMethod : AbstractEditorTest
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Refactor.ExtractMethod, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ExtractMethod, HangMitigatingCancellationToken);
         MarkupTestFile.GetSpans("""
+
             using System;
             public class Program
             {
@@ -93,6 +95,7 @@ public class CSharpExtractMethod : AbstractEditorTest
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Refactor.ExtractMethod, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ExtractMethod, HangMitigatingCancellationToken);
         MarkupTestFile.GetSpans("""
+
             using System;
             public class Program
             {
@@ -133,6 +136,7 @@ public class CSharpExtractMethod : AbstractEditorTest
         await TestServices.Editor.PlaceCaretAsync("a * b", charsOffset: 1, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Extract method", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
         MarkupTestFile.GetSpans("""
+
             using System;
             public class Program
             {

@@ -35,6 +35,7 @@ public class CSharpReferenceHighlighting : AbstractEditorTest
     public async Task Highlighting()
     {
         MarkupTestFile.GetSpans("""
+
             class {|definition:C|}
             {
                 void M<T>({|reference:C|} c) where T : {|reference:C|}
@@ -54,6 +55,7 @@ public class CSharpReferenceHighlighting : AbstractEditorTest
     public async Task WrittenReference()
     {
         MarkupTestFile.GetSpans("""
+
             class C
             {
                 void M()
@@ -74,6 +76,7 @@ public class CSharpReferenceHighlighting : AbstractEditorTest
     public async Task Navigation()
     {
         await TestServices.Editor.SetTextAsync("""
+
             class C
             {
                void M()
@@ -94,6 +97,7 @@ public class CSharpReferenceHighlighting : AbstractEditorTest
     public async Task HighlightBasedOnSelection()
     {
         await TestServices.Editor.SetTextAsync("""
+
             class C
             {
                void M()

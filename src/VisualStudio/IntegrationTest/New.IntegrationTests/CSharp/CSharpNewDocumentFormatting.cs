@@ -62,10 +62,12 @@ public class CSharpNewDocumentFormatting : AbstractIntegrationTest
         var editorConfigFilePath = Path.Combine(solutionDirectory, ".editorconfig");
         File.WriteAllText(editorConfigFilePath,
             """
+
             root = true
 
             [*.cs]
             csharp_style_namespace_declarations = block_scoped
+
             """);
 
         await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.CSharpNetCoreClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
@@ -87,15 +89,19 @@ public class CSharpNewDocumentFormatting : AbstractIntegrationTest
         var editorConfigFilePath = Path.Combine(solutionDirectory, ".editorconfig");
         File.WriteAllText(editorConfigFilePath,
             """
+
             root = true
+
             """);
 
         // This editor config file should be ignored
         editorConfigFilePath = Path.Combine(solutionDirectory, "..", ".editorconfig");
         File.WriteAllText(editorConfigFilePath,
             """
+
             [*.cs]
             csharp_style_namespace_declarations = block_scoped
+
             """);
 
         await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.CSharpNetCoreClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
@@ -117,10 +123,12 @@ public class CSharpNewDocumentFormatting : AbstractIntegrationTest
         var editorConfigFilePath = Path.Combine(solutionDirectory, ".editorconfig");
         File.WriteAllText(editorConfigFilePath,
             """
+
             root = true
 
             [*.cs]
             csharp_style_namespace_declarations = file_scoped
+
             """);
 
         await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.CSharpNetCoreClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);

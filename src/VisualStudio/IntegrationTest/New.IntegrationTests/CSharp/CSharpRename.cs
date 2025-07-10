@@ -549,6 +549,7 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
         await TestServices.SolutionExplorer.OpenFileAsync(project2, "Class2.cs", HangMitigatingCancellationToken);
 
         await TestServices.Editor.SetTextAsync("""
+
             public class Class2 { static void Main(string [] args) { } }
             """, HangMitigatingCancellationToken);
 
@@ -571,6 +572,7 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
 
         await TestServices.SolutionExplorer.OpenFileAsync(project2, "y.cs", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync("""
+
             public class y { static void Main(string [] args) { } }$$
             """, cancellationToken: HangMitigatingCancellationToken);
     }
@@ -583,6 +585,7 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
         await TestServices.Input.SendWithoutActivateAsync((VirtualKeyCode.VK_Z, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync("""
+
             public class Class2 { static void Main(string [] args) { } }$$
             """, HangMitigatingCancellationToken);
 

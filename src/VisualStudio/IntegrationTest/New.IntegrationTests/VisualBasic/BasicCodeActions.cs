@@ -25,11 +25,14 @@ public class BasicCodeActions : AbstractEditorTest
     public async Task GenerateMethodInClosedFile()
     {
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Goo.vb", """
+
             Class Goo
             End Class
+
             """, cancellationToken: HangMitigatingCancellationToken);
 
         await SetUpEditorAsync("""
+
             Imports System;
 
             Class Program
@@ -38,17 +41,20 @@ public class BasicCodeActions : AbstractEditorTest
                     f.Bar()$$
                 End Sub
             End Class
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Generate method 'Bar'", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
         AssertEx.EqualOrDiff(
             """
+
             Class Goo
                 Friend Sub Bar()
                     Throw New NotImplementedException()
                 End Sub
             End Class
+
             """,
             await TestServices.SolutionExplorer.GetFileContentsAsync(ProjectName, "Goo.vb", HangMitigatingCancellationToken));
     }

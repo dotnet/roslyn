@@ -65,6 +65,7 @@ public partial class CSharpGoToDefinition : AbstractEditorTest
             class SomeClass
             {
             }
+
             """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.CloseCodeFileAsync(project, "FileDef.cs", saveFile: true, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileConsumer.cs", cancellationToken: HangMitigatingCancellationToken);

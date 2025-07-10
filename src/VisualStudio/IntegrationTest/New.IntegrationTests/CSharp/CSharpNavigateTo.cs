@@ -29,6 +29,7 @@ public class CSharpNavigateTo : AbstractEditorTest
 
         var project = ProjectName;
         await TestServices.SolutionExplorer.AddFileAsync(project, "test1.cs", open: false, contents: """
+
             class FirstClass
             {
                 void FirstMethod() { }
@@ -36,6 +37,7 @@ public class CSharpNavigateTo : AbstractEditorTest
             """, cancellationToken: HangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.AddFileAsync(project, "test2.cs", open: true, contents: """
+
 
             """, cancellationToken: HangMitigatingCancellationToken);
 

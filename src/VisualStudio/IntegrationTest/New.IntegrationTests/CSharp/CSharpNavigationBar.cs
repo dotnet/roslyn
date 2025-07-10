@@ -19,6 +19,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 public class CSharpNavigationBar : AbstractEditorTest
 {
     private const string TestSource = """
+
         class C
         {
             public void M(int i) { }
@@ -82,6 +83,7 @@ public class CSharpNavigationBar : AbstractEditorTest
     public async Task VerifyNavBar3()
     {
         await SetUpEditorAsync("""
+
             struct S$$
             {
                 int Goo() { }
@@ -106,6 +108,7 @@ public class CSharpNavigationBar : AbstractEditorTest
     public async Task TestSplitWindow()
     {
         await TestServices.Editor.SetTextAsync("""
+
             class C
             {
                 public void M(int i) { }

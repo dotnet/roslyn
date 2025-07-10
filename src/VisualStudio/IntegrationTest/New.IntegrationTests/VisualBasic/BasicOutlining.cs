@@ -25,13 +25,14 @@ public class BasicOutlining : AbstractEditorTest
     public async Task Outlining()
     {
         MarkupTestFile.GetSpans("""
+
             [|Imports System
             Imports System.Text|]
 
             [|Namespace Acme
                 [|Module Module1
                     [|Sub Main()
-
+                        
                     End Sub|]
                 End Module|]
             End Namespace|]

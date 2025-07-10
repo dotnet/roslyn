@@ -28,6 +28,7 @@ public class BasicGenerateConstructorDialog : AbstractEditorTest
     public async Task VerifyCodeRefactoringOfferedAndCanceled()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Dim i as Integer
                 Dim j as String
@@ -44,6 +45,7 @@ public class BasicGenerateConstructorDialog : AbstractEditorTest
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains(
             """
+
             Class C
                 Dim i as Integer
                 Dim j as String
@@ -59,6 +61,7 @@ public class BasicGenerateConstructorDialog : AbstractEditorTest
     {
         await SetUpEditorAsync(
             """
+
             Class C
                 Dim i as Integer
                 Dim j as String
@@ -76,6 +79,7 @@ public class BasicGenerateConstructorDialog : AbstractEditorTest
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains(
             """
+
             Class C
                 Dim i as Integer
                 Dim j as String
@@ -95,6 +99,7 @@ public class BasicGenerateConstructorDialog : AbstractEditorTest
     {
         await SetUpEditorAsync(
             """
+
             Class C
                 Dim i as Integer
                 Dim j as String
@@ -115,6 +120,7 @@ public class BasicGenerateConstructorDialog : AbstractEditorTest
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains(
             """
+
             Class C
                 Dim i as Integer
                 Dim j as String
@@ -134,6 +140,7 @@ public class BasicGenerateConstructorDialog : AbstractEditorTest
     {
         await SetUpEditorAsync(
             """
+
             Class C
                 Dim i as Integer
                 Dim j as String
@@ -154,6 +161,7 @@ public class BasicGenerateConstructorDialog : AbstractEditorTest
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains(
             """
+
             Class C
                 Dim i as Integer
                 Dim j as String

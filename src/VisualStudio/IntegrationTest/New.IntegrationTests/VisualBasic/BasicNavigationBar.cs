@@ -19,6 +19,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
 public class BasicNavigationBar : AbstractEditorTest
 {
     private const string TestSource = """
+
         Class C
             Public WithEvents Domain As AppDomain
             Public Sub $$Goo()
@@ -94,9 +95,10 @@ public class BasicNavigationBar : AbstractEditorTest
         Assert.Equal(new[] { "New", "Finalize", "Goo" }, await TestServices.Editor.GetNavigationBarItemsAsync(NavigationBarDropdownKind.Member, HangMitigatingCancellationToken));
         await TestServices.Editor.SelectNavigationBarItemAsync(NavigationBarDropdownKind.Member, "New", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
-            Public Sub New()
 
-            End Sub
+                Public Sub New()
+
+                End Sub
             """, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CaretPositionAsync(78, HangMitigatingCancellationToken); // Caret is between New() and End Sub() in virtual whitespace
         await TestServices.EditorVerifier.CurrentLineTextAsync("$$", assertCaretPosition: true, HangMitigatingCancellationToken);
@@ -118,6 +120,7 @@ public class BasicNavigationBar : AbstractEditorTest
     public async Task VerifyEvents()
     {
         await SetUpEditorAsync("""
+
             $$Class Item1
                 Public Event EvA As Action
                 Public Event EvB As Action

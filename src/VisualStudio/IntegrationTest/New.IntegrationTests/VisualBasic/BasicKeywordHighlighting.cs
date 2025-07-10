@@ -29,6 +29,7 @@ public class BasicKeywordHighlighting : AbstractEditorTest
     public async Task NavigationBetweenKeywords()
     {
         await TestServices.Editor.SetTextAsync("""
+
             Class C
                 Sub Main()
                     For a = 0 To 1 Step 1

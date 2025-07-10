@@ -86,6 +86,7 @@ public class CSharpGoToImplementation : AbstractEditorTest
             class Implementation : IBar
             {
             }
+
             """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.CloseCodeFileAsync(project, "FileImplementation.cs", saveFile: true, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileInterface.cs", cancellationToken: HangMitigatingCancellationToken);

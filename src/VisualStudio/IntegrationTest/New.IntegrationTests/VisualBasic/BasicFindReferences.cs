@@ -26,12 +26,14 @@ public class BasicFindReferences : AbstractEditorTest
     public async Task FindReferencesToLocals()
     {
         await SetUpEditorAsync("""
+
             Class Program
               Sub Main()
                   Dim local = 1
                   Console.WriteLine(loca$$l)
               End Sub
             End Class
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
@@ -60,20 +62,24 @@ public class BasicFindReferences : AbstractEditorTest
     public async Task FindReferencesToSharedField()
     {
         await SetUpEditorAsync("""
+
             Class Program
                 Public Shared Alpha As Int32
             End Class$$
+
             """, HangMitigatingCancellationToken);
         var project = ProjectName;
         await TestServices.SolutionExplorer.AddFileAsync(project, "File2.vb", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "File2.vb", HangMitigatingCancellationToken);
 
         await SetUpEditorAsync("""
+
             Class SomeOtherClass
                 Sub M()
                     Console.WriteLine(Program.$$Alpha)
                 End Sub
             End Class
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);

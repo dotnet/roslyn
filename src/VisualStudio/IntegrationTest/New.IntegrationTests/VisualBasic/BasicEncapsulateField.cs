@@ -23,6 +23,7 @@ public class BasicEncapsulateField : AbstractEditorTest
     protected override string LanguageName => LanguageNames.VisualBasic;
 
     private const string TestSource = """
+
         Module Module1
                 Public $$name As Integer? = 0
             Sub Main()
@@ -46,16 +47,16 @@ public class BasicEncapsulateField : AbstractEditorTest
         await dialog.VerifyOpenAsync(encapsulateField.DialogName, HangMitigatingCancellationToken);
         await dialog.ClickApplyAndWaitForFeatureAsync(encapsulateField.DialogName, FeatureAttribute.EncapsulateField, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
-            Private _name As Integer? = 0
+                Private _name As Integer? = 0
 
-            Public Property Name As Integer?
-                Get
-                    Return _name
-                End Get
-                Set(value As Integer?)
-                    _name = value
-                End Set
-            End Property
+                Public Property Name As Integer?
+                    Get
+                        Return _name
+                    End Get
+                    Set(value As Integer?)
+                        _name = value
+                    End Set
+                End Property
             """, cancellationToken: HangMitigatingCancellationToken);
     }
 
@@ -73,6 +74,7 @@ public class BasicEncapsulateField : AbstractEditorTest
         }
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Module Module1
                 Private _name As Integer? = 0
 
@@ -106,6 +108,7 @@ public class BasicEncapsulateField : AbstractEditorTest
         }
 
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Module Module1
                 Private _name As Integer? = 0
 

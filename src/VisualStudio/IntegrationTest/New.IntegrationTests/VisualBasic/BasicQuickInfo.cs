@@ -24,6 +24,7 @@ public class BasicQuickInfo : AbstractEditorTest
     public async Task QuickInfo1()
     {
         await SetUpEditorAsync("""
+
             ''' <summary>Hello!</summary>
             Class Program
                 Sub Main(ByVal args As String$$())
@@ -39,6 +40,7 @@ public class BasicQuickInfo : AbstractEditorTest
     public async Task International()
     {
         await SetUpEditorAsync("""
+
             ''' <summary>
             ''' This is an XML doc comment defined in code.
             ''' </summary>

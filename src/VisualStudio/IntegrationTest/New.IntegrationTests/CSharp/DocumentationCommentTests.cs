@@ -26,6 +26,7 @@ public sealed class DocumentationCommentTests : AbstractEditorTest
     public async Task TypingCharacter_MultiCaret()
     {
         await SetUpEditorAsync("""
+
             //{|selection:|}
             class C1 { }
 
@@ -34,9 +35,11 @@ public sealed class DocumentationCommentTests : AbstractEditorTest
 
             //{|selection:|}
             class C3 { }
+
             """, HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync('/', HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             /// <summary>
             /// $$
             /// </summary>
@@ -51,6 +54,7 @@ public sealed class DocumentationCommentTests : AbstractEditorTest
             /// 
             /// </summary>
             class C3 { }
+
             """, assertCaretPosition: true, cancellationToken: HangMitigatingCancellationToken);
     }
 }

@@ -28,11 +28,14 @@ public class CSharpAddMissingUsingsOnPaste : AbstractEditorTest
     {
         var project = ProjectName;
         await TestServices.SolutionExplorer.AddFileAsync(project, "Example.cs", contents: """
+
             public class Example
             {
             }
+
             """);
         await SetUpEditorAsync("""
+
             using System;
 
             class Program
@@ -51,6 +54,7 @@ public class CSharpAddMissingUsingsOnPaste : AbstractEditorTest
         await TestServices.Editor.PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
 
         AssertEx.EqualOrDiff("""
+
             using System;
 
             class Program
@@ -72,13 +76,16 @@ public class CSharpAddMissingUsingsOnPaste : AbstractEditorTest
             project,
             "Example.cs",
             contents: """
+
             public class Example
             {
             }
+
             """,
             cancellationToken: HangMitigatingCancellationToken);
         await SetUpEditorAsync(
             """
+
             using System;
 
             class Program
@@ -89,6 +96,7 @@ public class CSharpAddMissingUsingsOnPaste : AbstractEditorTest
 
                 $$
             }
+
             """,
             HangMitigatingCancellationToken);
 
@@ -101,6 +109,7 @@ public class CSharpAddMissingUsingsOnPaste : AbstractEditorTest
 
         AssertEx.EqualOrDiff(
             """
+
             using System;
             using System.Threading.Tasks;
 
@@ -112,6 +121,7 @@ public class CSharpAddMissingUsingsOnPaste : AbstractEditorTest
 
                 Task DoThingAsync() => Task.CompletedTask;
             }
+
             """,
             await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
         await telemetry.VerifyFiredAsync(["vs/ide/vbcs/commandhandler/paste/importsonpaste"], HangMitigatingCancellationToken);
@@ -122,11 +132,14 @@ public class CSharpAddMissingUsingsOnPaste : AbstractEditorTest
     {
         var project = ProjectName;
         await TestServices.SolutionExplorer.AddFileAsync(project, "Example.cs", contents: """
+
             public class Example
             {
             }
+
             """);
         await SetUpEditorAsync("""
+
             namespace MyNs
             {
                 using System;
@@ -148,6 +161,7 @@ public class CSharpAddMissingUsingsOnPaste : AbstractEditorTest
         await TestServices.Editor.PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
 
         AssertEx.EqualOrDiff("""
+
             namespace MyNs
             {
                 using System;

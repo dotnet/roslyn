@@ -34,6 +34,7 @@ public class BasicReferenceHighlighting : AbstractEditorTest
     public async Task Highlighting()
     {
         MarkupTestFile.GetSpans("""
+
             Class C
                 Dim {|definition:Goo|} as Int32
                 Function M()

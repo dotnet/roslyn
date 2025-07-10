@@ -20,7 +20,9 @@ public class CSharpUpgradeProject : AbstractUpgradeProjectTest
     private async Task InvokeFixAsync(string version, CancellationToken cancellationToken)
     {
         await TestServices.Editor.SetTextAsync($"""
+
             #error version:{version}
+
             """, cancellationToken);
         await TestServices.Editor.ActivateAsync(cancellationToken);
 

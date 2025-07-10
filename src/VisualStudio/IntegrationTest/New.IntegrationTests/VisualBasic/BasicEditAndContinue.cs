@@ -50,6 +50,7 @@ public abstract class BasicEditAndContinue(string projectTemplate)
     public async Task UpdateActiveStatementLeafNode()
     {
         await TestServices.Editor.SetTextAsync("""
+
             Imports System
             Imports System.Collections.Generic
             Imports System.Linq
@@ -65,6 +66,7 @@ public abstract class BasicEditAndContinue(string projectTemplate)
                     Next
                 End Sub
             End Module
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
@@ -86,6 +88,7 @@ public abstract class BasicEditAndContinue(string projectTemplate)
     public async Task AddTryCatchAroundActiveStatement()
     {
         await TestServices.Editor.SetTextAsync("""
+
             Imports System
             Module Module1
                 Sub Main()
@@ -118,6 +121,7 @@ public abstract class BasicEditAndContinue(string projectTemplate)
     public async Task EditLambdaExpression()
     {
         await TestServices.Editor.SetTextAsync("""
+
             Imports System
             Module Module1
                 Private Delegate Function del(i As Integer) As Integer
@@ -176,6 +180,7 @@ public abstract class BasicEditAndContinue(string projectTemplate)
     public async Task EnCWhileDebuggingFromImmediateWindow()
     {
         await TestServices.Editor.SetTextAsync("""
+
             Imports System
 
             Module Module1
@@ -207,6 +212,7 @@ public abstract class BasicEditAndContinue(string projectTemplate)
 
         await TestServices.SolutionExplorer.OpenFileAsync(basicLibrary, "Class1.vb", cancellationToken);
         await TestServices.Editor.SetTextAsync("""
+
             Imports System
             Public Class Class1
                 Public Sub New()
@@ -216,12 +222,14 @@ public abstract class BasicEditAndContinue(string projectTemplate)
                     Console.WriteLine(x)
                 End Sub
             End Class
+
             """, cancellationToken);
 
         await TestServices.SolutionExplorer.AddProjectReferenceAsync(ProjectName, basicLibrary, cancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, FileName, cancellationToken);
 
         await TestServices.Editor.SetTextAsync("""
+
             Imports System
             Imports BasicLibrary1
 
@@ -231,6 +239,7 @@ public abstract class BasicEditAndContinue(string projectTemplate)
                     c.PrintX(5)
                 End Sub
             End Module
+
             """, cancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, cancellationToken);
@@ -264,6 +273,7 @@ public abstract class BasicEditAndContinue(string projectTemplate)
     public async Task LocalsWindowUpdatesAfterLocalGetsItsTypeUpdatedDuringEnC()
     {
         await TestServices.Editor.SetTextAsync("""
+
             Imports System
             Module Module1
                 Sub Main()
@@ -271,6 +281,7 @@ public abstract class BasicEditAndContinue(string projectTemplate)
                     Console.WriteLine(goo)
                 End Sub
             End Module
+
             """, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "End Sub", HangMitigatingCancellationToken);
@@ -290,6 +301,7 @@ public abstract class BasicEditAndContinue(string projectTemplate)
     public async Task LocalsWindowUpdatesCorrectlyDuringEnC()
     {
         await TestServices.Editor.SetTextAsync("""
+
             Imports System
 
             Module Module1
@@ -300,11 +312,12 @@ public abstract class BasicEditAndContinue(string projectTemplate)
                 Function bar(ByVal moo As Long) As Decimal
                     Dim iInt As Integer = 0
                     Dim lLng As Long = 5
-
+                    
                     iInt += 30
                     Return 4
                 End Function
             End Module
+
             """, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "Function bar(ByVal moo As Long) As Decimal", HangMitigatingCancellationToken);
@@ -324,6 +337,7 @@ public abstract class BasicEditAndContinue(string projectTemplate)
     public async Task WatchWindowUpdatesCorrectlyDuringEnC()
     {
         await TestServices.Editor.SetTextAsync("""
+
             Imports System
 
             Module Module1
@@ -332,6 +346,7 @@ public abstract class BasicEditAndContinue(string projectTemplate)
                     System.Diagnostics.Debugger.Break()
                 End Sub
             End Module
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);

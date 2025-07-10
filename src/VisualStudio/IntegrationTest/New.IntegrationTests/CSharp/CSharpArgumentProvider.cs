@@ -37,6 +37,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
     public async Task SimpleTabTabCompletion()
     {
         await SetUpEditorAsync("""
+
             public class Test
             {
                 private object f;
@@ -45,6 +46,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
                 {$$
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
@@ -65,6 +67,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
     public async Task TabTabCompleteObjectEquals()
     {
         await SetUpEditorAsync("""
+
             public class Test
             {
                 public void Method()
@@ -72,6 +75,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
                     $$
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("object.Equ", HangMitigatingCancellationToken);
@@ -94,6 +98,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
     public async Task TabTabCompleteNewObject()
     {
         await SetUpEditorAsync("""
+
             public class Test
             {
                 public void Method()
@@ -101,6 +106,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
                     var value = $$
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("new obje", HangMitigatingCancellationToken);
@@ -120,6 +126,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
     public async Task TabTabBeforeSemicolon()
     {
         await SetUpEditorAsync("""
+
             public class Test
             {
                 private object f;
@@ -129,6 +136,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
                     $$;
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("f.ToSt", HangMitigatingCancellationToken);
@@ -148,6 +156,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
     public async Task TabTabCompletionWithArguments()
     {
         await SetUpEditorAsync("""
+
             using System;
             public class Test
             {
@@ -157,6 +166,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
                 {$$
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
@@ -200,6 +210,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
     public async Task FullCycle()
     {
         await SetUpEditorAsync("""
+
             using System;
             public class TestClass
             {
@@ -211,6 +222,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
                 void Test(int x) { }
                 void Test(int x, int y) { }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
@@ -243,6 +255,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
     public async Task ImplicitArgumentSwitching()
     {
         await SetUpEditorAsync("""
+
             using System;
             public class TestClass
             {
@@ -254,6 +267,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
                 void Test(int x) { }
                 void Test(int x, int y) { }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
@@ -280,6 +294,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
     public async Task SemicolonWithTabTabCompletion1()
     {
         await SetUpEditorAsync("""
+
             public class Test
             {
                 private object f;
@@ -288,6 +303,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
                 {$$
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
@@ -311,6 +327,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
     public async Task SemicolonWithTabTabCompletion2()
     {
         await SetUpEditorAsync("""
+
             public class Test
             {
                 private object f;
@@ -319,6 +336,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
                 {$$
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
@@ -345,6 +363,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
     public async Task SemicolonWithTabTabCompletion3()
     {
         await SetUpEditorAsync("""
+
             public class Test
             {
                 private object f;
@@ -357,6 +376,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
                 {
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
@@ -377,6 +397,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
     public async Task SmartBreakLineWithTabTabCompletion1()
     {
         await SetUpEditorAsync("""
+
             public class Test
             {
                 private object f;
@@ -385,6 +406,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
                 {$$
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
@@ -399,6 +421,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
 
         await TestServices.Input.SendAsync((VirtualKeyCode.RETURN, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             public class Test
             {
                 private object f;
@@ -409,6 +432,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
             $$
                 }
             }
+
             """, assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 
@@ -416,6 +440,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
     public async Task SmartBreakLineWithTabTabCompletion2()
     {
         await SetUpEditorAsync("""
+
             public class Test
             {
                 private object f;
@@ -424,6 +449,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
                 {$$
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
@@ -441,6 +467,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
 
         await TestServices.Input.SendAsync((VirtualKeyCode.RETURN, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             public class Test
             {
                 private object f;
@@ -451,6 +478,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
             $$
                 }
             }
+
             """, assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 
@@ -476,6 +504,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
     public async Task EnsureParameterContentPreserved(string parameterText)
     {
         await SetUpEditorAsync("""
+
             public class Test
             {
                 public void Method()
@@ -490,6 +519,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
                 {
                 }
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
@@ -514,11 +544,13 @@ public class CSharpArgumentProvider : AbstractEditorTest
     public async Task InsertPreprocessorSnippet()
     {
         await SetUpEditorAsync("""
+
             using System;
             public class TestClass
             {
             $$
             }
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("#i", HangMitigatingCancellationToken);
@@ -529,6 +561,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("#if true$$", assertCaretPosition: true, HangMitigatingCancellationToken);
         AssertEx.EqualOrDiff("""
+
             using System;
             public class TestClass
             {
@@ -536,6 +569,7 @@ public class CSharpArgumentProvider : AbstractEditorTest
 
             #endif
             }
+
             """, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
     }
 }

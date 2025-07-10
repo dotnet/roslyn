@@ -27,6 +27,7 @@ public class CSharpSignatureHelp : AbstractEditorTest
     public async Task MethodSignatureHelp()
     {
         await SetUpEditorAsync("""
+
             using System;
             class C
             {
@@ -36,7 +37,7 @@ public class CSharpSignatureHelp : AbstractEditorTest
                    $$
                 }
                 C Method(int i) { return null; }
-
+                
                 /// <summary>
                 /// Hello World 2.0!
                 /// </summary>
@@ -123,6 +124,7 @@ public class CSharpSignatureHelp : AbstractEditorTest
     public async Task GenericMethodSignatureHelp1()
     {
         await SetUpEditorAsync("""
+
             using System;
             class C
             {
@@ -131,7 +133,7 @@ public class CSharpSignatureHelp : AbstractEditorTest
                    GenericMethod<$$string, int>(null, 1);       
                 }
                 C Method(int i) { return null; }
-
+                
                 /// <summary>
                 /// Hello World 2.0!
                 /// </summary>
@@ -187,6 +189,7 @@ public class CSharpSignatureHelp : AbstractEditorTest
     public async Task GenericMethodSignatureHelp2()
     {
         await SetUpEditorAsync("""
+
             using System;
             class C
             {
@@ -195,7 +198,7 @@ public class CSharpSignatureHelp : AbstractEditorTest
                    GenericMethod<string, int>($$null, 1);       
                 }
                 C Method(int i) { return null; }
-
+                
                 /// <summary>
                 /// Hello World 2.0!
                 /// </summary>
@@ -251,6 +254,7 @@ public class CSharpSignatureHelp : AbstractEditorTest
     public async Task ExplicitSignatureHelpDismissesCompletion()
     {
         await SetUpEditorAsync("""
+
             class C
             {
                 void M()

@@ -34,10 +34,12 @@ public class CSharpCodeDefinitionWindow : AbstractEditorTest
         await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
 
         await SetUpEditorAsync("""
+
             public class Test
             {
                 $$int field;
             }
+
             """, HangMitigatingCancellationToken);
 
         // The structure line should be the same, and we'll check for the presence/absence of the decompilation marker

@@ -27,6 +27,7 @@ public class BasicChangeSignatureDialog : AbstractEditorTest
     public async Task VerifyCodeRefactoringOffered()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Method$$(a As Integer, b As Integer)
                 End Sub
@@ -41,6 +42,7 @@ public class BasicChangeSignatureDialog : AbstractEditorTest
     public async Task VerifyRefactoringCancelled()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Method$$(a As Integer, b As String)
                 End Sub
@@ -53,6 +55,7 @@ public class BasicChangeSignatureDialog : AbstractEditorTest
         await TestServices.ChangeSignatureDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains("""
+
             Class C
                 Sub Method(a As Integer, b As String)
                 End Sub
@@ -64,6 +67,7 @@ public class BasicChangeSignatureDialog : AbstractEditorTest
     public async Task VerifyReorderParameters()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Method$$(a As Integer, b As String)
                 End Sub
@@ -78,6 +82,7 @@ public class BasicChangeSignatureDialog : AbstractEditorTest
         await TestServices.ChangeSignatureDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains("""
+
             Class C
                 Sub Method(b As String, a As Integer)
                 End Sub
@@ -89,6 +94,7 @@ public class BasicChangeSignatureDialog : AbstractEditorTest
     public async Task VerifyReorderAndRemoveParametersAcrossLanguages()
     {
         await SetUpEditorAsync("""
+
             Class VBTest
                 Sub TestMethod()
                     Dim x As New CSharpClass
@@ -99,6 +105,7 @@ public class BasicChangeSignatureDialog : AbstractEditorTest
         var csharpProject = "CSharpProject";
         await TestServices.SolutionExplorer.AddProjectAsync(csharpProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync("""
+
             public class CSharpClass
             {
                 /// <summary>
@@ -139,6 +146,7 @@ public class BasicChangeSignatureDialog : AbstractEditorTest
         await TestServices.SolutionExplorer.OpenFileAsync(csharpProject, "Class1.cs", HangMitigatingCancellationToken);
         actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains("""
+
             public class CSharpClass
             {
                 /// <summary>
@@ -160,6 +168,7 @@ public class BasicChangeSignatureDialog : AbstractEditorTest
     public async Task VerifyAddParameter()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Method$$(a As Integer, b As String)
                 End Sub
@@ -218,6 +227,7 @@ public class BasicChangeSignatureDialog : AbstractEditorTest
         await TestServices.ChangeSignatureDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains("""
+
             Class C
                 Sub Method(a As Integer, d As Integer, b As String, c As String)
                 End Sub
@@ -232,6 +242,7 @@ public class BasicChangeSignatureDialog : AbstractEditorTest
     public async Task VerifyAddParameterRefactoringCancelled()
     {
         await SetUpEditorAsync("""
+
             Class C
                 Sub Method$$(a As Integer, b As String)
                 End Sub
@@ -251,6 +262,7 @@ public class BasicChangeSignatureDialog : AbstractEditorTest
         await TestServices.ChangeSignatureDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains("""
+
             Class C
                 Sub Method(a As Integer, b As String)
                 End Sub
@@ -262,6 +274,7 @@ public class BasicChangeSignatureDialog : AbstractEditorTest
     public async Task VerifyAddParametersAcrossLanguages()
     {
         await SetUpEditorAsync("""
+
             Class VBTest
                 Sub TestMethod()
                     Dim x As New CSharpClass
@@ -272,6 +285,7 @@ public class BasicChangeSignatureDialog : AbstractEditorTest
         var csharpProject = "CSharpProject";
         await TestServices.SolutionExplorer.AddProjectAsync(csharpProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync("""
+
             public class CSharpClass
             {
                 public int Method(int a, string b, double c)
@@ -307,6 +321,7 @@ public class BasicChangeSignatureDialog : AbstractEditorTest
         await TestServices.SolutionExplorer.OpenFileAsync(csharpProject, "Class1.cs", HangMitigatingCancellationToken);
         actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains("""
+
             public class CSharpClass
             {
                 public int Method(int a, string b, double c, string d)

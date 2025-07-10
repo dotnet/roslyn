@@ -26,6 +26,7 @@ public class CSharpF1Help : AbstractEditorTest
     public async Task F1Help()
     {
         await SetUpEditorAsync("""
+
             using System;
             using System.IO;
             using System.Linq;

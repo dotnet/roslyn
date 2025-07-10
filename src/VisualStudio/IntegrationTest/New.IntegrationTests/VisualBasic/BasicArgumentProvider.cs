@@ -35,12 +35,14 @@ public class BasicArgumentProvider : AbstractEditorTest
     public async Task SimpleTabTabCompletion()
     {
         await SetUpEditorAsync("""
+
             Public Class Test
                 Private f As Object
 
                 Public Sub Method()$$
                 End Sub
             End Class
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
@@ -61,11 +63,13 @@ public class BasicArgumentProvider : AbstractEditorTest
     public async Task TabTabCompleteObjectEquals()
     {
         await SetUpEditorAsync("""
+
             Public Class Test
                 Public Sub Method()
                     $$
                 End Sub
             End Class
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("Object.Equ", HangMitigatingCancellationToken);
@@ -82,11 +86,13 @@ public class BasicArgumentProvider : AbstractEditorTest
     public async Task TabTabCompleteNewObject()
     {
         await SetUpEditorAsync("""
+
             Public Class Test
                 Public Sub Method()
                     Dim value = $$
                 End Sub
             End Class
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("New Obje", HangMitigatingCancellationToken);
@@ -106,6 +112,7 @@ public class BasicArgumentProvider : AbstractEditorTest
     public async Task TabTabCompletionWithArguments()
     {
         await SetUpEditorAsync("""
+
             Imports System
             Public Class Test
                 Private f As Integer
@@ -113,6 +120,7 @@ public class BasicArgumentProvider : AbstractEditorTest
                 Public Sub Method(provider As IFormatProvider)$$
                 End Sub
             End Class
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
@@ -156,6 +164,7 @@ public class BasicArgumentProvider : AbstractEditorTest
     public async Task FullCycle()
     {
         await SetUpEditorAsync("""
+
             Imports System
             Public Class TestClass
                 Public Sub Method()$$
@@ -170,6 +179,7 @@ public class BasicArgumentProvider : AbstractEditorTest
                 Sub Test(x As Integer, y As Integer)
                 End Sub
             End Class
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
@@ -202,6 +212,7 @@ public class BasicArgumentProvider : AbstractEditorTest
     public async Task ImplicitArgumentSwitching()
     {
         await SetUpEditorAsync("""
+
             Imports System
             Public Class TestClass
                 Public Sub Method()$$
@@ -216,6 +227,7 @@ public class BasicArgumentProvider : AbstractEditorTest
                 Sub Test(x As Integer, y As Integer)
                 End Sub
             End Class
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
@@ -239,12 +251,14 @@ public class BasicArgumentProvider : AbstractEditorTest
     public async Task SmartBreakLineWithTabTabCompletion()
     {
         await SetUpEditorAsync("""
+
             Public Class Test
                 Private f As Object
 
                 Public Sub Method()$$
                 End Sub
             End Class
+
             """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
@@ -259,6 +273,7 @@ public class BasicArgumentProvider : AbstractEditorTest
 
         await TestServices.Input.SendAsync((VirtualKeyCode.RETURN, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync("""
+
             Public Class Test
                 Private f As Object
 
@@ -267,6 +282,7 @@ public class BasicArgumentProvider : AbstractEditorTest
             $$
                 End Sub
             End Class
+
             """, assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 }
