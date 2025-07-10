@@ -45,6 +45,9 @@ internal sealed class ImplementationAssemblyLookupService : IImplementationAssem
         if (TryNugetLibToRef(pathParts, out implementationDllPath))
             return true;
 
+        if (TryProjectLibToRef(pathParts, out implementationDllPath))
+            return true;
+
         if (TryTargetingPackToSharedSdk(pathParts, out implementationDllPath))
             return true;
 
@@ -132,6 +135,29 @@ internal sealed class ImplementationAssemblyLookupService : IImplementationAssem
         var pathToTry = Path.Combine(
                             string.Join(PathSeparatorString, pathParts, 0, refIndex),
                             "lib",
+                            string.Join(PathSeparatorString, pathParts, refIndex + 1, pathParts.Length - refIndex - 1));
+
+        if (IOUtilities.PerformIO(() => File.Exists(pathToTry)))
+        {
+            implementationDllPath = pathToTry;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryProjectLibToRef(string[] pathParts, [NotNullWhen(true)] out string? implementationDllPath)
+    {
+        implementationDllPath = null;
+
+        // For projects if the reference path has a "ref" folder in it, then the implementation assembly
+        // will be in the corresponding parent folder.
+        var refIndex = Array.LastIndexOf(pathParts, "ref");
+        if (refIndex == -1)
+            return false;
+
+        var pathToTry = Path.Combine(
+                            string.Join(PathSeparatorString, pathParts, 0, refIndex),
                             string.Join(PathSeparatorString, pathParts, refIndex + 1, pathParts.Length - refIndex - 1));
 
         if (IOUtilities.PerformIO(() => File.Exists(pathToTry)))
