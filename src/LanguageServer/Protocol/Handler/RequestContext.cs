@@ -55,9 +55,6 @@ internal readonly struct RequestContext
     /// </remarks>
     private readonly StrongBox<(Workspace Workspace, Solution Solution, TextDocument? Document)>? _lspSolution;
 
-    /// <summary>
-    /// Tracing object that can be used to log information about the status of requests.
-    /// </summary>
     public ILspLogger Logger { get; }
 
     /// <summary>
@@ -337,7 +334,7 @@ internal readonly struct RequestContext
     }
 
     public void TraceDebug(string message)
-        => _logger.LogDebug(message);
+        => Logger.LogDebug(message);
 
     /// <summary>
     /// Logs an informational message.
