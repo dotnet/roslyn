@@ -2324,7 +2324,7 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """,
-options: ExplicitTypeEverywhere());
+            options: ExplicitTypeEverywhere());
 
     [Fact]
     public Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTupleWithNames()
@@ -2347,7 +2347,7 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """,
-options: ExplicitTypeEverywhere());
+            options: ExplicitTypeEverywhere());
 
     [Fact]
     public Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTupleWithOneName()
@@ -2370,7 +2370,7 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """,
-options: ExplicitTypeEverywhere());
+            options: ExplicitTypeEverywhere());
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20437")]
     public Task SuggestExplicitTypeOnDeclarationExpressionSyntax()
@@ -2397,7 +2397,7 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """,
-options: ExplicitTypeEverywhere());
+            options: ExplicitTypeEverywhere());
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
     public Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames1()

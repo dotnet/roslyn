@@ -76,7 +76,7 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
                 int M2() => 0;
             }
             """, options: PreferDiscard,
-parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]

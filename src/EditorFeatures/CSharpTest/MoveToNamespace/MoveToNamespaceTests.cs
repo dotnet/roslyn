@@ -1101,7 +1101,7 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
                }
            }
            """,
-            targetNamespace: "My.New.Namespace",
+           targetNamespace: "My.New.Namespace",
             expectedSymbolChanges: new Dictionary<string, string>()
             {
             {"A.MyClass3", "My.New.Namespace.MyClass3" }
@@ -1158,7 +1158,7 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
                }
            }
            """,
-            targetNamespace: "B",
+           targetNamespace: "B",
             expectedSymbolChanges: new Dictionary<string, string>()
             {
             {"A.B.C.MyClass3", "B.MyClass3" }
@@ -1175,7 +1175,7 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
                }
            }
            """,
-expectedNamespaceName: "A.Complex.Namespace");
+           expectedNamespaceName: "A.Complex.Namespace");
 
     [Fact]
     public Task MoveToNamespace_Analysis_MoveType_ComplexNamespace()

@@ -495,6 +495,6 @@ public abstract class NativeIntegerKeywordRecommenderTests : RecommenderTests
                     }
                 }
                 """,
-                CSharpNextParseOptions,
-                CSharpNextScriptParseOptions);
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
 }

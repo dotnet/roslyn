@@ -7188,7 +7188,7 @@ class C
                 }
             }
             """, new TestParameters(options: PreferDiscard, retainNonFixableDiagnostics: true),
-Diagnostic("IDE0059"));
+            Diagnostic("IDE0059"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60030")]
     public Task UnusedLocal_ForEach_TopLevelStatement()
@@ -8283,7 +8283,7 @@ class C
                 }
             }
             """, options: PreferDiscard,
-parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33464")]
     public Task UsingDeclarationWithInitializer()
@@ -8304,7 +8304,7 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, options: PreferDiscard,
-parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37709")]
     public Task RefParameter_WrittenBeforeThrow()

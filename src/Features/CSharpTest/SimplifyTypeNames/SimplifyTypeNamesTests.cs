@@ -2287,7 +2287,7 @@ new TestParameters(Options.Script));
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40633")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
@@ -4346,7 +4346,7 @@ index: 1);
                 }
             }
             """,
-options: PreferIntrinsicTypeInMemberAccess);
+            options: PreferIntrinsicTypeInMemberAccess);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
     public Task TestIntrinsicTypesInsideCref_NonDefault_5()
@@ -4382,7 +4382,7 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """,
-options: PreferIntrinsicTypeInMemberAccess);
+            options: PreferIntrinsicTypeInMemberAccess);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
     public Task TestIntrinsicTypesInsideCref_NonDefault_6_PreferDeclaration()

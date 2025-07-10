@@ -23,7 +23,7 @@ public class BasicF1Help : AbstractEditorTest
     }
 
     [IdeFact]
-    private async Task F1Help()
+    public async Task F1Help()
     {
         await SetUpEditorAsync(@"
 Imports System
