@@ -85,7 +85,7 @@ internal abstract class AbstractSpeculationAnalyzer<
         _failOnOverloadResolutionFailuresInOriginalCode = failOnOverloadResolutionFailuresInOriginalCode;
         _isNewSemanticModelSpeculativeModel = true;
         _lazyReplacedExpression = null;
-        SemanticRootOfOriginalExpression = null!;
+        SemanticRootOfOriginalExpression = null;
         _lazySemanticRootOfReplacedExpression = null;
         _lazySpeculativeSemanticModel = null;
     }
@@ -132,6 +132,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     /// field initializer, default parameter initializer or type syntax node.
     /// It serves as the root node for all semantic analysis for this syntax replacement.
     /// </summary>
+    [AllowNull]
     public SyntaxNode SemanticRootOfOriginalExpression
     {
         get
