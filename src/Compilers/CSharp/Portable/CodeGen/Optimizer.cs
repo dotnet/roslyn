@@ -999,6 +999,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 // If this is a pointer-to-ref assignment, keep the local so GC knows to re-track it.
+                // We don't need to do this for implicitly synthesized locals because working with pointers in an unsafe context does not guarantee any GC tracking,
+                // but when a pointer is converted to a user-defined ref local, it becomes a use of a "safe" feature where we should guarantee the ref is tracked by GC.
                 else if (localSymbol.RefKind != RefKind.None &&
                     localSymbol.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
                     right.Kind == BoundKind.PointerIndirectionOperator)
