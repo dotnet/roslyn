@@ -543,7 +543,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             var list = ImmutableSegmentedList.Create(new Person { Name = "Andrew", Age = 20 });
             var newAge = new Person { Name = "Andrew", Age = 21 };
-            var updatedList = list.Replace(newAge, newAge, new NameOnlyEqualityComparer());
+            var nameOnlyComparer = EqualityComparer<Person>.Create((x, y) => x.Name == y.Name, x => x.Name.GetHashCode());
+
+            var updatedList = list.Replace(newAge, newAge, nameOnlyComparer);
             Assert.Equal(newAge.Age, updatedList[0].Age);
 
             // Try again with a null equality comparer, which should use the default EQ.
@@ -944,19 +946,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             public string Name { get; set; }
             public int Age { get; set; }
-        }
-
-        private class NameOnlyEqualityComparer : IEqualityComparer<Person>
-        {
-            public bool Equals(Person x, Person y)
-            {
-                return x.Name == y.Name;
-            }
-
-            public int GetHashCode(Person obj)
-            {
-                return obj.Name.GetHashCode();
-            }
         }
     }
 }

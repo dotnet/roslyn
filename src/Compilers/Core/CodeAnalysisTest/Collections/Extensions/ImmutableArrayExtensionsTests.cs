@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var equalElements = new int[] { -1, -2, -3 }.AsImmutableOrNull();
             var equalDuplicate = new int[] { 1, 2, 3, 3, -3 }.AsImmutableOrNull();
 
-            IEqualityComparer<int> comparer = new AbsoluteValueComparer();
+            var comparer = EqualityComparer<int>.Create((x, y) => Math.Abs(x) == Math.Abs(y), Math.Abs);
 
             Assert.True(nul.SetEquals(nul, comparer));
             Assert.True(empty.SetEquals(empty, comparer));
@@ -118,22 +118,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.True(singleton1.SetEquals(singleton1, comparer));
             Assert.False(singleton1.SetEquals(singleton2, comparer));
-        }
-
-        private class AbsoluteValueComparer : IEqualityComparer<int>
-        {
-            #region IEqualityComparer<int> Members
-
-            bool IEqualityComparer<int>.Equals(int x, int y)
-            {
-                return Math.Abs(x) == Math.Abs(y);
-            }
-
-            int IEqualityComparer<int>.GetHashCode(int x)
-            {
-                return Math.Abs(x);
-            }
-            #endregion
         }
 
         [Fact]
@@ -544,19 +528,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(other.ToImmutableArray().IsSubsetOf(array.ToImmutableArray()));
         }
 
-        public sealed class Comparer<T>(Func<T, T, bool> equals, Func<T, int> hashCode) : IEqualityComparer<T>
-        {
-            private readonly Func<T, T, bool> _equals = equals;
-            private readonly Func<T, int> _hashCode = hashCode;
-
-            public bool Equals(T x, T y) => _equals(x, y);
-            public int GetHashCode(T obj) => _hashCode(obj);
-        }
-
         [Fact]
         public void HasDuplicates()
         {
-            var comparer = new Comparer<int>((x, y) => x % 10 == y % 10, x => (x % 10).GetHashCode());
+            var comparer = EqualityComparer<int>.Create((x, y) => x % 10 == y % 10, x => (x % 10).GetHashCode());
 
             Assert.False(ImmutableArray<int>.Empty.HasDuplicates());
             Assert.False(ImmutableArray<int>.Empty.HasDuplicates(comparer));

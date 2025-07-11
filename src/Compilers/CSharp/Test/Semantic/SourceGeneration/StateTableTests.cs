@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var expected = ImmutableArray.Create((1, EntryState.Added, 0), (2, EntryState.Added, 0), (3, EntryState.Added, 0));
             AssertTableEntries(previousTable, expected);
 
-            builder = previousTable.ToBuilder(stepName: null, false, new LambdaComparer<int>((i, j) => i == 3 || i == j));
+            builder = previousTable.ToBuilder(stepName: null, false, EqualityComparer<int>.Create((i, j) => i == 3 || i == j));
             Assert.True(builder.TryModifyEntry(1, TimeSpan.Zero, default, EntryState.Modified)); // ((1, EntryState.Cached))
             Assert.True(builder.TryModifyEntry(4, TimeSpan.Zero, default, EntryState.Modified)); // ((4, EntryState.Modified))
             Assert.True(builder.TryModifyEntry(5, TimeSpan.Zero, default, EntryState.Modified)); // ((3, EntryState.Cached))
@@ -918,7 +918,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         public void User_Comparer_Is_Not_Used_To_Determine_Inputs()
         {
             var inputNode = new InputNode<int>((_) => ImmutableArray.Create(1, 2, 3))
-                                .WithComparer(new LambdaComparer<int>((a, b) => false));
+                                .WithComparer(EqualityComparer<int>.Create((_, _) => false));
 
             // first time through will always be added (because it's not been run before)
             DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty);

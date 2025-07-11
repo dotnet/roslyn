@@ -4,28 +4,17 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
 public class ListExtensionsTests
 {
-    public sealed class Comparer<T>(Func<T, T, bool> equals, Func<T, int> hashCode) : IEqualityComparer<T>
-    {
-        private readonly Func<T, T, bool> _equals = equals;
-        private readonly Func<T, int> _hashCode = hashCode;
-
-        public bool Equals(T x, T y) => _equals(x, y);
-        public int GetHashCode(T obj) => _hashCode(obj);
-    }
-
     [Fact]
     public void HasDuplicates()
     {
-        var comparer = new Comparer<int>((x, y) => x % 10 == y % 10, x => (x % 10).GetHashCode());
+        var comparer = EqualityComparer<int>.Create((x, y) => x % 10 == y % 10, x => (x % 10).GetHashCode());
 
         Assert.False(new int[0].HasDuplicates());
         Assert.False(new int[0].HasDuplicates(comparer));
