@@ -2572,8 +2572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private bool TryEmitAssignmentInPlace(BoundAssignmentOperator assignmentOperator, bool used)
         {
             // If the left hand is itself a ref, then we can't use in-place assignment
-            // because we need to spill the creation. This code can't be written in C#, but
-            // can be produced by lowering.
+            // because we need to spill the creation.
             if (assignmentOperator.IsRef)
             {
                 return false;
