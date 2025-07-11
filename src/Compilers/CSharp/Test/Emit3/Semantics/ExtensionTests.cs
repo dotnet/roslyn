@@ -35138,6 +35138,87 @@ namespace N
         comp.VerifyDiagnostics();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79309")]
+    public void FunctionType_InstanceReceiver_12()
+    {
+        // static non-extension method vs. extension property
+        var src = """
+var x = new C().M;
+
+public static class E
+{
+    extension(C c)
+    {
+        public int M => 42;
+    }
+}
+
+public class C
+{
+    public static int M() => throw null;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS8917: The delegate type could not be inferred.
+            // var x = new C().M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(1, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var localDeclaration = GetSyntax<VariableDeclarationSyntax>(tree, "var x = new C().M");
+        Assert.Equal("?", model.GetTypeInfo(localDeclaration.Type).Type.ToTestDisplayString());
+
+        // without non-extension method
+        src = """
+var x = new C().M;
+System.Console.Write(x);
+
+public static class E
+{
+    extension(C c)
+    {
+        public int M => 42;
+    }
+}
+
+public class C
+{
+}
+""";
+        comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+
+        tree = comp.SyntaxTrees.First();
+        model = comp.GetSemanticModel(tree);
+        localDeclaration = GetSyntax<VariableDeclarationSyntax>(tree, "var x = new C().M");
+        Assert.Equal("System.Int32", model.GetTypeInfo(localDeclaration.Type).Type.ToTestDisplayString());
+
+        // analogous non-extension scenario
+        src = """
+var x = new C().M;
+System.Console.Write(x);
+
+public class Base
+{
+    public int M => 42;
+}
+
+public class C : Base
+{
+    public static int M() => throw null;
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS8917: The delegate type could not be inferred.
+            // var x = new C().M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(1, 9),
+            // (11,23): warning CS0108: 'C.M()' hides inherited member 'Base.M'. Use the new keyword if hiding was intended.
+            //     public static int M() => throw null;
+            Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("C.M()", "Base.M").WithLocation(11, 23));
+    }
+
     [Fact]
     public void FunctionType_ColorColorReceiver_01()
     {
