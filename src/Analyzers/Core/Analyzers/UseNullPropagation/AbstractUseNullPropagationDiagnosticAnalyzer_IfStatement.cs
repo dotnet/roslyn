@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -28,7 +29,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         [NotNullWhen(true)] out TExpressionSyntax? condition,
         out ImmutableArray<TStatementSyntax> trueStatements);
 
-    private void AnalyzeIfStatement(
+    private void AnalyzeIfStatementAndReportDiagnostic(
         SyntaxNodeAnalysisContext context,
         IMethodSymbol? referenceEqualsMethod)
     {
@@ -37,27 +38,53 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
-        var syntaxFacts = this.SyntaxFacts;
         var ifStatement = (TIfStatementSyntax)context.Node;
+        var analysisResultOpt = AnalyzeIfStatement(
+            context.SemanticModel, referenceEqualsMethod, ifStatement, cancellationToken);
+        if (analysisResultOpt is not IfStatementAnalysisResult analysisResult)
+            return;
+
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            Descriptor,
+            ifStatement.GetFirstToken().GetLocation(),
+            option.Notification,
+            context.Options,
+            additionalLocations: null,
+            properties: analysisResult.Properties));
+
+    }
+
+    public IfStatementAnalysisResult? AnalyzeIfStatement(
+        SemanticModel semanticModel,
+        IMethodSymbol? referenceEqualsMethod,
+        TIfStatementSyntax ifStatement,
+        CancellationToken cancellationToken)
+    {
+        var syntaxFacts = this.SyntaxFacts;
 
         // The true-statement if the if-statement has to be a statement of the form `<expr1>.Name(...)`;
         if (!TryGetPartsOfIfStatement(ifStatement, out var condition, out var trueStatement, out var nullAssignmentOpt))
-            return;
+            return null;
 
         if (trueStatement is not TExpressionStatementSyntax expressionStatement)
-            return;
+            return null;
 
         if (nullAssignmentOpt is not null and not TExpressionStatementSyntax)
-            return;
+            return null;
 
         // Now see if the `if (<condition>)` looks like an appropriate null check.
-        if (!TryAnalyzeCondition(context, syntaxFacts, referenceEqualsMethod, condition, out var conditionPartToCheck, out var isEquals))
-            return;
+        if (!TryAnalyzeCondition(
+                semanticModel, referenceEqualsMethod, condition,
+                out var conditionPartToCheck, out var isEquals,
+                cancellationToken))
+        {
+            return null;
+        }
 
         // Ok, we have `if (<expr2> == null)` or `if (<expr2> != null)` (or some similar form of that.  `conditionPartToCheck` will be `<expr2>` here.
         // We only support `if (<expr2> != null)`.  Fail out if we have the alternate form.
         if (isEquals)
-            return;
+            return null;
 
         if (nullAssignmentOpt != null)
         {
@@ -70,25 +97,24 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             // preserves those semantics.  Simialrly, if is expr is null, then `expr?.Method();` does nothing, and `expr = null` keeps it
             // the same as well.  So this is a valid conversion in all cases.
             if (!syntaxFacts.IsSimpleAssignmentStatement(nullAssignmentOpt))
-                return;
+                return null;
 
             syntaxFacts.GetPartsOfAssignmentStatement(nullAssignmentOpt, out var assignLeft, out _, out var assignRight);
             if (!syntaxFacts.AreEquivalent(assignLeft, conditionPartToCheck) ||
                 !syntaxFacts.IsNullLiteralExpression(assignRight))
             {
-                return;
+                return null;
             }
 
             // Looks good.  we can convert this block.
         }
 
-        var semanticModel = context.SemanticModel;
         var whenPartMatch = GetWhenPartMatch(
             syntaxFacts, semanticModel, conditionPartToCheck,
             (TExpressionSyntax)syntaxFacts.GetExpressionOfExpressionStatement(expressionStatement),
             cancellationToken);
         if (whenPartMatch == null)
-            return;
+            return null;
 
         // If we have:
         //
@@ -107,28 +133,20 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         {
             var memberSymbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).GetAnySymbol();
             if (memberSymbol?.IsStatic is true)
-                return;
+                return null;
         }
 
         // can't use ?. on a pointer
         var whenPartType = semanticModel.GetTypeInfo(whenPartMatch, cancellationToken).Type;
         if (whenPartType is IPointerTypeSymbol or IFunctionPointerTypeSymbol)
-            return;
+            return null;
 
-        var whenPartIsNullable = semanticModel.GetTypeInfo(whenPartMatch).Type?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+        var whenPartIsNullable = semanticModel.GetTypeInfo(whenPartMatch, cancellationToken).Type?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
         var properties = whenPartIsNullable
             ? s_whenPartIsNullableProperties
             : ImmutableDictionary<string, string?>.Empty;
 
-        context.ReportDiagnostic(DiagnosticHelper.Create(
-            Descriptor,
-            ifStatement.GetFirstToken().GetLocation(),
-            option.Notification,
-            context.Options,
-            nullAssignmentOpt is null
-                ? [ifStatement.GetLocation(), trueStatement.GetLocation(), whenPartMatch.GetLocation()]
-                : [ifStatement.GetLocation(), trueStatement.GetLocation(), whenPartMatch.GetLocation(), nullAssignmentOpt.GetLocation()],
-            properties));
+        return new(trueStatement, whenPartMatch, nullAssignmentOpt, properties);
     }
 
     private bool TryGetPartsOfIfStatement(

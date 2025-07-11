@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseNullPropagation;
 
@@ -49,6 +51,11 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
     protected abstract SyntaxNode PostProcessElseIf(TIfStatementSyntax ifStatement, TStatementSyntax newWhenTrueStatement);
     protected abstract TElementBindingExpressionSyntax ElementBindingExpression(TElementBindingArgumentListSyntax argumentList);
 
+    protected abstract (TStatementSyntax whenTrueStatement, TExpressionSyntax whenPartMatch, TStatementSyntax? nullAssignmentOpt)? GetPartsOfIfStatement(
+        SemanticModel semanticModel, TIfStatementSyntax ifStatement, CancellationToken cancellationToken);
+    protected abstract (TExpressionSyntax conditionalPart, SyntaxNode whenPart)? GetPartsOfConditionalExpression(
+        SemanticModel semanticModel, TConditionalExpressionSyntax conditionalExpression, CancellationToken cancellationToken);
+
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseNullPropagationDiagnosticId];
 
@@ -56,17 +63,15 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
     {
         var firstDiagnostic = context.Diagnostics.First();
 
-        var title = IsTrivialNullableValueAccess(firstDiagnostic)
+        var title = IsTrivialNullableValueAccess(firstDiagnostic.Properties)
             ? AnalyzersResources.Simplify_conditional_expression
             : AnalyzersResources.Use_null_propagation;
 
         return (title, nameof(AnalyzersResources.Use_null_propagation));
     }
 
-    private static bool IsTrivialNullableValueAccess(Diagnostic firstDiagnostic)
-    {
-        return firstDiagnostic.Properties.ContainsKey(UseNullPropagationHelpers.IsTrivialNullableValueAccess);
-    }
+    private static bool IsTrivialNullableValueAccess(ImmutableDictionary<string, string?> properties)
+        => properties.ContainsKey(UseNullPropagationHelpers.IsTrivialNullableValueAccess);
 
     protected override async Task FixAsync(
         Document document,
@@ -77,36 +82,40 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
     {
         if (conditionalExpressionOrIfStatement is TIfStatementSyntax ifStatement)
         {
-            FixIfStatement(document, editor, diagnostic, ifStatement);
+            await FixIfStatementAsync(
+                document, editor, ifStatement, properties, cancellationToken).ConfigureAwait(false);
         }
         else
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            FixConditionalExpression(document, editor, semanticModel, diagnostic, conditionalExpressionOrIfStatement, cancellationToken);
+            await FixConditionalExpressionAsync(
+                document, editor, (TConditionalExpressionSyntax)conditionalExpressionOrIfStatement, properties, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private void FixConditionalExpression(
+    private async Task FixConditionalExpressionAsync(
         Document document,
         SyntaxEditor editor,
-        SemanticModel semanticModel,
-        Diagnostic diagnostic,
-        SyntaxNode conditionalExpression,
+        TConditionalExpressionSyntax conditionalExpression,
+        ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
     {
         var root = editor.OriginalRoot;
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 
-        var conditionalPart = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: true);
-        var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan, getInnermostNodeForTie: true);
+        var conditionalExpressionParts = this.GetPartsOfConditionalExpression(
+            semanticModel, conditionalExpression, cancellationToken);
+        if (conditionalExpressionParts is not var (conditionalPart, whenPart))
+            return;
+
         syntaxFacts.GetPartsOfConditionalExpression(
             conditionalExpression, out _, out var whenTrue, out _);
         whenTrue = syntaxFacts.WalkDownParentheses(whenTrue);
 
         // `x == null ? x : x.Value` will be converted to just 'x'.
-        if (IsTrivialNullableValueAccess(diagnostic))
+        if (IsTrivialNullableValueAccess(properties))
         {
             editor.ReplaceNode(
                 conditionalExpression,
@@ -114,7 +123,7 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
             return;
         }
 
-        var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationHelpers.WhenPartIsNullable);
+        var whenPartIsNullable = properties.ContainsKey(UseNullPropagationHelpers.WhenPartIsNullable);
         editor.ReplaceNode(
             conditionalExpression,
             (conditionalExpression, _) =>
@@ -145,24 +154,26 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
             });
     }
 
-    private void FixIfStatement(
+    private async Task FixIfStatementAsync(
         Document document,
         SyntaxEditor editor,
-        Diagnostic diagnostic,
-        TIfStatementSyntax ifStatement)
+        TIfStatementSyntax ifStatement,
+        ImmutableDictionary<string, string?> properties,
+        CancellationToken cancellationToken)
     {
         var root = editor.OriginalRoot;
+        var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None).ConfigureAwait(false);
 
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 
-        var whenTrueStatement = (TStatementSyntax)root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
-        var match = (TExpressionSyntax)root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan, getInnermostNodeForTie: true);
-        var nullAssignmentOpt = diagnostic.AdditionalLocations.Count == 4
-            ? (TStatementSyntax?)root.FindNode(diagnostic.AdditionalLocations[3].SourceSpan, getInnermostNodeForTie: true)
-            : null;
+        var ifStatementParts = this.GetPartsOfIfStatement(semanticModel, ifStatement, cancellationToken);
+        if (ifStatementParts is not var (whenTrueStatement, match, nullAssignmentOpt))
+            return;
 
-        var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationHelpers.WhenPartIsNullable);
+        var whenPartIsNullable = properties.ContainsKey(UseNullPropagationHelpers.WhenPartIsNullable);
+
+        SyntaxNode nodeToBeReplaced = ifStatement;
 
         // we have `if (x != null) x.Y();`.  Update `x.Y()` to be `x?.Y()`, then replace the entire
         // if-statement with that expression statement.
@@ -212,7 +223,7 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
             // remove the if-statement.
             if (nullAssignmentOpt is null)
             {
-                editor.ReplaceNode(ifStatement, newWhenTrueStatement);
+                editor.ReplaceNode(nodeToBeReplaced, newWhenTrueStatement);
             }
             else
             {

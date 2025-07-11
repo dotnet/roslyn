@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -27,6 +28,8 @@ internal sealed class CSharpUseNullPropagationDiagnosticAnalyzer :
         IfStatementSyntax,
         ExpressionStatementSyntax>
 {
+    public static readonly CSharpUseNullPropagationDiagnosticAnalyzer Instance = new();
+
     protected override SyntaxKind IfStatementSyntaxKind
         => SyntaxKind.IfStatement;
 

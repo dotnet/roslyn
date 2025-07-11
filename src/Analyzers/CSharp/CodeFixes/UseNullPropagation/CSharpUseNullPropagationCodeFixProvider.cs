@@ -5,6 +5,8 @@
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -48,4 +50,28 @@ internal sealed class CSharpUseNullPropagationCodeFixProvider() : AbstractUseNul
 
     protected override ElementBindingExpressionSyntax ElementBindingExpression(BracketedArgumentListSyntax argumentList)
         => SyntaxFactory.ElementBindingExpression(argumentList);
+
+    protected override (StatementSyntax whenTrueStatement, ExpressionSyntax whenPartMatch, StatementSyntax? nullAssignmentOpt)? GetPartsOfIfStatement(
+        SemanticModel semanticModel, IfStatementSyntax ifStatement, CancellationToken cancellationToken)
+    {
+        var (_, referenceEqualsMethod) = CSharpUseNullPropagationDiagnosticAnalyzer.GetAnalysisSymbols(semanticModel.Compilation);
+        var analysisResult = CSharpUseNullPropagationDiagnosticAnalyzer.Instance.AnalyzeIfStatement(
+            semanticModel, referenceEqualsMethod, ifStatement, cancellationToken);
+        if (analysisResult is null)
+            return null;
+
+        return (analysisResult.Value.TrueStatement, analysisResult.Value.WhenPartMatch, analysisResult.Value.NullAssignmentOpt);
+    }
+
+    protected override (ExpressionSyntax conditionalPart, SyntaxNode whenPart)? GetPartsOfConditionalExpression(
+        SemanticModel semanticModel, ConditionalExpressionSyntax conditionalExpression, CancellationToken cancellationToken)
+    {
+        var (expressionType, referenceEqualsMethod) = CSharpUseNullPropagationDiagnosticAnalyzer.GetAnalysisSymbols(semanticModel.Compilation);
+        var analysisResult = CSharpUseNullPropagationDiagnosticAnalyzer.Instance.AnalyzeTernaryConditionalExpression(
+            semanticModel, expressionType, referenceEqualsMethod, conditionalExpression, cancellationToken);
+        if (analysisResult is null)
+            return null;
+
+        return (analysisResult.Value.ConditionPartToCheck, analysisResult.Value.WhenPartToCheck);
+    }
 }
