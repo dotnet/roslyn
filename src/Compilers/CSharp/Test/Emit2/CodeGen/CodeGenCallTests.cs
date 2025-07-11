@@ -21968,39 +21968,45 @@ Position set for item '2'
             verifier.VerifyIL("Program.Shift2<T>",
 @"
 {
-  // Code size       77 (0x4d)
+  // Code size       83 (0x53)
   .maxstack  4
   .locals init (T& V_0,
-                int V_1,
-                T V_2)
+                T V_1,
+                T& V_2,
+                int V_3,
+                T V_4)
   IL_0000:  ldarga.s   V_0
-  IL_0002:  stloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  constrained. ""T""
-  IL_000a:  callvirt   ""int IMoveable.Length.get""
-  IL_000f:  ldc.i4.1
-  IL_0010:  sub
-  IL_0011:  stloc.1
-  IL_0012:  ldloc.0
-  IL_0013:  ldloca.s   V_2
-  IL_0015:  initobj    ""T""
-  IL_001b:  ldloc.2
-  IL_001c:  box        ""T""
-  IL_0021:  brtrue.s   IL_002b
-  IL_0023:  ldobj      ""T""
-  IL_0028:  stloc.2
-  IL_0029:  ldloca.s   V_2
-  IL_002b:  ldloc.1
-  IL_002c:  ldloc.0
-  IL_002d:  ldloc.1
-  IL_002e:  constrained. ""T""
-  IL_0034:  callvirt   ""int IMoveable.this[int].get""
-  IL_0039:  ldarga.s   V_0
-  IL_003b:  call       ""int Program.GetOffset<T>(ref T)""
-  IL_0040:  add
-  IL_0041:  constrained. ""T""
-  IL_0047:  callvirt   ""void IMoveable.this[int].set""
-  IL_004c:  ret
+  IL_0002:  stloc.2
+  IL_0003:  ldloca.s   V_4
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.s    V_4
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.2
+  IL_0020:  stloc.0
+  IL_0021:  ldloc.0
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int IMoveable.Length.get""
+  IL_002d:  ldc.i4.1
+  IL_002e:  sub
+  IL_002f:  stloc.3
+  IL_0030:  ldloc.0
+  IL_0031:  ldloc.3
+  IL_0032:  ldloc.0
+  IL_0033:  ldloc.3
+  IL_0034:  constrained. ""T""
+  IL_003a:  callvirt   ""int IMoveable.this[int].get""
+  IL_003f:  ldarga.s   V_0
+  IL_0041:  call       ""int Program.GetOffset<T>(ref T)""
+  IL_0046:  add
+  IL_0047:  constrained. ""T""
+  IL_004d:  callvirt   ""void IMoveable.this[int].set""
+  IL_0052:  ret
 }
 ");
 
@@ -22234,39 +22240,45 @@ Position set for item '2'
             verifier.VerifyIL("Program.Shift2<T>",
 @"
 {
-  // Code size       75 (0x4b)
+  // Code size       81 (0x51)
   .maxstack  4
   .locals init (T& V_0,
-                int V_1,
-                T V_2)
+                T V_1,
+                T& V_2,
+                int V_3,
+                T V_4)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  constrained. ""T""
-  IL_0009:  callvirt   ""int IMoveable.Length.get""
-  IL_000e:  ldc.i4.1
-  IL_000f:  sub
-  IL_0010:  stloc.1
-  IL_0011:  ldloc.0
-  IL_0012:  ldloca.s   V_2
-  IL_0014:  initobj    ""T""
-  IL_001a:  ldloc.2
-  IL_001b:  box        ""T""
-  IL_0020:  brtrue.s   IL_002a
-  IL_0022:  ldobj      ""T""
-  IL_0027:  stloc.2
-  IL_0028:  ldloca.s   V_2
-  IL_002a:  ldloc.1
-  IL_002b:  ldloc.0
-  IL_002c:  ldloc.1
-  IL_002d:  constrained. ""T""
-  IL_0033:  callvirt   ""int IMoveable.this[int].get""
-  IL_0038:  ldarg.0
-  IL_0039:  call       ""int Program.GetOffset<T>(ref T)""
-  IL_003e:  add
-  IL_003f:  constrained. ""T""
-  IL_0045:  callvirt   ""void IMoveable.this[int].set""
-  IL_004a:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_4
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  constrained. ""T""
+  IL_0027:  callvirt   ""int IMoveable.Length.get""
+  IL_002c:  ldc.i4.1
+  IL_002d:  sub
+  IL_002e:  stloc.3
+  IL_002f:  ldloc.0
+  IL_0030:  ldloc.3
+  IL_0031:  ldloc.0
+  IL_0032:  ldloc.3
+  IL_0033:  constrained. ""T""
+  IL_0039:  callvirt   ""int IMoveable.this[int].get""
+  IL_003e:  ldarg.0
+  IL_003f:  call       ""int Program.GetOffset<T>(ref T)""
+  IL_0044:  add
+  IL_0045:  constrained. ""T""
+  IL_004b:  callvirt   ""void IMoveable.this[int].set""
+  IL_0050:  ret
 }
 ");
 
@@ -22589,7 +22601,7 @@ Position set for item '2'
             verifier.VerifyIL("Program.<Shift2>d__2<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
 {
-  // Code size      311 (0x137)
+  // Code size      359 (0x167)
   .maxstack  4
   .locals init (int V_0,
                 int V_1,
@@ -22603,112 +22615,128 @@ Position set for item '2'
   .try
   {
     IL_0007:  ldloc.0
-    IL_0008:  brfalse    IL_00a0
-    IL_000d:  ldarg.0
-    IL_000e:  ldflda     ""T Program.<Shift2>d__2<T>.item""
-    IL_0013:  constrained. ""T""
-    IL_0019:  callvirt   ""int IMoveable.Length.get""
-    IL_001e:  ldc.i4.1
-    IL_001f:  sub
-    IL_0020:  stloc.1
-    IL_0021:  ldloca.s   V_3
-    IL_0023:  initobj    ""T""
-    IL_0029:  ldloc.3
-    IL_002a:  box        ""T""
-    IL_002f:  brtrue.s   IL_003d
-    IL_0031:  ldarg.0
-    IL_0032:  ldarg.0
-    IL_0033:  ldfld      ""T Program.<Shift2>d__2<T>.item""
-    IL_0038:  stfld      ""T Program.<Shift2>d__2<T>.<>7__wrap1""
-    IL_003d:  ldarg.0
-    IL_003e:  ldloc.1
-    IL_003f:  stfld      ""int Program.<Shift2>d__2<T>.<>7__wrap2""
-    IL_0044:  ldarg.0
-    IL_0045:  ldarg.0
-    IL_0046:  ldflda     ""T Program.<Shift2>d__2<T>.item""
-    IL_004b:  ldloc.1
-    IL_004c:  constrained. ""T""
-    IL_0052:  callvirt   ""int IMoveable.this[int].get""
-    IL_0057:  stfld      ""int Program.<Shift2>d__2<T>.<>7__wrap3""
+    IL_0008:  brfalse    IL_00d0
+    IL_000d:  ldloca.s   V_3
+    IL_000f:  initobj    ""T""
+    IL_0015:  ldloc.3
+    IL_0016:  box        ""T""
+    IL_001b:  brtrue.s   IL_0029
+    IL_001d:  ldarg.0
+    IL_001e:  ldarg.0
+    IL_001f:  ldfld      ""T Program.<Shift2>d__2<T>.item""
+    IL_0024:  stfld      ""T Program.<Shift2>d__2<T>.<>7__wrap1""
+    IL_0029:  ldloca.s   V_3
+    IL_002b:  initobj    ""T""
+    IL_0031:  ldloc.3
+    IL_0032:  box        ""T""
+    IL_0037:  brtrue.s   IL_0041
+    IL_0039:  ldarg.0
+    IL_003a:  ldflda     ""T Program.<Shift2>d__2<T>.<>7__wrap1""
+    IL_003f:  br.s       IL_0047
+    IL_0041:  ldarg.0
+    IL_0042:  ldflda     ""T Program.<Shift2>d__2<T>.item""
+    IL_0047:  constrained. ""T""
+    IL_004d:  callvirt   ""int IMoveable.Length.get""
+    IL_0052:  ldc.i4.1
+    IL_0053:  sub
+    IL_0054:  stloc.1
+    IL_0055:  ldarg.0
+    IL_0056:  ldloc.1
+    IL_0057:  stfld      ""int Program.<Shift2>d__2<T>.<>7__wrap2""
     IL_005c:  ldarg.0
-    IL_005d:  ldflda     ""T Program.<Shift2>d__2<T>.item""
-    IL_0062:  call       ""int Program.GetOffset<T>(ref T)""
-    IL_0067:  call       ""System.Threading.Tasks.Task<int> Program.GetOffsetAsync(int)""
-    IL_006c:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
-    IL_0071:  stloc.s    V_4
-    IL_0073:  ldloca.s   V_4
-    IL_0075:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-    IL_007a:  brtrue.s   IL_00bd
-    IL_007c:  ldarg.0
-    IL_007d:  ldc.i4.0
-    IL_007e:  dup
-    IL_007f:  stloc.0
-    IL_0080:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
-    IL_0085:  ldarg.0
-    IL_0086:  ldloc.s    V_4
-    IL_0088:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift2>d__2<T>.<>u__1""
-    IL_008d:  ldarg.0
-    IL_008e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift2>d__2<T>.<>t__builder""
-    IL_0093:  ldloca.s   V_4
-    IL_0095:  ldarg.0
-    IL_0096:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Shift2>d__2<T>>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Shift2>d__2<T>)""
-    IL_009b:  leave      IL_0136
-    IL_00a0:  ldarg.0
-    IL_00a1:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift2>d__2<T>.<>u__1""
-    IL_00a6:  stloc.s    V_4
-    IL_00a8:  ldarg.0
-    IL_00a9:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift2>d__2<T>.<>u__1""
-    IL_00ae:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_00b4:  ldarg.0
-    IL_00b5:  ldc.i4.m1
-    IL_00b6:  dup
-    IL_00b7:  stloc.0
-    IL_00b8:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
-    IL_00bd:  ldloca.s   V_4
-    IL_00bf:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_00c4:  stloc.2
-    IL_00c5:  ldloca.s   V_3
-    IL_00c7:  initobj    ""T""
-    IL_00cd:  ldloc.3
-    IL_00ce:  box        ""T""
-    IL_00d3:  brtrue.s   IL_00dd
-    IL_00d5:  ldarg.0
-    IL_00d6:  ldflda     ""T Program.<Shift2>d__2<T>.<>7__wrap1""
-    IL_00db:  br.s       IL_00e3
-    IL_00dd:  ldarg.0
-    IL_00de:  ldflda     ""T Program.<Shift2>d__2<T>.item""
-    IL_00e3:  ldarg.0
-    IL_00e4:  ldfld      ""int Program.<Shift2>d__2<T>.<>7__wrap2""
-    IL_00e9:  ldarg.0
-    IL_00ea:  ldfld      ""int Program.<Shift2>d__2<T>.<>7__wrap3""
-    IL_00ef:  ldloc.2
-    IL_00f0:  add
-    IL_00f1:  constrained. ""T""
-    IL_00f7:  callvirt   ""void IMoveable.this[int].set""
-    IL_00fc:  ldarg.0
-    IL_00fd:  ldflda     ""T Program.<Shift2>d__2<T>.<>7__wrap1""
-    IL_0102:  initobj    ""T""
-    IL_0108:  leave.s    IL_0123
+    IL_005d:  ldloca.s   V_3
+    IL_005f:  initobj    ""T""
+    IL_0065:  ldloc.3
+    IL_0066:  box        ""T""
+    IL_006b:  brtrue.s   IL_0075
+    IL_006d:  ldarg.0
+    IL_006e:  ldflda     ""T Program.<Shift2>d__2<T>.<>7__wrap1""
+    IL_0073:  br.s       IL_007b
+    IL_0075:  ldarg.0
+    IL_0076:  ldflda     ""T Program.<Shift2>d__2<T>.item""
+    IL_007b:  ldloc.1
+    IL_007c:  constrained. ""T""
+    IL_0082:  callvirt   ""int IMoveable.this[int].get""
+    IL_0087:  stfld      ""int Program.<Shift2>d__2<T>.<>7__wrap3""
+    IL_008c:  ldarg.0
+    IL_008d:  ldflda     ""T Program.<Shift2>d__2<T>.item""
+    IL_0092:  call       ""int Program.GetOffset<T>(ref T)""
+    IL_0097:  call       ""System.Threading.Tasks.Task<int> Program.GetOffsetAsync(int)""
+    IL_009c:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_00a1:  stloc.s    V_4
+    IL_00a3:  ldloca.s   V_4
+    IL_00a5:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_00aa:  brtrue.s   IL_00ed
+    IL_00ac:  ldarg.0
+    IL_00ad:  ldc.i4.0
+    IL_00ae:  dup
+    IL_00af:  stloc.0
+    IL_00b0:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldloc.s    V_4
+    IL_00b8:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift2>d__2<T>.<>u__1""
+    IL_00bd:  ldarg.0
+    IL_00be:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift2>d__2<T>.<>t__builder""
+    IL_00c3:  ldloca.s   V_4
+    IL_00c5:  ldarg.0
+    IL_00c6:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Shift2>d__2<T>>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Shift2>d__2<T>)""
+    IL_00cb:  leave      IL_0166
+    IL_00d0:  ldarg.0
+    IL_00d1:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift2>d__2<T>.<>u__1""
+    IL_00d6:  stloc.s    V_4
+    IL_00d8:  ldarg.0
+    IL_00d9:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift2>d__2<T>.<>u__1""
+    IL_00de:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_00e4:  ldarg.0
+    IL_00e5:  ldc.i4.m1
+    IL_00e6:  dup
+    IL_00e7:  stloc.0
+    IL_00e8:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
+    IL_00ed:  ldloca.s   V_4
+    IL_00ef:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_00f4:  stloc.2
+    IL_00f5:  ldloca.s   V_3
+    IL_00f7:  initobj    ""T""
+    IL_00fd:  ldloc.3
+    IL_00fe:  box        ""T""
+    IL_0103:  brtrue.s   IL_010d
+    IL_0105:  ldarg.0
+    IL_0106:  ldflda     ""T Program.<Shift2>d__2<T>.<>7__wrap1""
+    IL_010b:  br.s       IL_0113
+    IL_010d:  ldarg.0
+    IL_010e:  ldflda     ""T Program.<Shift2>d__2<T>.item""
+    IL_0113:  ldarg.0
+    IL_0114:  ldfld      ""int Program.<Shift2>d__2<T>.<>7__wrap2""
+    IL_0119:  ldarg.0
+    IL_011a:  ldfld      ""int Program.<Shift2>d__2<T>.<>7__wrap3""
+    IL_011f:  ldloc.2
+    IL_0120:  add
+    IL_0121:  constrained. ""T""
+    IL_0127:  callvirt   ""void IMoveable.this[int].set""
+    IL_012c:  ldarg.0
+    IL_012d:  ldflda     ""T Program.<Shift2>d__2<T>.<>7__wrap1""
+    IL_0132:  initobj    ""T""
+    IL_0138:  leave.s    IL_0153
   }
   catch System.Exception
   {
-    IL_010a:  stloc.s    V_5
-    IL_010c:  ldarg.0
-    IL_010d:  ldc.i4.s   -2
-    IL_010f:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
-    IL_0114:  ldarg.0
-    IL_0115:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift2>d__2<T>.<>t__builder""
-    IL_011a:  ldloc.s    V_5
-    IL_011c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_0121:  leave.s    IL_0136
+    IL_013a:  stloc.s    V_5
+    IL_013c:  ldarg.0
+    IL_013d:  ldc.i4.s   -2
+    IL_013f:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
+    IL_0144:  ldarg.0
+    IL_0145:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift2>d__2<T>.<>t__builder""
+    IL_014a:  ldloc.s    V_5
+    IL_014c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0151:  leave.s    IL_0166
   }
-  IL_0123:  ldarg.0
-  IL_0124:  ldc.i4.s   -2
-  IL_0126:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
-  IL_012b:  ldarg.0
-  IL_012c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift2>d__2<T>.<>t__builder""
-  IL_0131:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_0136:  ret
+  IL_0153:  ldarg.0
+  IL_0154:  ldc.i4.s   -2
+  IL_0156:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
+  IL_015b:  ldarg.0
+  IL_015c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift2>d__2<T>.<>t__builder""
+  IL_0161:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0166:  ret
 }
 ");
 
@@ -33504,6 +33532,2060 @@ Position GetName for item '2'
 }
 ");
             CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Fails, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_PropertyAccess_PrefixIncrementAssignment_01()
+        {
+            var src = """
+interface I1
+{
+    public int P1 {get; set;}
+}
+
+struct S1 : I1
+{
+    public int F1;
+
+    public int P1
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F.F1++;
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f) where T : I1
+    {
+        ++f.P1;
+    }
+
+    static void Test2<T>(ref T f) where T : struct, I1
+    {
+        ++f.P1;
+    }
+
+    static void Test3(ref S1 f)
+    {
+        ++f.P1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "123124124:123124124:123124124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_PropertyAccess_PrefixIncrementAssignment_02()
+        {
+            var src = """
+interface I1
+{
+    public int P1 {get; set;}
+}
+
+class C1 : I1
+{
+    public int F1;
+
+    public int P1
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f) where T : I1
+    {
+        ++f.P1;
+    }
+
+    static void Test2<T>(ref T f) where T : class, I1
+    {
+        ++f.P1;
+    }
+
+    static void Test3(ref C1 f)
+    {
+        ++f.P1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "123123124:123123124:123123124").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       60 (0x3c)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""int I1.P1.get""
+  IL_002b:  ldc.i4.1
+  IL_002c:  add
+  IL_002d:  stloc.2
+  IL_002e:  ldloc.2
+  IL_002f:  constrained. ""T""
+  IL_0035:  callvirt   ""void I1.P1.set""
+  IL_003a:  nop
+  IL_003b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       39 (0x27)
+  .maxstack  3
+  .locals init (T V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  dup
+  IL_000b:  constrained. ""T""
+  IL_0011:  callvirt   ""int I1.P1.get""
+  IL_0016:  ldc.i4.1
+  IL_0017:  add
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  constrained. ""T""
+  IL_0020:  callvirt   ""void I1.P1.set""
+  IL_0025:  nop
+  IL_0026:  ret
+}
+");
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_PropertyAccess_PostfixIncrementAssignment_01()
+        {
+            var src = """
+interface I1
+{
+    public int P1 {get; set;}
+}
+
+struct S1 : I1
+{
+    public int F1;
+
+    public int P1
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F.F1++;
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f) where T : I1
+    {
+        f.P1++;
+    }
+
+    static void Test2<T>(ref T f) where T : struct, I1
+    {
+        f.P1++;
+    }
+
+    static void Test3(ref S1 f)
+    {
+        f.P1++;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "123124124:123124124:123124124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_PropertyAccess_PostfixIncrementAssignment_02()
+        {
+            var src = """
+interface I1
+{
+    public int P1 {get; set;}
+}
+
+class C1 : I1
+{
+    public int F1;
+
+    public int P1
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f) where T : I1
+    {
+        f.P1++;
+    }
+
+    static void Test2<T>(ref T f) where T : class, I1
+    {
+        f.P1++;
+    }
+
+    static void Test3(ref C1 f)
+    {
+        f.P1++;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "123123124:123123124:123123124").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       60 (0x3c)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""int I1.P1.get""
+  IL_002b:  stloc.2
+  IL_002c:  ldloc.2
+  IL_002d:  ldc.i4.1
+  IL_002e:  add
+  IL_002f:  constrained. ""T""
+  IL_0035:  callvirt   ""void I1.P1.set""
+  IL_003a:  nop
+  IL_003b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       39 (0x27)
+  .maxstack  3
+  .locals init (T V_0,
+            int V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  dup
+  IL_000b:  constrained. ""T""
+  IL_0011:  callvirt   ""int I1.P1.get""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4.1
+  IL_0019:  add
+  IL_001a:  constrained. ""T""
+  IL_0020:  callvirt   ""void I1.P1.set""
+  IL_0025:  nop
+  IL_0026:  ret
+}
+");
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_IndexerAccess_PrefixIncrementAssignment_01()
+        {
+            var src = """
+interface I1
+{
+    public int this[int x] {get; set;}
+}
+
+struct S1 : I1
+{
+    public int F1;
+
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F.F1++;
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f) where T : I1
+    {
+        ++f[0];
+    }
+
+    static void Test2<T>(ref T f) where T : struct, I1
+    {
+        ++f[0];
+    }
+
+    static void Test3(ref S1 f)
+    {
+        ++f[0];
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "123124124:123124124:123124124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_IndexerAccess_PrefixIncrementAssignment_02()
+        {
+            var src = """
+interface I1
+{
+    public int this[int x] {get; set;}
+}
+
+class C1 : I1
+{
+    public int F1;
+
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f) where T : I1
+    {
+        ++f[0];
+    }
+
+    static void Test2<T>(ref T f) where T : class, I1
+    {
+        ++f[0];
+    }
+
+    static void Test3(ref C1 f)
+    {
+        ++f[0];
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "123123124:123123124:123123124").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldc.i4.0
+  IL_0021:  constrained. ""T""
+  IL_0027:  callvirt   ""int I1.this[int].get""
+  IL_002c:  ldc.i4.1
+  IL_002d:  add
+  IL_002e:  stloc.2
+  IL_002f:  ldc.i4.0
+  IL_0030:  ldloc.2
+  IL_0031:  constrained. ""T""
+  IL_0037:  callvirt   ""void I1.this[int].set""
+  IL_003c:  nop
+  IL_003d:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       41 (0x29)
+  .maxstack  3
+  .locals init (T V_0,
+            int V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  dup
+  IL_000b:  ldc.i4.0
+  IL_000c:  constrained. ""T""
+  IL_0012:  callvirt   ""int I1.this[int].get""
+  IL_0017:  ldc.i4.1
+  IL_0018:  add
+  IL_0019:  stloc.1
+  IL_001a:  ldc.i4.0
+  IL_001b:  ldloc.1
+  IL_001c:  constrained. ""T""
+  IL_0022:  callvirt   ""void I1.this[int].set""
+  IL_0027:  nop
+  IL_0028:  ret
+}
+");
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_IndexerAccess_PrefixIncrementAssignment_03()
+        {
+            var src = """
+using System.Threading.Tasks;
+
+interface I1
+{
+    public int this[int x] {get; set;}
+}
+
+class C1 : I1
+{
+    public int F1;
+
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static async Task Main()
+    {
+        F = new C1 { F1 = 123 };
+        await Test1<C1>();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        await Test2<C1>();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        await Test3();
+        System.Console.Write(F.F1);
+    }
+
+    static async Task Test1<T>() where T : I1
+    {
+        ++F[await Get0()];
+    }
+
+    static async Task Test2<T>() where T : class, I1
+    {
+        ++F[await Get0()];
+    }
+
+    static async Task Test3()
+    {
+        ++F[await Get0()];
+    }
+
+    static async Task<int> Get0()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        await Task.Yield();
+        return 0;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "123123125:123123125:123123125").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_IndexerAccess_PostfixIncrementAssignment_01()
+        {
+            var src = """
+interface I1
+{
+    public int this[int x] {get; set;}
+}
+
+struct S1 : I1
+{
+    public int F1;
+
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F.F1++;
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f) where T : I1
+    {
+        f[0]++;
+    }
+
+    static void Test2<T>(ref T f) where T : struct, I1
+    {
+        f[0]++;
+    }
+
+    static void Test3(ref S1 f)
+    {
+        f[0]++;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "123124124:123124124:123124124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_IndexerAccess_PostfixIncrementAssignment_02()
+        {
+            var src = """
+interface I1
+{
+    public int this[int x] {get; set;}
+}
+
+class C1 : I1
+{
+    public int F1;
+
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f) where T : I1
+    {
+        f[0]++;
+    }
+
+    static void Test2<T>(ref T f) where T : class, I1
+    {
+        f[0]++;
+    }
+
+    static void Test3(ref C1 f)
+    {
+        f[0]++;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "123123124:123123124:123123124").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       62 (0x3e)
+  .maxstack  4
+  .locals init (T V_0,
+            T& V_1,
+            int V_2,
+            T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldc.i4.0
+  IL_0021:  constrained. ""T""
+  IL_0027:  callvirt   ""int I1.this[int].get""
+  IL_002c:  stloc.2
+  IL_002d:  ldc.i4.0
+  IL_002e:  ldloc.2
+  IL_002f:  ldc.i4.1
+  IL_0030:  add
+  IL_0031:  constrained. ""T""
+  IL_0037:  callvirt   ""void I1.this[int].set""
+  IL_003c:  nop
+  IL_003d:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       41 (0x29)
+  .maxstack  4
+  .locals init (T V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  dup
+  IL_000b:  ldc.i4.0
+  IL_000c:  constrained. ""T""
+  IL_0012:  callvirt   ""int I1.this[int].get""
+  IL_0017:  stloc.1
+  IL_0018:  ldc.i4.0
+  IL_0019:  ldloc.1
+  IL_001a:  ldc.i4.1
+  IL_001b:  add
+  IL_001c:  constrained. ""T""
+  IL_0022:  callvirt   ""void I1.this[int].set""
+  IL_0027:  nop
+  IL_0028:  ret
+}
+");
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_IndexerAccess_PostfixIncrementAssignment_03()
+        {
+            var src = """
+using System.Threading.Tasks;
+
+interface I1
+{
+    public int this[int x] {get; set;}
+}
+
+class C1 : I1
+{
+    public int F1;
+
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static async Task Main()
+    {
+        F = new C1 { F1 = 123 };
+        await Test1<C1>();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        await Test2<C1>();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        await Test3();
+        System.Console.Write(F.F1);
+    }
+
+    static async Task Test1<T>() where T : I1
+    {
+        F[await Get0()]++;
+    }
+
+    static async Task Test2<T>() where T : class, I1
+    {
+        F[await Get0()]++;
+    }
+
+    static async Task Test3()
+    {
+        F[await Get0()]++;
+    }
+
+    static async Task<int> Get0()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        await Task.Yield();
+        return 0;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "123123125:123123125:123123125").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_PropertyAccess_CompoundAssignment_01()
+        {
+            var src = """
+interface I1
+{
+    public int P1 {get; set;}
+}
+
+struct S1 : I1
+{
+    public int F1;
+
+    public int P1
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F.F1++;
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f) where T : I1
+    {
+        f.P1 += 1;
+    }
+
+    static void Test2<T>(ref T f) where T : struct, I1
+    {
+        f.P1 += 1;
+    }
+
+    static void Test3(ref S1 f)
+    {
+        f.P1 += 1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "123124124:123124124:123124124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_PropertyAccess_CompoundAssignment_02()
+        {
+            var src = """
+interface I1
+{
+    public int P1 {get; set;}
+}
+
+class C1 : I1
+{
+    public int F1;
+
+    public int P1
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f) where T : I1
+    {
+        f.P1 += 1;
+    }
+
+    static void Test2<T>(ref T f) where T : class, I1
+    {
+        f.P1 += 1;
+    }
+
+    static void Test3(ref C1 f)
+    {
+        f.P1 += 1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "123123124:123123124:123123124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_IndexerAccess_CompoundAssignment_01()
+        {
+            var src = """
+interface I1
+{
+    public int this[int x] {get; set;}
+}
+
+struct S1 : I1
+{
+    public int F1;
+
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F.F1++;
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f) where T : I1
+    {
+        f[0] += 1;
+    }
+
+    static void Test2<T>(ref T f) where T : struct, I1
+    {
+        f[0] += 1;
+    }
+
+    static void Test3(ref S1 f)
+    {
+        f[0] += 1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "123124124:123124124:123124124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_IndexerAccess_CompoundAssignment_02()
+        {
+            var src = """
+interface I1
+{
+    public int this[int x] {get; set;}
+}
+
+class C1 : I1
+{
+    public int F1;
+
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f) where T : I1
+    {
+        f[0] += 1;
+    }
+
+    static void Test2<T>(ref T f) where T : class, I1
+    {
+        f[0] += 1;
+    }
+
+    static void Test3(ref C1 f)
+    {
+        f[0] += 1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "123123124:123123124:123123124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_IndexerAccess_CompoundAssignment_03()
+        {
+            var src = """
+using System.Threading.Tasks;
+
+interface I1
+{
+    public int this[int x] {get; set;}
+}
+
+class C1 : I1
+{
+    public int F1;
+
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static async Task Main()
+    {
+        F = new C1 { F1 = 123 };
+        await Test1<C1>();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        await Test2<C1>();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        await Test3();
+        System.Console.Write(F.F1);
+    }
+
+    static async Task Test1<T>() where T : I1
+    {
+        F[await Get0()] += 1;
+    }
+
+    static async Task Test2<T>() where T : class, I1
+    {
+        F[await Get0()] += 1;
+    }
+
+    static async Task Test3()
+    {
+        F[await Get0()] += 1;
+    }
+
+    static async Task<int> Get0()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        await Task.Yield();
+        return 0;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "123123125:123123125:123123125").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_IndexerAccess_CompoundAssignment_04()
+        {
+            var src = """
+using System.Threading.Tasks;
+
+interface I1
+{
+    public int this[int x] {get; set;}
+}
+
+class C1 : I1
+{
+    public int F1;
+
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static async Task Main()
+    {
+        F = new C1 { F1 = 123 };
+        await Test1<C1>();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        await Test2<C1>();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        await Test3();
+        System.Console.Write(F.F1);
+    }
+
+    static async Task Test1<T>() where T : I1
+    {
+        F[0] += await Get1();
+    }
+
+    static async Task Test2<T>() where T : class, I1
+    {
+        F[0] += await Get1();
+    }
+
+    static async Task Test3()
+    {
+        F[0] += await Get1();
+    }
+
+    static async Task<int> Get1()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "123123125:123123125:123123125").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_IndexerAccess_CompoundAssignment_05()
+        {
+            var src = """
+using System.Threading.Tasks;
+
+interface I1
+{
+    public int this[int x] {get; set;}
+}
+
+class C1 : I1
+{
+    public int F1;
+
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static async Task Main()
+    {
+        F = new C1 { F1 = 123 };
+        await Test1<C1>();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        await Test2<C1>();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        await Test3();
+        System.Console.Write(F.F1);
+    }
+
+    static async Task Test1<T>() where T : I1
+    {
+        F[await Get0()] += await Get1();
+    }
+
+    static async Task Test2<T>() where T : class, I1
+    {
+        F[await Get0()] += await Get1();
+    }
+
+    static async Task Test3()
+    {
+        F[await Get0()] += await Get1();
+    }
+
+    static async Task<int> Get0()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
+
+    static async Task<int> Get1()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "123123126:123123126:123123126").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexerAccess_CompoundAssignment_01()
+        {
+            var src = """
+interface I1
+{
+    public int this[int x] {get; set;}
+    public int Length {get;}
+}
+
+struct S1 : I1
+{
+    public int F1;
+
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F.F1++;
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+
+    public int Length
+    {
+        get
+        {
+            Program.F.F1++;
+            return 5;
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f) where T : I1
+    {
+        f[^0] += 1;
+    }
+
+    static void Test2<T>(ref T f) where T : struct, I1
+    {
+        f[^0] += 1;
+    }
+
+    static void Test3(ref S1 f)
+    {
+        f[^0] += 1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "124125125:124125125:124125125").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexerAccess_CompoundAssignment_02()
+        {
+            var src = """
+interface I1
+{
+    public int this[int x] {get; set;}
+    public int Length {get;}
+}
+
+class C1 : I1
+{
+    public int F1;
+
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+
+    public int Length
+    {
+        get
+        {
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 5;
+        }
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f) where T : I1
+    {
+        f[^0] += 1;
+    }
+
+    static void Test2<T>(ref T f) where T : class, I1
+    {
+        f[^0] += 1;
+    }
+
+    static void Test3(ref C1 f)
+    {
+        f[^0] += 1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "123123125:123123125:123123125").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       76 (0x4c)
+  .maxstack  4
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                int V_3,
+                T V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloca.s   V_4
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.s    V_4
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.2
+  IL_0020:  stloc.0
+  IL_0021:  ldloc.0
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int I1.Length.get""
+  IL_002d:  stloc.3
+  IL_002e:  ldloc.0
+  IL_002f:  ldloc.3
+  IL_0030:  ldloc.0
+  IL_0031:  ldloc.3
+  IL_0032:  constrained. ""T""
+  IL_0038:  callvirt   ""int I1.this[int].get""
+  IL_003d:  ldc.i4.1
+  IL_003e:  add
+  IL_003f:  constrained. ""T""
+  IL_0045:  callvirt   ""void I1.this[int].set""
+  IL_004a:  nop
+  IL_004b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init (T V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  box        ""T""
+  IL_000e:  callvirt   ""int I1.Length.get""
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.0
+  IL_0015:  box        ""T""
+  IL_001a:  ldloc.1
+  IL_001b:  ldloc.0
+  IL_001c:  box        ""T""
+  IL_0021:  ldloc.1
+  IL_0022:  callvirt   ""int I1.this[int].get""
+  IL_0027:  ldc.i4.1
+  IL_0028:  add
+  IL_0029:  callvirt   ""void I1.this[int].set""
+  IL_002e:  nop
+  IL_002f:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexerAccess_CompoundAssignment_03()
+        {
+            var src = """
+using System.Threading.Tasks;
+
+interface I1
+{
+    public int this[int x] {get; set;}
+    public int Length {get;}
+}
+
+class C1 : I1
+{
+    public int F1;
+
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+
+    public int Length
+    {
+        get
+        {
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 5;
+        }
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static async Task Main()
+    {
+        F = new C1 { F1 = 123 };
+        await Test1<C1>();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        await Test2<C1>();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        await Test3();
+        System.Console.Write(F.F1);
+    }
+
+    static async Task Test1<T>() where T : I1
+    {
+        F[^await Get0()] += 1;
+    }
+
+    static async Task Test2<T>() where T : class, I1
+    {
+        F[^await Get0()] += 1;
+    }
+
+    static async Task Test3()
+    {
+        F[^await Get0()] += 1;
+    }
+
+    static async Task<int> Get0()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        await Task.Yield();
+        return 0;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "123123126:123123126:123123126").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexerAccess_CompoundAssignment_04()
+        {
+            var src = """
+using System.Threading.Tasks;
+
+interface I1
+{
+    public int this[int x] {get; set;}
+    public int Length {get;}
+}
+
+class C1 : I1
+{
+    public int F1;
+
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+
+    public int Length
+    {
+        get
+        {
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 5;
+        }
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static async Task Main()
+    {
+        F = new C1 { F1 = 123 };
+        await Test1<C1>();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        await Test2<C1>();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        await Test3();
+        System.Console.Write(F.F1);
+    }
+
+    static async Task Test1<T>() where T : I1
+    {
+        F[^0] += await Get1();
+    }
+
+    static async Task Test2<T>() where T : class, I1
+    {
+        F[^0] += await Get1();
+    }
+
+    static async Task Test3()
+    {
+        F[^0] += await Get1();
+    }
+
+    static async Task<int> Get1()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "123123126:123123126:123123126").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexerAccess_CompoundAssignment_05()
+        {
+            var src = """
+using System.Threading.Tasks;
+
+interface I1
+{
+    public int this[int x] {get; set;}
+    public int Length {get;}
+}
+
+class C1 : I1
+{
+    public int F1;
+
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.Write(F1);
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+
+    public int Length
+    {
+        get
+        {
+            Program.F = new C1 { F1 = Program.F.F1 + 1 };
+            return 5;
+        }
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static async Task Main()
+    {
+        F = new C1 { F1 = 123 };
+        await Test1<C1>();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        await Test2<C1>();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        await Test3();
+        System.Console.Write(F.F1);
+    }
+
+    static async Task Test1<T>() where T : I1
+    {
+        F[^await Get0()] += await Get1();
+    }
+
+    static async Task Test2<T>() where T : class, I1
+    {
+        F[^await Get0()] += await Get1();
+    }
+
+    static async Task Test3()
+    {
+        F[^await Get0()] += await Get1();
+    }
+
+    static async Task<int> Get0()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
+
+    static async Task<int> Get1()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "123123127:123123127:123123127").VerifyDiagnostics();
         }
     }
 }
