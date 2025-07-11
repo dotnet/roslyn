@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Roslyn.Test.Utilities
 
@@ -18,10 +19,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function ProjectReferenceConvertedToMetadataReferenceCanBeRemoved(convertReferenceBackFirst As Boolean, removeInBatch As Boolean) As Task
             Using environment = New TestEnvironment()
                 Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "project1", LanguageNames.CSharp, CancellationToken.None)
+                    "project1", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "project2", LanguageNames.CSharp, CancellationToken.None)
+                    "project2", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 Const ReferencePath = "C:\project1.dll"
                 project1.OutputFilePath = ReferencePath
@@ -53,10 +54,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function ProjectReferenceConvertedToMetadataReferenceCaseInsensitiveCanBeRemoved(convertReferenceBackFirst As Boolean, removeInBatch As Boolean) As Task
             Using environment = New TestEnvironment()
                 Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "project1", LanguageNames.CSharp, CancellationToken.None)
+                    "project1", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "project2", LanguageNames.CSharp, CancellationToken.None)
+                    "project2", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 Const ReferencePath = "C:\project1.dll"
                 Const ReferencePathUppercase = "C:\PROJECT1.dll"
@@ -89,10 +90,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function TwoProjectsProducingSameOutputPathBehavesCorrectly() As Task
             Using environment = New TestEnvironment()
                 Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "referencingProject", LanguageNames.CSharp, CancellationToken.None)
+                    "referencingProject", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "project1", LanguageNames.CSharp, CancellationToken.None)
+                    "project1", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 ' First: have a single project producing this DLL, and ensure we wired up correctly
                 Const ReferencePath = "C:\project1.dll"
@@ -107,7 +108,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 ' Create a second project referencing this same DLL. By rule, we now don't know which project to reference, so we just convert back to
                 ' a file reference because something is screwed up.
                 Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "project2", LanguageNames.CSharp, CancellationToken.None)
+                    "project2", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
                 project2.OutputFilePath = ReferencePath
 
                 Assert.Empty(getReferencingProject().ProjectReferences)
@@ -125,10 +126,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function TwoProjectsProducingSameOutputPathAndIntermediateOutputBehavesCorrectly() As Task
             Using environment = New TestEnvironment()
                 Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "referencingProject", LanguageNames.CSharp, CancellationToken.None)
+                    "referencingProject", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "project1", LanguageNames.CSharp, CancellationToken.None)
+                    "project1", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 ' First: have a single project producing this DLL, and ensure we wired up correctly
                 Const ReferencePath = "C:\project1.dll"
@@ -143,7 +144,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 ' Create a second project referencing this same DLL. We'll make this one even more complicated by using the same path for both the
                 ' regular OutputFilePath and the IntermediateOutputFilePath
                 Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "project2", LanguageNames.CSharp, CancellationToken.None)
+                    "project2", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
                 project2.CompilationOutputAssemblyFilePath = ReferencePath
                 project2.OutputFilePath = ReferencePath
 
@@ -166,8 +167,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function ProjectBeingAddedWhileOutputPathBeingUpdatedDoesNotRace(<CombinatorialRange(0, 20)> iteration As Integer) As Task
 #Enable Warning IDE0060 ' Remove unused parameter
             Using environment = New TestEnvironment()
-                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencingProject", LanguageNames.CSharp, CancellationToken.None)
-                Dim referencedProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencedProject", LanguageNames.CSharp, CancellationToken.None)
+                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencingProject", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
+                Dim referencedProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencedProject", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 ' First: have a single project producing this DLL, and ensure we wired up correctly
                 Const ReferencePath = "C:\project.dll"
@@ -193,8 +194,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <WpfFact>
         Public Async Function AddingAndRemovingTwoReferencesWithDifferentPropertiesConvertsCorrectly() As Task
             Using environment = New TestEnvironment()
-                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencingProject", LanguageNames.CSharp, CancellationToken.None)
-                Dim referencedProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencedProject", LanguageNames.CSharp, CancellationToken.None)
+                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencingProject", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
+                Dim referencedProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencedProject", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 Const ReferencePath = "C:\project.dll"
                 referencingProject.AddMetadataReference(ReferencePath, New MetadataReferenceProperties(aliases:=ImmutableArray.Create("alias1")))
@@ -224,8 +225,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <CombinatorialData>
         Public Async Function MetadataReferenceBeingAddedWhileOutputPathUpdateInInterleavedBatches(closeReferencedProjectBatchFirst As Boolean) As Task
             Using environment = New TestEnvironment()
-                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencingProject", LanguageNames.CSharp, CancellationToken.None)
-                Dim referencedProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencedProject", LanguageNames.CSharp, CancellationToken.None)
+                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencingProject", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
+                Dim referencedProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencedProject", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 Dim referencingProjectBatch = referencingProject.CreateBatchScope()
                 Dim referencedProjectBatch = referencedProject.CreateBatchScope()
@@ -256,8 +257,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <CombinatorialData>
         Public Async Function MetadataReferenceBeingRemovedAndReAddedWhileOutputPathUpdateInInterleavedBatches(closeReferencedProjectBatchFirst As Boolean) As Task
             Using environment = New TestEnvironment()
-                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencingProject", LanguageNames.CSharp, CancellationToken.None)
-                Dim referencedProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencedProject", LanguageNames.CSharp, CancellationToken.None)
+                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencingProject", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
+                Dim referencedProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencedProject", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 Const ReferencePath = "C:\project.dll"
                 referencingProject.AddMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("temporary")))
@@ -290,8 +291,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <WorkItem("https://github.com/dotnet/roslyn/issues/43632")>
         Public Async Function RemoveAndReAddReferenceInSingleBatchWhileChangingCase() As Task
             Using environment = New TestEnvironment()
-                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencingProject", LanguageNames.CSharp, CancellationToken.None)
-                Dim referencedProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencedProject", LanguageNames.CSharp, CancellationToken.None)
+                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencingProject", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
+                Dim referencedProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencedProject", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 Const ReferencePath = "C:\project.dll"
                 referencingProject.AddMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly)
@@ -316,8 +317,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39904")>
         Public Async Function MetadataReferenceCycleDoesNotCreateProjectReferenceCycleWhenAddingReferencesFirst() As Task
             Using environment = New TestEnvironment()
-                Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project1", LanguageNames.CSharp, CancellationToken.None)
-                Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project2", LanguageNames.CSharp, CancellationToken.None)
+                Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project1", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
+                Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project2", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 Const ReferencePath1 = "C:\project1.dll"
                 Const ReferencePath2 = "C:\project2.dll"
@@ -337,8 +338,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39904")>
         Public Async Function MetadataReferenceCycleDoesNotCreateProjectReferenceCycleWhenSettingOutputPathsFirst() As Task
             Using environment = New TestEnvironment()
-                Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project1", LanguageNames.CSharp, CancellationToken.None)
-                Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project2", LanguageNames.CSharp, CancellationToken.None)
+                Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project1", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
+                Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project2", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 Const ReferencePath1 = "C:\project1.dll"
                 Const ReferencePath2 = "C:\project2.dll"
@@ -358,7 +359,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <WpfFact, WorkItem(39904, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279845")>
         Public Async Function DoNotCreateProjectReferenceWhenReferencingOwnOutput() As Task
             Using environment = New TestEnvironment()
-                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project", LanguageNames.CSharp, CancellationToken.None)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 Const ReferencePath = "C:\project.dll"
 

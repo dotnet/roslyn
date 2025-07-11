@@ -15,8 +15,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <WpfFact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7402")>
         Public Async Function ProjectInstantiatedWithCompilationOutputAssemblyFilePathCanBeChanged() As Task
             Using environment = New TestEnvironment()
-                Dim creationInfo = New VisualStudioProjectCreationInfo()
-                creationInfo.CompilationOutputAssemblyFilePath = "C:\output\project.dll"
+                Dim creationInfo = New VisualStudioProjectCreationInfo() With {
+                    .CompilationOutputAssemblyFilePath = "C:\output\project.dll"
+                }
                 Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "project1", LanguageNames.CSharp, creationInfo, CancellationToken.None)
 
