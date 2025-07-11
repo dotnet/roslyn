@@ -2091,19 +2091,19 @@ outerDefault:
         private static ParameterSymbol GetParameterOrExtensionParameter<TMember>(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, TMember member)
             where TMember : Symbol
         {
+            int paramIndex = result.ParameterFromArgument(argIndex);
             if (member.GetIsNewExtensionMember())
             {
-                if (argIndex == 0)
+                if (paramIndex == 0)
                 {
                     ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
                     Debug.Assert(extensionParameter is not null);
                     return extensionParameter;
                 }
 
-                argIndex--;
+                paramIndex--;
             }
 
-            int paramIndex = result.ParameterFromArgument(argIndex);
             return parameters[paramIndex];
         }
 

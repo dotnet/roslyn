@@ -14361,5 +14361,211 @@ public static class E
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension([MyAttribute/*()*/] System.Int32)", extension.ComputeExtensionMarkerRawName());
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79193")]
+    public void OverloadResolution_01()
+    {
+        var src = """
+public static class E
+{
+    extension(object @this)
+    {
+        public void M<T>(T x)
+        {
+            @this.M(x, default);
+        }
+
+        public void M(params System.ReadOnlySpan<object> span)
+        {
+        }
+
+        private void M<T>(T x, System.ReadOnlySpan<object> span)
+        {
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79193")]
+    public void OverloadResolution_02()
+    {
+        var src = """
+new object().M(a: null);
+
+public static class E
+{
+    extension(object o1)
+    {
+        public void M(object a) { }
+
+        public void M(string a) { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79193")]
+    public void OverloadResolution_03()
+    {
+        var src = """
+new object().M(a: null);
+
+public static class E
+{
+    extension(object o1)
+    {
+        public void M(object a) { }
+    }
+
+    public static void M(this object o, string a) { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79193")]
+    public void OverloadResolution_04()
+    {
+        var src = """
+new object().M(a: null);
+
+public static class E
+{
+    extension(object o1)
+    {
+        public void M(string a) { System.Console.Write("ran"); }
+    }
+
+    public static void M(this object o, object a) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79193")]
+    public void OverloadResolution_05()
+    {
+        var src = """
+new object().M(a: null);
+
+public static class E
+{
+    extension(object o1)
+    {
+        public void M(object a) { }
+        public void M(params int[] a) { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79193")]
+    public void OverloadResolution_06()
+    {
+        var src = """
+new object().M(1, 2);
+
+public static class E
+{
+    extension(object o1)
+    {
+        public void M(int x1, int x2) { System.Console.Write("ran"); }
+        public void M(params int[] a) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79193")]
+    public void OverloadResolution_07()
+    {
+        var src = """
+new object().M(a: 1, 2);
+
+public static class E
+{
+    extension(object o1)
+    {
+        public void M(int a, int b) { System.Console.Write("ran"); }
+        public void M(params int[] a) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79193")]
+    public void OverloadResolution_08()
+    {
+        var src = """
+new object().M(index: 0, 1, 2);
+
+public static class E
+{
+    extension(object o1)
+    {
+        public void M(int index, int a, int b) { System.Console.Write("ran"); }
+        public void M(int index, params int[] a) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79193")]
+    public void OverloadResolution_09()
+    {
+        var src = """
+object.M(index: 0, 1, 2);
+
+public static class E
+{
+    extension(object)
+    {
+        public static void M(int index, int a, int b) { System.Console.Write("ran"); }
+        public static void M(int index, params int[] a) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79193")]
+    public void OverloadResolution_10()
+    {
+        var src = """
+1.M(2);
+
+public static class E
+{
+    extension(params int[] i)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,15): error CS1670: params is not valid in this context
+            //     extension(params int[] i)
+            Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(5, 15),
+            // (1,3): error CS1501: No overload for method 'M' takes 1 arguments
+            // 1.M(2);
+            Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "1").WithLocation(1, 3));
+    }
 }
 
