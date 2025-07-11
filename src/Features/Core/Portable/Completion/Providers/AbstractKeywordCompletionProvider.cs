@@ -21,7 +21,7 @@ internal abstract partial class AbstractKeywordCompletionProvider<TContext> : LS
 {
     private static readonly EqualityComparer<CompletionItem> s_comparer = EqualityComparer<CompletionItem>.Create(
         static (x, y) => x?.DisplayText == y?.DisplayText,
-        static x => Hash.Combine(x.DisplayText.GetHashCode(), x.DisplayText.GetHashCode()));
+        static x => x.DisplayText.GetHashCode());
 
     private readonly ImmutableArray<IKeywordRecommender<TContext>> _keywordRecommenders;
 
