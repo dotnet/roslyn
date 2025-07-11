@@ -11,32 +11,24 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue;
 
-internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaultInjector = null) : AbstractEditAndContinueAnalyzer(testFaultInjector)
+[ExportLanguageService(typeof(IEditAndContinueAnalyzer), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueAnalyzer
 {
-    [ExportLanguageServiceFactory(typeof(IEditAndContinueAnalyzer), LanguageNames.CSharp), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class Factory() : ILanguageServiceFactory
-    {
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new CSharpEditAndContinueAnalyzer(testFaultInjector: null);
-    }
-
     #region Syntax Analysis
 
     private enum BlockPart
@@ -185,22 +177,6 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
 
     protected override bool AreHandledEventsEqual(IMethodSymbol oldMethod, IMethodSymbol newMethod)
         => true;
-
-    protected override IEnumerable<SyntaxNode> GetVariableUseSites(IEnumerable<SyntaxNode> roots, ISymbol localOrParameter, SemanticModel model, CancellationToken cancellationToken)
-    {
-        Debug.Assert(localOrParameter is IParameterSymbol or ILocalSymbol or IRangeVariableSymbol);
-
-        // not supported (it's non trivial to find all places where "this" is used):
-        Debug.Assert(!localOrParameter.IsThisParameter());
-
-        return from root in roots
-               from node in root.DescendantNodesAndSelf()
-               where node.IsKind(SyntaxKind.IdentifierName)
-               let nameSyntax = (IdentifierNameSyntax)node
-               where (string?)nameSyntax.Identifier.Value == localOrParameter.Name &&
-                     (model.GetSymbolInfo(nameSyntax, cancellationToken).Symbol?.Equals(localOrParameter) ?? false)
-               select node;
-    }
 
     internal static SyntaxNode FindStatementAndPartner(
         TextSpan span,
@@ -937,7 +913,20 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
         => node is CompilationUnitSyntax ? null : node.Parent!.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>();
 
     internal override bool IsDeclarationWithInitializer(SyntaxNode declaration)
-        => declaration is VariableDeclaratorSyntax { Initializer: not null } or PropertyDeclarationSyntax { Initializer: not null };
+    {
+        if (declaration is PropertyDeclarationSyntax { Initializer: not null })
+        {
+            return true;
+        }
+
+        if (declaration is VariableDeclaratorSyntax { Initializer: not null })
+        {
+            return declaration.Parent?.Parent is not FieldDeclarationSyntax fieldDeclaration ||
+                   !fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword);
+        }
+
+        return false;
+    }
 
     internal override bool IsPrimaryConstructorDeclaration(SyntaxNode declaration)
         => declaration.Parent is TypeDeclarationSyntax { ParameterList: var parameterList } && parameterList == declaration;
@@ -1036,8 +1025,8 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
         EditKind editKind,
         SyntaxNode? oldNode,
         SyntaxNode? newNode,
-        SemanticModel? oldModel,
-        SemanticModel newModel,
+        DocumentSemanticModel oldModel,
+        DocumentSemanticModel newModel,
         CancellationToken cancellationToken)
     {
         // Chnage in type of a field affects all its variable declarations.
@@ -1054,21 +1043,19 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
 
         OneOrMany<(ISymbol? oldSymbol, ISymbol? newSymbol)> AddFieldSymbolUpdates(SeparatedSyntaxList<VariableDeclaratorSyntax> oldVariables, SeparatedSyntaxList<VariableDeclaratorSyntax> newVariables)
         {
-            Debug.Assert(oldModel != null);
-
             if (oldVariables.Count == 1 && newVariables.Count == 1)
             {
-                return OneOrMany.Create((GetDeclaredSymbol(oldModel, oldVariables[0], cancellationToken), GetDeclaredSymbol(newModel, newVariables[0], cancellationToken)));
+                return OneOrMany.Create((GetDeclaredSymbol(oldModel.RequiredModel, oldVariables[0], cancellationToken), GetDeclaredSymbol(newModel.RequiredModel, newVariables[0], cancellationToken)));
             }
 
             return OneOrMany.Create(
                 (from oldVariable in oldVariables
                  join newVariable in newVariables on oldVariable.Identifier.Text equals newVariable.Identifier.Text
-                 select (GetDeclaredSymbol(oldModel, oldVariable, cancellationToken), GetDeclaredSymbol(newModel, newVariable, cancellationToken))).ToImmutableArray());
+                 select (GetDeclaredSymbol(oldModel.RequiredModel, oldVariable, cancellationToken), GetDeclaredSymbol(newModel.RequiredModel, newVariable, cancellationToken))).ToImmutableArray());
         }
 
-        var oldSymbol = (oldNode != null) ? GetSymbolForEdit(oldNode, oldModel!, cancellationToken) : null;
-        var newSymbol = (newNode != null) ? GetSymbolForEdit(newNode, newModel, cancellationToken) : null;
+        var oldSymbol = (oldNode != null) ? GetSymbolForEdit(oldNode, oldModel.RequiredModel, cancellationToken) : null;
+        var newSymbol = (newNode != null) ? GetSymbolForEdit(newNode, newModel.RequiredModel, cancellationToken) : null;
 
         return (oldSymbol == null && newSymbol == null)
             ? OneOrMany<(ISymbol?, ISymbol?)>.Empty
@@ -1082,8 +1069,8 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
         ISymbol? oldSymbol,
         SyntaxNode? newNode,
         ISymbol? newSymbol,
-        SemanticModel? oldModel,
-        SemanticModel newModel,
+        DocumentSemanticModel oldModel,
+        DocumentSemanticModel newModel,
         Match<SyntaxNode> topMatch,
         IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
         SymbolInfoCache symbolCache,
@@ -1095,7 +1082,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
             var oldContainingMemberOrType = GetParameterContainingMemberOrType(oldNode, newNode, oldModel, topMatch.ReverseMatches, cancellationToken);
             var newContainingMemberOrType = GetParameterContainingMemberOrType(newNode, oldNode, newModel, topMatch.Matches, cancellationToken);
 
-            var matchingNewContainingMemberOrType = GetSemanticallyMatchingNewSymbol(oldContainingMemberOrType, newContainingMemberOrType, newModel, symbolCache, cancellationToken);
+            var matchingNewContainingMemberOrType = GetSemanticallyMatchingNewSymbol(oldContainingMemberOrType, newContainingMemberOrType, newModel.Compilation, symbolCache, cancellationToken);
 
             // Create candidate symbol edits to analyze:
             // 1) An update of the containing member or type
@@ -1183,7 +1170,6 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
             case EditKind.Update:
                 Contract.ThrowIfNull(oldNode);
                 Contract.ThrowIfNull(newNode);
-                Contract.ThrowIfNull(oldModel);
 
                 // Updates of a property/indexer/event node might affect its accessors.
                 // Return all affected symbols for these updates so that the changes in the accessor bodies get analyzed.
@@ -1366,7 +1352,6 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
             case EditKind.Move:
                 Contract.ThrowIfNull(oldNode);
                 Contract.ThrowIfNull(newNode);
-                Contract.ThrowIfNull(oldModel);
 
                 Debug.Assert(oldNode.RawKind == newNode.RawKind);
                 Debug.Assert(SupportsMove(oldNode));
@@ -1426,7 +1411,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
         return GetDeclaredSymbol(model, node, cancellationToken);
     }
 
-    private ISymbol? GetParameterContainingMemberOrType(SyntaxNode? node, SyntaxNode? otherNode, SemanticModel? model, IReadOnlyDictionary<SyntaxNode, SyntaxNode> fromOtherMap, CancellationToken cancellationToken)
+    private ISymbol? GetParameterContainingMemberOrType(SyntaxNode? node, SyntaxNode? otherNode, DocumentSemanticModel model, IReadOnlyDictionary<SyntaxNode, SyntaxNode> fromOtherMap, CancellationToken cancellationToken)
     {
         Debug.Assert(node is null or ParameterSyntax or TypeParameterSyntax or TypeParameterConstraintClauseSyntax);
 
@@ -1451,7 +1436,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
             declaration = declaration.Parent;
         }
 
-        return (declaration != null) ? GetDeclaredSymbol(model!, declaration, cancellationToken) : null;
+        return (declaration != null) ? GetDeclaredSymbol(model.RequiredModel, declaration, cancellationToken) : null;
 
         static SyntaxNode GetContainingDeclaration(SyntaxNode node)
             => node is TypeParameterSyntax ? node.Parent!.Parent! : node!.Parent!;
@@ -1467,6 +1452,12 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
 
     internal override Func<SyntaxNode, bool> IsNotLambda
         => LambdaUtilities.IsNotLambda;
+
+    internal override Func<SyntaxNode, IEnumerable<SyntaxToken>> DescendantTokensIgnoringLambdaBodies
+        => LambdaUtilities.DescendantTokensIgnoringLambdaBodies;
+
+    internal override Func<SyntaxToken, SyntaxToken, bool> AreTokensEquivalent
+        => SyntaxFactory.AreEquivalent;
 
     internal override bool IsLocalFunction(SyntaxNode node)
         => node.IsKind(SyntaxKind.LocalFunctionStatement);
@@ -2286,7 +2277,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
     private readonly struct EditClassifier
     {
         private readonly CSharpEditAndContinueAnalyzer _analyzer;
-        private readonly ArrayBuilder<RudeEditDiagnostic> _diagnostics;
+        private readonly RudeEditDiagnosticsBuilder _diagnostics;
         private readonly Match<SyntaxNode>? _match;
         private readonly SyntaxNode? _oldNode;
         private readonly SyntaxNode? _newNode;
@@ -2295,7 +2286,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
 
         public EditClassifier(
             CSharpEditAndContinueAnalyzer analyzer,
-            ArrayBuilder<RudeEditDiagnostic> diagnostics,
+            RudeEditDiagnosticsBuilder diagnostics,
             SyntaxNode? oldNode,
             SyntaxNode? newNode,
             EditKind kind,
@@ -2475,7 +2466,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
     }
 
     internal override void ReportTopLevelSyntacticRudeEdits(
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         Match<SyntaxNode> match,
         Edit<SyntaxNode> edit,
         Dictionary<SyntaxNode, EditKind> editMap)
@@ -2513,7 +2504,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
 
     #region Semantic Rude Edits
 
-    internal override void ReportInsertedMemberSymbolRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, ISymbol newSymbol, SyntaxNode newNode, bool insertingIntoExistingContainingType)
+    internal override void ReportInsertedMemberSymbolRudeEdits(RudeEditDiagnosticsBuilder diagnostics, ISymbol newSymbol, SyntaxNode newNode, bool insertingIntoExistingContainingType)
     {
         Debug.Assert(IsMember(newSymbol));
 
@@ -2627,7 +2618,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
     }
 
     internal override void ReportEnclosingExceptionHandlingRudeEdits(
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits,
         SyntaxNode oldStatement,
         TextSpan newStatementSpan)
@@ -2686,14 +2677,14 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
                 tryStatement = (TryStatementSyntax)node;
                 coversAllChildren = false;
 
-                if (tryStatement.Catches.Count == 0)
+                if (tryStatement.Catches is not [var firstCatch, ..])
                 {
                     RoslynDebug.Assert(tryStatement.Finally != null);
                     return tryStatement.Finally.Span;
                 }
 
                 return TextSpan.FromBounds(
-                    tryStatement.Catches.First().SpanStart,
+                    firstCatch.SpanStart,
                     (tryStatement.Finally != null)
                         ? tryStatement.Finally.Span.End
                         : tryStatement.Catches.Last().Span.End);
@@ -2841,14 +2832,14 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
     #region Rude Edits around Active Statement
 
     internal override void ReportOtherRudeEditsAroundActiveStatement(
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap,
         SyntaxNode oldActiveStatement,
         DeclarationBody oldBody,
-        SemanticModel oldModel,
+        DocumentSemanticModel oldModel,
         SyntaxNode newActiveStatement,
         DeclarationBody newBody,
-        SemanticModel newModel,
+        DocumentSemanticModel newModel,
         bool isNonLeaf,
         CancellationToken cancellationToken)
     {
@@ -2864,7 +2855,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
     /// exactly the same variables are emitted for the new switch as they were for the old one and their order didn't change either.
     /// This is guaranteed if none of the case clauses have changed.
     /// </summary>
-    private void ReportRudeEditsForSwitchWhenClauses(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldActiveStatement, SyntaxNode newActiveStatement)
+    private void ReportRudeEditsForSwitchWhenClauses(RudeEditDiagnosticsBuilder diagnostics, SyntaxNode oldActiveStatement, SyntaxNode newActiveStatement)
     {
         if (!oldActiveStatement.IsKind(SyntaxKind.WhenClause))
         {
@@ -2920,7 +2911,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
     }
 
     private void ReportRudeEditsForCheckedStatements(
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         SyntaxNode oldActiveStatement,
         SyntaxNode newActiveStatement,
         bool isNonLeaf)
@@ -2975,14 +2966,14 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
     }
 
     private void ReportRudeEditsForAncestorsDeclaringInterStatementTemps(
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap,
         SyntaxNode oldActiveStatement,
         SyntaxNode oldEncompassingAncestor,
-        SemanticModel oldModel,
+        DocumentSemanticModel oldModel,
         SyntaxNode newActiveStatement,
         SyntaxNode newEncompassingAncestor,
-        SemanticModel newModel,
+        DocumentSemanticModel newModel,
         CancellationToken cancellationToken)
     {
         // Rude Edits for fixed/using/lock/foreach statements that are added/updated around an active statement.

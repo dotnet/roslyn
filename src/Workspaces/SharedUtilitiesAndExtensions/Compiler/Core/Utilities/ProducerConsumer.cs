@@ -10,7 +10,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -259,6 +259,66 @@ internal static class ProducerConsumer<TItem>
     }
 
     /// <summary>
+    /// Version of <see cref="RunChannelAsync"/> when caller the prefers to just push all the results into a channel
+    /// that it receives in the return value to process asynchronously.
+    /// </summary>
+    public static IAsyncEnumerable<TItem> RunAsync<TArgs>(
+        Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        var channel = Channel.CreateUnbounded<TItem>();
+
+        // Intentionally do not await.  We kick this work off concurrently and return the channel
+        // reader the consumer will read from.  PerformActionAndCloseWriterAsync ensures the writer
+        // always completes
+        _ = PerformActionAndCloseWriterAsync(
+            action: static (outerArgs, cancellationToken) =>
+            {
+                return RunChannelAsync(
+                    // We're the only reader (in the foreach loop in consumeItems).  So we can use the single reader options.
+                    ProducerConsumerOptions.SingleReaderOptions,
+                    produceItems: static (callback, outerArgs, cancellationToken) =>
+                        outerArgs.produceItems(callback, outerArgs.args, cancellationToken),
+                    consumeItems: async static (reader, args, cancellationToken) =>
+                    {
+                        await foreach (var item in reader.ReadAllAsync(cancellationToken))
+                            args.channel.Writer.TryWrite(item);
+
+                        return default(VoidResult);
+                    },
+                    args: outerArgs, cancellationToken);
+            },
+            args: (produceItems, args, channel),
+            channel.Writer,
+            cancellationToken);
+
+        return channel.Reader.ReadAllAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Equivalent to <see cref="RunParallelAsync{TSource, TArgs}(IEnumerable{TSource}, Func{TSource, Action{TItem}, TArgs, CancellationToken, Task}, TArgs, CancellationToken)"/>,
+    /// but returns value as an <see cref="IAsyncEnumerable{TItem}"/>.  Versus an <see cref="ImmutableArray{TItem}"/>.  
+    /// This is useful for cases where the caller wants to stream over the results as they are produced, rather than
+    /// waiting on the full set to be produced before processing them.
+    /// </summary>
+    public static IAsyncEnumerable<TItem> RunParallelStreamAsync<TSource, TArgs>(
+        IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        return RunAsync(
+            static (callback, args, cancellationToken) =>
+                RoslynParallel.ForEachAsync(
+                    args.source, cancellationToken,
+                    async (source, cancellationToken) => await args.produceItems(
+                        source, callback, args.args, cancellationToken).ConfigureAwait(false)),
+            args: (source, produceItems, args),
+            cancellationToken);
+    }
+
+    /// <summary>
     /// Helper utility for the pattern of a pair of a production routine and consumption routine using a channel to
     /// coordinate data transfer.  The provided <paramref name="options"/> are used to create a <see
     /// cref="Channel{T}"/>, which will then then manage the rules and behaviors around the routines. Importantly, the
@@ -308,29 +368,47 @@ internal static class ProducerConsumer<TItem>
             return await consumeItems(channel.Reader, args, cancellationToken).ConfigureAwait(false);
         }
 
-        async Task ProduceItemsAndWriteToChannelAsync()
+        Task ProduceItemsAndWriteToChannelAsync()
         {
-            Exception? exception = null;
-            try
-            {
-                await Task.Yield().ConfigureAwait(false);
+            return PerformActionAndCloseWriterAsync(
+                action: async static (outerArgs, cancellationToken) =>
+                {
+                    await Task.Yield().ConfigureAwait(false);
 
-                // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
-                // channel is only ever completed by us (after produceItems completes or throws an exception) or if the
-                // cancellationToken is triggered above in RunAsync. In that latter case, it's ok for writing to the
-                // channel to do nothing as we no longer need to write out those assets to the pipe.
-                await produceItems(item => channel.Writer.TryWrite(item), args, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when ((exception = ex) == null)
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-            finally
-            {
-                // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
-                // writing task knows it's done.
-                channel.Writer.TryComplete(exception);
-            }
+                    var (produceItems, channel, args) = outerArgs;
+
+                    // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
+                    // channel is only ever completed by us (after produceItems completes or throws an exception) or if the
+                    // cancellationToken is triggered above in RunAsync. In that latter case, it's ok for writing to the
+                    // channel to do nothing as we no longer need to write out those assets to the pipe.
+                    await produceItems(item => channel.Writer.TryWrite(item), args, cancellationToken).ConfigureAwait(false);
+                },
+                args: (produceItems, channel, args),
+                channel.Writer,
+                cancellationToken);
+        }
+    }
+
+    private static async Task PerformActionAndCloseWriterAsync<TArgs>(
+        Func<TArgs, CancellationToken, Task> action,
+        TArgs args,
+        ChannelWriter<TItem> writer,
+        CancellationToken cancellationToken)
+    {
+        Exception? exception = null;
+        try
+        {
+            await action(args, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when ((exception = ex) == null)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+        finally
+        {
+            // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
+            // writing task knows it's done.
+            writer.TryComplete(exception);
         }
     }
 

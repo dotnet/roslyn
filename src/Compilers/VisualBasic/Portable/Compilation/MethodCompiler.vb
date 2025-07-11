@@ -16,7 +16,6 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -269,6 +268,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If compilation.EmbeddedSymbolManager.Embedded <> EmbeddedSymbolKind.None Then
                     compiler.ProcessEmbeddedMethods()
                 End If
+
+                ' Deleted definitions must be emitted before PrivateImplementationDetails are frozen since
+                ' it may add new members to it. All changes to PrivateImplementationDetails are additions,
+                ' so we don't need to create deleted method defs for those.
+                moduleBeingBuiltOpt.CreateDeletedMethodDefinitions(diagnostics.DiagnosticBag)
 
                 ' all threads that were adding methods must be finished now, we can freeze the class:
                 Dim privateImplClass = moduleBeingBuiltOpt.FreezePrivateImplementationDetails()
@@ -1612,7 +1616,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 optimizations = OptimizationLevel.Release
             End If
 
-            Dim builder As ILBuilder = New ILBuilder(moduleBuilder, localSlotManager, optimizations, areLocalsZeroed:=True)
+            Dim builder As ILBuilder = New ILBuilder(moduleBuilder, localSlotManager, diagnostics.DiagnosticBag, optimizations, areLocalsZeroed:=True)
 
             Try
                 Debug.Assert(Not diagnostics.HasAnyErrors)

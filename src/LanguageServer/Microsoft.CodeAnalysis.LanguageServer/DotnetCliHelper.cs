@@ -5,6 +5,7 @@
 using System.Composition;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
@@ -68,14 +69,15 @@ internal sealed class DotnetCliHelper
         return dotnetSdkFolderPath;
     }
 
-    public Process Run(string[] arguments, string? workingDirectory, bool shouldLocalizeOutput)
+    public Process Run(string[] arguments, string? workingDirectory, bool shouldLocalizeOutput, bool keepStandardInputOpen = false)
     {
-        _logger.LogDebug($"Running dotnet CLI command at {_dotnetExecutablePath.Value} in directory {workingDirectory} with arguments {arguments}");
+        _logger.LogDebug($"Running dotnet CLI command at {_dotnetExecutablePath.Value} in directory {workingDirectory} with arguments '{string.Join(' ', arguments)}'");
 
         var startInfo = new ProcessStartInfo(_dotnetExecutablePath.Value)
         {
             CreateNoWindow = true,
             UseShellExecute = false,
+            RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
@@ -105,6 +107,9 @@ internal sealed class DotnetCliHelper
 
         var process = Process.Start(startInfo);
         Contract.ThrowIfNull(process, $"Unable to start dotnet CLI at {_dotnetExecutablePath.Value} with arguments {arguments} in directory {workingDirectory}");
+        if (!keepStandardInputOpen)
+            process.StandardInput.Close();
+
         return process;
     }
 
@@ -122,7 +127,6 @@ internal sealed class DotnetCliHelper
     /// Based on https://github.com/dotnet/msbuild/blob/main/src/Utilities/ToolTask.cs#L1259
     /// We also do not include DOTNET_ROOT here, see https://github.com/dotnet/runtime/issues/88754
     /// </summary>
-    /// <returns></returns>
     internal string GetDotNetPathOrDefault()
     {
         var (fileName, sep) = PlatformInformation.IsWindows

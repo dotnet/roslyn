@@ -4,6 +4,7 @@
 
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -142,6 +143,9 @@ internal sealed class BlockSyntaxStructureProvider : AbstractSyntaxNodeStructure
                     type: type));
             }
         }
+
+        // Add any leading comments before the end of the block
+        CSharpStructureHelpers.CollectCommentBlockSpans(node.CloseBraceToken.LeadingTrivia, spans);
     }
 
     private static bool IsNonBlockStatement(SyntaxNode node)

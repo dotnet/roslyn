@@ -13,7 +13,7 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeF
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FileHeaders;
 
-public class FileHeaderTests
+public sealed class FileHeaderTests
 {
     private const string TestSettings = """
         [*.cs]
@@ -33,23 +33,19 @@ public class FileHeaderTests
     [InlineData("")]
     [InlineData("file_header_template =")]
     [InlineData("file_header_template = unset")]
-    public async Task TestFileHeaderNotConfiguredAsync(string fileHeaderTemplate)
-    {
-        var testCode = """
+    public Task TestFileHeaderNotConfiguredAsync(string fileHeaderTemplate)
+        => new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            EditorConfig = $@"
-[*]
-{fileHeaderTemplate}
-",
+            """,
+            EditorConfig = $"""
+            [*]
+            {fileHeaderTemplate}
+            """,
         }.RunAsync();
-    }
 
     /// <summary>
     /// Verifies that the analyzer will report a diagnostic when the file is completely missing a header.
@@ -92,16 +88,17 @@ public class FileHeaderTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task TestNoFileHeaderWithUsingDirectiveAsync()
-    {
-        var testCode = """
+    public Task TestNoFileHeaderWithUsingDirectiveAsync()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             [||]using System;
 
             namespace N
             {
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
@@ -110,32 +107,27 @@ public class FileHeaderTests
             namespace N
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
-    }
 
     /// <summary>
     /// Verifies that the analyzer will report a diagnostic when the file is completely missing a header.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task TestNoFileHeaderWithBlankLineAndUsingDirectiveAsync()
-    {
-        var testCode = """
+    public Task TestNoFileHeaderWithBlankLineAndUsingDirectiveAsync()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             [||]
             using System;
 
             namespace N
             {
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
@@ -144,15 +136,9 @@ public class FileHeaderTests
             namespace N
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
-    }
 
     /// <summary>
     /// Verifies that the analyzer will report a diagnostic when the file is completely missing a header.
@@ -169,7 +155,10 @@ public class FileHeaderTests
             {
             }
             """;
-        var fixedCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = testCode,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
@@ -178,12 +167,7 @@ public class FileHeaderTests
             namespace N
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -193,66 +177,56 @@ public class FileHeaderTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task TestFileNameBuiltInVariableAsync()
-    {
-        var editorConfig = """
-            [*.cs]
-            file_header_template = {fileName} Copyright (c) SomeCorp. All rights reserved.\nLicensed under the ??? license. See LICENSE file in the project root for full license information.
-            """;
-
-        var testCode = """
+    public Task TestFileNameBuiltInVariableAsync()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             [||]namespace N
             {
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             // Test0.cs Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             namespace N
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
-            EditorConfig = editorConfig,
+            """,
+            EditorConfig = """
+            [*.cs]
+            file_header_template = {fileName} Copyright (c) SomeCorp. All rights reserved.\nLicensed under the ??? license. See LICENSE file in the project root for full license information.
+            """,
         }.RunAsync();
-    }
 
     /// <summary>
     /// Verifies that a valid file header built using single line comments will not produce a diagnostic message.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task TestValidFileHeaderWithSingleLineCommentsAsync()
-    {
-        var testCode = """
+    public Task TestValidFileHeaderWithSingleLineCommentsAsync()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
-    }
 
     /// <summary>
     /// Verifies that a valid file header built using multi-line comments will not produce a diagnostic message.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task TestValidFileHeaderWithMultiLineComments1Async()
-    {
-        var testCode = """
+    public Task TestValidFileHeaderWithMultiLineComments1Async()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             /* Copyright (c) SomeCorp. All rights reserved.
              * Licensed under the ??? license. See LICENSE file in the project root for full license information.
              */
@@ -260,37 +234,28 @@ public class FileHeaderTests
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
-    }
 
     /// <summary>
     /// Verifies that a valid file header built using multi-line comments will not produce a diagnostic message.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task TestValidFileHeaderWithMultiLineComments2Async()
-    {
-        var testCode = """
+    public Task TestValidFileHeaderWithMultiLineComments2Async()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             /* Copyright (c) SomeCorp. All rights reserved.
                Licensed under the ??? license. See LICENSE file in the project root for full license information. */
 
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
-    }
 
     /// <summary>
     /// Verifies that a valid file header built using unterminated multi-line comments will not produce a diagnostic
@@ -326,70 +291,63 @@ public class FileHeaderTests
     [Theory]
     [InlineData("[|//|]")]
     [InlineData("[|//|]    ")]
-    public async Task TestInvalidFileHeaderWithoutTextAsync(string comment)
-    {
-        var testCode = $@"{comment}
+    public Task TestInvalidFileHeaderWithoutTextAsync(string comment)
+        => new VerifyCS.Test
+        {
+            TestCode = $$"""
+            {{comment}}
 
-namespace Bar
-{{
-}}";
-        var fixedCode = """
+            namespace Bar
+            {
+            }
+            """,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
-    }
 
     /// <summary>
     /// Verifies that an invalid file header built using single line comments will produce the expected diagnostic message.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task TestInvalidFileHeaderWithWrongTextAsync()
-    {
-        var testCode = """
+    public Task TestInvalidFileHeaderWithWrongTextAsync()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             [|//|] Copyright (c) OtherCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             namespace Bar
             {
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
-    }
 
     /// <summary>
     /// Verifies that an invalid file header built using single line comments will produce the expected diagnostic message.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task TestInvalidFileHeaderWithWrongText2Async()
-    {
-        var testCode = """
+    public Task TestInvalidFileHeaderWithWrongText2Async()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             [|/*|] Copyright (c) OtherCorp. All rights reserved.
              * Licensed under the ??? license. See LICENSE file in the project root for full license information.
              */
@@ -397,8 +355,8 @@ namespace Bar
             namespace Bar
             {
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
@@ -409,126 +367,104 @@ namespace Bar
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("", "")]
     [InlineData(" Header", "")]
     [InlineData(" Header", " Header")]
-    public async Task TestValidFileHeaderInRegionAsync(string startLabel, string endLabel)
-    {
-        var testCode = $@"#region{startLabel}
-// Copyright (c) SomeCorp. All rights reserved.
-// Licensed under the ??? license. See LICENSE file in the project root for full license information.
-#endregion{endLabel}
-
-namespace Bar
-{{
-}}
-";
-
-        await new VerifyCS.Test
+    public Task TestValidFileHeaderInRegionAsync(string startLabel, string endLabel)
+        => new VerifyCS.Test
         {
-            TestCode = testCode,
+            TestCode = $$"""
+            #region{{startLabel}}
+            // Copyright (c) SomeCorp. All rights reserved.
+            // Licensed under the ??? license. See LICENSE file in the project root for full license information.
+            #endregion{{endLabel}}
+
+            namespace Bar
+            {
+            }
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("", "")]
     [InlineData(" Header", "")]
     [InlineData(" Header", " Header")]
-    public async Task TestInvalidFileHeaderWithWrongTextInRegionAsync(string startLabel, string endLabel)
-    {
-        var testCode = $@"#region{startLabel}
-[|//|] Copyright (c) OtherCorp. All rights reserved.
-// Licensed under the ??? license. See LICENSE file in the project root for full license information.
-#endregion{endLabel}
-
-namespace Bar
-{{
-}}
-";
-        var fixedCode = $@"// Copyright (c) SomeCorp. All rights reserved.
-// Licensed under the ??? license. See LICENSE file in the project root for full license information.
-
-#region{startLabel}
-// Copyright (c) OtherCorp. All rights reserved.
-// Licensed under the ??? license. See LICENSE file in the project root for full license information.
-#endregion{endLabel}
-
-namespace Bar
-{{
-}}
-";
-
-        await new VerifyCS.Test
+    public Task TestInvalidFileHeaderWithWrongTextInRegionAsync(string startLabel, string endLabel)
+        => new VerifyCS.Test
         {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            TestCode = $$"""
+            #region{{startLabel}}
+            [|//|] Copyright (c) OtherCorp. All rights reserved.
+            // Licensed under the ??? license. See LICENSE file in the project root for full license information.
+            #endregion{{endLabel}}
+
+            namespace Bar
+            {
+            }
+            """,
+            FixedCode = $$"""
+            // Copyright (c) SomeCorp. All rights reserved.
+            // Licensed under the ??? license. See LICENSE file in the project root for full license information.
+
+            #region{{startLabel}}
+            // Copyright (c) OtherCorp. All rights reserved.
+            // Licensed under the ??? license. See LICENSE file in the project root for full license information.
+            #endregion{{endLabel}}
+
+            namespace Bar
+            {
+            }
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
-    }
 
     /// <summary>
     /// Verifies that an invalid file header built using single line comments will produce the expected diagnostic message.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task TestInvalidFileHeaderWithWrongTextInUnterminatedMultiLineComment1Async()
-    {
-        var testCode = """
+    public Task TestInvalidFileHeaderWithWrongTextInUnterminatedMultiLineComment1Async()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             {|CS1035:|}[|/*|] Copyright (c) OtherCorp. All rights reserved.
              * Licensed under the ??? license. See LICENSE file in the project root for full license information.
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             {|CS1035:|}/* Copyright (c) OtherCorp. All rights reserved.
              * Licensed under the ??? license. See LICENSE file in the project root for full license information.
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
-    }
 
     /// <summary>
     /// Verifies that an invalid file header built using single line comments will produce the expected diagnostic message.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task TestInvalidFileHeaderWithWrongTextInUnterminatedMultiLineComment2Async()
-    {
-        var testCode = """
+    public Task TestInvalidFileHeaderWithWrongTextInUnterminatedMultiLineComment2Async()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             {|CS1035:|}[|/*|]/
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             {|CS1035:|}/*/
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
-    }
 
     /// <summary>
     /// Verifies that an invalid file header built using single line comments will produce the expected diagnostic message.
@@ -537,40 +473,38 @@ namespace Bar
     [Theory]
     [InlineData("")]
     [InlineData("    ")]
-    public async Task TestInvalidFileHeaderWithWrongTextAfterBlankLineAsync(string firstLine)
-    {
-        var testCode = $@"{firstLine}
-[|//|] Copyright (c) OtherCorp. All rights reserved.
-// Licensed under the ??? license. See LICENSE file in the project root for full license information.
+    public Task TestInvalidFileHeaderWithWrongTextAfterBlankLineAsync(string firstLine)
+        => new VerifyCS.Test
+        {
+            TestCode = $$"""
+            {{firstLine}}
+            [|//|] Copyright (c) OtherCorp. All rights reserved.
+            // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
-namespace Bar
-{{
-}}";
-        var fixedCode = """
+            namespace Bar
+            {
+            }
+            """,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
-    }
 
     /// <summary>
     /// Verifies that an invalid file header built using single line comments will produce the expected diagnostic message.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task TestInvalidFileHeaderWithWrongTextFollowedByCommentAsync()
-    {
-        var testCode = """
+    public Task TestInvalidFileHeaderWithWrongTextFollowedByCommentAsync()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             [|//|] Copyright (c) OtherCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
@@ -579,8 +513,8 @@ namespace Bar
             namespace Bar
             {
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
@@ -589,28 +523,23 @@ namespace Bar
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestHeaderMissingRequiredNewLinesAsync()
-    {
-        var testCode = """
+    public Task TestHeaderMissingRequiredNewLinesAsync()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             [|//|] Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             namespace Bar
             {
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             //
             // Copyright (c) SomeCorp. All rights reserved.
             //
@@ -620,13 +549,7 @@ namespace Bar
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettingsWithEmptyLines,
         }.RunAsync();
-    }
 }

@@ -444,6 +444,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
             => _reducedFrom.GetUnmanagedCallersOnlyAttributeData(forceComplete);
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         public override Accessibility DeclaredAccessibility
         {
             get { return _reducedFrom.DeclaredAccessibility; }
@@ -675,6 +677,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable();
 
             internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable();
+
+            internal override bool HasEnumeratorCancellationAttribute => throw ExceptionUtilities.Unreachable();
 
             public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {

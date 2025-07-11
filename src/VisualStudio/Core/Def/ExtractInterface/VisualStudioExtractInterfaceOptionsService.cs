@@ -2,22 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
@@ -29,26 +25,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 [ExportWorkspaceService(typeof(IExtractInterfaceOptionsService), ServiceLayer.Host), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext, IUIThreadOperationExecutor uiThreadOperationExecutor) : IExtractInterfaceOptionsService
+internal sealed class VisualStudioExtractInterfaceOptionsService(
+    IGlyphService glyphService,
+    IThreadingContext threadingContext,
+    IUIThreadOperationExecutor uiThreadOperationExecutor) : IExtractInterfaceOptionsService
 {
     private readonly IGlyphService _glyphService = glyphService;
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor = uiThreadOperationExecutor;
 
     public ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
-        ISyntaxFactsService syntaxFactsService,
-        INotificationService notificationService,
-        List<ISymbol> extractableMembers,
+        Document document,
+        ImmutableArray<ISymbol> extractableMembers,
         string defaultInterfaceName,
-        List<string> allTypeNames,
+        ImmutableArray<string> allTypeNames,
         string defaultNamespace,
-        string generatedNameTypeParameterSuffix,
-        string languageName,
-        CancellationToken cancellationToken)
+        string generatedNameTypeParameterSuffix)
     {
         _threadingContext.ThrowIfNotOnUIThread();
-
-        using var cancellationTokenSource = new CancellationTokenSource();
+        var solution = document.Project.Solution;
+        var canAddDocument = solution.CanApplyChange(ApplyChangesKind.AddDocument);
+        var notificationService = solution.Services.GetRequiredService<INotificationService>();
 
         var memberViewModels = extractableMembers
             .SelectAsArray(member =>
@@ -61,7 +58,7 @@ internal sealed class VisualStudioExtractInterfaceOptionsService(IGlyphService g
                 });
 
         var viewModel = new ExtractInterfaceDialogViewModel(
-            syntaxFactsService,
+            document.GetRequiredLanguageService<ISyntaxFactsService>(),
             _uiThreadOperationExecutor,
             notificationService,
             defaultInterfaceName,
@@ -69,7 +66,8 @@ internal sealed class VisualStudioExtractInterfaceOptionsService(IGlyphService g
             memberViewModels,
             defaultNamespace,
             generatedNameTypeParameterSuffix,
-            languageName);
+            document.Project.Language,
+            canAddDocument);
 
         var dialog = new ExtractInterfaceDialog(viewModel);
         var result = dialog.ShowModal();

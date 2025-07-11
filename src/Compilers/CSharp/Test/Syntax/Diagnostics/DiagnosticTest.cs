@@ -324,7 +324,7 @@ class X
                         case ErrorCode.WRN_Experimental:
                         case ErrorCode.WRN_ExperimentalWithMessage:
                         case ErrorCode.WRN_ConvertingLock:
-                        case ErrorCode.WRN_PartialPropertySignatureDifference:
+                        case ErrorCode.WRN_PartialMemberSignatureDifference:
                         case ErrorCode.WRN_UnscopedRefAttributeOldRules:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
@@ -437,7 +437,6 @@ class X
                         case ErrorCode.WRN_FieldIsAmbiguous:
                         case ErrorCode.WRN_UninitializedNonNullableBackingField:
                         case ErrorCode.WRN_AccessorDoesNotUseBackingField:
-                        case ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -474,6 +473,10 @@ class X
                         case ErrorCode.WRN_ByValArraySizeConstRequired:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 8 and C# 12.
                             Assert.Equal(8, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature:
+                            // These are the warnings introduced with the warning "wave" shipped with dotnet 9 and C# 13.
+                            Assert.Equal(9, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_UnassignedInternalRefField:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 10 and C# 14.
@@ -2988,6 +2991,7 @@ class Program
                     case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
                     case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                     case ErrorCode.ERR_RefLocalAcrossAwait:
+                    case ErrorCode.ERR_DataSectionStringLiteralHashCollision:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

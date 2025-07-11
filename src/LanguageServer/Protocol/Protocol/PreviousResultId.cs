@@ -4,7 +4,6 @@
 
 namespace Roslyn.LanguageServer.Protocol;
 
-using System;
 using System.Text.Json.Serialization;
 
 /// <summary>
@@ -14,14 +13,14 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class PreviousResultId
+internal sealed class PreviousResultId
 {
     /// <summary>
     /// Gets or sets the URI for which the client knows a result id.
     /// </summary>
     [JsonPropertyName("uri")]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri Uri
+    public DocumentUri Uri
     {
         get;
         set;

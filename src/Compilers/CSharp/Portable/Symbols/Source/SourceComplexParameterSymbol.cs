@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -193,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ImmutableHashSet<string> NotNullIfParameterNotNull
             => GetDecodedWellKnownAttributeData()?.NotNullIfParameterNotNull ?? ImmutableHashSet<string>.Empty;
 
-        internal bool HasEnumeratorCancellationAttribute
+        internal override bool HasEnumeratorCancellationAttribute
         {
             get
             {
@@ -471,12 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ImmutableArray<ParameterSymbol> implParameters = this.ContainingSymbol switch
-                {
-                    SourceMemberMethodSymbol { PartialImplementationPart.Parameters: { } parameters } => parameters,
-                    SourcePropertySymbol { PartialImplementationPart.Parameters: { } parameters } => parameters,
-                    _ => default
-                };
+                ImmutableArray<ParameterSymbol> implParameters = this.ContainingSymbol.GetPartialImplementationPart()?.GetParameters() ?? default;
 
                 if (implParameters.IsDefault)
                 {
@@ -492,12 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ImmutableArray<ParameterSymbol> defParameters = this.ContainingSymbol switch
-                {
-                    SourceMemberMethodSymbol { PartialDefinitionPart.Parameters: { } parameters } => parameters,
-                    SourcePropertySymbol { PartialDefinitionPart.Parameters: { } parameters } => parameters,
-                    _ => default
-                };
+                ImmutableArray<ParameterSymbol> defParameters = this.ContainingSymbol.GetPartialDefinitionPart()?.GetParameters() ?? default;
 
                 if (defParameters.IsDefault)
                 {
@@ -1598,9 +1589,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             Debug.Assert(!addMethods.IsDefaultOrEmpty);
 
-                            if (addMethods[0].IsStatic) // No need to check other methods, extensions are never mixed with instance methods
+                            if (addMethods[0].IsExtensionMethod || addMethods[0].GetIsNewExtensionMember()) // No need to check other methods, extensions are never mixed with instance methods
                             {
-                                Debug.Assert(addMethods[0].IsExtensionMethod);
                                 diagnostics.Add(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, syntax, Type);
                                 return;
                             }

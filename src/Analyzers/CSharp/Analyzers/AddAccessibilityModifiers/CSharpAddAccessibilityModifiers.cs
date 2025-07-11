@@ -2,21 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
+using Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
+namespace Microsoft.CodeAnalysis.CSharp.AddOrRemoveAccessibilityModifiers;
 
-internal class CSharpAddAccessibilityModifiers : AbstractAddAccessibilityModifiers<MemberDeclarationSyntax>
+internal class CSharpAddOrRemoveAccessibilityModifiers : AbstractAddOrRemoveAccessibilityModifiers<MemberDeclarationSyntax>
 {
-    public static readonly CSharpAddAccessibilityModifiers Instance = new();
+    public static readonly CSharpAddOrRemoveAccessibilityModifiers Instance = new();
 
-    protected CSharpAddAccessibilityModifiers()
+    protected CSharpAddOrRemoveAccessibilityModifiers()
     {
     }
 

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -69,7 +68,7 @@ internal static class ParameterGenerator
             .WithAttributeLists(GenerateAttributes(parameter, isExplicit, info))
             .WithModifiers(GenerateModifiers(parameter, isFirstParam))
             .WithType(parameter.Type.GenerateTypeSyntax(allowVar: false))
-            .WithDefault(GenerateEqualsValueClause(info.Generator, parameter, isExplicit, seenOptional));
+            .WithDefault(GenerateEqualsValueClause(parameter, isExplicit, seenOptional));
     }
 
     private static SyntaxTokenList GenerateModifiers(
@@ -88,7 +87,6 @@ internal static class ParameterGenerator
     }
 
     private static EqualsValueClauseSyntax? GenerateEqualsValueClause(
-        SyntaxGenerator generator,
         IParameterSymbol parameter,
         bool isExplicit,
         bool seenOptional)
@@ -102,15 +100,15 @@ internal static class ParameterGenerator
                     return null;
 
                 return EqualsValueClause(
-                    GenerateEqualsValueClauseWorker(generator, parameter, defaultValue));
+                    GenerateEqualsValueClauseWorker(parameter, defaultValue));
             }
         }
 
         return null;
     }
 
-    private static ExpressionSyntax GenerateEqualsValueClauseWorker(SyntaxGenerator generator, IParameterSymbol parameter, object? value)
-        => ExpressionGenerator.GenerateExpression(generator, parameter.Type, value, canUseFieldReference: true);
+    private static ExpressionSyntax GenerateEqualsValueClauseWorker(IParameterSymbol parameter, object? value)
+        => ExpressionGenerator.GenerateExpression(parameter.Type, value, canUseFieldReference: true);
 
     private static SyntaxList<AttributeListSyntax> GenerateAttributes(
         IParameterSymbol parameter, bool isExplicit, CSharpCodeGenerationContextInfo info)

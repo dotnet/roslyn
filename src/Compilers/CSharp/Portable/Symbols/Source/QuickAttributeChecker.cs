@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = new QuickAttributeChecker();
             result.AddName(AttributeDescription.TypeIdentifierAttribute.Name, QuickAttributes.TypeIdentifier);
             result.AddName(AttributeDescription.TypeForwardedToAttribute.Name, QuickAttributes.TypeForwardedTo);
+            result.AddName(AttributeDescription.IndexerNameAttribute.Name, QuickAttributes.IndexerName);
             result.AddName(AttributeDescription.AssemblyKeyNameAttribute.Name, QuickAttributes.AssemblyKeyName);
             result.AddName(AttributeDescription.AssemblyKeyFileAttribute.Name, QuickAttributes.AssemblyKeyFile);
             result.AddName(AttributeDescription.AssemblySignatureKeyAttribute.Name, QuickAttributes.AssemblySignatureKey);
@@ -144,9 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         None = 0,
         TypeIdentifier = 1 << 0,
         TypeForwardedTo = 1 << 1,
-        AssemblyKeyName = 1 << 2,
-        AssemblyKeyFile = 1 << 3,
-        AssemblySignatureKey = 1 << 4,
+        IndexerName = 1 << 2,
+        AssemblyKeyName = 1 << 3,
+        AssemblyKeyFile = 1 << 4,
+        AssemblySignatureKey = 1 << 5,
         Last = AssemblySignatureKey,
     }
 
@@ -170,6 +172,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (matches(AttributeDescription.TypeForwardedToAttribute))
             {
                 result |= QuickAttributes.TypeForwardedTo;
+            }
+            else if (matches(AttributeDescription.IndexerNameAttribute))
+            {
+                result |= QuickAttributes.IndexerName;
             }
             else if (matches(AttributeDescription.AssemblyKeyNameAttribute))
             {

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -151,12 +150,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override CSharpCompilation GetCompilation(DkmClrModuleInstance moduleInstance)
         {
             var appDomain = moduleInstance.AppDomain;
-            var moduleVersionId = moduleInstance.Mvid;
+            var moduleId = moduleInstance.GetModuleId();
             var previous = appDomain.GetMetadataContext<CSharpMetadataContext>();
             var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks);
 
             var kind = GetMakeAssemblyReferencesKind();
-            var contextId = MetadataContextId.GetContextId(moduleVersionId, kind);
+            var contextId = MetadataContextId.GetContextId(moduleId, kind);
             var assemblyContexts = previous.Matches(metadataBlocks) ? previous.AssemblyContexts : ImmutableDictionary<MetadataContextId, CSharpMetadataContext>.Empty;
             CSharpMetadataContext previousContext;
             assemblyContexts.TryGetValue(contextId, out previousContext);
@@ -164,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var compilation = previousContext.Compilation;
             if (compilation == null)
             {
-                compilation = metadataBlocks.ToCompilation(moduleVersionId, kind);
+                compilation = metadataBlocks.ToCompilation(moduleId, kind);
                 appDomain.SetMetadataContext(
                     new MetadataContext<CSharpMetadataContext>(
                         metadataBlocks,
@@ -178,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override MethodSymbol GetMethod(CSharpCompilation compilation, DkmClrInstructionAddress instructionAddress)
         {
             var methodHandle = (MethodDefinitionHandle)MetadataTokens.Handle(instructionAddress.MethodId.Token);
-            return compilation.GetSourceMethod(instructionAddress.ModuleInstance.Mvid, methodHandle);
+            return compilation.GetSourceMethod(instructionAddress.ModuleInstance.GetModuleId(), methodHandle);
         }
 
         internal override TypeNameDecoder<PEModuleSymbol, TypeSymbol> GetTypeNameDecoder(CSharpCompilation compilation, MethodSymbol method)

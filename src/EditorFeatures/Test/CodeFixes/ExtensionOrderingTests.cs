@@ -20,7 +20,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes;
 
 [UseExportProvider]
-public class ExtensionOrderingTests
+public sealed class ExtensionOrderingTests
 {
     private static ExportProvider ExportProvider => EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
 

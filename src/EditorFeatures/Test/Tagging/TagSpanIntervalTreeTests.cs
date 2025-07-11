@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging;
 
 [UseExportProvider]
-public class TagSpanIntervalTreeTests
+public sealed class TagSpanIntervalTreeTests
 {
     private static (TagSpanIntervalTree<ITextMarkerTag>, ITextBuffer) CreateTree(string text, params Span[] spans)
     {
@@ -84,10 +84,10 @@ public class TagSpanIntervalTreeTests
         buffer.Insert(0, new string('c', 100));
 
         // We should have 50 spans if we start looking at just the end
-        Assert.Equal(50, GetIntersectingSpans(tree, new SnapshotSpan(buffer.CurrentSnapshot, 150, 50)).Count());
+        Assert.Equal(50, GetIntersectingSpans(tree, new SnapshotSpan(buffer.CurrentSnapshot, 150, 50)).Count);
 
         // And we should have 26 here. We directly cover 25 spans, and we touch one more
-        Assert.Equal(26, GetIntersectingSpans(tree, new SnapshotSpan(buffer.CurrentSnapshot, 175, 25)).Count());
+        Assert.Equal(26, GetIntersectingSpans(tree, new SnapshotSpan(buffer.CurrentSnapshot, 175, 25)).Count);
     }
 
     [Fact]
@@ -98,11 +98,11 @@ public class TagSpanIntervalTreeTests
         buffer.Insert(0, new string('c', 100));
 
         // We should see one span anywhere in the beginning of the buffer, since this is edge inclusive
-        Assert.Equal(1, GetIntersectingSpans(tree, new SnapshotSpan(buffer.CurrentSnapshot, 0, 1)).Count());
-        Assert.Equal(1, GetIntersectingSpans(tree, new SnapshotSpan(buffer.CurrentSnapshot, 50, 1)).Count());
+        Assert.Equal(1, GetIntersectingSpans(tree, new SnapshotSpan(buffer.CurrentSnapshot, 0, 1)).Count);
+        Assert.Equal(1, GetIntersectingSpans(tree, new SnapshotSpan(buffer.CurrentSnapshot, 50, 1)).Count);
 
         // We should see two at position 100 (the first span that is now expanded, and the second of width 1)
-        Assert.Equal(2, GetIntersectingSpans(tree, new SnapshotSpan(buffer.CurrentSnapshot, 100, 1)).Count());
+        Assert.Equal(2, GetIntersectingSpans(tree, new SnapshotSpan(buffer.CurrentSnapshot, 100, 1)).Count);
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class TagSpanIntervalTreeTests
 
         // We should see 51 spans intersecting the start. When we did the delete, we contracted 50 spans to size
         // zero, and then the insert will have expanded all of those, plus the span right next to it.
-        Assert.Equal(51, GetIntersectingSpans(tree, new SnapshotSpan(buffer.CurrentSnapshot, 0, 1)).Count());
+        Assert.Equal(51, GetIntersectingSpans(tree, new SnapshotSpan(buffer.CurrentSnapshot, 0, 1)).Count);
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public class TagSpanIntervalTreeTests
 
         // We should see 51 spans intersecting the end. When we did the delete, we contracted 50 spans to size zero,
         // and then the insert will have expanded all of those, plus the span right next to it.
-        Assert.Equal(51, GetIntersectingSpans(tree, new SnapshotSpan(buffer.CurrentSnapshot, 99, 1)).Count());
+        Assert.Equal(51, GetIntersectingSpans(tree, new SnapshotSpan(buffer.CurrentSnapshot, 99, 1)).Count);
     }
 
     [Fact]

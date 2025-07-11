@@ -2,20 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
 using Microsoft.CodeAnalysis.Editing;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
 internal sealed class CodeGenerationConstructorSymbol(
-    INamedTypeSymbol containingType,
+    INamedTypeSymbol? containingType,
     ImmutableArray<AttributeData> attributes,
     Accessibility accessibility,
     DeclarationModifiers modifiers,

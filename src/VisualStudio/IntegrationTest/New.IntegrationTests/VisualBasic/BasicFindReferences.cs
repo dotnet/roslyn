@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using WindowsInput.Native;
@@ -27,14 +25,16 @@ public class BasicFindReferences : AbstractEditorTest
     [IdeFact]
     public async Task FindReferencesToLocals()
     {
-        await SetUpEditorAsync(@"
-Class Program
-  Sub Main()
-      Dim local = 1
-      Console.WriteLine(loca$$l)
-  End Sub
-End Class
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Class Program
+              Sub Main()
+                  Dim local = 1
+                  Console.WriteLine(loca$$l)
+              End Sub
+            End Class
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
@@ -61,22 +61,26 @@ End Class
     [IdeFact]
     public async Task FindReferencesToSharedField()
     {
-        await SetUpEditorAsync(@"
-Class Program
-    Public Shared Alpha As Int32
-End Class$$
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Class Program
+                Public Shared Alpha As Int32
+            End Class$$
+
+            """, HangMitigatingCancellationToken);
         var project = ProjectName;
         await TestServices.SolutionExplorer.AddFileAsync(project, "File2.vb", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "File2.vb", HangMitigatingCancellationToken);
 
-        await SetUpEditorAsync(@"
-Class SomeOtherClass
-    Sub M()
-        Console.WriteLine(Program.$$Alpha)
-    End Sub
-End Class
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Class SomeOtherClass
+                Sub M()
+                    Console.WriteLine(Program.$$Alpha)
+                End Sub
+            End Class
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 

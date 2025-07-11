@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -47,15 +48,13 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
     /// because we ignore nullability.</param>
     private static bool ShouldIncludeInTargetTypedCompletionList(
         ISymbol symbol,
-        ImmutableArray<ITypeSymbol> inferredTypes,
-        SemanticModel semanticModel,
-        int position,
+        TSyntaxContext syntaxContext,
         Dictionary<ITypeSymbol, bool> typeConvertibilityCache)
     {
-        // When searching for identifiers of type C, exclude the symbol for the `C` type itself.
-        if (symbol.Kind == SymbolKind.NamedType)
+        // When searching for identifiers of type C, exclude the symbol for the `C` type itself except in an object creation context.
+        if (symbol is INamedTypeSymbol namedType)
         {
-            return false;
+            return ShouldIncludeInTargetTypedCompletionListForNamedType(namedType, syntaxContext, typeConvertibilityCache);
         }
 
         // Avoid offering members of object since they too commonly show up and are infrequently desired.
@@ -65,11 +64,10 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         }
 
         // Don't offer locals on the right-hand-side of their declaration: `int x = x`
-        if (symbol.Kind == SymbolKind.Local)
+        if (symbol is ILocalSymbol local)
         {
-            var local = (ILocalSymbol)symbol;
             var declarationSyntax = symbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).SingleOrDefault();
-            if (declarationSyntax != null && position < declarationSyntax.FullSpan.End)
+            if (declarationSyntax != null && syntaxContext.Position < declarationSyntax.FullSpan.End)
             {
                 return false;
             }
@@ -86,8 +84,60 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
             return isConvertible;
         }
 
-        typeConvertibilityCache[type] = CompletionUtilities.IsTypeImplicitlyConvertible(semanticModel.Compilation, type, inferredTypes);
+        typeConvertibilityCache[type] = CompletionUtilities.IsTypeImplicitlyConvertible(syntaxContext.SemanticModel.Compilation, type, syntaxContext.InferredTypes);
         return typeConvertibilityCache[type];
+    }
+
+    private static bool ShouldIncludeInTargetTypedCompletionListForNamedType(INamedTypeSymbol symbol, TSyntaxContext syntaxContext, Dictionary<ITypeSymbol, bool> typeConvertibilityCache)
+    {
+        // Only create target typed completion entries in the object creation context
+        if (!syntaxContext.IsObjectCreationTypeContext)
+            return false;
+
+        if (!typeConvertibilityCache.TryGetValue(symbol, out var isConvertible))
+        {
+            isConvertible = IsConvertible(symbol, syntaxContext);
+
+            typeConvertibilityCache[symbol] = isConvertible;
+        }
+
+        return isConvertible;
+
+        static bool IsConvertible(INamedTypeSymbol symbol, TSyntaxContext syntaxContext)
+        {
+            for (var i = 0; i < syntaxContext.InferredTypes.Length; i++)
+            {
+                var inferredType = syntaxContext.InferredTypes[i];
+                if (inferredType.IsArrayType())
+                {
+                    while (inferredType is IArrayTypeSymbol arrayType)
+                        inferredType = arrayType.ElementType;
+                }
+                else
+                {
+                    // Abstract types should not be offered in target typed completion except in array contexts
+                    if (symbol.IsAbstract)
+                        continue;
+                }
+
+                if (inferredType.IsInterfaceType())
+                {
+                    if (Equals(symbol, inferredType.OriginalDefinition) || symbol.AllInterfaces.Any(static (typeInterface, inferredType) => Equals(typeInterface.OriginalDefinition, inferredType.OriginalDefinition), inferredType))
+                        return true;
+                }
+                else
+                {
+                    var typeToCheck = symbol;
+                    while (typeToCheck != null && !Equals(typeToCheck.OriginalDefinition, inferredType.OriginalDefinition))
+                        typeToCheck = typeToCheck.BaseType;
+
+                    if (typeToCheck != null)
+                        return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     /// <summary>
@@ -98,8 +148,8 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         CompletionContext completionContext,
         ImmutableArray<SymbolAndSelectionInfo> symbols,
         Func<SymbolAndSelectionInfo, TSyntaxContext> contextLookup,
-        Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap,
-        List<ProjectId>? totalProjects)
+        Dictionary<ISymbol, ArrayBuilder<ProjectId>>? invalidProjectMap,
+        ImmutableArray<ProjectId> totalProjects)
     {
         // We might get symbol w/o name but CanBeReferencedByName is still set to true, 
         // need to filter them out.
@@ -187,7 +237,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         {
             var symbol = symbolList[index];
             var syntaxContext = contextLookup(symbol);
-            if (ShouldIncludeInTargetTypedCompletionList(symbol.Symbol, syntaxContext.InferredTypes, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
+            if (ShouldIncludeInTargetTypedCompletionList(symbol.Symbol, syntaxContext, typeConvertibilityCache))
                 break;
         }
 
@@ -197,13 +247,13 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
     private static SupportedPlatformData? ComputeSupportedPlatformData(
         CompletionContext completionContext,
         ImmutableArray<SymbolAndSelectionInfo> symbols,
-        Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap,
-        List<ProjectId>? totalProjects)
+        Dictionary<ISymbol, ArrayBuilder<ProjectId>>? invalidProjectMap,
+        ImmutableArray<ProjectId> totalProjects)
     {
         SupportedPlatformData? supportedPlatformData = null;
         if (invalidProjectMap != null)
         {
-            List<ProjectId>? invalidProjects = null;
+            ArrayBuilder<ProjectId>? invalidProjects = null;
             foreach (var symbol in symbols)
             {
                 if (invalidProjectMap.TryGetValue(symbol.Symbol, out invalidProjects))
@@ -211,7 +261,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
             }
 
             if (invalidProjects != null)
-                supportedPlatformData = new SupportedPlatformData(completionContext.Document.Project.Solution, invalidProjects, totalProjects);
+                supportedPlatformData = new SupportedPlatformData(completionContext.Document.Project.Solution, invalidProjects.ToImmutable(), totalProjects);
         }
 
         return supportedPlatformData;
@@ -299,7 +349,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         if (relatedDocumentIds.IsEmpty)
         {
             var itemsForCurrentDocument = await GetSymbolsAsync(completionContext, syntaxContext, position, options, cancellationToken).ConfigureAwait(false);
-            return CreateItems(completionContext, itemsForCurrentDocument, _ => syntaxContext, invalidProjectMap: null, totalProjects: null);
+            return CreateItems(completionContext, itemsForCurrentDocument, _ => syntaxContext, invalidProjectMap: null, totalProjects: []);
         }
 
         using var _ = PooledDictionary<DocumentId, int>.GetInstance(out var documentIdToIndex);
@@ -315,10 +365,15 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
 
         var symbolToContextMap = UnionSymbols(contextAndSymbolLists);
         var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
-        var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
+        var totalProjects = contextAndSymbolLists.SelectAsArray(t => t.documentId.ProjectId);
 
-        return CreateItems(
+        var items = CreateItems(
             completionContext, [.. symbolToContextMap.Keys], symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects);
+
+        foreach (var (_, builder) in missingSymbolsMap)
+            builder.Free();
+
+        return items;
     }
 
     protected virtual bool IsExclusive()
@@ -395,17 +450,17 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
     /// <param name="symbolToContext">The symbols recommended in the active context.</param>
     /// <param name="linkedContextSymbolLists">The symbols recommended in linked documents</param>
     /// <returns>The list of projects each recommended symbol did NOT appear in.</returns>
-    private static Dictionary<ISymbol, List<ProjectId>> FindSymbolsMissingInLinkedContexts(
+    private static Dictionary<ISymbol, ArrayBuilder<ProjectId>> FindSymbolsMissingInLinkedContexts(
         Dictionary<SymbolAndSelectionInfo, TSyntaxContext> symbolToContext,
         ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)> linkedContextSymbolLists)
     {
-        var missingSymbols = new Dictionary<ISymbol, List<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.Instance);
+        var missingSymbols = new Dictionary<ISymbol, ArrayBuilder<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
         foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
         {
             var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(symbols);
             foreach (var (symbol, _) in symbolsMissingInLinkedContext)
-                missingSymbols.GetOrAdd(symbol, m => []).Add(documentId.ProjectId);
+                missingSymbols.GetOrAdd(symbol, m => ArrayBuilder<ProjectId>.GetInstance()).Add(documentId.ProjectId);
         }
 
         return missingSymbols;

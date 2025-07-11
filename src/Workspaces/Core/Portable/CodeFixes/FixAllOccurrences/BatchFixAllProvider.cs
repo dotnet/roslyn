@@ -28,8 +28,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
     }
 
     public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-        => ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project,
-            FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType);
+        => [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType];
 
     public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         => DefaultFixAllProviderHelpers.GetFixAsync(
@@ -165,7 +164,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
                 foreach (var codeAction in codeActions)
                 {
                     var changedSolution = await codeAction.GetChangedSolutionInternalAsync(
-                        solution, fixAllContext.Progress, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        solution, fixAllContext.Progress, cancellationToken).ConfigureAwait(false);
                     if (changedSolution != null)
                     {
                         var changedDocumentIds = new SolutionChanges(changedSolution, solution).GetProjectChanges().SelectMany(p => p.GetChangedDocuments());

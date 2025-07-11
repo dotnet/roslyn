@@ -21358,7 +21358,7 @@ class Helper<T>
     delegate void D2(T x);
     
     static D1 d11 = M1;
-    static D1 d12 = M2; // 1
+    static D1 d12 = M2;
     static D2 d21 = M1;
     static D2 d22 = M2;
 
@@ -21372,7 +21372,7 @@ class Helper
     delegate void D2(Span<int> x);
     
     static D1 d11 = M1;
-    static D1 d12 = M2; // 2
+    static D1 d12 = M2;
     static D2 d21 = M1;
     static D2 d22 = M2;
 
@@ -21381,13 +21381,7 @@ class Helper
 }
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
-            comp.VerifyEmitDiagnostics(
-                // (11,21): error CS8986: The 'scoped' modifier of parameter 'x' doesn't match target 'Helper<T>.D1'.
-                //     static D1 d12 = M2; // 1
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M2").WithArguments("x", "Helper<T>.D1").WithLocation(11, 21),
-                // (25,21): error CS8986: The 'scoped' modifier of parameter 'x' doesn't match target 'Helper.D1'.
-                //     static D1 d12 = M2; // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M2").WithArguments("x", "Helper.D1").WithLocation(25, 21));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -29203,6 +29197,34 @@ static class CSharpCompilerCrash
                 //     static async IAsyncEnumerator<T> B<T>() where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "B").WithLocation(8, 38)
                 );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78430")]
+        public void Issue78430()
+        {
+            var source =
+@"
+public ref struct TestStruct
+{
+    public int Prop1 {get; set;}
+}
+
+public static class TestClass
+{
+    public static void TestExtensionMethod<T>(this T value)
+        where T : allows ref struct
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            var testStruct = comp.GetTypeByMetadataName("TestStruct");
+            var extensionMethodSymbol = comp.GetMember<MethodSymbol>("TestClass.TestExtensionMethod");
+
+            AssertEx.Equal("void TestStruct.TestExtensionMethod<TestStruct>()", extensionMethodSymbol.ReduceExtensionMethod(testStruct, null).ToTestDisplayString());
         }
     }
 }

@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -31,7 +30,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
-using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Editor;
@@ -43,7 +41,6 @@ using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
@@ -95,13 +92,17 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     private readonly Dictionary<string, List<ProjectSystemProject>> _projectSystemNameToProjectsMap = [];
 
     /// <summary>
-    /// Only safe to use on the UI thread.
+    /// Mapping from language name to an existing UIContext's active state.
+    /// Only access when holding <see cref="_gate"/>
     /// </summary>
-    private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = [];
+    private readonly Dictionary<string, bool> _languageToProjectExistsUIContextState = [];
 
-    private VirtualMemoryNotificationListener? _memoryListener;
+    /// <summary>
+    /// Joinable task collection to await to ensure language ui contexts are updated.
+    /// </summary>
+    private readonly JoinableTaskCollection _updateUIContextJoinableTasks;
 
-    private OpenFileTracker? _openFileTracker;
+    private readonly OpenFileTracker _openFileTracker;
     internal IFileChangeWatcher FileChangeWatcher { get; }
 
     internal ProjectSystemProjectFactory ProjectSystemProjectFactory { get; }
@@ -110,6 +111,12 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
     private readonly IAsynchronousOperationListener _workspaceListener;
     private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
+
+    /// <summary>
+    /// Only read/written on hte UI thread.
+    /// </summary>
+    private bool _isShowingDocumentChangeErrorInfoBar = false;
+    private bool _ignoreDocumentTextChangeErrors;
 
     public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
         : base(VisualStudioMefHostServices.Create(exportProvider))
@@ -121,6 +128,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
         _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
         _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
+        _workspaceListener = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
 
         _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
         _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
@@ -130,13 +138,28 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         ProjectSystemProjectFactory = new ProjectSystemProjectFactory(
             this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps, _threadingContext.DisposalToken);
 
-        InitializeUIAffinitizedServicesAsync(asyncServiceProvider).Forget();
+        _openFileTracker = new OpenFileTracker(
+            this,
+            ProjectSystemProjectFactory,
+            exportProvider.GetExport<Microsoft.VisualStudio.Text.Editor.IEditorOptionsFactoryService>(),
+            _workspaceListener,
+            exportProvider.GetExportedValue<OpenTextBufferProvider>());
+
+        InitializeUIAffinitizedServicesAsync().Forget();
 
         _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
             exportProvider.GetExportedValue<ExternalErrorDiagnosticUpdateSource>(),
             isThreadSafe: true);
 
-        _workspaceListener = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
+        _updateUIContextJoinableTasks = new JoinableTaskCollection(_threadingContext.JoinableTaskContext);
+
+        // Set up our telemetry session and log an event for the version
+        var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
+        var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
+        telemetryService.InitializeTelemetrySession(TelemetryService.DefaultSession, logDelta);
+
+        Logger.Log(FunctionId.Run_Environment, KeyValueLogMessage.Create(
+            static m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
     }
 
     internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;
@@ -162,7 +185,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
         KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
         {
-            KnownUIContexts.SolutionBuildingContext.UIContextChanged += (object _, UIContextChangedEventArgs e) =>
+            KnownUIContexts.SolutionBuildingContext.UIContextChanged += (_, e) =>
             {
                 if (e.Activated)
                 {
@@ -182,52 +205,18 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents = true;
     }
 
-    public async Task InitializeUIAffinitizedServicesAsync(IAsyncServiceProvider asyncServiceProvider)
+    public async Task InitializeUIAffinitizedServicesAsync()
     {
         // Yield the thread, so the caller can proceed and return immediately.
         // Create services that are bound to the UI thread
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _threadingContext.DisposalToken);
 
-        // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
-        // the background thread then we will experience hangs like we see in this bug:
-        // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=190808 or
-        // https://devdiv.visualstudio.com/DevDiv/_workitems?id=296981&_a=edit
-        var telemetrySession = TelemetryService.DefaultSession;
-
         var solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
         solutionClosingContext.UIContextChanged += (_, e) => ProjectSystemProjectFactory.SolutionClosing = e.Activated;
-
-        var openFileTracker = await OpenFileTracker.CreateAsync(this, ProjectSystemProjectFactory, asyncServiceProvider).ConfigureAwait(true);
-        var memoryListener = await VirtualMemoryNotificationListener.CreateAsync(this, _threadingContext, asyncServiceProvider, _globalOptions, _threadingContext.DisposalToken).ConfigureAwait(true);
-
-        // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
-        // WARNING: if we do .ConfigureAwait(true) here, it means we're trying to transition to the UI thread while
-        // semaphore is acquired; if the UI thread is blocked trying to acquire the semaphore, we could deadlock.
-        using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
-        {
-            _openFileTracker = openFileTracker;
-            _memoryListener = memoryListener;
-        }
-
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
-
-        // This must be called after the _openFileTracker was assigned; this way we know that a file added from the project system either got checked
-        // in CheckForAddedFileBeingOpenMaybeAsync, or we catch it here.
-        openFileTracker.CheckForOpenFilesThatWeMissed();
-
-        // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
-        await TaskScheduler.Default;
-
-        var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
-        var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
-        telemetryService.InitializeTelemetrySession(telemetrySession, logDelta);
-
-        Logger.Log(FunctionId.Run_Environment,
-            KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
     }
 
     public Task CheckForAddedFileBeingOpenMaybeAsync(bool useAsync, ImmutableArray<string> newFileNames)
-        => _openFileTracker?.CheckForAddedFileBeingOpenMaybeAsync(useAsync, newFileNames) ?? Task.CompletedTask;
+        => _openFileTracker.CheckForAddedFileBeingOpenMaybeAsync(useAsync, newFileNames);
 
     internal void AddProjectToInternalMaps(ProjectSystemProject project, IVsHierarchy? hierarchy, Guid guid, string projectSystemName)
     {
@@ -305,7 +294,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         }
         else
         {
-            return _projectCodeModelFactory.Value.GetOrCreateFileCodeModel(documentId.ProjectId, document.FilePath);
+            return _projectCodeModelFactory.Value.GetOrCreateFileCodeModel(documentId.ProjectId, document.FilePath!);
         }
     }
 
@@ -493,7 +482,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         var originalProject = CurrentSolution.GetRequiredProject(projectId);
         var compilationOptionsService = originalProject.Services.GetRequiredService<ICompilationOptionsChangingService>();
-        var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
+        var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId)!, ServiceProvider.GlobalProvider);
         compilationOptionsService.Apply(originalProject.CompilationOptions!, options, storage);
     }
 
@@ -510,7 +499,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         }
 
         var parseOptionsService = CurrentSolution.GetRequiredProject(projectId).Services.GetRequiredService<IParseOptionsChangingService>();
-        var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
+        var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId)!, ServiceProvider.GlobalProvider);
         parseOptionsService.Apply(options, storage);
     }
 
@@ -931,7 +920,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             return false;
 
         // All checks pass, so let's treat this special.
-        var dte = _threadingContext.JoinableTaskFactory.Run(() => _asyncServiceProvider.GetServiceAsync<SDTE, EnvDTE.DTE>(_threadingContext.JoinableTaskFactory));
+        var dte = _threadingContext.JoinableTaskFactory.Run(() => _asyncServiceProvider.GetServiceAsync<SDTE, EnvDTE.DTE>(_threadingContext.DisposalToken));
 
         const string SolutionItemsFolderName = "Solution Items";
 
@@ -1008,18 +997,14 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         var document = this.CurrentSolution.GetTextDocument(documentId);
         if (document != null)
         {
-            var hierarchy = this.GetHierarchy(documentId.ProjectId);
-            Contract.ThrowIfNull(hierarchy, "Removing files from projects without hierarchies are not supported.");
-
-            var text = document.GetTextSynchronously(CancellationToken.None);
-
-            Contract.ThrowIfNull(document.FilePath, "Removing files from projects that don't have file names are not supported.");
-            var itemId = hierarchy.TryGetItemId(document.FilePath);
-            if (itemId == (uint)VSConstants.VSITEMID.Nil)
+            if (!VisualStudioWorkspaceUtilities.TryGetVsHierarchyAndItemId(
+                    document, out var hierarchy, out var itemId))
             {
                 // it is no longer part of the solution
                 return;
             }
+
+            var text = document.GetTextSynchronously(CancellationToken.None);
 
             var project = (IVsProject3)hierarchy;
             project.RemoveItem(0, itemId, out _);
@@ -1114,7 +1099,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     /// <param name="filePath">the file path of the file to open.</param>
     /// <param name="projectId">used to retrieve the IVsHierarchy to ensure the file is opened in a matching context.</param>
     /// <param name="frame">the window frame.</param>
-    /// <returns></returns>
     private bool TryGetFrame(string? filePath, ProjectId projectId, [NotNullWhen(returnValue: true)] out IVsWindowFrame? frame)
     {
         frame = null;
@@ -1192,29 +1176,81 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
     private void ApplyTextDocumentChange(DocumentId documentId, SourceText newText)
     {
-        var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
+        this._threadingContext.ThrowIfNotOnUIThread();
 
-        if (containedDocument != null)
+        CodeAnalysis.TextDocument? document = null;
+
+        try
         {
-            containedDocument.UpdateText(newText);
-        }
-        else
-        {
-            if (IsDocumentOpen(documentId))
+            document = this.CurrentSolution.GetRequiredTextDocument(documentId);
+
+            var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
+            if (containedDocument != null)
             {
-                var textBuffer = this.CurrentSolution.GetTextDocument(documentId)!.GetTextSynchronously(CancellationToken.None).Container.TryGetTextBuffer();
-
-                if (textBuffer != null)
-                {
-                    TextEditApplication.UpdateText(newText, textBuffer, EditOptions.DefaultMinimalChange);
-                    return;
-                }
+                containedDocument.UpdateText(newText);
             }
+            else
+            {
+                if (IsDocumentOpen(documentId))
+                {
+                    var textBuffer = document.GetTextSynchronously(CancellationToken.None).Container.TryGetTextBuffer();
+                    if (textBuffer != null)
+                    {
+                        TextEditApplication.UpdateText(newText, textBuffer, EditOptions.DefaultMinimalChange);
+                        return;
+                    }
+                }
 
-            // The document wasn't open in a normal way, so invisible editor time
-            using var invisibleEditor = OpenInvisibleEditor(documentId);
-            TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
+                // The document wasn't open in a normal way, so invisible editor time
+                using var invisibleEditor = OpenInvisibleEditor(documentId);
+                TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
+            }
         }
+        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+        {
+            ReportErrorChangingDocumentText(ex);
+            return;
+        }
+
+        void ReportErrorChangingDocumentText(Exception exception)
+        {
+            // Don't spam the info bar.  If the user already has a message up, leave it at that.  Also,
+            // if they've asked to not be notified about future doc change issue, respect that flag.
+            if (_ignoreDocumentTextChangeErrors || _isShowingDocumentChangeErrorInfoBar)
+                return;
+
+            var documentName = document?.Name ?? documentId.ToString();
+
+            var errorReportingService = this.Services.GetRequiredService<IErrorReportingService>();
+            errorReportingService.ShowGlobalErrorInfo(
+                message: string.Format(ServicesVSResources.Error_encountered_updating_0, documentName),
+                TelemetryFeatureName.Workspace,
+                exception,
+                // 'Show stack trace' will not dismiss the info bar.
+                new(WorkspacesResources.Show_Stack_Trace, InfoBarUI.UIKind.HyperLink,
+                    () => errorReportingService.ShowDetailedErrorInfo(exception), closeAfterAction: false),
+                // 'Ignore' just closes the info bar, but allows future errors to show up.
+                new(ServicesVSResources.Ignore, InfoBarUI.UIKind.Button, GetDefaultDismissAction()),
+                // 'Ignore (including future errors) closes the info bar, but also sets the flag so the user gets no more messages
+                // in the current session.
+                new(ServicesVSResources.Ignore_including_future_errors, InfoBarUI.UIKind.Button, GetDefaultDismissAction(
+                    () => _ignoreDocumentTextChangeErrors = true)),
+                // Close button is the same as 'ignore'.  It closes the info bar, but allows future errors to show up.
+                new(string.Empty, InfoBarUI.UIKind.Close, GetDefaultDismissAction()));
+
+            // Mark that we're showing the info bar at this point.
+            _isShowingDocumentChangeErrorInfoBar = true;
+        }
+
+        Action GetDefaultDismissAction(Action? additionalAction = null)
+            => () =>
+            {
+                additionalAction?.Invoke();
+
+                // All info bar actions (except for 'show stack trace') dismiss the info bar, putting us back in the
+                // "we're not showing the user anything" state.
+                _isShowingDocumentChangeErrorInfoBar = false;
+            };
     }
 
     protected override void ApplyDocumentInfoChanged(DocumentId documentId, DocumentInfo updatedInfo)
@@ -1571,11 +1607,34 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
     internal async Task RefreshProjectExistsUIContextForLanguageAsync(string language, CancellationToken cancellationToken)
     {
+        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var isContextActive = _languageToProjectExistsUIContextState.GetOrAdd(language, false);
+
+            // Determine if there is a project with a matching language. Uses _projectSystemNameToProjectsMap as 
+            // that data structure is updated before calling into this method, whereas CurrentSolution may not be.
+            var projectExistsWithLanguage = _projectSystemNameToProjectsMap.Any(projects => projects.Value.Any(project => project.Language == language));
+            if (projectExistsWithLanguage != isContextActive)
+            {
+                _languageToProjectExistsUIContextState[language] = projectExistsWithLanguage;
+
+                // Create a task to update the UI context, and add it to the task collection that all callers to 
+                // this method will wait on before returning.
+                var joinableTask = _threadingContext.JoinableTaskFactory.RunAsync(() => UpdateUIContextAsync(language, cancellationToken));
+
+                _updateUIContextJoinableTasks.Add(joinableTask);
+            }
+        }
+
+        // Ensure any pending ui context updates have occurred before returning
+        await _updateUIContextJoinableTasks.JoinTillEmptyAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task UpdateUIContextAsync(string language, CancellationToken cancellationToken)
+    {
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
-        var uiContext = _languageToProjectExistsUIContext.GetOrAdd(
-            language,
-            language => Services.GetLanguageServices(language).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext());
+        var uiContext = Services.GetLanguageServices(language).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext();
 
         // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in
         // other scenarios.
@@ -1586,7 +1645,9 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         // thread, so that acts as a natural ordering mechanism here.  If, say, a BG piece of work was mutating this
         // solution (either adding or removing a project) then that work will also have enqueued the next refresh
         // operation on the UI thread.  So we'll always eventually reach a fixed point where the task for that
-        // language will check the latest CurrentSolution we have and will set the IsActive bit accordingly.
+        // language will check the latest CurrentSolution we have and will set the IsActive bit accordingly. We
+        // don't use the isContextActive value here specifically for this case as it may not reflect the desired
+        // value after the main thread switch.
         uiContext.IsActive = this.CurrentSolution.Projects.Any(p => p.Language == language);
     }
 }

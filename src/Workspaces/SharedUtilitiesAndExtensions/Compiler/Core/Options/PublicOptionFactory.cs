@@ -3,15 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options;
 
 internal static class PublicOptionFactory
 {
-#if CODE_STYLE
+#if !WORKSPACE
 #pragma warning disable IDE0060 // Remove unused parameter
 
     // Stubs to avoid #ifdefs at call sites.

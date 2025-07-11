@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
@@ -287,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(((Cci.ITypeReference)this).AsTypeDefinition(context) != null);
             NamedTypeSymbol baseType = AdaptedNamedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
 
-            if (AdaptedNamedTypeSymbol.IsScriptClass)
+            if (AdaptedNamedTypeSymbol.IsScriptClass || AdaptedNamedTypeSymbol.IsExtension) // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should have checked the presence of System.Object
             {
                 // although submission and scripts semantically doesn't have a base we need to emit one into metadata:
                 Debug.Assert((object)baseType == null);
@@ -628,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert((object)method != null);
 
-                if ((alwaysIncludeConstructors && method.MethodKind == MethodKind.Constructor) || method.GetCciAdapter().ShouldInclude(context))
+                if ((alwaysIncludeConstructors && method.MethodKind == MethodKind.Constructor) || method is SynthesizedExtensionMarker || method.GetCciAdapter().ShouldInclude(context))
                 {
                     yield return method.GetCciAdapter();
                 }
@@ -779,6 +780,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (AdaptedNamedTypeSymbol.IsExtension)
+                {
+                    return AdaptedNamedTypeSymbol.ExtensionName;
+                }
+
                 string unsuffixedName = AdaptedNamedTypeSymbol.Name;
 
                 // CLR generally allows names with dots, however some APIs like IMetaDataImport

@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Always_add_new_line_on_enter">
         <source>_Always add new line on enter</source>
-        <target state="new">_Always add new line on enter</target>
+        <target state="translated">Enter キーで常に新しい行を追加する(_A)</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_for_clarity">
@@ -85,11 +85,6 @@
       <trans-unit id="Always_use_default_symbol_servers_for_navigation">
         <source>Always use default symbol servers for navigation</source>
         <target state="translated">ナビゲーションに常に既定のシンボル サーバーを使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Analyze_source_generated_files">
-        <source>Analyze source generated files</source>
-        <target state="translated">ソース生成ファイルの分析</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_Defaults">
@@ -136,11 +131,6 @@
         <source>Automatically open Stack Trace Explorer on focus</source>
         <target state="translated">フォーカス時に スタック トレース エクスプローラーを自動的に開く</target>
         <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
-      </trans-unit>
-      <trans-unit id="Automatically_reload_updated_analyzers_and_generators">
-        <source>Automatically reload updated analyzers and generators (requires restart)</source>
-        <target state="new">Automatically reload updated analyzers and generators (requires restart)</target>
-        <note />
       </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
@@ -242,19 +232,9 @@
         <target state="translated">'{0}' のコード分析が完了しました。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_analysis_completed_for_Solution">
-        <source>Code analysis completed for Solution.</source>
-        <target state="translated">ソリューションのコード分析が完了しました。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Code_analysis_terminated_before_completion_for_0">
         <source>Code analysis terminated before completion for '{0}'.</source>
         <target state="translated">コード分析が、'{0}' の完了前に終了しました。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_analysis_terminated_before_completion_for_Solution">
-        <source>Code analysis terminated before completion for Solution.</source>
-        <target state="translated">コード分析が、ソリューションでの完了前に終了しました。</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
@@ -322,26 +302,6 @@
         <target state="translated">現在のパラメーター</target>
         <note />
       </trans-unit>
-      <trans-unit id="Default_Current_Document">
-        <source>Default (Current Document)</source>
-        <target state="translated">既定値 (現在のドキュメント)</target>
-        <note>This text is a menu command</note>
-      </trans-unit>
-      <trans-unit id="Default_Entire_Solution">
-        <source>Default (Entire Solution)</source>
-        <target state="translated">既定値 (ソリューション全体)</target>
-        <note>This text is a menu command</note>
-      </trans-unit>
-      <trans-unit id="Default_None">
-        <source>Default (None)</source>
-        <target state="translated">既定 (なし)</target>
-        <note>This text is a menu command</note>
-      </trans-unit>
-      <trans-unit id="Default_Open_Documents">
-        <source>Default (Open Documents)</source>
-        <target state="translated">既定値 (ドキュメントを開く)</target>
-        <note>This text is a menu command</note>
-      </trans-unit>
       <trans-unit id="Derived_types">
         <source>Derived types</source>
         <target state="translated">派生型</target>
@@ -357,9 +317,9 @@
         <target state="translated">Alt+F1 を押しながらすべてのヒントを表示する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Display_diagnostics_inline_experimental">
-        <source>Display diagnostics inline (experimental)</source>
-        <target state="translated">診断をインラインで表示する (試験的)</target>
+      <trans-unit id="Display_diagnostics_inline">
+        <source>Display diagnostics inline</source>
+        <target state="new">Display diagnostics inline</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -394,17 +354,12 @@
       </trans-unit>
       <trans-unit id="Editor_Help">
         <source>Editor Help</source>
-        <target state="new">Editor Help</target>
+        <target state="translated">エディターのヘルプ</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">要素が有効ではありません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_document_outline_experimental_requires_restart">
-        <source>Enable document outline (experimental, requires restart)</source>
-        <target state="translated">ドキュメント アウトラインを有効にする (試験段階、再起動が必要)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
@@ -434,12 +389,12 @@
       </trans-unit>
       <trans-unit id="Enter_key_behavior">
         <source>Enter key behavior</source>
-        <target state="new">Enter key behavior</target>
+        <target state="translated">Enter キー入力時動作</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_key_behavior_colon">
         <source>Enter key behavior:</source>
-        <target state="new">Enter key behavior:</target>
+        <target state="translated">Enter キー入力時動作:</target>
         <note />
       </trans-unit>
       <trans-unit id="Entire_repository">
@@ -457,6 +412,11 @@
         <target state="translated">ソリューションと外部ソース全体</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_encountered_updating_0">
+        <source>Error encountered updating '{0}'</source>
+        <target state="new">Error encountered updating '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
         <target state="translated">抑制の更新でエラーが発生しました: {0}</target>
@@ -465,7 +425,7 @@
       <trans-unit id="Experimental_feature">
         <source>Experimental feature</source>
         <target state="new">Experimental feature</target>
-        <note />
+        <note>This is used by the settings UI to mark experimental features.</note>
       </trans-unit>
       <trans-unit id="External_sources">
         <source>External Sources</source>
@@ -484,17 +444,12 @@
       </trans-unit>
       <trans-unit id="Fade_out_unused_members">
         <source>Fade out unused members</source>
-        <target state="new">Fade out unused members</target>
+        <target state="translated">未使用のメンバーをフェードアウトする</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">終了</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_text_pasted_into_string_literals_experimental">
-        <source>Fix text pasted into string literals (experimental)</source>
-        <target state="translated">文字列リテラルに貼り付けられたテキストを修正する (試験段階)</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_analyzer_warnings_and_errors">
@@ -510,6 +465,11 @@
       <trans-unit id="Fix_analyzer_warnings_and_errors_set_in_EditorConfig">
         <source>Fix analyzer warnings and errors set in EditorConfig</source>
         <target state="translated">EditorConfig で設定されたアナライザーの警告とエラーを修正</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_text_pasted_into_string_literals">
+        <source>Fix text pasted into string literals</source>
+        <target state="new">Fix text pasted into string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
@@ -539,12 +499,12 @@
       </trans-unit>
       <trans-unit id="Highlight_matching_portions_of_completion_list_items">
         <source>Highlight matching portions of completion list items</source>
-        <target state="new">Highlight matching portions of completion list items</target>
+        <target state="translated">入力候補一覧の項目の一致している部分を強調表示する</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
         <source>_Highlight references to symbol under cursor</source>
-        <target state="new">_Highlight references to symbol under cursor</target>
+        <target state="translated">カーソルの下にあるシンボルへの参照をハイライトする(_H)</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -554,17 +514,27 @@
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor">
         <source>Highlight related _keywords under cursor</source>
-        <target state="new">Highlight related _keywords under cursor</target>
+        <target state="translated">カーソルの下にあるキーワードの関連キーワードをハイライトする(_K)</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
         <source>Highlighting</source>
-        <target state="new">Highlighting</target>
+        <target state="translated">強調表示</target>
         <note />
       </trans-unit>
       <trans-unit id="Id">
         <source>Id</source>
         <target state="translated">ID</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore">
+        <source>Ignore</source>
+        <target state="new">Ignore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore_including_future_errors">
+        <source>Ignore (including future errors)</source>
+        <target state="new">Ignore (including future errors)</target>
         <note />
       </trans-unit>
       <trans-unit id="Implemented_interfaces">
@@ -619,7 +589,7 @@
       </trans-unit>
       <trans-unit id="Insert_Snippet">
         <source>Insert Snippet</source>
-        <target state="new">Insert Snippet</target>
+        <target state="translated">スニペットの挿入</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -664,7 +634,7 @@
       </trans-unit>
       <trans-unit id="Large">
         <source>Large</source>
-        <target state="new">Large</target>
+        <target state="translated">大</target>
         <note />
       </trans-unit>
       <trans-unit id="Loaded_items">
@@ -914,12 +884,12 @@
       </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
-        <target state="new">Never</target>
+        <target state="translated">行わない</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
         <source>_Never add new line on enter</source>
-        <target state="new">_Never add new line on enter</target>
+        <target state="translated">Enter キーで新しい行を追加しない(_N)</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -929,7 +899,7 @@
       </trans-unit>
       <trans-unit id="Never_include_snippets">
         <source>Never include snippets</source>
-        <target state="new">Never include snippets</target>
+        <target state="translated">スニペットを含めない</target>
         <note />
       </trans-unit>
       <trans-unit id="New_Type_Name_colon">
@@ -979,7 +949,7 @@
       </trans-unit>
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>Only add new line on enter after end of fully typed word</source>
-        <target state="new">Only add new line on enter after end of fully typed word</target>
+        <target state="translated">単語を完全に入力した後 Enter キーで新しい行のみを追加する</target>
         <note />
       </trans-unit>
       <trans-unit id="Open_documents">
@@ -994,7 +964,7 @@
       </trans-unit>
       <trans-unit id="Optimize_for_solution_size">
         <source>Optimize for solution size</source>
-        <target state="new">Optimize for solution size</target>
+        <target state="translated">ソリューションのサイズを最適化します</target>
         <note />
       </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
@@ -1079,7 +1049,7 @@
       </trans-unit>
       <trans-unit id="Performance">
         <source>Performance</source>
-        <target state="new">Performance</target>
+        <target state="translated">パフォーマンス</target>
         <note />
       </trans-unit>
       <trans-unit id="Please_enter_a_type_name">
@@ -1189,7 +1159,7 @@
       </trans-unit>
       <trans-unit id="Prefer_unbound_generic_type_in_nameof">
         <source>Prefer unbound generic type in 'nameof'</source>
-        <target state="new">Prefer unbound generic type in 'nameof'</target>
+        <target state="translated">'nameof' でバインドされていないジェネリック型を優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Projects">
@@ -1214,7 +1184,7 @@
       </trans-unit>
       <trans-unit id="Regular">
         <source>Regular</source>
-        <target state="new">Regular</target>
+        <target state="translated">標準</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -1230,11 +1200,6 @@
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
         <target state="translated">不要な using の削除</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_asynchronously_experimental">
-        <source>Rename asynchronously (experimental)</source>
-        <target state="translated">非同期的な名前の変更 (試験段階)</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
@@ -1297,19 +1262,9 @@
         <target state="translated">バックグラウンド コード分析の対象:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
-        <source>Run code analysis in separate process (requires restart)</source>
-        <target state="translated">別のプロセスでコード分析を実行する (再起動が必要)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
         <source>Running code analysis for '{0}'...</source>
         <target state="translated">'{0}' のコード分析を実行しています...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Running_code_analysis_for_Solution">
-        <source>Running code analysis for Solution...</source>
-        <target state="translated">ソリューションのコード分析を実行しています...</target>
         <note />
       </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
@@ -1384,18 +1339,8 @@
       </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer">
         <source>Show "Remove Unused References" command in Solution Explorer</source>
-        <target state="new">Show "Remove Unused References" command in Solution Explorer</target>
+        <target state="translated">ソリューション エクスプローラーで [未使用の参照を削除する] コマンドを表示する</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Show_UI_as_dashboard_in_top_right">
-        <source>Show UI as a dashboard in top right</source>
-        <target state="translated">右上にダッシュボードとして UI を表示する</target>
-        <note>"UI" is an acronym for "User Interface"</note>
-      </trans-unit>
-      <trans-unit id="Show_UI_inline">
-        <source>Show UI Inline</source>
-        <target state="translated">UI インラインの表示</target>
-        <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
         <source>Show compiler errors and warnings for:</source>
@@ -1404,12 +1349,12 @@
       </trans-unit>
       <trans-unit id="Show_completion_item__filters">
         <source>Show completion item _filters</source>
-        <target state="new">Show completion item _filters</target>
+        <target state="translated">入力候補の項目フィルターを表示する(_F)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_item_filters">
         <source>Show completion item filters</source>
-        <target state="new">Show completion item filters</target>
+        <target state="translated">入力候補の項目フィルターを表示する</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list">
@@ -1419,17 +1364,17 @@
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is__deleted">
         <source>Show completion list after a character is _deleted</source>
-        <target state="new">Show completion list after a character is _deleted</target>
+        <target state="translated">文字が削除された後に入力候補一覧を表示する(_D)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_deleted">
         <source>Show completion list after a character is deleted</source>
-        <target state="new">Show completion list after a character is deleted</target>
+        <target state="translated">文字が削除された後に入力候補一覧を表示する</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_typed">
         <source>Show completion list after a character is typed</source>
-        <target state="new">Show completion list after a character is typed</target>
+        <target state="translated">文字入力後に入力候補一覧を表示する</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
@@ -1479,22 +1424,22 @@
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
-        <target state="new">Show items from unimported namespaces</target>
+        <target state="translated">インポートされていない名前空間の項目を表示する</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
         <source>Show preview for rename _tracking</source>
-        <target state="new">Show preview for rename _tracking</target>
+        <target state="translated">名前変更追跡のプレビューの表示(_T)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
-        <target state="new">_Show procedure line separators</target>
+        <target state="translated">プロシージャ行の区切り記号を表示する(_S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
-        <target state="new">Show remarks in Quick Info</target>
+        <target state="translated">クイック ヒントに注釈を表示する</target>
         <note />
       </trans-unit>
       <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
@@ -1504,12 +1449,12 @@
       </trans-unit>
       <trans-unit id="Small">
         <source>Small</source>
-        <target state="new">Small</target>
+        <target state="translated">小</target>
         <note />
       </trans-unit>
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
-        <target state="new">Snippets behavior</target>
+        <target state="translated">スニペットの動作</target>
         <note />
       </trans-unit>
       <trans-unit id="Source_Generators">
@@ -1579,12 +1524,12 @@
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments</source>
-        <target state="needs-review-translation">タブを 2 回押して引数を挿入する (試験段階)</target>
+        <target state="translated">Tab キーを 2 回押して引数を挿入する</target>
         <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments_experimental">
         <source>Tab twice to insert arguments (experimental)</source>
-        <target state="new">Tab twice to insert arguments (experimental)</target>
+        <target state="translated">タブを 2 回押して引数を挿入する (試験段階)</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -1629,7 +1574,7 @@
       </trans-unit>
       <trans-unit id="Title">
         <source>Title</source>
-        <target state="new">Title</target>
+        <target state="translated">タイトル</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_Name">
@@ -1659,7 +1604,7 @@
       </trans-unit>
       <trans-unit id="Unused_local">
         <source>Unused local</source>
-        <target state="new">Unused local</target>
+        <target state="translated">未使用のローカル</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -1772,11 +1717,6 @@
         <target state="translated">型が緩やかに一致する場合</target>
         <note />
       </trans-unit>
-      <trans-unit id="Where_should_the_rename_UI_be_shown">
-        <source>Where should the rename UI be shown?</source>
-        <target state="translated">名前変更 UI はどこに表示されますか?</target>
-        <note>"UI" is an acronym for "User Interface"</note>
-      </trans-unit>
       <trans-unit id="Whitespace">
         <source>Whitespace</source>
         <target state="translated">空白</target>
@@ -1884,17 +1824,17 @@
       </trans-unit>
       <trans-unit id="_Highlight_matching_portions_of_completion_list_items">
         <source>_Highlight matching portions of completion list items</source>
-        <target state="new">_Highlight matching portions of completion list items</target>
+        <target state="translated">入力候補一覧の項目の一致している部分を強調表示する(_H)</target>
         <note />
       </trans-unit>
       <trans-unit id="_Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="new">_Only add new line on enter after end of fully typed word</target>
+        <target state="translated">単語を完全に入力した後 Enter キーで新しい行のみを追加する(_O)</target>
         <note />
       </trans-unit>
       <trans-unit id="_Show_completion_list_after_a_character_is_typed">
         <source>_Show completion list after a character is typed</source>
-        <target state="new">_Show completion list after a character is typed</target>
+        <target state="translated">文字が入力された後に入力候補一覧を表示する(_S)</target>
         <note />
       </trans-unit>
       <trans-unit id="at_the_end_of_the_line_of_code">
@@ -2047,16 +1987,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">プロジェクト: {0}
 
 ドロップダウンを使用して、このファイルが属している可能性のある他のプロジェクトを表示し、それらのプロジェクトに切り替えます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnalyzerChangedOnDisk">
-        <source>AnalyzerChangedOnDisk</source>
-        <target state="translated">AnalyzerChangedOnDisk</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted">
-        <source>The analyzer assembly '{0}' has changed. Diagnostics may be incorrect until Visual Studio is restarted.</source>
-        <target state="translated">アナライザー アセンブリ '{0}' が変更されました。Visual Studio を再起動するまで正しい診断ができない可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Deselect_All">
@@ -2304,11 +2234,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">{0} と同期しています...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Studio_has_suspended_some_advanced_features_to_improve_performance">
-        <source>Visual Studio has suspended some advanced features to improve performance.</source>
-        <target state="translated">Visual Studio は、パフォーマンス向上のため一部の高度な機能を中断しました。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Installing_0">
         <source>Installing '{0}'</source>
         <target state="translated">'{0}' をインストールしています</target>
@@ -2501,11 +2426,6 @@ Additional information: {1}</source>
         <source>Restore {0}</source>
         <target state="translated">{0} を復元する</target>
         <note>{0} is a parameter description</note>
-      </trans-unit>
-      <trans-unit id="Re_enable">
-        <source>Re-enable</source>
-        <target state="translated">再有効化</target>
-        <note />
       </trans-unit>
       <trans-unit id="Learn_more">
         <source>Learn more</source>

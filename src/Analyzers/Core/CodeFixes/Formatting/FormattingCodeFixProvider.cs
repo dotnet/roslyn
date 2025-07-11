@@ -30,6 +30,14 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
 
     protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
+#if WORKSPACE
+    /// <summary>
+    /// This refactoring provider touches syntax only.  So we can speed up fix all by having it only clean syntax
+    /// and not semantics.
+    /// </summary>
+    protected override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
+#endif
+
     /// <summary>
     /// Fixing formatting is high priority.  It's something the user wants to be able to fix quickly, is driven by
     /// them acting on an error reported in code, and can be computed fast as it only uses syntax not semantics.
@@ -62,7 +70,7 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
     private async Task<Document> FixOneAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
         var root = await context.Document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var text = root.GetText();
+        var text = await context.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
         // The span to format is the full line(s) containing the diagnostic
         var diagnosticSpan = diagnostic.Location.SourceSpan;

@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -30,16 +30,12 @@ namespace Microsoft.CodeAnalysis.GoToDefinition;
 [Name(PredefinedCommandHandlerNames.GoToDefinition)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class GoToDefinitionCommandHandler(
-    IGlobalOptionService globalOptionService,
+internal sealed class GoToDefinitionCommandHandler(
     IThreadingContext threadingContext,
-    IUIThreadOperationExecutor executor,
     IAsynchronousOperationListenerProvider listenerProvider) :
     ICommandHandler<GoToDefinitionCommandArgs>
 {
-    private readonly IGlobalOptionService _globalOptionService = globalOptionService;
     private readonly IThreadingContext _threadingContext = threadingContext;
-    private readonly IUIThreadOperationExecutor _executor = executor;
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.GoToDefinition);
 
     public string DisplayName => EditorFeaturesResources.Go_to_Definition;
@@ -128,14 +124,17 @@ internal class GoToDefinitionCommandHandler(
                 document, position, cancellationToken).ConfigureAwait(false);
 
             // make sure that if our background indicator got canceled, that we do not still perform the navigation.
-            if (backgroundIndicator.UserCancellationToken.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
                 return;
 
             // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
             // causing ourselves to self-cancel.
-            backgroundIndicator.CancelOnFocusLost = false;
+            var disposable = await backgroundIndicator.SuppressAutoCancelAsync().ConfigureAwait(false);
+            await using var _ = disposable.ConfigureAwait(false);
+
             succeeded = definitionLocation != null && await definitionLocation.Location.TryNavigateToAsync(
-                _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
+                _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true),
+                cancellationToken).ConfigureAwait(false);
         }
 
         if (!succeeded)

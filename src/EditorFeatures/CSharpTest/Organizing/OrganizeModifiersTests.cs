@@ -11,80 +11,65 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing;
 
 [Trait(Traits.Feature, Traits.Features.Organizing)]
-public class OrganizeModifiersTests : AbstractOrganizerTests
+public sealed class OrganizeModifiersTests : AbstractOrganizerTests
 {
     [Theory]
     [InlineData("class")]
     [InlineData("record")]
-    public async Task TestTypes1(string typeKind)
-    {
-        var initial =
-$@"static public {typeKind} C {{
-}}";
-        var final =
-$@"public static {typeKind} C {{
-}}";
-
-        await CheckAsync(initial, final);
-    }
+    public Task TestTypes1(string typeKind)
+        => CheckAsync($$"""
+            static public {{typeKind}} C {
+            }
+            """, $$"""
+            public static {{typeKind}} C {
+            }
+            """);
 
     [Theory]
     [InlineData("class")]
     [InlineData("record")]
-    public async Task TestTypes2(string typeKind)
-    {
-        var initial =
-$@"public static {typeKind} D {{
-}}";
-        var final =
-$@"public static {typeKind} D {{
-}}";
-
-        await CheckAsync(initial, final);
-    }
+    public Task TestTypes2(string typeKind)
+        => CheckAsync($$"""
+            public static {{typeKind}} D {
+            }
+            """, $$"""
+            public static {{typeKind}} D {
+            }
+            """);
 
     [Theory]
     [InlineData("class")]
     [InlineData("record")]
-    public async Task TestTypes3(string typeKind)
-    {
-        var initial =
-$@"public static partial {typeKind} E {{
-}}";
-        var final =
-$@"public static partial {typeKind} E {{
-}}";
-
-        await CheckAsync(initial, final);
-    }
+    public Task TestTypes3(string typeKind)
+        => CheckAsync($$"""
+            public static partial {{typeKind}} E {
+            }
+            """, $$"""
+            public static partial {{typeKind}} E {
+            }
+            """);
 
     [Theory]
     [InlineData("class")]
     [InlineData("record")]
-    public async Task TestTypes4(string typeKind)
-    {
-        var initial =
-$@"static public partial {typeKind} F {{
-}}";
-        var final =
-$@"public static partial {typeKind} F {{
-}}";
-
-        await CheckAsync(initial, final);
-    }
+    public Task TestTypes4(string typeKind)
+        => CheckAsync($$"""
+            static public partial {{typeKind}} F {
+            }
+            """, $$"""
+            public static partial {{typeKind}} F {
+            }
+            """);
 
     [Theory]
     [InlineData("class")]
     [InlineData("record")]
-    public async Task TestTypes5(string typeKind)
-    {
-        var initial =
-$@"unsafe public static {typeKind} F {{
-}}";
-        var final =
-$@"public static unsafe {typeKind} F {{
-}}";
-
-        await CheckAsync(initial, final);
-    }
+    public Task TestTypes5(string typeKind)
+        => CheckAsync($$"""
+            unsafe public static {{typeKind}} F {
+            }
+            """, $$"""
+            public static unsafe {{typeKind}} F {
+            }
+            """);
 }

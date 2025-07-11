@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options;
@@ -126,7 +128,7 @@ internal static class EditorConfigValueSerializer
     {
         var map = new BidirectionalMap<string, T>(entries, StringComparer.OrdinalIgnoreCase);
         var alternativeMap = ImmutableDictionary<string, T>.Empty.WithComparers(keyComparer: StringComparer.OrdinalIgnoreCase)
-            .AddRange(alternativeEntries.Select(static p => KeyValuePairUtil.Create(p.name, p.value)));
+            .AddRange(alternativeEntries.Select(static p => KeyValuePair.Create(p.name, p.value)));
 
         return CreateSerializerForEnum(map, alternativeMap);
     }
@@ -169,5 +171,46 @@ internal static class EditorConfigValueSerializer
         }
 
         return Enum.TryParse(str, ignoreCase: true, out result);
+    }
+
+    /// <summary>
+    /// Serializes arbitrary editorconfig option value (including naming style preferences) into a given builder.
+    /// Replaces existing value if present.
+    /// </summary>
+    public static void Serialize(IDictionary<string, string> builder, IOption2 option, string language, object? value)
+    {
+        if (value is NamingStylePreferences preferences)
+        {
+            // remove existing naming style values:
+            foreach (var name in builder.Keys)
+            {
+                if (name.StartsWith("dotnet_naming_rule.") || name.StartsWith("dotnet_naming_symbols.") || name.StartsWith("dotnet_naming_style."))
+                {
+                    builder.Remove(name);
+                }
+            }
+
+            NamingStylePreferencesEditorConfigSerializer.WriteNamingStylePreferencesToEditorConfig(
+                preferences.SymbolSpecifications,
+                preferences.NamingStyles,
+                preferences.Rules.NamingRules,
+                language,
+                entryWriter: (name, value) => builder[name] = value,
+                triviaWriter: null,
+                setPrioritiesToPreserveOrder: true);
+        }
+        else
+        {
+            builder[option.Definition.ConfigName] = option.Definition.Serializer.Serialize(value);
+        }
+    }
+
+    public static EditorConfigValueSerializer<TToEnum>? ConvertEnumSerializer<TFromEnum, TToEnum>(EditorConfigValueSerializer<TFromEnum> serializer)
+        where TFromEnum : struct, Enum
+        where TToEnum : struct, Enum
+    {
+        return new(
+            value => serializer.ParseValue(value).ConvertEnum<TFromEnum, TToEnum>(),
+            value => serializer.SerializeValue(EnumValueUtilities.ConvertEnum<TToEnum, TFromEnum>(value)));
     }
 }

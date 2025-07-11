@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -105,6 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
+
         public sealed override bool IsRefLikeType
         {
             get
@@ -112,6 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
         }
+
+        internal override string ExtensionName
+            => throw ExceptionUtilities.Unreachable();
 
         public sealed override bool IsReadOnly
         {

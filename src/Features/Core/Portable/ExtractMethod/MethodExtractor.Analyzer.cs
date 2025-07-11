@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -47,11 +47,6 @@ internal abstract partial class AbstractExtractMethodService<
 
             protected abstract bool IsInPrimaryConstructorBaseType();
 
-            /// <summary>
-            /// check whether selection contains return statement or not
-            /// </summary>
-            protected abstract bool ContainsReturnStatementInSelectedCode(ImmutableArray<SyntaxNode> exitPoints);
-
             protected virtual bool IsReadOutside(ISymbol symbol, HashSet<ISymbol> readOutsideMap)
                 => readOutsideMap.Contains(symbol);
 
@@ -65,13 +60,15 @@ internal abstract partial class AbstractExtractMethodService<
             /// <summary>
             /// check whether the selection is at the placed where read-only field is allowed to be extracted out
             /// </summary>
-            /// <returns></returns>
             protected abstract bool ReadOnlyFieldAllowed();
+
+            protected abstract ExtractMethodFlowControlInformation GetStatementFlowControlInformation(
+                ControlFlowAnalysis controlFlowAnalysis);
 
             public AnalyzerResult Analyze()
             {
                 // do data flow analysis
-                var model = this.SemanticDocument.SemanticModel;
+                var model = this.SemanticModel;
                 var dataFlowAnalysisData = this.SelectionResult.GetDataFlowAnalysis();
 
                 // build symbol map for the identifiers used inside of the selection
@@ -119,15 +116,11 @@ internal abstract partial class AbstractExtractMethodService<
                 var shouldBeReadOnly = !isThisParameterWritten
                     && thisParameterBeingRead is { Type: { TypeKind: TypeKind.Struct, IsReadOnly: false } };
 
-                // check whether end of selection is reachable
-                var endOfSelectionReachable = this.SelectionResult.IsEndOfSelectionReachable();
-
                 // check whether the selection contains "&" over a symbol exist
                 var unsafeAddressTakenUsed = dataFlowAnalysisData.UnsafeAddressTaken.Intersect(variableInfoMap.Keys).Any();
 
-                var (variables, returnType, returnsByRef) = GetSignatureInformation(variableInfoMap);
-
-                (returnType, var awaitTaskReturn) = AdjustReturnType(returnType);
+                var flowControlInformation = GetFlowControlInformation();
+                var (variables, returnType, returnsByRef) = GetSignatureInformation(variableInfoMap, flowControlInformation);
 
                 // collect method type variable used in selected code
                 var sortedMap = new SortedDictionary<int, ITypeParameterSymbol>();
@@ -144,95 +137,66 @@ internal abstract partial class AbstractExtractMethodService<
                     variables,
                     returnType,
                     returnsByRef,
-                    awaitTaskReturn,
                     instanceMemberIsUsed,
                     shouldBeReadOnly,
-                    endOfSelectionReachable,
+                    flowControlInformation,
                     operationStatus);
             }
 
-            private (ITypeSymbol typeSymbol, bool awaitTaskReturn) AdjustReturnType(ITypeSymbol returnType)
-            {
-                // if selection contains await which is not under async lambda or anonymous delegate,
-                // change return type to be wrapped in Task
-                var shouldPutAsyncModifier = SelectionResult.CreateAsyncMethod();
-                if (shouldPutAsyncModifier)
-                    return WrapReturnTypeInTask(returnType);
-
-                // unwrap task if needed
-                return (UnwrapTaskIfNeeded(returnType), awaitTaskReturn: false);
-            }
-
-            private ITypeSymbol UnwrapTaskIfNeeded(ITypeSymbol returnType)
-            {
-                // nothing to unwrap
-                if (SelectionResult.ContainingScopeHasAsyncKeyword() &&
-                    ContainsReturnStatementInSelectedCode())
-                {
-                    var originalDefinition = returnType.OriginalDefinition;
-
-                    // see whether it needs to be unwrapped
-                    var model = this.SemanticDocument.SemanticModel;
-                    var taskType = model.Compilation.TaskType();
-                    if (originalDefinition.Equals(taskType))
-                        return model.Compilation.GetSpecialType(SpecialType.System_Void);
-
-                    var genericTaskType = model.Compilation.TaskOfTType();
-                    if (originalDefinition.Equals(genericTaskType))
-                        return ((INamedTypeSymbol)returnType).TypeArguments[0];
-                }
-
-                // nothing to unwrap
-                return returnType;
-            }
-
-            private (ITypeSymbol returnType, bool awaitTaskReturn) WrapReturnTypeInTask(ITypeSymbol returnType)
-            {
-                var compilation = this.SemanticModel.Compilation;
-                var taskType = compilation.TaskType();
-
-                // convert void to Task type
-                if (taskType is object && returnType.Equals(compilation.GetSpecialType(SpecialType.System_Void)))
-                    return (taskType, awaitTaskReturn: true);
-
-                if (!SelectionResult.IsExtractMethodOnExpression && ContainsReturnStatementInSelectedCode())
-                    return (returnType, awaitTaskReturn: false);
-
-                var genericTaskType = compilation.TaskOfTType();
-
-                // okay, wrap the return type in Task<T>
-                if (genericTaskType is object)
-                    returnType = genericTaskType.Construct(returnType);
-
-                return (returnType, awaitTaskReturn: false);
-            }
-
             private (ImmutableArray<VariableInfo> finalOrderedVariableInfos, ITypeSymbol returnType, bool returnsByRef)
-                GetSignatureInformation(Dictionary<ISymbol, VariableInfo> symbolMap)
+                GetSignatureInformation(Dictionary<ISymbol, VariableInfo> symbolMap, ExtractMethodFlowControlInformation flowControlInformation)
             {
                 var allVariableInfos = symbolMap.Values.Order().ToImmutableArray();
-
-                if (this.IsInExpressionOrHasReturnStatement())
+                if (this.SelectionResult.IsExtractMethodOnExpression ||
+                    flowControlInformation.ReturnStatementCount > 0)
                 {
-                    // check whether current selection contains return statement
+                    // If we're just selecting an expression, then we want the extract method to have the type of that
+                    // expression.  Similarly, if we're selecting a statement that contains a return statement, then we
+                    // want the extracted method to have the return type of the containing method.
+                    //
+                    // Note: if there's more complex flow control, that will be handled later on with an additional
+                    // value added to the return value.
                     var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
-
-                    return (allVariableInfos, returnType, returnsByRef);
+                    return (allVariableInfos, UnwrapTaskIfNeeded(returnType), returnsByRef);
                 }
                 else
                 {
-                    // no return statement
-                    var finalOrderedVariableInfos = MarkVariableInfosToUseAsReturnValueIfPossible(allVariableInfos);
+                    var finalOrderedVariableInfos = MarkVariableInfosToUseAsReturnValueIfPossible(
+                        allVariableInfos, flowControlInformation.NeedsControlFlowValue());
                     var variablesToUseAsReturnValue = finalOrderedVariableInfos.WhereAsArray(v => v.UseAsReturnValue);
 
                     var returnType = GetReturnType(variablesToUseAsReturnValue);
-
                     return (finalOrderedVariableInfos, returnType, returnsByRef: false);
+                }
+
+                ITypeSymbol UnwrapTaskIfNeeded(ITypeSymbol returnType)
+                {
+                    if (this.SelectionResult.ContainingScopeHasAsyncKeyword())
+                    {
+                        // We compute the desired return type for the extract method from our own return type.  But for
+                        // the purposes of manipulating the return type, we need to get to the underlying type if this
+                        // was wrapped in a Task in an explicitly 'async' method.  In other words, if we're in an `async
+                        // Task<int>` method, then we want the extract method to return `int`.  Note: we will possibly
+                        // then wrap that as `Task<int>` again if we see that we extracted out any await-expressions.
+
+                        var compilation = this.SemanticModel.Compilation;
+                        var knownTaskTypes = new KnownTaskTypes(compilation);
+
+                        // Map from `Task/ValueTask` to `void`
+                        if (returnType.Equals(knownTaskTypes.TaskType) || returnType.Equals(knownTaskTypes.ValueTaskType))
+                            return compilation.GetSpecialType(SpecialType.System_Void);
+
+                        // Map from `Task<T>/ValueTask<T>` to `T`
+                        if (returnType.OriginalDefinition.Equals(knownTaskTypes.TaskOfTType) || returnType.OriginalDefinition.Equals(knownTaskTypes.ValueTaskOfTType))
+                            return returnType.GetTypeArguments().Single();
+                    }
+
+                    return returnType;
                 }
 
                 ITypeSymbol GetReturnType(ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
                 {
-                    var compilation = this.SemanticDocument.SemanticModel.Compilation;
+                    var compilation = this.SemanticModel.Compilation;
 
                     if (variablesToUseAsReturnValue.IsEmpty)
                         return compilation.GetSpecialType(SpecialType.System_Void);
@@ -246,8 +210,12 @@ internal abstract partial class AbstractExtractMethodService<
                 }
             }
 
-            private bool IsInExpressionOrHasReturnStatement()
-                => SelectionResult.IsExtractMethodOnExpression || ContainsReturnStatementInSelectedCode();
+            private ExtractMethodFlowControlInformation GetFlowControlInformation()
+            {
+                return this.SelectionResult.IsExtractMethodOnExpression
+                    ? ExtractMethodFlowControlInformation.Create(this.SemanticModel.Compilation, supportsComplexFlowControl: true, breakStatementCount: 0, continueStatementCount: 0, returnStatementCount: 0, endPointIsReachable: true)
+                    : GetStatementFlowControlInformation(this.SelectionResult.GetStatementControlFlowAnalysis());
+            }
 
             private OperationStatus GetOperationStatus(
                 MultiDictionary<ISymbol, SyntaxToken> symbolMap,
@@ -289,19 +257,21 @@ internal abstract partial class AbstractExtractMethodService<
                     ? OperationStatus.LocalFunctionCallWithoutDeclaration
                     : OperationStatus.SucceededStatus;
 
-                return readonlyFieldStatus.With(anonymousTypeStatus)
-                                          .With(unsafeAddressStatus)
-                                          .With(asyncRefOutParameterStatus)
-                                          .With(variableMapStatus)
-                                          .With(localFunctionStatus);
+                return readonlyFieldStatus
+                    .With(anonymousTypeStatus)
+                    .With(unsafeAddressStatus)
+                    .With(asyncRefOutParameterStatus)
+                    .With(variableMapStatus)
+                    .With(localFunctionStatus);
             }
 
             private OperationStatus CheckAsyncMethodRefOutParameters(IList<VariableInfo> parameters)
             {
-                if (SelectionResult.CreateAsyncMethod())
+                if (SelectionResult.ContainsAwaitExpression())
                 {
-                    var names = parameters.Where(v => v is { UseAsReturnValue: false, ParameterModifier: ParameterBehavior.Out or ParameterBehavior.Ref })
-                                          .Select(p => p.Name ?? string.Empty);
+                    var names = parameters
+                        .Where(v => v is { UseAsReturnValue: false, ParameterModifier: ParameterBehavior.Out or ParameterBehavior.Ref })
+                        .Select(p => p.Name ?? string.Empty);
 
                     if (names.Any())
                         return new OperationStatus(succeeded: true, string.Format(FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket, string.Join(", ", names)));
@@ -337,19 +307,24 @@ internal abstract partial class AbstractExtractMethodService<
                 return symbolMap;
             }
 
-            private ImmutableArray<VariableInfo> MarkVariableInfosToUseAsReturnValueIfPossible(ImmutableArray<VariableInfo> variableInfo)
+            private ImmutableArray<VariableInfo> MarkVariableInfosToUseAsReturnValueIfPossible(
+                ImmutableArray<VariableInfo> variableInfos, bool hasFlowControlResult)
             {
-                var index = GetIndexOfVariableInfoToUseAsReturnValue(variableInfo, out var numberOfOutParameters, out var numberOfRefParameters);
+                var index = GetIndexOfVariableInfoToUseAsReturnValue(variableInfos, out var numberOfOutParameters, out var numberOfRefParameters);
 
-                // If there are any variables we'd make out/ref and this is async, then we need to make these the
-                // return values of the method since we can't actually have out/ref with an async method.
+                // If there are any variables we'd make out/ref and this is async, then we need to make these the return
+                // values of the method since we can't actually have out/ref with an async method.
+                //
+                // Similarly, if we have a flow control variable, then make that one of the return values of the method
+                // so that the caller can see what the called method wants to do.
                 var outRefCount = numberOfOutParameters + numberOfRefParameters;
-                if (outRefCount > 0 &&
-                    this.SelectionResult.CreateAsyncMethod() &&
-                    this.SyntaxFacts.SupportsTupleDeconstruction(this.SemanticDocument.Document.Project.ParseOptions!))
+                var createAsyncTuple = outRefCount > 0 &&
+                    this.SelectionResult.ContainsAwaitExpression() &&
+                    this.SyntaxFacts.SupportsTupleDeconstruction(this.SemanticDocument.Document.Project.ParseOptions!);
+                if (createAsyncTuple || hasFlowControlResult)
                 {
-                    var result = new FixedSizeArrayBuilder<VariableInfo>(variableInfo.Length);
-                    foreach (var info in variableInfo)
+                    var result = new FixedSizeArrayBuilder<VariableInfo>(variableInfos.Length);
+                    foreach (var info in variableInfos)
                     {
                         result.Add(info.CanBeUsedAsReturnValue && info.ParameterModifier is ParameterBehavior.Out or ParameterBehavior.Ref
                             ? VariableInfo.CreateReturnValue(info)
@@ -361,9 +336,9 @@ internal abstract partial class AbstractExtractMethodService<
 
                 // If there's just one variable that would be ref/out, then make that the return value of the final method.
                 if (index >= 0)
-                    return variableInfo.SetItem(index, VariableInfo.CreateReturnValue(variableInfo[index]));
+                    return variableInfos.SetItem(index, VariableInfo.CreateReturnValue(variableInfos[index]));
 
-                return variableInfo;
+                return variableInfos;
             }
 
             /// <summary>
@@ -508,7 +483,7 @@ internal abstract partial class AbstractExtractMethodService<
                     if (symbol is IParameterSymbol && variableDeclared)
                         continue;
 
-                    var type = GetSymbolType(symbol);
+                    var type = GetSymbolTypeWithUpdatedNullability(symbol);
                     if (type == null)
                         continue;
 
@@ -552,16 +527,9 @@ internal abstract partial class AbstractExtractMethodService<
                     return disposer;
                 }
 
-                ITypeSymbol? GetSymbolType(ISymbol symbol)
+                ITypeSymbol? GetSymbolTypeWithUpdatedNullability(ISymbol symbol)
                 {
-                    var type = symbol switch
-                    {
-                        ILocalSymbol local => local.Type,
-                        IParameterSymbol parameter => parameter.Type,
-                        IRangeVariableSymbol rangeVariable => GetRangeVariableType(rangeVariable),
-                        _ => throw ExceptionUtilities.UnexpectedValue(symbol)
-                    };
-
+                    var type = GetUnderlyingSymbolType(symbol);
                     if (type is null)
                         return type;
 
@@ -601,6 +569,17 @@ internal abstract partial class AbstractExtractMethodService<
                         _ => throw ExceptionUtilities.UnexpectedValue(symbol)
                     };
                 }
+            }
+
+            private ITypeSymbol? GetUnderlyingSymbolType(ISymbol symbol)
+            {
+                return symbol switch
+                {
+                    ILocalSymbol local => local.Type,
+                    IParameterSymbol parameter => parameter.Type,
+                    IRangeVariableSymbol rangeVariable => GetRangeVariableType(rangeVariable),
+                    _ => throw ExceptionUtilities.UnexpectedValue(symbol)
+                };
             }
 
             private static void AddVariableToMap(IDictionary<ISymbol, VariableInfo> variableInfoMap, ISymbol localOrParameter, VariableInfo variableInfo)
@@ -740,21 +719,13 @@ internal abstract partial class AbstractExtractMethodService<
                        parameter.ContainingSymbol.ContainingType.IsScriptClass;
             }
 
-            private bool ContainsReturnStatementInSelectedCode()
-            {
-                Contract.ThrowIfTrue(SelectionResult.IsExtractMethodOnExpression);
-                return ContainsReturnStatementInSelectedCode(this.SelectionResult.GetStatementControlFlowAnalysis().ExitPoints);
-            }
-
-            private static void AddTypeParametersToMap(IEnumerable<ITypeParameterSymbol> typeParameters, IDictionary<int, ITypeParameterSymbol> sortedMap)
+            private void AddTypeParametersToMap(IEnumerable<ITypeParameterSymbol> typeParameters, IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 foreach (var typeParameter in typeParameters)
-                {
                     AddTypeParameterToMap(typeParameter, sortedMap);
-                }
             }
 
-            private static void AddTypeParameterToMap(ITypeParameterSymbol typeParameter, IDictionary<int, ITypeParameterSymbol> sortedMap)
+            private void AddTypeParameterToMap(ITypeParameterSymbol typeParameter, IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 if (typeParameter == null ||
                     typeParameter.DeclaringMethod == null ||
@@ -762,6 +733,13 @@ internal abstract partial class AbstractExtractMethodService<
                 {
                     return;
                 }
+
+                // Only care about type parameters declared outside of the span being selected.  If the type parameter
+                // is within the selection, that means it comes from a generic local function and would not otherwise be
+                // usable by the calling method.
+                var selectionSpan = this.SelectionResult.FinalSpan;
+                if (typeParameter.Locations is not [var location] || selectionSpan.Contains(location.SourceSpan))
+                    return;
 
                 sortedMap[typeParameter.Ordinal] = typeParameter;
             }
@@ -771,29 +749,10 @@ internal abstract partial class AbstractExtractMethodService<
                 IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 foreach (var symbol in variableInfoMap.Keys)
-                {
-                    switch (symbol)
-                    {
-                        case IParameterSymbol parameter:
-                            AddTypeParametersToMap(TypeParameterCollector.Collect(parameter.Type), sortedMap);
-                            continue;
-
-                        case ILocalSymbol local:
-                            AddTypeParametersToMap(TypeParameterCollector.Collect(local.Type), sortedMap);
-                            continue;
-
-                        case IRangeVariableSymbol rangeVariable:
-                            var type = GetRangeVariableType(rangeVariable);
-                            AddTypeParametersToMap(TypeParameterCollector.Collect(type), sortedMap);
-                            continue;
-
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(symbol);
-                    }
-                }
+                    AddTypeParametersToMap(TypeParameterCollector.Collect(GetUnderlyingSymbolType(symbol)), sortedMap);
             }
 
-            private static void AppendMethodTypeParameterFromConstraint(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
+            private void AppendMethodTypeParameterFromConstraint(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 var typeParametersInConstraint = new List<ITypeParameterSymbol>();
 
@@ -802,9 +761,7 @@ internal abstract partial class AbstractExtractMethodService<
                 {
                     var constraintTypes = typeParameter.ConstraintTypes;
                     if (constraintTypes.IsDefaultOrEmpty)
-                    {
                         continue;
-                    }
 
                     foreach (var type in constraintTypes)
                     {
@@ -815,21 +772,13 @@ internal abstract partial class AbstractExtractMethodService<
 
                 // pick up only valid type parameter and add them to the map
                 foreach (var typeParameter in typeParametersInConstraint)
-                {
                     AddTypeParameterToMap(typeParameter, sortedMap);
-                }
             }
 
-            private static void AppendMethodTypeParameterUsedDirectly(MultiDictionary<ISymbol, SyntaxToken> symbolMap, IDictionary<int, ITypeParameterSymbol> sortedMap)
+            private void AppendMethodTypeParameterUsedDirectly(MultiDictionary<ISymbol, SyntaxToken> symbolMap, IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 foreach (var typeParameter in symbolMap.Keys.OfType<ITypeParameterSymbol>())
-                {
-                    if (typeParameter.DeclaringMethod != null &&
-                        !sortedMap.ContainsKey(typeParameter.Ordinal))
-                    {
-                        sortedMap[typeParameter.Ordinal] = typeParameter;
-                    }
-                }
+                    AddTypeParameterToMap(typeParameter, sortedMap);
             }
 
             private ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInConstraintList(
@@ -847,7 +796,7 @@ internal abstract partial class AbstractExtractMethodService<
                 return [.. sortedMap.Values];
             }
 
-            private static void AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
+            private void AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 using var _1 = PooledHashSet<ITypeSymbol>.GetInstance(out var visited);
                 using var _2 = PooledHashSet<ITypeParameterSymbol>.GetInstance(out var candidates);
@@ -908,7 +857,7 @@ internal abstract partial class AbstractExtractMethodService<
                 }
             }
 
-            private static ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInDeclaration(ITypeSymbol returnType, SortedDictionary<int, ITypeParameterSymbol> sortedMap)
+            private ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInDeclaration(ITypeSymbol returnType, SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 // add return type to the map
                 AddTypeParametersToMap(TypeParameterCollector.Collect(returnType), sortedMap);

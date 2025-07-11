@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class ExtractInterfaceDialogInProcess
+internal sealed partial class ExtractInterfaceDialogInProcess
 {
     private async Task<ExtractInterfaceDialog?> TryGetDialogAsync(CancellationToken cancellationToken)
     {
@@ -117,20 +117,14 @@ internal partial class ExtractInterfaceDialogInProcess
             .ToImmutableArray();
     }
 
-    public async Task ClickDeselectAllAsync(CancellationToken cancellationToken)
-    {
-        await ClickAsync(dialog => dialog.GetTestAccessor().DeselectAllButton, cancellationToken);
-    }
+    public Task ClickDeselectAllAsync(CancellationToken cancellationToken)
+        => ClickAsync(dialog => dialog.GetTestAccessor().DeselectAllButton, cancellationToken);
 
-    public async Task ClickSelectAllAsync(CancellationToken cancellationToken)
-    {
-        await ClickAsync(dialog => dialog.GetTestAccessor().SelectAllButton, cancellationToken);
-    }
+    public Task ClickSelectAllAsync(CancellationToken cancellationToken)
+        => ClickAsync(dialog => dialog.GetTestAccessor().SelectAllButton, cancellationToken);
 
-    public async Task SelectSameFileAsync(CancellationToken cancellationToken)
-    {
-        await ClickAsync(dialog => dialog.GetTestAccessor().DestinationCurrentFileSelectionRadioButton, cancellationToken);
-    }
+    public Task SelectSameFileAsync(CancellationToken cancellationToken)
+        => ClickAsync(dialog => dialog.GetTestAccessor().DestinationCurrentFileSelectionRadioButton, cancellationToken);
 
     public async Task ToggleItemAsync(string item, CancellationToken cancellationToken)
     {

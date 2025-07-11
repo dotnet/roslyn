@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IndexerMemberCref:
                 case SyntaxKind.OperatorMemberCref:
                 case SyntaxKind.ConversionOperatorMemberCref:
+                case SyntaxKind.ExtensionMemberCref:
                     return BindMemberCref((MemberCrefSyntax)syntax, containerOpt: null, ambiguityWinner: out ambiguityWinner, diagnostics: diagnostics);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
@@ -124,6 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case SyntaxKind.ConversionOperatorMemberCref:
                     result = BindConversionOperatorMemberCref((ConversionOperatorMemberCrefSyntax)syntax, containerOpt, out ambiguityWinner, diagnostics);
+                    break;
+                case SyntaxKind.ExtensionMemberCref:
+                    result = BindExtensionMemberCref((ExtensionMemberCrefSyntax)syntax, containerOpt, out ambiguityWinner, diagnostics);
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
@@ -216,27 +220,162 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: diagnostics);
         }
 
+        private ImmutableArray<Symbol> BindExtensionMemberCref(ExtensionMemberCrefSyntax syntax, NamespaceOrTypeSymbol? containerOpt, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
+        {
+            CheckFeatureAvailability(syntax, MessageID.IDS_FeatureExtensions, diagnostics);
+
+            if (containerOpt is not NamedTypeSymbol namedContainer)
+            {
+                ambiguityWinner = null;
+                return ImmutableArray<Symbol>.Empty;
+            }
+
+            int arity = 0;
+            TypeArgumentListSyntax? typeArgumentListSyntax = null;
+            CrefParameterListSyntax? parameters = null;
+            string? memberName = null;
+
+            if (syntax.Member is NameMemberCrefSyntax { Name: SimpleNameSyntax simpleName } nameMember)
+            {
+                arity = simpleName.Arity;
+                typeArgumentListSyntax = simpleName is GenericNameSyntax genericName ? genericName.TypeArgumentList : null;
+                parameters = nameMember.Parameters;
+                memberName = simpleName.Identifier.ValueText;
+            }
+            else if (syntax.Member is OperatorMemberCrefSyntax operatorSyntax)
+            {
+                memberName = GetOperatorMethodName(operatorSyntax);
+                parameters = operatorSyntax.Parameters;
+            }
+
+            if (memberName == null)
+            {
+                ambiguityWinner = null;
+                return ImmutableArray<Symbol>.Empty;
+            }
+
+            TypeArgumentListSyntax? extensionTypeArguments = syntax.TypeArgumentList;
+            int extensionArity = extensionTypeArguments?.Arguments.Count ?? 0;
+            ImmutableArray<Symbol> sortedSymbols = computeSortedAndFilteredCrefExtensionMembers(namedContainer, memberName, extensionArity, arity, extensionTypeArguments, diagnostics, syntax);
+
+            if (sortedSymbols.IsDefaultOrEmpty)
+            {
+                ambiguityWinner = null;
+                return [];
+            }
+
+            Debug.Assert(sortedSymbols.All(s => s.GetIsNewExtensionMember()));
+
+            return ProcessCrefMemberLookupResults(sortedSymbols, arity, syntax, typeArgumentListSyntax, parameters, out ambiguityWinner, diagnostics);
+
+            ImmutableArray<Symbol> computeSortedAndFilteredCrefExtensionMembers(NamedTypeSymbol container, string name, int extensionArity, int arity, TypeArgumentListSyntax? extensionTypeArguments, BindingDiagnosticBag diagnostics, ExtensionMemberCrefSyntax syntax)
+            {
+                Debug.Assert(name is not null);
+
+                Debug.Assert(syntax.Parameters is not null);
+                ImmutableArray<ParameterSymbol> extensionParameterSymbols = BindCrefParameters(syntax.Parameters, diagnostics);
+
+                // Use signature method symbols to match extension blocks
+                var providedExtensionSignature = new SignatureOnlyMethodSymbol(
+                     methodKind: MethodKind.Ordinary,
+                     typeParameters: IndexedTypeParameterSymbol.TakeSymbols(extensionArity),
+                     parameters: extensionParameterSymbols,
+                     callingConvention: Cci.CallingConvention.Default,
+                     // These are ignored by this specific MemberSignatureComparer.
+                     containingType: null,
+                     name: null,
+                     refKind: RefKind.None,
+                     isInitOnly: false,
+                     isStatic: false,
+                     returnType: default,
+                     refCustomModifiers: [],
+                     explicitInterfaceImplementations: []);
+
+                LookupOptions options = LookupOptions.AllMethodsOnArityZero | LookupOptions.MustNotBeParameter;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
+                ArrayBuilder<Symbol>? sortedSymbolsBuilder = null;
+
+                foreach (var nested in container.GetTypeMembers())
+                {
+                    if (!nested.IsExtension || nested.Arity != extensionArity || nested.ExtensionParameter is null)
+                    {
+                        continue;
+                    }
+
+                    var constructedNested = (NamedTypeSymbol)ConstructWithCrefTypeParameters(extensionArity, extensionTypeArguments, nested);
+
+                    var candidateExtensionSignature = new SignatureOnlyMethodSymbol(
+                         methodKind: MethodKind.Ordinary,
+                         typeParameters: IndexedTypeParameterSymbol.TakeSymbols(constructedNested.Arity),
+                         parameters: [constructedNested.ExtensionParameter],
+                         callingConvention: Cci.CallingConvention.Default,
+                         // These are ignored by this specific MemberSignatureComparer.
+                         containingType: null,
+                         name: null,
+                         refKind: RefKind.None,
+                         isInitOnly: false,
+                         isStatic: false,
+                         returnType: default,
+                         refCustomModifiers: [],
+                         explicitInterfaceImplementations: []);
+
+                    if (!MemberSignatureComparer.CrefComparer.Equals(candidateExtensionSignature, providedExtensionSignature))
+                    {
+                        continue;
+                    }
+
+                    var candidates = constructedNested.GetMembers(name);
+
+                    foreach (var candidate in candidates)
+                    {
+                        if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate))
+                        {
+                            continue;
+                        }
+
+                        if (arity != 0 && candidate.GetArity() != arity)
+                        {
+                            continue;
+                        }
+
+                        // Note: we bypass the arity check here, as it would check for total arity (extension + member arity)
+                        SingleLookupResult result = this.CheckViability(candidate, arity: 0, options, accessThroughType: null, diagnose: true, useSiteInfo: ref useSiteInfo);
+
+                        if (result.Kind == LookupResultKind.Viable)
+                        {
+                            sortedSymbolsBuilder ??= ArrayBuilder<Symbol>.GetInstance();
+                            sortedSymbolsBuilder.Add(result.Symbol);
+                        }
+                    }
+                }
+
+                diagnostics.Add(syntax, useSiteInfo);
+
+                if (sortedSymbolsBuilder is null)
+                {
+                    return ImmutableArray<Symbol>.Empty;
+                }
+
+                // Since we resolve ambiguities by just picking the first symbol we encounter,
+                // the order of the symbols matters for repeatability.
+                if (sortedSymbolsBuilder.Count > 1)
+                {
+                    sortedSymbolsBuilder.Sort(ConsistentSymbolOrder.Instance);
+                }
+
+                return sortedSymbolsBuilder.ToImmutableAndFree();
+            }
+        }
+
         // NOTE: not guaranteed to be a method (e.g. class op_Addition)
         // NOTE: constructor fallback logic applies
         private ImmutableArray<Symbol> BindOperatorMemberCref(OperatorMemberCrefSyntax syntax, NamespaceOrTypeSymbol? containerOpt, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
             const int arity = 0;
 
-            CrefParameterListSyntax? parameterListSyntax = syntax.Parameters;
-            bool isChecked = syntax.CheckedKeyword.IsKind(SyntaxKind.CheckedKeyword);
+            string? memberName = GetOperatorMethodName(syntax);
 
-            // NOTE: Prefer binary to unary, unless there is exactly one parameter.
-            // CONSIDER: we're following dev11 by never using a binary operator name if there's
-            // exactly one parameter, but doing so would allow us to match single-parameter constructors.
-            SyntaxKind operatorTokenKind = syntax.OperatorToken.Kind();
-            string? memberName = parameterListSyntax != null && parameterListSyntax.Parameters.Count == 1
-                ? null
-                : OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind, isChecked);
-
-            memberName = memberName ?? OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind, isChecked: isChecked);
-
-            if (memberName == null ||
-                (isChecked && !syntax.OperatorToken.IsMissing && !SyntaxFacts.IsCheckedOperator(memberName))) // the operator cannot be checked
+            if (memberName == null)
             {
                 ambiguityWinner = null;
                 return ImmutableArray<Symbol>.Empty;
@@ -255,9 +394,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arity,
                 syntax,
                 typeArgumentListSyntax: null,
-                parameterListSyntax: parameterListSyntax,
+                parameterListSyntax: syntax.Parameters,
                 ambiguityWinner: out ambiguityWinner,
                 diagnostics: diagnostics);
+        }
+
+        private static string? GetOperatorMethodName(OperatorMemberCrefSyntax syntax)
+        {
+            bool isChecked = syntax.CheckedKeyword.IsKind(SyntaxKind.CheckedKeyword);
+
+            SyntaxKind operatorTokenKind = syntax.OperatorToken.Kind();
+            string? memberName;
+
+            if (SyntaxFacts.IsOverloadableCompoundAssignmentOperator(operatorTokenKind))
+            {
+                memberName = OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(operatorTokenKind, isChecked);
+            }
+            else
+            {
+                CrefParameterListSyntax? parameterListSyntax = syntax.Parameters;
+
+                // NOTE: Prefer binary to unary, unless there is exactly one parameter.
+                // CONSIDER: we're following dev11 by never using a binary operator name if there's
+                // exactly one parameter, but doing so would allow us to match single-parameter constructors.
+                memberName = parameterListSyntax != null && parameterListSyntax.Parameters.Count == 1
+                    ? null
+                    : OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind, isChecked);
+
+                if (memberName is null)
+                {
+                    if (operatorTokenKind is SyntaxKind.PlusPlusToken or SyntaxKind.MinusMinusToken && parameterListSyntax?.Parameters.Count == 0)
+                    {
+                        memberName = OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(operatorTokenKind, isChecked);
+                    }
+                    else
+                    {
+                        memberName = OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind, isChecked: isChecked);
+                    }
+                }
+            }
+
+            if (memberName != null &&
+                (isChecked && !syntax.OperatorToken.IsMissing && !SyntaxFacts.IsCheckedOperator(memberName))) // the operator cannot be checked
+            {
+                memberName = null;
+            }
+
+            return memberName;
         }
 
         // NOTE: not guaranteed to be a method (e.g. class op_Implicit)

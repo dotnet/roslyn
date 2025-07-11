@@ -142,6 +142,11 @@
         <target state="translated">Tür görünür olduğunda örtük nesne oluşturmayı tercih et</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_implicitly_typed_lambda_expression">
+        <source>Prefer implicitly typed lambda expression</source>
+        <target state="new">Prefer implicitly typed lambda expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
         <target state="translated">Desen eşleştirmeyi tercih et</target>
@@ -179,12 +184,12 @@
       </trans-unit>
       <trans-unit id="Show_name_s_uggestions">
         <source>Show name s_uggestions</source>
-        <target state="new">Show name s_uggestions</target>
+        <target state="translated">Ad ö_nerilerini göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience">
         <source>Show new snippet experience</source>
-        <target state="new">Show new snippet experience</target>
+        <target state="translated">Yeni kod parçacığı deneyimini göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
@@ -709,7 +714,7 @@
       </trans-unit>
       <trans-unit id="Show_name_suggestions">
         <source>Show name suggestions</source>
-        <target state="needs-review-translation">Ad ö_nerilerini göster</target>
+        <target state="translated">Ad önerilerini göster</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">

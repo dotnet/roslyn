@@ -25,5 +25,6 @@ internal static class CSharpSnippetIdentifiers
     public const string StaticIntMain = "sim";
     public const string Struct = "struct";
     public const string StaticVoidMain = "svm";
+    public const string Using = "using";
     public const string While = "while";
 }

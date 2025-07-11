@@ -11,11 +11,11 @@ using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 using static System.Linq.ImmutableArrayExtensions;
-using static Microsoft.CodeAnalysis.CSharp.Binder;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         /// <summary>
         /// We must use a temp when there is a chance that evaluation of the call arguments
-        /// could actually modify value of the reference type reciever. The call must use
+        /// could actually modify value of the reference type receiver. The call must use
         /// the original (unmodified) receiver.
         /// </summary>
         private sealed class IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayElementLoad(_module.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type), arrayAccess.Expression.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitArrayElementLoad(_module.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type), arrayAccess.Expression.Syntax);
             }
 
             EmitPopIfUnused(used);
@@ -2382,7 +2382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayCreation(_module.Translate(arrayType), expression.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitArrayCreation(_module.Translate(arrayType), expression.Syntax);
             }
 
             if (expression.InitializerOpt != null)
@@ -3200,7 +3200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayElementStore(_module.Translate(arrayType), syntaxNode, _diagnostics.DiagnosticBag);
+                _builder.EmitArrayElementStore(_module.Translate(arrayType), syntaxNode);
             }
         }
 
@@ -3438,7 +3438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var constantValue = type.GetDefaultValue();
                     if (constantValue != null)
                     {
-                        _builder.EmitConstantValue(constantValue);
+                        _builder.EmitConstantValue(constantValue, syntaxNode);
                         return;
                     }
                 }
@@ -3474,17 +3474,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitConstantExpression(TypeSymbol type, ConstantValue constantValue, bool used, SyntaxNode syntaxNode)
         {
-            if (used)  // unused constant has no side-effects
+            // unused constant has no side-effects
+            if (!used)
             {
-                // Null type parameter values must be emitted as 'initobj' rather than 'ldnull'.
-                if (((object)type != null) && (type.TypeKind == TypeKind.TypeParameter) && constantValue.IsNull)
-                {
-                    EmitInitObj(type, used, syntaxNode);
-                }
-                else
-                {
-                    _builder.EmitConstantValue(constantValue);
-                }
+                return;
+            }
+
+            // Null type parameter values must be emitted as 'initobj' rather than 'ldnull'.
+            if (type is { TypeKind: TypeKind.TypeParameter } && constantValue.IsNull)
+            {
+                EmitInitObj(type, used, syntaxNode);
+            }
+            else
+            {
+                _builder.EmitConstantValue(constantValue, syntaxNode);
             }
         }
 
@@ -3562,7 +3565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (node.HoistedField is null)
             {
-                _builder.EmitIntConstant(node.Parameter.Ordinal);
+                _builder.EmitIntConstant(node.Parameter.Ordinal); // Tracked by https://github.com/dotnet/roslyn/issues/78963 : Follow up
             }
             else
             {
@@ -3576,7 +3579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var fieldRef = _module.Translate(field, syntax, _diagnostics.DiagnosticBag, needDeclaration: true);
 
             _builder.EmitOpCode(ILOpCode.Ldtoken);
-            _builder.EmitToken(fieldRef, syntax, _diagnostics.DiagnosticBag, Cci.MetadataWriter.RawTokenEncoding.LiftedVariableId);
+            _builder.EmitToken(fieldRef, syntax, Cci.MetadataWriter.RawTokenEncoding.LiftedVariableId);
         }
 
         private void EmitMaximumMethodDefIndexExpression(BoundMaximumMethodDefIndex node)
@@ -3602,8 +3605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             _builder.EmitToken(
                 _module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag),
-                node.Syntax,
-                _diagnostics.DiagnosticBag);
+                node.Syntax);
         }
 
         private void EmitThrowIfModuleCancellationRequested(SyntaxNode syntax)
@@ -3613,8 +3615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.EmitOpCode(ILOpCode.Ldsflda);
             _builder.EmitToken(
                 _module.GetModuleCancellationToken(_module.Translate(cancellationTokenType, syntax, _diagnostics.DiagnosticBag), syntax, _diagnostics.DiagnosticBag),
-                syntax,
-                _diagnostics.DiagnosticBag);
+                syntax);
 
             var throwMethod = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_CancellationToken__ThrowIfCancellationRequested);
 
@@ -3624,8 +3625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.EmitOpCode(ILOpCode.Call, -1);
             _builder.EmitToken(
                 _module.Translate(throwMethod, syntax, _diagnostics.DiagnosticBag),
-                syntax,
-                _diagnostics.DiagnosticBag);
+                syntax);
         }
 
         private void EmitModuleCancellationTokenLoad(SyntaxNode syntax)
@@ -3635,8 +3635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.EmitOpCode(ILOpCode.Ldsfld);
             _builder.EmitToken(
                 _module.GetModuleCancellationToken(_module.Translate(cancellationTokenType, syntax, _diagnostics.DiagnosticBag), syntax, _diagnostics.DiagnosticBag),
-                syntax,
-                _diagnostics.DiagnosticBag);
+                syntax);
         }
 
         private void EmitModuleVersionIdStringLoad()
@@ -3659,7 +3658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitInstrumentationPayloadRootToken(BoundInstrumentationPayloadRoot node)
         {
-            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag), node.Syntax);
         }
 
         private void EmitSourceDocumentIndex(BoundSourceDocumentIndex node)

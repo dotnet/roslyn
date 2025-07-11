@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -22,7 +24,7 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed partial class UseConditionalExpressionForAssignmentTests
 {
     private static async Task TestMissingAsync(
-        string testCode,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
         LanguageVersion languageVersion = LanguageVersion.CSharp8,
         OptionsCollection? options = null)
     {
@@ -36,14 +38,13 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
         await test.RunAsync();
     }
 
-    private static async Task TestInRegularAndScript1Async(
-        string testCode,
-        string fixedCode,
+    private static Task TestInRegularAndScript1Async(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
         LanguageVersion languageVersion = LanguageVersion.CSharp8,
         OptionsCollection? options = null,
         string? equivalenceKey = null)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = testCode,
             FixedCode = fixedCode,
@@ -51,7 +52,6 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
             CodeActionEquivalenceKey = equivalenceKey,
             Options = { options },
         }.RunAsync();
-    }
 
     private static readonly OptionsCollection PreferImplicitTypeAlways = new(LanguageNames.CSharp)
     {
@@ -61,9 +61,8 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
     };
 
     [Fact]
-    public async Task TestOnSimpleAssignment()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnSimpleAssignment()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -89,12 +88,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestOnSimpleAssignment_Throw1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnSimpleAssignment_Throw1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -120,12 +117,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestOnSimpleAssignment_Throw2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnSimpleAssignment_Throw2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -151,12 +146,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestNotWithTwoThrows()
-    {
-        await TestMissingAsync(
+    public Task TestNotWithTwoThrows()
+        => TestMissingAsync(
             """
             class C
             {
@@ -173,12 +166,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestNotOnSimpleAssignment_Throw1_CSharp6()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnSimpleAssignment_Throw1_CSharp6()
+        => TestMissingAsync(
             """
             class C
             {
@@ -195,12 +186,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, LanguageVersion.CSharp6);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestWithSimpleThrow()
-    {
-        await TestMissingAsync(
+    public Task TestWithSimpleThrow()
+        => TestMissingAsync(
             """
             class C
             {
@@ -217,12 +206,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnSimpleAssignmentNoBlocks()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnSimpleAssignmentNoBlocks()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -244,12 +231,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnSimpleAssignmentNoBlocks_NotInBlock()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnSimpleAssignmentNoBlocks_NotInBlock()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -273,12 +258,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnSimpleAssignmentToDifferentTargets()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnSimpleAssignmentToDifferentTargets()
+        => TestMissingAsync(
             """
             class C
             {
@@ -295,12 +278,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnAssignmentToUndefinedField()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnAssignmentToUndefinedField()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -326,12 +307,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestOnAssignmentToUndefinedField_Throw()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnAssignmentToUndefinedField_Throw()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -357,12 +336,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnNonUniformTargetSyntax()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnNonUniformTargetSyntax()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -392,12 +369,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnAssignmentToDefinedField()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnAssignmentToDefinedField()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -427,12 +402,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnAssignmentToAboveLocalNoInitializer()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnAssignmentToAboveLocalNoInitializer()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -459,12 +432,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestOnAssignmentToAboveLocalNoInitializer_Throw1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnAssignmentToAboveLocalNoInitializer_Throw1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -491,12 +462,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestOnAssignmentToAboveLocalNoInitializer_Throw2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnAssignmentToAboveLocalNoInitializer_Throw2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -523,12 +492,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnAssignmentToAboveLocalLiteralInitializer()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnAssignmentToAboveLocalLiteralInitializer()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -555,12 +522,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnAssignmentToAboveLocalDefaultLiteralInitializer()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnAssignmentToAboveLocalDefaultLiteralInitializer()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -587,12 +552,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, LanguageVersion.Latest);
-    }
 
     [Fact]
-    public async Task TestOnAssignmentToAboveLocalDefaultExpressionInitializer()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnAssignmentToAboveLocalDefaultExpressionInitializer()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -619,12 +582,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDoNotMergeAssignmentToAboveLocalWithComplexInitializer()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDoNotMergeAssignmentToAboveLocalWithComplexInitializer()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -656,12 +617,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 int Foo() => 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDoNotMergeAssignmentToAboveLocalIfIntermediaryStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDoNotMergeAssignmentToAboveLocalIfIntermediaryStatement()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -695,12 +654,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDoNotMergeAssignmentToAboveIfLocalUsedInIfCondition()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDoNotMergeAssignmentToAboveIfLocalUsedInIfCondition()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -732,12 +689,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 bool Bar(int i) => true;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDoNotMergeAssignmentToAboveIfMultiDecl()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDoNotMergeAssignmentToAboveIfMultiDecl()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -765,12 +720,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseImplicitTypeForIntrinsicTypes()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseImplicitTypeForIntrinsicTypes()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -797,12 +750,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, options: new OptionsCollection(LanguageNames.CSharp) { { CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOption2.TrueWithSilentEnforcement } });
-    }
 
     [Fact]
-    public async Task TestUseImplicitTypeWhereApparent()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseImplicitTypeWhereApparent()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -829,12 +780,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, options: new OptionsCollection(LanguageNames.CSharp) { { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSilentEnforcement } });
-    }
 
     [Fact]
-    public async Task TestUseImplicitTypeWherePossible()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseImplicitTypeWherePossible()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -861,12 +810,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, options: new OptionsCollection(LanguageNames.CSharp) { { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOption2.TrueWithSilentEnforcement } });
-    }
 
     [Fact]
-    public async Task TestMissingWithoutElse()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithoutElse()
+        => TestMissingAsync(
             """
             class C
             {
@@ -879,12 +826,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithoutElseWithStatementAfterwards()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithoutElseWithStatementAfterwards()
+        => TestMissingAsync(
             """
             class C
             {
@@ -899,12 +844,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestMissingWithoutElseWithThrowStatementAfterwards()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithoutElseWithThrowStatementAfterwards()
+        => TestMissingAsync(
             """
             class C
             {
@@ -919,12 +862,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -953,12 +894,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, options: PreferImplicitTypeAlways);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw1_CSharp8()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw1_CSharp8()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -985,12 +924,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, LanguageVersion.CSharp8, PreferImplicitTypeAlways);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw1_CSharp9()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw1_CSharp9()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1017,12 +954,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, LanguageVersion.CSharp9, options: PreferImplicitTypeAlways);
-    }
 
     [Fact]
-    public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1049,12 +984,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, options: PreferImplicitTypeAlways);
-    }
 
     [Fact]
-    public async Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1081,12 +1014,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, options: PreferImplicitTypeAlways);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches_Throw1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches_Throw1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1113,12 +1044,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, options: PreferImplicitTypeAlways);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches_Throw2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches_Throw2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1145,12 +1074,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, options: PreferImplicitTypeAlways);
-    }
 
     [Fact]
-    public async Task TestConversionWithUseVarForAll_CanUseVarButRequiresCastOfConditionalBranch_CSharp8()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestConversionWithUseVarForAll_CanUseVarButRequiresCastOfConditionalBranch_CSharp8()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1177,12 +1104,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, LanguageVersion.CSharp8, PreferImplicitTypeAlways);
-    }
 
     [Fact]
-    public async Task TestConversionWithUseVarForAll_CanUseVarButRequiresCastOfConditionalBranch_CSharp9()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestConversionWithUseVarForAll_CanUseVarButRequiresCastOfConditionalBranch_CSharp9()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1209,12 +1134,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, LanguageVersion.CSharp9, options: PreferImplicitTypeAlways);
-    }
 
     [Fact]
-    public async Task TestKeepTriviaAroundIf()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestKeepTriviaAroundIf()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1242,12 +1165,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1285,12 +1206,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultiLine1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMultiLine1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1324,12 +1243,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 int Foo(int x, int y, int z) => 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultiLine2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMultiLine2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1363,12 +1280,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 int Foo(int x, int y, int z) => 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultiLine3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMultiLine3()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1404,12 +1319,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 int Foo(int x, int y, int z) => 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestElseIfWithBlock()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestElseIfWithBlock()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1444,12 +1357,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestElseIfWithBlock_Throw1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestElseIfWithBlock_Throw1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1484,12 +1395,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestElseIfWithBlock_Throw2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestElseIfWithBlock_Throw2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1524,12 +1433,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestElseIfWithoutBlock()
-    {
-        await new VerifyCS.Test
+    public Task TestElseIfWithoutBlock()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -1562,12 +1469,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRefAssignment1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRefAssignment1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1595,12 +1500,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestRefAssignment1_Throw1()
-    {
-        await TestMissingAsync(
+    public Task TestRefAssignment1_Throw1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1618,12 +1521,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestRefAssignment1_Throw2()
-    {
-        await TestMissingAsync(
+    public Task TestRefAssignment1_Throw2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1641,12 +1542,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrueFalse1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrueFalse1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1672,12 +1571,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestTrueFalse_Throw1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrueFalse_Throw1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1703,12 +1600,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestTrueFalse_Throw2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrueFalse_Throw2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1734,12 +1629,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrueFalse2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrueFalse2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1765,12 +1658,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestFalseTrue_Throw1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFalseTrue_Throw1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1796,12 +1687,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
-    public async Task TestFalseTrue_Throw2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFalseTrue_Throw2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1827,12 +1716,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58898")]
-    public async Task TestRemoveRedundantCast()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRemoveRedundantCast()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -1864,12 +1751,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, options: PreferImplicitTypeAlways);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33284")]
-    public async Task TestConditionalWithLambdas()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestConditionalWithLambdas()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -1901,12 +1786,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39260")]
-    public async Task TestTitleWhenSimplifying()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTitleWhenSimplifying()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -1947,7 +1830,6 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """, LanguageVersion.CSharp9, equivalenceKey: nameof(AnalyzersResources.Simplify_check));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67649")]
     [InlineData("int", "int")]
@@ -1956,9 +1838,8 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
     [InlineData("object", "string")]
     [InlineData("int", "long")]
     [InlineData("long", "int")]
-    public async Task TestForDiscardsWithMatchingOrConvertibleExpressionTypes(string originalFirstType, string originalSecondType)
-    {
-        await TestInRegularAndScript1Async($$"""
+    public Task TestForDiscardsWithMatchingOrConvertibleExpressionTypes(string originalFirstType, string originalSecondType)
+        => TestInRegularAndScript1Async($$"""
             class MyClass
             {
                 void M(bool flag)
@@ -1988,12 +1869,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 {{originalSecondType}} B() => default;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67649")]
-    public async Task TestMissingForDiscardsWithDifferentTypes()
-    {
-        await TestMissingAsync("""
+    public Task TestMissingForDiscardsWithDifferentTypes()
+        => TestMissingAsync("""
             class MyClass
             {
                 void M(bool flag)
@@ -2012,12 +1891,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 string B() => default;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67649")]
-    public async Task TestMissingForDiscardsWithBothImplicitConversions()
-    {
-        await TestMissingAsync("""
+    public Task TestMissingForDiscardsWithBothImplicitConversions()
+        => TestMissingAsync("""
             class MyClass
             {
                 void M(bool flag)
@@ -2042,12 +1919,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 public static implicit operator string(C c) => "";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68578")]
-    public async Task TestMissingWhenAssignmentReferencesPatternVariable()
-    {
-        await TestMissingAsync("""
+    public Task TestMissingWhenAssignmentReferencesPatternVariable()
+        => TestMissingAsync("""
             using System;
 
             public class Class1
@@ -2070,12 +1945,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68578")]
-    public async Task TestMissingWhenAssignmentReferencesOutVariable()
-    {
-        await TestMissingAsync("""
+    public Task TestMissingWhenAssignmentReferencesOutVariable()
+        => TestMissingAsync("""
             using System;
 
             public class Class1
@@ -2100,12 +1973,10 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 private static bool TryGetValue(out Class1 c) => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71403")]
-    public async Task TestGlobalStatements()
-    {
-        await new VerifyCS.Test
+    public Task TestGlobalStatements()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -2143,5 +2014,356 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 OutputKind = OutputKind.ConsoleApplication,
             }
         }.RunAsync();
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58897")]
+    public Task TestCommentsOnElse()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                void M(bool containsHighBits)
+                {
+                    int write;
+
+                    [|if|] (containsHighBits)
+                    {
+                        write = 0;
+                    }
+                    // Comment on else
+                    else
+                    {
+                        write = 1;
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                void M(bool containsHighBits)
+                {
+                    int write = containsHighBits
+                        ? 0
+                        // Comment on else
+                        : 1;
+                }
+            }
+            """, LanguageVersion.CSharp9);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60859")]
+    public Task UnnecessaryWithinConditionalBranch2()
+        => TestInRegularAndScript1Async(
+            """
+            public class IssueClass
+            {
+                double ID;
+
+                public void ConvertFieldValueForStorage(object value)
+                {
+                    object o;
+                    [|if|] (value is IssueClass issue)
+                    {
+                        o = (decimal)issue.ID;
+                    }
+                    else
+                    {
+                        o = -1m;
+                    }
+                }
+            }
+            """,
+            """
+            public class IssueClass
+            {
+                double ID;
+            
+                public void ConvertFieldValueForStorage(object value)
+                {
+                    object o = value is IssueClass issue ? (decimal)issue.ID : -1m;
+                }
+            }
+            """, LanguageVersion.CSharp13);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public Task TestNullCheck1()
+        => TestMissingAsync("""
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test != null && test.Field == null)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public Task TestNullCheck1_B()
+        => TestMissingAsync("""
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (null != test && test.Field == null)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public Task TestNullCheck2()
+        => TestMissingAsync("""
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test is not null && test.Field is null)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """, LanguageVersion.CSharp9);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public Task TestNullCheck3()
+        => TestMissingAsync("""
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test is { })
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public Task TestNullCheck4()
+        => TestMissingAsync("""
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test is { } x)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public Task TestNullCheck5()
+        => TestMissingAsync("""
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test is Test)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public Task TestNullCheck6()
+        => TestMissingAsync("""
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test is Test t)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75200")]
+    public Task TestNullCheck7()
+        => TestMissingAsync("""
+            using System;
+            public class Program
+            {
+                public void N(object[] parent, int i, object value)
+                {
+                    if (parent is { })
+                    {
+                        parent[i] = value;
+                    }
+                    else throw new Exception();
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public Task TestNullCheck_Positive1()
+        => TestInRegularAndScript1Async("""
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    [|if|] (test.Field == null)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """, """
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    test.Field = test.Field == null ? string.Empty : throw new InvalidOperationException();
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72464")]
+    public Task TestMissingWithVariableCollisions()
+        => TestMissingAsync(
+            """
+            using System;
+
+            public class IssueClass
+            {
+                public void Convert(Type type, string body)
+                {
+                    object o;
+                    if (type == typeof(bool))
+                    {
+                         o = bool.TryParse(body, out bool value) ? 0 : 1;
+                    }
+                    else
+                    {
+                        o = int.TryParse(body, out int value) ? 2 : 3;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestOnNullConditionalAssignment1()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                int i;
+
+                void M(C c)
+                {
+                    [|if|] (true)
+                    {
+                        c?.i = 0;
+                    }
+                    else
+                    {
+                        c?.i = 1;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int i;
+
+                void M(C c)
+                {
+                    c?.i = true ? 0 : 1;
+                }
+            }
+            """,
+            languageVersion: LanguageVersionExtensions.CSharpNext);
 }

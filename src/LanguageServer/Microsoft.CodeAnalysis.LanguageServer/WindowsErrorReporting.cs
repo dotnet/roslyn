@@ -5,7 +5,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-internal class WindowsErrorReporting
+internal sealed class WindowsErrorReporting
 {
     internal static void SetErrorModeOnWindows()
     {
@@ -14,18 +14,20 @@ internal class WindowsErrorReporting
             return;
         }
 
-        SetErrorMode(ErrorModes.SYSTEM_DEFAULT);
+        var oldErrorMode = SetErrorMode(ErrorModes.SYSTEM_DEFAULT);
 
         // There have been reports that SetErrorMode wasn't working correctly, so double
-        // check in Debug builds that it actually set
-        Debug.Assert(GetErrorMode() == (uint)ErrorModes.SYSTEM_DEFAULT);
+        // check in Debug builds that it actually set. The SEM_NOALIGNMENTFAULTEXCEPT mode
+        // is special because it cannot be cleared once it is set.
+        // Refer to https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-seterrormode
+        Debug.Assert(GetErrorMode() == (oldErrorMode & ErrorModes.SEM_NOALIGNMENTFAULTEXCEPT));
     }
 
     [DllImport("kernel32.dll")]
     private static extern ErrorModes SetErrorMode(ErrorModes uMode);
 
     [DllImport("kernel32.dll")]
-    private static extern uint GetErrorMode();
+    private static extern ErrorModes GetErrorMode();
 
     [Flags]
     private enum ErrorModes : uint

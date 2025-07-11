@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers;
 
-internal class MoveStaticMembersDialogViewModel : AbstractNotifyPropertyChanged
+internal sealed class MoveStaticMembersDialogViewModel : AbstractNotifyPropertyChanged
 {
     public StaticMemberSelectionViewModel MemberSelectionViewModel { get; }
 
@@ -142,27 +142,21 @@ internal class MoveStaticMembersDialogViewModel : AbstractNotifyPropertyChanged
         get => _icon;
         private set => SetProperty(ref _icon, value);
     }
-
-    private string? _message;
     public string? Message
     {
-        get => _message;
-        private set => SetProperty(ref _message, value);
+        get;
+        private set => SetProperty(ref field, value);
     }
-
-    private bool _showMessage = false;
     public bool ShowMessage
     {
-        get => _showMessage;
-        private set => SetProperty(ref _showMessage, value);
-    }
-
-    private bool _canSubmit = true;
+        get;
+        private set => SetProperty(ref field, value);
+    } = false;
     public bool CanSubmit
     {
-        get => _canSubmit;
-        set => SetProperty(ref _canSubmit, value);
-    }
+        get;
+        set => SetProperty(ref field, value);
+    } = true;
 
     private string _searchText;
     public string SearchText

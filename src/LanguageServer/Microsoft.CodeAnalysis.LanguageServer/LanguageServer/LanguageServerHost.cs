@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
-using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
@@ -27,7 +26,7 @@ internal sealed class LanguageServerHost
     private readonly AbstractLanguageServer<RequestContext> _roslynLanguageServer;
     private readonly JsonRpc _jsonRpc;
 
-    public LanguageServerHost(Stream inputStream, Stream outputStream, ExportProvider exportProvider, ILogger logger, AbstractTypeRefResolver typeRefResolver)
+    public LanguageServerHost(Stream inputStream, Stream outputStream, ExportProvider exportProvider, ILoggerFactory loggerFactory, AbstractTypeRefResolver typeRefResolver)
     {
         var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
 
@@ -42,7 +41,7 @@ internal sealed class LanguageServerHost
         var roslynLspFactory = exportProvider.GetExportedValue<ILanguageServerFactory>();
         var capabilitiesProvider = new ServerCapabilitiesProvider(exportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>());
 
-        _logger = logger;
+        _logger = loggerFactory.CreateLogger("LSP");
         var lspLogger = new LspServiceLogger(_logger);
 
         var hostServices = exportProvider.GetExportedValue<HostServicesProvider>().HostServices;

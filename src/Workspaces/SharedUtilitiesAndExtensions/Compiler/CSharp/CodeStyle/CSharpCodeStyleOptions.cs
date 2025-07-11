@@ -149,6 +149,11 @@ internal static partial class CSharpCodeStyleOptions
         "csharp_prefer_simple_default_expression",
         CSharpSimplifierOptions.Default.PreferSimpleDefaultExpression);
 
+    public static readonly Option2<CodeStyleOption2<bool>> PreferImplicitlyTypedLambdaExpression = CreateOption(
+        CodeStyleOptionGroups.ExpressionLevelPreferences,
+        "csharp_style_prefer_implicitly_typed_lambda_expression",
+        CSharpSimplifierOptions.Default.PreferImplicitlyTypedLambdaExpression);
+
     private static readonly ImmutableArray<SyntaxKind> s_preferredModifierOrderDefault =
     [
         SyntaxKind.PublicKeyword,
@@ -247,7 +252,7 @@ internal static partial class CSharpCodeStyleOptions
     public static Option2<CodeStyleOption2<bool>> AllowEmbeddedStatementsOnSameLine { get; } = CreateOption(
         CodeStyleOptionGroups.NewLinePreferences,
         "csharp_style_allow_embedded_statements_on_same_line_experimental",
-         CSharpSimplifierOptions.Default.AllowEmbeddedStatementsOnSameLine);
+        CSharpSimplifierOptions.Default.AllowEmbeddedStatementsOnSameLine);
 
     public static Option2<CodeStyleOption2<bool>> AllowBlankLinesBetweenConsecutiveBraces { get; } = CreateOption(
         CodeStyleOptionGroups.NewLinePreferences,

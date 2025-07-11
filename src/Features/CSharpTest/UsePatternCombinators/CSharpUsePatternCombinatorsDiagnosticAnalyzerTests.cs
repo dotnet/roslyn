@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -36,11 +37,13 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
     private Task TestAllMissingOnExpressionAsync(string expression, ParseOptions? parseOptions = null, bool enabled = true)
         => TestMissingAsync(FromExpression(expression), parseOptions, enabled);
 
-    private Task TestMissingAsync(string initialMarkup, ParseOptions? parseOptions = null, bool enabled = true)
+    private Task TestMissingAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, ParseOptions? parseOptions = null, bool enabled = true)
         => TestMissingAsync(initialMarkup, new TestParameters(
             parseOptions: parseOptions ?? CSharp9, options: enabled ? null : s_disabled));
 
-    private Task TestAllAsync(string initialMarkup, string expectedMarkup)
+    private Task TestAllAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup)
         => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup,
             parseOptions: CSharp9, options: null);
 
@@ -94,10 +97,8 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
     [InlineData("!(o is null)")]
     [InlineData("o is int ii || o is long jj")]
     [Theory]
-    public async Task TestMissingOnExpression(string expression)
-    {
-        await TestAllMissingOnExpressionAsync(expression);
-    }
+    public Task TestMissingOnExpression(string expression)
+        => TestAllMissingOnExpressionAsync(expression);
 
     [InlineData("i == default || i > default(int)", "i is default(int) or > default(int)")]
     [InlineData("!(o is C c)", "o is not C c")]
@@ -118,34 +119,25 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
     [InlineData("ch < ' ' || ch >= 0x100 || 'a' == ch", "ch is < ' ' or >= (char)0x100 or 'a'")]
     [InlineData("ch == 'a' || 'b' == ch", "ch is 'a' or 'b'")]
     [Theory]
-    public async Task TestOnExpression(string expression, string expected)
-    {
-        await TestAllOnExpressionAsync(expression, expected);
-    }
+    public Task TestOnExpression(string expression, string expected)
+        => TestAllOnExpressionAsync(expression, expected);
 
     [InlineData("nullable == 1 || 2 == nullable", "nullable is 1 or 2")]
     [Theory]
-    public async Task TestOnNullableExpression(string expression, string expected)
-    {
-        await TestAllOnExpressionAsync(expression, expected);
-    }
+    public Task TestOnNullableExpression(string expression, string expected)
+        => TestAllOnExpressionAsync(expression, expected);
 
     [Fact]
-    public async Task TestMissingIfDisabled()
-    {
-        await TestAllMissingOnExpressionAsync("o == 1 || o == 2", enabled: false);
-    }
+    public Task TestMissingIfDisabled()
+        => TestAllMissingOnExpressionAsync("o == 1 || o == 2", enabled: false);
 
     [Fact]
-    public async Task TestMissingOnCSharp8()
-    {
-        await TestAllMissingOnExpressionAsync("o == 1 || o == 2", parseOptions: TestOptions.Regular8);
-    }
+    public Task TestMissingOnCSharp8()
+        => TestAllMissingOnExpressionAsync("o == 1 || o == 2", parseOptions: TestOptions.Regular8);
 
     [Fact]
-    public async Task TestMultilineTrivia_01()
-    {
-        await TestAllAsync(
+    public Task TestMultilineTrivia_01()
+        => TestAllAsync(
             """
             class C
             {
@@ -180,12 +172,10 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultilineTrivia_02()
-    {
-        await TestAllAsync(
+    public Task TestMultilineTrivia_02()
+        => TestAllAsync(
             """
             class C
             {
@@ -220,12 +210,10 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParenthesized()
-    {
-        await TestAllAsync(
+    public Task TestParenthesized()
+        => TestAllAsync(
             """
             class C
             {
@@ -252,12 +240,10 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66787")]
-    public async Task TestConvertedConstants()
-    {
-        await TestAllAsync(
+    public Task TestConvertedConstants()
+        => TestAllAsync(
             """
             class C
             {
@@ -276,12 +262,10 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingInExpressionTree()
-    {
-        await TestMissingAsync(
+    public Task TestMissingInExpressionTree()
+        => TestMissingAsync(
             """
             using System.Linq;
             class C
@@ -292,12 +276,10 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52397")]
-    public async Task TestMissingInPropertyAccess_NullCheckOnLeftSide()
-    {
-        await TestMissingAsync(
+    public Task TestMissingInPropertyAccess_NullCheckOnLeftSide()
+        => TestMissingAsync(
             """
             using System;
 
@@ -315,12 +297,10 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52397")]
-    public async Task TestMissingInPropertyAccess_NullCheckOnRightSide()
-    {
-        await TestMissingAsync(
+    public Task TestMissingInPropertyAccess_NullCheckOnRightSide()
+        => TestMissingAsync(
             """
             using System;
 
@@ -338,89 +318,87 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/51691")]
     [InlineData("&&")]
     [InlineData("||")]
-    public async Task TestMissingInPropertyAccess_EnumCheckAndNullCheck(string logicalOperator)
-    {
-        await TestMissingAsync(
-$@"using System.Diagnostics;
+    public Task TestMissingInPropertyAccess_EnumCheckAndNullCheck(string logicalOperator)
+        => TestMissingAsync(
+            $$"""
+            using System.Diagnostics;
 
-public class C
-{{
-    public void M()
-    {{
-            var p = default(Process);
-            if (p.StartInfo.WindowStyle == ProcessWindowStyle.Hidden [|{logicalOperator}|] p.StartInfo != null)
-            {{
-            }}
-    }}
-}}");
-    }
+            public class C
+            {
+                public void M()
+                {
+                        var p = default(Process);
+                        if (p.StartInfo.WindowStyle == ProcessWindowStyle.Hidden [|{{logicalOperator}}|] p.StartInfo != null)
+                        {
+                        }
+                }
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/51691")]
     [InlineData("&&")]
     [InlineData("||")]
-    public async Task TestMissingInPropertyAccess_EnumCheckAndNullCheckOnOtherType(string logicalOperator)
-    {
-        await TestMissingAsync(
-$@"using System.Diagnostics;
+    public Task TestMissingInPropertyAccess_EnumCheckAndNullCheckOnOtherType(string logicalOperator)
+        => TestMissingAsync(
+            $$"""
+            using System.Diagnostics;
 
-public class C
-{{
-    public void M()
-    {{
-            var p = default(Process);
-            if (p.StartInfo.WindowStyle == ProcessWindowStyle.Hidden [|{logicalOperator}|] this != null)
-            {{
-            }}
-    }}
-}}");
-    }
+            public class C
+            {
+                public void M()
+                {
+                        var p = default(Process);
+                        if (p.StartInfo.WindowStyle == ProcessWindowStyle.Hidden [|{{logicalOperator}}|] this != null)
+                        {
+                        }
+                }
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/51693")]
     [InlineData("&&")]
     [InlineData("||")]
-    public async Task TestMissingInPropertyAccess_IsCheckAndNullCheck(string logicalOperator)
-    {
-        await TestMissingAsync(
-$@"using System;
+    public Task TestMissingInPropertyAccess_IsCheckAndNullCheck(string logicalOperator)
+        => TestMissingAsync(
+            $$"""
+            using System;
 
-public class C
-{{
-    public void M()
-    {{
-            var o1 = new object();
-            if (o1 is IAsyncResult ar [|{logicalOperator}|] ar.AsyncWaitHandle != null)
-            {{
-            }}
-    }}
-}}");
-    }
+            public class C
+            {
+                public void M()
+                {
+                        var o1 = new object();
+                        if (o1 is IAsyncResult ar [|{{logicalOperator}}|] ar.AsyncWaitHandle != null)
+                        {
+                        }
+                }
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/52573")]
     [InlineData("&&")]
     [InlineData("||")]
-    public async Task TestMissingIntegerAndStringIndex(string logicalOperator)
-    {
-        await TestMissingAsync(
-$@"using System;
+    public Task TestMissingIntegerAndStringIndex(string logicalOperator)
+        => TestMissingAsync(
+            $$"""
+            using System;
 
-public class C
-{{
-    private static bool IsS(char[] ch, int count)
-    {{
-        return count == 1 [|{logicalOperator}|] ch[0] == 'S';
-    }}
-}}");
-    }
+            public class C
+            {
+                private static bool IsS(char[] ch, int count)
+                {
+                    return count == 1 [|{{logicalOperator}}|] ch[0] == 'S';
+                }
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66787")]
-    public async Task TestMissingForImplicitUserDefinedCasts1()
-    {
-        await TestMissingAsync(
+    public Task TestMissingForImplicitUserDefinedCasts1()
+        => TestMissingAsync(
             """
             using System;
             class C
@@ -433,12 +411,10 @@ public class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66787")]
-    public async Task TestMissingForImplicitUserDefinedCasts2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingForImplicitUserDefinedCasts2()
+        => TestMissingAsync(
             """
             using System;
             class C
@@ -451,12 +427,10 @@ public class C
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnSideEffects1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnSideEffects1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -500,12 +474,10 @@ public class C
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnSideEffects2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnSideEffects2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -549,12 +521,10 @@ public class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57199")]
-    public async Task TestMissingInNonConvertibleTypePattern1()
-    {
-        await TestMissingAsync(
+    public Task TestMissingInNonConvertibleTypePattern1()
+        => TestMissingAsync(
             """
             static class C
             {
@@ -569,12 +539,10 @@ public class C
                 bool P => [|C is C.S1 || C is C.S2|];
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57199")]
-    public async Task TestMissingInNonConvertibleTypePattern2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingInNonConvertibleTypePattern2()
+        => TestMissingAsync(
             """
             class Goo
             {
@@ -592,12 +560,10 @@ public class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57199")]
-    public async Task TestMissingInNonConvertibleTypePattern3()
-    {
-        await TestMissingAsync(
+    public Task TestMissingInNonConvertibleTypePattern3()
+        => TestMissingAsync(
             """
             class Goo
             {
@@ -613,12 +579,10 @@ public class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57199")]
-    public async Task TestInConvertibleTypePattern()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInConvertibleTypePattern()
+        => TestInRegularAndScriptAsync(
             """
             static class C
             {
@@ -646,12 +610,10 @@ public class C
                 bool P => C is C.S1 or C.S2;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57199")]
-    public async Task TestInConvertibleTypePattern2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInConvertibleTypePattern2()
+        => TestInRegularAndScriptAsync(
             """
             public class Goo
             {
@@ -689,12 +651,10 @@ public class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75122")]
-    public async Task TestNotWithMultipleCallsToInvocationWithRefArgument()
-    {
-        await TestMissingAsync(
+    public Task TestNotWithMultipleCallsToInvocationWithRefArgument()
+        => TestMissingAsync(
             """
             using System;
 
@@ -719,5 +679,34 @@ public class C
                 }
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76730")]
+    public Task TestLogicalAndPatternNot()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                static void Main()
+                {
+                    var v = "";
+                    if ([|!(v is not null)|])
+                    {
+                        Console.WriteLine("");
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                static void Main()
+                {
+                    var v = "";
+                    if (v is null)
+                    {
+                        Console.WriteLine("");
+                    }
+                }
+            }
+            """);
 }

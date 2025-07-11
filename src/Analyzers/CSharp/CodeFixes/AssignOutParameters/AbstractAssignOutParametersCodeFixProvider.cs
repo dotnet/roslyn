@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -160,7 +159,7 @@ internal abstract class AbstractAssignOutParametersCodeFixProvider : SyntaxEdito
         {
             result.Add(generator.ExpressionStatement(generator.AssignmentStatement(
                 generator.IdentifierName(parameter.Name),
-                ExpressionGenerator.GenerateExpression(generator, parameter.Type, value: null, canUseFieldReference: false))));
+                ExpressionGenerator.GenerateExpression(parameter.Type, value: null, canUseFieldReference: false))));
         }
 
         return result.ToImmutableAndFree();

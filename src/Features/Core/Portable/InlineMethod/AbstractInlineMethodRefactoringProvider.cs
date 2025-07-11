@@ -79,6 +79,8 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
         _semanticFactsService = semanticFactsService;
     }
 
+    internal override CodeRefactoringKind Kind => CodeRefactoringKind.Inline;
+
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, _, cancellationToken) = context;
@@ -89,8 +91,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
         }
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var calleeMethodSymbol = semanticModel.GetSymbolInfo(calleeInvocationNode, cancellationToken).GetAnySymbol() as IMethodSymbol;
-        if (calleeMethodSymbol == null)
+        if (semanticModel.GetSymbolInfo(calleeInvocationNode, cancellationToken).GetAnySymbol() is not IMethodSymbol calleeMethodSymbol)
         {
             return;
         }
@@ -123,8 +124,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
         }
 
         var calleeMethodDeclarationSyntaxReference = calleeMethodDeclarationSyntaxReferences[0];
-        var calleeMethodNode = await calleeMethodDeclarationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false) as TMethodDeclarationSyntax;
-        if (calleeMethodNode == null)
+        if (await calleeMethodDeclarationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false) is not TMethodDeclarationSyntax calleeMethodNode)
         {
             return;
         }
@@ -220,8 +220,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
         }
 
         var callerDeclarationNode = await callerReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-        var invocationOperation = semanticModel.GetOperation(calleeInvocationNode, cancellationToken) as IInvocationOperation;
-        if (invocationOperation == null)
+        if (semanticModel.GetOperation(calleeInvocationNode, cancellationToken) is not IInvocationOperation invocationOperation)
         {
             return;
         }
@@ -581,10 +580,26 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                 return declaredSymbol;
             }
 
-            if (IsFieldDeclarationSyntax(node)
-                && semanticModel.GetExistingSymbols(node, cancellationToken).SingleOrDefault() is IFieldSymbol fieldSymbol)
+            if (IsFieldDeclarationSyntax(node))
             {
-                return fieldSymbol;
+                foreach (var declarator in node.DescendantNodes().OfType<SyntaxNode>()
+                    .Where(n => _syntaxFacts.IsVariableDeclarator(n)))
+                {
+                    var initializer = _syntaxFacts.GetInitializerOfVariableDeclarator(declarator);
+                    if (initializer?.DescendantNodesAndSelf().Contains(calleeMethodInvocationNode) is true)
+                    {
+                        if (semanticModel.GetDeclaredSymbol(declarator, cancellationToken) is IFieldSymbol fieldSymbol)
+                        {
+                            return fieldSymbol;
+                        }
+                    }
+                }
+
+                // Fall back to the current approach for the VB case
+                if (semanticModel.GetAllDeclaredSymbols(node, cancellationToken).SingleOrDefault() is IFieldSymbol fieldSymbolFallBack)
+                {
+                    return fieldSymbolFallBack;
+                }
             }
 
             if (_syntaxFacts.IsAnonymousFunctionExpression(node))

@@ -14,7 +14,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeLens;
 
-public class CSharpCodeLensTests : AbstractCodeLensTests
+public sealed class CSharpCodeLensTests : AbstractCodeLensTests
 {
     public CSharpCodeLensTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
     {
@@ -24,12 +24,14 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestNoReferenceAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void {|codeLens:M|}()
-    {
-    }
-}";
+            """
+            class A
+            {
+                void {|codeLens:M|}()
+                {
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -38,17 +40,19 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestOneReferenceAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void {|codeLens:M|}()
-    {
-    }
+            """
+            class A
+            {
+                void {|codeLens:M|}()
+                {
+                }
 
-    void UseM()
-    {
-        M();
-    }
-}";
+                void UseM()
+                {
+                    M();
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 1);
     }
@@ -57,18 +61,20 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestMultipleReferencesAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void {|codeLens:M|}()
-    {
-    }
+            """
+            class A
+            {
+                void {|codeLens:M|}()
+                {
+                }
 
-    void UseM()
-    {
-        M();
-        M();
-    }
-}";
+                void UseM()
+                {
+                    M();
+                    M();
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 2);
     }
@@ -77,21 +83,23 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestMultipleReferencesCappedAsync(bool lspMutatingWorkspace)
     {
         var markup =
-@"class A
-{
-    void {|codeLens:M|}()
-    {
-    }
+            """
+            class A
+            {
+                void {|codeLens:M|}()
+                {
+                }
 
-    void UseM()
-    {
-        M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();
-        M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();
-        M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();
-        M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();
-        M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();
-    }
-}";
+                void UseM()
+                {
+                    M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();
+                    M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();
+                    M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();
+                    M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();
+                    M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();M();
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 100, isCapped: true);
     }
@@ -100,12 +108,14 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestClassDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
-@"class {|codeLens:A|}
-{
-    void M(A a)
-    {
-    }
-}";
+            """
+            class {|codeLens:A|}
+            {
+                void M(A a)
+                {
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 1);
     }
@@ -114,9 +124,11 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestInterfaceDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
-@"interface {|codeLens:A|}
-{
-}";
+            """
+            interface {|codeLens:A|}
+            {
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -125,10 +137,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestEnumDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
-@"enum {|codeLens:A|}
-{
-    One
-}";
+            """
+            enum {|codeLens:A|}
+            {
+                One
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -138,10 +152,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestEnumMemberDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
-@"enum A
-{
-    {|codeLens:One|}
-}";
+            """
+            enum A
+            {
+                {|codeLens:One|}
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -150,10 +166,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestPropertyDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
-@"class A
-{
-    public int {|codeLens:I|} { get; set; }
-}";
+            """
+            class A
+            {
+                public int {|codeLens:I|} { get; set; }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -163,10 +181,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestEventDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
-@"class A
-{
-    public event System.EventHandler {|codeLens:I|} { add { } remove { } }
-}";
+            """
+            class A
+            {
+                public event System.EventHandler {|codeLens:I|} { add { } remove { } }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -176,10 +196,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestEventFieldDeclaration1Async(bool lspMutatingWorkspace)
     {
         var markup =
-@"class A
-{
-    public event System.EventHandler {|codeLens:I|};
-}";
+            """
+            class A
+            {
+                public event System.EventHandler {|codeLens:I|};
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -189,10 +211,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestEventFieldDeclaration2Async(bool lspMutatingWorkspace)
     {
         var markup =
-@"class A
-{
-    public event System.EventHandler {|codeLens:I|}, I2;
-}";
+            """
+            class A
+            {
+                public event System.EventHandler {|codeLens:I|}, I2;
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -202,10 +226,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestEventFieldDeclaration3Async(bool lspMutatingWorkspace)
     {
         var markup =
-@"class A
-{
-    public event System.EventHandler I, {|codeLens:I2|};
-}";
+            """
+            class A
+            {
+                public event System.EventHandler I, {|codeLens:I2|};
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -215,10 +241,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestFieldDeclaration1Async(bool lspMutatingWorkspace)
     {
         var markup =
-@"class A
-{
-    public int {|codeLens:I|};
-}";
+            """
+            class A
+            {
+                public int {|codeLens:I|};
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -228,10 +256,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestFieldDeclaration2Async(bool lspMutatingWorkspace)
     {
         var markup =
-@"class A
-{
-    public int {|codeLens:I|}, I2;
-}";
+            """
+            class A
+            {
+                public int {|codeLens:I|}, I2;
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -241,10 +271,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestFieldDeclaration3Async(bool lspMutatingWorkspace)
     {
         var markup =
-@"class A
-{
-    public int I, {|codeLens:I2|};
-}";
+            """
+            class A
+            {
+                public int I, {|codeLens:I2|};
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -254,10 +286,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestConstantDeclaration1Async(bool lspMutatingWorkspace)
     {
         var markup =
-@"class A
-{
-    public const int {|codeLens:I|} = 0;
-}";
+            """
+            class A
+            {
+                public const int {|codeLens:I|} = 0;
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -267,10 +301,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestConstantDeclaration2Async(bool lspMutatingWorkspace)
     {
         var markup =
-@"class A
-{
-    public const int {|codeLens:I|} = 0, I2 = 0;
-}";
+            """
+            class A
+            {
+                public const int {|codeLens:I|} = 0, I2 = 0;
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -280,10 +316,12 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestConstantDeclaration3Async(bool lspMutatingWorkspace)
     {
         var markup =
-@"class A
-{
-    public const int I = 0, {|codeLens:I2|} = 0;
-}";
+            """
+            class A
+            {
+                public const int I = 0, {|codeLens:I2|} = 0;
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -292,12 +330,14 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestMethodDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
-@"class A
-{
-    public int {|codeLens:M|}()
-    {
-    }
-}";
+            """
+            class A
+            {
+                public int {|codeLens:M|}()
+                {
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -306,9 +346,11 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestStructDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
-@"struct {|codeLens:A|}
-{
-}";
+            """
+            struct {|codeLens:A|}
+            {
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -327,12 +369,14 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestConstructorDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
-@"class A
-{
-    public {|codeLens:A|}()
-    {
-    }
-}";
+            """
+            class A
+            {
+                public {|codeLens:A|}()
+                {
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -342,12 +386,14 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestDestructorDeclarationAsync(bool lspMutatingWorkspace)
     {
         var markup =
-@"class A
-{
-    ~{|codeLens:A|}()
-    {
-    }
-}";
+            """
+            class A
+            {
+                ~{|codeLens:A|}()
+                {
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
     }
@@ -365,17 +411,19 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestDoesNotCrashWhenSyntaxVersionsMismatch(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void {|codeLens:M|}()
-    {
-    }
+            """
+            class A
+            {
+                void {|codeLens:M|}()
+                {
+                }
 
-    void UseM()
-    {
-        M();
-    }
-}";
+                void UseM()
+                {
+                    M();
+                }
+            }
+            """;
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
@@ -386,8 +434,8 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
         };
 
         var actualCodeLenses = await testLspServer.ExecuteRequestAsync<LSP.CodeLensParams, LSP.CodeLens[]?>(LSP.Methods.TextDocumentCodeLensName, codeLensParamsDoc1, CancellationToken.None);
-        var firstCodeLens = actualCodeLenses.First();
-        var data = JsonSerializer.Deserialize<CodeLensResolveData>(firstCodeLens.Data!.ToString(), ProtocolConversions.LspJsonSerializerOptions);
+        var firstCodeLens = actualCodeLenses!.First();
+        var data = JsonSerializer.Deserialize<CodeLensResolveData>(firstCodeLens.Data!.ToString()!, ProtocolConversions.LspJsonSerializerOptions);
         AssertEx.NotNull(data);
 
         // Update the document so the syntax version changes
@@ -403,19 +451,18 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestNoCodeLensWhenReferencesDisabledAsync(bool lspMutatingWorkspace)
     {
         var markup =
-@"class {|codeLens:A|}
-{
-    void M(A a)
-    {
-    }
-}";
+            """
+            class {|codeLens:A|}
+            {
+                void M(A a)
+                {
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, new InitializationOptions
         {
             ClientCapabilities = CapabilitiesWithVSExtensions,
-            OptionUpdater = (globalOptions) =>
-            {
-                globalOptions.SetGlobalOption(LspOptionsStorage.LspEnableReferencesCodeLens, LanguageNames.CSharp, false);
-            }
+            OptionUpdater = (globalOptions) => globalOptions.SetGlobalOption(LspOptionsStorage.LspEnableReferencesCodeLens, LanguageNames.CSharp, false)
         });
         var actualCodeLenses = await GetCodeLensAsync(testLspServer);
         AssertEx.Empty(actualCodeLenses);
@@ -425,31 +472,29 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     public async Task TestHasTestsCommandAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
-namespace Xunit
-{
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class FactAttribute : Attribute { }
-}
-namespace Test
-{
-    using Xunit;
-    class A
-    {
-        [Fact]
-        public void {|codeLens:M|}()
-        {
-        }
-    }
-}
-";
+            """
+            using System;
+            namespace Xunit
+            {
+                [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+                public class FactAttribute : Attribute { }
+            }
+            namespace Test
+            {
+                using Xunit;
+                class A
+                {
+                    [Fact]
+                    public void {|codeLens:M|}()
+                    {
+                    }
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
         {
             ClientCapabilities = CapabilitiesWithVSExtensions,
-            OptionUpdater = (globalOptions) =>
-            {
-                globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false);
-            }
+            OptionUpdater = (globalOptions) => globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false)
         });
         await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_Test, FeaturesResources.Debug_Test);
     }
@@ -458,31 +503,29 @@ namespace Test
     public async Task TestHasAllTestsCommandAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
-namespace Xunit
-{
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class FactAttribute : Attribute { }
-}
-namespace Test
-{
-    using Xunit;
-    class {|codeLens:A|}
-    {
-        [Fact]
-        public void M()
-        {
-        }
-    }
-}
-";
+            """
+            using System;
+            namespace Xunit
+            {
+                [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+                public class FactAttribute : Attribute { }
+            }
+            namespace Test
+            {
+                using Xunit;
+                class {|codeLens:A|}
+                {
+                    [Fact]
+                    public void M()
+                    {
+                    }
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
         {
             ClientCapabilities = CapabilitiesWithVSExtensions,
-            OptionUpdater = (globalOptions) =>
-            {
-                globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false);
-            }
+            OptionUpdater = (globalOptions) => globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false)
         });
         await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_All_Tests, FeaturesResources.Debug_All_Tests);
     }
@@ -491,31 +534,29 @@ namespace Test
     public async Task TestDoesNotHaveTestCommandWhenInDevkitAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
-namespace Xunit
-{
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class FactAttribute : Attribute { }
-}
-namespace Test
-{
-    using Xunit;
-    class A
-    {
-        [Fact]
-        public void {|codeLens:M|}()
-        {
-        }
-    }
-}
-";
+            """
+            using System;
+            namespace Xunit
+            {
+                [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+                public class FactAttribute : Attribute { }
+            }
+            namespace Test
+            {
+                using Xunit;
+                class A
+                {
+                    [Fact]
+                    public void {|codeLens:M|}()
+                    {
+                    }
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
         {
             ClientCapabilities = CapabilitiesWithVSExtensions,
-            OptionUpdater = (globalOptions) =>
-            {
-                globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, true);
-            }
+            OptionUpdater = (globalOptions) => globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, true)
         });
         await VerifyTestCodeLensMissingAsync(testLspServer);
     }
@@ -524,31 +565,29 @@ namespace Test
     public async Task TestDoesNotHaveTestCommandWhenDisabledAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
-namespace Xunit
-{
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class FactAttribute : Attribute { }
-}
-namespace Test
-{
-    using Xunit;
-    class A
-    {
-        [Fact]
-        public void {|codeLens:M|}()
-        {
-        }
-    }
-}
-";
+            """
+            using System;
+            namespace Xunit
+            {
+                [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+                public class FactAttribute : Attribute { }
+            }
+            namespace Test
+            {
+                using Xunit;
+                class A
+                {
+                    [Fact]
+                    public void {|codeLens:M|}()
+                    {
+                    }
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
         {
             ClientCapabilities = CapabilitiesWithVSExtensions,
-            OptionUpdater = (globalOptions) =>
-            {
-                globalOptions.SetGlobalOption(LspOptionsStorage.LspEnableTestsCodeLens, LanguageNames.CSharp, false);
-            }
+            OptionUpdater = (globalOptions) => globalOptions.SetGlobalOption(LspOptionsStorage.LspEnableTestsCodeLens, LanguageNames.CSharp, false)
         });
         await VerifyTestCodeLensMissingAsync(testLspServer);
     }

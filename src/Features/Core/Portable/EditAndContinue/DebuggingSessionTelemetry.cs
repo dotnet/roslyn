@@ -76,15 +76,16 @@ internal sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
 
         var debugSessionId = getNextId();
 
-        log(FunctionId.Debugging_EncSession, KeyValueLogMessage.Create(map =>
+        log(FunctionId.Debugging_EncSession, KeyValueLogMessage.Create(static (map, args) =>
         {
+            var (data, debugSessionId) = args;
             map["SolutionSessionId"] = data.SolutionSessionId.ToString("B").ToUpperInvariant();
             map[SessionId] = debugSessionId;
             map["SessionCount"] = data.EditSessionData.Count(session => session.InBreakState);
             map["EmptySessionCount"] = data.EmptyEditSessionCount;
             map["HotReloadSessionCount"] = data.EditSessionData.Count(session => !session.InBreakState);
             map["EmptyHotReloadSessionCount"] = data.EmptyHotReloadEditSessionCount;
-        }));
+        }, (data, debugSessionId)));
 
         foreach (var editSessionData in data.EditSessionData)
         {
@@ -105,7 +106,7 @@ internal sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
 
                 map["RudeEditsCount"] = editSessionData.RudeEdits.Length;
 
-                // Number of emit errors.
+                // Number of emit errors. These are any errors only produced during emitting deltas and do not include document analysis errors.
                 map["EmitDeltaErrorIdCount"] = editSessionData.EmitErrorIds.Length;
 
                 // False for Hot Reload session, true or missing for EnC session (missing in older data that did not have this property).

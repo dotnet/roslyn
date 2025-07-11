@@ -15,16 +15,15 @@ using VerifyCS = CSharpCodeFixVerifier<
     EmptyDiagnosticAnalyzer,
     CSharpImplementInterfaceCodeFixProvider>;
 
-public class ImplementInterfaceTests_FixAllTests
+public sealed class ImplementInterfaceTests_FixAllTests
 {
     #region "Fix all occurrences tests"
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAllInDocument()
+        => new VerifyCS.Test
         {
             TestState =
             {
@@ -158,16 +157,13 @@ public class ImplementInterfaceTests_FixAllTests
             },
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllInProjectCheck | CodeFixTestBehaviors.SkipFixAllInSolutionCheck,
             CodeActionEquivalenceKey = "False;False;True:global::I1;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
         }.RunAsync();
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAllInProject()
+        => new VerifyCS.Test
         {
             TestState =
             {
@@ -310,16 +306,13 @@ public class ImplementInterfaceTests_FixAllTests
             },
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeFixTestBehaviors.SkipFixAllInSolutionCheck,
             CodeActionEquivalenceKey = "False;False;True:global::I1;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
         }.RunAsync();
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAllInSolution()
+        => new VerifyCS.Test
         {
             TestState =
             {
@@ -492,14 +485,12 @@ public class ImplementInterfaceTests_FixAllTests
             CodeActionEquivalenceKey = "True;False;False:global::I2;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution_DifferentAssemblyWithSameTypeName()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAllInSolution_DifferentAssemblyWithSameTypeName()
+        => new VerifyCS.Test
         {
             TestState =
             {
@@ -690,7 +681,6 @@ public class ImplementInterfaceTests_FixAllTests
             CodeActionEquivalenceKey = "True;False;False:global::I2;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
-    }
 
     #endregion
 }

@@ -9,9 +9,6 @@
 
 #endregion
 
-using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Microsoft.MetadataReader;
-using Microsoft.VisualStudio.Debugger.Symbols;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -20,6 +17,9 @@ using System.Reflection;
 using System.Reflection.Adds;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.MetadataReader;
+using Microsoft.VisualStudio.Debugger.Symbols;
 
 namespace Microsoft.VisualStudio.Debugger.Clr
 {
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             get { return _resolveTypeNameFailures; }
         }
 
-        public object GetMetaDataImport() => new MetadataImportMock(Assembly);
+        public DkmMetadataImportHolder GetMetaDataImportHolder() => new DkmMetadataImportHolder(new MetadataImportMock(Assembly));
 
         private class MetadataImportMock : IMetadataImport
         {

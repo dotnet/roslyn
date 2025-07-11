@@ -11,12 +11,8 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Utilities;
 
-internal class MemberSymbolViewModel : SymbolViewModel<ISymbol>
+internal sealed class MemberSymbolViewModel : SymbolViewModel<ISymbol>
 {
-    private bool _isCheckable;
-    private bool _makeAbstract;
-    private bool _isMakeAbstractCheckable;
-    private string _tooltipText;
     public string MakeAbstractCheckBoxAutomationText => string.Format(ServicesVSResources.Make_0_abstract, Symbol.Name);
     public string RowSelectionAutomationText => ServicesVSResources.Select_member;
 
@@ -29,23 +25,23 @@ internal class MemberSymbolViewModel : SymbolViewModel<ISymbol>
     /// <summary>
     /// Indicates whether 'Make abstract' check box is checked.
     /// </summary>
-    public bool MakeAbstract { get => _makeAbstract; set => SetProperty(ref _makeAbstract, value, nameof(MakeAbstract)); }
+    public bool MakeAbstract { get; set => SetProperty(ref field, value, nameof(MakeAbstract)); }
 
     /// <summary>
     /// Indicates whether make abstract check box is enabled or not. (e.g. When user selects on interface destination, it will be disabled)
     /// </summary>
-    public bool IsMakeAbstractCheckable { get => _isMakeAbstractCheckable; set => SetProperty(ref _isMakeAbstractCheckable, value, nameof(IsMakeAbstractCheckable)); }
+    public bool IsMakeAbstractCheckable { get; set => SetProperty(ref field, value, nameof(IsMakeAbstractCheckable)); }
 
     /// <summary>
     /// Indicates whether this member checkable.
     /// </summary>
-    public bool IsCheckable { get => _isCheckable; set => SetProperty(ref _isCheckable, value, nameof(IsCheckable)); }
+    public bool IsCheckable { get; set => SetProperty(ref field, value, nameof(IsCheckable)); }
 
     /// <summary>
     /// Tooltip text, also used as HelpText for screen readers. Should be empty
     /// when no tool tip should be shown
     /// </summary>
-    public string TooltipText { get => _tooltipText; set => SetProperty(ref _tooltipText, value, nameof(TooltipText)); }
+    public string TooltipText { get; set => SetProperty(ref field, value, nameof(TooltipText)); }
 
     /// <summary>
     /// The content of tooltip.

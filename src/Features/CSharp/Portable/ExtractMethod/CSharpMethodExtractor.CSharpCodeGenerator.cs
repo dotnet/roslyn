@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -72,6 +71,14 @@ internal sealed partial class CSharpExtractMethodService
                 _methodName = nameToken.WithAdditionalAnnotations(MethodNameAnnotation);
             }
 
+            protected override StatementSyntax CreateBreakStatement()
+                // Being explicit about trivia ensures the formatter doesn't insert newlines in undesirable places.
+                => BreakStatement(BreakKeyword.WithoutTrailingTrivia(), SemicolonToken.WithoutLeadingTrivia());
+
+            protected override StatementSyntax CreateContinueStatement()
+                // Being explicit about trivia ensures the formatter doesn't insert newlines in undesirable places.
+                => ContinueStatement(ContinueKeyword.WithoutTrailingTrivia(), SemicolonToken.WithoutLeadingTrivia());
+
             public override OperationStatus<ImmutableArray<SyntaxNode>> GetNewMethodStatements(SyntaxNode insertionPointNode, CancellationToken cancellationToken)
             {
                 var statements = CreateMethodBody(insertionPointNode, cancellationToken);
@@ -89,7 +96,7 @@ internal sealed partial class CSharpExtractMethodService
                     attributes: [],
                     accessibility: Accessibility.Private,
                     modifiers: CreateMethodModifiers(),
-                    returnType: AnalyzerResult.ReturnType,
+                    returnType: this.GetFinalReturnType(),
                     refKind: AnalyzerResult.ReturnsByRef ? RefKind.Ref : RefKind.None,
                     explicitInterfaceImplementations: default,
                     name: _methodName.ToString(),
@@ -146,10 +153,147 @@ internal sealed partial class CSharpExtractMethodService
                 var statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(cancellationToken);
                 statements = postProcessor.MergeDeclarationStatements(statements);
                 statements = AddAssignmentStatementToCallSite(statements, cancellationToken);
+                statements = AddComplexFlowControlProcessingStatements(statements);
                 statements = await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(false);
                 statements = AddReturnIfUnreachable(statements, cancellationToken);
 
                 return statements.CastArray<SyntaxNode>();
+            }
+
+            /// <summary>
+            /// Adds the statements after the call to the newly extracted method to handle processing of the control
+            /// flow return value, and optionally the normal return value of the method.
+            /// </summary>
+            private ImmutableArray<StatementSyntax> AddComplexFlowControlProcessingStatements(ImmutableArray<StatementSyntax> statements)
+            {
+                var flowControlInformation = this.AnalyzerResult.FlowControlInformation;
+                if (!flowControlInformation.NeedsControlFlowValue())
+                    return statements;
+
+                var useBlock = ((CSharpSimplifierOptions)this.ExtractMethodGenerationOptions.SimplifierOptions).PreferBraces.Value == CodeAnalysis.CodeStyle.PreferBracesPreference.Always;
+                return statements.Add(GetFlowControlStatement());
+
+                StatementSyntax GetFlowControlStatement()
+                {
+                    var controlFlowValueType = flowControlInformation.ControlFlowValueType;
+                    if (controlFlowValueType.SpecialType == SpecialType.System_Boolean)
+                    {
+                        if (flowControlInformation.TryGetFallThroughFlowValue(out _))
+                        {
+                            // If we have 'fallthrough' as as the final control flow value, then we'll just emit:
+                            //
+                            //      if (!flowControl) FlowControlConstruct; // allowing fallthrough to happen automatically.
+                            return IfStatement(
+                                PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, IdentifierName(FlowControlName)),
+                                Block(GetFlowStatement(false)));
+                        }
+                        else if (flowControlInformation.BreakStatementCount == 0)
+                        {
+                            // Otherwise, if we have no break statements we'll emit the following as its shorter:
+                            //
+                            //      switch (flowControl)
+                            //      {
+                            //          case false: FlowControlConstruct1;
+                            //          case true: FlowControlConstruct2;
+                            //      }
+                            return NoBreakSwitchStatement();
+                        }
+                        else
+                        {
+                            // Otherwise, we'll emit:
+                            //
+                            //      if (flowControl)
+                            //          FlowControlConstruct1;
+                            //      else
+                            //          FlowControlConstruct2;
+                            return IfStatement(
+                                IdentifierName(FlowControlName),
+                                Block(GetFlowStatement(true)),
+                                ElseClause(Block(GetFlowStatement(false))));
+                        }
+                    }
+                    else if (controlFlowValueType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                    {
+                        if (flowControlInformation.TryGetFallThroughFlowValue(out _))
+                        {
+                            if (flowControlInformation.BreakStatementCount == 0)
+                            {
+                                // Otherwise, if we have no break statements we'll emit the following as its shorter:
+                                //
+                                //      switch (flowControl)
+                                //      {
+                                //          case false: FlowControlConstruct1;
+                                //          case true: FlowControlConstruct2;
+                                //      }
+                                return NoBreakSwitchStatement();
+                            }
+                            else
+                            {
+                                // If we have 'fallthrough' as as the final control flow value, then we'll just emit:
+                                //
+                                //      if (flowControl == false)
+                                //          FlowControlConstruct1;
+                                //      else if (flowControl == true)
+                                //          FlowControlConstruct2; // allowing fallthrough to happen automatically.
+                                return ControlFlowIfStatement(false, ControlFlowIfStatement(true));
+                            }
+                        }
+                        else
+                        {
+                            // Otherwise, we'll emit:
+                            //      if (flowControl == false)
+                            //          FlowControlConstruct1;
+                            //      else if (flowControl == true)
+                            //          FlowControlConstruct2;
+                            //      else
+                            //          FlowControlConstruct3;
+                            return ControlFlowIfStatement(false, ControlFlowIfStatement(true, Block(GetFlowStatement(null))));
+                        }
+                    }
+                    else
+                    {
+                        Contract.ThrowIfFalse(controlFlowValueType.SpecialType == SpecialType.System_Int32);
+                        // We use 'int' when we have all 4 flow control cases (break, continue, return, fallthrough).
+                        // fallthrough is always the last one so we only have to test the first 3.
+                        return ControlFlowIfStatement(0, ControlFlowIfStatement(1, ControlFlowIfStatement(2)));
+                    }
+                }
+
+                IfStatementSyntax ControlFlowIfStatement(object value, StatementSyntax elseClause = null)
+                    => IfStatement(
+                        BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(value)),
+                        Block(GetFlowStatement(value)),
+                        elseClause == null ? null : ElseClause(elseClause));
+
+                SwitchStatementSyntax NoBreakSwitchStatement()
+                    => SwitchStatement(
+                        IdentifierName(FlowControlName), [
+                            SwitchSection(
+                                [CaseSwitchLabel(CaseKeyword.WithTrailingTrivia(Space), LiteralExpression(false).WithoutTrivia(), ColonToken.WithTrailingTrivia(Space)).WithoutLeadingTrivia()],
+                                [GetFlowStatement(false).WithoutTrivia()]),
+                            SwitchSection(
+                                [CaseSwitchLabel(CaseKeyword.WithTrailingTrivia(Space), LiteralExpression(true).WithoutTrivia(), ColonToken.WithTrailingTrivia(Space)).WithoutLeadingTrivia()],
+                                [GetFlowStatement(true).WithoutTrivia()])]);
+
+                StatementSyntax Block(StatementSyntax statement)
+                    => useBlock ? SyntaxFactory.Block(statement) : statement;
+
+                ExpressionSyntax LiteralExpression(object value)
+                    => ExpressionGenerator.GenerateExpression(null, value, canUseFieldReference: false);
+
+                StatementSyntax GetFlowStatement(object value)
+                {
+                    // Being explicit about trivia ensures the formatter doesn't insert newlines in undesirable places.
+
+                    if (flowControlInformation.TryGetBreakFlowValue(out var breakValue) && Equals(breakValue, value))
+                        return CreateBreakStatement();
+                    else if (flowControlInformation.TryGetContinueFlowValue(out var continueValue) && Equals(continueValue, value))
+                        return CreateContinueStatement();
+                    else if (flowControlInformation.TryGetReturnFlowValue(out var returnValue) && Equals(returnValue, value))
+                        return ReturnStatement(ReturnKeyword.WithoutTrailingTrivia(), this.AnalyzerResult.CoreReturnType.SpecialType == SpecialType.System_Void ? null : IdentifierName(ReturnValueName).WithLeadingTrivia(Space).WithoutTrailingTrivia(), SemicolonToken.WithoutLeadingTrivia());
+                    else
+                        throw ExceptionUtilities.Unreachable();
+                }
             }
 
             protected override bool ShouldLocalFunctionCaptureParameter(SyntaxNode node)
@@ -209,7 +353,7 @@ internal sealed partial class CSharpExtractMethodService
             private DeclarationModifiers CreateMethodModifiers()
             {
                 var isUnsafe = ShouldPutUnsafeModifier();
-                var isAsync = this.SelectionResult.CreateAsyncMethod();
+                var isAsync = this.SelectionResult.ContainsAwaitExpression();
                 var isStatic = !AnalyzerResult.UseInstanceMember;
                 var isReadOnly = AnalyzerResult.ShouldBeReadOnly;
 
@@ -265,12 +409,114 @@ internal sealed partial class CSharpExtractMethodService
             {
                 var statements = GetInitialStatementsForMethodDefinitions();
 
+                statements = ConvertComplexControlFlowStatements(statements);
                 statements = SplitOrMoveDeclarationIntoMethodDefinition(insertionPoint, statements, cancellationToken);
                 statements = MoveDeclarationOutFromMethodDefinition(statements, cancellationToken);
                 statements = AppendReturnStatementIfNeeded(statements);
                 statements = CleanupCode(statements);
 
                 return statements;
+            }
+
+            /// <summary>
+            /// Converts existing <c>break, continue, and return</c> statements into a <c>return</c> statement that
+            /// returns which control flow construct was hit.
+            /// </summary>
+            /// <param name="statements"></param>
+            private ImmutableArray<StatementSyntax> ConvertComplexControlFlowStatements(ImmutableArray<StatementSyntax> statements)
+                => statements.SelectAsArray(s => ConvertComplexControlFlowStatement(s));
+
+            private StatementSyntax ConvertComplexControlFlowStatement(StatementSyntax statement)
+            {
+                return statement.ReplaceNodes(
+                    statement.GetAnnotatedNodes(ExitPointAnnotation),
+                    (original, current) =>
+                    {
+                        return ConvertExitPoint(current).WithTriviaFrom(current);
+                    });
+
+                SyntaxNode ConvertExitPoint(SyntaxNode current)
+                {
+                    var flowControlInformation = this.AnalyzerResult.FlowControlInformation;
+                    if (current is BreakStatementSyntax breakStatement)
+                    {
+                        // TODO: pass back more than just the control flow value if needed.
+                        var returnStatement = flowControlInformation.TryGetBreakFlowValue(out var flowValue)
+                            ? ReturnStatement(CreateFlowControlReturnExpression(flowControlInformation, flowValue))
+                            : CreateReturnStatementForReturnedVariables();
+                        return returnStatement.WithSemicolonToken(breakStatement.SemicolonToken);
+                    }
+                    else if (current is ContinueStatementSyntax continueStatement)
+                    {
+                        // TODO: pass back more than just the control flow value if needed.
+                        var returnStatement = flowControlInformation.TryGetContinueFlowValue(out var flowValue)
+                            ? ReturnStatement(CreateFlowControlReturnExpression(flowControlInformation, flowValue))
+                            : CreateReturnStatementForReturnedVariables();
+                        return returnStatement.WithSemicolonToken(continueStatement.SemicolonToken);
+                    }
+                    else if (current is ReturnStatementSyntax returnStatement)
+                    {
+                        if (flowControlInformation.TryGetReturnFlowValue(out var flowValue))
+                        {
+                            var returnExpr = returnStatement.Expression;
+                            if (returnExpr != null)
+                            {
+                                // The code we're extracting is returning values as well.  Ensure that we return both
+                                // the control flow value and the original value the code was returning.
+                                var tupleExpression = TupleExpression([
+                                    Argument(NameColon(IdentifierName(FlowControlName)), refKindKeyword: default, ExpressionGenerator.GenerateExpression(flowControlInformation.ControlFlowValueType, flowValue, canUseFieldReference: false)),
+                                    Argument(NameColon(IdentifierName(ReturnValueName)), refKindKeyword: default, returnExpr.WithoutTrivia())]).WithTriviaFrom(returnExpr);
+                                return returnStatement.WithExpression(tupleExpression);
+                            }
+                            else
+                            {
+                                // The code we're extracting has no other values to return outwards, just the control
+                                // flow value.  In that case, we can just return the control flow value directly
+                                // indicating that we hit a return statement.
+                                return returnStatement.WithExpression(
+                                    ExpressionGenerator.GenerateExpression(flowControlInformation.ControlFlowValueType, flowValue, canUseFieldReference: false));
+                            }
+                        }
+
+                        // No advanced flow control.  Just have the return statement return as it normally did.  It can
+                        // be a normal `return;` or a `return expr;`.  In the former case the caller will just call into
+                        // the new method and do an immediate `return;` after that itself.  In the latter case the
+                        // caller will change to `return NewMethod();` to pass that value upwards.
+                        return current;
+                    }
+                    else
+                    {
+                        // A different type of flow control construct (goto, yield, perhaps others).  Just leave as is. g
+                        return current;
+                    }
+                }
+
+                ReturnStatementSyntax CreateReturnStatementForReturnedVariables()
+                    => ReturnStatement(this.AnalyzerResult.VariablesToUseAsReturnValue.Length switch
+                    {
+                        0 => null,
+                        1 => this.AnalyzerResult.VariablesToUseAsReturnValue[0].Name.ToIdentifierName(),
+                        _ => TupleExpression([.. this.AnalyzerResult.VariablesToUseAsReturnValue.Select(
+                            v => Argument(v.Name.ToIdentifierName()))]),
+                    });
+            }
+
+            protected override ExpressionSyntax CreateFlowControlReturnExpression(ExtractMethodFlowControlInformation flowControlInformation, object flowValue)
+            {
+                var flowValueExpression = ExpressionGenerator.GenerateExpression(
+                    flowControlInformation.ControlFlowValueType, flowValue, canUseFieldReference: false);
+                if (this.AnalyzerResult.CoreReturnType.SpecialType == SpecialType.System_Void)
+                    return flowValueExpression;
+
+                // For reference types, return 'null', for everything else return 'default'.  TODO: in the future we
+                // should update this to return `null!` or `default!` if in a nullable context and not a value type.
+                var methodReturnDefaultValue = this.AnalyzerResult.CoreReturnType.IsReferenceType
+                    ? LiteralExpression(SyntaxKind.NullLiteralExpression)
+                    : LiteralExpression(SyntaxKind.DefaultLiteralExpression);
+
+                return TupleExpression([
+                    Argument(NameColon(IdentifierName(FlowControlName)), refKindKeyword: default, flowValueExpression),
+                    Argument(NameColon(IdentifierName(ReturnValueName)), refKindKeyword: default, methodReturnDefaultValue)]);
             }
 
             protected SyntaxKind UnderCheckedExpressionContext()
@@ -542,7 +788,7 @@ internal sealed partial class CSharpExtractMethodService
                 var declStatements = CreateDeclarationStatements(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(), cancellationToken);
                 declStatements = postProcessor.MergeDeclarationStatements(declStatements);
 
-                return declStatements.Concat(statements);
+                return [.. declStatements, .. statements];
             }
 
             protected override bool LastStatementOrHasReturnStatementInReturnableConstruct()
@@ -573,14 +819,6 @@ internal sealed partial class CSharpExtractMethodService
                 return statements[index + 1].Kind() == SyntaxKind.ReturnStatement;
             }
 
-            protected override SyntaxToken CreateIdentifier(string name)
-                => name.ToIdentifierToken();
-
-            protected override StatementSyntax CreateReturnStatement(string[] identifierNames)
-                => identifierNames.Length == 0 ? ReturnStatement() :
-                   identifierNames.Length == 1 ? ReturnStatement(IdentifierName(identifierNames[0])) :
-                   ReturnStatement(TupleExpression([.. identifierNames.Select(n => Argument(n.ToIdentifierName()))]));
-
             protected override ExpressionSyntax CreateCallSignature()
             {
                 var methodName = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation);
@@ -604,23 +842,20 @@ internal sealed partial class CSharpExtractMethodService
                 }
 
                 var invocation = (ExpressionSyntax)InvocationExpression(methodExpression, ArgumentList([.. arguments]));
-                if (this.SelectionResult.CreateAsyncMethod())
+
+                // If we're extracting any code that contained an 'await' then we'll have to await the new method we're
+                // calling as well.  If we also see any use of .ConfigureAwait(false) in the extracted code, keep that
+                // pattern on the await expression we produce.
+                if (this.SelectionResult.ContainsAwaitExpression())
                 {
-                    if (this.SelectionResult.ShouldCallConfigureAwaitFalse())
+                    if (this.SelectionResult.ContainsConfigureAwaitFalse())
                     {
-                        if (AnalyzerResult.ReturnType.GetMembers().Any(static x => x is IMethodSymbol
-                            {
-                                Name: nameof(Task.ConfigureAwait),
-                                Parameters: [{ Type.SpecialType: SpecialType.System_Boolean }],
-                            }))
-                        {
-                            invocation = InvocationExpression(
-                                MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    invocation,
-                                    IdentifierName(nameof(Task.ConfigureAwait))),
-                                ArgumentList([Argument(LiteralExpression(SyntaxKind.FalseLiteralExpression))]));
-                        }
+                        invocation = InvocationExpression(
+                            MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                invocation,
+                                IdentifierName(nameof(Task.ConfigureAwait))),
+                            ArgumentList([Argument(LiteralExpression(SyntaxKind.FalseLiteralExpression))]));
                     }
 
                     invocation = AwaitExpression(invocation);
@@ -633,37 +868,33 @@ internal sealed partial class CSharpExtractMethodService
             }
 
             protected override StatementSyntax CreateAssignmentExpressionStatement(
-                ImmutableArray<VariableInfo> variableInfos, ExpressionSyntax rvalue)
+                ImmutableArray<VariableInfo> variableInfos,
+                ExpressionSyntax right)
             {
                 Contract.ThrowIfTrue(variableInfos.IsEmpty);
-                if (variableInfos is [var singleInfo])
-                {
-                    return ExpressionStatement(AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        singleInfo.Name.ToIdentifierName(),
-                        rvalue));
-                }
-                else
-                {
-                    var tupleExpression = TupleExpression([.. variableInfos.Select(v => Argument(v.Name.ToIdentifierName()))]);
-                    return ExpressionStatement(AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        tupleExpression,
-                        rvalue));
-                }
+
+                return ExpressionStatement(AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    variableInfos is [var singleInfo]
+                        ? singleInfo.Name.ToIdentifierName()
+                        : TupleExpression([.. variableInfos.Select(v => Argument(v.Name.ToIdentifierName()))]),
+                    right));
             }
 
             protected override StatementSyntax CreateDeclarationStatement(
                 ImmutableArray<VariableInfo> variableInfos,
                 ExpressionSyntax initialValue,
+                ExtractMethodFlowControlInformation flowControlInformation,
                 CancellationToken cancellationToken)
             {
-                Contract.ThrowIfTrue(variableInfos.Length == 0);
+                var needsControlFlowValue = flowControlInformation?.NeedsControlFlowValue() is true;
+                Contract.ThrowIfTrue(variableInfos.IsEmpty && !needsControlFlowValue);
 
-                if (variableInfos is [var singleVariable])
+                var hasNonControlFlowReturnValue = variableInfos.Length > 0 || this.AnalyzerResult.CoreReturnType.SpecialType != SpecialType.System_Void;
+
+                var equalsValueClause = initialValue == null ? null : EqualsValueClause(initialValue);
+                if (variableInfos is [var singleVariable] && !needsControlFlowValue)
                 {
-                    var typeNode = singleVariable.SymbolType.GenerateTypeSyntax();
-
                     var originalIdentifierToken = singleVariable.GetOriginalIdentifierToken(cancellationToken);
 
                     // Hierarchy being checked for to see if a using keyword is needed is
@@ -672,42 +903,98 @@ internal sealed partial class CSharpExtractMethodService
                         ? UsingKeyword
                         : default;
 
-                    var equalsValueClause = initialValue == null ? null : EqualsValueClause(value: initialValue);
-
                     return LocalDeclarationStatement(
-                        VariableDeclaration(typeNode)
-                            .AddVariables(VariableDeclarator(singleVariable.Name.ToIdentifierToken())
-                            .WithInitializer(equalsValueClause)))
+                        VariableDeclaration(
+                            singleVariable.SymbolType.GenerateTypeSyntax(),
+                            [VariableDeclarator(singleVariable.Name.ToIdentifierToken(), null, equalsValueClause)]))
                         .WithUsingKeyword(usingKeyword);
                 }
-                else
+                else if (!hasNonControlFlowReturnValue && needsControlFlowValue)
+                {
+                    // No actual return values, but we do have a control flow value.  Just generate:
+                    // bool flowControl = NewMethod();
+                    return LocalDeclarationStatement(
+                        VariableDeclaration(
+                            flowControlInformation.ControlFlowValueType.GenerateTypeSyntax(),
+                            [VariableDeclarator(FlowControlName.ToIdentifierToken(), null, equalsValueClause)]));
+                }
+
+                // Otherwise we have non-control-flow and/or control-flow return values.  Generate assignments in this
+                // case for all the variables that need it.
+                return ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, CreateLeftExpression(), initialValue));
+
+                ExpressionSyntax CreateLeftExpression()
                 {
                     // Note, we do not use "Use var when apparent" here as no types are apparent when doing `... =
                     // NewMethod()`. If we have `use var elsewhere` we may try to generate `var (a, b, c)` if we're
                     // producing new variables for all variable infos.  If we're producing new variables only for some
-                    // variables, we'll need to do something like `(Type a, b, c)`.  In that case, we'll use 'var' if the
-                    // type is a built-in type, and varForBuiltInTypes is true.  Otherwise, if it's not built-in, we'll
-                    // use "use var elsewhere" to determine what to do.
-                    var varForBuiltInTypes = ((CSharpSimplifierOptions)this.ExtractMethodGenerationOptions.SimplifierOptions).VarForBuiltInTypes.Value;
+                    // variables, we'll need to do something like `(Type a, b, c)`.  In that case, we'll use 'var' if
+                    // the type is a built-in type, and varForBuiltInTypes is true.  Otherwise, if it's not built-in,
+                    // we'll use "use var elsewhere" to determine what to do.
                     var varElsewhere = ((CSharpSimplifierOptions)this.ExtractMethodGenerationOptions.SimplifierOptions).VarElsewhere.Value;
 
-                    ExpressionSyntax left;
                     if (variableInfos.All(i => i.ReturnBehavior == ReturnBehavior.Initialization) && varElsewhere)
                     {
-                        left = DeclarationExpression(
-                            type: IdentifierName("var"),
-                            ParenthesizedVariableDesignation(
-                                [.. variableInfos.Select(v => SingleVariableDesignation(v.Name.ToIdentifierToken()))]));
+                        // Create `(a, b, c)` to represent the N values being returned.
+                        VariableDesignationSyntax returnVariableParenthesizedDesignation = variableInfos.Length switch
+                        {
+                            0 => SingleVariableDesignation(ReturnValueName.ToIdentifierToken()),
+                            1 => SingleVariableDesignation(variableInfos[0].Name.ToIdentifierToken()),
+                            _ => ParenthesizedVariableDesignation([.. variableInfos.Select(v => SingleVariableDesignation(v.Name.ToIdentifierToken()))]),
+                        };
+
+                        if (needsControlFlowValue)
+                        {
+                            // create `var (flowControl, (a, b, c)) = NewMethod()`
+                            return DeclarationExpression(
+                                type: IdentifierName("var"),
+                                ParenthesizedVariableDesignation([
+                                    SingleVariableDesignation(FlowControlName.ToIdentifierToken()),
+                                    returnVariableParenthesizedDesignation]));
+                        }
+                        else
+                        {
+                            // create `var (a, b, c) = NewMethod()`
+                            return DeclarationExpression(
+                                type: IdentifierName("var"),
+                                returnVariableParenthesizedDesignation);
+                        }
                     }
                     else
                     {
-                        left = TupleExpression(
-                            [.. variableInfos.Select(v => Argument(v.ReturnBehavior == ReturnBehavior.Initialization
-                            ? DeclarationExpression(v.SymbolType.GenerateTypeSyntax(), SingleVariableDesignation(v.Name.ToIdentifierToken()))
-                            : v.Name.ToIdentifierName()))]);
-                    }
+                        // Create `(int x, y, z)` to represent the N values being returned.
+                        var returnVariableExpression = variableInfos.Length switch
+                        {
+                            0 => DeclarationExpression(this.AnalyzerResult.CoreReturnType.GenerateTypeSyntax(), SingleVariableDesignation(ReturnValueName.ToIdentifierToken())),
+                            1 => CreateReturnExpression(variableInfos[0]),
+                            _ => TupleExpression([.. variableInfos.Select(v => Argument(CreateReturnExpression(v)))]),
+                        };
 
-                    return ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, initialValue));
+                        if (needsControlFlowValue)
+                        {
+                            // create `(bool flowControl, (int x, y, int z)) = NewMethod()`
+                            return TupleExpression([
+                                Argument(CreateFlowControlDeclarationExpression()),
+                                Argument(returnVariableExpression)]);
+                        }
+                        else
+                        {
+                            // create `(int x, y, int z) = NewMethod()`
+                            return returnVariableExpression;
+                        }
+                    }
+                }
+
+                ExpressionSyntax CreateReturnExpression(VariableInfo variableInfo)
+                    => variableInfo.ReturnBehavior == ReturnBehavior.Initialization
+                        ? DeclarationExpression(variableInfo.SymbolType.GenerateTypeSyntax(), SingleVariableDesignation(variableInfo.Name.ToIdentifierToken()))
+                        : variableInfo.Name.ToIdentifierName();
+
+                DeclarationExpressionSyntax CreateFlowControlDeclarationExpression()
+                {
+                    return DeclarationExpression(
+                        flowControlInformation.ControlFlowValueType.GenerateTypeSyntax(),
+                        SingleVariableDesignation(FlowControlName.ToIdentifierToken()));
                 }
             }
 
@@ -866,13 +1153,13 @@ internal sealed partial class CSharpExtractMethodService
                 }
 
                 // For local functions, pascal case and camel case should be the most common and therefore we only consider those cases.
-                var localFunctionPreferences = Options.NamingStyle.SymbolSpecifications.Where(symbol => symbol.AppliesTo(new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction), CreateMethodModifiers(), null));
+                var localFunctionPreferences = Options.NamingStyle.SymbolSpecifications.Where(symbol => symbol.AppliesTo(new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction), CreateMethodModifiers().Modifiers, null));
 
                 var namingRules = Options.NamingStyle.Rules.NamingRules;
                 var localFunctionKind = new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction);
                 if (LocalFunction)
                 {
-                    if (namingRules.Any(static (rule, arg) => rule.NamingStyle.CapitalizationScheme.Equals(Capitalization.CamelCase) && rule.SymbolSpecification.AppliesTo(arg.localFunctionKind, arg.self.CreateMethodModifiers(), null), (self: this, localFunctionKind)))
+                    if (namingRules.Any(static (rule, arg) => rule.NamingStyle.CapitalizationScheme.Equals(Capitalization.CamelCase) && rule.SymbolSpecification.AppliesTo(arg.localFunctionKind, arg.self.CreateMethodModifiers().Modifiers, null), (self: this, localFunctionKind)))
                     {
                         methodName = NewMethodCamelCaseStr;
                     }

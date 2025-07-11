@@ -21,7 +21,7 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
         AppendNamingStylePreferencesToEditorConfig(
             namingStylePreferences.SymbolSpecifications,
             namingStylePreferences.NamingStyles,
-            namingStylePreferences.NamingRules,
+            namingStylePreferences.Rules.NamingRules,
             language,
             editorconfig);
     }
@@ -29,14 +29,14 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
     public static void AppendNamingStylePreferencesToEditorConfig(
         ImmutableArray<SymbolSpecification> symbolSpecifications,
         ImmutableArray<NamingStyle> namingStyles,
-        ImmutableArray<SerializableNamingRule> serializableNamingRules,
+        ImmutableArray<NamingRule> namingRules,
         string language,
         StringBuilder builder)
     {
         WriteNamingStylePreferencesToEditorConfig(
             symbolSpecifications,
             namingStyles,
-            serializableNamingRules,
+            namingRules,
             language,
             entryWriter: (name, value) => builder.AppendLine($"{name} = {value}"),
             triviaWriter: trivia => builder.AppendLine(trivia),
@@ -46,7 +46,7 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
     public static void WriteNamingStylePreferencesToEditorConfig(
         ImmutableArray<SymbolSpecification> symbolSpecifications,
         ImmutableArray<NamingStyle> namingStyles,
-        ImmutableArray<SerializableNamingRule> rules,
+        ImmutableArray<NamingRule> rules,
         string language,
         Action<string, string> entryWriter,
         Action<string>? triviaWriter,
@@ -64,8 +64,8 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
         var priority = 0;
         foreach (var namingRule in rules)
         {
-            referencedElements.Add(namingRule.SymbolSpecificationID);
-            referencedElements.Add(namingRule.NamingStyleID);
+            referencedElements.Add(namingRule.SymbolSpecification.ID);
+            referencedElements.Add(namingRule.NamingStyle.ID);
 
             triviaWriter?.Invoke("");
             var ruleName = ruleNameMap[namingRule];
@@ -76,8 +76,8 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
             }
 
             entryWriter($"dotnet_naming_rule.{ruleName}.severity", namingRule.EnforcementLevel.ToNotificationOption(defaultSeverity: DiagnosticSeverity.Hidden).ToEditorConfigString());
-            entryWriter($"dotnet_naming_rule.{ruleName}.symbols", serializedNameMap[namingRule.SymbolSpecificationID]);
-            entryWriter($"dotnet_naming_rule.{ruleName}.style", serializedNameMap[namingRule.NamingStyleID]);
+            entryWriter($"dotnet_naming_rule.{ruleName}.symbols", serializedNameMap[namingRule.SymbolSpecification.ID]);
+            entryWriter($"dotnet_naming_rule.{ruleName}.style", serializedNameMap[namingRule.NamingStyle.ID]);
 
             priority++;
         }
@@ -167,12 +167,12 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
         }
     }
 
-    private static ImmutableDictionary<SerializableNamingRule, string> AssignNamesToNamingStyleRules(ImmutableArray<SerializableNamingRule> namingRules, ImmutableDictionary<Guid, string> serializedNameMap)
+    private static ImmutableDictionary<NamingRule, string> AssignNamesToNamingStyleRules(ImmutableArray<NamingRule> namingRules, ImmutableDictionary<Guid, string> serializedNameMap)
     {
-        var builder = ImmutableDictionary.CreateBuilder<SerializableNamingRule, string>();
+        var builder = ImmutableDictionary.CreateBuilder<NamingRule, string>();
         foreach (var rule in namingRules)
         {
-            builder.Add(rule, $"{serializedNameMap[rule.SymbolSpecificationID]}_should_be_{serializedNameMap[rule.NamingStyleID]}");
+            builder.Add(rule, $"{serializedNameMap[rule.SymbolSpecification.ID]}_should_be_{serializedNameMap[rule.NamingStyle.ID]}");
         }
 
         return builder.ToImmutable();

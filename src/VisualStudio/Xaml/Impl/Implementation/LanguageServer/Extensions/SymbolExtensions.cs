@@ -14,57 +14,56 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions;
+
+internal static class SymbolExtensions
 {
-    internal static class SymbolExtensions
+    public static async Task<IEnumerable<TaggedText>> GetDescriptionAsync(this ISymbol symbol, TextDocument document, SymbolDescriptionOptions options, CancellationToken cancellationToken)
     {
-        public static async Task<IEnumerable<TaggedText>> GetDescriptionAsync(this ISymbol symbol, TextDocument document, SymbolDescriptionOptions options, CancellationToken cancellationToken)
+        if (symbol == null)
         {
-            if (symbol == null)
-            {
-                return [];
-            }
-
-            var codeProject = document.GetCodeProject();
-            var formatter = codeProject.Services.GetService<IDocumentationCommentFormattingService>();
-            if (formatter == null)
-            {
-                return [];
-            }
-
-            var symbolDisplayService = codeProject.Services.GetService<ISymbolDisplayService>();
-            if (symbolDisplayService == null)
-            {
-                return [];
-            }
-
-            // Any code document will do
-            var codeDocument = codeProject.Documents.FirstOrDefault();
-            if (codeDocument == null)
-            {
-                return [];
-            }
-
-            var semanticModel = await codeDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (semanticModel == null)
-            {
-                return [];
-            }
-
-            var services = codeProject.Solution.Services;
-            var quickInfo = await QuickInfoUtilities.CreateQuickInfoItemAsync(services, semanticModel, span: default, [symbol], options, cancellationToken).ConfigureAwait(false);
-            var builder = new List<TaggedText>();
-            foreach (var section in quickInfo.Sections)
-            {
-                if (builder.Any())
-                {
-                    builder.AddLineBreak();
-                }
-
-                builder.AddRange(section.TaggedParts);
-            }
-
-            return builder.ToImmutableArray();
+            return [];
         }
+
+        var codeProject = document.GetCodeProject();
+        var formatter = codeProject.Services.GetService<IDocumentationCommentFormattingService>();
+        if (formatter == null)
+        {
+            return [];
+        }
+
+        var symbolDisplayService = codeProject.Services.GetService<ISymbolDisplayService>();
+        if (symbolDisplayService == null)
+        {
+            return [];
+        }
+
+        // Any code document will do
+        var codeDocument = codeProject.Documents.FirstOrDefault();
+        if (codeDocument == null)
+        {
+            return [];
+        }
+
+        var semanticModel = await codeDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        if (semanticModel == null)
+        {
+            return [];
+        }
+
+        var services = codeProject.Solution.Services;
+        var quickInfo = await QuickInfoUtilities.CreateQuickInfoItemAsync(services, semanticModel, span: default, [symbol], options, cancellationToken).ConfigureAwait(false);
+        var builder = new List<TaggedText>();
+        foreach (var section in quickInfo.Sections)
+        {
+            if (builder.Any())
+            {
+                builder.AddLineBreak();
+            }
+
+            builder.AddRange(section.TaggedParts);
+        }
+
+        return builder.ToImmutableArray();
     }
 }

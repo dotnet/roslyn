@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -86,9 +87,6 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var mainTokenInformation = BindToken(services, semanticModel, token, cancellationToken);
 
-        var candidateProjects = new List<ProjectId> { document.Project.Id };
-        var invalidProjects = new List<ProjectId>();
-
         var candidateResults = new List<(DocumentId docId, TokenInformation tokenInformation)>
         {
             (document.Id, mainTokenInformation)
@@ -103,7 +101,6 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
             if (linkedToken != default)
             {
                 // Not in an inactive region, so this file is a candidate.
-                candidateProjects.Add(linkedDocumentId.ProjectId);
                 var linkedSymbols = BindToken(services, linkedModel, linkedToken, cancellationToken);
                 candidateResults.Add((linkedDocumentId, linkedSymbols));
             }
@@ -117,7 +114,11 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         if (bestBinding.tokenInformation.Symbols.IsDefaultOrEmpty)
             return default;
 
+        // We calculate the set of projects that are candidates for the best binding
+        var candidateProjects = candidateResults.SelectAsArray(result => result.docId.ProjectId);
+
         // We calculate the set of supported projects
+        using var _ = ArrayBuilder<ProjectId>.GetInstance(out var invalidProjects);
         candidateResults.Remove(bestBinding);
         foreach (var (docId, tokenInformation) in candidateResults)
         {
@@ -126,7 +127,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
                 invalidProjects.Add(docId.ProjectId);
         }
 
-        var supportedPlatforms = new SupportedPlatformData(solution, invalidProjects, candidateProjects);
+        var supportedPlatforms = new SupportedPlatformData(solution, invalidProjects.ToImmutableAndClear(), candidateProjects);
         return (bestBinding.tokenInformation, supportedPlatforms);
     }
 
@@ -175,7 +176,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
         return QuickInfoUtilities.CreateQuickInfoItemAsync(
             services, semanticModel, token.Span, symbols, supportedPlatforms,
-            tokenInformation.ShowAwaitReturn, tokenInformation.NullableFlowState, options, onTheFlyDocsInfo, cancellationToken);
+            tokenInformation.ShowAwaitReturn, tokenInformation.NullabilityInfo, options, onTheFlyDocsInfo, cancellationToken);
     }
 
     protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
@@ -185,7 +186,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
     protected virtual Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
         => Task.FromResult<OnTheFlyDocsInfo?>(null);
 
-    protected virtual NullableFlowState GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => NullableFlowState.None;
+    protected virtual (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => default;
 
     private TokenInformation BindToken(
         SolutionServices services, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
@@ -194,29 +195,22 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
         var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 
-        var symbols = GetSymbolsFromToken(token, services, semanticModel, cancellationToken);
-
         var bindableParent = syntaxFacts.TryGetBindableParent(token);
-        var overloads = bindableParent != null
-            ? semanticModel.GetMemberGroup(bindableParent, cancellationToken)
-            : [];
 
-        symbols = [.. symbols.Where(IsOk)
-                         .Where(s => IsAccessible(s, enclosingType))
-                         .Concat(overloads)
-                         .Distinct(SymbolEquivalenceComparer.Instance)];
+        var symbolSet = new HashSet<ISymbol>(SymbolEquivalenceComparer.Instance);
+        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var filteredSymbols);
 
-        if (symbols.Any())
+        AddSymbols(GetSymbolsFromToken(token, services, semanticModel, cancellationToken), checkAccessibility: true);
+        AddSymbols(bindableParent != null ? semanticModel.GetMemberGroup(bindableParent, cancellationToken) : [], checkAccessibility: false);
+
+        if (filteredSymbols is [var firstSymbol, ..])
         {
-            var firstSymbol = symbols.First();
             var isAwait = syntaxFacts.IsAwaitKeyword(token);
-            var nullableFlowState = NullableFlowState.None;
-            if (bindableParent != null)
-            {
-                nullableFlowState = GetNullabilityAnalysis(semanticModel, firstSymbol, bindableParent, cancellationToken);
-            }
+            var nullabilityInfo = bindableParent != null
+                ? GetNullabilityAnalysis(semanticModel, firstSymbol, bindableParent, cancellationToken)
+                : default;
 
-            return new TokenInformation(symbols, isAwait, nullableFlowState);
+            return new TokenInformation(filteredSymbols.ToImmutableAndClear(), isAwait, nullabilityInfo);
         }
 
         // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
@@ -225,12 +219,25 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         {
             var typeInfo = semanticModel.GetTypeInfo(token.Parent!, cancellationToken);
             if (IsOk(typeInfo.Type))
-            {
                 return new TokenInformation([typeInfo.Type]);
-            }
         }
 
-        return new TokenInformation([]);
+        return default;
+
+        void AddSymbols(ImmutableArray<ISymbol> symbols, bool checkAccessibility)
+        {
+            foreach (var symbol in symbols)
+            {
+                if (!IsOk(symbol))
+                    continue;
+
+                if (checkAccessibility && !IsAccessible(symbol, enclosingType))
+                    continue;
+
+                if (symbolSet.Add(symbol))
+                    filteredSymbols.Add(symbol);
+            }
+        }
     }
 
     private ImmutableArray<ISymbol> GetSymbolsFromToken(SyntaxToken token, SolutionServices services, SemanticModel semanticModel, CancellationToken cancellationToken)

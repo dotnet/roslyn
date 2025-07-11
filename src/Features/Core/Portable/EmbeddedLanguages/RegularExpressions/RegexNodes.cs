@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -11,9 +9,9 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 
+using RegexAlternatingSequenceList = EmbeddedSeparatedSyntaxNodeList<RegexKind, RegexNode, RegexSequenceNode>;
 using RegexNodeOrToken = EmbeddedSyntaxNodeOrToken<RegexKind, RegexNode>;
 using RegexToken = EmbeddedSyntaxToken<RegexKind>;
-using RegexAlternatingSequenceList = EmbeddedSeparatedSyntaxNodeList<RegexKind, RegexNode, RegexSequenceNode>;
 
 internal sealed class RegexCompilationUnit : RegexNode
 {
@@ -231,35 +229,6 @@ internal sealed class RegexCharacterClassSubtractionNode : RegexPrimaryExpressio
         {
             0 => MinusToken,
             1 => CharacterClass,
-            _ => throw new InvalidOperationException(),
-        };
-
-    public override void Accept(IRegexNodeVisitor visitor)
-        => visitor.Visit(this);
-}
-
-/// <summary>
-/// Represents a ```[:...:]``` node in a character class.  Note: the .NET regex parser
-/// simply treats this as the character ```[``` and ignores the rest of the ```:...:]```.
-/// They latter part has no impact on the actual match engine that is produced.
-/// </summary>
-internal sealed class RegexPosixPropertyNode : RegexPrimaryExpressionNode
-{
-    public RegexPosixPropertyNode(RegexToken textToken)
-        : base(RegexKind.PosixProperty)
-    {
-        Debug.Assert(textToken.Kind == RegexKind.TextToken);
-        TextToken = textToken;
-    }
-
-    public RegexToken TextToken { get; }
-
-    internal override int ChildCount => 1;
-
-    internal override RegexNodeOrToken ChildAt(int index)
-        => index switch
-        {
-            0 => TextToken,
             _ => throw new InvalidOperationException(),
         };
 
@@ -1093,14 +1062,14 @@ internal abstract class RegexConditionalGroupingNode : RegexQuestionGroupingNode
 {
     protected RegexConditionalGroupingNode(
         RegexKind kind, RegexToken openParenToken, RegexToken questionToken,
-        RegexExpressionNode result, RegexToken closeParenToken)
+        RegexAlternationNode result, RegexToken closeParenToken)
         : base(kind, openParenToken, questionToken, closeParenToken)
     {
         Debug.Assert(result != null);
         Result = result;
     }
 
-    public RegexExpressionNode Result { get; }
+    public RegexAlternationNode Result { get; }
 }
 
 /// <summary>
@@ -1111,7 +1080,7 @@ internal sealed class RegexConditionalCaptureGroupingNode : RegexConditionalGrou
     public RegexConditionalCaptureGroupingNode(
         RegexToken openParenToken, RegexToken questionToken,
         RegexToken innerOpenParenToken, RegexToken captureToken, RegexToken innerCloseParenToken,
-        RegexExpressionNode result, RegexToken closeParenToken)
+        RegexAlternationNode result, RegexToken closeParenToken)
         : base(RegexKind.ConditionalCaptureGrouping, openParenToken, questionToken, result, closeParenToken)
     {
         Debug.Assert(innerOpenParenToken.Kind == RegexKind.OpenParenToken);
@@ -1150,9 +1119,11 @@ internal sealed class RegexConditionalCaptureGroupingNode : RegexConditionalGrou
 internal sealed class RegexConditionalExpressionGroupingNode : RegexConditionalGroupingNode
 {
     public RegexConditionalExpressionGroupingNode(
-        RegexToken openParenToken, RegexToken questionToken,
+        RegexToken openParenToken,
+        RegexToken questionToken,
         RegexGroupingNode grouping,
-        RegexExpressionNode result, RegexToken closeParenToken)
+        RegexAlternationNode result,
+        RegexToken closeParenToken)
         : base(RegexKind.ConditionalExpressionGrouping, openParenToken, questionToken, result, closeParenToken)
     {
         Debug.Assert(grouping != null);

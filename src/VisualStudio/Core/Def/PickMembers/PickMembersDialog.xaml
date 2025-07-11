@@ -13,6 +13,7 @@
              xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:vsutil="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
              mc:Ignorable="d" 
              d:DesignHeight="380" d:DesignWidth="460"
              Height="380" Width="460"
@@ -41,6 +42,7 @@
         <vs:NegateBooleanConverter x:Key="NegateBooleanConverter"/>
         <RoutedUICommand x:Key="MoveUp" />
         <RoutedUICommand x:Key="MoveDown" />
+        <platformimaging:ThemedImageSourceConverter x:Uid="ThemedImageSourceConverter" x:Key="ThemedImageSourceConverter" />
     </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="{StaticResource MoveUp}" Executed="MoveUp_Click" />
@@ -95,9 +97,22 @@
                                           Focusable="False"
                                           AutomationProperties.AutomationId="{Binding SymbolName}">
                                 </CheckBox>
-                                <Image x:Uid="SelectableMemberGlyph" 
-                                       Margin="8,0,0,0"
-                                               Source="{Binding Glyph}"/>
+                                <Image
+                                    x:Uid="SelectableMemberGlyph" 
+                                    Margin="8,0,0,0"
+                                    Width="16"
+                                    Height="16">
+                                    <Image.Source>
+                                        <MultiBinding x:Uid="MultiBinding_1" Converter="{StaticResource ThemedImageSourceConverter}">
+                                            <Binding x:Uid="Binding_1" Path="Glyph" />
+                                            <Binding
+                                                    x:Uid="Binding_2"
+                                                    Path="(platformimaging:ImageThemingUtilities.ImageBackgroundColor)"
+                                                    RelativeSource="{RelativeSource Self}" />
+                                            <Binding x:Uid="Binding_3" Source="{x:Static vsutil:Boxes.BooleanTrue}" />
+                                        </MultiBinding>
+                                    </Image.Source>
+                                </Image>
                                 <TextBlock x:Uid="SelectableMemberName" 
                                                    Text="{Binding SymbolName}"/>
                             </StackPanel>

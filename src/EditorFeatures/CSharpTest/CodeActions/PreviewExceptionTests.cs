@@ -16,12 +16,11 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 
-public partial class PreviewTests
+public sealed partial class PreviewTests
 {
     [WpfFact]
     public async Task TestExceptionInComputePreview()

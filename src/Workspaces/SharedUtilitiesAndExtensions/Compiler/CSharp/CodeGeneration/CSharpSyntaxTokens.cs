@@ -13,7 +13,9 @@ internal static class CSharpSyntaxTokens
     public static readonly SyntaxToken AsyncKeyword = Token(SyntaxKind.AsyncKeyword);
     public static readonly SyntaxToken AwaitKeyword = Token(SyntaxKind.AwaitKeyword);
     public static readonly SyntaxToken BoolKeyword = Token(SyntaxKind.BoolKeyword);
+    public static readonly SyntaxToken BreakKeyword = Token(SyntaxKind.BreakKeyword);
     public static readonly SyntaxToken ByteKeyword = Token(SyntaxKind.ByteKeyword);
+    public static readonly SyntaxToken CaseKeyword = Token(SyntaxKind.CaseKeyword);
     public static readonly SyntaxToken CharKeyword = Token(SyntaxKind.CharKeyword);
     public static readonly SyntaxToken CheckedKeyword = Token(SyntaxKind.CheckedKeyword);
     public static readonly SyntaxToken CloseBraceToken = Token(SyntaxKind.CloseBraceToken);
@@ -22,6 +24,7 @@ internal static class CSharpSyntaxTokens
     public static readonly SyntaxToken ColonToken = Token(SyntaxKind.ColonToken);
     public static readonly SyntaxToken CommaToken = Token(SyntaxKind.CommaToken);
     public static readonly SyntaxToken ConstKeyword = Token(SyntaxKind.ConstKeyword);
+    public static readonly SyntaxToken ContinueKeyword = Token(SyntaxKind.ContinueKeyword);
     public static readonly SyntaxToken DecimalKeyword = Token(SyntaxKind.DecimalKeyword);
     public static readonly SyntaxToken DisableKeyword = Token(SyntaxKind.DisableKeyword);
     public static readonly SyntaxToken DotDotToken = Token(SyntaxKind.DotDotToken);
@@ -29,8 +32,12 @@ internal static class CSharpSyntaxTokens
     public static readonly SyntaxToken EndOfDocumentationCommentToken = Token(SyntaxKind.EndOfDocumentationCommentToken);
     public static readonly SyntaxToken EqualsToken = Token(SyntaxKind.EqualsToken);
     public static readonly SyntaxToken ExplicitKeyword = Token(SyntaxKind.ExplicitKeyword);
+#if !ROSLYN_4_12_OR_LOWER
+    public static readonly SyntaxToken ExtensionKeyword = Token(SyntaxKind.ExtensionKeyword);
+#endif
     public static readonly SyntaxToken ExternKeyword = Token(SyntaxKind.ExternKeyword);
     public static readonly SyntaxToken FileKeyword = Token(SyntaxKind.FileKeyword);
+    public static readonly SyntaxToken FixedKeyword = Token(SyntaxKind.FixedKeyword);
     public static readonly SyntaxToken FloatKeyword = Token(SyntaxKind.FloatKeyword);
     public static readonly SyntaxToken ForEachKeyword = Token(SyntaxKind.ForEachKeyword);
     public static readonly SyntaxToken FromKeyword = Token(SyntaxKind.FromKeyword);

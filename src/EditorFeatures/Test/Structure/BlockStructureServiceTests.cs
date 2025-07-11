@@ -17,24 +17,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class BlockStructureServiceTests
+public sealed class BlockStructureServiceTests
 {
     [Fact]
     public async Task TestSimpleLambda()
     {
         var code =
-@"using System.Linq;
-class C
-{
-    static void Goo()
-    {
-        var q = Enumerable.Range(1, 100).Where(x =>
-        {
-            return x % 2 == 0;
-        });
-    }
-}
-";
+            """
+            using System.Linq;
+            class C
+            {
+                static void Goo()
+                {
+                    var q = Enumerable.Range(1, 100).Where(x =>
+                    {
+                        return x % 2 == 0;
+                    });
+                }
+            }
+            """;
 
         using var workspace = TestWorkspace.CreateCSharp(code);
         var spans = await GetSpansFromWorkspaceAsync(workspace);
@@ -47,18 +48,19 @@ class C
     public async Task TestParenthesizedLambda()
     {
         var code =
-@"using System.Linq;
-class C
-{
-    static void Goo()
-    {
-        var q = Enumerable.Range(1, 100).Where((x) =>
-        {
-            return x % 2 == 0;
-        });
-    }
-}
-";
+            """
+            using System.Linq;
+            class C
+            {
+                static void Goo()
+                {
+                    var q = Enumerable.Range(1, 100).Where((x) =>
+                    {
+                        return x % 2 == 0;
+                    });
+                }
+            }
+            """;
 
         using var workspace = TestWorkspace.CreateCSharp(code);
         var spans = await GetSpansFromWorkspaceAsync(workspace);
@@ -71,18 +73,19 @@ class C
     public async Task TestAnonymousDelegate()
     {
         var code =
-@"using System.Linq;
-class C
-{
-    static void Goo()
-    {
-        var q = Enumerable.Range(1, 100).Where(delegate (int x)
-        {
-            return x % 2 == 0;
-        });
-    }
-}
-";
+            """
+            using System.Linq;
+            class C
+            {
+                static void Goo()
+                {
+                    var q = Enumerable.Range(1, 100).Where(delegate (int x)
+                    {
+                        return x % 2 == 0;
+                    });
+                }
+            }
+            """;
 
         using var workspace = TestWorkspace.CreateCSharp(code);
         var spans = await GetSpansFromWorkspaceAsync(workspace);

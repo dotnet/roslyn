@@ -216,6 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
             => this.OriginalDefinition.GetUnmanagedCallersOnlyAttributeData(forceComplete);
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         public sealed override Symbol AssociatedSymbol
         {
             get
@@ -328,6 +330,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : null;
             return true;
         }
+
+        internal override int TryGetOverloadResolutionPriority()
+            => OriginalDefinition.TryGetOverloadResolutionPriority();
 
         private ImmutableArray<ParameterSymbol> SubstituteParameters()
         {

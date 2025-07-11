@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Indentation_preferences">
         <source>Indentation preferences</source>
-        <target state="new">Indentation preferences</target>
+        <target state="translated">들여쓰기 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Null_checking_preferences">
@@ -39,12 +39,12 @@
       </trans-unit>
       <trans-unit id="Space_preferences">
         <source>Space preferences</source>
-        <target state="new">Space preferences</target>
+        <target state="translated">공간 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrapping_preferences">
         <source>Wrapping preferences</source>
-        <target state="new">Wrapping preferences</target>
+        <target state="translated">기본 설정 래핑</target>
         <note />
       </trans-unit>
       <trans-unit id="using_directive_preferences">

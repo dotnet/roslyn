@@ -11,42 +11,41 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using StreamJsonRpc;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer;
+
+[Export(typeof(ILanguageServerFactory)), Shared]
+internal sealed class CSharpVisualBasicLanguageServerFactory : ILanguageServerFactory
 {
-    [Export(typeof(ILanguageServerFactory)), Shared]
-    internal class CSharpVisualBasicLanguageServerFactory : ILanguageServerFactory
+    private readonly AbstractLspServiceProvider _lspServiceProvider;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpVisualBasicLanguageServerFactory(
+        CSharpVisualBasicLspServiceProvider lspServiceProvider)
     {
-        private readonly AbstractLspServiceProvider _lspServiceProvider;
+        _lspServiceProvider = lspServiceProvider;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpVisualBasicLanguageServerFactory(
-            CSharpVisualBasicLspServiceProvider lspServiceProvider)
-        {
-            _lspServiceProvider = lspServiceProvider;
-        }
+    public AbstractLanguageServer<RequestContext> Create(
+        JsonRpc jsonRpc,
+        JsonSerializerOptions options,
+        ICapabilitiesProvider capabilitiesProvider,
+        WellKnownLspServerKinds serverKind,
+        AbstractLspLogger logger,
+        HostServices hostServices,
+        AbstractTypeRefResolver? typeRefResolver)
+    {
+        var server = new RoslynLanguageServer(
+            _lspServiceProvider,
+            jsonRpc,
+            options,
+            capabilitiesProvider,
+            logger,
+            hostServices,
+            ProtocolConstants.RoslynLspLanguages,
+            serverKind,
+            typeRefResolver);
 
-        public AbstractLanguageServer<RequestContext> Create(
-            JsonRpc jsonRpc,
-            JsonSerializerOptions options,
-            ICapabilitiesProvider capabilitiesProvider,
-            WellKnownLspServerKinds serverKind,
-            AbstractLspLogger logger,
-            HostServices hostServices,
-            AbstractTypeRefResolver? typeRefResolver)
-        {
-            var server = new RoslynLanguageServer(
-                _lspServiceProvider,
-                jsonRpc,
-                options,
-                capabilitiesProvider,
-                logger,
-                hostServices,
-                ProtocolConstants.RoslynLspLanguages,
-                serverKind,
-                typeRefResolver);
-
-            return server;
-        }
+        return server;
     }
 }

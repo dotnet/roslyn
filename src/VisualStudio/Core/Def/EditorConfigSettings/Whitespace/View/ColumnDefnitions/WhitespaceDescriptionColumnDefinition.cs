@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
 
 [Export(typeof(ITableColumnDefinition))]
 [Name(Description)]
-internal class WhitespaceDescriptionColumnDefinition : TableColumnDefinitionBase
+internal sealed class WhitespaceDescriptionColumnDefinition : TableColumnDefinitionBase
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

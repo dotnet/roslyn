@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 
 [ExportQuickInfoProvider(QuickInfoProviderNames.Semantic, LanguageNames.CSharp), Shared]
-internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
+internal sealed class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -83,13 +83,13 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
     protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
 
-    protected override NullableFlowState GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken)
+    protected override (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken)
     {
         // Anything less than C# 8 we just won't show anything, even if the compiler could theoretically give analysis
         var parseOptions = (CSharpParseOptions)semanticModel.SyntaxTree!.Options;
         if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
         {
-            return NullableFlowState.None;
+            return default;
         }
 
         // If the user doesn't have nullable enabled, don't show anything. For now we're not trying to be more precise if the user has just annotations or just
@@ -98,7 +98,7 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
         var nullableContext = semanticModel.GetNullableContext(node.SpanStart);
         if (!nullableContext.WarningsEnabled() || !nullableContext.AnnotationsEnabled())
         {
-            return NullableFlowState.None;
+            return default;
         }
 
         // Although GetTypeInfo can return nullability for uses of all sorts of things, it's not always useful for quick info.
@@ -118,8 +118,18 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             case IRangeVariableSymbol:
                 break;
 
+            // Although methods have no nullable flow state,
+            // we still want to show when they are "not nullable aware".
+            case IMethodSymbol { ReturnsVoid: false }:
+                break;
+
             default:
                 return default;
+        }
+
+        if (symbol.GetMemberType() is { IsValueType: false, NullableAnnotation: NullableAnnotation.None })
+        {
+            return (NullableAnnotation.None, NullableFlowState.NotNull);
         }
 
         var typeInfo = semanticModel.GetTypeInfo(node, cancellationToken);
@@ -133,7 +143,8 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return default;
         }
 
-        return typeInfo.Nullability.FlowState;
+        var nullability = typeInfo.Nullability;
+        return (nullability.Annotation, nullability.FlowState);
     }
 
     protected override async Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
@@ -163,10 +174,8 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             document, semanticModel, position, cancellationToken).ConfigureAwait(false);
 
         // Don't show on-the-fly-docs for namespace symbols.
-        if (symbol is null || symbol.IsNamespace())
-        {
+        if (symbol is null or INamespaceSymbol)
             return null;
-        }
 
         if (symbol.MetadataToken != 0)
         {
@@ -195,14 +204,21 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             }
         }
 
-        var maxLength = 1000;
-        var symbolStrings = symbol.DeclaringSyntaxReferences.Select(reference =>
+        var solution = document.Project.Solution;
+        var declarationCode = symbol.DeclaringSyntaxReferences.Select(reference =>
         {
             var span = reference.Span;
-            var sourceText = reference.SyntaxTree.GetText(cancellationToken);
-            return sourceText.GetSubText(new Text.TextSpan(span.Start, Math.Min(maxLength, span.Length))).ToString();
+            var syntaxReferenceDocument = solution.GetDocument(reference.SyntaxTree);
+            if (syntaxReferenceDocument is not null)
+            {
+                return new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, span);
+            }
+
+            return null;
         }).ToImmutableArray();
 
-        return new OnTheFlyDocsInfo(symbol.ToDisplayString(), symbolStrings, symbol.Language, hasContentExcluded);
+        var additionalContext = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, symbol);
+
+        return new OnTheFlyDocsInfo(symbol.ToDisplayString(), declarationCode, symbol.Language, hasContentExcluded, additionalContext);
     }
 }

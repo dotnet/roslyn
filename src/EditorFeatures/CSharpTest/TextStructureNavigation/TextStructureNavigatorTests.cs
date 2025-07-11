@@ -561,4 +561,15 @@ public sealed class TextStructureNavigatorTests : AbstractTextStructureNavigator
     {
         AssertExtent(content);
     }
+
+    [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/77401")]
+    [InlineData(@"{|Significant:""|}$$")]
+    [InlineData(@"{|Significant:""""""|}$$")]
+    [InlineData(""""
+        """{|Significant:u8|}$$
+        """")]
+    public void TestClampStringLiteral_Invalid(string content)
+    {
+        AssertExtent(content);
+    }
 }

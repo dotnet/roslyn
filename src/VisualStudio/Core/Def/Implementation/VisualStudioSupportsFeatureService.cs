@@ -24,7 +24,7 @@ internal sealed class VisualStudioSupportsFeatureService
     private const string ContainedLanguageMarker = nameof(ContainedLanguageMarker);
 
     [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), ServiceLayer.Host), Shared]
-    private class VisualStudioTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService
+    private sealed class VisualStudioTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -79,7 +79,7 @@ internal sealed class VisualStudioSupportsFeatureService
     }
 
     [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), ServiceLayer.Host), Shared]
-    private class VisualStudioDocumentSupportsFeatureService : IDocumentSupportsFeatureService
+    private sealed class VisualStudioDocumentSupportsFeatureService : IDocumentSupportsFeatureService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

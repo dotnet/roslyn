@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -207,7 +208,7 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
         NamingStylePreferences namingStyleOptions,
         CancellationToken cancellationToken)
     {
-        var rules = namingStyleOptions.CreateRules().NamingRules.AddRange(FallbackNamingRules.CompletionFallbackRules);
+        var rules = namingStyleOptions.Rules.NamingRules.AddRange(FallbackNamingRules.CompletionFallbackRules);
 
         var supplementaryRules = FallbackNamingRules.CompletionSupplementaryRules;
         var semanticFactsService = context.GetRequiredLanguageService<ISemanticFactsService>();
@@ -237,7 +238,7 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
             var modifiers = declarationInfo.Modifiers;
             foreach (var rule in rules)
             {
-                if (rule.SymbolSpecification.AppliesTo(kind, declarationInfo.Modifiers, declarationInfo.DeclaredAccessibility))
+                if (rule.SymbolSpecification.AppliesTo(kind, declarationInfo.Modifiers.Modifiers, declarationInfo.DeclaredAccessibility))
                 {
                     foreach (var baseName in baseNames)
                     {

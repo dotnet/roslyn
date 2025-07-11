@@ -10,7 +10,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -27,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Options;
     [WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.SemanticSearch, WorkspaceKind.MetadataAsSource, WorkspaceKind.MiscellaneousFiles, WorkspaceKind.Debugger, WorkspaceKind.Preview]), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class SolutionAnalyzerConfigOptionsUpdater(IGlobalOptionService globalOptions) : IEventListener<object>, IEventListenerStoppable
+internal sealed class SolutionAnalyzerConfigOptionsUpdater(IGlobalOptionService globalOptions) : IEventListener
 {
-    public void StartListening(Workspace workspace, object serviceOpt)
+    public void StartListening(Workspace workspace)
         => globalOptions.AddOptionChangedHandler(workspace, GlobalOptionsChanged);
 
     public void StopListening(Workspace workspace)
@@ -84,23 +83,8 @@ internal sealed class SolutionAnalyzerConfigOptionsUpdater(IGlobalOptionService 
                             }
                         }
 
-                        // update changed values:
-                        var configName = key.Option.Definition.ConfigName;
-                        if (value is NamingStylePreferences preferences)
-                        {
-                            NamingStylePreferencesEditorConfigSerializer.WriteNamingStylePreferencesToEditorConfig(
-                                preferences.SymbolSpecifications,
-                                preferences.NamingStyles,
-                                preferences.NamingRules,
-                                language,
-                                entryWriter: (name, value) => lazyBuilder[name] = value,
-                                triviaWriter: null,
-                                setPrioritiesToPreserveOrder: true);
-                        }
-                        else
-                        {
-                            lazyBuilder[configName] = key.Option.Definition.Serializer.Serialize(value);
-                        }
+                        // update changed value:
+                        EditorConfigValueSerializer.Serialize(lazyBuilder, key.Option, language, value);
                     }
 
                     if (lazyBuilder != null)

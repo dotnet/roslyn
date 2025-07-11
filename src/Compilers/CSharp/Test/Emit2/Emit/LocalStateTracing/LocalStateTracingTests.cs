@@ -1415,7 +1415,7 @@ F: Returned
       // sequence point: }}
       IL_0055:  ret
     }}
-");
+", ilFormat: SymbolDisplayFormat.ILVisualizationFormat.RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType));
         }
 
         [Theory]
@@ -3145,7 +3145,7 @@ Main: Returned
     // sequence point: static Action A = new Action(() => { int x = 1; });
     IL_000b:  ldsfld     ""C.<>c C.<>c.<>9""
     IL_0010:  ldftn      ""void C.<>c.<.cctor>b__3_0()""
-    IL_0016:  newobj     ""System.Action..ctor(object, nint)""
+    IL_0016:  newobj     ""System.Action..ctor(object, System.IntPtr)""
     IL_001b:  stsfld     ""System.Action C.A""
     IL_0020:  leave.s    IL_002b
   }
@@ -3207,7 +3207,7 @@ Main: Returned
         }
 
         [Fact]
-        public void Initializers_NoContructorBody()
+        public void Initializers_NoConstructorBody()
         {
             var source = WithHelpers(@"
 var _ = new C();
@@ -3736,7 +3736,7 @@ Main: Returned
     // sequence point: F(() => c += 1);
     IL_0084:  ldloc.s    V_4
     IL_0086:  ldftn      ""int C.<>c__DisplayClass0_2.<Main>b__1()""
-    IL_008c:  newobj     ""System.Func<int>..ctor(object, nint)""
+    IL_008c:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
     IL_0091:  call       ""void C.F(System.Func<int>)""
     IL_0096:  nop
     // sequence point: }
@@ -3744,7 +3744,7 @@ Main: Returned
     // sequence point: F(() => a += b);
     IL_0098:  ldloc.3
     IL_0099:  ldftn      ""int C.<>c__DisplayClass0_1.<Main>b__0()""
-    IL_009f:  newobj     ""System.Func<int>..ctor(object, nint)""
+    IL_009f:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
     IL_00a4:  call       ""void C.F(System.Func<int>)""
     IL_00a9:  nop
     // sequence point: }
@@ -3956,7 +3956,7 @@ Main: Returned
     // sequence point: F(b =>  ...         });
     IL_0027:  ldloc.1
     IL_0028:  ldftn      ""int C.<>c__DisplayClass1_0.<G>b__0(int)""
-    IL_002e:  newobj     ""System.Func<int, int>..ctor(object, nint)""
+    IL_002e:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
     IL_0033:  call       ""int C.F(System.Func<int, int>)""
     IL_0038:  pop
     // sequence point: }
@@ -4020,7 +4020,7 @@ Main: Returned
     // sequence point: return F(c => ++b);
     IL_004f:  ldloc.1
     IL_0050:  ldftn      ""int C.<>c__DisplayClass1_1.<G>b__1(int)""
-    IL_0056:  newobj     ""System.Func<int, int>..ctor(object, nint)""
+    IL_0056:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
     IL_005b:  call       ""int C.F(System.Func<int, int>)""
     IL_0060:  stloc.3
     IL_0061:  leave.s    IL_006c

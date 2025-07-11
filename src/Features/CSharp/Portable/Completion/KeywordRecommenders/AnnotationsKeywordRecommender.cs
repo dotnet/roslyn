@@ -7,13 +7,9 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class AnnotationsKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class AnnotationsKeywordRecommender()
+    : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.AnnotationsKeyword, isValidInPreprocessorContext: true)
 {
-    public AnnotationsKeywordRecommender()
-        : base(SyntaxKind.AnnotationsKeyword, isValidInPreprocessorContext: true)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var previousToken1 = context.TargetToken;

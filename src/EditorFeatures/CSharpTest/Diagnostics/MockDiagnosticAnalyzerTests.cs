@@ -15,9 +15,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MockDiagnosticAnalyzer;
 
-public partial class MockDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+public sealed partial class MockDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
 {
-    private class MockDiagnosticAnalyzer : DiagnosticAnalyzer
+    private sealed class MockDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         public const string Id = "MockDiagnostic";
         private readonly DiagnosticDescriptor _descriptor = new DiagnosticDescriptor(Id, "MockDiagnostic", "MockDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://github.com/dotnet/roslyn");
@@ -59,9 +59,6 @@ public partial class MockDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProvi
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/906919")]
-    public async Task Bug906919()
-    {
-        var source = "[|class C { }|]";
-        await VerifyDiagnosticsAsync(source);
-    }
+    public Task Bug906919()
+        => VerifyDiagnosticsAsync("[|class C { }|]");
 }

@@ -4,10 +4,9 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeRefactorings.WorkspaceServices
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeRefactorings.WorkspaceServices;
+
+internal interface IOmniSharpSymbolRenamedCodeActionOperationFactoryWorkspaceService
 {
-    internal interface IOmniSharpSymbolRenamedCodeActionOperationFactoryWorkspaceService
-    {
-        CodeActionOperation CreateSymbolRenamedOperation(ISymbol symbol, string newName, Solution startingSolution, Solution updatedSolution);
-    }
+    CodeActionOperation CreateSymbolRenamedOperation(ISymbol symbol, string newName, Solution startingSolution, Solution updatedSolution);
 }

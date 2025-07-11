@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="Use_explicit_array">
         <source>Use explicit array</source>
-        <target state="new">Use explicit array</target>
+        <target state="translated">Użyj jawnej tablicy</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">

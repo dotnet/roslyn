@@ -18,8 +18,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 
 internal static class QuickInfoUtilities
 {
+    /// <summary>
+    /// Display variable name only.
+    /// </summary>
+    private static readonly SymbolDisplayFormat s_nullableDisplayFormat = new SymbolDisplayFormat();
+
     public static Task<QuickInfoItem> CreateQuickInfoItemAsync(SolutionServices services, SemanticModel semanticModel, TextSpan span, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, CancellationToken cancellationToken)
-        => CreateQuickInfoItemAsync(services, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, flowState: NullableFlowState.None, options, onTheFlyDocsInfo: null, cancellationToken);
+        => CreateQuickInfoItemAsync(services, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, nullabilityInfo: default, options, onTheFlyDocsInfo: null, cancellationToken);
 
     public static async Task<QuickInfoItem> CreateQuickInfoItemAsync(
         SolutionServices services,
@@ -28,7 +33,7 @@ internal static class QuickInfoUtilities
         ImmutableArray<ISymbol> symbols,
         SupportedPlatformData? supportedPlatforms,
         bool showAwaitReturn,
-        NullableFlowState flowState,
+        (NullableAnnotation, NullableFlowState) nullabilityInfo,
         SymbolDescriptionOptions options,
         OnTheFlyDocsInfo? onTheFlyDocsInfo,
         CancellationToken cancellationToken)
@@ -134,10 +139,12 @@ internal static class QuickInfoUtilities
         if (usageTextBuilder.Count > 0)
             AddSection(QuickInfoSectionKinds.Usage, usageTextBuilder.ToImmutable());
 
-        var nullableMessage = flowState switch
+        var nullableMessage = nullabilityInfo switch
         {
-            NullableFlowState.MaybeNull => string.Format(FeaturesResources._0_may_be_null_here, symbol.Name),
-            NullableFlowState.NotNull => string.Format(FeaturesResources._0_is_not_null_here, symbol.Name),
+            (_, NullableFlowState.None) => null,
+            (NullableAnnotation.None, _) => string.Format(FeaturesResources._0_is_not_nullable_aware, symbol.ToDisplayString(s_nullableDisplayFormat)),
+            (_, NullableFlowState.MaybeNull) => string.Format(FeaturesResources._0_may_be_null_here, symbol.ToDisplayString(s_nullableDisplayFormat)),
+            (_, NullableFlowState.NotNull) => string.Format(FeaturesResources._0_is_not_null_here, symbol.ToDisplayString(s_nullableDisplayFormat)),
             _ => null
         };
 

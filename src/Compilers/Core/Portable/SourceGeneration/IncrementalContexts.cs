@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 #pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ArrayBuilder<SyntaxInputNode> _syntaxInputBuilder;
         private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputNodes;
         private readonly string _sourceExtension;
-
+        private readonly string _embeddedAttributeDefinition;
         internal readonly ISyntaxHelper SyntaxHelper;
         internal readonly bool CatchAnalyzerExceptions;
 
@@ -36,12 +35,14 @@ namespace Microsoft.CodeAnalysis
             ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes,
             ISyntaxHelper syntaxHelper,
             string sourceExtension,
+            string embeddedAttributeDefinition,
             bool catchAnalyzerExceptions)
         {
             _syntaxInputBuilder = syntaxInputBuilder;
             _outputNodes = outputNodes;
             SyntaxHelper = syntaxHelper;
             _sourceExtension = sourceExtension;
+            _embeddedAttributeDefinition = embeddedAttributeDefinition;
             CatchAnalyzerExceptions = catchAnalyzerExceptions;
         }
 
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis
 
         public void RegisterImplementationSourceOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<SourceProductionContext, TSource> action) => RegisterSourceOutput(source.Node, action, IncrementalGeneratorOutputKind.Implementation, _sourceExtension);
 
-        public void RegisterPostInitializationOutput(Action<IncrementalGeneratorPostInitializationContext> callback) => _outputNodes.Add(new PostInitOutputNode(callback.WrapUserAction(CatchAnalyzerExceptions)));
+        public void RegisterPostInitializationOutput(Action<IncrementalGeneratorPostInitializationContext> callback) => _outputNodes.Add(new PostInitOutputNode(callback.WrapUserAction(CatchAnalyzerExceptions), _embeddedAttributeDefinition));
 
         [Experimental(RoslynExperiments.GeneratorHostOutputs, UrlFormat = RoslynExperiments.GeneratorHostOutputs_Url)]
         public void RegisterHostOutput<TSource>(IncrementalValueProvider<TSource> source, Action<HostOutputProductionContext, TSource> action) => source.Node.RegisterOutput(new HostOutputNode<TSource>(source.Node, action.WrapUserAction(CatchAnalyzerExceptions)));
@@ -101,10 +102,12 @@ namespace Microsoft.CodeAnalysis
     public readonly struct IncrementalGeneratorPostInitializationContext
     {
         internal readonly AdditionalSourcesCollection AdditionalSources;
+        private readonly string _embeddedAttributeDefinition;
 
-        internal IncrementalGeneratorPostInitializationContext(AdditionalSourcesCollection additionalSources, CancellationToken cancellationToken)
+        internal IncrementalGeneratorPostInitializationContext(AdditionalSourcesCollection additionalSources, string embeddedAttributeDefinition, CancellationToken cancellationToken)
         {
             AdditionalSources = additionalSources;
+            _embeddedAttributeDefinition = embeddedAttributeDefinition;
             CancellationToken = cancellationToken;
         }
 
@@ -129,6 +132,16 @@ namespace Microsoft.CodeAnalysis
         /// Directory separators "/" and "\" are allowed in <paramref name="hintName"/>, they are normalized to "/" regardless of host platform.
         /// </remarks>
         public void AddSource(string hintName, SourceText sourceText) => AdditionalSources.Add(hintName, sourceText);
+
+        /// <summary>
+        /// Adds a <see cref="SourceText" /> to the compilation containing the definition of <c>Microsoft.CodeAnalysis.EmbeddedAttribute</c>.
+        /// The source will have a <c>hintName</c> of Microsoft.CodeAnalysis.EmbeddedAttribute. 
+        /// </summary>
+        /// <remarks>
+        /// This attribute can be used to mark a type as being only visible to the current assembly. Most commonly, any types provided during this <see cref="IncrementalGeneratorPostInitializationContext"/>
+        /// should be marked with this attribute to prevent them from being used by other assemblies. The attribute will prevent any downstream assemblies from consuming the type.
+        /// </remarks>
+        public void AddEmbeddedAttributeDefinition() => AddSource("Microsoft.CodeAnalysis.EmbeddedAttribute", SourceText.From(_embeddedAttributeDefinition, encoding: Encoding.UTF8));
     }
 
     /// <summary>

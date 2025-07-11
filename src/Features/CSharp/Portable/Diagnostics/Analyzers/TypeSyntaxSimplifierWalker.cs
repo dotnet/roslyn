@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 
-internal class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker, IDisposable
+internal sealed class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker, IDisposable
 {
     /// <summary>
     /// This set contains the full names of types that have equivalent predefined names in the language.

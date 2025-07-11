@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Simplification)]
-public class SimplifierTests
+public sealed class SimplifierTests
 {
     private static Document GetDocument()
     {

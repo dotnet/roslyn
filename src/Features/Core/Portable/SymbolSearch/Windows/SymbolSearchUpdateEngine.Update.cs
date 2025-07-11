@@ -232,7 +232,7 @@ internal sealed partial class SymbolSearchUpdateEngine
 
         private async Task<(bool succeeded, TimeSpan delay)> DownloadFullDatabaseWorkerAsync(FileInfo databaseFileInfo, CancellationToken cancellationToken)
         {
-            // Will hit https://az700632.vo.msecnd.net/pub/RoslynNuGetSearch/Elfie_V1/Latest.xml. Providing this
+            // Will hit https://aka.ms/vssettings/pub/RoslynNuGetSearch/Elfie_V1/Latest.xml. Providing this
             // link in the source to make it easy for maintainers to hit the endpoint to see if it succeeds and that
             // the data and http headers are what are expected.
             var serverPath = Invariant($"Elfie_V{AddReferenceDatabaseTextFileFormatVersion}/Latest.xml");
@@ -412,7 +412,7 @@ internal sealed partial class SymbolSearchUpdateEngine
 
             // Now attempt to download and apply patch file.
             //
-            // Will hit https://az700632.vo.msecnd.net/pub/RoslynNuGetSearch/Elfie_V1/{db_version}_Patch.xml.
+            // Will hit https://aka.ms/vssettings/pub/RoslynNuGetSearch/Elfie_V1/{db_version}_Patch.xml.
             // Providing this link in the source to make it easy for maintainers to hit the endpoint to see if it
             // succeeds and that the data and http headers are what are expected.
             var serverPath = Invariant($"Elfie_V{AddReferenceDatabaseTextFileFormatVersion}/{database.DatabaseVersion}_Patch.xml");

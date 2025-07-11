@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.Highlighting
 Imports Microsoft.CodeAnalysis.KeywordHighlighting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Text
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 

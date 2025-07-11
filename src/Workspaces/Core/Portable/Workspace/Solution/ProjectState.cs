@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Host;
@@ -22,7 +23,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal sealed partial class ProjectState
+internal sealed partial class ProjectState : IComparable<ProjectState>
 {
     public readonly LanguageServices LanguageServices;
 
@@ -47,22 +48,10 @@ internal sealed partial class ProjectState
     private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentVersion;
     private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentTopLevelChangeVersion;
 
-    // Checksums for this solution state (access via LazyChecksums)
-    private AsyncLazy<ProjectStateChecksums>? _lazyChecksums;
-
-    // Mapping from content has to document id (access via LazyContentHashToDocumentId)
-    private AsyncLazy<Dictionary<ImmutableArray<byte>, DocumentId>>? _lazyContentHashToDocumentId;
-
     /// <summary>
     /// Analyzer config options to be used for specific trees.
     /// </summary>
     private readonly AnalyzerConfigOptionsCache _analyzerConfigOptionsCache;
-
-    private ImmutableArray<AdditionalText> _lazyAdditionalFiles;
-
-    private AnalyzerOptions? _lazyProjectAnalyzerOptions;
-
-    private AnalyzerOptions? _lazyHostAnalyzerOptions;
 
     private ProjectState(
         ProjectInfo projectInfo,
@@ -116,7 +105,7 @@ internal sealed partial class ProjectState
         DocumentStates = new TextDocumentStates<DocumentState>(projectInfoFixed.Documents, info => CreateDocument(info, parseOptions, loadTextOptions));
         AdditionalDocumentStates = new TextDocumentStates<AdditionalDocumentState>(projectInfoFixed.AdditionalDocuments, info => new AdditionalDocumentState(languageServices.SolutionServices, info, loadTextOptions));
 
-        _lazyLatestDocumentVersion = AsyncLazy.Create(static (self, c) => ComputeLatestDocumentVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c), arg: this);
+        _lazyLatestDocumentVersion = AsyncLazy.Create(static async (self, c) => await ComputeLatestDocumentVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c).ConfigureAwait(false), arg: this);
         _lazyLatestDocumentTopLevelChangeVersion = AsyncLazy.Create(static (self, c) => ComputeLatestDocumentTopLevelChangeVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c), arg: this);
 
         // ownership of information on document has moved to project state. clear out documentInfo the state is
@@ -155,31 +144,32 @@ internal sealed partial class ProjectState
     {
         get
         {
-            if (_lazyChecksums is null)
+            if (field is null)
             {
                 Interlocked.CompareExchange(
-                    ref _lazyChecksums,
+                    ref field,
                     AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this),
                     null);
             }
 
-            return _lazyChecksums;
+            return field;
         }
     }
 
+    // Mapping from content has to document id (access via LazyContentHashToDocumentId)
     private AsyncLazy<Dictionary<ImmutableArray<byte>, DocumentId>> LazyContentHashToDocumentId
     {
         get
         {
-            if (_lazyContentHashToDocumentId is null)
+            if (field is null)
             {
                 Interlocked.CompareExchange(
-                    ref _lazyContentHashToDocumentId,
+                    ref field,
                     AsyncLazy.Create(static (self, cancellationToken) => self.ComputeContentHashToDocumentIdAsync(cancellationToken), arg: this),
                     null);
             }
 
-            return _lazyContentHashToDocumentId;
+            return field;
         }
     }
 
@@ -220,7 +210,7 @@ internal sealed partial class ProjectState
         return projectInfo;
     }
 
-    private static async Task<VersionStamp> ComputeLatestDocumentVersionAsync(TextDocumentStates<DocumentState> documentStates, TextDocumentStates<AdditionalDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
+    private static async ValueTask<VersionStamp> ComputeLatestDocumentVersionAsync(TextDocumentStates<DocumentState> documentStates, TextDocumentStates<AdditionalDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
     {
         // this may produce a version that is out of sync with the actual Document versions.
         var latestVersion = VersionStamp.Default;
@@ -326,7 +316,7 @@ internal sealed partial class ProjectState
         get
         {
             return InterlockedOperations.Initialize(
-                ref _lazyAdditionalFiles,
+                ref field,
                 static self => self.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText),
                 this);
         }
@@ -334,19 +324,21 @@ internal sealed partial class ProjectState
 
     public AnalyzerOptions ProjectAnalyzerOptions
         => InterlockedOperations.Initialize(
-            ref _lazyProjectAnalyzerOptions,
+            ref field,
             static self => new AnalyzerOptions(
                 additionalFiles: self.AdditionalFiles,
                 optionsProvider: new ProjectAnalyzerConfigOptionsProvider(self)),
             this);
 
     public AnalyzerOptions HostAnalyzerOptions
-        => InterlockedOperations.Initialize(
-            ref _lazyHostAnalyzerOptions,
+    {
+        get => InterlockedOperations.Initialize(
+            ref field,
             static self => new AnalyzerOptions(
                 additionalFiles: self.AdditionalFiles,
                 optionsProvider: new ProjectHostAnalyzerConfigOptionsProvider(self)),
-            this);
+            this); private set;
+    }
 
     public AnalyzerConfigData GetAnalyzerOptionsForPath(string path, CancellationToken cancellationToken)
         => _analyzerConfigOptionsCache.Lazy.GetValue(cancellationToken).GetOptionsForSourcePath(path);
@@ -1090,8 +1082,8 @@ internal sealed partial class ProjectState
 
         if (recalculateDocumentVersion)
         {
-            dependentDocumentVersion = AsyncLazy.Create(static (arg, cancellationToken) =>
-                ComputeLatestDocumentVersionAsync(arg.newDocumentStates, arg.newAdditionalDocumentStates, cancellationToken),
+            dependentDocumentVersion = AsyncLazy.Create(static async (arg, cancellationToken) =>
+                await ComputeLatestDocumentVersionAsync(arg.newDocumentStates, arg.newAdditionalDocumentStates, cancellationToken).ConfigureAwait(false),
                 arg: (newDocumentStates, newAdditionalDocumentStates));
         }
         else if (contentChanged)
@@ -1140,5 +1132,13 @@ internal sealed partial class ProjectState
         return this.DocumentStates.GetFirstDocumentIdWithFilePath(filePath) ??
             this.AdditionalDocumentStates.GetFirstDocumentIdWithFilePath(filePath) ??
             this.AnalyzerConfigDocumentStates.GetFirstDocumentIdWithFilePath(filePath);
+    }
+
+    public int CompareTo(ProjectState? other)
+    {
+        if (other is null)
+            return 1;
+
+        return this.Id.CompareTo(other.Id);
     }
 }

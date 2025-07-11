@@ -13,14 +13,13 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class FunctionPointerUnmanagedCallingConventionCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class FunctionPointerUnmanagedCallingConventionCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType() => typeof(FunctionPointerUnmanagedCallingConventionCompletionProvider);
 
     [Fact]
-    public async Task TypeFound()
-    {
-        var markup = """
+    public Task TypeFound()
+        => VerifyItemExistsAsync("""
             namespace System.Runtime.CompilerServices
             {
                 public class CallConvUnitTest { }
@@ -30,14 +29,11 @@ public class FunctionPointerUnmanagedCallingConventionCompletionProviderTests : 
             {
                 delegate* unmanaged[$$] <int, string> f;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "UnitTest");
-    }
+            """, "UnitTest");
 
     [Fact]
-    public async Task TypeFoundSecondCallingConvention()
-    {
-        var markup = """
+    public Task TypeFoundSecondCallingConvention()
+        => VerifyItemExistsAsync("""
             namespace System.Runtime.CompilerServices
             {
                 public class CallConvUnitTest { }
@@ -47,20 +43,15 @@ public class FunctionPointerUnmanagedCallingConventionCompletionProviderTests : 
             {
                 delegate* unmanaged[Thiscall, $$] <int, string> f;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "UnitTest");
-    }
+            """, "UnitTest");
 
     [Theory]
     [InlineData("Cdecl")]
     [InlineData("Fastcall")]
     [InlineData("Thiscall")]
     [InlineData("Stdcall")]
-    public async Task PredefinedCallingConventionFound(string callingConvention)
-    {
-        // We explicitly create a project with no references (not even common references) to ensure we
-        // get the defaults
-        var markup = """
+    public Task PredefinedCallingConventionFound(string callingConvention)
+        => VerifyItemExistsAsync("""
             <Workspace>
                 <Project Language="C#">
                     <Document>
@@ -71,7 +62,5 @@ public class FunctionPointerUnmanagedCallingConventionCompletionProviderTests : 
                     </Document>
                 </Project>
             </Workspace>
-            """;
-        await VerifyItemExistsAsync(markup, callingConvention, glyph: (int)Glyph.Keyword);
-    }
+            """, callingConvention, glyph: Glyph.Keyword);
 }

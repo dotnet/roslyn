@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
@@ -27,17 +26,13 @@ internal sealed partial class CSharpExtractMethodService
             : CSharpSelectionResult(document, selectionType, finalSpan)
         {
             public override bool ContainingScopeHasAsyncKeyword()
-            {
-                var node = GetContainingScope();
-
-                return node switch
+                => GetContainingScope() switch
                 {
                     MethodDeclarationSyntax method => method.Modifiers.Any(SyntaxKind.AsyncKeyword),
                     LocalFunctionStatementSyntax localFunction => localFunction.Modifiers.Any(SyntaxKind.AsyncKeyword),
                     AnonymousFunctionExpressionSyntax anonymousFunction => anonymousFunction.AsyncKeyword != default,
                     _ => false,
                 };
-            }
 
             public override SyntaxNode GetContainingScope()
             {

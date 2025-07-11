@@ -3,10 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.IO
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.[Shared].TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.Internal.VisualStudio.PlatformUI
@@ -44,8 +44,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     workspace,
                     project.FilePath,
                     project.Id,
-                    New MockHierarchyItem() With {.CanonicalName = "\net472\analyzerdependency\" + analyzerPath},
-                    New FakeAnalyzersCommandHandler, workspace.GetService(Of IDiagnosticAnalyzerService),
+                    New MockHierarchyItem() With {.CanonicalName = Path.Combine(TestWorkspace.RootDirectory, "net472", "analyzerdependency") + "\" + analyzerPath},
+                    New FakeAnalyzersCommandHandler(),
                     listenerProvider)
 
                 Assert.True(source.HasItems)

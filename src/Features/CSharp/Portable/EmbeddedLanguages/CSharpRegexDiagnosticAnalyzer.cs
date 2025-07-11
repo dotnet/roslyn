@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.Langu
 namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpRegexDiagnosticAnalyzer : AbstractRegexDiagnosticAnalyzer
+internal sealed class CSharpRegexDiagnosticAnalyzer : AbstractRegexDiagnosticAnalyzer
 {
     public CSharpRegexDiagnosticAnalyzer()
         : base(CSharpEmbeddedLanguagesProvider.Info)

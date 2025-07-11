@@ -17,14 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-#else
-using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
-#endif
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
@@ -83,7 +76,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
             return CodeGenerationSymbolFactory.CreatePropertySymbol(
                 attributes: default,
                 accessibility: accessibility,
-                modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract),
+                modifiers: DeclarationModifiers.None.WithIsStatic(State.IsStatic).WithIsAbstract(isAbstract),
                 type: await DetermineReturnTypeAsync(cancellationToken).ConfigureAwait(false),
                 refKind: DetermineRefKind(cancellationToken),
                 explicitInterfaceImplementations: default,
@@ -111,8 +104,8 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
             var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: default,
                 accessibility: DetermineAccessibility(isAbstract),
-                modifiers: new DeclarationModifiers(
-                    isStatic: State.IsStatic, isAbstract: isAbstract, isUnsafe: isUnsafe, isAsync: knownTypes.IsTaskLike(returnType)),
+                modifiers: DeclarationModifiers.None
+                    .WithIsStatic(State.IsStatic).WithIsAbstract(isAbstract).WithIsUnsafe(isUnsafe).WithAsync(knownTypes.IsTaskLike(returnType)),
                 returnType: returnType,
                 refKind: DetermineRefKind(cancellationToken),
                 explicitInterfaceImplementations: default,

@@ -19,7 +19,7 @@ internal sealed partial class RenameTrackingTaggerProvider
     /// <see cref="ITextBuffer"/> on which they were created, so we must avoid strong
     /// references to anything that may hold that <see cref="ITextBuffer"/> alive.
     /// </summary>
-    private class UndoPrimitive(ITextBuffer textBuffer, int trackingSessionId, bool shouldRestoreStateOnUndo) : ITextUndoPrimitive
+    private sealed class UndoPrimitive(ITextBuffer textBuffer, int trackingSessionId, bool shouldRestoreStateOnUndo) : ITextUndoPrimitive
     {
         private readonly WeakReference<ITextBuffer> _weakTextBuffer = new WeakReference<ITextBuffer>(textBuffer);
         private readonly int _trackingSessionId = trackingSessionId;

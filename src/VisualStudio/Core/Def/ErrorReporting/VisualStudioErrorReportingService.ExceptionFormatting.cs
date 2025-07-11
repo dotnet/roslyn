@@ -15,7 +15,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting;
 
-internal partial class VisualStudioErrorReportingService
+internal sealed partial class VisualStudioErrorReportingService
 {
     private static string GetFormattedExceptionStack(Exception exception)
     {
@@ -169,5 +169,5 @@ internal partial class VisualStudioErrorReportingService
     }
 
     private static void FormatParameters(StringBuilder stringBuilder, MethodBase method)
-        => stringBuilder.Append(string.Join(",", method?.GetParameters().Select(t => (t.ParameterType?.Name ?? "<UnknownType>") + " " + t.Name) ?? Array.Empty<string>()));
+        => stringBuilder.Append(string.Join(",", method?.GetParameters().Select(t => (t.ParameterType?.Name ?? "<UnknownType>") + " " + t.Name) ?? []));
 }

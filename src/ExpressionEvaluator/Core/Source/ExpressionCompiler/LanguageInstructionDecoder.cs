@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return _instructionDecoder.GetName(method, includeParameterTypes, includeParameterNames);
                 }
             }
-            catch (NotImplementedMetadataException)
+            catch (Exception e) when (e is NotImplementedMetadataException or BadMetadataModuleException)
             {
                 return languageInstructionAddress.GetMethodName(argumentFlags);
             }

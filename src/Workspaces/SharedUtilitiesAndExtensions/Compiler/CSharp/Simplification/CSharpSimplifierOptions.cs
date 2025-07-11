@@ -24,6 +24,7 @@ internal sealed record class CSharpSimplifierOptions : SimplifierOptions, IEquat
     [DataMember] public CodeStyleOption2<bool> VarWhenTypeIsApparent { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<bool> VarElsewhere { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferSimpleDefaultExpression { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferImplicitlyTypedLambdaExpression { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferParameterNullChecking { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine { get; init; } = CodeStyleOption2.TrueWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<PreferBracesPreference> PreferBraces { get; init; } = s_defaultPreferBraces;
@@ -41,6 +42,7 @@ internal sealed record class CSharpSimplifierOptions : SimplifierOptions, IEquat
         VarWhenTypeIsApparent = options.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent);
         VarElsewhere = options.GetOption(CSharpCodeStyleOptions.VarElsewhere);
         PreferSimpleDefaultExpression = options.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression);
+        PreferImplicitlyTypedLambdaExpression = options.GetOption(CSharpCodeStyleOptions.PreferImplicitlyTypedLambdaExpression);
         AllowEmbeddedStatementsOnSameLine = options.GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine);
         PreferBraces = options.GetOption(CSharpCodeStyleOptions.PreferBraces);
         PreferThrowExpression = options.GetOption(CSharpCodeStyleOptions.PreferThrowExpression);

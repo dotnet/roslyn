@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -13,7 +14,6 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -24,21 +24,17 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.WinForms.Interfaces;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
 /// <summary>
 /// The base class of both the Roslyn editor factories.
 /// </summary>
-internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactory4, IVsEditorFactoryNotify
+internal abstract class AbstractEditorFactory(IComponentModel componentModel) : IVsEditorFactory, IVsEditorFactory4, IVsEditorFactoryNotify
 {
-    private readonly IComponentModel _componentModel;
+    private readonly IComponentModel _componentModel = componentModel;
     private Microsoft.VisualStudio.OLE.Interop.IServiceProvider? _oleServiceProvider;
     private bool _encoding;
-
-    protected AbstractEditorFactory(IComponentModel componentModel)
-        => _componentModel = componentModel;
 
     protected abstract string ContentTypeName { get; }
     protected abstract string LanguageName { get; }
@@ -371,7 +367,7 @@ internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFacto
 
         IOUtilities.PerformIO(() =>
         {
-            using var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding);
+            using var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding ?? Encoding.UTF8);
             // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
             formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
         });

@@ -2,13 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Remote.Testing
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.NavigateTo.Interfaces
 Imports Microsoft.VisualStudio.Text.PatternMatching
 Imports Roslyn.Test.EditorUtilities.NavigateTo
@@ -792,7 +787,7 @@ End Class", Async Function(w)
                         Assert.Equal(value, descriptionItem.Details.Single().Text)
                     End Sub
 
-                assertDescription("File:", w.Documents.Single().Name)
+                assertDescription("File:", w.Documents.Single().FilePath)
                 assertDescription("Line:", "2")
                 assertDescription("Project:", "Test")
             End Function)

@@ -547,7 +547,7 @@
     <value>Inconsistent accessibility: indexer return type '{1}' is less accessible than indexer '{0}'</value>
   </data>
   <data name="ERR_BadVisIndexerParam" xml:space="preserve">
-    <value>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer '{0}'</value>
+    <value>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</value>
   </data>
   <data name="ERR_BadVisOpReturn" xml:space="preserve">
     <value>Inconsistent accessibility: return type '{1}' is less accessible than operator '{0}'</value>
@@ -1171,7 +1171,7 @@
     <value>Cannot implicitly convert type '{0}' to '{1}'. An explicit conversion exists (are you missing a cast?)</value>
   </data>
   <data name="ERR_PartialMisplaced" xml:space="preserve">
-    <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</value>
+    <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</value>
   </data>
   <data name="ERR_ImportedCircularBase" xml:space="preserve">
     <value>Imported type '{0}' is invalid. It contains a circular base type dependency.</value>
@@ -1601,7 +1601,7 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PredefinedValueTupleTypeNotFound" xml:space="preserve">
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
-  <data name="ERR_PredefinedValueTupleTypeAmbiguous3" xml:space="preserve">
+  <data name="ERR_PredefinedTypeAmbiguous" xml:space="preserve">
     <value>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</value>
   </data>
   <data name="ERR_StructWithBaseConstructorCall" xml:space="preserve">
@@ -1709,7 +1709,7 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_DuplicateConversionInClass" xml:space="preserve">
     <value>Duplicate user-defined conversion in type '{0}'</value>
   </data>
-  <data name="ERR_OperatorsMustBeStatic" xml:space="preserve">
+  <data name="ERR_OperatorsMustBeStaticAndPublic" xml:space="preserve">
     <value>User-defined operator '{0}' must be declared static and public</value>
   </data>
   <data name="ERR_BadIncDecSignature" xml:space="preserve">
@@ -1806,7 +1806,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Invalid value for named attribute argument '{0}'</value>
   </data>
   <data name="ERR_DllImportOnInvalidMethod" xml:space="preserve">
-    <value>The DllImport attribute must be specified on a method marked 'static' and 'extern'</value>
+    <value>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</value>
   </data>
   <data name="ERR_EncUpdateFailedMissingSymbol" xml:space="preserve">
     <value>Cannot emit update; {0} '{1}' is missing.</value>
@@ -2525,7 +2525,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value> The parameter modifier '{0}' cannot be used with '{1}'</value>
   </data>
   <data name="ERR_BadTypeforThis" xml:space="preserve">
-    <value>The first parameter of an extension method cannot be of type '{0}'</value>
+    <value>The receiver parameter of an extension cannot be of type '{0}'</value>
   </data>
   <data name="ERR_BadParamModThis" xml:space="preserve">
     <value>A parameter array cannot be used with 'this' modifier on an extension method</value>
@@ -2543,7 +2543,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Extension methods must be defined in a top level static class; {0} is a nested class</value>
   </data>
   <data name="ERR_ExtensionAttrNotFound" xml:space="preserve">
-    <value>Cannot define a new extension method because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</value>
+    <value>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</value>
   </data>
   <data name="ERR_ExplicitExtension" xml:space="preserve">
     <value>Do not use 'System.Runtime.CompilerServices.ExtensionAttribute'. Use the 'this' keyword instead.</value>
@@ -2600,7 +2600,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Invalid preprocessor expression</value>
   </data>
   <data name="ERR_InvalidMemberDecl" xml:space="preserve">
-    <value>Invalid token '{0}' in class, record, struct, or interface member declaration</value>
+    <value>Invalid token '{0}' in a member declaration</value>
   </data>
   <data name="ERR_MemberNeedsType" xml:space="preserve">
     <value>Method must have a return type</value>
@@ -4172,6 +4172,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_ExpressionTreeContainsNamedArgument" xml:space="preserve">
     <value>An expression tree may not contain a named argument specification</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsNamedArgumentOutOfPosition" xml:space="preserve">
+    <value>An expression tree may not contain a named argument specification out of position</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsOptionalArgument" xml:space="preserve">
     <value>An expression tree may not contain a call or invocation that uses optional arguments</value>
   </data>
@@ -5309,7 +5312,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Syntax tree should be created from a submission.</value>
   </data>
   <data name="ERR_TooManyUserStrings" xml:space="preserve">
-    <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</value>
+    <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</value>
+  </data>
+  <data name="ERR_TooManyUserStrings_RestartRequired" xml:space="preserve">
+    <value>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</value>
   </data>
   <data name="ERR_PatternNullableType" xml:space="preserve">
     <value>It is not legal to use nullable type '{0}?' in a pattern; use the underlying type '{0}' instead.</value>
@@ -5914,6 +5920,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
     <value>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</value>
   </data>
+  <data name="ERR_InExtensionParameterMustBeValueType" xml:space="preserve">
+    <value>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</value>
+  </data>
   <data name="ERR_FieldsInRoStruct" xml:space="preserve">
     <value>Instance fields of readonly structs must be readonly.</value>
   </data>
@@ -5931,6 +5940,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
     <value>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</value>
+  </data>
+  <data name="ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
+    <value>The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</value>
   </data>
   <data name="ERR_OutAttrOnInParam" xml:space="preserve">
     <value>An in parameter cannot have the Out attribute.</value>
@@ -6841,6 +6853,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureCollectionExpressions" xml:space="preserve">
     <value>collection expressions</value>
   </data>
+  <data name="IDS_CollectionExpression" xml:space="preserve">
+    <value>collection expression</value>
+  </data>
   <data name="ERR_CollectionExpressionTargetTypeNotConstructible" xml:space="preserve">
     <value>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</value>
   </data>
@@ -6886,8 +6901,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_FieldIsAmbiguous_Title" xml:space="preserve">
     <value>The 'field' keyword binds to a synthesized backing field for the property.</value>
   </data>
-  <data name="INF_IdentifierConflictWithContextualKeyword_Title" xml:space="preserve">
-    <value>Identifier is a contextual keyword, with a specific meaning, in a later language version.</value>
+  <data name="ERR_VariableDeclarationNamedField" xml:space="preserve">
+    <value>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</value>
   </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>
@@ -6900,10 +6915,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The loaded assembly references .NET Framework, which is not supported.</value>
   </data>
   <data name="WRN_AnalyzerReferencesNewerCompiler" xml:space="preserve">
-    <value>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
+    <value>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
   </data>
   <data name="WRN_AnalyzerReferencesNewerCompiler_Title" xml:space="preserve">
-    <value>The analyzer assembly references a newer version of the compiler than the currently running version.</value>
+    <value>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</value>
   </data>
   <data name="ERR_BadFieldTypeInRecord" xml:space="preserve">
     <value>The type '{0}' may not be used for a field of a record.</value>
@@ -7470,6 +7485,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ImplicitlyTypedDefaultParameter" xml:space="preserve">
     <value>Implicitly typed lambda parameter '{0}' cannot have a default value.</value>
   </data>
+  <data name="ERR_ImplicitlyTypedParamsParameter" xml:space="preserve">
+    <value>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</value>
+  </data>
   <data name="WRN_OptionalParamValueMismatch" xml:space="preserve">
     <value>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</value>
   </data>
@@ -7480,7 +7498,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>file types</value>
   </data>
   <data name="ERR_CannotMatchOnINumberBase" xml:space="preserve">
-    <value>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</value>
+    <value>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</value>
   </data>
   <data name="IDS_ArrayAccess" xml:space="preserve">
     <value>array access</value>
@@ -7980,14 +7998,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PartialPropertyInitMismatch" xml:space="preserve">
     <value>Property accessor '{0}' must be '{1}' to match the definition part</value>
   </data>
-  <data name="ERR_PartialPropertyTypeDifference" xml:space="preserve">
-    <value>Both partial property declarations must have the same type.</value>
+  <data name="ERR_PartialMemberTypeDifference" xml:space="preserve">
+    <value>Both partial member declarations must have the same type.</value>
   </data>
-  <data name="WRN_PartialPropertySignatureDifference" xml:space="preserve">
-    <value>Partial property declarations '{0}' and '{1}' have signature differences.</value>
+  <data name="WRN_PartialMemberSignatureDifference" xml:space="preserve">
+    <value>Partial member declarations '{0}' and '{1}' have signature differences.</value>
   </data>
-  <data name="WRN_PartialPropertySignatureDifference_Title" xml:space="preserve">
-    <value>Partial property declarations have signature differences.</value>
+  <data name="WRN_PartialMemberSignatureDifference_Title" xml:space="preserve">
+    <value>Partial member declarations have signature differences.</value>
   </data>
   <data name="ERR_PartialPropertyRequiredDifference" xml:space="preserve">
     <value>Both partial property declarations must be required or neither may be required</value>
@@ -8011,11 +8029,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</value>
   </data>
   <data name="WRN_UninitializedNonNullableBackingField" xml:space="preserve">
-    <value>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</value>
+    <value>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</value>
     <comment>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</comment>
   </data>
   <data name="WRN_UninitializedNonNullableBackingField_Title" xml:space="preserve">
-    <value>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</value>
+    <value>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</value>
   </data>
   <data name="IDS_FeatureFirstClassSpan" xml:space="preserve">
     <value>first-class Span types</value>
@@ -8029,6 +8047,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_IteratorRefLikeElementType" xml:space="preserve">
     <value>Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</value>
   </data>
+  <data name="IDS_FeatureSimpleLambdaParameterModifiers" xml:space="preserve">
+    <value>simple lambda parameter modifiers</value>
+  </data>
   <data name="WRN_UnscopedRefAttributeOldRules" xml:space="preserve">
     <value>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</value>
   </data>
@@ -8040,5 +8061,158 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_InterceptsLocationAttributeUnsupportedSignature_Title" xml:space="preserve">
     <value>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</value>
+  </data>
+  <data name="ERR_DataSectionStringLiteralHashCollision" xml:space="preserve">
+    <value>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</value>
+  </data>
+  <data name="IDS_FeaturePartialEventsAndConstructors" xml:space="preserve">
+    <value>partial events and constructors</value>
+  </data>
+  <data name="ERR_PartialMemberMissingImplementation" xml:space="preserve">
+    <value>Partial member '{0}' must have an implementation part.</value>
+  </data>
+  <data name="ERR_PartialMemberMissingDefinition" xml:space="preserve">
+    <value>Partial member '{0}' must have a definition part.</value>
+  </data>
+  <data name="ERR_PartialMemberDuplicateDefinition" xml:space="preserve">
+    <value>Partial member '{0}' may not have multiple defining declarations.</value>
+  </data>
+  <data name="ERR_PartialMemberDuplicateImplementation" xml:space="preserve">
+    <value>Partial member '{0}' may not have multiple implementing declarations.</value>
+  </data>
+  <data name="ERR_PartialEventInitializer" xml:space="preserve">
+    <value>'{0}': partial event cannot have initializer</value>
+  </data>
+  <data name="ERR_PartialConstructorInitializer" xml:space="preserve">
+    <value>'{0}': only the implementing declaration of a partial constructor can have an initializer</value>
+  </data>
+  <data name="IDS_FeatureNullConditionalAssignment" xml:space="preserve">
+    <value>null conditional assignment</value>
+  </data>
+  <data name="IDS_FeatureExtensions" xml:space="preserve">
+    <value>extensions</value>
+  </data>
+  <data name="ERR_ExtensionDisallowsName" xml:space="preserve">
+    <value>Extension declarations may not have a name.</value>
+  </data>
+  <data name="ERR_ExtensionDisallowsMember" xml:space="preserve">
+    <value>This member is not allowed in an extension block</value>
+  </data>
+  <data name="ERR_BadExtensionContainingType" xml:space="preserve">
+    <value>Extensions must be declared in a top-level, non-generic, static class</value>
+  </data>
+  <data name="ERR_ExtensionParameterDisallowsDefaultValue" xml:space="preserve">
+    <value>The receiver parameter of an extension cannot have a default value</value>
+  </data>
+  <data name="ERR_ReceiverParameterOnlyOne" xml:space="preserve">
+    <value>An extension container can have only one receiver parameter</value>
+  </data>
+  <data name="ERR_ExtensionResolutionFailed" xml:space="preserve">
+    <value>'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</value>
+  </data>
+  <data name="ERR_ReceiverParameterSameNameAsTypeParameter" xml:space="preserve">
+    <value>'{0}': a receiver parameter cannot have the same name as an extension container type parameter</value>
+  </data>
+  <data name="ERR_LocalSameNameAsExtensionTypeParameter" xml:space="preserve">
+    <value>'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</value>
+  </data>
+  <data name="ERR_TypeParameterSameNameAsExtensionTypeParameter" xml:space="preserve">
+    <value>Type parameter '{0}' has the same name as an extension container type parameter</value>
+  </data>
+  <data name="ERR_LocalSameNameAsExtensionParameter" xml:space="preserve">
+    <value>'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</value>
+  </data>
+  <data name="ERR_ValueParameterSameNameAsExtensionParameter" xml:space="preserve">
+    <value>'value': an automatically-generated parameter name conflicts with an extension parameter name</value>
+  </data>
+  <data name="ERR_TypeParameterSameNameAsExtensionParameter" xml:space="preserve">
+    <value>Type parameter '{0}' has the same name as an extension parameter</value>
+  </data>
+  <data name="ERR_InvalidExtensionParameterReference" xml:space="preserve">
+    <value>Cannot use extension parameter '{0}' in this context.</value>
+  </data>
+  <data name="ERR_ValueParameterSameNameAsExtensionTypeParameter" xml:space="preserve">
+    <value>'value': an automatically-generated parameter name conflicts with an extension type parameter name</value>
+  </data>
+  <data name="ERR_UnderspecifiedExtension" xml:space="preserve">
+    <value>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsExtensionPropertyAccess" xml:space="preserve">
+    <value>An expression tree may not contain an extension property access</value>
+  </data>
+  <data name="ERR_PPIgnoredFollowsToken" xml:space="preserve">
+    <value>'#:' directives cannot be after first token in file</value>
+  </data>
+  <data name="ERR_PPIgnoredNeedsFileBasedProgram" xml:space="preserve">
+    <value>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</value>
+  </data>
+  <data name="ERR_PPIgnoredFollowsIf" xml:space="preserve">
+    <value>'#:' directives cannot be after '#if' directive</value>
+  </data>
+  <data name="ERR_ProtectedInExtension" xml:space="preserve">
+    <value>'{0}': new protected member declared in an extension block</value>
+  </data>
+  <data name="ERR_InstanceMemberWithUnnamedExtensionsParameter" xml:space="preserve">
+    <value>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</value>
+  </data>
+  <data name="ERR_InitInExtension" xml:space="preserve">
+    <value>'{0}': cannot declare init-only accessors in an extension block</value>
+  </data>
+  <data name="ERR_ModifierOnUnnamedReceiverParameter" xml:space="preserve">
+    <value>Cannot use modifiers on the unnamed receiver parameter of extension block</value>
+  </data>
+  <data name="ERR_ExtensionTypeNameDisallowed" xml:space="preserve">
+    <value>Types and aliases cannot be named 'extension'.</value>
+  </data>
+  <data name="IDS_FeatureUserDefinedCompoundAssignmentOperators" xml:space="preserve">
+    <value>user-defined compound assignment operators</value>
+  </data>
+  <data name="ERR_OperatorsMustBePublic" xml:space="preserve">
+    <value>User-defined operator '{0}' must be declared public</value>
+  </data>
+  <data name="ERR_OperatorMustReturnVoid" xml:space="preserve">
+    <value>The return type for this operator must be void</value>
+  </data>
+  <data name="ERR_CloseUnimplementedInterfaceMemberOperatorMismatch" xml:space="preserve">
+    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because one of them is not an operator.</value>
+  </data>
+  <data name="ERR_OperatorMismatchOnOverride" xml:space="preserve">
+    <value>'{0}': cannot override inherited member '{1}' because one of them is not an operator.</value>
+  </data>
+  <data name="ERR_BadCompoundAssignmentOpArgs" xml:space="preserve">
+    <value>Overloaded compound assignment operator '{0}' takes one parameter</value>
+  </data>
+  <data name="ERR_PPShebangInProjectBasedProgram" xml:space="preserve">
+    <value>'#!' directives can be only used in scripts or file-based programs</value>
+  </data>
+  <data name="ERR_MisplacedExtension" xml:space="preserve">
+    <value>An extension member syntax is disallowed in nested position within an extension member syntax</value>
+  </data>
+  <data name="ERR_NameofExtensionMember" xml:space="preserve">
+    <value>Extension members are not allowed as an argument to 'nameof'.</value>
+  </data>
+  <data name="ERR_BadExtensionUnaryOperatorSignature" xml:space="preserve">
+    <value>The parameter of a unary operator must be the extended type.</value>
+  </data>
+  <data name="ERR_BadExtensionIncDecSignature" xml:space="preserve">
+    <value>The parameter type for ++ or -- operator must be the extended type.</value>
+  </data>
+  <data name="ERR_BadExtensionBinaryOperatorSignature" xml:space="preserve">
+    <value>One of the parameters of a binary operator must be the extended type.</value>
+  </data>
+  <data name="ERR_BadExtensionShiftOperatorSignature" xml:space="preserve">
+    <value>The first operand of an overloaded shift operator must have the same type as the extended type</value>
+  </data>
+  <data name="ERR_OperatorInExtensionOfStaticClass" xml:space="preserve">
+    <value>An extension block extending a static class cannot contain user-defined operators</value>
+  </data>
+  <data name="ERR_InstanceOperatorStructExtensionWrongReceiverRefKind" xml:space="preserve">
+    <value>Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter</value>
+  </data>
+  <data name="ERR_InstanceOperatorExtensionWrongReceiverType" xml:space="preserve">
+    <value>Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator" xml:space="preserve">
+    <value>An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</value>
   </data>
 </root>

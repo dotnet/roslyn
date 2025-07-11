@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 using StreamJsonRpc;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -46,7 +45,7 @@ internal sealed class CodeLensResolveHandler() : ILspServiceDocumentRequestHandl
             CommandIdentifier = ClientReferencesCommand,
             Arguments =
             [
-                resolveData.TextDocument.Uri,
+                resolveData.TextDocument.DocumentUri,
                 request.Range.Start
             ]
         };
@@ -74,7 +73,7 @@ internal sealed class CodeLensResolveHandler() : ILspServiceDocumentRequestHandl
                 CommandIdentifier = ClientReferencesCommand,
                 Arguments =
                 [
-                    resolveData.TextDocument.Uri,
+                    resolveData.TextDocument.DocumentUri,
                     request.Range.Start,
                 ],
             };

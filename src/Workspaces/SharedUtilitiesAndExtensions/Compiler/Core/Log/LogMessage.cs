@@ -60,10 +60,13 @@ internal abstract class LogMessage
     {
         private static readonly ObjectPool<StaticLogMessage> s_pool = SharedPools.Default<StaticLogMessage>();
 
+        private bool _isConstructed;
+
         public static LogMessage Construct(string message, LogLevel logLevel)
         {
             var logMessage = s_pool.Allocate();
             logMessage._message = message;
+            logMessage._isConstructed = true;
             logMessage.LogLevel = logLevel;
 
             return logMessage;
@@ -74,11 +77,12 @@ internal abstract class LogMessage
 
         protected override void FreeCore()
         {
-            if (_message == null)
+            if (!_isConstructed)
             {
                 return;
             }
 
+            _isConstructed = false;
             _message = null;
             s_pool.Free(this);
         }

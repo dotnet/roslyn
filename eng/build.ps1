@@ -43,9 +43,11 @@ param (
   [switch]$prepareMachine,
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
-  [switch]$sourceBuild = $false,
+  [switch][Alias('pb')]$productBuild = $false,
+  [switch]$fromVMR = $false,
   [switch]$oop64bit = $true,
   [switch]$lspEditor = $false,
+  [string]$solution = "Roslyn.sln",
 
   # official build settings
   [string]$officialBuildId = "",
@@ -111,7 +113,9 @@ function Print-Usage() {
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
-  Write-Host "  -sourceBuild              Simulate building source-build"
+  Write-Host "  -productBuild             Build the repository in product-build mode"
+  Write-Host "  -fromVMR                  Set when building from within the VMR"
+  Write-Host "  -solution                 Solution to build (default is Roslyn.sln)"
   Write-Host ""
   Write-Host "Official build settings:"
   Write-Host "  -officialBuildId                                  An official build id, e.g. 20190102.3"
@@ -208,7 +212,7 @@ function Process-Arguments() {
     $script:restore = $true
   }
 
-  if ($sourceBuild) {
+  if ($productBuild) {
     $script:msbuildEngine = "dotnet"
   }
 
@@ -221,9 +225,15 @@ function Process-Arguments() {
   }
 }
 
-function BuildSolution() {
-  $solution = "Roslyn.sln"
+function RestoreInternalTooling() {
+  $internalToolingProject = Join-Path $RepoRoot 'eng/common/internal/Tools.csproj'
+  # The restore config file might be set via env var. Ignore that for this operation,
+  # as the internal nuget.config should be used.
+  $restoreConfigFile = Join-Path $RepoRoot 'eng/common/internal/NuGet.config'
+  MSBuild $internalToolingProject /t:Restore /p:RestoreConfigFile=$restoreConfigFile
+}
 
+function BuildSolution() {
   Write-Host "$($solution):"
 
   $bl = ""
@@ -252,15 +262,11 @@ function BuildSolution() {
   # Workaround for some machines in the AzDO pool not allowing long paths
   $ibcDir = $RepoRoot
 
-  # Set DotNetBuildSourceOnly to 'true' if we're simulating building for source-build.
-  $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildSourceOnly=true" } else { "" }
-
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
-  $restoreUseStaticGraphEvaluation = $true
-
   try {
+    # TODO: Remove DotNetBuildRepo property when roslyn is on Arcade 10
     MSBuild $toolsetBuildProj `
       $bl `
       /p:Configuration=$configuration `
@@ -279,12 +285,13 @@ function BuildSolution() {
       /p:TreatWarningsAsErrors=$warnAsError `
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
-      /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
       /p:VisualStudioIbcDrop=$ibcDropName `
       /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
+      /p:DotNetBuildRepo=$productBuild `
+      /p:DotNetBuild=$productBuild `
+      /p:DotNetBuildFromVMR=$fromVMR `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
-      $buildFromSource `
       $generateDocumentationFile `
       $roslynUseHardLinks `
       @properties
@@ -332,6 +339,9 @@ function GetIbcDropName() {
     if (!$applyOptimizationData -or !$officialBuildId) {
         return ""
     }
+
+    # Ensure that we have the internal tooling restored before attempting to load the powershell module.
+    RestoreInternalTooling
 
     # Bring in the ibc tools
     $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net472"
@@ -430,7 +440,7 @@ function TestUsingRunTests() {
     }
 
   } elseif ($testVsi) {
-    $args += " --timeout 110"
+    $args += " --timeout 220"
     $args += " --runtime both"
     $args += " --sequential"
     $args += " --include '\.IntegrationTests'"
@@ -710,14 +720,6 @@ function Setup-IntegrationTestRun() {
   $env:ROSLYN_LSPEDITOR = "$lspEditor"
 }
 
-function Prepare-TempDir() {
-  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\global.json") $TempDir
-  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
-  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
-  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.rsp") $TempDir
-  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\NuGet.Config") $TempDir
-}
-
 function List-Processes() {
   Write-Host "Listing running build processes..."
   Get-Process -Name "msbuild" -ErrorAction SilentlyContinue | Out-Host
@@ -746,7 +748,6 @@ try {
 
   if ($ci) {
     List-Processes
-    Prepare-TempDir
     EnablePreviewSdks
     if ($testVsi) {
       Setup-IntegrationTestRun

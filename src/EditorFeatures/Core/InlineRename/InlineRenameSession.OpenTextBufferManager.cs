@@ -23,12 +23,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
-internal partial class InlineRenameSession
+internal sealed partial class InlineRenameSession
 {
     /// <summary>
     /// Manages state for open text buffers.
     /// </summary>
-    internal class OpenTextBufferManager
+    internal sealed class OpenTextBufferManager
     {
         private static readonly object s_propagateSpansEditTag = new();
         private static readonly object s_calculateMergedSpansEditTag = new();
@@ -231,7 +231,7 @@ internal partial class InlineRenameSession
                 var spansTouchedInEdit = new NormalizedSpanCollection(args.Changes.Select(c => c.NewSpan));
 
                 var intersectionSpans = NormalizedSpanCollection.Intersection(trackingSpansAfterEdit, spansTouchedInEdit);
-                if (intersectionSpans.Count == 0)
+                if (intersectionSpans is not ([var firstSpan, ..] and [.., var lastSpan]))
                 {
                     // In Razor we sometimes get formatting changes during inline rename that
                     // do not intersect with any of our spans. Ideally this shouldn't happen at
@@ -243,7 +243,7 @@ internal partial class InlineRenameSession
                 // spans, but they should still all map to a single tracked rename span (e.g.
                 // renaming "two" to "one two three" may be interpreted as two distinct
                 // additions of "one" and "three").
-                var boundingIntersectionSpan = Span.FromBounds(intersectionSpans.First().Start, intersectionSpans.Last().End);
+                var boundingIntersectionSpan = Span.FromBounds(firstSpan.Start, lastSpan.End);
                 var trackingSpansTouched = GetEditableSpansForSnapshot(args.After).Where(ss => ss.IntersectsWith(boundingIntersectionSpan));
                 Debug.Assert(trackingSpansTouched.Count() == 1);
 

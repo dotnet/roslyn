@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString;
 
 [Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
-public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public ValidateFormatStringTests(ITestOutputHelper logger)
        : base(logger)
@@ -27,9 +27,8 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
         => (new CSharpValidateFormatStringDiagnosticAnalyzer(), null);
 
     [Fact]
-    public async Task OnePlaceholder()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task OnePlaceholder()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -38,12 +37,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task TwoPlaceholders()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task TwoPlaceholders()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -52,12 +49,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task ThreePlaceholders()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task ThreePlaceholders()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -66,12 +61,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task FourPlaceholders()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task FourPlaceholders()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -81,12 +74,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task ObjectArray()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task ObjectArray()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -96,12 +87,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task MultipleObjectArrays()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task MultipleObjectArrays()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -111,12 +100,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task IntArray()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task IntArray()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -126,12 +113,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task StringArray()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task StringArray()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -141,12 +126,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task LiteralArray()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task LiteralArray()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -155,12 +138,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task StringArrayOutOfBounds_NoDiagnostic()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task StringArrayOutOfBounds_NoDiagnostic()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -170,12 +151,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task IFormatProviderAndOnePlaceholder()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task IFormatProviderAndOnePlaceholder()
+        => TestDiagnosticMissingAsync("""
             using System.Globalization; 
             class Program
             {
@@ -185,12 +164,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task IFormatProviderAndTwoPlaceholders()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task IFormatProviderAndTwoPlaceholders()
+        => TestDiagnosticMissingAsync("""
             using System.Globalization; 
             class Program
             {
@@ -200,12 +177,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task IFormatProviderAndThreePlaceholders()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task IFormatProviderAndThreePlaceholders()
+        => TestDiagnosticMissingAsync("""
             using System.Globalization; 
             class Program
             {
@@ -216,12 +191,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task IFormatProviderAndFourPlaceholders()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task IFormatProviderAndFourPlaceholders()
+        => TestDiagnosticMissingAsync("""
             using System.Globalization; 
             class Program
             {
@@ -232,12 +205,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task IFormatProviderAndObjectArray()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task IFormatProviderAndObjectArray()
+        => TestDiagnosticMissingAsync("""
             using System.Globalization; 
             class Program
             {
@@ -248,12 +219,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task WithComma()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task WithComma()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -262,12 +231,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task WithColon()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task WithColon()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -276,12 +243,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task WithCommaAndColon()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task WithCommaAndColon()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -290,12 +255,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task WithPlaceholderAtBeginning()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task WithPlaceholderAtBeginning()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -304,12 +267,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task WithPlaceholderAtEnd()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task WithPlaceholderAtEnd()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -318,12 +279,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task WithDoubleBraces()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task WithDoubleBraces()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -332,12 +291,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task WithDoubleBracesAtBeginning()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task WithDoubleBracesAtBeginning()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -346,12 +303,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task WithDoubleBracesAtEnd()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task WithDoubleBracesAtEnd()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -360,12 +315,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task WithTripleBraces()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task WithTripleBraces()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -374,12 +327,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task NamedParameters()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task NamedParameters()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -388,12 +339,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task NamedParametersWithIFormatProvider()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task NamedParametersWithIFormatProvider()
+        => TestDiagnosticMissingAsync("""
             using System.Globalization;
             class Program
             {
@@ -403,12 +352,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task NamespaceAliasForStringClass()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task NamespaceAliasForStringClass()
+        => TestDiagnosticMissingAsync("""
             using stringAlias = System.String;
             class Program
             {
@@ -418,12 +365,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task MethodCallAsAnArgumentToAnotherMethod()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task MethodCallAsAnArgumentToAnotherMethod()
+        => TestDiagnosticMissingAsync("""
             using System.IO;
             class Program
             {
@@ -433,12 +378,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task VerbatimMultipleLines()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task VerbatimMultipleLines()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -448,12 +391,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Interpolated()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task Interpolated()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -465,12 +406,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Empty()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task Empty()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -479,12 +418,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task LeftParenOnly()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task LeftParenOnly()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -493,12 +430,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ParenthesesOnly()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task ParenthesesOnly()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -507,12 +442,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task EmptyString()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task EmptyString()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -521,12 +454,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FormatOnly_NoStringDot()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task FormatOnly_NoStringDot()
+        => TestDiagnosticMissingAsync("""
             using static System.String
             class Program
             {
@@ -536,12 +467,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NamedParameters_BlankName()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task NamedParameters_BlankName()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -550,12 +479,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task DuplicateNamedArgs()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task DuplicateNamedArgs()
+        => TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -564,12 +491,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """);
-    }
 
     [Fact]
-    public async Task GenericIdentifier()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task GenericIdentifier()
+        => TestDiagnosticMissingAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -595,12 +520,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ClassNamedString()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task ClassNamedString()
+        => TestDiagnosticMissingAsync("""
             using System;
 
             namespace System
@@ -619,12 +542,14 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestOption_Enabled()
     {
-        var source = """
+        var options = Option(FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, true);
+
+        await TestDiagnosticInfoAsync(
+            """
             class Program
             {
                 static void Main(string[] args)
@@ -632,11 +557,7 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                     string.Format("This [|{1}|] is my test", "teststring1");
                 }     
             }
-            """;
-        var options = Option(FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, true);
-
-        await TestDiagnosticInfoAsync(
-            source,
+            """,
             options: options,
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
@@ -646,7 +567,9 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
     [Fact]
     public async Task TestOption_Disabled()
     {
-        var source = """
+        var options = Option(FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, false);
+
+        await TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -654,16 +577,12 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                     string.Format("This [|{1}|] is my test", "teststring1");
                 }     
             }
-            """;
-        var options = Option(FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, false);
-
-        await TestDiagnosticMissingAsync(source, new TestParameters(options: options));
+            """, new TestParameters(options: options));
     }
 
     [Fact]
-    public async Task OnePlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task OnePlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -676,12 +595,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task TwoPlaceholdersWithOnePlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task TwoPlaceholdersWithOnePlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -694,12 +611,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task ThreePlaceholdersWithOnePlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task ThreePlaceholdersWithOnePlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -712,12 +627,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task FourPlaceholdersWithOnePlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task FourPlaceholdersWithOnePlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -731,12 +644,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task iFormatProviderAndOnePlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task iFormatProviderAndOnePlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             using System.Globalization; 
             class Program
             {
@@ -750,12 +661,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task iFormatProviderAndTwoPlaceholdersWithOnePlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task iFormatProviderAndTwoPlaceholdersWithOnePlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             using System.Globalization; 
             class Program
             {
@@ -769,12 +678,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task IFormatProviderAndThreePlaceholdersWithOnePlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task IFormatProviderAndThreePlaceholdersWithOnePlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             using System.Globalization; 
             class Program
             {
@@ -789,12 +696,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task IFormatProviderAndFourPlaceholdersWithOnePlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task IFormatProviderAndFourPlaceholdersWithOnePlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             using System.Globalization; 
             class Program
             {
@@ -809,12 +714,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task PlaceholderAtBeginningWithOnePlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task PlaceholderAtBeginningWithOnePlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -827,12 +730,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task PlaceholderAtEndWithOnePlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task PlaceholderAtEndWithOnePlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -845,12 +746,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task DoubleBracesAtBeginningWithOnePlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task DoubleBracesAtBeginningWithOnePlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -863,12 +762,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task DoubleBracesAtEndWithOnePlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task DoubleBracesAtEndWithOnePlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -881,12 +778,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task NamedParametersOneOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task NamedParametersOneOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             using System.Globalization; 
             class Program
             {
@@ -900,12 +795,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task NamedParametersWithIFormatProviderOneOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task NamedParametersWithIFormatProviderOneOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             using System.Globalization; 
             class Program
             {
@@ -919,12 +812,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task FormatOnly_NoStringDot_OneOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task FormatOnly_NoStringDot_OneOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             using static System.String
             class Program
             {
@@ -938,12 +829,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task Net45TestOutOfBounds()
-    {
-        var input = """
+    public Task Net45TestOutOfBounds()
+        => TestDiagnosticInfoAsync("""
                         < Workspace >
                             < Project Language = "C#" AssemblyName="Assembly1" CommonReferencesNet45="true"> 
              <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -959,18 +848,15 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                     </Document>
                             </Project>
                         </Workspace>
-            """;
-        await TestDiagnosticInfoAsync(input,
+            """,
             options: null,
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task VerbatimMultipleLinesPlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task VerbatimMultipleLinesPlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -984,12 +870,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task IntArrayOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task IntArrayOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -1003,12 +887,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task FirstPlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task FirstPlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -1022,12 +904,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task SecondPlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task SecondPlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -1041,12 +921,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task FirstOfMultipleSameNamedPlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task FirstOfMultipleSameNamedPlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -1060,12 +938,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task SecondOfMultipleSameNamedPlaceholderOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task SecondOfMultipleSameNamedPlaceholderOutOfBounds()
+        => TestDiagnosticInfoAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -1079,12 +955,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
-    public async Task EmptyPlaceholder()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task EmptyPlaceholder()
+        => TestDiagnosticInfoAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -1098,12 +972,10 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29398")]
-    public async Task LocalFunctionNamedFormat()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task LocalFunctionNamedFormat()
+        => TestDiagnosticMissingAsync("""
             public class C
             {
                 public void M()
@@ -1113,5 +985,4 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }
             }
             """);
-    }
 }

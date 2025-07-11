@@ -12,15 +12,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class InitializerExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<InitializerExpressionSyntax>
+public sealed class InitializerExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<InitializerExpressionSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider()
         => new InitializerExpressionStructureProvider();
 
     [Fact]
-    public async Task TestOuterInitializer()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestOuterInitializer()
+        => VerifyBlockSpansAsync(
             """
                 class C
                 {
@@ -34,12 +33,10 @@ public class InitializerExpressionStructureTests : AbstractCSharpSyntaxNodeStruc
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestInnerInitializer()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestInnerInitializer()
+        => VerifyBlockSpansAsync(
             """
                 class C
                 {
@@ -55,5 +52,4 @@ public class InitializerExpressionStructureTests : AbstractCSharpSyntaxNodeStruc
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

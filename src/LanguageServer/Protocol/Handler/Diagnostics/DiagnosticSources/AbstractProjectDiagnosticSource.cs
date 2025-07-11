@@ -15,9 +15,10 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
     : IDiagnosticSource
 {
     protected Project Project => project;
+    protected Solution Solution => this.Project.Solution;
 
-    public static AbstractProjectDiagnosticSource CreateForFullSolutionAnalysisDiagnostics(Project project, IDiagnosticAnalyzerService diagnosticAnalyzerService, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
-        => new FullSolutionAnalysisDiagnosticSource(project, diagnosticAnalyzerService, shouldIncludeAnalyzer);
+    public static AbstractProjectDiagnosticSource CreateForFullSolutionAnalysisDiagnostics(Project project, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
+        => new FullSolutionAnalysisDiagnosticSource(project, shouldIncludeAnalyzer);
 
     public static AbstractProjectDiagnosticSource CreateForCodeAnalysisDiagnostics(Project project, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         => new CodeAnalysisDiagnosticSource(project, codeAnalysisService);
@@ -29,11 +30,11 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
     public Project GetProject() => Project;
     public TextDocumentIdentifier? GetDocumentIdentifier()
         => !string.IsNullOrEmpty(Project.FilePath)
-            ? new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Project), Uri = ProtocolConversions.CreateAbsoluteUri(Project.FilePath) }
+            ? new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Project), DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(Project.FilePath) }
             : null;
     public string ToDisplayString() => Project.Name;
 
-    private sealed class FullSolutionAnalysisDiagnosticSource(Project project, IDiagnosticAnalyzerService diagnosticAnalyzerService, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
+    private sealed class FullSolutionAnalysisDiagnosticSource(Project project, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
         : AbstractProjectDiagnosticSource(project)
     {
         /// <summary>
@@ -50,8 +51,13 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
             // we're passing in.  If information is already cached for that snapshot, it will be returned.  Otherwise,
             // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
             // and do not need to be adjusted.
-            return await diagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync(Project.Solution, Project.Id,
-                diagnosticIds: null, shouldIncludeAnalyzer, includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
+            var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+            var diagnostics = await service.GetProjectDiagnosticsForIdsAsync(
+                Project, diagnosticIds: null, shouldIncludeAnalyzer, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
+
+            // TODO(cyrusn): In the future we could consider reporting these, but with a flag on the diagnostic mentioning
+            // that it is suppressed and should be hidden from the task list by default.
+            return diagnostics.WhereAsArray(d => !d.IsSuppressed);
         }
     }
 
@@ -70,7 +76,7 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            return codeAnalysisService.GetLastComputedProjectDiagnosticsAsync(Project.Id, cancellationToken);
+            return Task.FromResult(codeAnalysisService.GetLastComputedProjectDiagnostics(Project.Id));
         }
     }
 }

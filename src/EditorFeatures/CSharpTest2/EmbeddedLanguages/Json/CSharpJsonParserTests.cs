@@ -70,16 +70,32 @@ public partial class CSharpJsonParserTests
         if (runSubTreeChecks)
             TryParseSubTrees(stringText, options);
 
-        var actualTree = TreeToText(tree).Replace("\"", "\"\"");
-        AssertEx.Equal(expectedTree!.Replace("\"", "\"\""), actualTree);
+        var actualTree = TreeToText(tree).Replace("""
+            "
+            """, """
+            ""
+            """);
+        AssertEx.Equal(expectedTree!.Replace("""
+            "
+            """, """
+            ""
+            """), actualTree);
 
         ValidateDiagnostics(expectedDiagnostics, tree);
     }
 
     private protected static void ValidateDiagnostics(string expectedDiagnostics, JsonTree tree)
     {
-        var actualDiagnostics = DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\"");
-        AssertEx.Equal(RemoveMessagesInNonSupportedLanguage(expectedDiagnostics).Replace("\"", "\"\""), actualDiagnostics);
+        var actualDiagnostics = DiagnosticsToText(tree.Diagnostics).Replace("""
+            "
+            """, """
+            ""
+            """);
+        AssertEx.Equal(RemoveMessagesInNonSupportedLanguage(expectedDiagnostics).Replace("""
+            "
+            """, """
+            ""
+            """), actualDiagnostics);
     }
 
     private static string RemoveMessagesInNonSupportedLanguage(string value)
@@ -92,7 +108,7 @@ public partial class CSharpJsonParserTests
 
         var diagnosticsElement = XElement.Parse(value);
         foreach (var diagnosticElement in diagnosticsElement.Elements("Diagnostic"))
-            diagnosticElement.Attribute("Message").Remove();
+            diagnosticElement.Attribute("Message")!.Remove();
 
         return diagnosticsElement.ToString();
     }
@@ -101,19 +117,33 @@ public partial class CSharpJsonParserTests
     {
         // Trim the input from the right and make sure tree invariants hold
         var current = stringText;
-        while (current != "@\"\"" && current != "\"\"")
+        while (current != """
+            @""
+            """ && current != """
+            ""
+            """)
         {
-            current = current[0..^2] + "\"";
+            current = current[0..^2] + """
+                "
+                """;
             TryParseTree(current, options, conversionFailureOk: true);
         }
 
         // Trim the input from the left and make sure tree invariants hold
         current = stringText;
-        while (current != "@\"\"" && current != "\"\"")
+        while (current != """
+            @""
+            """ && current != """
+            ""
+            """)
         {
             current = current[0] == '@'
-                ? "@\"" + current[3..]
-                : "\"" + current[2..];
+                ? """
+                @"
+                """ + current[3..]
+                : """
+                "
+                """ + current[2..];
 
             TryParseTree(current, options, conversionFailureOk: true);
         }

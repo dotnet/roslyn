@@ -16,10 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation;
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed class CSharpSimplifyInterpolationCodeFixProvider() : AbstractSimplifyInterpolationCodeFixProvider<
-    InterpolationSyntax, ExpressionSyntax, InterpolationAlignmentClauseSyntax,
-    InterpolationFormatClauseSyntax, InterpolatedStringExpressionSyntax>
+    InterpolationSyntax,
+    ExpressionSyntax,
+    InterpolationAlignmentClauseSyntax,
+    InterpolationFormatClauseSyntax,
+    InterpolatedStringExpressionSyntax>
 {
-    protected override AbstractSimplifyInterpolationHelpers GetHelpers() => CSharpSimplifyInterpolationHelpers.Instance;
+    protected override AbstractSimplifyInterpolationHelpers<InterpolationSyntax, ExpressionSyntax> Helpers => CSharpSimplifyInterpolationHelpers.Instance;
 
     protected override InterpolationSyntax WithExpression(InterpolationSyntax interpolation, ExpressionSyntax expression)
         => interpolation.WithExpression(expression);

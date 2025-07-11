@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Describes how the client handles stale requests
 /// </summary>
-internal class StaleRequestSupport
+internal sealed class StaleRequestSupport
 {
     /// <summary>
     /// The client will actively cancel the request.

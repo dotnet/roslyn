@@ -3,29 +3,20 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.EditAndContinue
-Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Differencing
+Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
+Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 
     Friend NotInheritable Class VisualBasicEditAndContinueTestVerifier
         Inherits EditAndContinueTestVerifier
 
-        Private ReadOnly _analyzer As VisualBasicEditAndContinueAnalyzer
-
-        Public Sub New(Optional faultInjector As Action(Of SyntaxNode) = Nothing)
-            _analyzer = New VisualBasicEditAndContinueAnalyzer(faultInjector)
+        Public Sub New()
+            MyBase.New(faultInjector:=Nothing)
         End Sub
-
-        Public Overrides ReadOnly Property Analyzer As AbstractEditAndContinueAnalyzer
-            Get
-                Return _analyzer
-            End Get
-        End Property
 
         Public Overrides ReadOnly Property LanguageName As String
             Get
@@ -53,6 +44,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
         Public Overrides Function TryGetResource(keyword As String) As String
             Return EditingTestBase.TryGetResource(keyword)
         End Function
+
+        Public Overrides ReadOnly Property ParseOptions As ParseOptions
+            Get
+                Return VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest)
+            End Get
+        End Property
     End Class
 End Namespace
 

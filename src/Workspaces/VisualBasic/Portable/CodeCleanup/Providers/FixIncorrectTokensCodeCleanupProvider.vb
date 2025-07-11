@@ -7,6 +7,7 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -114,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Dim parent = TryCast(node.Parent, QualifiedNameSyntax)
                     If parent IsNot Nothing AndAlso _semanticModel IsNot Nothing Then
                         Dim symbol = _semanticModel.GetSymbolInfo(parent.Left, _cancellationToken).Symbol
-                        If symbol IsNot Nothing AndAlso symbol.IsNamespace AndAlso String.Equals(DirectCast(symbol, INamespaceSymbol).MetadataName, "System", StringComparison.Ordinal) Then
+                        If symbol IsNot Nothing AndAlso TypeOf symbol Is INamespaceSymbol AndAlso String.Equals(DirectCast(symbol, INamespaceSymbol).MetadataName, "System", StringComparison.Ordinal) Then
                             Dim id = newIdentifierName.Identifier
                             Dim newValueText As String
                             Select Case id.ValueText.ToUpperInvariant()

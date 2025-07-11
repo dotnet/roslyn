@@ -17,31 +17,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.ToggleLineComment)]
-public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentTestBase
+public sealed class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentTestBase
 {
     [WpfFact]
     public void AddComment_EmptyCaret()
     {
-        var markup = @"$$";
-        var expected = @"[||]";
-
-        ToggleComment(markup, expected);
+        ToggleComment(@"$$", @"[||]");
     }
 
     [WpfFact]
     public void AddComment_EmptySelection()
     {
-        var markup = @"[| |]";
-        var expected = @"[||]";
-
-        ToggleComment(markup, expected);
+        ToggleComment(@"[| |]", @"[||]");
     }
 
     [WpfFact]
     public void AddComment_CaretInUncommentedLine()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -49,9 +42,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var$$ i = 1;
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -59,16 +50,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var[||] i = 1;
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_CaretBeforeUncommentedLine()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -76,9 +64,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
             $$        var i = 1;
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -86,16 +72,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
             [||]        //var i = 1;
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_SingleLineSelected()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -103,9 +86,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|var i = 1;|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -113,16 +94,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|//var i = 1;|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_PartialSingleLineSelected()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -130,9 +108,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var [|i = 1;|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -140,16 +116,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var [|i = 1;|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_SingleLineWithWhitespaceSelected()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -159,9 +132,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                |]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -171,16 +142,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                |]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_SelectionInsideCommentAtEndOfLine()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -188,9 +156,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var i = 1; // A [|comment|].
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -198,16 +164,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var i = 1; // A [|comment|].
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_SelectionAroundCommentAtEndOfLine()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -215,9 +178,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var i = 1; [|// A comment.|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -225,16 +186,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var i = 1; [|// A comment.|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_SelectionOutsideCommentAtEndOfLine()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -242,9 +200,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|var i = 1; // A comment.|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -252,16 +208,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|//var i = 1; // A comment.|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_CaretOutsideCommentAtEndOfLine()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -269,9 +222,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var $$i = 1; // A comment.
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -279,16 +230,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var [||]i = 1; // A comment.
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_CaretInsideCommentAtEndOfLine()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -296,9 +244,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var i = 1; // A $$comment.
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -306,16 +252,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var i = 1; // A [||]comment.
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_CommentMarkerInString()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -323,9 +266,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|string s = '\\';|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -333,16 +274,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|//string s = '\\';|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_MultipleLinesSelected()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -351,9 +289,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var j = 2;|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -362,16 +298,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var j = 2;|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_MultipleLinesWithWhitespaceSelected()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -383,9 +316,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                |]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -397,16 +328,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                |]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_MultipleLinesPartiallyCommentedSelected()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -415,9 +343,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var j = 2;|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -426,16 +352,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var j = 2;|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_MultipleLinesWithCommentsInLineSelected()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -444,9 +367,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var j = 2;|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -455,16 +376,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var j = 2;|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_MultipleLinesWithDifferentIndentationsSelected()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
             [|    void M()
@@ -474,9 +392,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var j = 2;
                 }|]
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
             [|    //void M()
@@ -486,16 +402,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                 //    var j = 2;
                 //}|]
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_MultiCaret()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -504,9 +417,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var [||]j = 2;
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -515,16 +426,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var [||]j = 2;
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_MultiSeletion()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -533,9 +441,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|var j = 2;|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -544,16 +450,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|//var j = 2;|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_MultiSeletionPartiallyCommented()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -562,9 +465,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|var j = 2;|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -573,17 +474,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|//var j = 2;|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void AddComment_WithProjectionBuffer()
     {
-        var surfaceMarkup = @"&lt; html &gt;@{|S1:|}";
-        var csharpMarkup =
-            """
+        ToggleCommentWithProjectionBuffer(@"&lt; html &gt;@{|S1:|}", """
             {|S1:class C
             {
                 void M()
@@ -591,9 +488,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|var i = 1;|]
                 }
             }|}
-            """;
-        var expected =
-            """
+            """, """
             &lt; html &gt;@class C
             {
                 void M()
@@ -601,16 +496,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|//var i = 1;|]
                 }
             }
-            """;
-
-        ToggleCommentWithProjectionBuffer(surfaceMarkup, csharpMarkup, expected);
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CaretInCommentedLine()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -618,9 +510,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var$$ i = 1;
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -628,16 +518,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var[||] i = 1;
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CaretBeforeCommentedLine()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -645,9 +532,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                 $$    //var i = 1;
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -655,16 +540,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                 [||]    var i = 1;
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CaretInCommentedLineWithEndComment()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -672,9 +554,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var i = 1; // A $$comment.
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -682,16 +562,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var i = 1; // A [||]comment.
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CaretInDoubleCommentedLine()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -699,9 +576,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     ////var$$ i = 1;
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -709,16 +584,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var[||] i = 1;
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CommentedLineSelected()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -726,9 +598,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|//var i = 1;|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -736,16 +606,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|var i = 1;|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_InsideCommentSelected()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -753,9 +620,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var [|i = 1;|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -763,16 +628,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var [|i = 1;|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CommentedLineWithWhitespaceSelected()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -782,9 +644,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
               |]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -794,16 +654,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
             |]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CommentMarkerInString()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -811,9 +668,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|//string s = '\\';|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -821,16 +676,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|string s = '\\';|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_MultipleCommentedLinesSelected()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -839,9 +691,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var j = 2;|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -850,16 +700,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var j = 2;|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_MultipleCommentedLinesAndWhitespaceSelected()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -871,9 +718,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                 |]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -885,16 +730,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
             |]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_MultipleCommentedLinesWithEndCommentSelected()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -903,9 +745,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var j = 2;|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -914,16 +754,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var j = 2;|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_MultipleLinesWithDifferentIndentationsSelected()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
             [|    //void M()
@@ -933,9 +770,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                 //    var j = 2;
                 //}|]
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
             [|    void M()
@@ -945,16 +780,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var j = 2;
                 }|]
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_MultiCaret()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -964,9 +796,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     //var [||]j = 2;
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -976,16 +806,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     var [||]j = 2;
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_MultiSeletion()
     {
-        var markup =
-            """
+        ToggleComment("""
             class C
             {
                 void M()
@@ -995,9 +822,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|//var j = 2;|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -1007,17 +832,13 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|var j = 2;|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_WithProjectionBuffer()
     {
-        var surfaceMarkup = @"&lt; html &gt;@{|S1:|}";
-        var csharpMarkup =
-            """
+        ToggleCommentWithProjectionBuffer(@"&lt; html &gt;@{|S1:|}", """
             {|S1:class C
             {
                 void M()
@@ -1025,9 +846,7 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|//var i = 1;|]
                 }
             }|}
-            """;
-        var expected =
-            """
+            """, """
             &lt; html &gt;@class C
             {
                 void M()
@@ -1035,26 +854,12 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
                     [|var i = 1;|]
                 }
             }
-            """;
-
-        ToggleCommentWithProjectionBuffer(surfaceMarkup, csharpMarkup, expected);
+            """);
     }
 
     [WpfFact]
     public void ToggleComment_MultipleLinesSelected()
     {
-        var markup =
-            """
-            class C
-            {
-                void M()
-                {
-                    [|//var i = 1;
-
-                    var j = 2;|]
-                }
-            }
-            """;
         var expected = new string[]
         {
             """
@@ -1081,24 +886,22 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
             """
     };
 
-        ToggleCommentMultiple(markup, expected);
+        ToggleCommentMultiple("""
+            class C
+            {
+                void M()
+                {
+                    [|//var i = 1;
+
+                    var j = 2;|]
+                }
+            }
+            """, expected);
     }
 
     [WpfFact]
     public void ToggleComment_MultipleSelection()
     {
-        var markup =
-            """
-            class C
-            {
-                void M()
-                {
-                    [|//var i = |]1;
-            [||]
-                    [|var j = 2;|]
-                }
-            }
-            """;
         var expected = new string[]
         {
             """
@@ -1125,7 +928,17 @@ public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentT
             """
     };
 
-        ToggleCommentMultiple(markup, expected);
+        ToggleCommentMultiple("""
+            class C
+            {
+                void M()
+                {
+                    [|//var i = |]1;
+            [||]
+                    [|var j = 2;|]
+                }
+            }
+            """, expected);
     }
 
     internal override AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(EditorTestWorkspace workspace)

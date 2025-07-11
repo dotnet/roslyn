@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseNullPropagation;
@@ -23,7 +24,9 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
     TExpressionStatementSyntax>
 {
     protected abstract bool TryGetPartsOfIfStatement(
-        TIfStatementSyntax ifStatement, [NotNullWhen(true)] out TExpressionSyntax? condition, [NotNullWhen(true)] out TStatementSyntax? trueStatement);
+        TIfStatementSyntax ifStatement,
+        [NotNullWhen(true)] out TExpressionSyntax? condition,
+        out ImmutableArray<TStatementSyntax> trueStatements);
 
     private void AnalyzeIfStatement(
         SyntaxNodeAnalysisContext context,
@@ -38,10 +41,13 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         var ifStatement = (TIfStatementSyntax)context.Node;
 
         // The true-statement if the if-statement has to be a statement of the form `<expr1>.Name(...)`;
-        if (!TryGetPartsOfIfStatement(ifStatement, out var condition, out var trueStatement))
+        if (!TryGetPartsOfIfStatement(ifStatement, out var condition, out var trueStatement, out var nullAssignmentOpt))
             return;
 
         if (trueStatement is not TExpressionStatementSyntax expressionStatement)
+            return;
+
+        if (nullAssignmentOpt is not null and not TExpressionStatementSyntax)
             return;
 
         // Now see if the `if (<condition>)` looks like an appropriate null check.
@@ -52,6 +58,29 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         // We only support `if (<expr2> != null)`.  Fail out if we have the alternate form.
         if (isEquals)
             return;
+
+        if (nullAssignmentOpt != null)
+        {
+            // If we have a second statement in the if-statement, it must be `<expr> = null;`.
+            // This is fine to convert to a null-conditional access.  Here's why:  say we started with:
+            //
+            // `if (<expr> != null) { <expr>.Method(); <expr> = null; }`
+            //
+            // If 'expr' is not null, then we execute the body and then end up with expr being null.  So `expr?.Method(); expr = null;`
+            // preserves those semantics.  Simialrly, if is expr is null, then `expr?.Method();` does nothing, and `expr = null` keeps it
+            // the same as well.  So this is a valid conversion in all cases.
+            if (!syntaxFacts.IsSimpleAssignmentStatement(nullAssignmentOpt))
+                return;
+
+            syntaxFacts.GetPartsOfAssignmentStatement(nullAssignmentOpt, out var assignLeft, out _, out var assignRight);
+            if (!syntaxFacts.AreEquivalent(assignLeft, conditionPartToCheck) ||
+                !syntaxFacts.IsNullLiteralExpression(assignRight))
+            {
+                return;
+            }
+
+            // Looks good.  we can convert this block.
+        }
 
         var semanticModel = context.SemanticModel;
         var whenPartMatch = GetWhenPartMatch(
@@ -96,10 +125,30 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             ifStatement.GetFirstToken().GetLocation(),
             option.Notification,
             context.Options,
-            ImmutableArray.Create(
-                ifStatement.GetLocation(),
-                trueStatement.GetLocation(),
-                whenPartMatch.GetLocation()),
+            nullAssignmentOpt is null
+                ? [ifStatement.GetLocation(), trueStatement.GetLocation(), whenPartMatch.GetLocation()]
+                : [ifStatement.GetLocation(), trueStatement.GetLocation(), whenPartMatch.GetLocation(), nullAssignmentOpt.GetLocation()],
             properties));
+    }
+
+    private bool TryGetPartsOfIfStatement(
+        TIfStatementSyntax ifStatement,
+        [NotNullWhen(true)] out TExpressionSyntax? condition,
+        [NotNullWhen(true)] out TStatementSyntax? trueStatement,
+        out TStatementSyntax? nullAssignmentOpt)
+    {
+        trueStatement = null;
+        nullAssignmentOpt = null;
+
+        if (!this.TryGetPartsOfIfStatement(ifStatement, out condition, out var trueStatements))
+            return false;
+
+        if (trueStatements.Length is < 1 or > 2)
+            return false;
+
+        trueStatement = trueStatements[0];
+        if (trueStatements.Length == 2)
+            nullAssignmentOpt = trueStatements[1];
+        return true;
     }
 }

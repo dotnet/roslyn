@@ -142,10 +142,20 @@
         <target state="translated">更改为强制转换</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_0_extension_methods_to_extension">
+        <source>Convert '{0}' extension methods to extension</source>
+        <target state="new">Convert '{0}' extension methods to extension</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_0_to_record">
         <source>Convert '{0}' to record</source>
         <target state="translated">将“{0}”转换为 record</target>
         <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_all_extension_methods_in_0_to_extension">
+        <source>Convert all extension methods in '{0}' to extension</source>
+        <target state="new">Convert all extension methods in '{0}' to extension</target>
+        <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
@@ -399,7 +409,7 @@
       </trans-unit>
       <trans-unit id="required_property">
         <source>required property</source>
-        <target state="new">required property</target>
+        <target state="translated">必需属性</target>
         <note />
       </trans-unit>
       <trans-unit id="reversed_for_loop">

@@ -2,21 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
-using Roslyn.Utilities;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
 using Microsoft.CodeAnalysis.Editing;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
 internal sealed class CodeGenerationOperatorSymbol(
-    INamedTypeSymbol containingType,
+    INamedTypeSymbol? containingType,
     ImmutableArray<AttributeData> attributes,
     Accessibility accessibility,
     DeclarationModifiers modifiers,
@@ -24,7 +16,7 @@ internal sealed class CodeGenerationOperatorSymbol(
     CodeGenerationOperatorKind operatorKind,
     ImmutableArray<IParameterSymbol> parameters,
     ImmutableArray<AttributeData> returnTypeAttributes,
-    string documentationCommentXml) : CodeGenerationMethodSymbol(containingType,
+    string? documentationCommentXml) : CodeGenerationMethodSymbol(containingType,
          attributes,
          accessibility,
          modifiers,

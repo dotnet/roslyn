@@ -22,7 +22,7 @@ internal static class UseNullPropagationHelpers
     public static bool IsSystemNullableValueProperty([NotNullWhen(true)] ISymbol? symbol)
         => symbol is
         {
-            Name: nameof(Nullable<int>.Value),
+            Name: nameof(Nullable<>.Value),
             ContainingType.OriginalDefinition.SpecialType: SpecialType.System_Nullable_T,
         };
 }
@@ -45,7 +45,12 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
     TElementAccessExpressionSyntax,
     TMemberAccessExpressionSyntax,
     TIfStatementSyntax,
-    TExpressionStatementSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    TExpressionStatementSyntax>() : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.UseNullPropagationDiagnosticId,
+        EnforceOnBuildValues.UseNullPropagation,
+        CodeStyleOptions2.PreferNullPropagation,
+        new LocalizableResourceString(nameof(AnalyzersResources.Use_null_propagation), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     where TSyntaxKind : struct
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
@@ -60,15 +65,6 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
 {
     private static readonly ImmutableDictionary<string, string?> s_whenPartIsNullableProperties =
         ImmutableDictionary<string, string?>.Empty.Add(UseNullPropagationHelpers.WhenPartIsNullable, "");
-
-    protected AbstractUseNullPropagationDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseNullPropagationDiagnosticId,
-               EnforceOnBuildValues.UseNullPropagation,
-               CodeStyleOptions2.PreferNullPropagation,
-               new LocalizableResourceString(nameof(AnalyzersResources.Use_null_propagation), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-               new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
-    {
-    }
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -396,6 +392,12 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
 
         if (node is TElementAccessExpressionSyntax elementAccess)
             return (TExpressionSyntax?)syntaxFacts.GetExpressionOfElementAccessExpression(elementAccess);
+
+        if (syntaxFacts.SyntaxKinds.SimpleAssignmentExpression == node.RawKind && syntaxFacts.SupportsNullConditionalAssignment(node.SyntaxTree.Options))
+        {
+            syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(node, out var left, out _, out _);
+            return (TExpressionSyntax)left;
+        }
 
         return null;
     }

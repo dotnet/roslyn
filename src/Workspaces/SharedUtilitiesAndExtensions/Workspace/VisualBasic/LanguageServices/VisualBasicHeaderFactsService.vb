@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
     <ExportLanguageService(GetType(IHeaderFactsService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicHeaderFactsService
+    Friend NotInheritable Class VisualBasicHeaderFactsService
         Inherits VisualBasicHeaderFacts
         Implements IHeaderFactsService
 

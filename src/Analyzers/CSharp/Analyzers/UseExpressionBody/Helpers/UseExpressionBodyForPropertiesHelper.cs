@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -15,7 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
-internal class UseExpressionBodyForPropertiesHelper :
+internal sealed class UseExpressionBodyForPropertiesHelper :
     UseExpressionBodyHelper<PropertyDeclarationSyntax>
 {
     public static readonly UseExpressionBodyForPropertiesHelper Instance = new();

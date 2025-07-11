@@ -4,6 +4,8 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using UIAutomationClient;
@@ -59,7 +61,7 @@ public static class AutomationElementHelper
         return element;
     }
 
-    private class AutomationEventHandler : IUIAutomationEventHandler
+    private sealed class AutomationEventHandler : IUIAutomationEventHandler
     {
         private readonly Action<IUIAutomationElement, int> _action;
 

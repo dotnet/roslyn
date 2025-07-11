@@ -4,8 +4,7 @@
 
 using System;
 using System.Collections.Specialized;
-using System.Linq;
-using Roslyn.Utilities;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -30,7 +29,7 @@ internal static class SourceGeneratedDocumentUri
     private const string AssemblyPathParam = "assemblyPath";
     private const string TypeNameParam = "typeName";
 
-    public static Uri Create(SourceGeneratedDocumentIdentity identity)
+    public static DocumentUri Create(SourceGeneratedDocumentIdentity identity)
     {
         var hintPath = Uri.EscapeDataString(identity.HintName);
         var projectId = identity.DocumentId.ProjectId.Id.ToString(GuidFormat);
@@ -46,7 +45,7 @@ internal static class SourceGeneratedDocumentUri
         if (identity.Generator.AssemblyPath != null)
             uri += $"&{AssemblyPathParam}={Uri.EscapeDataString(identity.Generator.AssemblyPath)}";
 
-        return ProtocolConversions.CreateAbsoluteUri(uri);
+        return ProtocolConversions.CreateAbsoluteDocumentUri(uri);
     }
 
     public static SourceGeneratedDocumentIdentity? DeserializeIdentity(Solution solution, Uri documentUri)

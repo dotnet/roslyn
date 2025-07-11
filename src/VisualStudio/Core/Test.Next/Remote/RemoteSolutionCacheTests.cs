@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
 
-public class RemoteSolutionCacheTests
+public sealed class RemoteSolutionCacheTests
 {
     [Fact]
     public void TestAddAndFind1()

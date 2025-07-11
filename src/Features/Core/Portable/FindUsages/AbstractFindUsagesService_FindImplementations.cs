@@ -5,10 +5,10 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
@@ -207,7 +207,16 @@ internal abstract partial class AbstractFindUsagesService
         }
         else
         {
-            return [];
+            // If a symbol is partial definition, return its implementation part
+            var implementationPart = symbol switch
+            {
+                IMethodSymbol method => method.PartialImplementationPart,
+                IPropertySymbol property => property.PartialImplementationPart,
+                IEventSymbol ev => ev.PartialImplementationPart,
+                _ => symbol,
+            };
+
+            return implementationPart is null ? [] : [implementationPart];
         }
     }
 }

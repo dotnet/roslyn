@@ -3,12 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.Internal.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.ComponentModelHost
-Imports Microsoft.VisualStudio.Settings
-Imports Microsoft.VisualStudio.Settings.Internal
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Moq
@@ -28,8 +24,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         Private ReadOnly _exportProvider As Composition.ExportProvider
         Private ReadOnly _fileChangeEx As New MockVsFileChangeEx
-        Private ReadOnly _localRegistry As New StubLocalRegistry
-        Private _settingsManager As ISettingsManager
 
         Public MockMonitorSelection As IVsMonitorSelection
 
@@ -61,21 +55,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 Case GetType(SVsFileChangeEx)
                     Return _fileChangeEx
 
-                Case GetType(SLocalRegistry)
-                    Return _localRegistry
+                Case GetType(SVsRunningDocumentTable)
+                    Dim mock = New Mock(Of IVsRunningDocumentTable)
+                    mock.As(Of IVsRunningDocumentTable4)()
 
-                Case GetType(SVsSettingsPersistenceManager)
-                    If _settingsManager Is Nothing Then
-                        LoggerFactory.Reset()
-                        _settingsManager = SettingsManagerFactory.CreateInstance(New StubSettingsManagerHost())
-                    End If
-
-                    Return _settingsManager
-
-                Case GetType(SVsFeatureFlags)
-                    ' The only places that we consume this treat it as optional, so we can skip it here, and remove this in 
-                    ' https://github.com/dotnet/roslyn/pull/69160.
-                    Return Nothing
+                    mock.Setup(Function(m) m.AdviseRunningDocTableEvents(It.IsAny(Of IVsRunningDocTableEvents), It.IsAny(Of UInteger))).Returns(VSConstants.S_OK)
+                    Return mock.Object
 
                 Case Else
                     Throw New Exception($"{NameOf(MockServiceProvider)} does not implement {serviceType.FullName}.")

@@ -15,39 +15,38 @@ using Xunit;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionUtilities;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.UnitTests;
+
+[UseExportProvider]
+public sealed class SourceGeneratorTelemetryCollectorWorkspaceServiceTests
 {
-    [UseExportProvider]
-    public class SourceGeneratorTelemetryCollectorWorkspaceServiceTests
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1675665")]
+    public async Task WithReferencesMethodCorrectlyUpdatesWithEqualReferences()
     {
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1675665")]
-        public async Task WithReferencesMethodCorrectlyUpdatesWithEqualReferences()
+        using var workspace = CreateWorkspace(additionalParts: [typeof(TestSourceGeneratorTelemetryCollectorWorkspaceServiceFactory)]);
+
+        var nonExistentFilePath = "Z:\\" + Guid.NewGuid().ToString();
+        var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator("// Hello World"), analyzerFilePath: nonExistentFilePath);
+
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReference(analyzerReference);
+
+        _ = await project.GetCompilationAsync();
+    }
+
+    [ExportWorkspaceServiceFactory(typeof(ISourceGeneratorTelemetryCollectorWorkspaceService)), Shared]
+    [PartNotDiscoverable]
+    public sealed class TestSourceGeneratorTelemetryCollectorWorkspaceServiceFactory : IWorkspaceServiceFactory
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TestSourceGeneratorTelemetryCollectorWorkspaceServiceFactory()
         {
-            using var workspace = CreateWorkspace(additionalParts: [typeof(TestSourceGeneratorTelemetryCollectorWorkspaceServiceFactory)]);
-
-            var nonExistentFilePath = "Z:\\" + Guid.NewGuid().ToString();
-            var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator("// Hello World"), analyzerFilePath: nonExistentFilePath);
-
-            var project = AddEmptyProject(workspace.CurrentSolution)
-                .AddAnalyzerReference(analyzerReference);
-
-            _ = await project.GetCompilationAsync();
         }
 
-        [ExportWorkspaceServiceFactory(typeof(ISourceGeneratorTelemetryCollectorWorkspaceService)), Shared]
-        [PartNotDiscoverable]
-        public class TestSourceGeneratorTelemetryCollectorWorkspaceServiceFactory : IWorkspaceServiceFactory
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public TestSourceGeneratorTelemetryCollectorWorkspaceServiceFactory()
-            {
-            }
-
-            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            {
-                return new SourceGeneratorTelemetryCollectorWorkspaceService();
-            }
+            return new SourceGeneratorTelemetryCollectorWorkspaceService();
         }
     }
 }

@@ -11,47 +11,38 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource;
 
-public class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EnumDeclarationSyntax>
+public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EnumDeclarationSyntax>
 {
     protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
     internal override AbstractSyntaxStructureProvider CreateProvider() => new EnumDeclarationStructureProvider();
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task NoCommentsOrAttributes()
-    {
-        var code = """
+    public Task NoCommentsOrAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:enum $$E{|textspan:
                 {
                     A,
                     B
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithAttributes()
-    {
-        var code = """
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:[Bar]
                 |}{|#0:enum $$E|}{|textspan2:
                 {
                     A,
                     B
                 }|}|#0}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithCommentsAndAttributes()
-    {
-        var code = """
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:// Summary:
                 //     This is a summary.
                 [Bar]
@@ -60,17 +51,13 @@ public class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTe
                     A,
                     B
                 }|}|#0}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithCommentsAttributesAndModifiers()
-    {
-        var code = """
+    public Task WithCommentsAttributesAndModifiers()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:// Summary:
                 //     This is a summary.
                 [Bar]
@@ -79,30 +66,24 @@ public class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTe
                     A,
                     B
                 }|}|#0}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
     [InlineData("enum")]
     [InlineData("struct")]
     [InlineData("class")]
     [InlineData("interface")]
-    public async Task TestEnum3(string typeKind)
-    {
-        var code = $@"
-{{|#0:$$enum E{{|textspan:
-{{
-}}|#0}}
-|}}
-{typeKind} Following
-{{
-}}";
-
-        await VerifyBlockSpansAsync(code,
+    public Task TestEnum3(string typeKind)
+        => VerifyBlockSpansAsync($$"""
+            {|#0:$$enum E{|textspan:
+            {
+            }|#0}
+            |}
+            {{typeKind}} Following
+            {
+            }
+            """,
             Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

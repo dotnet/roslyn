@@ -13,6 +13,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -2935,6 +2936,915 @@ public class Child : Parent, IParent
                     Assert.True(proxyChildParameters[0].IsMetadataIn);
                     Assert.False(proxyChildParameters[1].IsMetadataIn); // User placed attributes are not copied.
                 });
+        }
+
+        [Fact]
+        public void DataSectionStringLiterals_MissingMembers()
+        {
+            var source = """
+                System.Console.Write("a");
+                System.Console.Write("bb");
+                System.Console.Write("ccc");
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
+            comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
+            comp.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
+            comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
+            comp.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
+            comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
+            comp.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "1"));
+            comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
+            comp.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "3"));
+            comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
+            comp.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void DataSectionStringLiterals_Threshold()
+        {
+            var source = """
+                System.Console.Write("a");
+                System.Console.Write("bb");
+                System.Console.Write("ccc");
+                """;
+
+            var expectedOutput = "abbccc";
+
+            var expectedIl = """
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  1
+                  IL_0000:  ldstr      "a"
+                  IL_0005:  call       "void System.Console.Write(string)"
+                  IL_000a:  ldstr      "bb"
+                  IL_000f:  call       "void System.Console.Write(string)"
+                  IL_0014:  ldstr      "ccc"
+                  IL_0019:  call       "void System.Console.Write(string)"
+                  IL_001e:  ret
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput)
+                .VerifyDiagnostics()
+                .VerifyIL("<top-level-statements-entry-point>", expectedIl);
+            Assert.Null(verifier.Compilation.DataSectionStringLiteralThreshold);
+
+            foreach (var feature in new[] { "off", null })
+            {
+                verifier = CompileAndVerify(source,
+                    parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", null),
+                    expectedOutput: expectedOutput)
+                    .VerifyDiagnostics()
+                    .VerifyIL("<top-level-statements-entry-point>", expectedIl);
+                Assert.Null(verifier.Compilation.DataSectionStringLiteralThreshold);
+            }
+
+            // unrecognized input => default value 100
+            foreach (var feature in new[] { "true", "false", "", "-1", long.MaxValue.ToString() })
+            {
+                verifier = CompileAndVerify(source,
+                    parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", feature),
+                    expectedOutput: expectedOutput)
+                    .VerifyDiagnostics()
+                    .VerifyIL("<top-level-statements-entry-point>", expectedIl);
+                Assert.Equal(100, verifier.Compilation.DataSectionStringLiteralThreshold);
+            }
+
+            verifier = CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "1000"),
+                expectedOutput: expectedOutput)
+                .VerifyDiagnostics()
+                .VerifyIL("<top-level-statements-entry-point>", expectedIl);
+            Assert.Equal(1000, verifier.Compilation.DataSectionStringLiteralThreshold);
+
+            verifier = CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "3"),
+                expectedOutput: expectedOutput)
+                .VerifyDiagnostics()
+                .VerifyIL("<top-level-statements-entry-point>", expectedIl);
+            Assert.Equal(3, verifier.Compilation.DataSectionStringLiteralThreshold);
+
+            verifier = CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "2"),
+                verify: Verification.Fails,
+                expectedOutput: expectedOutput)
+                .VerifyDiagnostics()
+                .VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  1
+                  IL_0000:  ldstr      "a"
+                  IL_0005:  call       "void System.Console.Write(string)"
+                  IL_000a:  ldstr      "bb"
+                  IL_000f:  call       "void System.Console.Write(string)"
+                  IL_0014:  ldsfld     "string <PrivateImplementationDetails>.<S>BE20CA004CC2993A396345E0D52DF013.s"
+                  IL_0019:  call       "void System.Console.Write(string)"
+                  IL_001e:  ret
+                }
+                """);
+            Assert.Equal(2, verifier.Compilation.DataSectionStringLiteralThreshold);
+
+            verifier = CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "1"),
+                verify: Verification.Fails,
+                expectedOutput: expectedOutput)
+                .VerifyDiagnostics()
+                .VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  1
+                  IL_0000:  ldstr      "a"
+                  IL_0005:  call       "void System.Console.Write(string)"
+                  IL_000a:  ldsfld     "string <PrivateImplementationDetails>.<S>DB1DE4B3DA6C7871B776D5CB968AA5A4.s"
+                  IL_000f:  call       "void System.Console.Write(string)"
+                  IL_0014:  ldsfld     "string <PrivateImplementationDetails>.<S>BE20CA004CC2993A396345E0D52DF013.s"
+                  IL_0019:  call       "void System.Console.Write(string)"
+                  IL_001e:  ret
+                }
+                """);
+            Assert.Equal(1, verifier.Compilation.DataSectionStringLiteralThreshold);
+
+            verifier = CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                verify: Verification.Fails,
+                expectedOutput: expectedOutput)
+                .VerifyDiagnostics()
+                .VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  1
+                  IL_0000:  ldsfld     "string <PrivateImplementationDetails>.<S>A96FAF705AF16834E6C632B61E964E1F.s"
+                  IL_0005:  call       "void System.Console.Write(string)"
+                  IL_000a:  ldsfld     "string <PrivateImplementationDetails>.<S>DB1DE4B3DA6C7871B776D5CB968AA5A4.s"
+                  IL_000f:  call       "void System.Console.Write(string)"
+                  IL_0014:  ldsfld     "string <PrivateImplementationDetails>.<S>BE20CA004CC2993A396345E0D52DF013.s"
+                  IL_0019:  call       "void System.Console.Write(string)"
+                  IL_001e:  ret
+                }
+                """);
+            Assert.Equal(0, verifier.Compilation.DataSectionStringLiteralThreshold);
+        }
+
+        [Fact]
+        public void DataSectionStringLiterals_Switch()
+        {
+            var source = """
+                System.Console.Write(args[0] switch 
+                {
+                    "a" => 1,
+                    "bb" => 2,
+                    "ccc" => 3,
+                    _ => 4
+                });
+                """;
+
+            var verifier = CompileAndVerify(
+                source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                verify: Verification.Skipped);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       66 (0x42)
+                  .maxstack  2
+                  .locals init (int V_0,
+                                string V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  ldelem.ref
+                  IL_0003:  stloc.1
+                  IL_0004:  ldloc.1
+                  IL_0005:  ldsfld     "string <PrivateImplementationDetails>.<S>A96FAF705AF16834E6C632B61E964E1F.s"
+                  IL_000a:  call       "bool string.op_Equality(string, string)"
+                  IL_000f:  brtrue.s   IL_002d
+                  IL_0011:  ldloc.1
+                  IL_0012:  ldsfld     "string <PrivateImplementationDetails>.<S>DB1DE4B3DA6C7871B776D5CB968AA5A4.s"
+                  IL_0017:  call       "bool string.op_Equality(string, string)"
+                  IL_001c:  brtrue.s   IL_0031
+                  IL_001e:  ldloc.1
+                  IL_001f:  ldsfld     "string <PrivateImplementationDetails>.<S>BE20CA004CC2993A396345E0D52DF013.s"
+                  IL_0024:  call       "bool string.op_Equality(string, string)"
+                  IL_0029:  brtrue.s   IL_0035
+                  IL_002b:  br.s       IL_0039
+                  IL_002d:  ldc.i4.1
+                  IL_002e:  stloc.0
+                  IL_002f:  br.s       IL_003b
+                  IL_0031:  ldc.i4.2
+                  IL_0032:  stloc.0
+                  IL_0033:  br.s       IL_003b
+                  IL_0035:  ldc.i4.3
+                  IL_0036:  stloc.0
+                  IL_0037:  br.s       IL_003b
+                  IL_0039:  ldc.i4.4
+                  IL_003a:  stloc.0
+                  IL_003b:  ldloc.0
+                  IL_003c:  call       "void System.Console.Write(int)"
+                  IL_0041:  ret
+                }
+                """);
+        }
+
+        [Theory]
+        [InlineData("""public static string M() => "abc";""")]
+        [InlineData("""public static void M(string s) { switch (s) { case "abc": break; } }""")]
+        public void DataSectionStringLiterals_UsedAssemblyReferences(string code)
+        {
+            var source1 = """
+                namespace System
+                {
+                    public class Object;
+                    public class String
+                    {
+                        public static bool op_Equality(string a, string b) => false;
+                    }
+                    public class ValueType;
+                    public struct Void;
+                    public struct Byte;
+                    public struct Int16;
+                    public struct Int32;
+                    public struct Int64;
+                    public struct Boolean;
+                    public class Attribute;
+                    public class Enum;
+                    public enum AttributeTargets;
+                    public class AttributeUsageAttribute
+                    {
+                        public AttributeUsageAttribute(AttributeTargets validOn) { }
+                        public bool AllowMultiple { get; set; }
+                        public bool Inherited { get; set; }
+                    }
+                }
+                """;
+            var ref1 = CreateEmptyCompilation(source1, assemblyName: "MinimalCoreLib").VerifyDiagnostics().EmitToImageReference();
+
+            var source2 = """
+                namespace System.Text
+                {
+                    public class Encoding
+                    {
+                        public static Encoding UTF8 => null;
+                        public unsafe string GetString(byte* bytes, int byteCount) => null;
+                    }
+                }
+                """;
+            var ref2 = CreateEmptyCompilation(source2, [ref1], options: TestOptions.UnsafeDebugDll, assemblyName: "Encoding")
+                .VerifyDiagnostics().EmitToImageReference();
+
+            var source3 = $$"""
+                public static class C
+                {
+                    {{code}}
+                }
+                """;
+            var comp = CreateEmptyCompilation(source3, [ref1, ref2], assemblyName: "Lib1");
+            AssertEx.SetEqual([ref1], comp.GetUsedAssemblyReferences());
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateEmptyCompilation(source3, [ref1, ref2], assemblyName: "Lib2",
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
+            AssertEx.SetEqual([ref1, ref2], comp.GetUsedAssemblyReferences());
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void DataSectionStringLiterals_InvalidUtf8()
+        {
+            var source = """
+                System.Console.WriteLine("Hello \uD801\uD802");
+                """;
+            CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                expectedOutput: "Hello \uD801\uD802",
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    // No <S> types expected.
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        <Module>
+                        EmbeddedAttribute
+                        RefSafetyRulesAttribute
+                        Program
+                        """, module.TypeNames.Join("\n"));
+                })
+                .VerifyDiagnostics()
+                .VerifyIL("<top-level-statements-entry-point>", $$"""
+                    {
+                      // Code size       11 (0xb)
+                      .maxstack  1
+                      IL_0000:  ldstr      "Hello {{"\uD801\uD802"}}"
+                      IL_0005:  call       "void System.Console.WriteLine(string)"
+                      IL_000a:  ret
+                    }
+                    """);
+        }
+
+        [Fact]
+        public void DataSectionStringLiterals_HashCollision()
+        {
+            var emitOptions = new EmitOptions
+            {
+                // Take only the first byte of each string as its hash to simulate collisions.
+                TestOnly_DataToHexViaXxHash128 = static (data) => data[0].ToString(),
+            };
+            var source = """
+                System.Console.Write("a");
+                System.Console.Write("b");
+                System.Console.Write("aa");
+                """;
+            CreateCompilation(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"))
+                .VerifyEmitDiagnostics(emitOptions,
+                    // (3,22): error CS9274: Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: a
+                    // System.Console.Write("aa");
+                    Diagnostic(ErrorCode.ERR_DataSectionStringLiteralHashCollision, @"""aa""").WithArguments("a").WithLocation(3, 22));
+        }
+
+        [Fact]
+        public void DataSectionStringLiterals_SynthesizedTypes()
+        {
+            var source = """
+                System.Console.WriteLine("Hello");
+                """;
+            var verifier = CompileAndVerify(source,
+                targetFramework: TargetFramework.Mscorlib46,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                verify: Verification.Fails,
+                expectedOutput: "Hello",
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        <Module>
+                        EmbeddedAttribute
+                        RefSafetyRulesAttribute
+                        Program
+                        <PrivateImplementationDetails>
+                        __StaticArrayInitTypeSize=5
+                        <S>1BFD09D1A433FB78117B4C7B1583D16D
+                        """, module.TypeNames.Join("\n"));
+                });
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  ldsfld     "string <PrivateImplementationDetails>.<S>1BFD09D1A433FB78117B4C7B1583D16D.s"
+                  IL_0005:  call       "void System.Console.WriteLine(string)"
+                  IL_000a:  ret
+                }
+                """);
+
+            var offset = ExecutionConditionUtil.IsUnix ? "00002890" : "00002850";
+            verifier.VerifyTypeIL("<PrivateImplementationDetails>", $$"""
+                .class private auto ansi sealed '<PrivateImplementationDetails>'
+                	extends [mscorlib]System.Object
+                {
+                	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Nested Types
+                	.class nested assembly explicit ansi sealed '__StaticArrayInitTypeSize=5'
+                		extends [mscorlib]System.ValueType
+                	{
+                		.pack 1
+                		.size 5
+                	} // end of class __StaticArrayInitTypeSize=5
+                	.class nested assembly auto ansi sealed beforefieldinit '<S>1BFD09D1A433FB78117B4C7B1583D16D'
+                		extends [mscorlib]System.Object
+                	{
+                		// Fields
+                		.field assembly static initonly string s
+                		// Methods
+                		.method private hidebysig specialname rtspecialname static 
+                			void .cctor () cil managed 
+                		{
+                			// Method begins at RVA 0x2089
+                			// Code size 17 (0x11)
+                			.maxstack 8
+                			IL_0000: ldsflda valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=5' '<PrivateImplementationDetails>'::'185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969'
+                			IL_0005: ldc.i4.5
+                			IL_0006: call string '<PrivateImplementationDetails>'::BytesToString(uint8*, int32)
+                			IL_000b: stsfld string '<PrivateImplementationDetails>'/'<S>1BFD09D1A433FB78117B4C7B1583D16D'::s
+                			IL_0010: ret
+                		} // end of method '<S>1BFD09D1A433FB78117B4C7B1583D16D'::.cctor
+                	} // end of class <S>1BFD09D1A433FB78117B4C7B1583D16D
+                	// Fields
+                	.field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=5' '185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969' at I_{{offset}}
+                    .data cil I_{{offset}} = bytearray (
+                		48 65 6c 6c 6f
+                	)
+                	// Methods
+                	.method private hidebysig static 
+                		string BytesToString (
+                			uint8* bytes,
+                			int32 length
+                		) cil managed 
+                	{
+                		// Method begins at RVA 0x207b
+                		// Code size 13 (0xd)
+                		.maxstack 8
+                		IL_0000: call class [mscorlib]System.Text.Encoding [mscorlib]System.Text.Encoding::get_UTF8()
+                		IL_0005: ldarg.0
+                		IL_0006: ldarg.1
+                		IL_0007: callvirt instance string [mscorlib]System.Text.Encoding::GetString(uint8*, int32)
+                		IL_000c: ret
+                	} // end of method '<PrivateImplementationDetails>'::BytesToString
+                } // end of class <PrivateImplementationDetails>
+                """);
+        }
+
+        [Theory, CombinatorialData]
+        public void DataSectionStringLiterals_MetadataOnly(
+            [CombinatorialValues("0", "off")] string feature)
+        {
+            var source = """
+                class C
+                {
+                    void M()
+                    {
+                        System.Console.WriteLine("Hello");
+                    }
+                }
+                """;
+            CompileAndVerify(source,
+                emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true),
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", feature),
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        <Module>
+                        EmbeddedAttribute
+                        RefSafetyRulesAttribute
+                        C
+                        """, module.TypeNames.Join("\n"));
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DataSectionStringLiterals_SharedType()
+        {
+            var source = """
+                using static System.Console;
+
+                Write("a");
+                Write("b");
+                Write("ccc");
+                Write("ddd");
+                """;
+            CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                verify: Verification.Fails,
+                expectedOutput: "abcccddd",
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    var privateImplDetails = module.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
+
+                    // Data fields
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.64DAA44AD493FF28A96EFFAB6E77F1732A3D97D83241581B37DBD70A7A4900FE
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.730F75DAFD73E047B86ACB2DBD74E75DCB93272FA084A9082848F2341AA1ABB6
+                        System.Byte <PrivateImplementationDetails>.3E23E8160039594A33894F6564E1B1348BBD7A0088D42C4ACB73EEAED59C009D
+                        System.Byte <PrivateImplementationDetails>.CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB
+                        """,
+                        privateImplDetails.GetMembers().OfType<FieldSymbol>().Select(f => f.ToTestDisplayString()).Order().Join("\n"));
+
+                    // Nested types
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        __StaticArrayInitTypeSize=3
+                        <S>A96FAF705AF16834E6C632B61E964E1F
+                        <S>4B2212E31AC97FD4575A0B1C44D8843F
+                        <S>BE20CA004CC2993A396345E0D52DF013
+                        <S>1F6CEF082E150274999DD6657C23A29E
+                        """,
+                        privateImplDetails.GetTypeMembers().Select(t => t.Name).Join("\n"));
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DataSectionStringLiterals_SharedValue()
+        {
+            var source = """
+                using static System.Console;
+
+                Write("a");
+                Write("a");
+                Write("bbb");
+                Write("bbb");
+                """;
+            CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                verify: Verification.Fails,
+                expectedOutput: "aabbbbbb",
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    var privateImplDetails = module.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
+
+                    // Data fields
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.3E744B9DC39389BAF0C5A0660589B8402F3DBB49B89B3E75F2C9355852A3C677
+                        System.Byte <PrivateImplementationDetails>.CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB
+                        """,
+                        privateImplDetails.GetMembers().OfType<FieldSymbol>().Select(f => f.ToTestDisplayString()).Order().Join("\n"));
+
+                    // Nested types
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        __StaticArrayInitTypeSize=3
+                        <S>A96FAF705AF16834E6C632B61E964E1F
+                        <S>A6DC9C19EFE4ABBCBE168A8B4D34D73A
+                        """,
+                        privateImplDetails.GetTypeMembers().Select(t => t.Name).Join("\n"));
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DataSectionStringLiterals_SharedType_ArrayInitializer()
+        {
+            var source = """
+                using System;
+                using static System.Console;
+
+                Write("abc");
+                M(new byte[] { 1, 2, 3 });
+
+                static void M(ReadOnlySpan<byte> x)
+                {
+                    foreach (var b in x)
+                    {
+                        Write(b);
+                    }
+                }
+                """;
+            CompileAndVerify(
+                CreateCompilationWithSpan(source,
+                    parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                    options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All)),
+                verify: Verification.Fails,
+                expectedOutput: "abc123",
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    // Data fields
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD
+                        """,
+                        module.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>").GetMembers()
+                            .OfType<FieldSymbol>().Select(f => f.ToTestDisplayString()).Order().Join("\n"));
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DataSectionStringLiterals_SharedValue_ArrayInitializer()
+        {
+            var source = """
+                using System;
+                using static System.Console;
+
+                Write("abc");
+                M(new byte[] { 97, 98, 99 });
+
+                static void M(ReadOnlySpan<byte> x)
+                {
+                    foreach (var b in x)
+                    {
+                        Write((char)b);
+                    }
+                }
+                """;
+            CompileAndVerify(
+                CreateCompilationWithSpan(source,
+                    parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                    options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All)),
+                verify: Verification.Fails,
+                expectedOutput: "abcabc",
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    // Data fields
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD
+                        """,
+                        module.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>").GetMembers()
+                            .OfType<FieldSymbol>().Select(f => f.ToTestDisplayString()).Order().Join("\n"));
+                })
+                .VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// Tests a scenario that utilizes a private implementation detail class,
+        /// but doesn't use the string type, and the string type is not defined.
+        /// </summary>
+        [Fact]
+        public void PrivateImplDetailsWithoutString()
+        {
+            var source = """
+                #pragma warning disable CS8509 // The switch expression does not handle all possible values of its input type
+
+                class C
+                {
+                    bool M(int i) => i switch { 1 => true };
+                }
+
+                namespace System
+                {
+                    public class Object;
+                    public class ValueType;
+                    public struct Void;
+                    public struct Boolean;
+                    public struct Byte;
+                    public struct Int16;
+                    public struct Int32;
+                    public struct Int64;
+                    public class InvalidOperationException();
+                }
+                """;
+
+            var parseOptions = TestOptions.RegularPreview
+                .WithNoRefSafetyRulesAttribute();
+
+            CompileAndVerify(CreateEmptyCompilation(source, parseOptions: parseOptions),
+                verify: Verification.Skipped,
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    // PrivateImplementationDetails should be in the list.
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        <Module>
+                        C
+                        Object
+                        ValueType
+                        Void
+                        Boolean
+                        Byte
+                        Int16
+                        Int32
+                        Int64
+                        InvalidOperationException
+                        <PrivateImplementationDetails>
+                        """, module.TypeNames.Join("\n"));
+                })
+                .VerifyDiagnostics(
+                    // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                    Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
+
+            // NOTE: If the feature is enabled by default in the future, it should not fail in case of missing Encoding members
+            //       (it should be automatically disabled instead and could warn) to avoid regressing the scenario above.
+            CreateEmptyCompilation(source,
+                parseOptions: parseOptions.WithFeature("experimental-data-section-string-literals", "0"))
+                .VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void EmitMetadataOnly_Exe()
+        {
+            CompileAndVerify("""
+                System.Console.WriteLine("a");
+                """,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true),
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+                    var main = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>$");
+                    Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void EmitMetadataOnly_Exe_AsyncMain()
+        {
+            CompileAndVerify("""
+                using System.Threading.Tasks;
+                static class Program
+                {
+                    static async Task Main()
+                    {
+                        await Task.Yield();
+                        System.Console.WriteLine("a");
+                    }
+                }
+                """,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true),
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+                    var main = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>");
+                    Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void EmitMetadataOnly_Exe_NoMain()
+        {
+            var emitResult = CreateCompilation("""
+                class Program;
+                """,
+                options: TestOptions.ReleaseExe)
+                .Emit(new MemoryStream(), options: EmitOptions.Default.WithEmitMetadataOnly(true));
+            Assert.False(emitResult.Success);
+            emitResult.Diagnostics.Verify(
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void EmitMetadataOnly_Exe_PrivateMain_ExcludePrivateMembers()
+        {
+            CompileAndVerify("""
+                static class Program
+                {
+                    private static void Main() { }
+                }
+                """,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions: EmitOptions.Default
+                    .WithEmitMetadataOnly(true)
+                    .WithIncludePrivateMembers(false),
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+                    var main = module.GlobalNamespace.GetMember<MethodSymbol>("Program.Main");
+                    Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void EmitMetadataOnly_Exe_PrivateMain_ExcludePrivateMembers_AsyncMain()
+        {
+            CompileAndVerify("""
+                using System.Threading.Tasks;
+                static class Program
+                {
+                    private static async Task Main()
+                    {
+                        await Task.Yield();
+                    }
+                }
+                """,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions: EmitOptions.Default
+                    .WithEmitMetadataOnly(true)
+                    .WithIncludePrivateMembers(false),
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+                    var main = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>");
+                    Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void ExcludePrivateMembers_PrivateMain()
+        {
+            using var peStream = new MemoryStream();
+            using var metadataStream = new MemoryStream();
+            var comp = CreateCompilation("""
+                static class Program
+                {
+                    private static void Main() { }
+                }
+                """,
+                options: TestOptions.ReleaseExe);
+            var emitResult = comp.Emit(
+                peStream: peStream,
+                metadataPEStream: metadataStream,
+                options: EmitOptions.Default.WithIncludePrivateMembers(false));
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify();
+
+            verify(peStream);
+            verify(metadataStream);
+
+            CompileAndVerify(comp).VerifyDiagnostics();
+
+            static void verify(Stream stream)
+            {
+                stream.Position = 0;
+                Assert.NotEqual(0, new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+
+                stream.Position = 0;
+                var reference = AssemblyMetadata.CreateFromStream(stream).GetReference();
+                var comp = CreateCompilation("", references: [reference],
+                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+                var main = comp.GetMember<MethodSymbol>("Program.Main");
+                Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void ExcludePrivateMembers_PrivateMain_AsyncMain()
+        {
+            using var peStream = new MemoryStream();
+            using var metadataStream = new MemoryStream();
+            var comp = CreateCompilation("""
+                using System.Threading.Tasks;
+                static class Program
+                {
+                    private static async Task Main()
+                    {
+                        await Task.Yield();
+                    }
+                }
+                """,
+                options: TestOptions.ReleaseExe);
+            var emitResult = comp.Emit(
+                peStream: peStream,
+                metadataPEStream: metadataStream,
+                options: EmitOptions.Default.WithIncludePrivateMembers(false));
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify();
+
+            verify(peStream);
+            verify(metadataStream);
+
+            CompileAndVerify(comp).VerifyDiagnostics();
+
+            static void verify(Stream stream)
+            {
+                stream.Position = 0;
+                Assert.NotEqual(0, new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+
+                stream.Position = 0;
+                var reference = AssemblyMetadata.CreateFromStream(stream).GetReference();
+                var comp = CreateCompilation("", references: [reference],
+                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+                var main = comp.GetMember<MethodSymbol>("Program.<Main>");
+                Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void ExcludePrivateMembers_DebugEntryPoint()
+        {
+            using var peStream = new MemoryStream();
+            using var metadataStream = new MemoryStream();
+
+            {
+                var comp = CreateCompilation("""
+                    static class Program
+                    {
+                        static void M1() { }
+                        static void M2() { }
+                    }
+                    """).VerifyDiagnostics();
+                var emitResult = comp.Emit(
+                    peStream: peStream,
+                    metadataPEStream: metadataStream,
+                    debugEntryPoint: comp.GetMember<MethodSymbol>("Program.M1").GetPublicSymbol(),
+                    options: EmitOptions.Default.WithIncludePrivateMembers(false));
+                Assert.True(emitResult.Success);
+                emitResult.Diagnostics.Verify();
+            }
+
+            {
+                // M1 should be emitted (it's the debug entry-point), M2 shouldn't (private members are excluded).
+                metadataStream.Position = 0;
+                var reference = AssemblyMetadata.CreateFromStream(metadataStream).GetReference();
+                var comp = CreateCompilation("", references: [reference],
+                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+                var m1 = comp.GetMember<MethodSymbol>("Program.M1");
+                Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
+                Assert.Null(comp.GetMember<MethodSymbol>("Program.M2"));
+            }
         }
     }
 }

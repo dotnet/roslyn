@@ -14,13 +14,15 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor;
 
 [UseExportProvider]
-public class TryGetDocumentTests
+public sealed class TryGetDocumentTests
 {
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624315")]
     public void MultipleTextChangesTest()
     {
-        var code = @"class C
-";
+        var code = """
+            class C
+
+            """;
         using var workspace = EditorTestWorkspace.CreateCSharp(code);
         var hostDocument = workspace.Documents.First();
         var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentId(hostDocument));
@@ -35,12 +37,11 @@ public class TryGetDocumentTests
 
         var newDocument = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault();
         Assert.NotNull(newDocument);
-
-        var expected = @"class C
-{ }";
-
         var newSourceText = newDocument.GetTextAsync().Result;
-        Assert.Equal(expected, newSourceText.ToString());
+        Assert.Equal("""
+            class C
+            { }
+            """, newSourceText.ToString());
 
         Assert.True(container == newSourceText.Container);
     }

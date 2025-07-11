@@ -13,12 +13,18 @@ parameters:
   type: number
 - name: CommitSHA
   type: string
+- name: EnforceLatestCommit
+  type: boolean
+  default: true
 - name: VisualStudioBranchName
   type: string
   default: default
 - name: OptionalTitlePrefix
   type: string
   default: '[PR Validation]'
+- name: VisualStudioCherryPickSHA
+  type: string
+  default: '(default)'
 - name: InsertToolset
   type: boolean
   default: true
@@ -33,8 +39,6 @@ variables:
     value: false
   - name: Codeql.SkipTaskAutoInjection
     value: true
-  - name: SignType
-    value: ''
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
@@ -97,7 +101,7 @@ extends:
 
           - output: pipelineArtifact
             displayName: 'Publish Ngen Logs'
-            condition: succeeded()
+            condition: and(succeeded(), ${{ not(parameters.SkipApplyOptimizationData) }})
             targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)\ngen'
             artifactName: 'NGen Logs'
             publishLocation: Container
@@ -145,6 +149,9 @@ extends:
             ArtifactName: AssetManifests
 
         steps:
+        - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
+          displayName: Disable Real-time Monitoring
+          
         - task: Powershell@2
           displayName: Setting OriginalBuildNumber variable
           condition: succeeded()
@@ -194,7 +201,7 @@ extends:
           displayName: Setup branch for insertion validation
           inputs:
             filePath: 'eng\setup-pr-validation.ps1'
-            arguments: '-sourceBranchName $(SourceBranchName) -prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }}'
+            arguments: "-sourceBranchName $(SourceBranchName) -prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
           condition: succeeded()
 
         - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(OriginalBuildNumber)"
@@ -217,16 +224,6 @@ extends:
             useGlobalJson: true
             workingDirectory: '$(Build.SourcesDirectory)'
 
-        # Needed to restore the Microsoft.DevDiv.Optimization.Data.PowerShell package
-        - task: NuGetCommand@2
-          displayName: Restore internal tools
-          inputs:
-            command: restore
-            feedsToUse: config
-            restoreSolution: 'eng\common\internal\Tools.csproj'
-            nugetConfigPath: 'NuGet.config'
-            restoreDirectory: '$(Build.SourcesDirectory)\.packages'
-
         - task: MicroBuildSigningPlugin@4
           inputs:
             signType: $(SignType)
@@ -248,7 +245,7 @@ extends:
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(OriginalBuildNumber)
                        -officialSkipTests $(SkipTests)
-                       -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+                       -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
                        -officialIbcDrop $(IbcDrop)
                        -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
@@ -293,10 +290,39 @@ extends:
           pool:
             name: VSEngSS-MicroBuild2022-1ES
 
+    - stage: publish
+      displayName: Publish
+      dependsOn:
+      - build
+      jobs:
+      - job: publishDarc
+        displayName: Publish using darc
+        pool:
+          name: VSEngSS-MicroBuild2022-1ES
+        steps:
+        - checkout: none
+        # Make BarBuildId available.
+        - template: /eng/common/templates/post-build/setup-maestro-vars.yml@self
+
+        - powershell: |
+            $versionEndpoint = 'https://maestro.dot.net/api/assets/darc-version?api-version=2019-01-16'
+            $darcVersion = $(Invoke-WebRequest -Uri $versionEndpoint -UseBasicParsing).Content
+            $arcadeServicesSource = 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
+            & dotnet tool update microsoft.dotnet.darc --version "$darcVersion" --add-source "$arcadeServicesSource" --tool-path $(Agent.ToolsDirectory)\darc -v n
+          displayName: Install darc tool
+
+        - task: AzureCLI@2
+          inputs:
+            azureSubscription: "Darc: Maestro Production"
+            scriptType: pscore
+            scriptLocation: inlineScript
+            inlineScript: $(Agent.ToolsDirectory)\darc\darc add-build-to-channel --id $(BARBuildId) --channel ".NET Internal Tooling" --publishing-infra-version 3 --ci --azdev-pat $(System.AccessToken)
+          displayName: Add build to .NET Internal Tooling
+
     - stage: insert
       dependsOn:
       - build
-      - publish_using_darc
+      - publish
       displayName: Insert to VS
 
       jobs:
@@ -329,18 +355,8 @@ extends:
             queueSpeedometerValidation: true
             dropPath: '$(Pipeline.Workspace)\VSSetup'
             retainInsertedBuild: false
+            cherryPick: ${{ parameters.VisualStudioCherryPickSHA }}
         # Arcade is done so we can set BuildNumber back
         - powershell: Write-Host "##vso[build.updatebuildnumber]$(FancyBuildNumber)"
           displayName: Reset BuildNumber
           condition: succeeded()
-
-    # Use post-build to publish symbol packages.
-    - template: /eng/common/templates-official/post-build/post-build.yml@self
-      parameters:
-        publishingInfraVersion: 3
-        # Symbol validation is not entirely reliable as of yet, so should be turned off until
-        # https://github.com/dotnet/arcade/issues/2871 is resolved.
-        enableSymbolValidation: false
-        enableSigningValidation: false
-        enableSourceLinkValidation: false
-        SDLValidationParameters: false

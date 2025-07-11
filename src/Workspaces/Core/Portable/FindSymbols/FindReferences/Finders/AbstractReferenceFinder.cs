@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -119,7 +120,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         Action<Document, TData> processResult,
         TData processResultData,
         CancellationToken cancellationToken,
-        params string[] values)
+        params ImmutableArray<string> values)
     {
         return FindDocumentsWithPredicateAsync(project, documents, static (index, values) =>
         {

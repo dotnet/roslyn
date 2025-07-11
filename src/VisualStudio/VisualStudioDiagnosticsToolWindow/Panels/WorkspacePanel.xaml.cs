@@ -15,101 +15,100 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 
-namespace Roslyn.VisualStudio.DiagnosticsWindow
+namespace Roslyn.VisualStudio.DiagnosticsWindow;
+
+/// <summary>
+/// Interaction logic for TelemetryPanel.xaml
+/// </summary>
+public sealed partial class WorkspacePanel : UserControl
 {
-    /// <summary>
-    /// Interaction logic for TelemetryPanel.xaml
-    /// </summary>
-    public sealed partial class WorkspacePanel : UserControl
+    private readonly DiagnosticsWindow _window;
+
+    public WorkspacePanel(DiagnosticsWindow window)
     {
-        private readonly DiagnosticsWindow _window;
+        _window = window;
+        InitializeComponent();
+    }
 
-        public WorkspacePanel(DiagnosticsWindow window)
+    private void OnDiagnose(object sender, RoutedEventArgs e)
+    {
+        _ = OnDiagnoseImplAsync();
+
+        async Task OnDiagnoseImplAsync()
         {
-            _window = window;
-            InitializeComponent();
-        }
+            DiagnoseButton.IsEnabled = false;
+            GenerationProgresBar.IsIndeterminate = true;
+            Result.Text = "Comparing in-proc solution snapshot with files on disk ...";
 
-        private void OnDiagnose(object sender, RoutedEventArgs e)
-        {
-            _ = OnDiagnoseImplAsync();
-
-            async Task OnDiagnoseImplAsync()
-            {
-                DiagnoseButton.IsEnabled = false;
-                GenerationProgresBar.IsIndeterminate = true;
-                Result.Text = "Comparing in-proc solution snapshot with files on disk ...";
-
-                var text = await Task.Run(
-                    async () =>
-                    {
-                        try
-                        {
-                            return await DiagnoseAsync(CancellationToken.None).ConfigureAwait(false);
-                        }
-                        catch (Exception e)
-                        {
-                            return e.ToString();
-                        }
-                    }).ConfigureAwait(true);
-
-                GenerationProgresBar.IsIndeterminate = false;
-                DiagnoseButton.IsEnabled = true;
-                Result.Text = text;
-            }
-        }
-
-        private async Task<string> DiagnoseAsync(CancellationToken cancellationToken)
-        {
-            var workspace = _window.Workspace;
-            if (workspace == null)
-            {
-                return "Workspace unavailable";
-            }
-
-            var output = new StringBuilder();
-            await CompareClosedDocumentsWithFileSystemAsync(workspace, output, cancellationToken).ConfigureAwait(false);
-            return output.ToString();
-        }
-
-        private static async Task CompareClosedDocumentsWithFileSystemAsync(Workspace workspace, StringBuilder output, CancellationToken cancellationToken)
-        {
-            var solution = workspace.CurrentSolution;
-            var outOfDateCount = 0;
-            var gate = new object();
-
-            var tasks = from project in solution.Projects
-                        from document in project.Documents
-                        where document.FilePath != null
-                        where !workspace.IsDocumentOpen(document.Id)
-                        select CompareDocumentAsync(document);
-
-            async Task CompareDocumentAsync(Document document)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var snapshotText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                var snapshotChecksum = snapshotText.GetChecksum();
-
-                using var fileStream = File.OpenRead(document.FilePath);
-                var fileText = SourceText.From(fileStream, snapshotText.Encoding, snapshotText.ChecksumAlgorithm);
-                var fileChecksum = fileText.GetChecksum();
-
-                if (!fileChecksum.SequenceEqual(snapshotChecksum))
+            var text = await Task.Run(
+                async () =>
                 {
-                    lock (gate)
+                    try
                     {
-                        output.AppendLine($"{document.FilePath}: {BitConverter.ToString([.. snapshotChecksum])} : {BitConverter.ToString([.. fileChecksum])}");
-                        outOfDateCount++;
+                        return await DiagnoseAsync(CancellationToken.None).ConfigureAwait(false);
                     }
+                    catch (Exception e)
+                    {
+                        return e.ToString();
+                    }
+                }).ConfigureAwait(true);
+
+            GenerationProgresBar.IsIndeterminate = false;
+            DiagnoseButton.IsEnabled = true;
+            Result.Text = text;
+        }
+    }
+
+    private async Task<string> DiagnoseAsync(CancellationToken cancellationToken)
+    {
+        var workspace = _window.Workspace;
+        if (workspace == null)
+        {
+            return "Workspace unavailable";
+        }
+
+        var output = new StringBuilder();
+        await CompareClosedDocumentsWithFileSystemAsync(workspace, output, cancellationToken).ConfigureAwait(false);
+        return output.ToString();
+    }
+
+    private static async Task CompareClosedDocumentsWithFileSystemAsync(Workspace workspace, StringBuilder output, CancellationToken cancellationToken)
+    {
+        var solution = workspace.CurrentSolution;
+        var outOfDateCount = 0;
+        var gate = new object();
+
+        var tasks = from project in solution.Projects
+                    from document in project.Documents
+                    where document.FilePath != null
+                    where !workspace.IsDocumentOpen(document.Id)
+                    select CompareDocumentAsync(document);
+
+        async Task CompareDocumentAsync(Document document)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var snapshotText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var snapshotChecksum = snapshotText.GetChecksum();
+
+            using var fileStream = File.OpenRead(document.FilePath);
+            var fileText = SourceText.From(fileStream, snapshotText.Encoding, snapshotText.ChecksumAlgorithm);
+            var fileChecksum = fileText.GetChecksum();
+
+            if (!fileChecksum.SequenceEqual(snapshotChecksum))
+            {
+                lock (gate)
+                {
+                    output.AppendLine($"{document.FilePath}: {BitConverter.ToString([.. snapshotChecksum])} : {BitConverter.ToString([.. fileChecksum])}");
+                    outOfDateCount++;
                 }
             }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-
-            output.AppendLine(outOfDateCount == 0
-                ? "All closed documents up to date."
-                : $"{Environment.NewLine}{outOfDateCount} documents out of date.");
         }
+
+        await Task.WhenAll(tasks).ConfigureAwait(false);
+
+        output.AppendLine(outOfDateCount == 0
+            ? "All closed documents up to date."
+            : $"{Environment.NewLine}{outOfDateCount} documents out of date.");
     }
 }

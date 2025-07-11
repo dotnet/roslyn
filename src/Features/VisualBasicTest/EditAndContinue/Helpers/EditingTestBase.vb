@@ -2,17 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.IO
+Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
-Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
@@ -28,11 +24,6 @@ Namespace System.Runtime.CompilerServices
     End Class
 End Namespace
 "
-
-        Friend Shared Function CreateAnalyzer() As VisualBasicEditAndContinueAnalyzer
-            Return New VisualBasicEditAndContinueAnalyzer()
-        End Function
-
         Public Enum MethodKind
             Regular
             Async
@@ -249,7 +240,8 @@ End Namespace
                                                 src2 As String,
                                                 Optional kind As MethodKind = MethodKind.Regular) As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))
             Dim methodMatch = GetMethodMatch(src1, src2, kind)
-            Return EditAndContinueTestVerifier.GetMethodMatches(CreateAnalyzer(), methodMatch)
+            Dim analyzer = EditAndContinueTestVerifier.CreateAnalyzer(faultInjector:=Nothing, LanguageNames.VisualBasic)
+            Return EditAndContinueTestVerifier.GetMethodMatches(analyzer, methodMatch)
         End Function
 
         Public Shared Function ToMatchingPairs(match As Match(Of SyntaxNode)) As MatchingPairs

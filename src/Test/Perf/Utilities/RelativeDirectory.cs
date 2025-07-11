@@ -68,7 +68,6 @@ namespace Roslyn.Test.Performance.Utilities
         /// Returns the directory that contains built roslyn binaries.  Usually this will be 
         /// Binaries/Debug or Binaries/Release.
         /// </summary>
-        /// <returns></returns>
         public string MyBinaries()
         {
             ThrowIfNotSetup();

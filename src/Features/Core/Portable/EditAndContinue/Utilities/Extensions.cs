@@ -44,24 +44,38 @@ internal static partial class Extensions
     {
         if (project.FilePath == null)
         {
-            log?.Write("Project '{0}' (id '{1}') doesn't support EnC: no file path", project.Name, project.Id);
+            LogReason("no file path");
+            return false;
+        }
+
+        if (!project.SupportsCompilation)
+        {
+            LogReason("no compilation");
             return false;
         }
 
         if (project.Services.GetService<IEditAndContinueAnalyzer>() == null)
         {
-            log?.Write("Project '{0}' doesn't support EnC: no EnC service", project.FilePath);
+            LogReason("no EnC service");
             return false;
         }
 
         if (!project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory)
         {
-            log?.Write("Project '{0}' doesn't support EnC: no generated files output directory", project.FilePath);
+            LogReason("no generated files output directory");
             return false;
         }
 
+        void LogReason(string message)
+            => log?.Write($"Project '{project.GetLogDisplay()}' doesn't support EnC: {message}");
+
         return true;
     }
+
+    public static string GetLogDisplay(this Project project)
+        => project.FilePath != null
+            ? $"'{project.FilePath}'" + (project.State.NameAndFlavor.flavor is { } flavor ? $" ('{flavor}')" : "")
+            : $"'{project.Name}' ('{project.Id.DebugName}'";
 
     public static bool SupportsEditAndContinue(this TextDocumentState textDocumentState)
     {
@@ -112,25 +126,14 @@ internal static partial class Extensions
         => filePath.EndsWith(".razor.g.cs", StringComparison.OrdinalIgnoreCase) ||
             filePath.EndsWith(".cshtml.g.cs", StringComparison.OrdinalIgnoreCase);
 
-    public static ManagedHotReloadDiagnostic ToHotReloadDiagnostic(this DiagnosticData data, ModuleUpdateStatus updateStatus, bool isRudeEdit)
+    public static ManagedHotReloadDiagnostic ToHotReloadDiagnostic(this DiagnosticData data, ManagedHotReloadDiagnosticSeverity severity)
     {
         var fileSpan = data.DataLocation.MappedFileSpan;
 
         return new(
             data.Id,
             data.Message ?? FeaturesResources.Unknown_error_occurred,
-            isRudeEdit
-                ? data.DefaultSeverity switch
-                {
-                    DiagnosticSeverity.Error => ManagedHotReloadDiagnosticSeverity.RestartRequired,
-                    DiagnosticSeverity.Warning => ManagedHotReloadDiagnosticSeverity.Warning,
-                    _ => throw ExceptionUtilities.UnexpectedValue(data.DefaultSeverity)
-                }
-                : updateStatus == ModuleUpdateStatus.RestartRequired
-                    ? ManagedHotReloadDiagnosticSeverity.RestartRequired
-                    : (data.Severity == DiagnosticSeverity.Error)
-                        ? ManagedHotReloadDiagnosticSeverity.Error
-                        : ManagedHotReloadDiagnosticSeverity.Warning,
+            severity,
             fileSpan.Path ?? "",
             fileSpan.Span.ToSourceSpan());
     }

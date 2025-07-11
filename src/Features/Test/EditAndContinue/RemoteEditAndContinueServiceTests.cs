@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -21,13 +22,12 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue;
 
 [UseExportProvider]
-public class RemoteEditAndContinueServiceTests
+public sealed class RemoteEditAndContinueServiceTests
 {
     private static string Inspect(DiagnosticData d)
         => $"[{d.ProjectId}] {d.Severity} {d.Id}:" +
@@ -154,7 +154,7 @@ public class RemoteEditAndContinueServiceTests
 
         // BreakStateChanged
 
-        mockEncService.BreakStateOrCapabilitiesChangedImpl = (bool? inBreakState) =>
+        mockEncService.BreakStateOrCapabilitiesChangedImpl = inBreakState =>
         {
             Assert.True(inBreakState);
         };
@@ -173,12 +173,16 @@ public class RemoteEditAndContinueServiceTests
 
         var diagnosticDescriptor1 = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
 
+        var runningProjects1 = new Dictionary<ProjectId, RunningProjectInfo>
+        {
+            { project.Id, new RunningProjectInfo() { RestartWhenChangesHaveNoEffect = true, AllowPartialUpdate = true} }
+        }.ToImmutableDictionary();
+
         mockEncService.EmitSolutionUpdateImpl = (solution, runningProjects, activeStatementSpanProvider) =>
         {
             var project = solution.GetRequiredProject(projectId);
             Assert.Equal("proj", project.Name);
-            AssertEx.Equal(activeSpans1, activeStatementSpanProvider(documentId, "test.cs", CancellationToken.None).AsTask().Result);
-            AssertEx.Equal([project.Id], runningProjects);
+            AssertEx.SetEqual(runningProjects1, runningProjects);
 
             var deltas = ImmutableArray.Create(new ManagedHotReloadUpdate(
                 module: moduleId1,
@@ -209,14 +213,13 @@ public class RemoteEditAndContinueServiceTests
                 Solution = solution,
                 ModuleUpdates = updates,
                 Diagnostics = diagnostics,
-                RudeEdits = [],
                 SyntaxError = syntaxError,
                 ProjectsToRebuild = [project.Id],
-                ProjectsToRestart = [project.Id],
+                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(project.Id, []),
             };
         };
 
-        var results = await sessionProxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, runningProjects: [project.Id], activeStatementSpanProvider, CancellationToken.None);
+        var results = await sessionProxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, runningProjects1, activeStatementSpanProvider, CancellationToken.None);
         AssertEx.Equal($"[{projectId}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "syntax error")}", Inspect(results.SyntaxError!));
 
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
@@ -257,7 +260,7 @@ public class RemoteEditAndContinueServiceTests
         mockEncService.GetBaseActiveStatementSpansImpl = (solution, documentIds) =>
         {
             AssertEx.Equal(new[] { documentId, inProcOnlyDocumentId }, documentIds);
-            return [ImmutableArray.Create(activeStatementSpan1)];
+            return [[activeStatementSpan1]];
         };
 
         var baseActiveSpans = await sessionProxy.GetBaseActiveStatementSpansAsync(localWorkspace.CurrentSolution, [documentId, inProcOnlyDocumentId], CancellationToken.None);

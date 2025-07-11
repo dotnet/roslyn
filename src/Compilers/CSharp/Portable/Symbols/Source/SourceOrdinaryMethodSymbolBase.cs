@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
 
-        public override string Name
+        public sealed override string Name
         {
             get
             {
@@ -91,20 +92,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract override SourceMemberMethodSymbol BoundAttributesSource { get; }
 
         internal abstract override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations();
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            if (this.IsExtensionMethod)
-            {
-                // No need to check if [Extension] attribute was explicitly set since
-                // we'll issue CS1112 error in those cases and won't generate IL.
-                var compilation = this.DeclaringCompilation;
-
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
-                    WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
-            }
-        }
     }
 }

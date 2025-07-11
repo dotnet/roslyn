@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class TypeHierarchyPrepareParams : TextDocumentPositionParams, IWorkDoneProgressParams
+internal sealed class TypeHierarchyPrepareParams : TextDocumentPositionParams, IWorkDoneProgressParams
 {
     /// <inheritdoc/>
     [JsonPropertyName(Methods.WorkDoneTokenName)]

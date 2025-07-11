@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest;
 
-public class WeakEventTests
+public sealed class WeakEventTests
 {
     [Fact]
     public void AddAndRemove()

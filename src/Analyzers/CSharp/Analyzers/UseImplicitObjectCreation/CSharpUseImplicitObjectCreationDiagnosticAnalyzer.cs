@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -17,17 +16,14 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpUseImplicitObjectCreationDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.UseImplicitObjectCreationDiagnosticId,
+        EnforceOnBuildValues.UseImplicitObjectCreation,
+        CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent,
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_new), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.new_expression_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    public CSharpUseImplicitObjectCreationDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseImplicitObjectCreationDiagnosticId,
-               EnforceOnBuildValues.UseImplicitObjectCreation,
-               CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent,
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_new), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.new_expression_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -57,10 +53,13 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
-            objectCreation.Type.GetLocation(),
+            // Place the suggestion on the 'new' keyword.  This is both the earliest part of the object creation
+            // expression, and it also matches the location we place the 'use collection expression' analyzer,
+            // ensuring consistency between the two analyzers.
+            objectCreation.NewKeyword.GetLocation(),
             styleOption.Notification,
             context.Options,
-            ImmutableArray.Create(objectCreation.GetLocation()),
+            [objectCreation.GetLocation()],
             properties: null));
     }
 

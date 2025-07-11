@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpdateLegacySuppression
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUpdateLegacySuppressions)]
 [WorkItem("https://github.com/dotnet/roslyn/issues/44362")]
-public class UpdateLegacySuppressionsTests
+public sealed class UpdateLegacySuppressionsTests
 {
     [Theory, CombinatorialData]
     public void TestStandardProperty(AnalyzerProperty property)
@@ -39,7 +39,10 @@ public class UpdateLegacySuppressionsTests
     [Theory]
     public async Task LegacySuppressions(string scope, string target, string fixedTarget)
     {
-        var input = $$"""
+        var expectedDiagnostic = VerifyCS.Diagnostic(AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.LegacyFormatTargetDescriptor)
+                                    .WithLocation(0)
+                                    .WithArguments(target);
+        await VerifyCS.VerifyCodeFixAsync($$"""
             [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "Id: Title", Scope = "{{scope}}", Target = {|#0:"{{target}}"|})]
 
             namespace N
@@ -57,13 +60,7 @@ public class UpdateLegacySuppressionsTests
                     }
                 }
             }
-            """;
-
-        var expectedDiagnostic = VerifyCS.Diagnostic(AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.LegacyFormatTargetDescriptor)
-                                    .WithLocation(0)
-                                    .WithArguments(target);
-
-        var fixedCode = $$"""
+            """, expectedDiagnostic, $$"""
             [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "Id: Title", Scope = "{{scope}}", Target = "{{fixedTarget}}")]
 
             namespace N
@@ -81,7 +78,6 @@ public class UpdateLegacySuppressionsTests
                     }
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(input, expectedDiagnostic, fixedCode);
+            """);
     }
 }

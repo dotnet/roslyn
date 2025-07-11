@@ -73,6 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property IfKeyword As Integer = SyntaxKind.IfKeyword Implements ISyntaxKinds.IfKeyword
         Public ReadOnly Property NewKeyword As Integer = SyntaxKind.NewKeyword Implements ISyntaxKinds.NewKeyword
         Public ReadOnly Property TrueKeyword As Integer = SyntaxKind.TrueKeyword Implements ISyntaxKinds.TrueKeyword
+        Public ReadOnly Property PartialKeyword As Integer = SyntaxKind.PartialKeyword Implements ISyntaxKinds.PartialKeyword
         Public ReadOnly Property UsingKeyword As Integer = SyntaxKind.UsingKeyword Implements ISyntaxKinds.UsingKeyword
 
         Public ReadOnly Property AliasQualifiedName As Integer? Implements ISyntaxKinds.AliasQualifiedName
@@ -99,6 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property CollectionInitializerExpression As Integer = SyntaxKind.CollectionInitializer Implements ISyntaxKinds.CollectionInitializerExpression
         Public ReadOnly Property ConditionalAccessExpression As Integer = SyntaxKind.ConditionalAccessExpression Implements ISyntaxKinds.ConditionalAccessExpression
         Public ReadOnly Property ConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression Implements ISyntaxKinds.ConditionalExpression
+        Public ReadOnly Property FieldExpression As Integer? Implements ISyntaxKinds.FieldExpression
         Public ReadOnly Property ImplicitArrayCreationExpression As Integer? Implements ISyntaxKinds.ImplicitArrayCreationExpression
         Public ReadOnly Property ImplicitObjectCreationExpression As Integer? Implements ISyntaxKinds.ImplicitObjectCreationExpression
         Public ReadOnly Property IndexExpression As Integer? Implements ISyntaxKinds.IndexExpression

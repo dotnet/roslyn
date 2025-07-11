@@ -217,7 +217,9 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/900438")>
+        <WpfFact>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/900438")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77916")>
         Public Async Function TestCSharpGotoDefinitionPartialMethod() As Task
             Dim workspace =
 <Workspace>
@@ -225,7 +227,7 @@ class Program
         <Document>
             partial class Test
             {
-                partial void M();
+                partial void [|M|]();
             }
         </Document>
         <Document>
@@ -237,7 +239,7 @@ class Program
                     t.M$$();
                 }
 
-                partial void [|M|]()
+                partial void M()
                 {
                     throw new NotImplementedException();
                 }
@@ -249,7 +251,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77916")>
         Public Async Function TestCSharpGotoDefinitionExtendedPartialMethod() As Task
             Dim workspace =
 <Workspace>
@@ -257,7 +259,7 @@ class Program
         <Document>
             partial class Test
             {
-                public partial void M();
+                public partial void [|M|]();
             }
         </Document>
         <Document>
@@ -269,7 +271,7 @@ class Program
                     t.M$$();
                 }
 
-                public partial void [|M|]()
+                public partial void M()
                 {
                     throw new NotImplementedException();
                 }
@@ -281,7 +283,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77916")>
         Public Async Function TestCSharpGotoDefinitionPartialProperty() As Task
             Dim workspace =
 <Workspace>
@@ -289,7 +291,7 @@ class Program
         <Document>
             partial class Test
             {
-                public partial int Prop { get; set; }
+                public partial int [|Prop|] { get; set; }
             }
         </Document>
         <Document>
@@ -301,10 +303,73 @@ class Program
                     int i = t.Prop$$;
                 }
 
-                public partial void [|Prop|]
+                public partial void Prop
                 {
                     get => throw new NotImplementedException();
                     set => throw new NotImplementedException();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77916")>
+        Public Async Function TestCSharpGotoDefinitionPartialEvent() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                public partial event System.Action [|E|];
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                void Goo()
+                {
+                    var t = new Test();
+                    int i = t.E$$;
+                }
+
+                public partial event System.Action E
+                {
+                    add { }
+                    remove { }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77916")>
+        Public Async Function TestCSharpGotoDefinitionPartialConstructor() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+            partial class Test
+            {
+                public partial [|Test|]();
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                void Goo()
+                {
+                    var t = new Te$$st();
+                }
+
+                public partial Test()
+                {
                 }
             }
         </Document>
@@ -4072,8 +4137,6 @@ partial partial class Program
             Await TestAsync(workspace)
         End Function
 
-#Disable Warning RSEXPERIMENTAL002 ' Type is for evaluation purposes only and is subject to change or removal in future updates.
-
         Private Const s_interceptsLocationCode = "
 namespace System.Runtime.CompilerServices
 {
@@ -4363,6 +4426,111 @@ public partial class Program
             Await TestAsync(workspace)
         End Function
 
+        <WpfFact>
+        Public Async Function TestCSharpGotoDefinitionNullConditionalAwait() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                string [|s|];
+
+                public void M(Test t)
+                {
+                    t?.$$s = "";
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
 #Enable Warning RSEXPERIMENTAL002 ' Type is for evaluation purposes only and is subject to change or removal in future updates.
+        <WpfFact>
+        Public Async Function TestCSharpGoToExtensionMethod1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document>
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void [|Goo|]() { }
+                }
+            }
+
+            class X
+            {
+                void M(string s)
+                {
+                    s.$$Goo();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToExtensionMethod2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document>
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public static void [|Goo|]() { }
+                }
+            }
+
+            class X
+            {
+                void M(string s)
+                {
+                    string.$$Goo();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToExtensionProperty() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document>
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public int [|Goo|] => 0;
+                }
+            }
+
+            class X
+            {
+                void M(string s)
+                {
+                    var v = s.$$Goo;
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
     End Class
 End Namespace

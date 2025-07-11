@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -39,8 +38,7 @@ internal sealed class RemoteEncapsulateFieldService(in BrokeredServiceBase.Servi
 
             foreach (var key in fieldSymbolKeys)
             {
-                var resolved = SymbolKey.ResolveString(key, compilation, cancellationToken: cancellationToken).GetAnySymbol() as IFieldSymbol;
-                if (resolved == null)
+                if (SymbolKey.ResolveString(key, compilation, cancellationToken: cancellationToken).GetAnySymbol() is not IFieldSymbol resolved)
                     return [];
 
                 fields.Add(resolved);

@@ -13,15 +13,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
 [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-public class YieldStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
+public sealed class YieldStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
     internal override Type GetHighlighterType()
         => typeof(YieldStatementHighlighter);
 
     [Fact]
-    public async Task TestExample1_1()
-    {
-        await TestAsync(
+    public Task TestExample1_1()
+        => TestAsync(
             """
             class C
             {
@@ -39,12 +38,10 @@ public class YieldStatementHighlighterTests : AbstractCSharpKeywordHighlighterTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample1_2()
-    {
-        await TestAsync(
+    public Task TestExample1_2()
+        => TestAsync(
             """
             class C
             {
@@ -62,12 +59,10 @@ public class YieldStatementHighlighterTests : AbstractCSharpKeywordHighlighterTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample1_3()
-    {
-        await TestAsync(
+    public Task TestExample1_3()
+        => TestAsync(
             """
             class C
             {
@@ -85,12 +80,10 @@ public class YieldStatementHighlighterTests : AbstractCSharpKeywordHighlighterTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample1_4()
-    {
-        await TestAsync(
+    public Task TestExample1_4()
+        => TestAsync(
             """
             class C
             {
@@ -108,5 +101,4 @@ public class YieldStatementHighlighterTests : AbstractCSharpKeywordHighlighterTe
                 }
             }
             """);
-    }
 }

@@ -18,15 +18,15 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Shared items -->
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Core\CommandLine\BuildProtocol.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Core\CommandLine\ConsoleUtil.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Core\CommandLine\NativeMethods.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Core\CommandLine\CompilerServerLogger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\RuntimeHostInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\NamedPipeUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\BuildClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\BuildProtocol.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\BuildServerConnection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\CompilerServerLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\ConsoleUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\ExitingTraceListener.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\NamedPipeUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\NativeMethods.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\RuntimeHostInfo.cs" />
 
     <Compile Include="$(MSBuildThisFileDirectory)AnalyzerConsistencyChecker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Assembly.cs" />

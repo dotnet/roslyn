@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -87,7 +86,7 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetMemberDisplayOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var matchingTypeSearchResults = GetTypeSearchResults(semanticModel, simpleName, options.HideAdvancedMembers, matchingTypes.Concat(matchingAttributeTypes));
+            var matchingTypeSearchResults = GetTypeSearchResults(semanticModel, simpleName, options.HideAdvancedMembers, [.. matchingTypes, .. matchingAttributeTypes]);
             var matchingNamespaceSearchResults = GetNamespaceSearchResults(semanticModel, simpleName, matchingNamespaces);
             if (matchingTypeSearchResults.IsEmpty && matchingNamespaceSearchResults.IsEmpty)
                 return null;

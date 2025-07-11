@@ -46,7 +46,10 @@ internal sealed class VisualStudioExtractClassOptionsService(
         CancellationToken cancellationToken)
     {
         _threadingContext.ThrowIfNotOnUIThread();
-        var notificationService = document.Project.Solution.Services.GetRequiredService<INotificationService>();
+
+        var solution = document.Project.Solution;
+        var canAddDocument = solution.CanApplyChange(ApplyChangesKind.AddDocument);
+        var notificationService = solution.Services.GetRequiredService<INotificationService>();
 
         var membersInType = selectedType.GetMembers().
            WhereAsArray(MemberAndDestinationValidator.IsMemberValid);
@@ -85,7 +88,8 @@ internal sealed class VisualStudioExtractClassOptionsService(
             document.Project.Language,
             generatedNameTypeParameterSuffix,
             [.. conflictingTypeNames],
-            document.GetRequiredLanguageService<ISyntaxFactsService>());
+            document.GetRequiredLanguageService<ISyntaxFactsService>(),
+            canAddDocument);
 
         var dialog = new ExtractClassDialog(viewModel);
 

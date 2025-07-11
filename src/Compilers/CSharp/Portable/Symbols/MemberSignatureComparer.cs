@@ -771,45 +771,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < numParams; i++)
             {
-                var param1 = params1[i];
-                var param2 = params2[i];
-
-                var type1 = SubstituteType(typeMap1, param1.TypeWithAnnotations);
-                var type2 = SubstituteType(typeMap2, param2.TypeWithAnnotations);
-
-                if (!type1.Equals(type2, typeComparison))
+                if (!HaveSameParameterType(params1[i], typeMap1, params2[i], typeMap2, refKindCompareMode, considerDefaultValues, typeComparison))
                 {
                     return false;
                 }
+            }
 
-                if (considerDefaultValues && param1.ExplicitDefaultConstantValue != param2.ExplicitDefaultConstantValue)
+            return true;
+        }
+
+        internal static bool HaveSameParameterType(
+            ParameterSymbol param1,
+            TypeMap? typeMap1,
+            ParameterSymbol param2,
+            TypeMap? typeMap2,
+            RefKindCompareMode refKindCompareMode,
+            bool considerDefaultValues,
+            TypeCompareKind typeComparison)
+        {
+            var type1 = SubstituteType(typeMap1, param1.TypeWithAnnotations);
+            var type2 = SubstituteType(typeMap2, param2.TypeWithAnnotations);
+
+            if (!type1.Equals(type2, typeComparison))
+            {
+                return false;
+            }
+
+            if (considerDefaultValues && param1.ExplicitDefaultConstantValue != param2.ExplicitDefaultConstantValue)
+            {
+                return false;
+            }
+
+            if ((typeComparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0 &&
+                !HaveSameCustomModifiers(param1.RefCustomModifiers, typeMap1, param2.RefCustomModifiers, typeMap2))
+            {
+                return false;
+            }
+
+            var refKind1 = param1.RefKind;
+            var refKind2 = param2.RefKind;
+
+            // Metadata signatures don't distinguish ref/out, but C# does - even when comparing metadata method signatures.
+            if ((refKindCompareMode & RefKindCompareMode.ConsiderDifferences) != 0)
+            {
+                if (!areRefKindsCompatible(refKindCompareMode, refKind1, refKind2))
                 {
                     return false;
                 }
-
-                if ((typeComparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0 &&
-                    !HaveSameCustomModifiers(param1.RefCustomModifiers, typeMap1, param2.RefCustomModifiers, typeMap2))
+            }
+            else
+            {
+                if ((refKind1 == RefKind.None) != (refKind2 == RefKind.None))
                 {
                     return false;
-                }
-
-                var refKind1 = param1.RefKind;
-                var refKind2 = param2.RefKind;
-
-                // Metadata signatures don't distinguish ref/out, but C# does - even when comparing metadata method signatures.
-                if ((refKindCompareMode & RefKindCompareMode.ConsiderDifferences) != 0)
-                {
-                    if (!areRefKindsCompatible(refKindCompareMode, refKind1, refKind2))
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    if ((refKind1 == RefKind.None) != (refKind2 == RefKind.None))
-                    {
-                        return false;
-                    }
                 }
             }
 

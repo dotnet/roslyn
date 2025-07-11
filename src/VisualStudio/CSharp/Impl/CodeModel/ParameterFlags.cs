@@ -6,13 +6,12 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel;
+
+[Flags]
+internal enum ParameterFlags
 {
-    [Flags]
-    internal enum ParameterFlags
-    {
-        Ref = 1 << 0,
-        Out = 1 << 1,
-        Params = 1 << 2
-    }
+    Ref = 1 << 0,
+    Out = 1 << 1,
+    Params = 1 << 2
 }

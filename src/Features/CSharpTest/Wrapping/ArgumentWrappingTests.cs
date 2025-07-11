@@ -12,12 +12,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-public class ArgumentWrappingTests : AbstractWrappingTests
+public sealed class ArgumentWrappingTests : AbstractWrappingTests
 {
     [Fact]
-    public async Task TestMissingWithSyntaxError()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithSyntaxError()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -25,12 +24,10 @@ public class ArgumentWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithSelection()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithSelection()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -38,12 +35,10 @@ public class ArgumentWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingBeforeName()
-    {
-        await TestMissingAsync(
+    public Task TestMissingBeforeName()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -51,12 +46,10 @@ public class ArgumentWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithSingleParameter()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithSingleParameter()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -64,12 +57,10 @@ public class ArgumentWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMultiLineParameter()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithMultiLineParameter()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -78,12 +69,10 @@ public class ArgumentWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMultiLineParameter2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithMultiLineParameter2()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -92,12 +81,10 @@ public class ArgumentWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInHeader1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInHeader1()
+        => TestInRegularAndScript1Async(
             """
             class C {
                 void Bar() {
@@ -113,12 +100,10 @@ public class ArgumentWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInHeader2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInHeader2()
+        => TestInRegularAndScript1Async(
             """
             class C {
                 void Bar() {
@@ -134,12 +119,10 @@ public class ArgumentWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInHeader4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInHeader4()
+        => TestInRegularAndScript1Async(
             """
             class C {
                 void Bar() {
@@ -155,12 +138,10 @@ public class ArgumentWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTwoParamWrappingCases()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestTwoParamWrappingCases()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -201,12 +182,10 @@ public class ArgumentWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestThreeParamWrappingCases()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestThreeParamWrappingCases()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -250,12 +229,10 @@ public class ArgumentWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Test_AllOptions_NoInitialMatches()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task Test_AllOptions_NoInitialMatches()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -309,12 +286,10 @@ public class ArgumentWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Test_LongWrapping_ShortIds()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task Test_LongWrapping_ShortIds()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Goo() {
@@ -324,7 +299,7 @@ public class ArgumentWrappingTests : AbstractWrappingTests
                 }
             }
             """,
-GetIndentionColumn(30),
+            GetIndentionColumn(30),
 """
 class C {
     void Goo() {
@@ -412,12 +387,10 @@ class C {
     }
 }
 """);
-    }
 
     [Fact]
-    public async Task Test_LongWrapping_VariadicLengthIds()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task Test_LongWrapping_VariadicLengthIds()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Goo() {
@@ -427,7 +400,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
+            GetIndentionColumn(30),
 """
 class C {
     void Goo() {
@@ -512,12 +485,10 @@ class C {
     }
 }
 """);
-    }
 
     [Fact]
-    public async Task Test_DoNotOfferLongWrappingOptionThatAlreadyAppeared()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task Test_DoNotOfferLongWrappingOptionThatAlreadyAppeared()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Goo() {
@@ -527,7 +498,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(25),
+            GetIndentionColumn(25),
 """
 class C {
     void Goo() {
@@ -600,12 +571,10 @@ class C {
     }
 }
 """);
-    }
 
     [Fact]
-    public async Task Test_DoNotOfferAllLongWrappingOptionThatAlreadyAppeared()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task Test_DoNotOfferAllLongWrappingOptionThatAlreadyAppeared()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -615,7 +584,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(20),
+            GetIndentionColumn(20),
 """
 class C {
     void Bar() {
@@ -668,12 +637,10 @@ class C {
     }
 }
 """);
-    }
 
     [Fact]
-    public async Task Test_LongWrapping_VariadicLengthIds2()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task Test_LongWrapping_VariadicLengthIds2()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -683,7 +650,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
+            GetIndentionColumn(30),
 """
 class C {
     void Bar() {
@@ -761,12 +728,10 @@ class C {
     }
 }
 """);
-    }
 
     [Fact]
-    public async Task Test_DoNotOfferExistingOption1()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task Test_DoNotOfferExistingOption1()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -779,7 +744,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
+            GetIndentionColumn(30),
 """
 class C {
     void Bar() {
@@ -848,12 +813,10 @@ class C {
     }
 }
 """);
-    }
 
     [Fact]
-    public async Task Test_DoNotOfferExistingOption2()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task Test_DoNotOfferExistingOption2()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -867,7 +830,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
+            GetIndentionColumn(30),
 """
 class C {
     void Bar() {
@@ -932,12 +895,10 @@ class C {
     }
 }
 """);
-    }
 
     [Fact]
-    public async Task TestInElementAccess1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInElementAccess1()
+        => TestInRegularAndScript1Async(
             """
             class C {
                 void Goo() {
@@ -954,12 +915,10 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInElementAccess2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInElementAccess2()
+        => TestInRegularAndScript1Async(
             """
             class C {
                 void Goo() {
@@ -976,12 +935,10 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInObjectCreation1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInObjectCreation1()
+        => TestInRegularAndScript1Async(
             """
             class C {
                 void Goo() {
@@ -998,12 +955,10 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInObjectCreation2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInObjectCreation2()
+        => TestInRegularAndScript1Async(
             """
             class C {
                 void Goo() {
@@ -1020,12 +975,10 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50104")]
-    public async Task TestInImplicitObjectCreation()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInImplicitObjectCreation()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -1049,12 +1002,10 @@ class C {
                 public Program(object o1, object o2) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInConstructorInitializer1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInConstructorInitializer1()
+        => TestInRegularAndScript1Async(
             """
             class C {
                 public C() : base([||]a, b, c) {
@@ -1069,12 +1020,10 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInConstructorInitializer2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInConstructorInitializer2()
+        => TestInRegularAndScript1Async(
             """
             class C {
                 public C() : [||]base(a, b, c) {
@@ -1089,12 +1038,10 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")]
-    public async Task TestMissingStartToken1()
-    {
-        await TestMissingAsync(
+    public Task TestMissingStartToken1()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -1102,12 +1049,10 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")]
-    public async Task TestMissingStartToken2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingStartToken2()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -1115,12 +1060,10 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")]
-    public async Task TestMissingEndToken1()
-    {
-        await TestMissingAsync(
+    public Task TestMissingEndToken1()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -1128,12 +1071,10 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")]
-    public async Task TestMissingEndToken2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingEndToken2()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -1141,5 +1082,4 @@ class C {
                 }
             }
             """);
-    }
 }

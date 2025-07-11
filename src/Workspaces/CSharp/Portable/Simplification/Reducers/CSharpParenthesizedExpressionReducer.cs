@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
-internal partial class CSharpParenthesizedExpressionReducer : AbstractCSharpReducer
+internal sealed partial class CSharpParenthesizedExpressionReducer : AbstractCSharpReducer
 {
     private static readonly ObjectPool<IReductionRewriter> s_pool = new(
         () => new Rewriter(s_pool));

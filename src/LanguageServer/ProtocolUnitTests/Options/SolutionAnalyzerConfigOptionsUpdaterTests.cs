@@ -19,11 +19,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Options.UnitTests;
 
 [UseExportProvider]
-public class SolutionAnalyzerConfigOptionsUpdaterTests
+public sealed class SolutionAnalyzerConfigOptionsUpdaterTests
 {
     private static TestWorkspace CreateWorkspace()
     {
-        var workspace = new TestWorkspace(LspTestCompositions.LanguageServerProtocol
+        var workspace = new LspTestWorkspace(LspTestCompositions.LanguageServerProtocol
             .RemoveParts(typeof(MockFallbackAnalyzerConfigOptionsProvider)));
 
         var updater = (SolutionAnalyzerConfigOptionsUpdater)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is SolutionAnalyzerConfigOptionsUpdater).Value;
@@ -107,6 +107,14 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
     {
         using var workspace = CreateWorkspace();
 
+        Assert.Empty(workspace.CurrentSolution.Projects);
+        var globalOptions = workspace.GetService<IGlobalOptionService>();
+
+        var initialPeferences = OptionsTestHelpers.CreateNamingStylePreferences(
+            ([SymbolKind.Property], Capitalization.AllUpper, ReportDiagnostic.Error));
+
+        globalOptions.SetGlobalOption(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp, initialPeferences);
+
         var testProjectWithoutConfig = new TestHostProject(workspace, "proj_without_config", LanguageNames.CSharp);
 
         testProjectWithoutConfig.AddDocument(new TestHostDocument("""
@@ -135,10 +143,17 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
             """,
             filePath: Path.Combine(TempRoot.Root, "proj_with_config", "test.cs")));
 
+        // No fallback options before a project is added.
+        Assert.False(workspace.CurrentSolution.FallbackAnalyzerOptions.TryGetValue(LanguageNames.CSharp, out _));
+
         workspace.AddTestProject(testProjectWithoutConfig);
         workspace.AddTestProject(testProjectWithConfig);
 
-        var globalOptions = workspace.GetService<IGlobalOptionService>();
+        // Once a C# project is added the preferences stored in global options should be applied to fallback options:
+        Assert.True(workspace.CurrentSolution.FallbackAnalyzerOptions.TryGetValue(LanguageNames.CSharp, out var fallbackOptions));
+        AssertEx.SequenceEqual(
+            initialPeferences.Rules.NamingRules.Select(r => r.Inspect()),
+            fallbackOptions.GetNamingStylePreferences().Rules.NamingRules.Select(r => r.Inspect()));
 
         var hostPeferences = OptionsTestHelpers.CreateNamingStylePreferences(
             ([MethodKind.Ordinary], Capitalization.PascalCase, ReportDiagnostic.Error),
@@ -146,10 +161,10 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
 
         globalOptions.SetGlobalOption(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp, hostPeferences);
 
-        Assert.True(workspace.CurrentSolution.FallbackAnalyzerOptions.TryGetValue(LanguageNames.CSharp, out var fallbackOptions));
-
+        // Initial preferences should be replaced by host preferences.
         // Note: rules are ordered but symbol and naming style specifications are not.
-        AssertEx.Equal(
+        Assert.True(workspace.CurrentSolution.FallbackAnalyzerOptions.TryGetValue(LanguageNames.CSharp, out fallbackOptions));
+        AssertEx.SequenceEqual(
             hostPeferences.Rules.NamingRules.Select(r => r.Inspect()),
             fallbackOptions.GetNamingStylePreferences().Rules.NamingRules.Select(r => r.Inspect()));
 
@@ -204,7 +219,22 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
         AssertEx.EqualOrDiff("""
             <NamingPreferencesInfo SerializationVersion="5">
               <SymbolSpecifications>
-                <SymbolSpecification ID="0" Name="symbols1">
+                <SymbolSpecification ID="0" Name="symbols0">
+                  <ApplicableSymbolKindList>
+                    <MethodKind>Ordinary</MethodKind>
+                  </ApplicableSymbolKindList>
+                  <ApplicableAccessibilityList>
+                    <AccessibilityKind>NotApplicable</AccessibilityKind>
+                    <AccessibilityKind>Public</AccessibilityKind>
+                    <AccessibilityKind>Internal</AccessibilityKind>
+                    <AccessibilityKind>Private</AccessibilityKind>
+                    <AccessibilityKind>Protected</AccessibilityKind>
+                    <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
+                    <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+                  </ApplicableAccessibilityList>
+                  <RequiredModifierList />
+                </SymbolSpecification>
+                <SymbolSpecification ID="1" Name="symbols1">
                   <ApplicableSymbolKindList>
                     <MethodKind>Ordinary</MethodKind>
                     <SymbolKind>Field</SymbolKind>
@@ -220,29 +250,14 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
                   </ApplicableAccessibilityList>
                   <RequiredModifierList />
                 </SymbolSpecification>
-                <SymbolSpecification ID="1" Name="symbols0">
-                  <ApplicableSymbolKindList>
-                    <MethodKind>Ordinary</MethodKind>
-                  </ApplicableSymbolKindList>
-                  <ApplicableAccessibilityList>
-                    <AccessibilityKind>NotApplicable</AccessibilityKind>
-                    <AccessibilityKind>Public</AccessibilityKind>
-                    <AccessibilityKind>Internal</AccessibilityKind>
-                    <AccessibilityKind>Private</AccessibilityKind>
-                    <AccessibilityKind>Protected</AccessibilityKind>
-                    <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
-                    <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
-                  </ApplicableAccessibilityList>
-                  <RequiredModifierList />
-                </SymbolSpecification>
               </SymbolSpecifications>
               <NamingStyles>
-                <NamingStyle ID="2" Name="style1" Prefix="" Suffix="" WordSeparator="" CapitalizationScheme="PascalCase" />
-                <NamingStyle ID="3" Name="style0" Prefix="" Suffix="" WordSeparator="" CapitalizationScheme="PascalCase" />
+                <NamingStyle ID="2" Name="style0" Prefix="" Suffix="" WordSeparator="" CapitalizationScheme="PascalCase" />
+                <NamingStyle ID="3" Name="style1" Prefix="" Suffix="" WordSeparator="" CapitalizationScheme="PascalCase" />
               </NamingStyles>
               <NamingRules>
-                <SerializableNamingRule SymbolSpecificationID="1" NamingStyleID="3" EnforcementLevel="Error" />
                 <SerializableNamingRule SymbolSpecificationID="0" NamingStyleID="2" EnforcementLevel="Error" />
+                <SerializableNamingRule SymbolSpecificationID="1" NamingStyleID="3" EnforcementLevel="Error" />
               </NamingRules>
             </NamingPreferencesInfo>
             """,

@@ -30,6 +30,7 @@ internal static class PredefinedCodeRefactoringProviderNames
     public const string ConvertNumericLiteral = nameof(ConvertNumericLiteral);
     public const string ConvertPlaceholderToInterpolatedString = nameof(ConvertPlaceholderToInterpolatedString);
     public const string ConvertPrimaryToRegularConstructor = nameof(ConvertPrimaryToRegularConstructor);
+    public const string ConvertToExtension = nameof(ConvertToExtension);
     public const string ConvertToInterpolatedString = "Convert To Interpolated String Code Action Provider";
     public const string ConvertToProgramMain = "Convert To Program.Main";
     public const string ConvertToRawString = nameof(ConvertToRawString);
@@ -68,6 +69,7 @@ internal static class PredefinedCodeRefactoringProviderNames
     public const string MoveToNamespace = "Move To Namespace Code Action Provider";
     public const string MoveTypeToFile = "Move Type To File Code Action Provider";
     public const string NameTupleElement = nameof(NameTupleElement);
+    public const string OrganizeImports = nameof(OrganizeImports);
     public const string PullMemberUp = "Pull Member Up Code Action Provider";
     public const string RenameTracking = nameof(RenameTracking);
     public const string ReplaceConditionalWithStatements = nameof(ReplaceConditionalWithStatements);

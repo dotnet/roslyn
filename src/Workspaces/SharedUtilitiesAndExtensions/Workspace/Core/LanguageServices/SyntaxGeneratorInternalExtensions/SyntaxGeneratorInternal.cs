@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Editing;
 
@@ -125,4 +126,32 @@ internal abstract class SyntaxGeneratorInternal : ILanguageService
     public abstract SyntaxNode UnaryPattern(SyntaxToken operatorToken, SyntaxNode pattern);
 
     #endregion
+
+    public abstract SyntaxNode DefaultExpression(ITypeSymbol type);
+    public abstract SyntaxNode DefaultExpression(SyntaxNode type);
+
+    public abstract SyntaxNode CastExpression(SyntaxNode type, SyntaxNode expression);
+
+    public SyntaxNode CastExpression(ITypeSymbol type, SyntaxNode expression)
+        => CastExpression(TypeExpression(type), expression);
+
+    public SyntaxNode TypeExpression(ITypeSymbol typeSymbol)
+        => TypeExpression(typeSymbol, RefKind.None);
+
+    public abstract SyntaxNode TypeExpression(ITypeSymbol typeSymbol, RefKind refKind);
+
+    public abstract SyntaxNode BitwiseOrExpression(SyntaxNode left, SyntaxNode right);
+
+    public SyntaxNode MemberAccessExpression(SyntaxNode? expression, SyntaxNode memberName)
+    {
+        return MemberAccessExpressionWorker(expression, memberName)
+            .WithAdditionalAnnotations(Simplifier.Annotation);
+    }
+
+    public abstract SyntaxNode MemberAccessExpressionWorker(SyntaxNode? expression, SyntaxNode memberName);
+    public abstract SyntaxNode IdentifierName(string identifier);
+
+    public abstract SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression);
+    public SyntaxNode ConvertExpression(ITypeSymbol type, SyntaxNode expression)
+        => ConvertExpression(TypeExpression(type), expression);
 }

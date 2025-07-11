@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -19,14 +17,10 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
-    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+    internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpImplementAbstractClassCodeFixProvider());
 
     private OptionsCollection AllOptionsOff
@@ -43,8 +37,8 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
     internal Task TestAllOptionsOffAsync(
         string initialMarkup,
         string expectedMarkup,
-        OptionsCollection options = null,
-        ParseOptions parseOptions = null)
+        OptionsCollection? options = null,
+        ParseOptions? parseOptions = null)
     {
         options ??= new OptionsCollection(GetLanguage());
         options.AddRange(AllOptionsOff);
@@ -58,9 +52,8 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task FieldInBaseClassIsNotSuggested()
-    {
-        await TestExactActionSetOfferedAsync(
+    public Task FieldInBaseClassIsNotSuggested()
+        => TestExactActionSetOfferedAsync(
             """
             abstract class Base
             {
@@ -73,12 +66,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
             {
             }
             """, [AnalyzersResources.Implement_abstract_class]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task FieldInMiddleClassIsNotSuggested()
-    {
-        await TestExactActionSetOfferedAsync(
+    public Task FieldInMiddleClassIsNotSuggested()
+        => TestExactActionSetOfferedAsync(
             """
             abstract class Base
             {
@@ -94,12 +85,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
             {
             }
             """, [AnalyzersResources.Implement_abstract_class]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task FieldOfSameDerivedTypeIsSuggested()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FieldOfSameDerivedTypeIsSuggested()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -127,12 +116,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 }
             }
             """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
-    }
 
     [Fact]
-    public async Task RefParameters_Method()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RefParameters_Method()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -160,12 +147,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 }
             }
             """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
-    }
 
     [Fact]
-    public async Task RefParameters_Indexer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RefParameters_Indexer()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -190,12 +175,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 public override int this[int a, in int b, ref readonly int c, out int d] => inner[a, b, in c, out d];
             }
             """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task SkipInaccessibleMember()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SkipInaccessibleMember()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -225,12 +208,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 }
             }
             """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task TestNotOfferedWhenOnlyUnimplementedMemberIsInaccessible()
-    {
-        await TestExactActionSetOfferedAsync(
+    public Task TestNotOfferedWhenOnlyUnimplementedMemberIsInaccessible()
+        => TestExactActionSetOfferedAsync(
             """
             abstract class Base
             {
@@ -248,12 +229,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 }
             }
             """, [AnalyzersResources.Implement_abstract_class]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task FieldOfMoreSpecificTypeIsSuggested()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FieldOfMoreSpecificTypeIsSuggested()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -289,12 +268,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
             {
             }
             """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task FieldOfConstrainedGenericTypeIsSuggested()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FieldOfConstrainedGenericTypeIsSuggested()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -322,12 +299,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 }
             }
             """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task DistinguishableOptionsAreShownForExplicitPropertyWithSameName()
-    {
-        await TestExactActionSetOfferedAsync(
+    public Task DistinguishableOptionsAreShownForExplicitPropertyWithSameName()
+        => TestExactActionSetOfferedAsync(
             """
             abstract class Base
             {
@@ -351,12 +326,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 string.Format(AnalyzersResources.Implement_through_0, "Inner"),
                 string.Format(AnalyzersResources.Implement_through_0, "IInterface.Inner"),
             ]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task NotOfferedForDynamicFields()
-    {
-        await TestExactActionSetOfferedAsync(
+    public Task NotOfferedForDynamicFields()
+        => TestExactActionSetOfferedAsync(
             """
             abstract class Base
             {
@@ -368,12 +341,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 dynamic inner;
             }
             """, [AnalyzersResources.Implement_abstract_class]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task OfferedForStaticFields()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OfferedForStaticFields()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -401,12 +372,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 }
             }
             """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task PropertyIsDelegated()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task PropertyIsDelegated()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -431,12 +400,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 public override int Property { get => inner.Property; set => inner.Property = value; }
             }
             """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task PropertyIsDelegated_AllOptionsOff()
-    {
-        await TestAllOptionsOffAsync(
+    public Task PropertyIsDelegated_AllOptionsOff()
+        => TestAllOptionsOffAsync(
             """
             abstract class Base
             {
@@ -472,12 +439,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task PropertyWithSingleAccessorIsDelegated()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task PropertyWithSingleAccessorIsDelegated()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -506,12 +471,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 public override int SetOnly { set => inner.SetOnly = value; }
             }
             """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task PropertyWithSingleAccessorIsDelegated_AllOptionsOff()
-    {
-        await TestAllOptionsOffAsync(
+    public Task PropertyWithSingleAccessorIsDelegated_AllOptionsOff()
+        => TestAllOptionsOffAsync(
             """
             abstract class Base
             {
@@ -552,12 +515,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task EventIsDelegated()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task EventIsDelegated()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -597,12 +558,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 }
             }
             """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task OnlyOverridableMethodsAreOverridden()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OnlyOverridableMethodsAreOverridden()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -634,12 +593,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 }
             }
             """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task ProtectedMethodsCannotBeDelegatedThroughBaseType()
-    {
-        await TestExactActionSetOfferedAsync(
+    public Task ProtectedMethodsCannotBeDelegatedThroughBaseType()
+        => TestExactActionSetOfferedAsync(
             """
             abstract class Base
             {
@@ -651,12 +608,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 Base inner;
             }
             """, [AnalyzersResources.Implement_abstract_class]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task ProtectedMethodsCanBeDelegatedThroughSameType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ProtectedMethodsCanBeDelegatedThroughSameType()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -684,12 +639,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 }
             }
             """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task ProtectedInternalMethodsAreOverridden()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ProtectedInternalMethodsAreOverridden()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -717,12 +670,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 }
             }
             """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task InternalMethodsAreOverridden()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task InternalMethodsAreOverridden()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -750,12 +701,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 }
             }
             """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task PrivateProtectedMethodsCannotBeDelegatedThroughBaseType()
-    {
-        await TestExactActionSetOfferedAsync(
+    public Task PrivateProtectedMethodsCannotBeDelegatedThroughBaseType()
+        => TestExactActionSetOfferedAsync(
             """
             abstract class Base
             {
@@ -767,12 +716,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 Base inner;
             }
             """, [AnalyzersResources.Implement_abstract_class]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task PrivateProtectedMethodsCanBeDelegatedThroughSameType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task PrivateProtectedMethodsCanBeDelegatedThroughSameType()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -800,12 +747,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 }
             }
             """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-    public async Task AccessorsWithDifferingVisibilityAreGeneratedCorrectly()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task AccessorsWithDifferingVisibilityAreGeneratedCorrectly()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -833,12 +778,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 public override int InternalSet { get => inner.InternalSet; internal set => inner.InternalSet = value; }
             }
             """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
-    }
 
     [Fact]
-    public async Task TestCrossProjectWithInaccessibleMemberInCase()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCrossProjectWithInaccessibleMemberInCase()
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -888,12 +831,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 </Project>
             </Workspace>
             """, index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
-    public async Task TestImplementThroughPrimaryConstructorParam1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestImplementThroughPrimaryConstructorParam1()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -918,13 +859,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 }
             }
             """, index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
-    public async Task TestImplementThroughPrimaryConstructorParam2()
-    {
-        // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
-        await TestExactActionSetOfferedAsync(
+    public Task TestImplementThroughPrimaryConstructorParam2()
+        => TestExactActionSetOfferedAsync(
             """
             abstract class Base
             {
@@ -936,13 +874,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 private Base _base = base1;
             }
             """, [AnalyzersResources.Implement_abstract_class, string.Format(AnalyzersResources.Implement_through_0, "_base")]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
-    public async Task TestImplementThroughPrimaryConstructorParam2_B()
-    {
-        // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
-        await TestExactActionSetOfferedAsync(
+    public Task TestImplementThroughPrimaryConstructorParam2_B()
+        => TestExactActionSetOfferedAsync(
             """
             abstract class Base
             {
@@ -954,13 +889,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 private Base _base = (base1);
             }
             """, [AnalyzersResources.Implement_abstract_class, string.Format(AnalyzersResources.Implement_through_0, "_base")]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
-    public async Task TestImplementThroughPrimaryConstructorParam3()
-    {
-        // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
-        await TestExactActionSetOfferedAsync(
+    public Task TestImplementThroughPrimaryConstructorParam3()
+        => TestExactActionSetOfferedAsync(
             """
             abstract class Base
             {
@@ -972,13 +904,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 private Base B { get; } = base1;
             }
             """, [AnalyzersResources.Implement_abstract_class, string.Format(AnalyzersResources.Implement_through_0, "B")]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
-    public async Task TestImplementThroughPrimaryConstructorParam3_B()
-    {
-        // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
-        await TestExactActionSetOfferedAsync(
+    public Task TestImplementThroughPrimaryConstructorParam3_B()
+        => TestExactActionSetOfferedAsync(
             """
             abstract class Base
             {
@@ -990,12 +919,10 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 private Base B { get; } = (base1);
             }
             """, [AnalyzersResources.Implement_abstract_class, string.Format(AnalyzersResources.Implement_through_0, "B")]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
-    public async Task TestImplementThroughPrimaryConstructorParam4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestImplementThroughPrimaryConstructorParam4()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -1023,5 +950,4 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 }
             }
             """, index: 1);
-    }
 }

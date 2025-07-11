@@ -7,7 +7,6 @@
 using System;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 

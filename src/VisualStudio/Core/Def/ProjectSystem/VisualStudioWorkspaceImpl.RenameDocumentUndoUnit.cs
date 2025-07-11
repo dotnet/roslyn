@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 internal partial class VisualStudioWorkspaceImpl
 {
-    private class RenameDocumentUndoUnit : IOleUndoUnit
+    private sealed class RenameDocumentUndoUnit : IOleUndoUnit
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly string _fromName;

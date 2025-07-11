@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -83,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.Class:
                 case DeclarationKind.Record:
                 case DeclarationKind.RecordStruct:
+                case DeclarationKind.Extension:
                     break;
                 default:
                     Debug.Assert(false, "bad declaration kind");
@@ -162,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
+                    case SyntaxKind.ExtensionBlockDeclaration:
                         tpl = ((TypeDeclarationSyntax)typeDecl).TypeParameterList;
                         break;
 
@@ -471,6 +474,7 @@ next:;
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.ExtensionBlockDeclaration:
                     var typeDeclaration = (TypeDeclarationSyntax)node;
                     typeParameterList = typeDeclaration.TypeParameterList;
                     return typeDeclaration.ConstraintClauses;
@@ -1409,6 +1413,11 @@ next:;
         {
             get
             {
+                if (this.IsExtension)
+                {
+                    return true;
+                }
+
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSpecialNameAttribute;
             }
@@ -1812,6 +1821,16 @@ next:;
             }
         }
 
+        public override string MetadataName
+        {
+            get
+            {
+                return IsExtension
+                    ? MetadataHelpers.ComposeAritySuffixedMetadataName(this.ExtensionName, Arity, associatedFileIdentifier: null)
+                    : base.MetadataName;
+            }
+        }
+
         protected override void AfterMembersCompletedChecks(BindingDiagnosticBag diagnostics)
         {
             base.AfterMembersCompletedChecks(diagnostics);
@@ -1963,6 +1982,16 @@ next:;
                     diagnostics.Add(ErrorCode.ERR_EmbeddedAttributeMustFollowPattern, GetFirstLocation());
                 }
 
+            }
+
+            if (IsExtension && ContainingType?.IsExtension != true)
+            {
+                // If the containing type is an extension, we'll have already reported an error
+                if (ContainingType is null || !ContainingType.IsStatic || ContainingType.Arity != 0 || ContainingType.ContainingType is not null)
+                {
+                    var syntax = (ExtensionBlockDeclarationSyntax)this.GetNonNullSyntaxNode();
+                    diagnostics.Add(ErrorCode.ERR_BadExtensionContainingType, syntax.Keyword);
+                }
             }
         }
     }

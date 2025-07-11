@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.AddMissingImports)]
-public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCodeActionTest
+public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCodeActionTest
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
         => new CSharpAddMissingImportsRefactoringProvider();
@@ -43,7 +44,8 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
     }
 
     private Task TestInRegularAndScriptAsync(
-        string initialMarkup, string expectedMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
         bool placeSystemNamespaceFirst, bool separateImportDirectiveGroups)
     {
         var options =
@@ -56,9 +58,8 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
     }
 
     [WpfFact]
-    public async Task AddMissingImports_AddImport_PasteContainsSingleMissingImport()
-    {
-        var code = """
+    public Task AddMissingImports_AddImport_PasteContainsSingleMissingImport()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 public [|D|] Foo { get; }
@@ -68,9 +69,7 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
             {
                 public class D { }
             }
-            """;
-
-        var expected = """
+            """, """
             using A;
 
             class C
@@ -82,15 +81,11 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
             {
                 public class D { }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
-    }
+            """);
 
     [WpfFact]
-    public async Task AddMissingImports_AddImportsBelowSystem_PlaceSystemFirstPasteContainsMultipleMissingImports()
-    {
-        var code = """
+    public Task AddMissingImports_AddImportsBelowSystem_PlaceSystemFirstPasteContainsMultipleMissingImports()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class C
@@ -108,9 +103,7 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
             {
                 public class E { }
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
             using A;
             using B;
@@ -130,15 +123,11 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
             {
                 public class E { }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
-    }
+            """, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
 
     [WpfFact]
-    public async Task AddMissingImports_AddImportsAboveSystem_DoNotPlaceSystemFirstPasteContainsMultipleMissingImports()
-    {
-        var code = """
+    public Task AddMissingImports_AddImportsAboveSystem_DoNotPlaceSystemFirstPasteContainsMultipleMissingImports()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class C
@@ -156,9 +145,7 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
             {
                 public class E { }
             }
-            """;
-
-        var expected = """
+            """, """
             using A;
             using B;
             using System;
@@ -178,15 +165,11 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
             {
                 public class E { }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
-    }
+            """, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/pull/42221")]
-    public async Task AddMissingImports_AddImportsUngrouped_SeparateImportGroupsPasteContainsMultipleMissingImports()
-    {
-        var code = """
+    public Task AddMissingImports_AddImportsUngrouped_SeparateImportGroupsPasteContainsMultipleMissingImports()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class C
@@ -204,10 +187,9 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
             {
                 public class E { }
             }
-            """;
-
-        var expected = """
+            """, """
             using A;
+
             using B;
 
             using System;
@@ -227,15 +209,11 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
             {
                 public class E { }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: true);
-    }
+            """, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: true);
 
     [WpfFact]
-    public async Task AddMissingImports_PartialFix_PasteContainsFixableAndAmbiguousMissingImports()
-    {
-        var code = """
+    public Task AddMissingImports_PartialFix_PasteContainsFixableAndAmbiguousMissingImports()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 [|public D Foo { get; }
@@ -252,9 +230,7 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
                 public class D { }
                 public class E { }
             }
-            """;
-
-        var expected = """
+            """, """
             using B;
 
             class C
@@ -273,15 +249,11 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
                 public class D { }
                 public class E { }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
-    }
+            """);
 
     [WpfFact]
-    public async Task AddMissingImports_NoAction_NoPastedSpan()
-    {
-        var code = """
+    public Task AddMissingImports_NoAction_NoPastedSpan()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 public D[||] Foo { get; }
@@ -291,15 +263,11 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
             {
                 public class D { }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(code);
-    }
+            """);
 
     [WpfFact]
-    public async Task AddMissingImports_NoAction_PasteIsNotMissingImports()
-    {
-        var code = """
+    public Task AddMissingImports_NoAction_PasteIsNotMissingImports()
+        => TestMissingInRegularAndScriptAsync("""
             class [|C|]
             {
                 public D Foo { get; }
@@ -309,15 +277,11 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
             {
                 public class D { }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(code);
-    }
+            """);
 
     [WpfFact]
-    public async Task AddMissingImports_NoAction_PasteContainsAmibiguousMissingImport()
-    {
-        var code = """
+    public Task AddMissingImports_NoAction_PasteContainsAmibiguousMissingImport()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 public [|D|] Foo { get; }
@@ -332,15 +296,11 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
             {
                 public class D { }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(code);
-    }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31768")]
-    public async Task AddMissingImports_AddMultipleImports_NoPreviousImports()
-    {
-        var code = """
+    public Task AddMissingImports_AddMultipleImports_NoPreviousImports()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 [|public D Foo { get; }
@@ -356,9 +316,7 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
             {
                 public class E { }
             }
-            """;
-
-        var expected = """
+            """, """
             using A;
             using B;
 
@@ -377,8 +335,22 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
             {
                 public class E { }
             }
-            """;
+            """, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
 
-        await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
-    }
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/51844")]
+    public Task TestOrdering1()
+        => TestInRegularAndScriptAsync("""
+            class C
+            {
+                [|List<Type> list;|]
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<Type> list;
+            }
+            """, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: true);
 }

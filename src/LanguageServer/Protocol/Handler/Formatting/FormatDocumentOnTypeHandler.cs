@@ -12,67 +12,96 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
+
+[ExportCSharpVisualBasicStatelessLspService(typeof(FormatDocumentOnTypeHandler)), Shared]
+[Method(Methods.TextDocumentOnTypeFormattingName)]
+internal sealed class FormatDocumentOnTypeHandler : ILspServiceDocumentRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>
 {
-    [ExportCSharpVisualBasicStatelessLspService(typeof(FormatDocumentOnTypeHandler)), Shared]
-    [Method(Methods.TextDocumentOnTypeFormattingName)]
-    internal sealed class FormatDocumentOnTypeHandler : ILspServiceDocumentRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>
+    private readonly IGlobalOptionService _globalOptions;
+
+    public bool MutatesSolutionState => false;
+    public bool RequiresLSPSolution => true;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FormatDocumentOnTypeHandler(IGlobalOptionService globalOptions)
     {
-        private readonly IGlobalOptionService _globalOptions;
+        _globalOptions = globalOptions;
+    }
 
-        public bool MutatesSolutionState => false;
-        public bool RequiresLSPSolution => true;
+    public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request) => request.TextDocument;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormatDocumentOnTypeHandler(IGlobalOptionService globalOptions)
+    public async Task<TextEdit[]?> HandleRequestAsync(
+        DocumentOnTypeFormattingParams request,
+        RequestContext context,
+        CancellationToken cancellationToken)
+    {
+        var document = context.Document;
+        if (document is null)
+            return null;
+
+        if (string.IsNullOrEmpty(request.Character))
         {
-            _globalOptions = globalOptions;
+            return [];
         }
 
-        public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request) => request.TextDocument;
+        var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-        public async Task<TextEdit[]?> HandleRequestAsync(
-            DocumentOnTypeFormattingParams request,
-            RequestContext context,
-            CancellationToken cancellationToken)
+        var formattingService = document.Project.Services.GetRequiredService<ISyntaxFormattingService>();
+        var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
+        if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, request.Character[0], position, cancellationToken))
         {
-            var document = context.Document;
-            if (document is null)
-                return null;
-
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-
-            if (string.IsNullOrEmpty(request.Character) || SyntaxFacts.IsNewLine(request.Character[0]))
-            {
-                return [];
-            }
-
-            var formattingService = document.Project.Services.GetRequiredService<ISyntaxFormattingService>();
-            var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-
-            if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, request.Character[0], position, cancellationToken))
-            {
-                return [];
-            }
-
-            // We should use the options passed in by LSP instead of the document's options.
-            var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, cancellationToken).ConfigureAwait(false);
-            var indentationOptions = new IndentationOptions(formattingOptions)
-            {
-                AutoFormattingOptions = _globalOptions.GetAutoFormattingOptions(document.Project.Language)
-            };
-
-            var textChanges = formattingService.GetFormattingChangesOnTypedCharacter(documentSyntax, position, indentationOptions, cancellationToken);
-            if (textChanges.IsEmpty)
-            {
-                return [];
-            }
-
-            return [.. textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, documentSyntax.Text))];
+            return [];
         }
+
+        // We should use the options passed in by LSP instead of the document's options.
+        var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, cancellationToken).ConfigureAwait(false);
+        var indentationOptions = new IndentationOptions(formattingOptions)
+        {
+            AutoFormattingOptions = _globalOptions.GetAutoFormattingOptions(document.Project.Language)
+        };
+
+        var textChanges = formattingService.GetFormattingChangesOnTypedCharacter(documentSyntax, position, indentationOptions, cancellationToken);
+        if (textChanges.IsEmpty)
+        {
+            return [];
+        }
+
+        if (SyntaxFacts.IsNewLine(request.Character[0]))
+        {
+            // When formatting after a newline is pressed, the cursor line will be all whitespace
+            // and we do not want to remove the indentation from it.
+            //
+            // Take the following example of pressing enter after an opening brace.
+            //
+            // ```
+            //    public void M() {||}
+            // ```
+            //
+            // The editor moves the cursor to the next line and uses it's languageconfig to add
+            // the appropriate level of indentation.
+            //
+            // ```
+            //     public void M() {
+            //         ||
+            //     }
+            // ```
+            //
+            // At this point `formatOnType` is called. The formatting service will generate two
+            // text changes. The first moves the opening brace to a new line with proper
+            // indentation. The second removes the whitespace from the cursor line and rewrites
+            // the indentation prior to the closing brace.
+            // 
+            // Letting the second change go through would be a bad experience for the user as they
+            // will now be responsible for adding back the proper indentation.
+
+            textChanges = textChanges.WhereAsArray(static (change, position) => !change.Span.Contains(position), position);
+        }
+
+        return [.. textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, documentSyntax.Text))];
     }
 }

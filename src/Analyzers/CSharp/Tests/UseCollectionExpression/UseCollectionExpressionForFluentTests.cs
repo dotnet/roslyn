@@ -17,12 +17,11 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionExpressionForFluentCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionExpression)]
-public class UseCollectionExpressionForFluentTests
+public sealed class UseCollectionExpressionForFluentTests
 {
     [Fact]
-    public async Task TestNotInCSharp11()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInCSharp11()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -39,12 +38,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInCSharp12_Net70()
-    {
-        await new VerifyCS.Test
+    public Task TestInCSharp12_Net70()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -73,12 +70,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInCSharp12_Net80()
-    {
-        await new VerifyCS.Test
+    public Task TestInCSharp12_Net80()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -107,12 +102,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCast()
-    {
-        await new VerifyCS.Test
+    public Task TestCast()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -141,12 +134,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestIdentifierCast()
-    {
-        await new VerifyCS.Test
+    public Task TestIdentifierCast()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -164,12 +155,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestOnlyOnOutermost()
-    {
-        await new VerifyCS.Test
+    public Task TestOnlyOnOutermost()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -198,12 +187,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExplicitArrayCreation()
-    {
-        await new VerifyCS.Test
+    public Task TestExplicitArrayCreation()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -232,12 +219,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExplicitArrayCreation_NoInitializer()
-    {
-        await new VerifyCS.Test
+    public Task TestExplicitArrayCreation_NoInitializer()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -254,12 +239,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestArrayEmpty()
-    {
-        await new VerifyCS.Test
+    public Task TestArrayEmpty()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -290,12 +273,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImmutableArrayEmpty()
-    {
-        await new VerifyCS.Test
+    public Task TestImmutableArrayEmpty()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -326,12 +307,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImmutableArrayEmptyAndAdd()
-    {
-        await new VerifyCS.Test
+    public Task TestImmutableArrayEmptyAndAdd()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -362,12 +341,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImmutableArrayEmptyAndAddRange1()
-    {
-        await new VerifyCS.Test
+    public Task TestImmutableArrayEmptyAndAddRange1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -398,12 +375,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImmutableArrayEmptyAndAddRange2()
-    {
-        await new VerifyCS.Test
+    public Task TestImmutableArrayEmptyAndAddRange2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -434,12 +409,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImmutableArrayEmptyAndAddRange3()
-    {
-        await new VerifyCS.Test
+    public Task TestImmutableArrayEmptyAndAddRange3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -470,12 +443,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImmutableArrayCreate()
-    {
-        await new VerifyCS.Test
+    public Task TestImmutableArrayCreate()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -506,12 +477,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImmutableArrayCreateAndAdd()
-    {
-        await new VerifyCS.Test
+    public Task TestImmutableArrayCreateAndAdd()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -542,12 +511,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImmutableArrayCreateAndAddRange1()
-    {
-        await new VerifyCS.Test
+    public Task TestImmutableArrayCreateAndAddRange1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -578,12 +545,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImmutableArrayCreateAndAddRange2()
-    {
-        await new VerifyCS.Test
+    public Task TestImmutableArrayCreateAndAddRange2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -614,12 +579,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImmutableArrayCreateAndAddRange3()
-    {
-        await new VerifyCS.Test
+    public Task TestImmutableArrayCreateAndAddRange3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -650,12 +613,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImmutableArrayCreateAndAddRange4()
-    {
-        await new VerifyCS.Test
+    public Task TestImmutableArrayCreateAndAddRange4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -686,12 +647,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOnNonListEmpty()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnNonListEmpty()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -709,12 +668,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOnNonListCreate()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnNonListCreate()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -732,12 +689,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOnNonListEmptyAndAdd()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnNonListEmptyAndAdd()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -755,12 +710,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInitializerMultiLine1()
-    {
-        await new VerifyCS.Test
+    public Task TestInitializerMultiLine1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -795,12 +748,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConcat1()
-    {
-        await new VerifyCS.Test
+    public Task TestConcat1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -831,12 +782,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotEndingWithConcat()
-    {
-        await new VerifyCS.Test
+    public Task TestNotEndingWithConcat()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -854,7 +803,6 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestSingleValueConcat()
@@ -901,9 +849,8 @@ public class UseCollectionExpressionForFluentTests
     }
 
     [Fact]
-    public async Task TestAppend1()
-    {
-        await new VerifyCS.Test
+    public Task TestAppend1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -934,12 +881,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotEndingWithAppend()
-    {
-        await new VerifyCS.Test
+    public Task TestNotEndingWithAppend()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -957,12 +902,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestObjectCreation1()
-    {
-        await new VerifyCS.Test
+    public Task TestObjectCreation1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -993,12 +936,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestObjectCreation2()
-    {
-        await new VerifyCS.Test
+    public Task TestObjectCreation2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1029,12 +970,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestObjectCreation3()
-    {
-        await new VerifyCS.Test
+    public Task TestObjectCreation3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1071,12 +1010,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestObjectCreation3_B()
-    {
-        await new VerifyCS.Test
+    public Task TestObjectCreation3_B()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1118,12 +1055,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestObjectCreation4()
-    {
-        await new VerifyCS.Test
+    public Task TestObjectCreation4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1160,12 +1095,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestObjectCreation4_B()
-    {
-        await new VerifyCS.Test
+    public Task TestObjectCreation4_B()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1207,12 +1140,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithObjectCreationWithArg()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithObjectCreationWithArg()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1233,12 +1164,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithNonListLikeObjectCreation()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithNonListLikeObjectCreation()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1259,12 +1188,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithInnerCollectionInitializer()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithInnerCollectionInitializer()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1285,12 +1212,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOnEmptyDictionary()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnEmptyDictionary()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1310,12 +1235,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOnBuilder()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnBuilder()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1335,12 +1258,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEndsWithAdd1()
-    {
-        await new VerifyCS.Test
+    public Task TestEndsWithAdd1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1371,12 +1292,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEndsWithAddRange1()
-    {
-        await new VerifyCS.Test
+    public Task TestEndsWithAddRange1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1407,12 +1326,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEndsWithAddRange2()
-    {
-        await new VerifyCS.Test
+    public Task TestEndsWithAddRange2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1443,12 +1360,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestAsSpan1()
-    {
-        await new VerifyCS.Test
+    public Task TestAsSpan1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1481,12 +1396,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestAsSpan2()
-    {
-        await new VerifyCS.Test
+    public Task TestAsSpan2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1519,12 +1432,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70101")]
-    public async Task TestAsSpan3()
-    {
-        await new VerifyCS.Test
+    public Task TestAsSpan3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1543,12 +1454,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70101")]
-    public async Task TestAsSpan4()
-    {
-        await new VerifyCS.Test
+    public Task TestAsSpan4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1570,12 +1479,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70101")]
-    public async Task TestAsSpan5()
-    {
-        await new VerifyCS.Test
+    public Task TestAsSpan5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1608,12 +1515,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestStringToArray()
-    {
-        await new VerifyCS.Test
+    public Task TestStringToArray()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1646,12 +1551,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultiLine1()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiLine1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1684,12 +1587,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultiLine2()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiLine2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1728,12 +1629,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultiLine3()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiLine3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1772,12 +1671,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultiLine4()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiLine4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1810,12 +1707,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultiLine5()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiLine5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1848,12 +1743,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultiLine6()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiLine6()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1894,12 +1787,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultiLine7()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiLine7()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1939,12 +1830,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTrivia1()
-    {
-        await new VerifyCS.Test
+    public Task TestTrivia1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1973,12 +1862,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGlobalStatement1()
-    {
-        await new VerifyCS.Test
+    public Task TestGlobalStatement1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -1999,12 +1886,10 @@ public class UseCollectionExpressionForFluentTests
                 OutputKind = OutputKind.ConsoleApplication,
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGlobalStatement2()
-    {
-        await new VerifyCS.Test
+    public Task TestGlobalStatement2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2035,12 +1920,10 @@ public class UseCollectionExpressionForFluentTests
                 OutputKind = OutputKind.ConsoleApplication,
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNested1()
-    {
-        await new VerifyCS.Test
+    public Task TestNested1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2080,12 +1963,10 @@ public class UseCollectionExpressionForFluentTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNested2()
-    {
-        await new VerifyCS.Test
+    public Task TestNested2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2115,12 +1996,10 @@ public class UseCollectionExpressionForFluentTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReifyExistingCollection1()
-    {
-        await new VerifyCS.Test
+    public Task TestReifyExistingCollection1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2149,12 +2028,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReifyExistingCollection2()
-    {
-        await new VerifyCS.Test
+    public Task TestReifyExistingCollection2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2183,12 +2060,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReifyExistingCollection3()
-    {
-        await new VerifyCS.Test
+    public Task TestReifyExistingCollection3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2206,12 +2081,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReifyExistingCollection3_B()
-    {
-        await new VerifyCS.Test
+    public Task TestReifyExistingCollection3_B()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2242,12 +2115,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReifyExistingCollection4()
-    {
-        await new VerifyCS.Test
+    public Task TestReifyExistingCollection4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2265,12 +2136,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReifyExistingCollection4_B()
-    {
-        await new VerifyCS.Test
+    public Task TestReifyExistingCollection4_B()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2301,12 +2170,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReifyExistingCollection5()
-    {
-        await new VerifyCS.Test
+    public Task TestReifyExistingCollection5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2324,12 +2191,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReifyExistingCollection5_B()
-    {
-        await new VerifyCS.Test
+    public Task TestReifyExistingCollection5_B()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2360,14 +2225,12 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("\n")]
     [InlineData("\r\n")]
-    public async Task TestWithDifferentNewLines(string endOfLine)
-    {
-        await new VerifyCS.Test
+    public Task TestWithDifferentNewLines(string endOfLine)
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2398,12 +2261,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
-    public async Task SpreadFormatting1()
-    {
-        await new VerifyCS.Test
+    public Task SpreadFormatting1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2432,12 +2293,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
-    public async Task SpreadFormatting2()
-    {
-        await new VerifyCS.Test
+    public Task SpreadFormatting2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2466,12 +2325,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
-    public async Task SpreadFormatting3()
-    {
-        await new VerifyCS.Test
+    public Task SpreadFormatting3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2501,12 +2358,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
-    public async Task SpreadFormatting4()
-    {
-        await new VerifyCS.Test
+    public Task SpreadFormatting4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2536,12 +2391,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
-    public async Task SpreadFormatting5()
-    {
-        await new VerifyCS.Test
+    public Task SpreadFormatting5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2573,12 +2426,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
-    public async Task SpreadFormatting6()
-    {
-        await new VerifyCS.Test
+    public Task SpreadFormatting6()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2610,12 +2461,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
-    public async Task TestInLambda()
-    {
-        await new VerifyCS.Test
+    public Task TestInLambda()
+        => new VerifyCS.Test
         {
             TestCode =
                 """
@@ -2649,12 +2498,10 @@ public class UseCollectionExpressionForFluentTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
-    public async Task TestNotInLambda1()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInLambda1()
+        => new VerifyCS.Test
         {
             TestCode =
                 """
@@ -2673,12 +2520,10 @@ public class UseCollectionExpressionForFluentTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
-    public async Task TestNotInExpressionTree()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInExpressionTree()
+        => new VerifyCS.Test
         {
             TestCode =
                 """
@@ -2697,12 +2542,10 @@ public class UseCollectionExpressionForFluentTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71145")]
-    public async Task TestNotInParallelEnumerable1()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInParallelEnumerable1()
+        => new VerifyCS.Test
         {
             TestCode =
                 """
@@ -2725,12 +2568,10 @@ public class UseCollectionExpressionForFluentTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71145")]
-    public async Task TestNotInParallelEnumerable2()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInParallelEnumerable2()
+        => new VerifyCS.Test
         {
             TestCode =
                 """
@@ -2776,12 +2617,10 @@ public class UseCollectionExpressionForFluentTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
-    public async Task TestInterfaceOn()
-    {
-        await new VerifyCS.Test
+    public Task TestInterfaceOn()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2810,12 +2649,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
-    public async Task TestInterfaceOff()
-    {
-        await new VerifyCS.Test
+    public Task TestInterfaceOff()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2836,12 +2673,10 @@ public class UseCollectionExpressionForFluentTests
                 dotnet_style_prefer_collection_expression=when_types_exactly_match
                 """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71607")]
-    public async Task TestAddRangeOfCollectionExpression1()
-    {
-        await new VerifyCS.Test
+    public Task TestAddRangeOfCollectionExpression1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2872,12 +2707,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71607")]
-    public async Task TestAddRangeOfCollectionExpression2()
-    {
-        await new VerifyCS.Test
+    public Task TestAddRangeOfCollectionExpression2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2908,12 +2741,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71788")]
-    public async Task NotOnBannedType()
-    {
-        await new VerifyCS.Test
+    public Task NotOnBannedType()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -2935,12 +2766,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestObjectCreation_PreservesTrivia()
-    {
-        await new VerifyCS.Test
+    public Task TestObjectCreation_PreservesTrivia()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -2978,12 +2807,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public async Task TestObjectCreationArgument1()
-    {
-        await new VerifyCS.Test
+    public Task TestObjectCreationArgument1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -3012,12 +2839,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public async Task TestObjectCreationArgument2()
-    {
-        await new VerifyCS.Test
+    public Task TestObjectCreationArgument2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -3046,12 +2871,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public async Task TestObjectCreationArgument3()
-    {
-        await new VerifyCS.Test
+    public Task TestObjectCreationArgument3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -3080,12 +2903,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public async Task TestObjectCreationArgument4()
-    {
-        await new VerifyCS.Test
+    public Task TestObjectCreationArgument4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -3114,12 +2935,10 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75870")]
-    public async Task TestSelectToImmutableArray()
-    {
-        await new VerifyCS.Test
+    public Task TestSelectToImmutableArray()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -3150,5 +2969,4 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 }

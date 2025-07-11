@@ -3,8 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
@@ -645,7 +645,7 @@ End Class</a>
         Return MyBase.GetHashCode()$$
     End Function
 
-    Sub bar()
+        Sub bar()
     End Sub
 End Class</a>
 
@@ -1246,7 +1246,7 @@ Public Class Class2
     Public Overrides Sub M(<MyPublic> i As Integer)
         MyBase.M(i)$$
     End Sub
-    ' Comment on body
+        ' Comment on body
 End Class]]></a>
 
             Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "M(i As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))

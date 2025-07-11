@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Func<DriverStateTable.Builder, ImmutableArray<T>> _getInput;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
         private readonly IEqualityComparer<T> _inputComparer;
-        private readonly IEqualityComparer<T> _comparer;
+        private readonly IEqualityComparer<T>? _comparer;
         private readonly string? _name;
 
         public InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput, IEqualityComparer<T>? inputComparer = null)
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         private InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput, Action<IIncrementalGeneratorOutputNode>? registerOutput, IEqualityComparer<T>? inputComparer = null, IEqualityComparer<T>? comparer = null, string? name = null)
         {
             _getInput = getInput;
-            _comparer = comparer ?? EqualityComparer<T>.Default;
+            _comparer = comparer;
             _inputComparer = inputComparer ?? EqualityComparer<T>.Default;
             _registerOutput = registerOutput ?? (o => throw ExceptionUtilities.Unreachable());
             _name = name;
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
                         // This allows us to correctly 'replace' items even when they aren't actually the same. In the case that the
                         // item really isn't modified, but a new item, we still function correctly as we mostly treat them the same,
                         // but will perform an extra comparison that is omitted in the pure 'added' case.
-                        var modified = tableBuilder.TryModifyEntry(inputItems[itemIndex], _comparer, elapsedTime, noInputStepsStepInfo, EntryState.Modified);
+                        var modified = tableBuilder.TryModifyEntry(inputItems[itemIndex], elapsedTime, noInputStepsStepInfo, EntryState.Modified);
                         Debug.Assert(modified);
                         itemsSet.Remove(inputItems[itemIndex]);
                     }

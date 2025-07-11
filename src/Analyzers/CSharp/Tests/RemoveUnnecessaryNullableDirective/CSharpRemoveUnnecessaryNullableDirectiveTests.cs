@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNullableDirective;
@@ -18,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryNullableDirective)]
-public class CSharpRemoveUnnecessaryNullableDirectiveTests
+public sealed class CSharpRemoveUnnecessaryNullableDirectiveTests
 {
     [Theory]
     [InlineData(NullableContextOptions.Annotations, NullableContextOptions.Annotations)]
@@ -28,9 +27,8 @@ public class CSharpRemoveUnnecessaryNullableDirectiveTests
     [InlineData(NullableContextOptions.Enable, NullableContextOptions.Annotations)]
     [InlineData(NullableContextOptions.Enable, NullableContextOptions.Warnings)]
     [InlineData(NullableContextOptions.Enable, NullableContextOptions.Enable)]
-    public async Task TestUnnecessaryDisableDiffersFromCompilation(NullableContextOptions compilationContext, NullableContextOptions codeContext)
-    {
-        await VerifyCodeFixAsync(
+    public Task TestUnnecessaryDisableDiffersFromCompilation(NullableContextOptions compilationContext, NullableContextOptions codeContext)
+        => VerifyCodeFixAsync(
             compilationContext,
             $$"""
             [|#nullable {{GetDisableDirectiveContext(codeContext)}}|]
@@ -43,12 +41,10 @@ public class CSharpRemoveUnnecessaryNullableDirectiveTests
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUnnecessaryDisableEnumDeclaration()
-    {
-        await VerifyCodeFixAsync(
+    public Task TestUnnecessaryDisableEnumDeclaration()
+        => VerifyCodeFixAsync(
             NullableContextOptions.Enable,
             """
             [|#nullable disable|]
@@ -65,12 +61,10 @@ public class CSharpRemoveUnnecessaryNullableDirectiveTests
                 Second,
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUnnecessaryDisableEnumDeclarationWithFileHeader()
-    {
-        await VerifyCodeFixAsync(
+    public Task TestUnnecessaryDisableEnumDeclarationWithFileHeader()
+        => VerifyCodeFixAsync(
             NullableContextOptions.Enable,
             """
             // File Header
@@ -92,12 +86,10 @@ public class CSharpRemoveUnnecessaryNullableDirectiveTests
                 Second,
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUnnecessaryDirectiveWithNamespaceAndDerivedType()
-    {
-        await VerifyCodeFixAsync(
+    public Task TestUnnecessaryDirectiveWithNamespaceAndDerivedType()
+        => VerifyCodeFixAsync(
             NullableContextOptions.Enable,
             """
             [|#nullable disable|]
@@ -122,12 +114,10 @@ public class CSharpRemoveUnnecessaryNullableDirectiveTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUnnecessaryDirectiveWithNamespaceAndDerivedFromQualifiedBaseType()
-    {
-        await VerifyCodeFixAsync(
+    public Task TestUnnecessaryDirectiveWithNamespaceAndDerivedFromQualifiedBaseType()
+        => VerifyCodeFixAsync(
             NullableContextOptions.Enable,
             """
             [|#nullable disable|]
@@ -148,12 +138,10 @@ public class CSharpRemoveUnnecessaryNullableDirectiveTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUnnecessaryDirectiveWithQualifiedUsingDirectives()
-    {
-        await VerifyCodeFixAsync(
+    public Task TestUnnecessaryDirectiveWithQualifiedUsingDirectives()
+        => VerifyCodeFixAsync(
             NullableContextOptions.Enable,
             """
             [|#nullable disable|]
@@ -170,14 +158,12 @@ public class CSharpRemoveUnnecessaryNullableDirectiveTests
             using CustomException = System.Exception;
             using static System.String;
             """);
-    }
 
     [Theory]
     [InlineData("disable")]
     [InlineData("restore")]
-    public async Task TestUnnecessaryDisableAtEndOfFile(string keyword)
-    {
-        await VerifyCodeFixAsync(
+    public Task TestUnnecessaryDisableAtEndOfFile(string keyword)
+        => VerifyCodeFixAsync(
             NullableContextOptions.Disable,
             $$"""
             #nullable enable
@@ -196,7 +182,6 @@ public class CSharpRemoveUnnecessaryNullableDirectiveTests
             }
             
             """);
-    }
 
     [Fact]
     public async Task TestUnnecessaryDisableIgnoredWhenFollowedByConditionalDirective()
@@ -227,9 +212,8 @@ public class CSharpRemoveUnnecessaryNullableDirectiveTests
         };
     }
 
-    private static async Task VerifyCodeFixAsync(NullableContextOptions compilationNullableContextOptions, string source, string fixedSource)
-    {
-        await new VerifyCS.Test
+    private static Task VerifyCodeFixAsync(NullableContextOptions compilationNullableContextOptions, string source, string fixedSource)
+        => new VerifyCS.Test
         {
             TestCode = source,
             FixedCode = fixedSource,
@@ -244,5 +228,4 @@ public class CSharpRemoveUnnecessaryNullableDirectiveTests
                 },
             },
         }.RunAsync();
-    }
 }

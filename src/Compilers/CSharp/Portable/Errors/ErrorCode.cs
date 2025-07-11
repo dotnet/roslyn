@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_IdentityConversion = 555,
         ERR_ConversionNotInvolvingContainedType = 556,
         ERR_DuplicateConversionInClass = 557,
-        ERR_OperatorsMustBeStatic = 558,
+        ERR_OperatorsMustBeStaticAndPublic = 558,
         ERR_BadIncDecSignature = 559,
         ERR_BadUnaryOperatorSignature = 562,
         ERR_BadBinaryOperatorSignature = 563,
@@ -1544,7 +1544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OutAttrOnInParam = 8355,
         #endregion diagnostics introduced for `ref readonly`, `ref conditional` and `ref-like` features in C# 7.2
 
-        ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
+        ERR_PredefinedTypeAmbiguous = 8356,
         ERR_InvalidVersionFormatDeterministic = 8357,
         ERR_AttributeCtorInParameter = 8358,
 
@@ -2332,8 +2332,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialPropertyMissingAccessor = 9252,
         ERR_PartialPropertyUnexpectedAccessor = 9253,
         ERR_PartialPropertyInitMismatch = 9254,
-        ERR_PartialPropertyTypeDifference = 9255,
-        WRN_PartialPropertySignatureDifference = 9256,
+        ERR_PartialMemberTypeDifference = 9255,
+        WRN_PartialMemberSignatureDifference = 9256,
         ERR_PartialPropertyRequiredDifference = 9257,
 
         WRN_FieldIsAmbiguous = 9258,
@@ -2357,14 +2357,78 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_InterceptsLocationAttributeUnsupportedSignature = 9270,
 
         ERR_EmbeddedAttributeMustFollowPattern = 9271,
+        ERR_ImplicitlyTypedParamsParameter = 9272,
+        ERR_VariableDeclarationNamedField = 9273,
+
+        ERR_DataSectionStringLiteralHashCollision = 9274,
+
+        ERR_PartialMemberMissingImplementation = 9275,
+        ERR_PartialMemberMissingDefinition = 9276,
+        ERR_PartialMemberDuplicateDefinition = 9277,
+        ERR_PartialMemberDuplicateImplementation = 9278,
+        ERR_PartialEventInitializer = 9279,
+        ERR_PartialConstructorInitializer = 9280,
+
+        ERR_ExtensionDisallowsName = 9281,
+        ERR_ExtensionDisallowsMember = 9282,
+        ERR_BadExtensionContainingType = 9283,
+        ERR_ExtensionParameterDisallowsDefaultValue = 9284,
+        ERR_ReceiverParameterOnlyOne = 9285,
+        ERR_ExtensionResolutionFailed = 9286,
+        ERR_ReceiverParameterSameNameAsTypeParameter = 9287,
+        ERR_LocalSameNameAsExtensionTypeParameter = 9288,
+        ERR_TypeParameterSameNameAsExtensionTypeParameter = 9289,
+        ERR_LocalSameNameAsExtensionParameter = 9290,
+        ERR_ValueParameterSameNameAsExtensionParameter = 9291,
+        ERR_TypeParameterSameNameAsExtensionParameter = 9292,
+        ERR_InvalidExtensionParameterReference = 9293,
+        ERR_ValueParameterSameNameAsExtensionTypeParameter = 9294,
+        ERR_UnderspecifiedExtension = 9295,
+        ERR_ExpressionTreeContainsExtensionPropertyAccess = 9296,
+
+        ERR_PPIgnoredFollowsToken = 9297,
+        ERR_PPIgnoredNeedsFileBasedProgram = 9298,
+        ERR_PPIgnoredFollowsIf = 9299,
+
+        ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne = 9300,
+        ERR_InExtensionParameterMustBeValueType = 9301,
+        ERR_ProtectedInExtension = 9302,
+        ERR_InstanceMemberWithUnnamedExtensionsParameter = 9303,
+        ERR_InitInExtension = 9304,
+        ERR_ModifierOnUnnamedReceiverParameter = 9305,
+        ERR_ExtensionTypeNameDisallowed = 9306,
+        ERR_ExpressionTreeContainsNamedArgumentOutOfPosition = 9307,
+
+        ERR_OperatorsMustBePublic = 9308,
+        ERR_MisplacedExtension = 9309,
+        ERR_OperatorMustReturnVoid = 9310,
+        ERR_CloseUnimplementedInterfaceMemberOperatorMismatch = 9311,
+        ERR_OperatorMismatchOnOverride = 9312,
+        ERR_BadCompoundAssignmentOpArgs = 9313,
+
+        ERR_PPShebangInProjectBasedProgram = 9314,
+
+        ERR_TooManyUserStrings_RestartRequired = 9315,
+        ERR_NameofExtensionMember = 9316,
+
+        ERR_BadExtensionUnaryOperatorSignature = 9317,
+        ERR_BadExtensionIncDecSignature = 9318,
+        ERR_BadExtensionBinaryOperatorSignature = 9319,
+        ERR_BadExtensionShiftOperatorSignature = 9320,
+        ERR_OperatorInExtensionOfStaticClass = 9321,
+        ERR_InstanceOperatorStructExtensionWrongReceiverRefKind = 9322,
+        ERR_InstanceOperatorExtensionWrongReceiverType = 9323,
+        ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator = 9324,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
+        //  2) Add message to CSharpResources.resx
 
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
         //  2) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  3) Update ErrorFacts.GetWarningLevel (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  4) Update DiagnosticTest.WarningLevel_2 (src/Compilers/CSharp/Test/Syntax/Diagnostics/DiagnosticTest.cs)
+        //  5) Add message and '_Title' to CSharpResources.resx
     }
 }

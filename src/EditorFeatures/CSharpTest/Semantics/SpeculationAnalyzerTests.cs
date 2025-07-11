@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -18,7 +19,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Semantics;
 
-public class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
+public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
 {
     [Fact]
     public void SpeculationAnalyzerDifferentOverloads()
@@ -530,7 +531,7 @@ public class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
             CompilationName,
             [tree],
             References,
-            TestOptions.ReleaseDll.WithSpecificDiagnosticOptions([KeyValuePairUtil.Create("CS0219", ReportDiagnostic.Suppress)]));
+            TestOptions.ReleaseDll.WithSpecificDiagnosticOptions([KeyValuePair.Create("CS0219", ReportDiagnostic.Suppress)]));
     }
 
     protected override bool CompilationSucceeded(Compilation compilation, Stream temporaryStream)

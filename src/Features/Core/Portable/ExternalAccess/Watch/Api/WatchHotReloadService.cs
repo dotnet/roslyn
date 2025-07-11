@@ -10,9 +10,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -64,50 +64,67 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         }
     }
 
-    public readonly struct Updates(
-        ModuleUpdateStatus status,
-        ImmutableArray<Diagnostic> diagnostics,
-        ImmutableArray<Update> projectUpdates,
-        IReadOnlySet<Project> projectsToRestart,
-        IReadOnlySet<Project> projectsToRebuild)
+    public readonly struct RunningProjectInfo
+    {
+        public required bool RestartWhenChangesHaveNoEffect { get; init; }
+    }
+
+    public enum Status
+    {
+        /// <summary>
+        /// No significant changes made that need to be applied.
+        /// </summary>
+        NoChangesToApply,
+
+        /// <summary>
+        /// Changes can be applied either via updates or restart.
+        /// </summary>
+        ReadyToApply,
+
+        /// <summary>
+        /// Some changes are errors that block rebuild of the module.
+        /// This means that the code is in a broken state that cannot be resolved by restarting the application.
+        /// </summary>
+        Blocked,
+    }
+
+    public readonly struct Updates2
     {
         /// <summary>
         /// Status of the updates.
         /// </summary>
-        public readonly ModuleUpdateStatus Status { get; } = status;
+        public readonly Status Status { get; init; }
 
         /// <summary>
-        /// Hot Reload specific diagnostics to be reported (includes rude edits and emit errors).
+        /// Returns all diagnostics that can't be addressed by rebuilding/restarting the project.
+        /// Syntactic, semantic and emit diagnostics.
         /// </summary>
-        public ImmutableArray<Diagnostic> Diagnostics { get; } = diagnostics;
+        /// <remarks>
+        /// <see cref="Status"/> is <see cref="Status.Blocked"/> if these diagnostics contain any errors.
+        /// </remarks>
+        public required ImmutableArray<Diagnostic> CompilationDiagnostics { get; init; }
+
+        /// <summary>
+        /// Transient diagnostics (rude edits) per project.
+        /// All diagnostics that can be addressed by rebuilding/restarting the project.
+        /// </summary>
+        public required ImmutableArray<(ProjectId project, ImmutableArray<Diagnostic> diagnostics)> RudeEdits { get; init; }
 
         /// <summary>
         /// Updates to be applied to modules. Empty if there are blocking rude edits.
         /// Only updates to projects that are not included in <see cref="ProjectsToRebuild"/> are listed.
         /// </summary>
-        public ImmutableArray<Update> ProjectUpdates { get; } = projectUpdates;
+        public ImmutableArray<Update> ProjectUpdates { get; init; }
 
         /// <summary>
         /// Running projects that need to be restarted due to rude edits in order to apply changes.
         /// </summary>
-        [Obsolete("Use ProjectIdsToRestart")]
-        public IReadOnlySet<Project> ProjectsToRestart { get; } = projectsToRestart;
+        public ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> ProjectsToRestart { get; init; }
 
         /// <summary>
         /// Projects with changes that need to be rebuilt in order to apply changes.
         /// </summary>
-        [Obsolete("Use ProjectIdsToRebuild")]
-        public IReadOnlySet<Project> ProjectsToRebuild { get; } = projectsToRebuild;
-
-        /// <summary>
-        /// Running projects that need to be restarted due to rude edits in order to apply changes.
-        /// </summary>
-        public ImmutableArray<ProjectId> ProjectIdsToRestart { get; } = projectsToRestart.SelectAsArray(p => p.Id);
-
-        /// <summary>
-        /// Projects with changes that need to be rebuilt in order to apply changes.
-        /// </summary>
-        public ImmutableArray<ProjectId> ProjectIdsToRebuild { get; } = projectsToRebuild.SelectAsArray(p => p.Id);
+        public ImmutableArray<ProjectId> ProjectsToRebuild { get; init; }
     }
 
     private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
@@ -163,16 +180,14 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         _encService.BreakStateOrCapabilitiesChanged(GetDebuggingSession(), inBreakState: null);
     }
 
-    [Obsolete]
-    public async Task<(ImmutableArray<Update> updates, ImmutableArray<Diagnostic> diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
-    {
-        var result = await GetUpdatesAsync(solution, isRunningProject: static _ => false, cancellationToken).ConfigureAwait(false);
-        return (result.ProjectUpdates, result.Diagnostics);
-    }
+    /// <summary>
+    /// Returns TFM of a given project.
+    /// </summary>
+    public static string? GetTargetFramework(Project project)
+        => project.State.NameAndFlavor.flavor;
 
-    [Obsolete]
-    public Task<Updates> GetUpdatesAsync(Solution solution, Func<Project, bool> isRunningProject, CancellationToken cancellationToken)
-        => GetUpdatesAsync(solution, solution.Projects.Where(isRunningProject).Select(static p => p.Id).ToImmutableHashSet(), cancellationToken);
+    // TODO: remove, for backwards compat only
+    public static bool RequireCommit { get; set; }
 
     /// <summary>
     /// Emits updates for all projects that differ between the given <paramref name="solution"/> snapshot and the one given to the previous successful call or
@@ -183,39 +198,63 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>
     /// Updates (one for each changed project) and Rude Edit diagnostics. Does not include syntax or semantic diagnostics.
+    /// May include both updates and Rude Edits for different projects.
     /// </returns>
-    public async Task<Updates> GetUpdatesAsync(Solution solution, IImmutableSet<ProjectId> runningProjects, CancellationToken cancellationToken)
+    public async Task<Updates2> GetUpdatesAsync(Solution solution, ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
     {
         var sessionId = GetDebuggingSession();
 
-        var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, runningProjects, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+        var runningProjectsImpl = runningProjects.ToImmutableDictionary(
+            static e => e.Key,
+            static e => new EditAndContinue.RunningProjectInfo()
+            {
+                RestartWhenChangesHaveNoEffect = e.Value.RestartWhenChangesHaveNoEffect,
+                AllowPartialUpdate = RequireCommit
+            });
 
-        if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
+        var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, runningProjectsImpl, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+
+        // If the changes fail to apply dotnet-watch fails.
+        // We don't support discarding the changes and letting the user retry.
+        if (!RequireCommit && results.ModuleUpdates.Status is ModuleUpdateStatus.Ready && results.ProjectsToRebuild.IsEmpty)
         {
             _encService.CommitSolutionUpdate(sessionId);
         }
 
-        var diagnostics = results.GetAllDiagnostics();
-
-        var projectUpdates =
-            from update in results.ModuleUpdates.Updates
-            let project = solution.GetRequiredProject(update.ProjectId)
-            where !results.ProjectsToRestart.Contains(project.Id)
-            select new Update(
+        return new Updates2
+        {
+            Status = results.ModuleUpdates.Status switch
+            {
+                ModuleUpdateStatus.None => Status.NoChangesToApply,
+                ModuleUpdateStatus.Ready => Status.ReadyToApply,
+                ModuleUpdateStatus.Blocked => Status.Blocked,
+                _ => throw ExceptionUtilities.UnexpectedValue(results.ModuleUpdates.Status)
+            },
+            CompilationDiagnostics = results.GetPersistentDiagnostics(),
+            RudeEdits = results.GetTransientDiagnostics(),
+            ProjectUpdates = results.ModuleUpdates.Updates.SelectAsArray(static update => new Update(
                 update.Module,
-                project.Id,
+                update.ProjectId,
                 update.ILDelta,
                 update.MetadataDelta,
                 update.PdbDelta,
                 update.UpdatedTypes,
-                update.RequiredCapabilities);
+                update.RequiredCapabilities)),
+            ProjectsToRestart = results.ProjectsToRestart,
+            ProjectsToRebuild = results.ProjectsToRebuild
+        };
+    }
 
-        return new Updates(
-            results.ModuleUpdates.Status,
-            diagnostics,
-            [.. projectUpdates],
-            results.ProjectsToRestart.Select(solution.GetRequiredProject).ToImmutableHashSet(),
-            results.ProjectsToRebuild.Select(solution.GetRequiredProject).ToImmutableHashSet());
+    public void CommitUpdate()
+    {
+        var sessionId = GetDebuggingSession();
+        _encService.CommitSolutionUpdate(sessionId);
+    }
+
+    public void DiscardUpdate()
+    {
+        var sessionId = GetDebuggingSession();
+        _encService.DiscardSolutionUpdate(sessionId);
     }
 
     public void UpdateBaselines(Solution solution, ImmutableArray<ProjectId> projectIds)
@@ -241,6 +280,9 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
     {
         public DebuggingSessionId SessionId
             => instance._sessionId;
+
+        public IEditAndContinueService EncService
+            => instance._encService;
     }
 }
 #endif

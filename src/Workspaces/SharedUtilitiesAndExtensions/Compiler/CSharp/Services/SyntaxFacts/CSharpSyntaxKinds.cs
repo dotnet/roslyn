@@ -70,6 +70,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int FalseKeyword => (int)SyntaxKind.FalseKeyword;
     public int IfKeyword => (int)SyntaxKind.IfKeyword;
     public int NewKeyword => (int)SyntaxKind.NewKeyword;
+    public int PartialKeyword => (int)SyntaxKind.PartialKeyword;
     public int TrueKeyword => (int)SyntaxKind.TrueKeyword;
     public int UsingKeyword => (int)SyntaxKind.UsingKeyword;
 
@@ -97,6 +98,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int CollectionInitializerExpression => (int)SyntaxKind.CollectionInitializerExpression;
     public int ConditionalAccessExpression => (int)SyntaxKind.ConditionalAccessExpression;
     public int ConditionalExpression => (int)SyntaxKind.ConditionalExpression;
+    public int? FieldExpression => (int)SyntaxKind.FieldExpression;
     public int? ImplicitArrayCreationExpression => (int)SyntaxKind.ImplicitArrayCreationExpression;
     public int? ImplicitObjectCreationExpression => (int)SyntaxKind.ImplicitObjectCreationExpression;
     public int? IndexExpression => (int)SyntaxKind.IndexExpression;

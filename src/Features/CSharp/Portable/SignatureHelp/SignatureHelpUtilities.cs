@@ -4,12 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
@@ -96,7 +97,7 @@ internal static class SignatureHelpUtilities
     internal static TextSpan GetSignatureHelpSpan(AttributeArgumentListSyntax argumentList)
         => CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getAttributeArgumentListCloseToken);
 
-    internal static bool IsTriggerParenOrComma<TSyntaxNode>(SyntaxToken token, Func<char, bool> isTriggerCharacter) where TSyntaxNode : SyntaxNode
+    internal static bool IsTriggerParenOrComma<TSyntaxNode>(SyntaxToken token, ImmutableArray<char> triggerCharacters) where TSyntaxNode : SyntaxNode
     {
         // Don't dismiss if the user types ( to start a parenthesized expression or tuple
         // Note that the tuple initially parses as a parenthesized expression 
@@ -134,7 +135,7 @@ internal static class SignatureHelpUtilities
 
         return !token.IsKind(SyntaxKind.None) &&
             token.ValueText.Length == 1 &&
-            isTriggerCharacter(token.ValueText[0]) &&
+            triggerCharacters.Contains(token.ValueText[0]) &&
             token.Parent is ArgumentListSyntax &&
             token.Parent.Parent is TSyntaxNode;
     }

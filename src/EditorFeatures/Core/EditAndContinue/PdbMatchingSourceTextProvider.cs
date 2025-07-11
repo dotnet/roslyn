@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,31 +22,31 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// </summary>
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
 [Export(typeof(PdbMatchingSourceTextProvider))]
-internal sealed class PdbMatchingSourceTextProvider : IEventListener<object>, IEventListenerStoppable, IPdbMatchingSourceTextProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class PdbMatchingSourceTextProvider() : IEventListener, IPdbMatchingSourceTextProvider
 {
     private readonly object _guard = new();
 
     private bool _isActive;
     private int _baselineSolutionVersion;
     private readonly Dictionary<string, (DocumentState state, int solutionVersion)> _documentsWithChangedLoaderByPath = [];
+    private WorkspaceEventRegistration? _workspaceChangedDisposer;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public PdbMatchingSourceTextProvider()
+    public void StartListening(Workspace workspace)
     {
-    }
+        Debug.Assert(_workspaceChangedDisposer == null);
 
-    public void StartListening(Workspace workspace, object serviceOpt)
-    {
-        workspace.WorkspaceChanged += WorkspaceChanged;
+        _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(WorkspaceChanged);
     }
 
     public void StopListening(Workspace workspace)
     {
-        workspace.WorkspaceChanged -= WorkspaceChanged;
+        _workspaceChangedDisposer?.Dispose();
+        _workspaceChangedDisposer = null;
     }
 
-    private void WorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+    private void WorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         if (!_isActive)
         {

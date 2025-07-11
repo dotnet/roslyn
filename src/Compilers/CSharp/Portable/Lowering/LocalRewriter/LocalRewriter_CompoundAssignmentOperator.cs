@@ -22,7 +22,65 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node, bool used)
         {
             Debug.Assert(TypeSymbol.Equals(node.Right.Type, node.Operator.RightType, TypeCompareKind.ConsiderEverything2));
-            BoundExpression loweredRight = VisitExpression(node.Right);
+
+            if (node.Operator.Method?.IsStatic == false)
+            {
+                return VisitInstanceCompoundAssignmentOperator(node, used);
+            }
+            else
+            {
+                return VisitBuiltInOrStaticCompoundAssignmentOperator(node, used);
+            }
+        }
+
+        private BoundExpression VisitInstanceCompoundAssignmentOperator(BoundCompoundAssignmentOperator node, bool used)
+        {
+            Debug.Assert(node.Operator.Method is { });
+            Debug.Assert(node.LeftConversion is null || (node.Left.Type!.IsReferenceType && node.Operator.Method.GetIsNewExtensionMember()));
+            Debug.Assert(node.FinalConversion is null);
+
+            SyntaxNode syntax = node.Syntax;
+
+            if (!used)
+            {
+                return BoundCall.Synthesized(syntax,
+                                             ApplyConversionIfNotIdentity(node.LeftConversion, node.LeftPlaceholder, VisitExpression(node.Left)),
+                                             initialBindingReceiverIsSubjectToCloning: ThreeState.False,
+                                             node.Operator.Method,
+                                             VisitExpression(node.Right));
+            }
+
+            TypeSymbol? leftType = node.Left.Type; // type of the target
+            Debug.Assert(leftType is { });
+            Debug.Assert(TypeSymbol.Equals(leftType, node.Type, TypeCompareKind.AllIgnoreOptions));
+
+            if (leftType.IsReferenceType)
+            {
+                BoundAssignmentOperator tempAssignment;
+                BoundLocal targetOfCompoundOperation = _factory.StoreToTemp(VisitExpression(node.Left), out tempAssignment);
+                return new BoundSequence(
+                    syntax: syntax,
+                    locals: [targetOfCompoundOperation.LocalSymbol],
+                    sideEffects:
+                        [
+                            tempAssignment,
+                            BoundCall.Synthesized(syntax,
+                                                  ApplyConversionIfNotIdentity(node.LeftConversion, node.LeftPlaceholder, targetOfCompoundOperation),
+                                                  initialBindingReceiverIsSubjectToCloning: ThreeState.False,
+                                                  node.Operator.Method,
+                                                  VisitExpression(node.Right))
+                        ],
+                    value: targetOfCompoundOperation,
+                    type: leftType);
+            }
+
+            Debug.Assert(node.LeftConversion is null);
+
+            return MakeInstanceCompoundAssignmentOperatorResult(node.Syntax, node.Left, node.Right, node.Operator.Method, node.Operator.Kind.IsChecked());
+        }
+
+        private BoundExpression VisitBuiltInOrStaticCompoundAssignmentOperator(BoundCompoundAssignmentOperator node, bool used)
+        {
 
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
             var stores = ArrayBuilder<BoundExpression>.GetInstance();
@@ -55,6 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // side before storing the lambda to a temp for use in both possible branches.
                 // The first store to memberAccessReceiver has already been taken care of above by TransformCompoundAssignmentLHS
 
+                Debug.Assert(!IsBinaryStringConcatenation(binaryOperator));
+
                 var eventTemps = ArrayBuilder<LocalSymbol>.GetInstance();
                 var sequence = ArrayBuilder<BoundExpression>.GetInstance();
 
@@ -74,6 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sequence.Add(nonEventStore);
 
                 // var loweredRight = handler;
+                BoundExpression loweredRight = VisitExpression(node.Right);
                 if (CanChangeValueBetweenReads(loweredRight))
                 {
                     loweredRight = _factory.StoreToTemp(loweredRight, out BoundAssignmentOperator possibleHandlerAssignment);
@@ -88,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredRight);
 
                 // transformedLHS = storeNonEvent + loweredRight
-                rewrittenAssignment = rewriteAssignment(lhsRead);
+                rewrittenAssignment = rewriteAssignment(lhsRead, loweredRight, rightIsVisited: true);
                 Debug.Assert(rewrittenAssignment.Type is { });
 
                 // Final conditional
@@ -98,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                rewrittenAssignment = rewriteAssignment(lhsRead);
+                rewrittenAssignment = rewriteAssignment(lhsRead, node.Right, rightIsVisited: false);
             }
 
             Debug.Assert(rewrittenAssignment.Type is { });
@@ -115,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             stores.Free();
             return result;
 
-            BoundExpression rewriteAssignment(BoundExpression leftRead)
+            BoundExpression rewriteAssignment(BoundExpression leftRead, BoundExpression right, bool rightIsVisited)
             {
                 SyntaxNode syntax = node.Syntax;
 
@@ -139,7 +200,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RemovePlaceholderReplacement(node.LeftPlaceholder);
                 }
 
-                BoundExpression operand = MakeBinaryOperator(syntax, node.Operator.Kind, opLHS, loweredRight, node.Operator.ReturnType, node.Operator.Method, node.Operator.ConstrainedToTypeOpt, isCompoundAssignment: true);
+                BoundExpression operand;
+                if (IsBinaryStringConcatenation(node.Operator.Kind))
+                {
+                    Debug.Assert(!rightIsVisited);
+                    Debug.Assert(node.Operator.ReturnType is { SpecialType: SpecialType.System_String });
+                    operand = VisitCompoundAssignmentStringConcatenation(opLHS, right, node.Operator.Kind, node.Syntax);
+                }
+                else
+                {
+                    var loweredRight = rightIsVisited ? right : VisitExpression(right);
+                    operand = MakeBinaryOperator(syntax, node.Operator.Kind, opLHS, loweredRight, node.Operator.ReturnType, node.Operator.Method, node.Operator.ConstrainedToTypeOpt, isCompoundAssignment: true);
+                }
 
                 Debug.Assert(node.Left.Type is { });
                 BoundExpression opFinal = operand;

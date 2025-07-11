@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview;
 
 [UseExportProvider]
 [Trait(Traits.Editor, Traits.Editors.Preview), Trait(Traits.Feature, Traits.Features.Tagging)]
-public class PreviewWorkspaceTests
+public sealed class PreviewWorkspaceTests
 {
     [Fact]
     public void TestPreviewCreationDefault()

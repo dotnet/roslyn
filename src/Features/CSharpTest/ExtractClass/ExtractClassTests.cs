@@ -26,9 +26,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass;
 
 [UseExportProvider]
-public class ExtractClassTests
+public sealed class ExtractClassTests
 {
-    private class Test : CSharpCodeRefactoringVerifier<CSharpExtractClassCodeRefactoringProvider>.Test
+    private sealed class Test : CSharpCodeRefactoringVerifier<CSharpExtractClassCodeRefactoringProvider>.Test
     {
         public IEnumerable<(string name, bool makeAbstract)>? DialogSelection { get; set; }
         public bool SameFile { get; set; }
@@ -38,7 +38,7 @@ public class ExtractClassTests
 
         protected override IEnumerable<CodeRefactoringProvider> GetCodeRefactoringProviders()
         {
-            var service = new TestExtractClassOptionsService(DialogSelection, SameFile, IsClassDeclarationSelection)
+            var service = new TestExtractClassOptionsService(DialogSelection, WorkspaceKind != CodeAnalysis.WorkspaceKind.MiscellaneousFiles ? SameFile : true, IsClassDeclarationSelection)
             {
                 FileName = FileName
             };
@@ -57,16 +57,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestSingleMethod()
     {
-        var input = """
-            class Test
-            {
-                int [||]Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -84,7 +74,15 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                int [||]Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -98,9 +96,10 @@ public class ExtractClassTests
     }
 
     [Fact]
-    public async Task TestErrorBaseMethod()
-    {
-        var input = """
+    public Task TestErrorBaseMethod()
+        => new Test
+        {
+            TestCode = """
             class ErrorBase
             {
             }
@@ -112,17 +111,14 @@ public class ExtractClassTests
                     return 1 + 1;
                 }
             }
-            """;
-        await new Test
-        {
-            TestCode = input,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMiscellaneousFiles()
-    {
-        var input = """
+    public Task TestMiscellaneousFiles()
+        => new Test
+        {
+            TestCode = """
             class Test
             {
                 int [||]Method()
@@ -130,14 +126,22 @@ public class ExtractClassTests
                     return 1 + 1;
                 }
             }
-            """;
+            """,
+            FixedCode = """
+            internal class MyBase
+            {
+                int Method()
+                {
+                    return 1 + 1;
+                }
+            }
 
-        await new Test
-        {
-            TestCode = input,
+            class Test : MyBase
+            {
+            }
+            """,
             WorkspaceKind = WorkspaceKind.MiscellaneousFiles
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestPartialClass()
@@ -212,15 +216,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestRecord_Method()
     {
-        var input = """
-            record R(string S)
-            {
-                void $$M()
-                {
-                }
-            }
-            """;
-
         var expected1 = """
             record R(string S) : MyBase
             {
@@ -239,7 +234,14 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            record R(string S)
+            {
+                void $$M()
+                {
+                }
+            }
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             FixedState =
@@ -257,15 +259,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestClass_Method()
     {
-        var input = """
-            class R(string S)
-            {
-                void $$M()
-                {
-                }
-            }
-            """;
-
         var expected1 = """
             class R(string S) : MyBase
             {
@@ -283,7 +276,14 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class R(string S)
+            {
+                void $$M()
+                {
+                }
+            }
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             FixedState =
@@ -301,13 +301,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestRecord_Property()
     {
-        var input = """
-            record R
-            {
-                public string $$S { get; set; }
-            }
-            """;
-
         var expected1 = """
             record R : MyBase
             {
@@ -324,7 +317,12 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            record R
+            {
+                public string $$S { get; set; }
+            }
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             FixedState =
@@ -342,13 +340,6 @@ public class ExtractClassTests
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/62415")]
     public async Task TestRecord_PropertyAndImplicitField()
     {
-        var input = """
-            record R(string S)
-            {
-                public string $$S { get; set; } = S;
-            }
-            """;
-
         var expected1 = """
             record R(string S) : MyBase(S)
             {
@@ -365,7 +356,12 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            record R(string S)
+            {
+                public string $$S { get; set; } = S;
+            }
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             FixedState =
@@ -382,13 +378,6 @@ public class ExtractClassTests
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/62415")]
     public async Task TestClass_PropertyAndImplicitField()
     {
-        var input = """
-            class R(string S)
-            {
-                public string $$S { get; set; } = S;
-            }
-            """;
-
         var expected1 = """
             class R(string S) : MyBase(S)
             {
@@ -404,7 +393,12 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class R(string S)
+            {
+                public string $$S { get; set; } = S;
+            }
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             FixedState =
@@ -419,143 +413,101 @@ public class ExtractClassTests
     }
 
     [Fact]
-    public async Task TestRecordParam()
-    {
-        // https://github.com/dotnet/roslyn/issues/62415 to make this scenario work
-        var input = """
+    public Task TestRecordParam()
+        => new Test
+        {
+            TestCode = """
             record R(string $$S)
             {
             }
-            """;
-
-        await new Test
-        {
-            TestCode = input,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestClassParam1()
-    {
-        var input = """
+    public Task TestClassParam1()
+        => new Test
+        {
+            TestCode = """
             class R(string $$S)
             {
             }
-            """;
-
-        await new Test
-        {
-            TestCode = input,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestClassParam2()
-    {
-        var input = """
+    public Task TestClassParam2()
+        => new Test
+        {
+            TestCode = """
             class R(string $$S);
-            """;
-
-        await new Test
-        {
-            TestCode = input,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestStructParam1()
-    {
-        var input = """
+    public Task TestStructParam1()
+        => new Test
+        {
+            TestCode = """
             struct R(string $$S)
             {
             }
-            """;
-
-        await new Test
-        {
-            TestCode = input,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestStructParam2()
-    {
-        var input = """
+    public Task TestStructParam2()
+        => new Test
+        {
+            TestCode = """
             struct R(string $$S);
-            """;
-
-        await new Test
-        {
-            TestCode = input,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRecordStruct()
-    {
-        var input = """
+    public Task TestRecordStruct()
+        => new Test
+        {
+            TestCode = """
             record struct R(string S)
             {
                 void $$M()
                 {
                 }
             }
-            """;
-
-        await new Test
-        {
-            TestCode = input,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestStruct()
-    {
-        var input = """
+    public Task TestStruct()
+        => new Test
+        {
+            TestCode = """
             struct R(string S)
             {
                 void $$M()
                 {
                 }
             }
-            """;
-
-        await new Test
-        {
-            TestCode = input,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestInNamespace()
     {
-        var input = """
-            namespace MyNamespace
-            {
-                class Test
-                {
-                    int [||]Method()
-                    {
-                        return 1 + 1;
-                    }
-                }
-            }
-            """;
-
         var expected1 = """
             namespace MyNamespace
             {
@@ -579,7 +531,18 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            namespace MyNamespace
+            {
+                class Test
+                {
+                    int [||]Method()
+                    {
+                        return 1 + 1;
+                    }
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -595,19 +558,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestInNamespace_FileScopedNamespace1()
     {
-        var input = """
-            namespace MyNamespace
-            {
-                class Test
-                {
-                    int [||]Method()
-                    {
-                        return 1 + 1;
-                    }
-                }
-            }
-            """;
-
         var expected1 = """
             namespace MyNamespace
             {
@@ -630,7 +580,18 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            namespace MyNamespace
+            {
+                class Test
+                {
+                    int [||]Method()
+                    {
+                        return 1 + 1;
+                    }
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -651,19 +612,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestInNamespace_FileScopedNamespace2()
     {
-        var input = """
-            namespace MyNamespace
-            {
-                class Test
-                {
-                    int [||]Method()
-                    {
-                        return 1 + 1;
-                    }
-                }
-            }
-            """;
-
         var expected1 = """
             namespace MyNamespace
             {
@@ -687,7 +635,18 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            namespace MyNamespace
+            {
+                class Test
+                {
+                    int [||]Method()
+                    {
+                        return 1 + 1;
+                    }
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -708,19 +667,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestInNamespace_FileScopedNamespace3()
     {
-        var input = """
-            namespace MyNamespace
-            {
-                class Test
-                {
-                    int [||]Method()
-                    {
-                        return 1 + 1;
-                    }
-                }
-            }
-            """;
-
         var expected1 = """
             namespace MyNamespace
             {
@@ -744,7 +690,18 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            namespace MyNamespace
+            {
+                class Test
+                {
+                    int [||]Method()
+                    {
+                        return 1 + 1;
+                    }
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -765,16 +722,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestAccessibility()
     {
-        var input = """
-            public class Test
-            {
-                int [||]Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             public class Test : MyBase
             {
@@ -792,7 +739,15 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            public class Test
+            {
+                int [||]Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -808,15 +763,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestEvent()
     {
-        var input = """
-            using System;
-
-            class Test
-            {
-                private event EventHandler [||]Event1;
-            }
-            """;
-
         var expected1 = """
             using System;
 
@@ -835,7 +781,14 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            using System;
+
+            class Test
+            {
+                private event EventHandler [||]Event1;
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -851,13 +804,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestProperty()
     {
-        var input = """
-            class Test
-            {
-                int [||]MyProperty { get; set; }
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -872,7 +818,12 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                int [||]MyProperty { get; set; }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -888,13 +839,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestField()
     {
-        var input = """
-            class Test
-            {
-                int [||]MyField;
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -909,7 +853,12 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                int [||]MyField;
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -925,13 +874,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestFieldSelectInKeywords()
     {
-        var input = """
-            class Test
-            {
-                priva[||]te int MyField;
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -946,7 +888,12 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                priva[||]te int MyField;
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -962,13 +909,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestFieldSelectAfterSemicolon()
     {
-        var input = """
-            class Test
-            {
-                private int MyField;[||]
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -983,7 +923,12 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                private int MyField;[||]
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -999,13 +944,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestFieldSelectEntireDeclaration()
     {
-        var input = """
-            class Test
-            {
-                [|private int MyField;|]
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -1020,7 +958,12 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                [|private int MyField;|]
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1036,13 +979,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestFieldSelectMultipleVariables1()
     {
-        var input = """
-            class Test
-            {
-                [|private int MyField1, MyField2;|]
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -1058,7 +994,12 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                [|private int MyField1, MyField2;|]
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1074,13 +1015,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestFieldSelectMultipleVariables2()
     {
-        var input = """
-            class Test
-            {
-                private int MyField1, [|MyField2;|]
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -1096,7 +1030,12 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                private int MyField1, [|MyField2;|]
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1112,19 +1051,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestFileHeader_FromExistingFile()
     {
-        var input = """
-            // this is my document header
-            // that should be copied over
-
-            class Test
-            {
-                int [||]Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             // this is my document header
             // that should be copied over
@@ -1148,7 +1074,18 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            // this is my document header
+            // that should be copied over
+
+            class Test
+            {
+                int [||]Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1164,19 +1101,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestFileHeader_FromOption()
     {
-        var input = """
-            // this is my document header
-            // that should be ignored
-
-            class Test
-            {
-                int [||]Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             // this is my document header
             // that should be ignored
@@ -1199,7 +1123,18 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            // this is my document header
+            // that should be ignored
+
+            class Test
+            {
+                int [||]Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1219,24 +1154,6 @@ public class ExtractClassTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
     public async Task TestUsingsInsideNamespace()
     {
-        var input = """
-            // this is my document header
-
-            using System;
-            using System.Collections.Generic;
-
-            namespace ConsoleApp185
-            {
-                class Program
-                {
-                    static void [|Main|](string[] args)
-                    {
-                        Console.WriteLine(new List<int>());
-                    }
-                }
-            }
-            """;
-
         var expected1 = """
             // this is my document header
 
@@ -1255,6 +1172,7 @@ public class ExtractClassTests
             // this is my real document header
 
             namespace ConsoleApp185;
+
             using System;
             using System.Collections.Generic;
 
@@ -1269,7 +1187,23 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            // this is my document header
+
+            using System;
+            using System.Collections.Generic;
+
+            namespace ConsoleApp185
+            {
+                class Program
+                {
+                    static void [|Main|](string[] args)
+                    {
+                        Console.WriteLine(new List<int>());
+                    }
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1291,24 +1225,6 @@ public class ExtractClassTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
     public async Task TestUsingsInsideNamespace_FileScopedNamespace()
     {
-        var input = """
-            // this is my document header
-
-            using System;
-            using System.Collections.Generic;
-
-            namespace ConsoleApp185
-            {
-                class Program
-                {
-                    static void [|Main|](string[] args)
-                    {
-                        Console.WriteLine(new List<int>());
-                    }
-                }
-            }
-            """;
-
         var expected1 = """
             // this is my document header
 
@@ -1343,7 +1259,23 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            // this is my document header
+
+            using System;
+            using System.Collections.Generic;
+
+            namespace ConsoleApp185
+            {
+                class Program
+                {
+                    static void [|Main|](string[] args)
+                    {
+                        Console.WriteLine(new List<int>());
+                    }
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1364,19 +1296,6 @@ public class ExtractClassTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
     public async Task TestUsingsInsideNamespace_NoNamespace()
     {
-        var input = """
-            using System;
-            using System.Collections.Generic;
-
-            class Program
-            {
-                static void [|Main|](string[] args)
-                {
-                    Console.WriteLine(new List<int>());
-                }
-            }
-            """;
-
         var expected1 = """
             using System;
             using System.Collections.Generic;
@@ -1401,7 +1320,18 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            using System;
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void [|Main|](string[] args)
+                {
+                    Console.WriteLine(new List<int>());
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1421,25 +1351,6 @@ public class ExtractClassTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
     public async Task TestUsingsInsideNamespace_MultipleNamespaces()
     {
-        var input = """
-            using System;
-            using System.Collections.Generic;
-
-            namespace N1
-            {
-                namespace N2
-                {
-                    class Program
-                    {
-                        static void [|Main|](string[] args)
-                        {
-                            Console.WriteLine(new List<int>());
-                        }
-                    }
-                }
-            }
-            """;
-
         var expected1 = """
             using System;
             using System.Collections.Generic;
@@ -1473,7 +1384,24 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            using System;
+            using System.Collections.Generic;
+
+            namespace N1
+            {
+                namespace N2
+                {
+                    class Program
+                    {
+                        static void [|Main|](string[] args)
+                        {
+                            Console.WriteLine(new List<int>());
+                        }
+                    }
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1493,21 +1421,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestWithInterface()
     {
-        var input = """
-            interface ITest
-            {
-                int Method();
-            }
-
-            class Test : ITest
-            {
-                public int [||]Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             interface ITest
             {
@@ -1530,7 +1443,20 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            interface ITest
+            {
+                int Method();
+            }
+
+            class Test : ITest
+            {
+                public int [||]Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1546,20 +1472,6 @@ public class ExtractClassTests
     [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45977")]
     public async Task TestRegion()
     {
-        var input = """
-            class Test
-            {
-                #region MyRegion
-                int [||]Method()
-                {
-                    return 1 + 1;
-                }
-
-                void OtherMethiod() { }
-                #endregion
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -1584,7 +1496,19 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                #region MyRegion
+                int [||]Method()
+                {
+                    return 1 + 1;
+                }
+
+                void OtherMethiod() { }
+                #endregion
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1600,16 +1524,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestMakeAbstract_SingleMethod()
     {
-        var input = """
-            class Test
-            {
-                public int [||]Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -1628,7 +1542,15 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                public int [||]Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1645,19 +1567,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestMakeAbstract_MultipleMethods()
     {
-        var input = """
-            class Test
-            {
-                public int [||]Method()
-                {
-                    return 1 + 1;
-                }
-
-                public int Method2() => 2;
-                public int Method3() => 3;
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -1681,7 +1590,18 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                public int [||]Method()
+                {
+                    return 1 + 1;
+                }
+
+                public int Method2() => 2;
+                public int Method3() => 3;
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1698,18 +1618,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestMultipleMethods()
     {
-        var input = """
-            class Test
-            {
-                int [||]Method()
-                {
-                    return Method2() + 1;
-                }
-
-                int Method2() => 1;
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -1729,7 +1637,17 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                int [||]Method()
+                {
+                    return Method2() + 1;
+                }
+
+                int Method2() => 1;
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1746,18 +1664,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestMultipleMethods_SomeSelected()
     {
-        var input = """
-            class Test
-            {
-                int [||]Method()
-                {
-                    return Method2() + 1;
-                }
-
-                int Method2() => 1;
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -1777,7 +1683,17 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                int [||]Method()
+                {
+                    return Method2() + 1;
+                }
+
+                int Method2() => 1;
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1794,19 +1710,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestSelection_CompleteMethodAndComments()
     {
-        var input = """
-            class Test
-            {
-                [|/// <summary>
-                /// this is a test method
-                /// </summary>
-                int Method()
-                {
-                    return 1 + 1;
-                }|]
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -1827,7 +1730,18 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                [|/// <summary>
+                /// this is a test method
+                /// </summary>
+                int Method()
+                {
+                    return 1 + 1;
+                }|]
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1843,19 +1757,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestSelection_PartialMethodAndComments()
     {
-        var input = """
-            class Test
-            {
-                [|/// <summary>
-                /// this is a test method
-                /// </summary>
-                int Method()
-                {|]
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -1876,7 +1777,18 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                [|/// <summary>
+                /// this is a test method
+                /// </summary>
+                int Method()
+                {|]
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1892,19 +1804,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestSelection_PartialMethodAndComments2()
     {
-        var input = """
-            class Test
-            {
-                /// <summary>
-                /// [|this is a test method
-                /// </summary>
-                int Method()
-                {|]
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -1925,7 +1824,18 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                /// <summary>
+                /// [|this is a test method
+                /// </summary>
+                int Method()
+                {|]
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1941,19 +1851,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestSelection_PartialMethodAndComments3()
     {
-        var input = """
-            class Test
-            {
-                /// <summary>
-                /// [|this is a test method
-                /// </summary>
-                int Method()|]
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -1974,7 +1871,18 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test
+            {
+                /// <summary>
+                /// [|this is a test method
+                /// </summary>
+                int Method()|]
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -1990,24 +1898,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestAttributes()
     {
-        var input = """
-            using System;
-
-            class TestAttribute : Attribute { }
-
-            class Test
-            {
-                /// <summary>
-                /// this is a test method
-                /// </summary>
-                [||][TestAttribute]
-                int Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             using System;
 
@@ -2033,7 +1923,23 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            using System;
+
+            class TestAttribute : Attribute { }
+
+            class Test
+            {
+                /// <summary>
+                /// this is a test method
+                /// </summary>
+                [||][TestAttribute]
+                int Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -2049,26 +1955,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestAttributes2()
     {
-        var input = """
-            using System;
-
-            class TestAttribute : Attribute { }
-            class TestAttribute2 : Attribute { }
-
-            class Test
-            {
-                /// <summary>
-                /// this is a test method
-                /// </summary>
-                [||][TestAttribute]
-                [TestAttribute2]
-                int Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             using System;
 
@@ -2096,7 +1982,25 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            using System;
+
+            class TestAttribute : Attribute { }
+            class TestAttribute2 : Attribute { }
+
+            class Test
+            {
+                /// <summary>
+                /// this is a test method
+                /// </summary>
+                [||][TestAttribute]
+                [TestAttribute2]
+                int Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -2112,7 +2016,35 @@ public class ExtractClassTests
     [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45987")]
     public async Task TestAttributes3()
     {
-        var input = """
+        var expected1 = """
+            using System;
+
+            class TestAttribute : Attribute { }
+
+            class Test : MyBase
+            {
+            }
+            """;
+        var expected2 = """
+            using System;
+
+            internal class MyBase
+            {
+                /// <summary>
+                /// this is a test method
+                /// </summary>
+                [TestAttribute]
+                [TestAttribute2]
+                int Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """;
+
+        await new Test
+        {
+            TestCode = """
             using System;
 
             class TestAttribute : Attribute { }
@@ -2130,8 +2062,21 @@ public class ExtractClassTests
                     return 1 + 1;
                 }
             }
-            """;
+            """,
+            FixedState =
+            {
+                Sources =
+                {
+                    expected1,
+                    expected2
+                }
+            }
+        }.RunAsync();
+    }
 
+    [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45987")]
+    public async Task TestAttributes4()
+    {
         var expected1 = """
             using System;
 
@@ -2142,8 +2087,6 @@ public class ExtractClassTests
             }
             """;
         var expected2 = """
-            using System;
-
             internal class MyBase
             {
                 /// <summary>
@@ -2160,22 +2103,7 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
-            FixedState =
-            {
-                Sources =
-                {
-                    expected1,
-                    expected2
-                }
-            }
-        }.RunAsync();
-    }
-
-    [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45987")]
-    public async Task TestAttributes4()
-    {
-        var input = """
+            TestCode = """
             using System;
 
             class TestAttribute : Attribute { }
@@ -2193,35 +2121,7 @@ public class ExtractClassTests
                     return 1 + 1;
                 }
             }
-            """;
-
-        var expected1 = """
-            using System;
-
-            class TestAttribute : Attribute { }
-
-            class Test : MyBase
-            {
-            }
-            """;
-        var expected2 = """
-            internal class MyBase
-            {
-                /// <summary>
-                /// this is a test method
-                /// </summary>
-                [TestAttribute]
-                [TestAttribute2]
-                int Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
-        await new Test
-        {
-            TestCode = input,
+            """,
             FixedState =
             {
                 Sources =
@@ -2234,17 +2134,18 @@ public class ExtractClassTests
     }
 
     [Fact]
-    public async Task TestSameFile()
-    {
-        var input = """
+    public Task TestSameFile()
+        => new Test
+        {
+            TestCode = """
             class Test
             {
                 void Method[||]()
                 {
                 }
             }
-            """;
-        var expected = """
+            """,
+            FixedCode = """
             internal class MyBase
             {
                 void Method()
@@ -2255,29 +2156,13 @@ public class ExtractClassTests
             class Test : MyBase
             {
             }
-            """;
-
-        await new Test
-        {
-            TestCode = input,
-            FixedCode = expected,
+            """,
             SameFile = true,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestClassDeclaration()
     {
-        var input = """
-            class Test[||]
-            {
-                int Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -2295,7 +2180,15 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class Test[||]
+            {
+                int Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -2312,16 +2205,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestClassDeclaration2()
     {
-        var input = """
-            class [||]Test
-            {
-                int Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -2339,7 +2222,15 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class [||]Test
+            {
+                int Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -2356,16 +2247,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestClassDeclaration3()
     {
-        var input = """
-            [||]class Test
-            {
-                int Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -2383,7 +2264,15 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            [||]class Test
+            {
+                int Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -2400,16 +2289,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestClassDeclaration4()
     {
-        var input = """
-            class[||] Test
-            {
-                int Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -2427,7 +2306,15 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            class[||] Test
+            {
+                int Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -2444,21 +2331,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestClassDeclaration_Comment()
     {
-        var input = """
-            using System;
-
-            /// <summary>
-            /// [|This is a test class
-            /// </summary>
-            class Test|]
-            {
-                int Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             using System;
 
@@ -2481,7 +2353,20 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            using System;
+
+            /// <summary>
+            /// [|This is a test class
+            /// </summary>
+            class Test|]
+            {
+                int Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -2498,21 +2383,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestClassDeclaration_Comment2()
     {
-        var input = """
-            using System;
-
-            /// <summary>
-            /// This is a test class
-            /// [|</summary>
-            class Test|]
-            {
-                int Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             using System;
 
@@ -2535,7 +2405,20 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            using System;
+
+            /// <summary>
+            /// This is a test class
+            /// [|</summary>
+            class Test|]
+            {
+                int Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -2552,21 +2435,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestClassDeclaration_Comment3()
     {
-        var input = """
-            using System;
-
-            /// <summary>
-            /// This is a [|test class
-            /// </summary>
-            class|] Test
-            {
-                int Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             using System;
 
@@ -2589,7 +2457,20 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            using System;
+
+            /// <summary>
+            /// This is a [|test class
+            /// </summary>
+            class|] Test
+            {
+                int Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -2606,21 +2487,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestClassDeclaration_Attribute()
     {
-        var input = """
-            using System;
-
-            public class MyAttribute : Attribute { }
-
-            [||][MyAttribute]
-            class Test
-            {
-                int Method()
-                {
-                    return 1 + 1;
-                }
-            }
-            """;
-
         var expected1 = """
             using System;
 
@@ -2644,7 +2510,20 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            using System;
+
+            public class MyAttribute : Attribute { }
+
+            [||][MyAttribute]
+            class Test
+            {
+                int Method()
+                {
+                    return 1 + 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -2661,16 +2540,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestClassDeclaration_SelectWithMembers()
     {
-        var input = """
-            [|class Test
-            {
-                int Method()
-                {
-                    return 1 + 1;
-                }
-            }|]
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -2688,7 +2557,15 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            [|class Test
+            {
+                int Method()
+                {
+                    return 1 + 1;
+                }
+            }|]
+            """,
             FixedState =
             {
                 Sources =
@@ -2705,16 +2582,6 @@ public class ExtractClassTests
     [Fact]
     public async Task TestClassDeclaration_SelectWithMembers2()
     {
-        var input = """
-            [|class Test
-            {
-                int Method()
-                {
-                    return 1 + 1;
-                }|]
-            }
-            """;
-
         var expected1 = """
             class Test : MyBase
             {
@@ -2732,7 +2599,15 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            [|class Test
+            {
+                int Method()
+                {
+                    return 1 + 1;
+                }|]
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -2749,19 +2624,6 @@ public class ExtractClassTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55871")]
     public async Task TestGenericClass()
     {
-        var input = """
-            using System.Collections.Generic;
-
-            [|class C<T1, T2, T3>
-            {
-                public List<T1> Field1;
-                public T2 Field2;
-                public T3 Method()
-                {
-                    return default;
-                }|]
-            }
-            """;
         var expected1 = """
             using System.Collections.Generic;
 
@@ -2784,7 +2646,19 @@ public class ExtractClassTests
             """;
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            using System.Collections.Generic;
+
+            [|class C<T1, T2, T3>
+            {
+                public List<T1> Field1;
+                public T2 Field2;
+                public T3 Method()
+                {
+                    return default;
+                }|]
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -2799,24 +2673,22 @@ public class ExtractClassTests
     }
 
     [Fact]
-    public async Task TestIncompleteFieldSelection_NoAction1()
-    {
-        var input = """
+    public Task TestIncompleteFieldSelection_NoAction1()
+        => new Test
+        {
+            TestCode = """
             class C
             {
                 pub[||] {|CS1519:int|} Foo = 0;
             }
-            """;
-        await new Test
-        {
-            TestCode = input
+            """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestIncompleteMethodSelection_NoAction()
-    {
-        var input = """
+    public Task TestIncompleteMethodSelection_NoAction()
+        => new Test
+        {
+            TestCode = """
             class C
             {
                 pub[||] {|CS1519:int|} Foo()
@@ -2824,42 +2696,26 @@ public class ExtractClassTests
                     return 5;
                 }
             }
-            """;
-        await new Test
-        {
-            TestCode = input
+            """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTopLevelStatementSelection_NoAction()
-    {
-        var input = """
-            [||]_ = 42;
-            """;
-        await new Test
+    public Task TestTopLevelStatementSelection_NoAction()
+        => new Test
         {
-            TestCode = input,
+            TestCode = """
+            [||]_ = 42;
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState =
             {
                 OutputKind = OutputKind.ConsoleApplication
             }
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestSealed()
     {
-        var input = """
-            internal sealed class MyClass
-            {
-                public void [||]M()
-                {
-                }
-            }
-            """;
-
         var expected1 = """
             internal sealed class MyClass : MyBase
             {
@@ -2877,7 +2733,14 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = input,
+            TestCode = """
+            internal sealed class MyClass
+            {
+                public void [||]M()
+                {
+                }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -2891,9 +2754,8 @@ public class ExtractClassTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63315")]
-    public async Task TestMethodInsideNamespace_NoException()
-    {
-        await new Test()
+    public Task TestMethodInsideNamespace_NoException()
+        => new Test()
         {
             TestCode = """
                 namespace N
@@ -2957,12 +2819,12 @@ public class ExtractClassTests
             },
             FileName = "Test1.cs"
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55610")]
-    public async Task TestMultipleMethodsSelected_WithTypeContainingBaseClass()
-    {
-        var code = """
+    public Task TestMultipleMethodsSelected_WithTypeContainingBaseClass()
+        => new Test()
+        {
+            TestCode = """
             class Base
             {
             }
@@ -2972,18 +2834,14 @@ public class ExtractClassTests
                 [|public void M() { }
                 public void N() { }|]
             }
-            """;
-
-        await new Test()
-        {
-            TestCode = code
+            """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55610")]
-    public async Task TestClassSelected_WithTypeContainingBaseClass()
-    {
-        var code = """
+    public Task TestClassSelected_WithTypeContainingBaseClass()
+        => new Test()
+        {
+            TestCode = """
             class Base
             {
             }
@@ -2993,26 +2851,12 @@ public class ExtractClassTests
                 public void M() { }
                 public void N() { }
             }
-            """;
-
-        await new Test()
-        {
-            TestCode = code
+            """
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestMultipleMethodsSelected_HighlightedMembersAreSelected()
     {
-        var code = """
-            class C
-            {
-                [|public void M() { }
-                public void N() { }|]
-                public void O() { }
-            }
-            """;
-
         var expected1 = """
             class C : MyBase
             {
@@ -3030,7 +2874,14 @@ public class ExtractClassTests
 
         await new Test()
         {
-            TestCode = code,
+            TestCode = """
+            class C
+            {
+                [|public void M() { }
+                public void N() { }|]
+                public void O() { }
+            }
+            """,
             FixedState =
             {
                 Sources =
@@ -3046,13 +2897,6 @@ public class ExtractClassTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55402")]
     public async Task TestMemberKeyword()
     {
-        var code = """
-            class C
-            {
-                $$public void M() { }
-            }
-            """;
-
         var expected1 = """
             class C : MyBase
             {
@@ -3068,7 +2912,12 @@ public class ExtractClassTests
 
         await new Test
         {
-            TestCode = code,
+            TestCode = """
+            class C
+            {
+                $$public void M() { }
+            }
+            """,
             FixedState =
             {
                 Sources =

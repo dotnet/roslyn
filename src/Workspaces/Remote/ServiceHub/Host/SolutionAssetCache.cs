@@ -43,7 +43,7 @@ internal sealed class SolutionAssetCache
     /// </summary>
     private readonly TimeSpan _purgeAfterTimeSpan;
 
-    private readonly ConcurrentDictionary<Checksum, Entry> _assets = new();
+    private readonly ConcurrentDictionary<Checksum, Entry> _assets = [];
 
     // constructor for testing
     public SolutionAssetCache()
@@ -179,7 +179,7 @@ internal sealed class SolutionAssetCache
             Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(out var stateChecksums));
             stateChecksums.AddAllTo(pinnedChecksums);
 
-            foreach (var (_, projectState) in solutionState.ProjectStates)
+            foreach (var projectState in solutionState.SortedProjectStates)
             {
                 Contract.ThrowIfFalse(projectState.TryGetStateChecksums(out var projectStateChecksums));
                 projectStateChecksums.AddAllTo(pinnedChecksums);

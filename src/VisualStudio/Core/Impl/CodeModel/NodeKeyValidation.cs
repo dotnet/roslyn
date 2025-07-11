@@ -7,47 +7,46 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
+
+internal sealed class NodeKeyValidation
 {
-    internal sealed class NodeKeyValidation
+    private readonly Dictionary<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>, List<GlobalNodeKey>> _nodeKeysMap = [];
+
+    public NodeKeyValidation()
     {
-        private readonly Dictionary<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>, List<GlobalNodeKey>> _nodeKeysMap = [];
+    }
 
-        public NodeKeyValidation()
+    public NodeKeyValidation(ProjectCodeModelFactory projectCodeModelFactory)
+    {
+        foreach (var projectCodeModel in projectCodeModelFactory.GetAllProjectCodeModels())
         {
-        }
+            var fcms = projectCodeModel.GetCachedFileCodeModelInstances();
 
-        public NodeKeyValidation(ProjectCodeModelFactory projectCodeModelFactory)
-        {
-            foreach (var projectCodeModel in projectCodeModelFactory.GetAllProjectCodeModels())
+            foreach (var fcm in fcms)
             {
-                var fcms = projectCodeModel.GetCachedFileCodeModelInstances();
+                var globalNodeKeys = fcm.Object.GetCurrentNodeKeys();
 
-                foreach (var fcm in fcms)
-                {
-                    var globalNodeKeys = fcm.Object.GetCurrentNodeKeys();
-
-                    _nodeKeysMap.Add(fcm, globalNodeKeys);
-                }
+                _nodeKeysMap.Add(fcm, globalNodeKeys);
             }
         }
+    }
 
-        public void AddFileCodeModel(FileCodeModel fileCodeModel)
+    public void AddFileCodeModel(FileCodeModel fileCodeModel)
+    {
+        var handle = new ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>(fileCodeModel);
+        var globalNodeKeys = fileCodeModel.GetCurrentNodeKeys();
+
+        _nodeKeysMap.Add(handle, globalNodeKeys);
+    }
+
+    public void RestoreKeys()
+    {
+        foreach (var e in _nodeKeysMap)
         {
-            var handle = new ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>(fileCodeModel);
-            var globalNodeKeys = fileCodeModel.GetCurrentNodeKeys();
-
-            _nodeKeysMap.Add(handle, globalNodeKeys);
+            e.Key.Object.ResetElementKeys(e.Value);
         }
 
-        public void RestoreKeys()
-        {
-            foreach (var e in _nodeKeysMap)
-            {
-                e.Key.Object.ResetElementKeys(e.Value);
-            }
-
-            _nodeKeysMap.Clear();
-        }
+        _nodeKeysMap.Clear();
     }
 }

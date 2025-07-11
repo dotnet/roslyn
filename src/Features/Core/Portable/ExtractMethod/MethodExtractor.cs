@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -29,8 +28,6 @@ internal abstract partial class AbstractExtractMethodService<
         ExtractMethodGenerationOptions options,
         bool localFunction)
     {
-        public static readonly SyntaxAnnotation InsertionPointAnnotation = new();
-
         protected readonly SelectionResult OriginalSelectionResult = selectionResult;
         protected readonly ExtractMethodGenerationOptions Options = options;
         protected readonly bool LocalFunction = localFunction;
@@ -42,11 +39,10 @@ internal abstract partial class AbstractExtractMethodService<
 
         protected abstract CodeGenerator CreateCodeGenerator(SelectionResult selectionResult, AnalyzerResult analyzerResult);
 
-        protected abstract SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> tokens);
         protected abstract AbstractFormattingRule GetCustomFormattingRule(Document document);
 
-        protected abstract Task<(Document document, SyntaxToken? invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
-            Document document, SyntaxToken? invocationNameToken, SyntaxNode methodDefinition, CancellationToken cancellationToken);
+        protected abstract Task<(Document document, SyntaxToken invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
+            Document document, SyntaxToken invocationNameToken, SyntaxNode methodDefinition, CancellationToken cancellationToken);
 
         public ExtractMethodResult ExtractMethod(OperationStatus initialStatus, CancellationToken cancellationToken)
         {
@@ -74,7 +70,7 @@ internal abstract partial class AbstractExtractMethodService<
                 async cancellationToken =>
                 {
                     var analyzedDocument = await GetAnnotatedDocumentAndInsertionPointAsync(
-                        originalSemanticDocument, analyzeResult, insertionPointNode, cancellationToken).ConfigureAwait(false);
+                        OriginalSelectionResult, analyzeResult, insertionPointNode, cancellationToken).ConfigureAwait(false);
 
                     var triviaResult = await PreserveTriviaAsync(analyzedDocument.Root, cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
@@ -92,7 +88,8 @@ internal abstract partial class AbstractExtractMethodService<
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var newRoot = afterTriviaRestored.Root;
-                    var invocationNameToken = GetInvocationNameToken(newRoot.GetAnnotatedTokens(MethodNameAnnotation));
+
+                    var invocationNameToken = newRoot.GetAnnotatedTokens(MethodNameAnnotation).Single();
 
                     // Do some final patchups of whitespace when inserting a local function.
                     if (LocalFunction)
@@ -166,19 +163,30 @@ internal abstract partial class AbstractExtractMethodService<
         }
 
         private static async Task<SemanticDocument> GetAnnotatedDocumentAndInsertionPointAsync(
-            SemanticDocument document,
+            SelectionResult originalSelectionResult,
             AnalyzerResult analyzeResult,
             SyntaxNode insertionPointNode,
             CancellationToken cancellationToken)
         {
+            var document = originalSelectionResult.SemanticDocument;
+
             var tokenMap = new MultiDictionary<SyntaxToken, SyntaxAnnotation>();
             foreach (var variable in analyzeResult.Variables)
                 variable.AddIdentifierTokenAnnotationPair(tokenMap, cancellationToken);
 
+            var exitPoints = originalSelectionResult.IsExtractMethodOnExpression
+                ? []
+                : originalSelectionResult.GetStatementControlFlowAnalysis().ExitPoints;
             var finalRoot = document.Root.ReplaceSyntax(
-                nodes: [insertionPointNode],
-                // intentionally using 'n' (new) here.  We want to see any updated sub tokens that were updated in computeReplacementToken
-                computeReplacementNode: (o, n) => n.WithAdditionalAnnotations(InsertionPointAnnotation),
+                nodes: exitPoints.Append(insertionPointNode),
+                computeReplacementNode: (o, n) =>
+                {
+                    // intentionally using 'n' (new) here.  We want to see any updated sub tokens that were updated in computeReplacementToken
+                    if (o == insertionPointNode)
+                        return n.WithAdditionalAnnotations(InsertionPointAnnotation);
+                    else
+                        return n.WithAdditionalAnnotations(ExitPointAnnotation);
+                },
                 tokens: tokenMap.Keys,
                 computeReplacementToken: (o, n) => o.WithAdditionalAnnotations(tokenMap[o]),
                 trivia: null,
@@ -208,7 +216,7 @@ internal abstract partial class AbstractExtractMethodService<
                     return status;
             }
 
-            return status.With(CheckType(semanticModel, analyzeResult.ReturnType));
+            return status.With(CheckType(semanticModel, analyzeResult.CoreReturnType));
         }
 
         private OperationStatus CheckType(
@@ -240,7 +248,7 @@ internal abstract partial class AbstractExtractMethodService<
             return OperationStatus.SucceededStatus;
         }
 
-        internal static string MakeMethodName(string prefix, string originalName, bool camelCase)
+        protected static string MakeMethodName(string prefix, string originalName, bool camelCase)
         {
             var startingWithLetter = originalName.ToCharArray().SkipWhile(c => !char.IsLetter(c)).ToArray();
             var name = startingWithLetter.Length == 0 ? originalName : new string(startingWithLetter);

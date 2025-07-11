@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty;
@@ -28,29 +30,54 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 
         private async Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalContext, ImmutableArray<FixAllContext> contexts)
         {
-            var cancellationToken = originalContext.CancellationToken;
-
             // Very slow approach, but the only way we know how to do this correctly and without colliding edits. We
             // effectively apply each fix one at a time, moving the solution forward each time.  As we process each
             // diagnostic, we attempt to re-recover the field/property it was referring to in the original solution to
             // the current solution.
-            var originalSolution = originalContext.Solution;
-            var currentSolution = originalSolution;
+            //
+            // Note: we can process each project in parallel.  That's because all changes to a field/prop only impact
+            // the project they are in, and nothing beyond that.
 
-            foreach (var currentContext in contexts)
-            {
-                var documentToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(currentContext).ConfigureAwait(false);
-                foreach (var (_, diagnostics) in documentToDiagnostics)
+            // Add a progress item for each context we need to process.
+            originalContext.Progress.AddItems(contexts.Length);
+
+            var documentsIdsAndNewRoots = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+                contexts,
+                produceItems: async static (currentContext, callback, args, cancellationToken) =>
                 {
-                    foreach (var diagnostic in diagnostics)
-                    {
-                        currentSolution = await provider.ProcessResultAsync(
-                            originalSolution, currentSolution, diagnostic, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-            }
+                    // Within a single context (a project) get all diagnostics, and then handle each diagnostic, one at
+                    // a time, to get the final state of the project.
+                    var (originalContext, provider) = args;
 
-            return currentSolution;
+                    // Complete a progress item as we finish each project.
+                    using var _ = originalContext.Progress.ItemCompletedScope();
+
+                    var originalSolution = originalContext.Solution;
+                    var currentSolution = originalSolution;
+
+                    var documentToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(currentContext).ConfigureAwait(false);
+                    foreach (var (_, diagnostics) in documentToDiagnostics)
+                    {
+                        foreach (var diagnostic in diagnostics)
+                        {
+                            currentSolution = await provider.ProcessResultAsync(
+                                originalSolution, currentSolution, diagnostic, cancellationToken).ConfigureAwait(false);
+                        }
+                    }
+
+                    // After we finish this context, report the changed documents to the consumeItems callback to process.
+                    // This also lets us release all the forked solution info we created above.
+                    foreach (var changedDocumentId in originalSolution.GetChangedDocuments(currentSolution))
+                    {
+                        var changedDocument = currentSolution.GetRequiredDocument(changedDocumentId);
+                        var changedRoot = await changedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                        callback((changedDocumentId, changedRoot));
+                    }
+                },
+                args: (originalContext, provider),
+                originalContext.CancellationToken).ConfigureAwait(false);
+
+            return originalContext.Solution.WithDocumentSyntaxRoots(documentsIdsAndNewRoots);
         }
     }
 }

@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -141,7 +142,7 @@ internal sealed class UseSimpleUsingStatementDiagnosticAnalyzer()
         {
             foreach (var statement in CSharpBlockFacts.Instance.GetExecutableBlockStatements(parentBlockLike))
             {
-                foreach (var symbol in semanticModel.GetExistingSymbols(statement, cancellationToken))
+                foreach (var symbol in semanticModel.GetAllDeclaredSymbols(statement, cancellationToken))
                     symbolNameToExistingSymbol.MultiAdd(symbol.Name, symbol);
             }
 

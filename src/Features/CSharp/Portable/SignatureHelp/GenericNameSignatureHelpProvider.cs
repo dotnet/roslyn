@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -31,11 +32,9 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
     {
     }
 
-    public override bool IsTriggerCharacter(char ch)
-        => ch is '<' or ',';
+    public override ImmutableArray<char> TriggerCharacters => ['<', ','];
 
-    public override bool IsRetriggerCharacter(char ch)
-        => ch == '>';
+    public override ImmutableArray<char> RetriggerCharacters => ['>'];
 
     protected virtual bool TryGetGenericIdentifier(
         SyntaxNode root, int position,
@@ -62,7 +61,7 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
     {
         return !token.IsKind(SyntaxKind.None) &&
             token.ValueText.Length == 1 &&
-            IsTriggerCharacter(token.ValueText[0]) &&
+            TriggerCharacters.Contains(token.ValueText[0]) &&
             token.Parent is TypeArgumentListSyntax &&
             token.Parent.Parent is GenericNameSyntax;
     }
@@ -120,7 +119,7 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
         var accessibleSymbols =
             symbols.WhereAsArray(s => s.GetArity() > 0)
                    .WhereAsArray(s => s is INamedTypeSymbol or IMethodSymbol)
-                   .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
+                   .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true)
                    .Sort(semanticModel, genericIdentifier.SpanStart);
 
         if (!accessibleSymbols.Any())

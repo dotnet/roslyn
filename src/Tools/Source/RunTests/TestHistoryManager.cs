@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +15,7 @@ using Microsoft.VisualStudio.Services.TestResults.WebApi;
 using Microsoft.VisualStudio.Services.WebApi;
 
 namespace RunTests;
+
 internal class TestHistoryManager
 {
     /// <summary>
@@ -24,7 +24,8 @@ internal class TestHistoryManager
     private const int MaxTestsReturnedPerRequest = 10_000;
 
     /// <summary>
-    /// Looks up the last passing test run for the current build and stage to estimate execution times for each test.
+    /// Looks up the last passing test run for the current build and stage to estimate execution times for each
+    /// tests. The dictionary is indexed by test full name.
     /// </summary>
     public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(Options options, CancellationToken cancellationToken)
     {
@@ -174,7 +175,9 @@ internal class TestHistoryManager
             var maxTime = build.FinishTime!.Value;
             var runsInBuild = await testClient.QueryTestRunsAsync2("public", minTime, maxTime, buildIds: new int[] { build.Id }, cancellationToken: cancellationToken);
 
-            var runForThisStage = runsInBuild.SingleOrDefault(r => r.Name.Contains(phaseName));
+            // If the last successful builds had multiple attempts then there are potentially multiple runs with 
+            // the same name. Take the last one as it will be the successful one.
+            var runForThisStage = runsInBuild.LastOrDefault(r => r.Name.Contains(phaseName));
             return runForThisStage;
         }
         catch (Exception ex)

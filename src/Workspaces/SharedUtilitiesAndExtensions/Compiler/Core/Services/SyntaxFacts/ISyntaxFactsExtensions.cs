@@ -159,9 +159,9 @@ internal static class ISyntaxFactsExtensions
     public static bool ContainsInterleavedDirective(
         this ISyntaxFacts syntaxFacts, ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken)
     {
-        if (nodes.Length > 0)
+        if (nodes is [var firstNode, ..] and [.., var lastNode])
         {
-            var span = TextSpan.FromBounds(nodes.First().Span.Start, nodes.Last().Span.End);
+            var span = TextSpan.FromBounds(firstNode.Span.Start, lastNode.Span.End);
 
             foreach (var node in nodes)
             {
@@ -804,6 +804,9 @@ internal static class ISyntaxFactsExtensions
 
     public static bool IsConditionalAccessExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         => node?.RawKind == syntaxFacts.SyntaxKinds.ConditionalAccessExpression;
+
+    public static bool IsFieldExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        => node?.RawKind == syntaxFacts.SyntaxKinds.FieldExpression;
 
     public static bool IsImplicitArrayCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         => node?.RawKind == syntaxFacts.SyntaxKinds.ImplicitArrayCreationExpression;

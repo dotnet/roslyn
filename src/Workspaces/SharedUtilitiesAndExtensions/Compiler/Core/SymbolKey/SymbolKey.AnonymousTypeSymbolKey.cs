@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -21,7 +20,7 @@ internal partial struct SymbolKey
 
             var properties = symbol.GetMembers().OfType<IPropertySymbol>().ToImmutableArray();
             var propertyTypes = properties.SelectAsArray(p => p.Type);
-            var propertyNames = properties.SelectAsArray(p => p.Name);
+            var propertyNames = properties.SelectAsArray(p => (string?)p.Name);
             var propertyIsReadOnly = properties.SelectAsArray(p => p.SetMethod == null);
             var propertyLocations = properties.SelectAsArray(p => p.Locations.FirstOrDefault());
 

@@ -16,12 +16,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 /// We have this builder to avoid creating collections unnecessarily.
 /// Expectation is that, most of time, most of analyzers doesn't have any diagnostics. so no need to actually create any objects.
 /// </summary>
-internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp version)
+internal struct DiagnosticAnalysisResultBuilder(Project project)
 {
     public readonly Project Project = project;
-    public readonly VersionStamp Version = version;
-
-    private HashSet<DocumentId>? _lazyDocumentsWithDiagnostics = null;
 
     private Dictionary<DocumentId, List<DiagnosticData>>? _lazySyntaxLocals = null;
     private Dictionary<DocumentId, List<DiagnosticData>>? _lazySemanticLocals = null;
@@ -29,19 +26,21 @@ internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp ve
 
     private List<DiagnosticData>? _lazyOthers = null;
 
-    public readonly ImmutableHashSet<DocumentId> DocumentIds => _lazyDocumentsWithDiagnostics == null ? [] : [.. _lazyDocumentsWithDiagnostics];
     public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SyntaxLocals => Convert(_lazySyntaxLocals);
     public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SemanticLocals => Convert(_lazySemanticLocals);
     public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> NonLocals => Convert(_lazyNonLocals);
     public readonly ImmutableArray<DiagnosticData> Others => _lazyOthers == null ? [] : [.. _lazyOthers];
 
-    public void AddExternalSyntaxDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
+    public void AddExternalSyntaxDiagnostics(DocumentId documentId, ImmutableArray<Diagnostic> diagnostics)
     {
         AddExternalDiagnostics(ref _lazySyntaxLocals, documentId, diagnostics);
     }
 
-    public void AddExternalSemanticDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
+    public void AddExternalSemanticDiagnostics(DocumentId documentId, ImmutableArray<Diagnostic> diagnostics)
     {
+        if (diagnostics.Length == 0)
+            return;
+
         // this is for diagnostic producer that doesnt use compiler based DiagnosticAnalyzer such as TypeScript.
         Contract.ThrowIfTrue(Project.SupportsCompilation);
 
@@ -49,7 +48,7 @@ internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp ve
     }
 
     private void AddExternalDiagnostics(
-        ref Dictionary<DocumentId, List<DiagnosticData>>? lazyLocals, DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
+        ref Dictionary<DocumentId, List<DiagnosticData>>? lazyLocals, DocumentId documentId, ImmutableArray<Diagnostic> diagnostics)
     {
         foreach (var diagnostic in diagnostics)
         {
@@ -62,24 +61,24 @@ internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp ve
                         if (documentId == diagnosticDocumentId)
                         {
                             // local diagnostics to a file
-                            AddDocumentDiagnostic(ref lazyLocals, Project.GetTextDocument(diagnosticDocumentId), diagnostic);
+                            AddDocumentDiagnostic(ref lazyLocals, Project.GetRequiredTextDocument(diagnosticDocumentId), diagnostic);
                         }
                         else if (diagnosticDocumentId != null)
                         {
                             // non local diagnostics to a file
-                            AddDocumentDiagnostic(ref _lazyNonLocals, Project.GetTextDocument(diagnosticDocumentId), diagnostic);
+                            AddDocumentDiagnostic(ref _lazyNonLocals, Project.GetRequiredTextDocument(diagnosticDocumentId), diagnostic);
                         }
                         else
                         {
                             // non local diagnostics without location
-                            AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
+                            AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
                         }
 
                         break;
                     }
 
                 case LocationKind.None:
-                    AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
+                    AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
                     break;
 
                 case LocationKind.SourceFile:
@@ -94,18 +93,13 @@ internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp ve
         }
     }
 
-    private void AddDocumentDiagnostic(ref Dictionary<DocumentId, List<DiagnosticData>>? map, TextDocument? document, Diagnostic diagnostic)
+    private static void AddDocumentDiagnostic(ref Dictionary<DocumentId, List<DiagnosticData>>? map, TextDocument document, Diagnostic diagnostic)
     {
-        if (document is null || !document.SupportsDiagnostics())
-        {
+        if (!document.SupportsDiagnostics())
             return;
-        }
 
         map ??= [];
-        map.GetOrAdd(document.Id, _ => []).Add(DiagnosticData.Create(diagnostic, document));
-
-        _lazyDocumentsWithDiagnostics ??= [];
-        _lazyDocumentsWithDiagnostics.Add(document.Id);
+        map.GetOrAdd(document.Id, static _ => []).Add(DiagnosticData.Create(diagnostic, document));
     }
 
     private void AddOtherDiagnostic(DiagnosticData data)
@@ -114,16 +108,16 @@ internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp ve
         _lazyOthers.Add(data);
     }
 
-    public void AddSyntaxDiagnostics(SyntaxTree tree, IEnumerable<Diagnostic> diagnostics)
+    public void AddSyntaxDiagnostics(SyntaxTree tree, ImmutableArray<Diagnostic> diagnostics)
         => AddDiagnostics(ref _lazySyntaxLocals, tree, diagnostics);
 
     public void AddDiagnosticTreatedAsLocalSemantic(Diagnostic diagnostic)
         => AddDiagnostic(ref _lazySemanticLocals, diagnostic.Location.SourceTree, diagnostic);
 
-    public void AddSemanticDiagnostics(SyntaxTree tree, IEnumerable<Diagnostic> diagnostics)
+    public void AddSemanticDiagnostics(SyntaxTree tree, ImmutableArray<Diagnostic> diagnostics)
         => AddDiagnostics(ref _lazySemanticLocals, tree, diagnostics);
 
-    public void AddCompilationDiagnostics(IEnumerable<Diagnostic> diagnostics)
+    public void AddCompilationDiagnostics(ImmutableArray<Diagnostic> diagnostics)
     {
         Dictionary<DocumentId, List<DiagnosticData>>? dummy = null;
         AddDiagnostics(ref dummy, tree: null, diagnostics: diagnostics);
@@ -146,13 +140,13 @@ internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp ve
                 }
                 else
                 {
-                    AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
+                    AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
                 }
 
                 break;
 
             case LocationKind.None:
-                AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
+                AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
                 break;
 
             case LocationKind.SourceFile:
@@ -160,17 +154,17 @@ internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp ve
                 if (tree != null && diagnosticTree == tree)
                 {
                     // local diagnostics to a file
-                    AddDocumentDiagnostic(ref lazyLocals, Project.GetDocument(diagnosticTree), diagnostic);
+                    AddDocumentDiagnostic(ref lazyLocals, Project.GetRequiredDocument(diagnosticTree), diagnostic);
                 }
                 else if (diagnosticTree != null)
                 {
                     // non local diagnostics to a file
-                    AddDocumentDiagnostic(ref _lazyNonLocals, Project.GetDocument(diagnosticTree), diagnostic);
+                    AddDocumentDiagnostic(ref _lazyNonLocals, Project.GetRequiredDocument(diagnosticTree), diagnostic);
                 }
                 else
                 {
                     // non local diagnostics without location
-                    AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
+                    AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
                 }
 
                 break;
@@ -186,7 +180,7 @@ internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp ve
     }
 
     private void AddDiagnostics(
-        ref Dictionary<DocumentId, List<DiagnosticData>>? lazyLocals, SyntaxTree? tree, IEnumerable<Diagnostic> diagnostics)
+        ref Dictionary<DocumentId, List<DiagnosticData>>? lazyLocals, SyntaxTree? tree, ImmutableArray<Diagnostic> diagnostics)
     {
         foreach (var diagnostic in diagnostics)
             AddDiagnostic(ref lazyLocals, tree, diagnostic);
