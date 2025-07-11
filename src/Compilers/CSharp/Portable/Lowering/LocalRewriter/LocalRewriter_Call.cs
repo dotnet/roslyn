@@ -875,6 +875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             switch (argIndex)
                             {
                                 case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
+                                case BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver:
                                     Debug.Assert(usesReceiver(argument));
                                     Debug.Assert(requiresInstanceReceiver);
                                     Debug.Assert(receiverTemp is object);
@@ -932,7 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         foreach (var placeholder in interpolationData.ArgumentPlaceholders)
                         {
-                            if (placeholder.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.InstanceParameter)
+                            if (placeholder.ArgumentIndex is BoundInterpolatedStringArgumentPlaceholder.InstanceParameter or BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver)
                             {
                                 return true;
                             }

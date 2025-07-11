@@ -882,16 +882,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 switch (name)
                 {
                     case null:
-                    case "" when !ContainingSymbol.RequiresInstanceReceiver() || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke }:
+                    case "" when !ContainingSymbol.RequiresInstanceReceiver()
+                                 || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke }
+                                 || ContainingSymbol.GetIsNewExtensionMember():
                         // Invalid data, bail
                         builder.Free();
                         return default;
 
                     case "":
+                        Debug.Assert(!ContainingSymbol.GetIsNewExtensionMember());
                         builder.Add(BoundInterpolatedStringArgumentPlaceholder.InstanceParameter);
                         break;
 
                     default:
+                        if (ContainingSymbol is { IsStatic: false, ContainingSymbol: TypeSymbol { IsExtension: true, ExtensionParameter.Name: var extensionParameterName } }
+                            && string.Equals(extensionParameterName, name, StringComparison.Ordinal))
+                        {
+                            builder.Add(BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver);
+                            break;
+                        }
+
                         var param = parameters.FirstOrDefault(static (p, name) => string.Equals(p.Name, name, StringComparison.Ordinal), name);
                         if (param is not null && (object)param != this)
                         {
