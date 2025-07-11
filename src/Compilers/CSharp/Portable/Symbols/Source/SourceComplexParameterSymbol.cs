@@ -1336,7 +1336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Name refers to the "this" instance parameter.
                     if (!ContainingSymbol.RequiresInstanceReceiver()
                         || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke or MethodKind.LambdaMethod }
-                                            or MethodSymbol { ContainingSymbol: TypeSymbol { IsExtension: true } })
+                        || ContainingSymbol.GetIsNewExtensionMember())
                     {
                         // '{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
                         diagnostics.Add(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location, ContainingSymbol);
@@ -1346,8 +1346,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return BoundInterpolatedStringArgumentPlaceholder.InstanceParameter;
                 }
 
-                if (extensionParameter?.Name == name)
+                if (string.Equals(extensionParameter?.Name, name, StringComparison.Ordinal))
                 {
+                    // We decode the indexes on the symbol that the extension parameter wraps, so to determine equality we need to compare against the underlying parameter.
+                    if (string.Equals(Name, name, StringComparison.Ordinal)
+                        && extensionParameter is ReceiverParameterSymbol { UnderlyingParameter: var underlying }
+                        && (object)underlying == this)
+                    {
+                        // InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.
+                        diagnostics.Add(ErrorCode.ERR_CannotUseSelfAsInterpolatedStringHandlerArgument, arguments.AttributeSyntaxOpt.Location);
+                        return null;
+                    }
+
                     if (!ContainingSymbol.RequiresInstanceReceiver())
                     {
                         // '{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.

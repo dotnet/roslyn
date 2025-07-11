@@ -31,9 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var originalIndexes = _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
-                Debug.Assert(originalIndexes.IsEmpty);
-                return originalIndexes;
+                Debug.Assert(_underlyingParameter.InterpolatedStringHandlerArgumentIndexes.IsEmpty);
+                return [];
             }
         }
 

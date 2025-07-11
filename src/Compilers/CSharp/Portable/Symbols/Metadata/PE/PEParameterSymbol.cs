@@ -884,12 +884,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     case null:
                     case "" when !ContainingSymbol.RequiresInstanceReceiver()
                                  || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke }
-                                                     or MethodSymbol { ContainingSymbol: TypeSymbol { IsExtension: true } }:
+                                 || ContainingSymbol.GetIsNewExtensionMember():
                         // Invalid data, bail
                         builder.Free();
                         return default;
 
                     case "":
+                        Debug.Assert(!ContainingSymbol.GetIsNewExtensionMember());
                         builder.Add(BoundInterpolatedStringArgumentPlaceholder.InstanceParameter);
                         break;
 
