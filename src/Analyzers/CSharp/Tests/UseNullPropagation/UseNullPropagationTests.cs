@@ -2629,7 +2629,7 @@ public sealed partial class UseNullPropagationTests
             OutputKind.ConsoleApplication,
             LanguageVersionExtensions.CSharpNext);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79338")]
     public Task TestNestedNullPropagation_DifferentForms()
         => TestInRegularAndScript1Async(
             """
