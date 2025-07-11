@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The declared scope. From source, this is from the <c>scope</c> keyword only.
         /// </summary>
-        internal ScopedKind DeclaredScope => _scope;
+        internal sealed override ScopedKind DeclaredScope => _scope;
 
         /// <summary>
         /// Reflects presence of `params` modifier in source

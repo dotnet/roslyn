@@ -430,6 +430,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract ScopedKind EffectiveScope { get; }
 
+        /// <summary>
+        /// Only valid for parameters declared in source.
+        /// </summary>
+        internal abstract ScopedKind DeclaredScope { get; }
+
         internal abstract bool HasUnscopedRefAttribute { get; }
 
         internal abstract bool UseUpdatedEscapeRules { get; }
