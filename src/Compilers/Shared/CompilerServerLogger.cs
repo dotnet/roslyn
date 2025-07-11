@@ -100,7 +100,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
     {
         // Environment variable, if set, to enable logging and set the file to log to.
         internal const string EnvironmentVariableName = "RoslynCommandLineLogFile";
-        internal const string LoggingPrefix = "---";
 
         private Stream? _loggingStream;
         private readonly string _identifier;
