@@ -346,23 +346,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var builder = ImmutableSegmentedHashSet.Create(1, 2, 3).ToBuilder();
             Assert.True(builder.TryGetValue(2, out _));
 
-            builder = ImmutableSegmentedHashSet.Create(CustomEqualityComparer.Instance, 1, 2, 3, 4).ToBuilder();
+            var comparer = EqualityComparer<int>.Create((x, y) => x >> 1 == y >> 1, x => (x >> 1).GetHashCode());
+
+            builder = ImmutableSegmentedHashSet.Create(comparer, 1, 2, 3, 4).ToBuilder();
             var existing = 0;
             Assert.True(builder.TryGetValue(5, out existing));
             Assert.Equal(4, existing);
-        }
-
-        private class CustomEqualityComparer : IEqualityComparer<int>
-        {
-            private CustomEqualityComparer()
-            {
-            }
-
-            public static CustomEqualityComparer Instance { get; } = new CustomEqualityComparer();
-
-            public bool Equals(int x, int y) => x >> 1 == y >> 1;
-
-            public int GetHashCode(int obj) => (obj >> 1).GetHashCode();
         }
     }
 }
