@@ -51,10 +51,11 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
     protected abstract SyntaxNode PostProcessElseIf(TIfStatementSyntax ifStatement, TStatementSyntax newWhenTrueStatement);
     protected abstract TElementBindingExpressionSyntax ElementBindingExpression(TElementBindingArgumentListSyntax argumentList);
 
-    protected abstract (TStatementSyntax whenTrueStatement, TExpressionSyntax whenPartMatch, TStatementSyntax? nullAssignmentOpt)? GetPartsOfIfStatement(
-        SemanticModel semanticModel, TIfStatementSyntax ifStatement, CancellationToken cancellationToken);
-    protected abstract (TExpressionSyntax conditionalPart, SyntaxNode whenPart)? GetPartsOfConditionalExpression(
-        SemanticModel semanticModel, TConditionalExpressionSyntax conditionalExpression, CancellationToken cancellationToken);
+    protected abstract AbstractUseNullPropagationDiagnosticAnalyzer<
+        TSyntaxKind, TExpressionSyntax, TStatementSyntax,
+        TConditionalExpressionSyntax, TBinaryExpressionSyntax, TInvocationExpressionSyntax,
+        TConditionalAccessExpressionSyntax, TElementAccessExpressionSyntax, TMemberAccessExpressionSyntax,
+        TIfStatementSyntax, TExpressionStatementSyntax> Analyzer { get; }
 
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseNullPropagationDiagnosticId];
@@ -135,12 +136,8 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
 
                 var unwrappedCurrentWhenPartToCheck = syntaxFacts.WalkDownParentheses(currentWhenPartToCheck);
 
-                var match = AbstractUseNullPropagationDiagnosticAnalyzer<
-                    TSyntaxKind, TExpressionSyntax, TStatementSyntax,
-                    TConditionalExpressionSyntax, TBinaryExpressionSyntax, TInvocationExpressionSyntax,
-                    TConditionalAccessExpressionSyntax, TElementAccessExpressionSyntax, TMemberAccessExpressionSyntax,
-                    TIfStatementSyntax, TExpressionStatementSyntax>.GetWhenPartMatch(
-                        syntaxFacts, semanticModel, (TExpressionSyntax)conditionalPart, (TExpressionSyntax)unwrappedCurrentWhenPartToCheck, cancellationToken);
+                var match = this.Analyzer.GetWhenPartMatch(
+                        syntaxFacts, semanticModel, conditionalPart, (TExpressionSyntax)unwrappedCurrentWhenPartToCheck, cancellationToken);
                 if (match == null)
                 {
                     return conditionalExpression;
@@ -291,5 +288,29 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
         }
 
         return null;
+    }
+
+    private (TStatementSyntax whenTrueStatement, TExpressionSyntax whenPartMatch, TStatementSyntax? nullAssignmentOpt)? GetPartsOfIfStatement(
+        SemanticModel semanticModel, TIfStatementSyntax ifStatement, CancellationToken cancellationToken)
+    {
+        var (_, referenceEqualsMethod) = this.Analyzer.GetAnalysisSymbols(semanticModel.Compilation);
+        var analysisResult = this.Analyzer.AnalyzeIfStatement(
+            semanticModel, referenceEqualsMethod, ifStatement, cancellationToken);
+        if (analysisResult is null)
+            return null;
+
+        return (analysisResult.Value.TrueStatement, analysisResult.Value.WhenPartMatch, analysisResult.Value.NullAssignmentOpt);
+    }
+
+    private (TExpressionSyntax conditionalPart, SyntaxNode whenPart)? GetPartsOfConditionalExpression(
+        SemanticModel semanticModel, TConditionalExpressionSyntax conditionalExpression, CancellationToken cancellationToken)
+    {
+        var (expressionType, referenceEqualsMethod) = this.Analyzer.GetAnalysisSymbols(semanticModel.Compilation);
+        var analysisResult = this.Analyzer.AnalyzeTernaryConditionalExpression(
+            semanticModel, expressionType, referenceEqualsMethod, conditionalExpression, cancellationToken);
+        if (analysisResult is null)
+            return null;
+
+        return (analysisResult.Value.ConditionPartToCheck, analysisResult.Value.WhenPartToCheck);
     }
 }

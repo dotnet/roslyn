@@ -31,6 +31,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
         Public Sub New()
         End Sub
 
+        Protected Overrides ReadOnly Property Analyzer As AbstractUseNullPropagationDiagnosticAnalyzer(Of SyntaxKind, ExpressionSyntax, ExecutableStatementSyntax, TernaryConditionalExpressionSyntax, BinaryExpressionSyntax, InvocationExpressionSyntax, ConditionalAccessExpressionSyntax, InvocationExpressionSyntax, MemberAccessExpressionSyntax, MultiLineIfBlockSyntax, ExpressionStatementSyntax) =
+            VisualBasicUseNullPropagationDiagnosticAnalyzer.Instance
+
         Protected Overrides Function PostProcessElseIf(ifStatement As MultiLineIfBlockSyntax, newWhenTrueStatement As ExecutableStatementSyntax) As SyntaxNode
             Throw ExceptionUtilities.Unreachable()
         End Function

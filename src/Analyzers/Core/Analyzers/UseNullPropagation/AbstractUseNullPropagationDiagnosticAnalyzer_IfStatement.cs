@@ -49,7 +49,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             ifStatement.GetFirstToken().GetLocation(),
             option.Notification,
             context.Options,
-            additionalLocations: null,
+            additionalLocations: [ifStatement.GetLocation()],
             properties: analysisResult.Properties));
 
     }

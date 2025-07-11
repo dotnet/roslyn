@@ -33,6 +33,9 @@ internal sealed class CSharpUseNullPropagationCodeFixProvider() : AbstractUseNul
     ExpressionStatementSyntax,
     BracketedArgumentListSyntax>
 {
+    protected override AbstractUseNullPropagationDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, StatementSyntax, ConditionalExpressionSyntax, BinaryExpressionSyntax, InvocationExpressionSyntax, ConditionalAccessExpressionSyntax, ElementAccessExpressionSyntax, MemberAccessExpressionSyntax, IfStatementSyntax, ExpressionStatementSyntax> Analyzer
+        => CSharpUseNullPropagationDiagnosticAnalyzer.Instance;
+
     private static BlockSyntax ReplaceBlockStatements(BlockSyntax block, StatementSyntax newInnerStatement)
         => block.WithStatements([newInnerStatement, .. block.Statements.Skip(1).Select(s => s.WithAdditionalAnnotations(Formatter.Annotation))]);
 
@@ -50,28 +53,4 @@ internal sealed class CSharpUseNullPropagationCodeFixProvider() : AbstractUseNul
 
     protected override ElementBindingExpressionSyntax ElementBindingExpression(BracketedArgumentListSyntax argumentList)
         => SyntaxFactory.ElementBindingExpression(argumentList);
-
-    protected override (StatementSyntax whenTrueStatement, ExpressionSyntax whenPartMatch, StatementSyntax? nullAssignmentOpt)? GetPartsOfIfStatement(
-        SemanticModel semanticModel, IfStatementSyntax ifStatement, CancellationToken cancellationToken)
-    {
-        var (_, referenceEqualsMethod) = CSharpUseNullPropagationDiagnosticAnalyzer.GetAnalysisSymbols(semanticModel.Compilation);
-        var analysisResult = CSharpUseNullPropagationDiagnosticAnalyzer.Instance.AnalyzeIfStatement(
-            semanticModel, referenceEqualsMethod, ifStatement, cancellationToken);
-        if (analysisResult is null)
-            return null;
-
-        return (analysisResult.Value.TrueStatement, analysisResult.Value.WhenPartMatch, analysisResult.Value.NullAssignmentOpt);
-    }
-
-    protected override (ExpressionSyntax conditionalPart, SyntaxNode whenPart)? GetPartsOfConditionalExpression(
-        SemanticModel semanticModel, ConditionalExpressionSyntax conditionalExpression, CancellationToken cancellationToken)
-    {
-        var (expressionType, referenceEqualsMethod) = CSharpUseNullPropagationDiagnosticAnalyzer.GetAnalysisSymbols(semanticModel.Compilation);
-        var analysisResult = CSharpUseNullPropagationDiagnosticAnalyzer.Instance.AnalyzeTernaryConditionalExpression(
-            semanticModel, expressionType, referenceEqualsMethod, conditionalExpression, cancellationToken);
-        if (analysisResult is null)
-            return null;
-
-        return (analysisResult.Value.ConditionPartToCheck, analysisResult.Value.WhenPartToCheck);
-    }
 }

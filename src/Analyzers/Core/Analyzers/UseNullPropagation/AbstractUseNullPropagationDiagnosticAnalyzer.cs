@@ -79,7 +79,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         ISyntaxFacts syntaxFacts, TExpressionSyntax conditionNode,
         [NotNullWhen(true)] out TExpressionSyntax? conditionPartToCheck, out bool isEquals);
 
-    public static (INamedTypeSymbol? expressionType, IMethodSymbol? referenceEqualsMethod) GetAnalysisSymbols(Compilation compilation)
+    public (INamedTypeSymbol? expressionType, IMethodSymbol? referenceEqualsMethod) GetAnalysisSymbols(Compilation compilation)
     {
         var expressionType = compilation.ExpressionOfTType();
         var objectType = compilation.GetSpecialType(SpecialType.System_Object);
@@ -146,7 +146,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             conditionalExpression.GetLocation(),
             option.Notification,
             context.Options,
-            additionalLocations: null,
+            additionalLocations: [conditionalExpression.GetLocation()],
             analysisResult.Value.Properties));
     }
 
@@ -369,7 +369,8 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         return conditionRightIsNull ? conditionLeft : conditionRight;
     }
 
-    internal static TExpressionSyntax? GetWhenPartMatch(
+#pragma warning disable CA1822 // Mark members as static.  Helper method that doesn't want to call through generic form.
+    public TExpressionSyntax? GetWhenPartMatch(
         ISyntaxFacts syntaxFacts,
         SemanticModel semanticModel,
         TExpressionSyntax expressionToMatch,
@@ -393,6 +394,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             current = unwrapped;
         }
     }
+#pragma warning restore CA1822 // Mark members as static
 
     private static TExpressionSyntax RemoveObjectCastIfAny(
         ISyntaxFacts syntaxFacts, SemanticModel semanticModel, TExpressionSyntax node, CancellationToken cancellationToken)
