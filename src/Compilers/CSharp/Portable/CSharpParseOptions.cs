@@ -162,9 +162,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public new CSharpParseOptions WithFeatures(IEnumerable<KeyValuePair<string, string>>? features)
         {
-            ImmutableDictionary<string, string> dictionary =
-                features?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase)
-                ?? ImmutableDictionary<string, string>.Empty;
+            if (Features == features)
+            {
+                return this;
+            }
+
+            if (features is not ImmutableDictionary<string, string> dictionary || dictionary.KeyComparer != StringComparer.OrdinalIgnoreCase)
+            {
+                dictionary = (features ?? []).ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+            }
 
             return new CSharpParseOptions(this) { _features = dictionary };
         }

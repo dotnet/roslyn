@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
@@ -331,6 +332,18 @@ internal sealed class DebuggingSession : IDisposable
             return [];
         }
 
+        // It is possible to compile a project with assembly references that have
+        // the same name but different versions, cultures, or public key tokens,
+        // although the SDK targets prevent such references in practice.
+        var initiallyReferencedAssemblies = ImmutableDictionary.CreateBuilder<string, OneOrMany<AssemblyIdentity>>();
+
+        foreach (var identity in baselineCompilation.ReferencedAssemblyNames)
+        {
+            initiallyReferencedAssemblies[identity.Name] = initiallyReferencedAssemblies.TryGetValue(identity.Name, out var value)
+                ? value.Add(identity)
+                : OneOrMany.Create(identity);
+        }
+
         lock (_projectEmitBaselinesGuard)
         {
             if (TryGetBaselinesContainingModuleVersion(moduleId, out existingBaselines))
@@ -340,7 +353,7 @@ internal sealed class DebuggingSession : IDisposable
                 return existingBaselines;
             }
 
-            var newBaseline = new ProjectBaseline(moduleId, baselineProject.Id, initialBaseline, generation: 0);
+            var newBaseline = new ProjectBaseline(moduleId, baselineProject.Id, initialBaseline, initiallyReferencedAssemblies.ToImmutableDictionary(), generation: 0);
             var baselines = (existingBaselines ?? []).Add(newBaseline);
 
             _projectBaselines[baselineProject.Id] = baselines;
