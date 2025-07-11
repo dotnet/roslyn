@@ -11,6 +11,4 @@ internal class ProjectSystemProjectCreationInfo
     public string? AssemblyName { get; set; }
     public string? FilePath { get; set; }
     public string? CompilationOutputAssemblyFilePath { get; set; }
-
-    public Guid TelemetryId { get; set; }
 }

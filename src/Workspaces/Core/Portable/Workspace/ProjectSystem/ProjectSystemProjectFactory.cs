@@ -130,7 +130,7 @@ internal sealed partial class ProjectSystemProjectFactory
                 SourceHashAlgorithms.Default, // will be updated when command line is set
                 outputFilePath: null,
                 filePath: creationInfo.FilePath,
-                telemetryId: creationInfo.TelemetryId,
+                telemetryId: default,
                 hasSdkCodeStyleAnalyzers: project.HasSdkCodeStyleAnalyzers),
             compilationOptions: null,
             parseOptions: null);
