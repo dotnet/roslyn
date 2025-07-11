@@ -56,7 +56,6 @@
 
     <!-- Exclude utilities that use System.Reflection.Metadata -->
     <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\BlobBuildingStream.cs" />
-    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\EmptyComparer.cs" />
     <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\IncrementalHashExtensions.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\IOrderedReadOnlySet.cs" Link="Collections\IOrderedReadOnlySet.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="FileSystem\PathKind.cs" />
