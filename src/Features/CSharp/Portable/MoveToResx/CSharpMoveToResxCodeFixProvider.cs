@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToResx
             => ImmutableArray.Create(MoveToResx.DiagnosticId);
 
         public override FixAllProvider GetFixAllProvider()
-            => WellKnownFixAllProviders.BatchFixer;
+            => new MoveToResxFixAllProvider();
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -43,18 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToResx
             if (node == null)
                 return;
 
-            var resxFile = FindBestResxFile(context.Document.Project, context.Document.FilePath);
-            if (resxFile != null)
-            {
-                var resxName = Path.GetFileName(resxFile.FilePath);
-                context.RegisterCodeFix(
-                    CodeAction.Create(
-                        title: $"Move string to .resx resource ({resxName})",
-                        createChangedSolution: c => MoveStringToResxAndReplaceLiteralAsync(context.Document, node, resxFile, c),
-                        equivalenceKey: "MoveStringToResxInMemory"),
-                    diagnostic);
-            }
-            else
+            var allResx = GetAllResxFiles(context.Document.Project).ToList();
+            if (allResx.Count == 0)
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
@@ -62,78 +52,71 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToResx
                         createChangedDocument: c => Task.FromResult(context.Document), // No-op
                         equivalenceKey: "NoResxFileFound"),
                     diagnostic);
+                return;
             }
-        }
 
-        private static TextDocument? FindBestResxFile(Project project, string? documentPath)
-        {
-            var allResx = project.AdditionalDocuments
-                .Where(f => f.FilePath != null && string.Equals(".resx", Path.GetExtension(f.FilePath), StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            // Order .resx files by directory distance to the code file
+            var codeFilePath = context.Document.FilePath;
+            var orderedResx = codeFilePath != null
+                ? allResx.OrderBy(f => DirectoryDistance(codeFilePath, f.FilePath)).ToList()
+                : allResx;
 
-            if (allResx.Count == 0 || documentPath == null)
-                return allResx.FirstOrDefault();
-
-            var docDir = Path.GetDirectoryName(documentPath);
-            var preferredNames = new[] { "UIResources", "Errors", "Resources", "Strings" };
-
-            // 1. Look for .resx in the same folder with preferred names
-            var inSameDir = allResx.Where(f => Path.GetDirectoryName(f.FilePath) == docDir).ToList();
-            foreach (var preferred in preferredNames)
-            {
-                var match = inSameDir.FirstOrDefault(f => Path.GetFileNameWithoutExtension(f.FilePath).Equals(preferred, StringComparison.OrdinalIgnoreCase));
-                if (match != null)
-                    return match;
-            }
-            // 2. Look for .resx in the same folder with any name
-            if (inSameDir.Count > 0)
-                return inSameDir.First();
-
-            // 3. Look for .resx in parent folders (upward scan), prefer preferred names
-            var currentDir = docDir;
-            while (!string.IsNullOrEmpty(currentDir))
-            {
-                foreach (var preferred in preferredNames)
+            var nestedActions = orderedResx
+                .Select(resx =>
                 {
-                    var match = allResx.FirstOrDefault(f =>
-                        Path.GetDirectoryName(f.FilePath).Equals(currentDir, StringComparison.OrdinalIgnoreCase) &&
-                        Path.GetFileNameWithoutExtension(f.FilePath).Equals(preferred, StringComparison.OrdinalIgnoreCase));
-                    if (match != null)
-                        return match;
-                }
-                currentDir = Path.GetDirectoryName(currentDir);
-            }
+                    var resxName = Path.GetFileName(resx.FilePath);
+                    return CodeAction.Create(
+                        title: resxName,
+                        createChangedSolution: c => MoveStringToResxAndReplaceLiteralAsync(context.Document, node, resx, c),
+                        equivalenceKey: $"MoveStringTo_{resxName}");
+                })
+                .ToImmutableArray();
 
-            // 4. Fallback: any .resx in the project
-            return allResx.FirstOrDefault();
+            context.RegisterCodeFix(
+                CodeAction.Create(
+                    "Move string to .resx resource",
+                    nestedActions,
+                    isInlinable: false),
+                diagnostic);
         }
 
-        //private static IEnumerable<TextDocument> GetResxAdditionalFiles(Project project)
-        //{
-        //    foreach (var file in project.AdditionalDocuments)
-        //    {
-        //        if (file.FilePath != null &&
-        //            string.Equals(".resx", Path.GetExtension(file.FilePath), StringComparison.OrdinalIgnoreCase))
-        //        {
-        //            yield return file;
-        //        }
-        //    }
-        //}
+        private static IEnumerable<TextDocument> GetAllResxFiles(Project project)
+        {
+            return project.AdditionalDocuments
+                .Where(f => f.FilePath != null && string.Equals(".resx", Path.GetExtension(f.FilePath), StringComparison.OrdinalIgnoreCase));
+        }
 
-        // This method parses, updates, and saves the resx file in memory, and replaces the string literal with a resource reference
+        // Lower is closer. 0 = same dir, 1 = parent/child, etc.
+        private static int DirectoryDistance(string file1, string file2)
+        {
+            if (file1 == null || file2 == null)
+                return int.MaxValue;
+            var dir1 = Path.GetDirectoryName(file1);
+            var dir2 = Path.GetDirectoryName(file2);
+            if (dir1 == null || dir2 == null)
+                return int.MaxValue;
+            if (string.Equals(dir1, dir2, StringComparison.OrdinalIgnoreCase))
+                return 0;
+
+            // Split into parts
+            var parts1 = dir1.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var parts2 = dir2.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            int common = 0;
+            while (common < parts1.Length && common < parts2.Length && string.Equals(parts1[common], parts2[common], StringComparison.OrdinalIgnoreCase))
+                common++;
+            // Distance = steps up + steps down
+            return (parts1.Length - common) + (parts2.Length - common);
+        }
+
         private static async Task<Solution> MoveStringToResxAndReplaceLiteralAsync(
             Document document,
             LiteralExpressionSyntax stringLiteral,
             TextDocument resxFile,
             CancellationToken cancellationToken)
         {
-            // 1. Get the SourceText from the resx AdditionalDocument
             var resxSourceText = await resxFile.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            // 2. Parse the SourceText with XDocument
             var xdoc = XDocument.Parse(resxSourceText.ToString());
 
-            // 3. Add or update the resource entry
             var value = stringLiteral.Token.ValueText;
             var name = ToDeterministicResourceKey(value);
 
@@ -153,7 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToResx
                 dataElement.Element("value")!.Value = value;
             }
 
-            // 4. Serialize the updated XDocument
             string updatedResxText;
             using (var sw = new StringWriter())
             {
@@ -161,27 +143,21 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToResx
                 updatedResxText = sw.ToString();
             }
 
-            // 5. Create new SourceText
             var newResxSourceText = SourceText.From(updatedResxText, resxSourceText.Encoding);
-
-            // 6. Update the AdditionalDocument in the Solution (in memory)
             var newSolution = document.Project.Solution.WithAdditionalDocumentText(resxFile.Id, newResxSourceText);
 
-            // 7. Replace the string literal in the code with a resource reference, including namespace if available
             var resourceClass = Path.GetFileNameWithoutExtension(resxFile.Name);
             var ns = document.Project.DefaultNamespace;
             string resourceAccessString = !string.IsNullOrEmpty(ns)
                 ? $"{ns}.{resourceClass}.{name}"
                 : $"{resourceClass}.{name}";
 
-            // After replacing the string literal:
             var resourceAccess = SyntaxFactory.ParseExpression(resourceAccessString).WithTriviaFrom(stringLiteral);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(stringLiteral, resourceAccess);
             newSolution = newSolution.WithDocumentSyntaxRoot(document.Id, newRoot);
 
-            // 8. Return the updated Solution
             return newSolution;
         }
 
@@ -190,7 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToResx
             if (string.IsNullOrWhiteSpace(value))
                 return "emptyString";
 
-            // Split the string into words using non-alphanumeric as delimiters
             var words = new List<string>();
             var sb = new StringBuilder();
             foreach (char c in value)
@@ -208,11 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToResx
             if (sb.Length > 0)
                 words.Add(sb.ToString().ToLowerInvariant());
 
-            // Limit to maxWords
             if (words.Count > maxWords)
                 words = words.Take(maxWords).ToList();
 
-            // Convert to lowerCamelCase
             var keyBuilder = new StringBuilder();
             for (int i = 0; i < words.Count; i++)
             {
@@ -230,6 +203,80 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToResx
                 key = "_" + key;
 
             return key;
+        }
+
+        private class MoveToResxFixAllProvider : FixAllProvider
+        {
+            public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
+                => new[] { FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution };
+
+            public override async Task<CodeAction?> GetFixAsync(FixAllContext context)
+            {
+                // Only support FixAll in Document for simplicity
+                if (context.Document == null)
+                    return null;
+
+                var diagnostics = (await context.GetDocumentDiagnosticsToFixAsync()).Values.SelectMany(x => x).ToList();
+                if (diagnostics.Count == 0)
+                    return null;
+
+                var document = context.Document;
+                var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+                var project = document.Project;
+                var allResx = GetAllResxFiles(project).ToList();
+                if (allResx.Count == 0)
+                    return null;
+                var codeFilePath = document.FilePath;
+                var resx = codeFilePath != null ? allResx.OrderBy(f => DirectoryDistance(codeFilePath, f.FilePath)).First() : allResx.First();
+                var resxSourceText = await resx.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+                var xdoc = XDocument.Parse(resxSourceText.ToString());
+                var newRoot = root;
+                var updated = false;
+                foreach (var diagnostic in diagnostics)
+                {
+                    var node = root.FindNode(diagnostic.Location.SourceSpan) as LiteralExpressionSyntax;
+                    if (node == null)
+                        continue;
+                    var value = node.Token.ValueText;
+                    var name = ToDeterministicResourceKey(value);
+                    var dataElement = xdoc.Root.Elements("data").FirstOrDefault(e => (string)e.Attribute("name") == name);
+                    if (dataElement == null)
+                    {
+                        dataElement = new XElement("data",
+                            new XAttribute("name", name),
+                            new XAttribute(XNamespace.Xml + "space", "preserve"),
+                            new XElement("value", value));
+                        xdoc.Root.Add(dataElement);
+                    }
+                    else
+                    {
+                        dataElement.Element("value")!.Value = value;
+                    }
+                    var resourceClass = Path.GetFileNameWithoutExtension(resx.Name);
+                    var ns = project.DefaultNamespace;
+                    string resourceAccessString = !string.IsNullOrEmpty(ns)
+                        ? $"{ns}.{resourceClass}.{name}"
+                        : $"{resourceClass}.{name}";
+                    var resourceAccess = SyntaxFactory.ParseExpression(resourceAccessString).WithTriviaFrom(node);
+                    newRoot = newRoot.ReplaceNode(node, resourceAccess);
+                    updated = true;
+                }
+                if (!updated)
+                    return null;
+                string updatedResxText;
+                using (var sw = new StringWriter())
+                {
+                    xdoc.Save(sw);
+                    updatedResxText = sw.ToString();
+                }
+                var newResxSourceText = SourceText.From(updatedResxText, resxSourceText.Encoding);
+                var newSolution = document.Project.Solution.WithAdditionalDocumentText(resx.Id, newResxSourceText)
+                    .WithDocumentSyntaxRoot(document.Id, newRoot);
+                return CodeAction.Create(
+                    "Move all strings to .resx resource",
+                    ct => Task.FromResult(newSolution),
+                    nameof(MoveToResxFixAllProvider));
+            }
         }
     }
 }
