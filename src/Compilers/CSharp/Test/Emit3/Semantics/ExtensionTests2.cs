@@ -5567,6 +5567,4515 @@ static class E
     }
 
     [Fact]
+    public void PropertyAccess_CompoundAssignment_01()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        this.P1 += Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F.P1 += Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       37 (0x25)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  dup
+  IL_0007:  ldobj      ""S1""
+  IL_000c:  call       ""int E.get_P1(S1)""
+  IL_0011:  call       ""int Program.Get1()""
+  IL_0016:  add
+  IL_0017:  stloc.0
+  IL_0018:  ldobj      ""S1""
+  IL_001d:  ldloc.0
+  IL_001e:  call       ""void E.set_P1(S1, int)""
+  IL_0023:  nop
+  IL_0024:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""S1""
+  IL_0007:  call       ""int E.get_P1(S1)""
+  IL_000c:  call       ""int Program.Get1()""
+  IL_0011:  add
+  IL_0012:  stloc.0
+  IL_0013:  ldarg.0
+  IL_0014:  ldobj      ""S1""
+  IL_0019:  ldloc.0
+  IL_001a:  call       ""void E.set_P1(S1, int)""
+  IL_001f:  nop
+  IL_0020:  ret
+}
+");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_CompoundAssignment_02(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        this.P1 += Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F.P1 += Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  dup
+  IL_0007:  call       ""int E.get_P1(" + refKind + @" S1)""
+  IL_000c:  call       ""int Program.Get1()""
+  IL_0011:  add
+  IL_0012:  call       ""void E.set_P1(" + refKind + @" S1, int)""
+  IL_0017:  nop
+  IL_0018:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldarg.0
+  IL_0003:  call       ""int E.get_P1(" + refKind + @" S1)""
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  add
+  IL_000e:  call       ""void E.set_P1(" + refKind + @" S1, int)""
+  IL_0013:  nop
+  IL_0014:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1 { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        default(S1).P1 += 1;
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2);
+        switch (refKind)
+        {
+            case "ref":
+                comp2.VerifyDiagnostics(
+                    // (15,9): error CS1510: A ref or out value must be an assignable variable
+                    //         default(S1).P1 += 1;
+                    Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 9)
+                    );
+                break;
+            case "ref readonly":
+                comp2.VerifyDiagnostics(
+                    // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                    //         default(S1).P1 += 1;
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
+                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                    //         default(S1).P1 += 1;
+                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
+                    );
+                break;
+            case "in":
+                comp2.VerifyDiagnostics(
+                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                    //         default(S1).P1 += 1;
+                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
+                    );
+                break;
+            default:
+                throw ExceptionUtilities.UnexpectedValue(refKind);
+        }
+    }
+
+    [Fact]
+    public void PropertyAccess_CompoundAssignment_03()
+    {
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F = new C1 { F1 = Program.F.F1 + 1 };
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F.P1 += Get1();
+    }
+
+    static int Get1()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C1 Program.F""
+  IL_0006:  dup
+  IL_0007:  call       ""int E.get_P1(C1)""
+  IL_000c:  call       ""int Program.Get1()""
+  IL_0011:  add
+  IL_0012:  call       ""void E.set_P1(C1, int)""
+  IL_0017:  nop
+  IL_0018:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_CompoundAssignment_04()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f.P1 += Get1();
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f.P1 += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        Program<T>.F.P1 += await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                T V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.2
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldobj      ""T""
+  IL_0025:  call       ""int E.get_P1<T>(T)""
+  IL_002a:  call       ""int Program.Get1()""
+  IL_002f:  add
+  IL_0030:  stloc.3
+  IL_0031:  ldobj      ""T""
+  IL_0036:  ldloc.3
+  IL_0037:  call       ""void E.set_P1<T>(T, int)""
+  IL_003c:  nop
+  IL_003d:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  ldobj      ""T""
+  IL_0008:  call       ""int E.get_P1<T>(T)""
+  IL_000d:  call       ""int Program.Get1()""
+  IL_0012:  add
+  IL_0013:  stloc.0
+  IL_0014:  ldobj      ""T""
+  IL_0019:  ldloc.0
+  IL_001a:  call       ""void E.set_P1<T>(T, int)""
+  IL_001f:  nop
+  IL_0020:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_CompoundAssignment_05()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f.P1 += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    static async Task Test3<T>() where T : struct
+    {
+        Program<T>.F.P1 += await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  call       ""int E.get_P1<T>(ref T)""
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  add
+  IL_000e:  call       ""void E.set_P1<T>(ref T, int)""
+  IL_0013:  nop
+  IL_0014:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int P1 { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        default(T).P1 += 1;
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2);
+        comp2.VerifyDiagnostics(
+            // (13,9): error CS1510: A ref or out value must be an assignable variable
+            //         default(T).P1 += 1;
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 9),
+            // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
+            // (31,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
+            );
+    }
+
+    [Fact]
+    public void PropertyAccess_CompoundAssignment_06()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test1(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test2(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        await Test3<C1>();
+        System.Console.Write(Program<C1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f.P1 += Get1();
+    }
+
+    static void Test2<T>(ref T f) where T : class
+    {
+        f.P1 += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        Program<T>.F.P1 += await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123125:123123125:123123125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                T V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.2
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldobj      ""T""
+  IL_0025:  call       ""int E.get_P1<T>(T)""
+  IL_002a:  call       ""int Program.Get1()""
+  IL_002f:  add
+  IL_0030:  stloc.3
+  IL_0031:  ldobj      ""T""
+  IL_0036:  ldloc.3
+  IL_0037:  call       ""void E.set_P1<T>(T, int)""
+  IL_003c:  nop
+  IL_003d:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  dup
+  IL_0008:  call       ""int E.get_P1<T>(T)""
+  IL_000d:  call       ""int Program.Get1()""
+  IL_0012:  add
+  IL_0013:  call       ""void E.set_P1<T>(T, int)""
+  IL_0018:  nop
+  IL_0019:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_PrefixIncrementAssignment_01()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        ++this.P1;
+    }
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F.F1++;
+        return x;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        ++F.P1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  dup
+  IL_0007:  ldobj      ""S1""
+  IL_000c:  call       ""S2 E.get_P1(S1)""
+  IL_0011:  call       ""S2 S2.op_Increment(S2)""
+  IL_0016:  stloc.0
+  IL_0017:  ldobj      ""S1""
+  IL_001c:  ldloc.0
+  IL_001d:  call       ""void E.set_P1(S1, S2)""
+  IL_0022:  nop
+  IL_0023:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""S1""
+  IL_0007:  call       ""S2 E.get_P1(S1)""
+  IL_000c:  call       ""S2 S2.op_Increment(S2)""
+  IL_0011:  stloc.0
+  IL_0012:  ldarg.0
+  IL_0013:  ldobj      ""S1""
+  IL_0018:  ldloc.0
+  IL_0019:  call       ""void E.set_P1(S1, S2)""
+  IL_001e:  nop
+  IL_001f:  ret
+}
+");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_PrefixIncrementAssignment_02(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        ++this.P1;
+    }
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F.F1++;
+        return x;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        ++F.P1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  dup
+  IL_0007:  call       ""S2 E.get_P1(" + refKind + @" S1)""
+  IL_000c:  call       ""S2 S2.op_Increment(S2)""
+  IL_0011:  stloc.0
+  IL_0012:  ldloc.0
+  IL_0013:  call       ""void E.set_P1(" + refKind + @" S1, S2)""
+  IL_0018:  nop
+  IL_0019:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""S2 E.get_P1(" + refKind + @" S1)""
+  IL_0007:  call       ""S2 S2.op_Increment(S2)""
+  IL_000c:  stloc.0
+  IL_000d:  ldarg.0
+  IL_000e:  ldloc.0
+  IL_000f:  call       ""void E.set_P1(" + refKind + @" S1, S2)""
+  IL_0014:  nop
+  IL_0015:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1 { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        ++default(S1).P1;
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2);
+        switch (refKind)
+        {
+            case "ref":
+                comp2.VerifyDiagnostics(
+                    // (15,11): error CS1510: A ref or out value must be an assignable variable
+                    //         ++default(S1).P1;
+                    Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 11)
+                    );
+                break;
+            case "ref readonly":
+                comp2.VerifyDiagnostics(
+                    // (15,11): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                    //         ++default(S1).P1;
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 11),
+                    // (15,11): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                    //         ++default(S1).P1;
+                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 11)
+                    );
+                break;
+            case "in":
+                comp2.VerifyDiagnostics(
+                    // (15,11): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                    //         ++default(S1).P1;
+                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 11)
+                    );
+                break;
+            default:
+                throw ExceptionUtilities.UnexpectedValue(refKind);
+        }
+    }
+
+    [Fact]
+    public void PropertyAccess_PrefixIncrementAssignment_03()
+    {
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F = new C1 { F1 = Program.F.F1 + 1 };
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return x;
+    }
+}
+
+class Program
+{
+    public static C1 F = new C1 { F1 = 123 };
+
+    static void Main()
+    {
+        Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        ++F.P1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C1 Program.F""
+  IL_0006:  dup
+  IL_0007:  call       ""S2 E.get_P1(C1)""
+  IL_000c:  call       ""S2 S2.op_Increment(S2)""
+  IL_0011:  stloc.0
+  IL_0012:  ldloc.0
+  IL_0013:  call       ""void E.set_P1(C1, S2)""
+  IL_0018:  nop
+  IL_0019:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_PrefixIncrementAssignment_04()
+    {
+        var src = """
+static class E
+{
+    extension<T>(T x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program.F.F1++;
+                return default;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F.F1++;
+        return x;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        ++f.P1;
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        ++f.P1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       61 (0x3d)
+  .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                S2 V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldobj      ""T""
+  IL_0025:  call       ""S2 E.get_P1<T>(T)""
+  IL_002a:  call       ""S2 S2.op_Increment(S2)""
+  IL_002f:  stloc.2
+  IL_0030:  ldobj      ""T""
+  IL_0035:  ldloc.2
+  IL_0036:  call       ""void E.set_P1<T>(T, S2)""
+  IL_003b:  nop
+  IL_003c:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  ldobj      ""T""
+  IL_0008:  call       ""S2 E.get_P1<T>(T)""
+  IL_000d:  call       ""S2 S2.op_Increment(S2)""
+  IL_0012:  stloc.0
+  IL_0013:  ldobj      ""T""
+  IL_0018:  ldloc.0
+  IL_0019:  call       ""void E.set_P1<T>(T, S2)""
+  IL_001e:  nop
+  IL_001f:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_PrefixIncrementAssignment_05()
+    {
+        var src = """
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program.F.F1++;
+                return default;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F.F1++;
+        return x;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        ++f.P1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  call       ""S2 E.get_P1<T>(ref T)""
+  IL_0008:  call       ""S2 S2.op_Increment(S2)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  call       ""void E.set_P1<T>(ref T, S2)""
+  IL_0014:  nop
+  IL_0015:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int P1 { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        ++default(T).P1;
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2);
+        comp2.VerifyDiagnostics(
+            // (13,11): error CS1510: A ref or out value must be an assignable variable
+            //         ++default(T).P1;
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 11),
+            // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
+            // (31,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
+            );
+    }
+
+    [Fact]
+    public void PropertyAccess_PrefixIncrementAssignment_06()
+    {
+        var src = """
+static class E
+{
+    extension<T>(T x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                Program.F = new C1 { F1 = Program.F.F1 + 1 };
+                return default;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return x;
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        ++f.P1;
+    }
+
+    static void Test2<T>(ref T f) where T : class
+    {
+        ++f.P1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123125:123123125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       61 (0x3d)
+  .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                S2 V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldobj      ""T""
+  IL_0025:  call       ""S2 E.get_P1<T>(T)""
+  IL_002a:  call       ""S2 S2.op_Increment(S2)""
+  IL_002f:  stloc.2
+  IL_0030:  ldobj      ""T""
+  IL_0035:  ldloc.2
+  IL_0036:  call       ""void E.set_P1<T>(T, S2)""
+  IL_003b:  nop
+  IL_003c:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  dup
+  IL_0008:  call       ""S2 E.get_P1<T>(T)""
+  IL_000d:  call       ""S2 S2.op_Increment(S2)""
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.0
+  IL_0014:  call       ""void E.set_P1<T>(T, S2)""
+  IL_0019:  nop
+  IL_001a:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_PostfixIncrementAssignment_01()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        this.P1++;
+    }
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F.F1++;
+        return x;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F.P1++;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  dup
+  IL_0007:  ldobj      ""S1""
+  IL_000c:  call       ""S2 E.get_P1(S1)""
+  IL_0011:  call       ""S2 S2.op_Increment(S2)""
+  IL_0016:  stloc.0
+  IL_0017:  ldobj      ""S1""
+  IL_001c:  ldloc.0
+  IL_001d:  call       ""void E.set_P1(S1, S2)""
+  IL_0022:  nop
+  IL_0023:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""S1""
+  IL_0007:  call       ""S2 E.get_P1(S1)""
+  IL_000c:  call       ""S2 S2.op_Increment(S2)""
+  IL_0011:  stloc.0
+  IL_0012:  ldarg.0
+  IL_0013:  ldobj      ""S1""
+  IL_0018:  ldloc.0
+  IL_0019:  call       ""void E.set_P1(S1, S2)""
+  IL_001e:  nop
+  IL_001f:  ret
+}
+");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_PostfixIncrementAssignment_02(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        this.P1++;
+    }
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F.F1++;
+        return x;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F.P1++;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  dup
+  IL_0007:  call       ""S2 E.get_P1(" + refKind + @" S1)""
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""S2 S2.op_Increment(S2)""
+  IL_0013:  call       ""void E.set_P1(" + refKind + @" S1, S2)""
+  IL_0018:  nop
+  IL_0019:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""S2 E.get_P1(" + refKind + @" S1)""
+  IL_0007:  stloc.0
+  IL_0008:  ldarg.0
+  IL_0009:  ldloc.0
+  IL_000a:  call       ""S2 S2.op_Increment(S2)""
+  IL_000f:  call       ""void E.set_P1(" + refKind + @" S1, S2)""
+  IL_0014:  nop
+  IL_0015:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1 { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        default(S1).P1++;
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2);
+        switch (refKind)
+        {
+            case "ref":
+                comp2.VerifyDiagnostics(
+                    // (15,9): error CS1510: A ref or out value must be an assignable variable
+                    //         default(S1).P1++;
+                    Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 9)
+                    );
+                break;
+            case "ref readonly":
+                comp2.VerifyDiagnostics(
+                    // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                    //         default(S1).P1++;
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
+                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                    //         default(S1).P1++;
+                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
+                    );
+                break;
+            case "in":
+                comp2.VerifyDiagnostics(
+                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                    //         default(S1).P1++;
+                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
+                    );
+                break;
+            default:
+                throw ExceptionUtilities.UnexpectedValue(refKind);
+        }
+    }
+
+    [Fact]
+    public void PropertyAccess_PostfixIncrementAssignment_03()
+    {
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F = new C1 { F1 = Program.F.F1 + 1 };
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return x;
+    }
+}
+
+class Program
+{
+    public static C1 F = new C1 { F1 = 123 };
+
+    static void Main()
+    {
+        Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F.P1++;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C1 Program.F""
+  IL_0006:  dup
+  IL_0007:  call       ""S2 E.get_P1(C1)""
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""S2 S2.op_Increment(S2)""
+  IL_0013:  call       ""void E.set_P1(C1, S2)""
+  IL_0018:  nop
+  IL_0019:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_PostfixIncrementAssignment_04()
+    {
+        var src = """
+static class E
+{
+    extension<T>(T x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program.F.F1++;
+                return default;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F.F1++;
+        return x;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f.P1++;
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f.P1++;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       61 (0x3d)
+  .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                S2 V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldobj      ""T""
+  IL_0025:  call       ""S2 E.get_P1<T>(T)""
+  IL_002a:  call       ""S2 S2.op_Increment(S2)""
+  IL_002f:  stloc.2
+  IL_0030:  ldobj      ""T""
+  IL_0035:  ldloc.2
+  IL_0036:  call       ""void E.set_P1<T>(T, S2)""
+  IL_003b:  nop
+  IL_003c:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  ldobj      ""T""
+  IL_0008:  call       ""S2 E.get_P1<T>(T)""
+  IL_000d:  call       ""S2 S2.op_Increment(S2)""
+  IL_0012:  stloc.0
+  IL_0013:  ldobj      ""T""
+  IL_0018:  ldloc.0
+  IL_0019:  call       ""void E.set_P1<T>(T, S2)""
+  IL_001e:  nop
+  IL_001f:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_PostfixIncrementAssignment_05()
+    {
+        var src = """
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program.F.F1++;
+                return default;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F.F1++;
+        return x;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f.P1++;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  call       ""S2 E.get_P1<T>(ref T)""
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  call       ""S2 S2.op_Increment(S2)""
+  IL_000f:  call       ""void E.set_P1<T>(ref T, S2)""
+  IL_0014:  nop
+  IL_0015:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int P1 { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        default(T).P1++;
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2);
+        comp2.VerifyDiagnostics(
+            // (13,9): error CS1510: A ref or out value must be an assignable variable
+            //         default(T).P1++;
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 9),
+            // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
+            // (31,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
+            );
+    }
+
+    [Fact]
+    public void PropertyAccess_PostfixIncrementAssignment_06()
+    {
+        var src = """
+static class E
+{
+    extension<T>(T x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                Program.F = new C1 { F1 = Program.F.F1 + 1 };
+                return default;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return x;
+    }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test1(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f.P1++;
+    }
+
+    static void Test2<T>(ref T f) where T : class
+    {
+        f.P1++;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123125:123123125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       61 (0x3d)
+  .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                S2 V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldobj      ""T""
+  IL_0025:  call       ""S2 E.get_P1<T>(T)""
+  IL_002a:  call       ""S2 S2.op_Increment(S2)""
+  IL_002f:  stloc.2
+  IL_0030:  ldobj      ""T""
+  IL_0035:  ldloc.2
+  IL_0036:  call       ""void E.set_P1<T>(T, S2)""
+  IL_003b:  nop
+  IL_003c:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  dup
+  IL_0008:  call       ""S2 E.get_P1<T>(T)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  call       ""S2 S2.op_Increment(S2)""
+  IL_0014:  call       ""void E.set_P1<T>(T, S2)""
+  IL_0019:  nop
+  IL_001a:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_ConditionalAssignment_01()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public object P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+
+        public int? P2
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test1()
+    {
+        this.P1 ??= Program.Get1();
+    }
+
+    public void Test2()
+    {
+        this.P2 ??= Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test1();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test2();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1()
+    {
+        F.P1 ??= Get1();
+    }
+
+    static void Test2()
+    {
+        F.P2 ??= Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125:123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       47 (0x2f)
+  .maxstack  3
+  .locals init (S1& V_0,
+                object V_1,
+                object V_2)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldobj      ""S1""
+  IL_000d:  call       ""object E.get_P1(S1)""
+  IL_0012:  brtrue.s   IL_002e
+  IL_0014:  call       ""int Program.Get1()""
+  IL_0019:  box        ""int""
+  IL_001e:  stloc.1
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""S1""
+  IL_0025:  ldloc.1
+  IL_0026:  dup
+  IL_0027:  stloc.2
+  IL_0028:  call       ""void E.set_P1(S1, object)""
+  IL_002d:  nop
+  IL_002e:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test1",
+@"
+{
+  // Code size       41 (0x29)
+  .maxstack  3
+  .locals init (object V_0,
+                object V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""S1""
+  IL_0007:  call       ""object E.get_P1(S1)""
+  IL_000c:  brtrue.s   IL_0028
+  IL_000e:  call       ""int Program.Get1()""
+  IL_0013:  box        ""int""
+  IL_0018:  stloc.0
+  IL_0019:  ldarg.0
+  IL_001a:  ldobj      ""S1""
+  IL_001f:  ldloc.0
+  IL_0020:  dup
+  IL_0021:  stloc.1
+  IL_0022:  call       ""void E.set_P1(S1, object)""
+  IL_0027:  nop
+  IL_0028:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       66 (0x42)
+  .maxstack  3
+  .locals init (S1& V_0,
+                int? V_1,
+                int V_2,
+                int? V_3)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldobj      ""S1""
+  IL_000d:  call       ""int? E.get_P2(S1)""
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  call       ""int int?.GetValueOrDefault()""
+  IL_001a:  stloc.2
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  call       ""bool int?.HasValue.get""
+  IL_0022:  brtrue.s   IL_0041
+  IL_0024:  call       ""int Program.Get1()""
+  IL_0029:  stloc.2
+  IL_002a:  ldloc.0
+  IL_002b:  ldobj      ""S1""
+  IL_0030:  ldloca.s   V_3
+  IL_0032:  ldloc.2
+  IL_0033:  call       ""int?..ctor(int)""
+  IL_0038:  ldloc.3
+  IL_0039:  call       ""void E.set_P2(S1, int?)""
+  IL_003e:  nop
+  IL_003f:  br.s       IL_0041
+  IL_0041:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test2",
+@"
+{
+  // Code size       60 (0x3c)
+  .maxstack  3
+  .locals init (int? V_0,
+                int V_1,
+                int? V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""S1""
+  IL_0007:  call       ""int? E.get_P2(S1)""
+  IL_000c:  stloc.0
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""int int?.GetValueOrDefault()""
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""bool int?.HasValue.get""
+  IL_001c:  brtrue.s   IL_003b
+  IL_001e:  call       ""int Program.Get1()""
+  IL_0023:  stloc.1
+  IL_0024:  ldarg.0
+  IL_0025:  ldobj      ""S1""
+  IL_002a:  ldloca.s   V_2
+  IL_002c:  ldloc.1
+  IL_002d:  call       ""int?..ctor(int)""
+  IL_0032:  ldloc.2
+  IL_0033:  call       ""void E.set_P2(S1, int?)""
+  IL_0038:  nop
+  IL_0039:  br.s       IL_003b
+  IL_003b:  ret
+}
+");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_ConditionalAssignment_02(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public object P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+        public int? P2
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test1()
+    {
+        this.P1 ??= Program.Get1();
+    }
+
+    public void Test2()
+    {
+        this.P2 ??= Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test1();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test2();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1()
+    {
+        F.P1 ??= Get1();
+    }
+
+    static void Test2()
+    {
+        F.P2 ??= Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125:123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       35 (0x23)
+  .maxstack  3
+  .locals init (S1& V_0,
+            object V_1)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""object E.get_P1(" + refKind + @" S1)""
+  IL_000d:  brtrue.s   IL_0022
+  IL_000f:  ldloc.0
+  IL_0010:  call       ""int Program.Get1()""
+  IL_0015:  box        ""int""
+  IL_001a:  dup
+  IL_001b:  stloc.1
+  IL_001c:  call       ""void E.set_P1(" + refKind + @" S1, object)""
+  IL_0021:  nop
+  IL_0022:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test1",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (object V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""object E.get_P1(" + refKind + @" S1)""
+  IL_0007:  brtrue.s   IL_001c
+  IL_0009:  ldarg.0
+  IL_000a:  call       ""int Program.Get1()""
+  IL_000f:  box        ""int""
+  IL_0014:  dup
+  IL_0015:  stloc.0
+  IL_0016:  call       ""void E.set_P1(" + refKind + @" S1, object)""
+  IL_001b:  nop
+  IL_001c:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       56 (0x38)
+  .maxstack  3
+  .locals init (S1& V_0,
+                int? V_1,
+                int V_2,
+                int? V_3)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int? E.get_P2(" + refKind + @" S1)""
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  call       ""int int?.GetValueOrDefault()""
+  IL_0015:  stloc.2
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  call       ""bool int?.HasValue.get""
+  IL_001d:  brtrue.s   IL_0037
+  IL_001f:  call       ""int Program.Get1()""
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.0
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldloc.2
+  IL_0029:  call       ""int?..ctor(int)""
+  IL_002e:  ldloc.3
+  IL_002f:  call       ""void E.set_P2(" + refKind + @" S1, int?)""
+  IL_0034:  nop
+  IL_0035:  br.s       IL_0037
+  IL_0037:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test2",
+@"
+{
+  // Code size       50 (0x32)
+  .maxstack  3
+  .locals init (int? V_0,
+            int V_1,
+            int? V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int? E.get_P2(" + refKind + @" S1)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""int int?.GetValueOrDefault()""
+  IL_000f:  stloc.1
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""bool int?.HasValue.get""
+  IL_0017:  brtrue.s   IL_0031
+  IL_0019:  call       ""int Program.Get1()""
+  IL_001e:  stloc.1
+  IL_001f:  ldarg.0
+  IL_0020:  ldloca.s   V_2
+  IL_0022:  ldloc.1
+  IL_0023:  call       ""int?..ctor(int)""
+  IL_0028:  ldloc.2
+  IL_0029:  call       ""void E.set_P2(" + refKind + @" S1, int?)""
+  IL_002e:  nop
+  IL_002f:  br.s       IL_0031
+  IL_0031:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public object P1 { get => 0; set {} }
+        public int? P2 { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test1()
+    {
+        default(S1).P1 ??= 1;
+    }
+    static void Test2()
+    {
+        default(S1).P2 ??= 1;
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2);
+        switch (refKind)
+        {
+            case "ref":
+                comp2.VerifyDiagnostics(
+                    // (16,9): error CS1510: A ref or out value must be an assignable variable
+                    //         default(S1).P1 ??= 1;
+                    Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(16, 9),
+                    // (20,9): error CS1510: A ref or out value must be an assignable variable
+                    //         default(S1).P2 ??= 1;
+                    Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(20, 9)
+                    );
+                break;
+            case "ref readonly":
+                comp2.VerifyDiagnostics(
+                    // (16,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                    //         default(S1).P1 ??= 1;
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(16, 9),
+                    // (16,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                    //         default(S1).P1 ??= 1;
+                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(16, 9),
+                    // (20,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                    //         default(S1).P2 ??= 1;
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(20, 9),
+                    // (20,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                    //         default(S1).P2 ??= 1;
+                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P2").WithLocation(20, 9)
+                    );
+                break;
+            case "in":
+                comp2.VerifyDiagnostics(
+                    // (16,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                    //         default(S1).P1 ??= 1;
+                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(16, 9),
+                    // (20,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                    //         default(S1).P2 ??= 1;
+                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P2").WithLocation(20, 9)
+                    );
+                break;
+            default:
+                throw ExceptionUtilities.UnexpectedValue(refKind);
+        }
+    }
+
+    [Fact]
+    public void PropertyAccess_ConditionalAssignment_03()
+    {
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public object P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F = new C1 { F1 = Program.F.F1 + 1 };
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+        public int? P2
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F = new C1 { F1 = Program.F.F1 + 1 };
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test1();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new C1 { F1 = 123 };
+        Test2();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1()
+    {
+        F.P1 ??= Get1();
+    }
+
+    static void Test2()
+    {
+        F.P2 ??= Get1();
+    }
+
+    static int Get1()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123125:123123125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       35 (0x23)
+  .maxstack  3
+  .locals init (C1 V_0,
+                object V_1)
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""object E.get_P1(C1)""
+  IL_000d:  brtrue.s   IL_0022
+  IL_000f:  ldloc.0
+  IL_0010:  call       ""int Program.Get1()""
+  IL_0015:  box        ""int""
+  IL_001a:  dup
+  IL_001b:  stloc.1
+  IL_001c:  call       ""void E.set_P1(C1, object)""
+  IL_0021:  nop
+  IL_0022:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       56 (0x38)
+  .maxstack  3
+  .locals init (C1 V_0,
+                int? V_1,
+                int V_2,
+                int? V_3)
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int? E.get_P2(C1)""
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  call       ""int int?.GetValueOrDefault()""
+  IL_0015:  stloc.2
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  call       ""bool int?.HasValue.get""
+  IL_001d:  brtrue.s   IL_0037
+  IL_001f:  call       ""int Program.Get1()""
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.0
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldloc.2
+  IL_0029:  call       ""int?..ctor(int)""
+  IL_002e:  ldloc.3
+  IL_002f:  call       ""void E.set_P2(C1, int?)""
+  IL_0034:  nop
+  IL_0035:  br.s       IL_0037
+  IL_0037:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_ConditionalAssignment_04()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public object P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return null;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+        public int? P2
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return null;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test11(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test12(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test13<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test21(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test22(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test23<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test11<T>(ref T f)
+    {
+        f.P1 ??= Get1();
+    }
+
+    static void Test21<T>(ref T f)
+    {
+        f.P2 ??= Get1();
+    }
+
+    static void Test12<T>(ref T f) where T : struct
+    {
+        f.P1 ??= Get1();
+    }
+
+    static void Test22<T>(ref T f) where T : struct
+    {
+        f.P2 ??= Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    static async Task Test13<T>()
+    {
+        Program<T>.F.P1 ??= await Get1Async();
+    }
+
+    static async Task Test23<T>()
+    {
+        Program<T>.F.P2 ??= await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125:123125125:123125125:123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test11<T>(ref T)",
+@"
+{
+  // Code size       75 (0x4b)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3,
+                object V_4,
+                object V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  ldobj      ""T""
+  IL_0026:  call       ""object E.get_P1<T>(T)""
+  IL_002b:  brtrue.s   IL_004a
+  IL_002d:  call       ""int Program.Get1()""
+  IL_0032:  box        ""int""
+  IL_0037:  stloc.s    V_4
+  IL_0039:  ldloc.0
+  IL_003a:  ldobj      ""T""
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  dup
+  IL_0042:  stloc.s    V_5
+  IL_0044:  call       ""void E.set_P1<T>(T, object)""
+  IL_0049:  nop
+  IL_004a:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test12<T>(ref T)",
+@"
+{
+  // Code size       43 (0x2b)
+  .maxstack  3
+  .locals init (T& V_0,
+                object V_1,
+                object V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldobj      ""T""
+  IL_0009:  call       ""object E.get_P1<T>(T)""
+  IL_000e:  brtrue.s   IL_002a
+  IL_0010:  call       ""int Program.Get1()""
+  IL_0015:  box        ""int""
+  IL_001a:  stloc.1
+  IL_001b:  ldloc.0
+  IL_001c:  ldobj      ""T""
+  IL_0021:  ldloc.1
+  IL_0022:  dup
+  IL_0023:  stloc.2
+  IL_0024:  call       ""void E.set_P1<T>(T, object)""
+  IL_0029:  nop
+  IL_002a:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test21<T>(ref T)",
+@"
+{
+  // Code size       96 (0x60)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                int? V_3,
+                int V_4,
+                T V_5,
+                int? V_6)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloca.s   V_5
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.s    V_5
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.2
+  IL_0020:  stloc.0
+  IL_0021:  ldloc.0
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int? E.get_P2<T>(T)""
+  IL_002c:  stloc.3
+  IL_002d:  ldloca.s   V_3
+  IL_002f:  call       ""int int?.GetValueOrDefault()""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  ldloca.s   V_3
+  IL_0038:  call       ""bool int?.HasValue.get""
+  IL_003d:  brtrue.s   IL_005f
+  IL_003f:  call       ""int Program.Get1()""
+  IL_0044:  stloc.s    V_4
+  IL_0046:  ldloc.0
+  IL_0047:  ldobj      ""T""
+  IL_004c:  ldloca.s   V_6
+  IL_004e:  ldloc.s    V_4
+  IL_0050:  call       ""int?..ctor(int)""
+  IL_0055:  ldloc.s    V_6
+  IL_0057:  call       ""void E.set_P2<T>(T, int?)""
+  IL_005c:  nop
+  IL_005d:  br.s       IL_005f
+  IL_005f:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test22<T>(ref T)",
+@"
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init (T& V_0,
+                int? V_1,
+                int V_2,
+                int? V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldobj      ""T""
+  IL_0009:  call       ""int? E.get_P2<T>(T)""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  call       ""int int?.GetValueOrDefault()""
+  IL_0016:  stloc.2
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       ""bool int?.HasValue.get""
+  IL_001e:  brtrue.s   IL_003d
+  IL_0020:  call       ""int Program.Get1()""
+  IL_0025:  stloc.2
+  IL_0026:  ldloc.0
+  IL_0027:  ldobj      ""T""
+  IL_002c:  ldloca.s   V_3
+  IL_002e:  ldloc.2
+  IL_002f:  call       ""int?..ctor(int)""
+  IL_0034:  ldloc.3
+  IL_0035:  call       ""void E.set_P2<T>(T, int?)""
+  IL_003a:  nop
+  IL_003b:  br.s       IL_003d
+  IL_003d:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_ConditionalAssignment_05()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public object P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return null;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+        public int? P2
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return null;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test12(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test13<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test22(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test23<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test12<T>(ref T f) where T : struct
+    {
+        f.P1 ??= Get1();
+    }
+
+    static void Test22<T>(ref T f) where T : struct
+    {
+        f.P2 ??= Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    static async Task Test13<T>() where T : struct
+    {
+        Program<T>.F.P1 ??= await Get1Async();
+    }
+
+    static async Task Test23<T>() where T : struct
+    {
+        Program<T>.F.P2 ??= await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125:123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test12<T>(ref T)",
+@"
+{
+  // Code size       31 (0x1f)
+  .maxstack  3
+  .locals init (T& V_0,
+            object V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""object E.get_P1<T>(ref T)""
+  IL_0009:  brtrue.s   IL_001e
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""int Program.Get1()""
+  IL_0011:  box        ""int""
+  IL_0016:  dup
+  IL_0017:  stloc.1
+  IL_0018:  call       ""void E.set_P1<T>(ref T, object)""
+  IL_001d:  nop
+  IL_001e:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test22<T>(ref T)",
+@"
+{
+  // Code size       52 (0x34)
+  .maxstack  3
+  .locals init (T& V_0,
+                int? V_1,
+                int V_2,
+                int? V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""int? E.get_P2<T>(ref T)""
+  IL_0009:  stloc.1
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  call       ""int int?.GetValueOrDefault()""
+  IL_0011:  stloc.2
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  call       ""bool int?.HasValue.get""
+  IL_0019:  brtrue.s   IL_0033
+  IL_001b:  call       ""int Program.Get1()""
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.0
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldloc.2
+  IL_0025:  call       ""int?..ctor(int)""
+  IL_002a:  ldloc.3
+  IL_002b:  call       ""void E.set_P2<T>(ref T, int?)""
+  IL_0030:  nop
+  IL_0031:  br.s       IL_0033
+  IL_0033:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public object P1 { get => 0; set {} }
+        public int? P2 { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test1<T>() where T : struct
+    {
+        default(T).P1 += 1;
+    }
+    static void Test2<T>() where T : struct
+    {
+        default(T).P2 += 1;
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2);
+        comp2.VerifyDiagnostics(
+            // (14,9): error CS1510: A ref or out value must be an assignable variable
+            //         default(T).P1 += 1;
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(14, 9),
+            // (18,9): error CS1510: A ref or out value must be an assignable variable
+            //         default(T).P2 += 1;
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(18, 9),
+            // (26,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(26, 25),
+            // (36,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(36, 35)
+            );
+    }
+
+    [Fact]
+    public void PropertyAccess_ConditionalAssignment_06()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public object P1
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+                return null;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+        public int? P2
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+                return null;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test11(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test12(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        await Test13<C1>();
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test21(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test22(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        await Test23<C1>();
+        System.Console.Write(Program<C1>.F.F1);
+    }
+
+    static void Test11<T>(ref T f)
+    {
+        f.P1 ??= Get1();
+    }
+
+    static void Test21<T>(ref T f)
+    {
+        f.P2 ??= Get1();
+    }
+
+    static void Test12<T>(ref T f) where T : class
+    {
+        f.P1 ??= Get1();
+    }
+
+    static void Test22<T>(ref T f) where T : class
+    {
+        f.P2 ??= Get1();
+    }
+
+    static int Get1()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        return 1;
+    }
+
+    static async Task Test13<T>()
+    {
+        Program<T>.F.P1 ??= await Get1Async();
+    }
+
+    static async Task Test23<T>()
+    {
+        Program<T>.F.P2 ??= await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123125:123123125:123123125:123123125:123123125:123123125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test11<T>(ref T)",
+@"
+{
+  // Code size       75 (0x4b)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3,
+                object V_4,
+                object V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  ldobj      ""T""
+  IL_0026:  call       ""object E.get_P1<T>(T)""
+  IL_002b:  brtrue.s   IL_004a
+  IL_002d:  call       ""int Program.Get1()""
+  IL_0032:  box        ""int""
+  IL_0037:  stloc.s    V_4
+  IL_0039:  ldloc.0
+  IL_003a:  ldobj      ""T""
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  dup
+  IL_0042:  stloc.s    V_5
+  IL_0044:  call       ""void E.set_P1<T>(T, object)""
+  IL_0049:  nop
+  IL_004a:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test12<T>(ref T)",
+@"
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (T V_0,
+                object V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""object E.get_P1<T>(T)""
+  IL_000e:  brtrue.s   IL_0023
+  IL_0010:  ldloc.0
+  IL_0011:  call       ""int Program.Get1()""
+  IL_0016:  box        ""int""
+  IL_001b:  dup
+  IL_001c:  stloc.1
+  IL_001d:  call       ""void E.set_P1<T>(T, object)""
+  IL_0022:  nop
+  IL_0023:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test21<T>(ref T)",
+@"
+{
+  // Code size       96 (0x60)
+  .maxstack  3
+  .locals init (T& V_0,
+            T V_1,
+            T& V_2,
+            int? V_3,
+            int V_4,
+            T V_5,
+            int? V_6)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloca.s   V_5
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.s    V_5
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.2
+  IL_0020:  stloc.0
+  IL_0021:  ldloc.0
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int? E.get_P2<T>(T)""
+  IL_002c:  stloc.3
+  IL_002d:  ldloca.s   V_3
+  IL_002f:  call       ""int int?.GetValueOrDefault()""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  ldloca.s   V_3
+  IL_0038:  call       ""bool int?.HasValue.get""
+  IL_003d:  brtrue.s   IL_005f
+  IL_003f:  call       ""int Program.Get1()""
+  IL_0044:  stloc.s    V_4
+  IL_0046:  ldloc.0
+  IL_0047:  ldobj      ""T""
+  IL_004c:  ldloca.s   V_6
+  IL_004e:  ldloc.s    V_4
+  IL_0050:  call       ""int?..ctor(int)""
+  IL_0055:  ldloc.s    V_6
+  IL_0057:  call       ""void E.set_P2<T>(T, int?)""
+  IL_005c:  nop
+  IL_005d:  br.s       IL_005f
+  IL_005f:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test22<T>(ref T)",
+@"
+{
+  // Code size       57 (0x39)
+  .maxstack  3
+  .locals init (T V_0,
+                int? V_1,
+                int V_2,
+                int? V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""int? E.get_P2<T>(T)""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  call       ""int int?.GetValueOrDefault()""
+  IL_0016:  stloc.2
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       ""bool int?.HasValue.get""
+  IL_001e:  brtrue.s   IL_0038
+  IL_0020:  call       ""int Program.Get1()""
+  IL_0025:  stloc.2
+  IL_0026:  ldloc.0
+  IL_0027:  ldloca.s   V_3
+  IL_0029:  ldloc.2
+  IL_002a:  call       ""int?..ctor(int)""
+  IL_002f:  ldloc.3
+  IL_0030:  call       ""void E.set_P2<T>(T, int?)""
+  IL_0035:  nop
+  IL_0036:  br.s       IL_0038
+  IL_0038:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_DeconstructAssignment_01()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                throw null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        (this.P1, _) = (Program.Get1(), 0);
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        (F.P1, _) = (Get1(), 0);
+    }
+
+    public static int Get1()
+    {
+        System.Console.Write(Program.F.F1);
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124124:123124124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  stloc.0
+  IL_000c:  ldobj      ""S1""
+  IL_0011:  ldloc.0
+  IL_0012:  call       ""void E.set_P1(S1, int)""
+  IL_0017:  nop
+  IL_0018:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""int Program.Get1()""
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldobj      ""S1""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""void E.set_P1(S1, int)""
+  IL_0013:  nop
+  IL_0014:  ret
+}
+");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_DeconstructAssignment_02(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                throw null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        (this.P1, _) = (Program.Get1(), 0);
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        (F.P1, _) = (Get1(), 0);
+    }
+
+    public static int Get1()
+    {
+        System.Console.Write(Program.F.F1);
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124124:123124124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  call       ""void E.set_P1(" + refKind + @" S1, int)""
+  IL_0012:  nop
+  IL_0013:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""int Program.Get1()""
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""void E.set_P1(" + refKind + @" S1, int)""
+  IL_000e:  nop
+  IL_000f:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1 { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        (default(S1).P1, _) = (1, 0);
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2);
+        switch (refKind)
+        {
+            case "ref":
+                comp2.VerifyDiagnostics(
+                    // (15,10): error CS1510: A ref or out value must be an assignable variable
+                    //         (default(S1).P1, _) = (1, 0);
+                    Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 10)
+                    );
+                break;
+            case "ref readonly":
+                comp2.VerifyDiagnostics(
+                    // (15,10): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                    //         (default(S1).P1, _) = (1, 0);
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 10),
+                    // (15,10): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                    //         (default(S1).P1, _) = (1, 0);
+                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 10)
+                    );
+                break;
+            case "in":
+                comp2.VerifyDiagnostics(
+                    // (15,10): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                    //         (default(S1).P1, _) = (1, 0);
+                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 10)
+                    );
+                break;
+            default:
+                throw ExceptionUtilities.UnexpectedValue(refKind);
+        }
+    }
+
+    [Fact]
+    public void PropertyAccess_DeconstructAssignment_03()
+    {
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                throw null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F = new C1 { F1 = 123 };
+
+    static void Main()
+    {
+        Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        (F.P1, _) = (Get1(), 0);
+    }
+
+    static int Get1()
+    {
+        System.Console.Write(Program.F.F1);
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C1 Program.F""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  call       ""void E.set_P1(C1, int)""
+  IL_0012:  nop
+  IL_0013:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_DeconstructAssignment_04()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                throw null;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        (f.P1, _) = (Get1(), 0);
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        (f.P1, _) = (Get1(), 0);
+    }
+
+    static int Get1()
+    {
+        System.Console.Write(Program<S1>.F.F1);
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        (Program<T>.F.P1, _) = (await Get1Async(), 0);
+    }
+
+    static async Task<int> Get1Async()
+    {
+        System.Console.Write(Program<S1>.F.F1);
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124124:123124124:123124124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                T V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.2
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""int Program.Get1()""
+  IL_0024:  stloc.3
+  IL_0025:  ldobj      ""T""
+  IL_002a:  ldloc.3
+  IL_002b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0030:  nop
+  IL_0031:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  stloc.0
+  IL_0008:  ldobj      ""T""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""void E.set_P1<T>(T, int)""
+  IL_0013:  nop
+  IL_0014:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_DeconstructAssignment_05()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int P1
+        {
+            get
+            {
+                throw null;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        (f.P1, _) = (Get1(), 0);
+    }
+
+    static int Get1()
+    {
+        System.Console.Write(Program<S1>.F.F1);
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    static async Task Test3<T>() where T : struct
+    {
+        (Program<T>.F.P1, _) = (await Get1Async(), 0);
+    }
+
+    static async Task<int> Get1Async()
+    {
+        System.Console.Write(Program<S1>.F.F1);
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124124:123124124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""void E.set_P1<T>(ref T, int)""
+  IL_000e:  nop
+  IL_000f:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int P1 { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        (default(T).P1, _) = (1, 0);
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2);
+        comp2.VerifyDiagnostics(
+            // (13,10): error CS1510: A ref or out value must be an assignable variable
+            //         (default(T).P1, _) = (1, 0);
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 10),
+            // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
+            // (31,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
+            );
+    }
+
+    [Fact]
+    public void PropertyAccess_DeconstructAssignment_06()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                throw null;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test1(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test2(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        await Test3<C1>();
+        System.Console.Write(Program<C1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        (f.P1, _) = (Get1(), 0);
+    }
+
+    static void Test2<T>(ref T f) where T : class
+    {
+        (f.P1, _) = (Get1(), 0);
+    }
+
+    static int Get1()
+    {
+        System.Console.Write(Program<C1>.F.F1);
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        (Program<T>.F.P1, _) = (await Get1Async(), 0);
+    }
+
+    static async Task<int> Get1Async()
+    {
+        System.Console.Write(Program<C1>.F.F1);
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123124:123123124:123123124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                T V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.2
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""int Program.Get1()""
+  IL_0024:  stloc.3
+  IL_0025:  ldobj      ""T""
+  IL_002a:  ldloc.3
+  IL_002b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0030:  nop
+  IL_0031:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""void E.set_P1<T>(T, int)""
+  IL_0013:  nop
+  IL_0014:  ret
+}
+");
+    }
+
+    [Fact]
     public void GroupingTypeRawName_01()
     {
         var src = """

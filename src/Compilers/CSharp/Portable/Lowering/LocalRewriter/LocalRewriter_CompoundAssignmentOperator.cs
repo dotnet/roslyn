@@ -226,11 +226,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.Left.Type, TypeCompareKind.AllIgnoreOptions));
+
+                if (IsNewExtensionMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
+                {
+                    // We need to create a tree that ensures that receiver of 'set' is evaluated after the binary operation
+                    BoundLocal binaryResult = _factory.StoreToTemp(opFinal, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
+                    BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, binaryResult, used: used, isChecked: isChecked, isCompoundAssignment: true);
+                    Debug.Assert(assignment.Type is { });
+                    return new BoundSequence(syntax, [binaryResult.LocalSymbol], [assignmentToTemp], assignment, assignment.Type);
+                }
+
                 return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, isCompoundAssignment: true);
             }
         }
 
-        private BoundExpression? TransformPropertyOrEventReceiver(Symbol propertyOrEvent, BoundExpression? receiverOpt, bool isRegularCompoundAssignment, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
+        private static bool IsNewExtensionMemberAccessWithByValPossiblyStructReceiver(BoundExpression transformedLHS)
+        {
+            return transformedLHS is BoundPropertyAccess { PropertySymbol: { } property } && property.GetIsNewExtensionMember() &&
+                   property.ContainingType.ExtensionParameter is { RefKind: RefKind.None, Type.IsReferenceType: false };
+        }
+
+        private BoundExpression? TransformPropertyOrEventReceiver(Symbol propertyOrEvent, BoundExpression? receiverOpt, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
         {
             Debug.Assert(propertyOrEvent.Kind == SymbolKind.Property || propertyOrEvent.Kind == SymbolKind.Event);
 
@@ -272,7 +288,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC VIOLATION: However, for compatibility with Dev12 we will continue treating all generic type parameters, constrained or not,
             // SPEC VIOLATION: as value types.
             Debug.Assert(rewrittenReceiver.Type is { });
-            var variableRepresentsLocation = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
+            var variableRepresentsLocation = propertyOrEvent.GetIsNewExtensionMember() ?
+                                                 !rewrittenReceiver.Type.IsReferenceType :
+                                                 (rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter);
 
             var receiverTemp = _factory.StoreToTemp(
                 rewrittenReceiver,
@@ -286,9 +304,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                             stackLocalsOpt: null));
             temps.Add(receiverTemp.LocalSymbol);
 
-            if (!isRegularCompoundAssignment &&
-                receiverTemp.LocalSymbol.IsRef &&
-                CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp) &&
+            if (receiverTemp.LocalSymbol.IsRef &&
+                (propertyOrEvent.GetIsNewExtensionMember() ?
+                     !receiverTemp.Type.IsValueType :
+                     CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp)) &&
                 !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp))
             {
                 BoundAssignmentOperator? extraRefInitialization;
@@ -678,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // This is a temporary object that will be rewritten away before the lowering completes.
                             return propertyAccess.Update(TransformPropertyOrEventReceiver(propertyAccess.PropertySymbol, propertyAccess.ReceiverOpt,
-                                                                                          isRegularCompoundAssignment, stores, temps),
+                                                                                          stores, temps),
                                                          propertyAccess.InitialBindingReceiverIsSubjectToCloning, propertyAccess.PropertySymbol, propertyAccess.AutoPropertyAccessorKind, propertyAccess.ResultKind, propertyAccess.Type);
                         }
                     }
@@ -804,10 +823,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (eventAccess.EventSymbol.IsWindowsRuntimeEvent)
                         {
-                            Debug.Assert(!isRegularCompoundAssignment);
                             // This is a temporary object that will be rewritten away before the lowering completes.
                             return eventAccess.Update(TransformPropertyOrEventReceiver(eventAccess.EventSymbol, eventAccess.ReceiverOpt,
-                                                                                       isRegularCompoundAssignment, stores, temps),
+                                                                                       stores, temps),
                                                       eventAccess.EventSymbol, eventAccess.IsUsableAsField, eventAccess.ResultKind, eventAccess.Type);
                         }
 
