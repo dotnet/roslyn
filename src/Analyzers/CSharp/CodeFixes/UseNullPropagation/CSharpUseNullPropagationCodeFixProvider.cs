@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation;
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed class CSharpUseNullPropagationCodeFixProvider() : AbstractUseNullPropagationCodeFixProvider<
+    CSharpUseNullPropagationDiagnosticAnalyzer,
     SyntaxKind,
     ExpressionSyntax,
     StatementSyntax,
@@ -31,7 +32,7 @@ internal sealed class CSharpUseNullPropagationCodeFixProvider() : AbstractUseNul
     ExpressionStatementSyntax,
     BracketedArgumentListSyntax>
 {
-    protected override AbstractUseNullPropagationDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, StatementSyntax, ConditionalExpressionSyntax, BinaryExpressionSyntax, InvocationExpressionSyntax, ConditionalAccessExpressionSyntax, ElementAccessExpressionSyntax, MemberAccessExpressionSyntax, IfStatementSyntax, ExpressionStatementSyntax> Analyzer
+    protected override CSharpUseNullPropagationDiagnosticAnalyzer Analyzer
         => CSharpUseNullPropagationDiagnosticAnalyzer.Instance;
 
     private static BlockSyntax ReplaceBlockStatements(BlockSyntax block, StatementSyntax newInnerStatement)

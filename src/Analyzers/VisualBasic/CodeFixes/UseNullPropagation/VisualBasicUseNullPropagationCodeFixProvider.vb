@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseNullPropagation), [Shared]>
     Friend NotInheritable Class VisualBasicUseNullPropagationCodeFixProvider
         Inherits AbstractUseNullPropagationCodeFixProvider(Of
+            VisualBasicUseNullPropagationDiagnosticAnalyzer,
             SyntaxKind,
             ExpressionSyntax,
             ExecutableStatementSyntax,
@@ -31,8 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
         Public Sub New()
         End Sub
 
-        Protected Overrides ReadOnly Property Analyzer As AbstractUseNullPropagationDiagnosticAnalyzer(Of SyntaxKind, ExpressionSyntax, ExecutableStatementSyntax, TernaryConditionalExpressionSyntax, BinaryExpressionSyntax, InvocationExpressionSyntax, ConditionalAccessExpressionSyntax, InvocationExpressionSyntax, MemberAccessExpressionSyntax, MultiLineIfBlockSyntax, ExpressionStatementSyntax) =
-            VisualBasicUseNullPropagationDiagnosticAnalyzer.Instance
+        Protected Overrides ReadOnly Property Analyzer As VisualBasicUseNullPropagationDiagnosticAnalyzer = VisualBasicUseNullPropagationDiagnosticAnalyzer.Instance
 
         Protected Overrides Function PostProcessElseIf(ifStatement As MultiLineIfBlockSyntax, newWhenTrueStatement As ExecutableStatementSyntax) As SyntaxNode
             Throw ExceptionUtilities.Unreachable()

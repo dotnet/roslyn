@@ -21,6 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.UseNullPropagation;
 
 internal abstract class AbstractUseNullPropagationCodeFixProvider<
+    TAnalyzer,
     TSyntaxKind,
     TExpressionSyntax,
     TStatementSyntax,
@@ -34,6 +35,11 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
     TIfStatementSyntax,
     TExpressionStatementSyntax,
     TElementBindingArgumentListSyntax> : ForkingSyntaxEditorBasedCodeFixProvider<SyntaxNode>
+    where TAnalyzer : AbstractUseNullPropagationDiagnosticAnalyzer<
+        TSyntaxKind, TExpressionSyntax, TStatementSyntax,
+        TConditionalExpressionSyntax, TBinaryExpressionSyntax, TInvocationExpressionSyntax,
+        TConditionalAccessExpressionSyntax, TElementAccessExpressionSyntax, TMemberAccessExpressionSyntax,
+        TIfStatementSyntax, TExpressionStatementSyntax>
     where TSyntaxKind : struct
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
@@ -51,11 +57,7 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
     protected abstract SyntaxNode PostProcessElseIf(TIfStatementSyntax ifStatement, TStatementSyntax newWhenTrueStatement);
     protected abstract TElementBindingExpressionSyntax ElementBindingExpression(TElementBindingArgumentListSyntax argumentList);
 
-    protected abstract AbstractUseNullPropagationDiagnosticAnalyzer<
-        TSyntaxKind, TExpressionSyntax, TStatementSyntax,
-        TConditionalExpressionSyntax, TBinaryExpressionSyntax, TInvocationExpressionSyntax,
-        TConditionalAccessExpressionSyntax, TElementAccessExpressionSyntax, TMemberAccessExpressionSyntax,
-        TIfStatementSyntax, TExpressionStatementSyntax> Analyzer { get; }
+    protected abstract TAnalyzer Analyzer { get; }
 
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseNullPropagationDiagnosticId];
