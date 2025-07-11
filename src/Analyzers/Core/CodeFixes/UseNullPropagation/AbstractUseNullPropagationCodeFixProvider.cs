@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseNullPropagation;
 
@@ -32,7 +31,7 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
     TElementBindingExpressionSyntax,
     TIfStatementSyntax,
     TExpressionStatementSyntax,
-    TElementBindingArgumentListSyntax> : SyntaxEditorBasedCodeFixProvider
+    TElementBindingArgumentListSyntax> : ForkingSyntaxEditorBasedCodeFixProvider<SyntaxNode>
     where TSyntaxKind : struct
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
@@ -53,10 +52,7 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseNullPropagationDiagnosticId];
 
-    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-        => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
-
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected override (string title, string equivalenceKey) GetTitleAndEquivalenceKey(CodeFixContext context)
     {
         var firstDiagnostic = context.Diagnostics.First();
 
@@ -64,8 +60,7 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
             ? AnalyzersResources.Simplify_conditional_expression
             : AnalyzersResources.Use_null_propagation;
 
-        RegisterCodeFix(context, title, nameof(AnalyzersResources.Use_null_propagation));
-        return Task.CompletedTask;
+        return (title, nameof(AnalyzersResources.Use_null_propagation));
     }
 
     private static bool IsTrivialNullableValueAccess(Diagnostic firstDiagnostic)
@@ -73,24 +68,21 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
         return firstDiagnostic.Properties.ContainsKey(UseNullPropagationHelpers.IsTrivialNullableValueAccess);
     }
 
-    protected override async Task FixAllAsync(
-        Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CancellationToken cancellationToken)
+    protected override async Task FixAsync(
+        Document document,
+        SyntaxEditor editor,
+        SyntaxNode conditionalExpressionOrIfStatement,
+        ImmutableDictionary<string, string?> properties,
+        CancellationToken cancellationToken)
     {
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var root = editor.OriginalRoot;
-
-        foreach (var diagnostic in diagnostics)
+        if (conditionalExpressionOrIfStatement is TIfStatementSyntax ifStatement)
         {
-            var conditionalExpressionOrIfStatement = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-            if (conditionalExpressionOrIfStatement is TIfStatementSyntax ifStatement)
-            {
-                FixIfStatement(document, editor, diagnostic, ifStatement);
-            }
-            else
-            {
-                FixConditionalExpression(document, editor, semanticModel, diagnostic, conditionalExpressionOrIfStatement, cancellationToken);
-            }
+            FixIfStatement(document, editor, diagnostic, ifStatement);
+        }
+        else
+        {
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            FixConditionalExpression(document, editor, semanticModel, diagnostic, conditionalExpressionOrIfStatement, cancellationToken);
         }
     }
 
@@ -172,8 +164,6 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
 
         var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationHelpers.WhenPartIsNullable);
 
-        SyntaxNode nodeToBeReplaced = ifStatement;
-
         // we have `if (x != null) x.Y();`.  Update `x.Y()` to be `x?.Y()`, then replace the entire
         // if-statement with that expression statement.
         var newWhenTrueStatement = CreateConditionalAccessExpression(
@@ -222,7 +212,7 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
             // remove the if-statement.
             if (nullAssignmentOpt is null)
             {
-                editor.ReplaceNode(nodeToBeReplaced, newWhenTrueStatement);
+                editor.ReplaceNode(ifStatement, newWhenTrueStatement);
             }
             else
             {
