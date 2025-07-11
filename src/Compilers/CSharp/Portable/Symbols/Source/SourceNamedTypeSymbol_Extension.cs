@@ -387,8 +387,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// This name uses a C#-looking format to encode C#-level information of an extension block (ie. arity, constraints, extended type, attributes and C#-isms like tuple names).
-        /// It is meant be to hashed to produce the content-based name for the extension marker type.
-        /// </summary>
+        /// It is meant to be hashed to produce the content-based name for the extension marker type.
+        /// /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when appending to a StringBuilder past the <see cref="StringBuilder.MaxCapacity"/> limit.</exception>
         internal string ComputeExtensionMarkerRawName()
         {
