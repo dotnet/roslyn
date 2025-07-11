@@ -16018,7 +16018,7 @@ static class E
 {
     extension(MyCollection c)
     {
-        public void Add(ref int i) { }
+        public void Add(ref int i) { System.Console.Write("ran"); }
     }
 }
 
@@ -21781,17 +21781,6 @@ static class E
     [Fact]
     public void ExtensionMemberLookup_PatternBased_PositionalPattern()
     {
-        var libSrc = """
-public static class E
-{
-    extension<T>(T t)
-    {
-        public void Deconstruct(out int i, out int j) { i = 42; j = 43; }
-    }
-}
-""";
-        var libRef = CreateCompilation(libSrc).EmitToImageReference();
-
         var src = """
 var c = new C();
 if (c is var (x, y))
@@ -21799,14 +21788,15 @@ if (c is var (x, y))
 
 class C { }
 
+static class E
+{
+    extension<T>(T t)
+    {
+        public void Deconstruct(out int i, out int j) { i = 42; j = 43; }
+    }
+}
 """;
-        var comp = CreateCompilation(src, references: [libRef]);
-        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
-
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
-        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
-
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
     }
 
@@ -23398,10 +23388,13 @@ class C
     [Fact]
     public void ExtensionMemberLookup_Patterns()
     {
-        var libSrc = """
-public class C { }
+        var src = """
+var c = new C();
+_ = c is { Property: 42 };
 
-public static class E
+class C { }
+
+static class E
 {
     extension(C c)
     {
@@ -23412,28 +23405,13 @@ public static class E
     }
 }
 """;
-        var libRef = CreateCompilation(libSrc).EmitToImageReference();
-
-        var src = """
-var c = new C();
-_ = c is { Property: 42 };
-""";
-        var comp = CreateCompilation(src, references: [libRef]);
+        var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var nameColon = GetSyntax<NameColonSyntax>(tree, "Property:");
         Assert.Equal("System.Int32 E.<>E__0.Property { get; }", model.GetSymbolInfo(nameColon.Name).Symbol.ToTestDisplayString());
-
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
-        comp.VerifyEmitDiagnostics(
-            // (2,12): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // _ = c is { Property: 42 };
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("extensions").WithLocation(2, 12));
-
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
-        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
     [Fact]
@@ -23968,10 +23946,12 @@ static class E
     [Fact]
     public void ExtensionMemberLookup_ObjectInitializer()
     {
-        var libSrc = """
-public class C { }
+        var src = """
+_ = new C() { Property = 42 };
 
-public static class E
+class C { }
+
+static class E
 {
     extension(C c)
     {
@@ -23979,28 +23959,14 @@ public static class E
     }
 }
 """;
-        var libRef = CreateCompilation(libSrc).EmitToImageReference();
 
-        var src = """
-_ = new C() { Property = 42 };
-""";
-
-        var comp = CreateCompilation(src, references: [libRef]);
+        var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = 42");
         Assert.Equal("System.Int32 E.<>E__0.Property { set; }", model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString());
-
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
-        comp.VerifyEmitDiagnostics(
-            // (1,15): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // _ = new C() { Property = 42 };
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("extensions").WithLocation(1, 15));
-
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
-        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
     [Fact]
@@ -24122,10 +24088,12 @@ static class E
     [Fact]
     public void ExtensionMemberLookup_With()
     {
-        var libSrc = """
-public struct S { }
+        var src = """
+_ = new S() with { Property = 42 };
 
-public static class E
+struct S { }
+
+static class E
 {
     extension(S s)
     {
@@ -24133,28 +24101,14 @@ public static class E
     }
 }
 """;
-        var libRef = CreateCompilation(libSrc).EmitToImageReference();
 
-        var src = """
-_ = new S() with { Property = 42 };
-""";
-
-        var comp = CreateCompilation(src, references: [libRef]);
+        var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = 42");
         Assert.Equal("System.Int32 E.<>E__0.Property { set; }", model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString());
-
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
-        comp.VerifyEmitDiagnostics(
-            // (1,20): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // _ = new S() with { Property = 42 };
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("extensions").WithLocation(1, 20));
-
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
-        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
     [Fact]
@@ -33920,8 +33874,7 @@ public static class E
     {
         public void M() { }
         public static void M2() { }
-        public int P => 0;
-        public static int P2 => 0;
+        public static int P => 0;
     }
 }
 
@@ -33936,10 +33889,8 @@ System.Action a = new object().M;
 var x = new object().M;
 
 E.M(new object());
+E.get_P();
 E.M2();
-
-E.get_P(new object());
-E.get_P2();
 """;
         var comp = CreateCompilation(srcCompat, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics();
@@ -33955,182 +33906,51 @@ object.M2();
 System.Action a = object.M2;
 var x = object.M2;
 
-_ = object.P2;
+_ = object.P;
 """;
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,8): error CS0117: 'object' does not contain a definition for 'M2'
             // object.M2();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.M2()").WithArguments("extensions").WithLocation(1, 1),
-            // (2,19): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M2").WithArguments("object", "M2").WithLocation(1, 8),
+            // (2,26): error CS0117: 'object' does not contain a definition for 'M2'
             // System.Action a = object.M2;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.M2").WithArguments("extensions").WithLocation(2, 19),
-            // (3,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M2").WithArguments("object", "M2").WithLocation(2, 26),
+            // (3,16): error CS0117: 'object' does not contain a definition for 'M2'
             // var x = object.M2;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.M2").WithArguments("extensions").WithLocation(3, 9),
-            // (5,5): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // _ = object.P2;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.P2").WithArguments("extensions").WithLocation(5, 5));
-        verifySymbolInfo(comp);
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M2").WithArguments("object", "M2").WithLocation(3, 16),
+            // (5,12): error CS0117: 'object' does not contain a definition for 'P'
+            // _ = object.P;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "P").WithArguments("object", "P").WithLocation(5, 12));
+        verifySymbolInfo(comp, newLangVer: false);
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
         comp.VerifyEmitDiagnostics();
-        verifySymbolInfo(comp);
+        verifySymbolInfo(comp, newLangVer: true);
 
         comp = CreateCompilation(src, references: [libRef]);
         comp.VerifyEmitDiagnostics();
-        verifySymbolInfo(comp);
+        verifySymbolInfo(comp, newLangVer: true);
 
-        src = """
-_ = new object().P;
-""";
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
-        comp.VerifyEmitDiagnostics(
-            // (1,5): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // _ = new object().P;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "new object().P").WithArguments("extensions").WithLocation(1, 5));
-        verifySymbolInfo(comp);
-
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
-        comp.VerifyEmitDiagnostics();
-        verifySymbolInfo(comp);
-
-        comp = CreateCompilation(src, references: [libRef]);
-        comp.VerifyEmitDiagnostics();
-        verifySymbolInfo(comp);
-
-        static void verifySymbolInfo(CSharpCompilation comp)
+        static void verifySymbolInfo(CSharpCompilation comp, bool newLangVer)
         {
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
 
-            AssertEqualAndNoDuplicates(["void E.<>E__0.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
-            AssertEqualAndNoDuplicates(["void E.<>E__0.M2()"], model.LookupSymbols(position: 0, o, name: "M2", includeReducedExtensionMethods: true).ToTestDisplayStrings());
-            AssertEqualAndNoDuplicates(["System.Int32 E.<>E__0.P { get; }"], model.LookupSymbols(position: 0, o, name: "P", includeReducedExtensionMethods: true).ToTestDisplayStrings());
-            AssertEqualAndNoDuplicates(["System.Int32 E.<>E__0.P2 { get; }"], model.LookupSymbols(position: 0, o, name: "P2", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+            if (newLangVer)
+            {
+                AssertEqualAndNoDuplicates(["void E.<>E__0.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+                AssertEqualAndNoDuplicates(["void E.<>E__0.M2()"], model.LookupSymbols(position: 0, o, name: "M2", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+                AssertEqualAndNoDuplicates(["System.Int32 E.<>E__0.P { get; }"], model.LookupSymbols(position: 0, o, name: "P", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+            }
+            else
+            {
+                AssertEqualAndNoDuplicates(["void System.Object.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+                AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "M2", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+                AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "P", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+            }
         }
-    }
-
-    [Fact]
-    public void LangVer_02()
-    {
-        var libSrc = """
-public static class E
-{
-    extension(object o)
-    {
-        public System.Collections.IEnumerator GetEnumerator() => throw null;
-    }
-}
-
-""";
-        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
-        libComp.VerifyEmitDiagnostics();
-        var libRef = libComp.EmitToImageReference();
-
-        var src = """
-foreach (var x in new object())
-{
-}
-""";
-        var comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
-        comp.VerifyEmitDiagnostics();
-
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
-        comp.VerifyEmitDiagnostics();
-
-        comp = CreateCompilation(src, references: [libRef]);
-        comp.VerifyEmitDiagnostics();
-    }
-
-    [Fact]
-    public void LangVer_03()
-    {
-        var libSrc = """
-public static class E
-{
-    extension(object o)
-    {
-        public void Add(object o2) { }
-    }
-}
-""";
-        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
-        libComp.VerifyEmitDiagnostics();
-        var libRef = libComp.EmitToImageReference();
-
-        var src = """
-using System.Collections;
-using System.Collections.Generic;
-
-MyCollection c = [new object()];
-
-public class MyCollection : IEnumerable<object>
-{
-    IEnumerator<object> IEnumerable<object>.GetEnumerator() => throw null!;
-    IEnumerator IEnumerable.GetEnumerator() => throw null!;
-}
-""";
-        var comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
-        comp.VerifyEmitDiagnostics();
-
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
-        comp.VerifyEmitDiagnostics();
-
-        comp = CreateCompilation(src, references: [libRef]);
-        comp.VerifyEmitDiagnostics();
-    }
-
-    [Fact]
-    public void LangVer_04()
-    {
-        var libSrc = """
-namespace N;
-
-public static class E
-{
-    extension(int i)
-    {
-        public System.Action Member => () => System.Console.Write("property");
-    }
-}
-""";
-        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
-        libComp.VerifyEmitDiagnostics();
-        var libRef = libComp.EmitToImageReference();
-
-        var src = """
-namespace N
-{
-    class D
-    {
-        public static void Main()
-        {
-            42.Member();
-        }
-    }
-}
-
-static class Classic
-{
-    public static void Member(this int i) { System.Console.Write("classic"); }
-}
-""";
-        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: "classic").VerifyDiagnostics();
-
-        comp = CreateCompilation(src, references: [libRef], options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
-
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
-
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
-        comp.VerifyEmitDiagnostics(
-            // (7,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //             42.Member();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "42.Member").WithArguments("extensions").WithLocation(7, 13));
     }
 
     [Fact]
