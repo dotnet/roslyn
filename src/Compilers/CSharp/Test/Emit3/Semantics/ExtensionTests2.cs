@@ -9281,6 +9281,12 @@ unsafe public static class E
     [Fact]
     public void MarkerTypeRawName_66()
     {
+        if (ExecutionConditionUtil.IsWindowsDesktop)
+        {
+            // Can't build this IL on older ilasm
+            return;
+        }
+
         // attribute with modifiers, function pointer type with modifiers
         // parameter is: `delegate* unmanaged[Stdcall, SuppressGCTransition]<ref readonly int>` with a modopt on `int`
         var ilSrc = """
@@ -9332,6 +9338,12 @@ unsafe public static class E
     [Fact]
     public void MarkerTypeRawName_67()
     {
+        if (ExecutionConditionUtil.IsWindowsDesktop)
+        {
+            // Can't build this IL on older ilasm
+            return;
+        }
+
         // attribute with modifiers, function pointer type with modifiers
         // parameter is: `delegate* unmanaged[Stdcall, SuppressGCTransition]<void>` with a modopt on `void`
         var ilSrc = """
@@ -9374,10 +9386,31 @@ unsafe public static class E
             //     extension([My(null)] int)
             Diagnostic(ErrorCode.ERR_BadAttributeParamType, "My").WithArguments("x", "delegate* unmanaged[Stdcall]<void>").WithLocation(3, 16));
 
-        // TODO2 the order of modifiers is wrong, will file a follow-up issue
+        // Note: the order of modifiers is reversed (also shown in example below). Tracked by issue https://github.com/dotnet/roslyn/issues/79344
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension([MyAttribute/*(method unmanaged void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvSuppressGCTransition) modopt(System.String) *())*/(error)] System.Int32)",
             extension.ComputeExtensionMarkerRawName());
+
+        ilSrc = """
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .field public int32 modopt(int64) modopt(string) modopt(int32) 'field'
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+""";
+        comp = CreateCompilationWithIL("", ilSrc, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics();
+
+        var field = comp.GetMember<NamedTypeSymbol>("C").GetField("field");
+        AssertEx.Equal(["System.Int32", "System.String", "System.Int64"], field.TypeWithAnnotations.CustomModifiers.SelectAsArray(m => m.Modifier.ToTestDisplayString()));
     }
 
     [Fact]
