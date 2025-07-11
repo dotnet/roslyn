@@ -30,4 +30,3 @@ Friend Partial Class Resources
     End Property
 
 End Class
-

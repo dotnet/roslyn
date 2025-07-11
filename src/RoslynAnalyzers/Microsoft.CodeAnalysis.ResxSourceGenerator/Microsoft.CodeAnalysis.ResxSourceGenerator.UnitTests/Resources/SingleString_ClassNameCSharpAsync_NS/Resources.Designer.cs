@@ -20,4 +20,3 @@ internal static partial class NS
     public static string @Name => GetResourceString("Name")!;
 
 }
-

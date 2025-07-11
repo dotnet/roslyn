@@ -17,4 +17,3 @@ internal static partial class Resources
     public static string @Name => GetResourceString("Name")!;
 
 }
-

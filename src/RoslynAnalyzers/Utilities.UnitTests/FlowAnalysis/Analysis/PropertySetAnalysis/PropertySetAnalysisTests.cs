@@ -163,54 +163,53 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             }
         }
 
-        private readonly string TestTypeToTrackSource = """
-            public class TestTypeToTrack
-            {
-                public TestEnum AnEnum { get; set; }
-                public object AnObject { get; set; }
-                public string AString { get; set; }
+        private readonly string TestTypeToTrackSource = @"
+public class TestTypeToTrack
+{
+    public TestEnum AnEnum { get; set; }
+    public object AnObject { get; set; }
+    public string AString { get; set; }
 
-                public void Method()
-                {
-                }
-            }
+    public void Method()
+    {
+    }
+}
 
-            public class TestTypeToTrackWithConstructor : TestTypeToTrack
-            {
-                private TestTypeToTrackWithConstructor()
-                {
-                }
+public class TestTypeToTrackWithConstructor : TestTypeToTrack
+{
+    private TestTypeToTrackWithConstructor()
+    {
+    }
 
-                public TestTypeToTrackWithConstructor(TestEnum enu, object obj, string str)
-                {
-                    this.AnEnum = enu;
-                    this.AnObject = obj;
-                    this.AString = str;
-                }
-            }
+    public TestTypeToTrackWithConstructor(TestEnum enu, object obj, string str)
+    {
+        this.AnEnum = enu;
+        this.AnObject = obj;
+        this.AString = str;
+    }
+}
 
-            public enum TestEnum
-            {
-                Value0,
-                Value1,
-                Value2,
-            }
+public enum TestEnum
+{
+    Value0,
+    Value1,
+    Value2,
+}
 
-            public class OtherClass
-            {
-                public void OtherMethod(TestTypeToTrack t)
-                {
-                }
+public class OtherClass
+{
+    public void OtherMethod(TestTypeToTrack t)
+    {
+    }
 
-                public void OtherMethod(string s, TestTypeToTrack t)
-                {
-                }
+    public void OtherMethod(string s, TestTypeToTrack t)
+    {
+    }
 
-                public static void StaticMethod(TestTypeToTrack staticMethodParameter)
-                {
-                }
-            }
-            """;
+    public static void StaticMethod(TestTypeToTrack staticMethodParameter)
+    {
+    }
+}";
 
         /// <summary>
         /// Parameters for PropertySetAnalysis to flag hazardous usage when the TestTypeToTrack.AString property is not null
@@ -288,17 +287,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNonNull_Flagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AString = "A non-null string";
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = ""A non-null string"";
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringIsNonNull,
                 (8, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
@@ -306,19 +304,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNonNull_StringEmpty_Flagged()
         {
-            VerifyCSharp("""
-                using System;
+            VerifyCSharp(@"
+using System;
 
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AString = String.Empty;
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = String.Empty;
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringIsNonNull,
                 (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
@@ -326,35 +323,33 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNonNull_Unflagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AString = null;
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = null;
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringIsNonNull);
         }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNull_OtherMethod_Flagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AString = "A non-null string";
-                        OtherClass o = new OtherClass();
-                        o.OtherMethod("this string parameter is ignored", t);
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = ""A non-null string"";
+        OtherClass o = new OtherClass();
+        o.OtherMethod(""this string parameter is ignored"", t);
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringIsNonNull,
                 (9, 9, "void OtherClass.OtherMethod(string s, TestTypeToTrack t)", HazardousUsageEvaluationResult.Flagged));
         }
@@ -362,17 +357,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNull_StaticMethod_Flagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AString = "A non-null string";
-                        OtherClass.StaticMethod(t);
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = ""A non-null string"";
+        OtherClass.StaticMethod(t);
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringIsNonNull,
                 (8, 9, "void OtherClass.StaticMethod(TestTypeToTrack staticMethodParameter)", HazardousUsageEvaluationResult.Flagged));
         }
@@ -380,19 +374,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNull_OtherClassBothMethods_Flagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AString = "A non-null string";
-                        OtherClass o = new OtherClass();
-                        o.OtherMethod("this string parameter is ignored", t);
-                        OtherClass.StaticMethod(t);
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = ""A non-null string"";
+        OtherClass o = new OtherClass();
+        o.OtherMethod(""this string parameter is ignored"", t);
+        OtherClass.StaticMethod(t);
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringIsNonNull,
                 (9, 9, "void OtherClass.OtherMethod(string s, TestTypeToTrack t)", HazardousUsageEvaluationResult.Flagged),
                 (10, 9, "void OtherClass.StaticMethod(TestTypeToTrack staticMethodParameter)", HazardousUsageEvaluationResult.Flagged));
@@ -456,16 +449,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfStringIsNull_Flagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, "A non-null string");
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, ""A non-null string"");
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrackWithConstructor_HazardousIfStringIsNonNull,
                 (7, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
@@ -473,18 +465,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfStringIsNull_StringEmpty_Flagged()
         {
-            VerifyCSharp("""
-                using System;
+            VerifyCSharp(@"
+using System;
 
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, String.Empty);
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, String.Empty);
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrackWithConstructor_HazardousIfStringIsNonNull,
                 (9, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
@@ -492,33 +483,31 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfStringIsNull_Unflagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, null);
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, null);
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrackWithConstructor_HazardousIfStringIsNonNull);
         }
 
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfStringIsNull_PropertyAssigned_Flagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, null);
-                        t.AString = "";
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, null);
+        t.AString = """";
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrackWithConstructor_HazardousIfStringIsNonNull,
                 (8, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
@@ -559,17 +548,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfEnumIsValue0_Flagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AnEnum = TestEnum.Value0;
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AnEnum = TestEnum.Value0;
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfEnumIsValue0,
                 (8, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
@@ -577,17 +565,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfEnumIsValue0_Unflagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AnEnum = TestEnum.Value2;
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AnEnum = TestEnum.Value2;
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfEnumIsValue0);
         }
 
@@ -634,32 +621,30 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfEnumIsValue0_Unflagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(TestEnum.Value2, null, null);
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(TestEnum.Value2, null, null);
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrackWithConstructor_HazardousIfEnumIsValue0);
         }
 
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfEnumIsValue0_Flagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(TestEnum.Value0, null, null);
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(TestEnum.Value0, null, null);
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrackWithConstructor_HazardousIfEnumIsValue0,
                 (7, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
@@ -718,18 +703,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringStartsWithTAndValue2_Flagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AString = "The beginning of knowledge is the discovery of something we do not understand.";
-                        t.AnEnum = TestEnum.Value2;
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = ""The beginning of knowledge is the discovery of something we do not understand."";
+        t.AnEnum = TestEnum.Value2;
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringStartsWithTAndValue2,
                 (9, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
@@ -737,30 +721,29 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringStartsWithTAndValue2_BothMaybe_MaybeFlagged()
         {
-            VerifyCSharp("""
-                using System;
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        Random r = new Random();
-                        t.AString = "T";
-                        t.AnEnum = TestEnum.Value2;
-                        if (r.Next(6) == 4)
-                        {
-                            t.AString = "A different string.";
-                        }
+            VerifyCSharp(@"
+using System;
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        Random r = new Random();
+        t.AString = ""T"";
+        t.AnEnum = TestEnum.Value2;
+        if (r.Next(6) == 4)
+        {
+            t.AString = ""A different string."";
+        }
 
-                        if (r.Next(6) == 4)
-                        {
-                            t.AnEnum = TestEnum.Value1;
-                        }
+        if (r.Next(6) == 4)
+        {
+            t.AnEnum = TestEnum.Value1;
+        }
 
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringStartsWithTAndValue2,
                 (21, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.MaybeFlagged));
         }
@@ -768,25 +751,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringStartsWithTAndValue2_FirstMaybe_MaybeFlagged()
         {
-            VerifyCSharp("""
-                using System;
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        Random r = new Random();
-                        t.AString = "T";
-                        t.AnEnum = TestEnum.Value2;
-                        if (r.Next(6) == 4)
-                        {
-                            t.AString = "A different string.";
-                        }
+            VerifyCSharp(@"
+using System;
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        Random r = new Random();
+        t.AString = ""T"";
+        t.AnEnum = TestEnum.Value2;
+        if (r.Next(6) == 4)
+        {
+            t.AString = ""A different string."";
+        }
 
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringStartsWithTAndValue2,
                 (16, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.MaybeFlagged));
         }
@@ -794,25 +776,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringStartsWithTAndValue2_SecondMaybe_MaybeFlagged()
         {
-            VerifyCSharp("""
-                using System;
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        Random r = new Random();
-                        t.AString = "T";
-                        t.AnEnum = TestEnum.Value2;
-                        if (r.Next(6) == 4)
-                        {
-                            t.AnEnum = TestEnum.Value1;
-                        }
+            VerifyCSharp(@"
+using System;
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        Random r = new Random();
+        t.AString = ""T"";
+        t.AnEnum = TestEnum.Value2;
+        if (r.Next(6) == 4)
+        {
+            t.AnEnum = TestEnum.Value1;
+        }
 
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringStartsWithTAndValue2,
                 (16, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.MaybeFlagged));
         }
@@ -820,19 +801,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringStartsWithTAndValue2_FirstFlagged_Unflagged()
         {
-            VerifyCSharp("""
-                using System;
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        Random r = new Random();
-                        t.AString = "T";
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+using System;
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        Random r = new Random();
+        t.AString = ""T"";
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringStartsWithTAndValue2);
         }
 
@@ -901,19 +881,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray_Constructor_Flagged()
         {
-            VerifyCSharp("""
-                using System;
-                using System.Collections;
+            VerifyCSharp(@"
+using System;
+using System.Collections;
 
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), new BitArray(4), "string");
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), new BitArray(4), ""string"");
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray,
                 (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
@@ -921,23 +900,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray_Constructor_TwoPaths_Flagged()
         {
-            VerifyCSharp("""
-                using System;
-                using System.Collections;
+            VerifyCSharp(@"
+using System;
+using System.Collections;
 
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrackWithConstructor t;
-                        if (new Random().Next(6) == 4)
-                            t = new TestTypeToTrackWithConstructor(default(TestEnum), new BitArray(6), "string");
-                        else
-                            t = new TestTypeToTrackWithConstructor(default(TestEnum), "object string", "string");
-                        t.Method();   // PropertySetAnalysis is aggressive--at least one previous code path being Flagged means it's Flagged at this point.
-                    }/*</bind>*/
-                }
-                """,
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t;
+        if (new Random().Next(6) == 4)
+            t = new TestTypeToTrackWithConstructor(default(TestEnum), new BitArray(6), ""string"");
+        else
+            t = new TestTypeToTrackWithConstructor(default(TestEnum), ""object string"", ""string"");
+        t.Method();   // PropertySetAnalysis is aggressive--at least one previous code path being Flagged means it's Flagged at this point.
+    }/*</bind>*/
+}",
                 TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray,
                 (14, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
@@ -945,19 +923,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray_Constructor_NotFlagged()
         {
-            VerifyCSharp("""
-                using System;
-                using System.Collections;
+            VerifyCSharp(@"
+using System;
+using System.Collections;
 
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, "string");
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, ""string"");
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray);
         }
 
@@ -1008,19 +985,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfAStringStartsWithA_Flagged()
         {
-            VerifyCSharp("""
-                using System;
-                using System.Collections;
+            VerifyCSharp(@"
+using System;
+using System.Collections;
 
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, "A string");
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, ""A string"");
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrackWithConstructor_HazardousIfAStringStartsWithA,
                 (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
@@ -1028,24 +1004,23 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfAStringStartsWithA_Interprocedural_Flagged()
         {
-            VerifyCSharp("""
-                using System;
-                using System.Collections;
+            VerifyCSharp(@"
+using System;
+using System.Collections;
 
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrackWithConstructor t = GetTestType();
-                        t.Method();
-                    }/*</bind>*/
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t = GetTestType();
+        t.Method();
+    }/*</bind>*/
 
-                    TestTypeToTrackWithConstructor GetTestType()
-                    {
-                        return new TestTypeToTrackWithConstructor(default(TestEnum), null, "A string");
-                    }
-                }
-                """,
+    TestTypeToTrackWithConstructor GetTestType()
+    {
+        return new TestTypeToTrackWithConstructor(default(TestEnum), null, ""A string"");
+    }
+}",
                 TestTypeToTrackWithConstructor_HazardousIfAStringStartsWithA,
                 (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
@@ -1090,17 +1065,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNonNullOnReturn_Flagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    TestTypeToTrack TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AString = "A non-null string";
-                        return t;
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    TestTypeToTrack TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = ""A non-null string"";
+        return t;
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringIsNonNullOnReturn,
                 (8, 16, null, HazardousUsageEvaluationResult.Flagged));
         }
@@ -1108,18 +1082,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNonNullOnReturn_StringEmpty_Flagged()
         {
-            VerifyCSharp("""
-                using System;
-                class TestClass
-                {
-                    TestTypeToTrack TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AString = String.Empty;
-                        return t;
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+using System;
+class TestClass
+{
+    TestTypeToTrack TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = String.Empty;
+        return t;
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringIsNonNullOnReturn,
                 (9, 16, null, HazardousUsageEvaluationResult.Flagged));
         }
@@ -1127,34 +1100,32 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNonNullOnReturns_Unflagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    TestTypeToTrack TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AString = null;
-                        return t;
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    TestTypeToTrack TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = null;
+        return t;
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringIsNonNullOnReturn);
         }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNonNullOnReturns_ReturnObject_Unflagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    object TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AString = "A non-null string";
-                        return new object();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    object TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = ""A non-null string"";
+        return new object();
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringIsNonNullOnReturn);
         }
 
@@ -1214,17 +1185,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_AStringNonNull_Flagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AString = "A non-null string";
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = ""A non-null string"";
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull,
                 (8, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
@@ -1232,17 +1202,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_AnObjectNonNull_Flagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AnObject = new System.Random();
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AnObject = new System.Random();
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull,
                 (8, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
@@ -1250,18 +1219,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_StringEmpty_Flagged()
         {
-            VerifyCSharp("""
-                using System;
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AString = String.Empty;
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+using System;
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = String.Empty;
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull,
                 (9, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
@@ -1269,36 +1237,34 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         [Fact]
         public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_StringNonNull_ObjectNull_Unflagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AString = "A non-null string";
-                        t.AnObject = null;
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = ""A non-null string"";
+        t.AnObject = null;
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull);
         }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_AnObjectNonNull_StringNull_Unflagged()
         {
-            VerifyCSharp("""
-                class TestClass
-                {
-                    void TestMethod()
-                    /*<bind>*/{
-                        TestTypeToTrack t = new TestTypeToTrack();
-                        t.AnObject = new System.Random();
-                        t.AString = null;
-                        t.Method();
-                    }/*</bind>*/
-                }
-                """,
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AnObject = new System.Random();
+        t.AString = null;
+        t.Method();
+    }/*</bind>*/
+}",
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull);
         }
 

@@ -155,6 +155,6 @@
       in Directory.Packages.props - Microsoft.TestPlatform.TranslationLayer and Microsoft.TestPlatform.ObjectModel.
       This version needs to match the Test SDK version consumed by Arcade.
     -->
-    <MicrosoftNETTestSdkVersion>17.5.0</MicrosoftNETTestSdkVersion>
+    <MicrosoftNETTestSdkVersion>17.13.0</MicrosoftNETTestSdkVersion>
   </PropertyGroup>
 </Project>
