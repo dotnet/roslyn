@@ -185,18 +185,6 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
     /// <summary>
     /// Remote API.
     /// </summary>
-    public ValueTask UpdateBaselinesAsync(Checksum solutionChecksum, DebuggingSessionId sessionId, ImmutableArray<ProjectId> rebuiltProjects, CancellationToken cancellationToken)
-    {
-        return RunServiceAsync(solutionChecksum, solution =>
-        {
-            GetService().UpdateBaselines(sessionId, solution, rebuiltProjects);
-            return default;
-        }, cancellationToken);
-    }
-
-    /// <summary>
-    /// Remote API.
-    /// </summary>
     public ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(Checksum solutionChecksum, DebuggingSessionId sessionId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>

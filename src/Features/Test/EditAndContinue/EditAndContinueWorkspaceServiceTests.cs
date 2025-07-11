@@ -1271,14 +1271,12 @@ class C { int Y => 2; }
 
         // We do not reload the content of out-of-sync file for analyzer query.
         // We don't check if the content on disk has been updated to match either.
-        // Document state can only be reset via UpdateBaselines.
         sourceFile.WriteAllText(source0, Encoding.UTF8);
         docDiagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
         Assert.Empty(docDiagnostics);
 
         // rebuild triggers reload of out-of-sync file content:
         moduleId = EmitAndLoadLibraryToDebuggee(projectId, source0, sourceFilePath: sourceFile.Path);
-        debuggingSession.UpdateBaselines(solution.WithDocumentText(documentId, CreateText(source0)), [projectId]);
 
         results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
@@ -3735,7 +3733,6 @@ class C { int Y => 1; }
         // Saving is required so that we can fetch the baseline content for the next delta calculation.
         File.WriteAllText(sourcePath, source2, Encoding.UTF8);
         var mvidB2 = EmitAndLoadLibraryToDebuggee(projectBId, source2, sourceFilePath: sourcePath, assemblyName: "A", targetFramework: TargetFramework.Net90);
-        debuggingSession.UpdateBaselines(solution, rebuiltProjects: [projectBId]);
 
         // no changes have been made:
 

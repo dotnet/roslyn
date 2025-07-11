@@ -34,7 +34,6 @@ internal interface IRemoteEditAndContinueService
     /// </summary>
     ValueTask CommitSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken);
     ValueTask DiscardSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken);
-    ValueTask UpdateBaselinesAsync(Checksum solutionInfo, DebuggingSessionId sessionId, ImmutableArray<ProjectId> rebuiltProjects, CancellationToken cancellationToken);
 
     ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, ImmutableArray<DocumentId> captureMatchingDocuments, bool captureAllMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken);
 
