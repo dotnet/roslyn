@@ -21315,7 +21315,7 @@ static class E
             {
                 extension(MyStruct s)
                 {
-                    public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("s")] InterpolationHandler h)
+                    public void M(int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("s")] InterpolationHandler h)
                     {
                         System.Console.Write(s.i);
                         E.field.i++;
@@ -21327,39 +21327,43 @@ static class E
             """;
 
         var exeSource = """
-            E.field.M($"");
-            E.M(E.field, $"");
+            E.field.M(Increment(), $"");
+            E.M(E.field, Increment(), $"");
+
+            int Increment() => E.field.i++;
             """;
 
-        var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "0022" : null;
+        var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "1033" : null;
         var verifier = CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify)
             .VerifyDiagnostics();
 
         verifier.VerifyIL("<top-level-statements-entry-point>", """
             {
-              // Code size       51 (0x33)
-              .maxstack  4
+              // Code size       61 (0x3d)
+              .maxstack  5
               .locals init (MyStruct& V_0,
                             MyStruct V_1)
               IL_0000:  ldsflda    "MyStruct E.field"
               IL_0005:  stloc.0
               IL_0006:  ldloc.0
               IL_0007:  ldobj      "MyStruct"
-              IL_000c:  ldc.i4.0
-              IL_000d:  ldc.i4.0
-              IL_000e:  ldloc.0
-              IL_000f:  ldobj      "MyStruct"
-              IL_0014:  newobj     "InterpolationHandler..ctor(int, int, MyStruct)"
-              IL_0019:  call       "void E.M(MyStruct, InterpolationHandler)"
-              IL_001e:  ldsfld     "MyStruct E.field"
-              IL_0023:  stloc.1
-              IL_0024:  ldloc.1
-              IL_0025:  ldc.i4.0
-              IL_0026:  ldc.i4.0
-              IL_0027:  ldloc.1
-              IL_0028:  newobj     "InterpolationHandler..ctor(int, int, MyStruct)"
-              IL_002d:  call       "void E.M(MyStruct, InterpolationHandler)"
-              IL_0032:  ret
+              IL_000c:  call       "int Program.<<Main>$>g__Increment|0_0()"
+              IL_0011:  ldc.i4.0
+              IL_0012:  ldc.i4.0
+              IL_0013:  ldloc.0
+              IL_0014:  ldobj      "MyStruct"
+              IL_0019:  newobj     "InterpolationHandler..ctor(int, int, MyStruct)"
+              IL_001e:  call       "void E.M(MyStruct, int, InterpolationHandler)"
+              IL_0023:  ldsfld     "MyStruct E.field"
+              IL_0028:  stloc.1
+              IL_0029:  ldloc.1
+              IL_002a:  call       "int Program.<<Main>$>g__Increment|0_0()"
+              IL_002f:  ldc.i4.0
+              IL_0030:  ldc.i4.0
+              IL_0031:  ldloc.1
+              IL_0032:  newobj     "InterpolationHandler..ctor(int, int, MyStruct)"
+              IL_0037:  call       "void E.M(MyStruct, int, InterpolationHandler)"
+              IL_003c:  ret
             }
             """);
 
@@ -21406,19 +21410,15 @@ static class E
             """;
 
         var exeSource = """
+            #pragma warning disable CS8321 // The local function 'localFunc' is declared but never used
             MyStruct localFunc()
+            #pragma warning restore CS8321 // The local function 'localFunc' is declared but never used
             {
                 return new MyStruct().M($"");
             }
             """;
 
-        var expected =
-            // (1,10): warning CS8321: The local function 'localFunc' is declared but never used
-            // MyStruct localFunc()
-            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "localFunc").WithArguments("localFunc").WithLocation(1, 10);
-
-        var verifier = CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, verify: Verification.Fails)
-            .VerifyDiagnostics(expected);
+        var verifier = CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, verify: Verification.Fails).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.<<Main>$>g__localFunc|0_0()", """
             {
@@ -21440,7 +21440,7 @@ static class E
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
         CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, verify: Verification.Fails)
-            .VerifyDiagnostics(expected);
+            .VerifyDiagnostics();
     }
 
     [Fact]
@@ -21478,7 +21478,9 @@ static class E
             """;
 
         var exeSource = """
+            #pragma warning disable CS8321 // The local function 'localFunc' is declared but never used
             MyStruct localFunc()
+            #pragma warning restore CS8321 // The local function 'localFunc' is declared but never used
             {
                 int i = 0;
                 return new MyStruct() { i = ref i }.M($"");
@@ -21486,15 +21488,12 @@ static class E
             """;
 
         CreateCompilation([exeSource, src], targetFramework: TargetFramework.Net90).VerifyDiagnostics(
-            // (4,27): error CS8352: Cannot use variable 'i = ref i' in this context because it may expose referenced variables outside of their declaration scope
+            // (6,27): error CS8352: Cannot use variable 'i = ref i' in this context because it may expose referenced variables outside of their declaration scope
             //     return new MyStruct() { i = ref i }.M($"");
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "{ i = ref i }").WithArguments("i = ref i").WithLocation(4, 27),
-            // (4,12): error CS8347: Cannot use a result of 'E.extension(MyStruct).M(InterpolationHandler)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "{ i = ref i }").WithArguments("i = ref i").WithLocation(6, 27),
+            // (6,12): error CS8347: Cannot use a result of 'E.extension(MyStruct).M(InterpolationHandler)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
             //     return new MyStruct() { i = ref i }.M($"");
-            Diagnostic(ErrorCode.ERR_EscapeCall, @"new MyStruct() { i = ref i }.M($"""")").WithArguments("E.extension(MyStruct).M(InterpolationHandler)", "s").WithLocation(4, 12),
-            // (1,10): warning CS8321: The local function 'localFunc' is declared but never used
-            // MyStruct localFunc()
-            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "localFunc").WithArguments("localFunc").WithLocation(1, 10)
+            Diagnostic(ErrorCode.ERR_EscapeCall, @"new MyStruct() { i = ref i }.M($"""")").WithArguments("E.extension(MyStruct).M(InterpolationHandler)", "s1").WithLocation(6, 12)
         );
     }
 
@@ -21533,7 +21532,9 @@ static class E
             """;
 
         var exeSource = """
+            #pragma warning disable CS8321 // The local function 'localFunc' is declared but never used
             MyStruct localFunc()
+            #pragma warning restore CS8321 // The local function 'localFunc' is declared but never used
             {
                 var myStruct = new MyStruct();
                 return myStruct.M($"");
@@ -21541,15 +21542,12 @@ static class E
             """;
 
         CreateCompilation([exeSource, src], targetFramework: TargetFramework.Net90).VerifyDiagnostics(
-            // (1,10): warning CS8321: The local function 'localFunc' is declared but never used
-            // MyStruct localFunc()
-            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "localFunc").WithArguments("localFunc").WithLocation(1, 10),
-            // (4,12): error CS8347: Cannot use a result of 'E.extension(MyStruct).M(ref InterpolationHandler)' in this context because it may expose variables referenced by parameter 'h' outside of their declaration scope
+            // (6,12): error CS8347: Cannot use a result of 'E.extension(MyStruct).M(ref InterpolationHandler)' in this context because it may expose variables referenced by parameter 'h' outside of their declaration scope
             //     return myStruct.M($"");
-            Diagnostic(ErrorCode.ERR_EscapeCall, @"myStruct.M($"""")").WithArguments("E.extension(MyStruct).M(ref InterpolationHandler)", "h").WithLocation(4, 12),
-            // (4,23): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+            Diagnostic(ErrorCode.ERR_EscapeCall, @"myStruct.M($"""")").WithArguments("E.extension(MyStruct).M(ref InterpolationHandler)", "h").WithLocation(6, 12),
+            // (6,23): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
             //     return myStruct.M($"");
-            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, @"$""""").WithLocation(4, 23)
+            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, @"$""""").WithLocation(6, 23)
         );
     }
 
@@ -21588,7 +21586,9 @@ static class E
             """;
 
         var exeSource = """
+            #pragma warning disable CS8321 // The local function 'localFunc' is declared but never used
             MyStruct localFunc()
+            #pragma warning restore CS8321 // The local function 'localFunc' is declared but never used
             {
                 int i = 0;
                 return new MyStruct() { i = ref i }.M($"");
@@ -21596,15 +21596,12 @@ static class E
             """;
 
         CreateCompilation([exeSource, src], targetFramework: TargetFramework.Net90).VerifyDiagnostics(
-            // (1,10): warning CS8321: The local function 'localFunc' is declared but never used
-            // MyStruct localFunc()
-            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "localFunc").WithArguments("localFunc").WithLocation(1, 10),
-            // (4,12): error CS8347: Cannot use a result of 'E.extension(MyStruct).M(ref InterpolationHandler)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
+            // (6,12): error CS8347: Cannot use a result of 'E.extension(MyStruct).M(ref InterpolationHandler)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
             //     return new MyStruct() { i = ref i }.M($"");
-            Diagnostic(ErrorCode.ERR_EscapeCall, @"new MyStruct() { i = ref i }.M($"""")").WithArguments("E.extension(MyStruct).M(ref InterpolationHandler)", "s1").WithLocation(4, 12),
-            // (4,27): error CS8352: Cannot use variable 'i = ref i' in this context because it may expose referenced variables outside of their declaration scope
+            Diagnostic(ErrorCode.ERR_EscapeCall, @"new MyStruct() { i = ref i }.M($"""")").WithArguments("E.extension(MyStruct).M(ref InterpolationHandler)", "s1").WithLocation(6, 12),
+            // (6,27): error CS8352: Cannot use variable 'i = ref i' in this context because it may expose referenced variables outside of their declaration scope
             //     return new MyStruct() { i = ref i }.M($"");
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "{ i = ref i }").WithArguments("i = ref i").WithLocation(4, 27)
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "{ i = ref i }").WithArguments("i = ref i").WithLocation(6, 27)
         );
     }
 
@@ -21643,7 +21640,9 @@ static class E
             """;
 
         var exeSource = """
+            #pragma warning disable CS8321 // The local function 'localFunc' is declared but never used
             MyStruct localFunc()
+            #pragma warning restore CS8321 // The local function 'localFunc' is declared but never used
             {
                 int i = 0;
                 return new MyStruct() { i = ref i }.M($"");
@@ -21651,15 +21650,12 @@ static class E
             """;
 
         CreateCompilation([exeSource, src], targetFramework: TargetFramework.Net90).VerifyDiagnostics(
-            // (1,10): warning CS8321: The local function 'localFunc' is declared but never used
-            // MyStruct localFunc()
-            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "localFunc").WithArguments("localFunc").WithLocation(1, 10),
-            // (4,12): error CS8352: Cannot use variable 'new MyStruct() { i = ref i }' in this context because it may expose referenced variables outside of their declaration scope
+            // (6,12): error CS8352: Cannot use variable 'new MyStruct() { i = ref i }' in this context because it may expose referenced variables outside of their declaration scope
             //     return new MyStruct() { i = ref i }.M($"");
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "new MyStruct() { i = ref i }").WithArguments("new MyStruct() { i = ref i }").WithLocation(4, 12),
-            // (4,43): error CS8347: Cannot use a result of 'InterpolationHandler.InterpolationHandler(int, int, MyStruct)' in this context because it may expose variables referenced by parameter 's2' outside of their declaration scope
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "new MyStruct() { i = ref i }").WithArguments("new MyStruct() { i = ref i }").WithLocation(6, 12),
+            // (6,43): error CS8347: Cannot use a result of 'InterpolationHandler.InterpolationHandler(int, int, MyStruct)' in this context because it may expose variables referenced by parameter 's2' outside of their declaration scope
             //     return new MyStruct() { i = ref i }.M($"");
-            Diagnostic(ErrorCode.ERR_EscapeCall, @"$""""").WithArguments("InterpolationHandler.InterpolationHandler(int, int, MyStruct)", "s2").WithLocation(4, 43)
+            Diagnostic(ErrorCode.ERR_EscapeCall, @"$""""").WithArguments("InterpolationHandler.InterpolationHandler(int, int, MyStruct)", "s2").WithLocation(6, 43)
         );
     }
 
@@ -21698,7 +21694,9 @@ static class E
             """;
 
         var exeSource = """
+            #pragma warning disable CS8321 // The local function 'localFunc' is declared but never used
             MyStruct localFunc()
+            #pragma warning restore CS8321 // The local function 'localFunc' is declared but never used
             {
                 int i = 0;
                 return new MyStruct() { i = ref i }.M($"");
@@ -21708,10 +21706,7 @@ static class E
         CreateCompilation([exeSource, src], targetFramework: TargetFramework.Net90).VerifyDiagnostics(
             // (25,26): error CS8352: Cannot use variable 'i = ref h.i' in this context because it may expose referenced variables outside of their declaration scope
             //             return new() { i = ref h.i };
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "{ i = ref h.i }").WithArguments("i = ref h.i").WithLocation(25, 26),
-            // (1,10): warning CS8321: The local function 'localFunc' is declared but never used
-            // MyStruct localFunc()
-            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "localFunc").WithArguments("localFunc").WithLocation(1, 10)
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "{ i = ref h.i }").WithArguments("i = ref h.i").WithLocation(25, 26)
         );
     }
 
@@ -21751,19 +21746,16 @@ static class E
             """;
 
         var exeSource = """
+            #pragma warning disable CS8321 // The local function 'localFunc' is declared but never used
             MyStruct localFunc()
+            #pragma warning restore CS8321 // The local function 'localFunc' is declared but never used
             {
                 int i = 0;
                 return new MyStruct() { i = ref i }.M($"");
             }
             """;
 
-        var expected = // (1,10): warning CS8321: The local function 'localFunc' is declared but never used
-                       // MyStruct localFunc()
-                       Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "localFunc").WithArguments("localFunc").WithLocation(1, 10);
-
-        var verifier = CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, verify: Verification.Fails)
-            .VerifyDiagnostics(expected);
+        var verifier = CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, verify: Verification.Fails).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.<<Main>$>g__localFunc|0_0()", """
             {
@@ -21794,7 +21786,7 @@ static class E
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
         CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, verify: Verification.Fails)
-            .VerifyDiagnostics(expected);
+            .VerifyDiagnostics();
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
@@ -22053,7 +22045,7 @@ static class E
             public struct InterpolationHandler
             {
 
-                public InterpolationHandler(int literalLength, int formattedCount, int i)
+                public InterpolationHandler(int literalLength, int formattedCount, InterpolationHandler i)
                 {
                     System.Console.WriteLine(i);
                 }
@@ -22140,6 +22132,164 @@ static class E
         Assert.True(implM.Parameters[0].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
         Assert.True(implM.Parameters[1].HasInterpolatedStringHandlerArgumentError);
         Assert.True(implM.Parameters[1].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    public void InterpolationHandler_ParameterErrors_MappedCorrectly_04()
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, InterpolationHandler i)
+                {
+                    System.Console.WriteLine(i);
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("")] InterpolationHandler i)
+                {
+                    public void M() {}
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyDiagnostics(
+            // (15,16): error CS8944: 'E.extension(InterpolationHandler).<Extension>$(InterpolationHandler)' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
+            //     extension([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("")] InterpolationHandler i)
+            Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("""")").WithArguments("E.extension(InterpolationHandler).<Extension>$(InterpolationHandler)").WithLocation(15, 16)
+        );
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
+
+        var symbol = model.GetDeclaredSymbol(extension);
+        AssertExtensionDeclaration(symbol);
+        var underlying = symbol.GetSymbol<NamedTypeSymbol>();
+        Assert.True(underlying.ExtensionParameter.HasInterpolatedStringHandlerArgumentError);
+        Assert.True(underlying.ExtensionParameter.InterpolatedStringHandlerArgumentIndexes.IsEmpty);
+        var implM = underlying.ContainingType.GetMember<MethodSymbol>("M");
+        Assert.True(implM.Parameters[0].HasInterpolatedStringHandlerArgumentError);
+        Assert.True(implM.Parameters[0].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    public void InterpolationHandler_ParameterErrors_MappedCorrectly_04_FromMetadata()
+    {
+        // Equvalent to:
+        // [System.Runtime.CompilerServices.InterpolatedStringHandler]
+        // public struct InterpolationHandler
+        // {
+
+        //     public InterpolationHandler(int literalLength, int formattedCount, InterpolationHandler i)
+        //     {
+        //         System.Console.WriteLine(i);
+        //     }
+        //     public void AppendLiteral(string value) { }
+        //     public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+        // }
+
+        // public static class E
+        // {
+        //     extension([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("")] InterpolationHandler i)
+        //     {
+        //         public void M() {}
+        //     }
+        // }
+        var il = $$"""
+            .class public sequential ansi sealed beforefieldinit InterpolationHandler
+                extends [mscorlib]System.ValueType
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute::.ctor() = (01 00 00 00)
+                .pack 0
+                .size 1
+
+                // Methods
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor (int32 literalLength, int32 formattedCount, valuetype InterpolationHandler param) cil managed 
+                {
+                    nop
+                    ret
+                } // end of method InterpolationHandler::.ctor
+
+                .method public hidebysig instance void AppendLiteral (string 'value') cil managed 
+                {
+                    nop
+                    ret
+                } // end of method InterpolationHandler::AppendLiteral
+
+                .method public hidebysig instance void AppendFormatted<T> (!!T hole, [opt] int32 'alignment', [opt] string format) cil managed 
+                {
+                    .param [2] = int32(0)
+                    .param [3] = nullref
+                    nop
+                    ret
+                } // end of method InterpolationHandler::AppendFormatted
+
+            } // end of class InterpolationHandler
+
+            .class public auto ansi abstract sealed beforefieldinit E extends [mscorlib]System.Object
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (01 00 00 00)
+                // Nested Types
+                .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+                    extends [mscorlib]System.Object
+                {
+                    .method private hidebysig specialname static void '<Extension>$' (valuetype InterpolationHandler i) cil managed
+                    {
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (01 00 00 00)
+                        .param [1]
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute::.ctor(string) = (01 00 00 00 00)
+                        ret
+                    } // end of method '<>E__0'::'<Extension>$'
+
+                    .method public hidebysig instance void M () cil managed 
+                    {
+                        ldnull
+                        throw
+                    } // end of method '<>E__0'::M
+                } // end of class <>E__0
+
+                .method public hidebysig static void M (valuetype InterpolationHandler i) cil managed 
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    .param [1]
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute::.ctor(string) = (01 00 00 00 00)
+                    nop
+                    ret
+                } // end of method E::M
+            } // end of class E
+            """;
+
+        var src = """
+            $"".M();
+            E.M($"");
+            """;
+
+        var comp = CreateCompilationWithIL(src, ilSource: il, targetFramework: TargetFramework.Net90);
+        comp.VerifyDiagnostics(
+            // (1,1): error CS1929: 'string' does not contain a definition for 'M' and the best extension method overload 'E.extension(InterpolationHandler).M()' requires a receiver of type 'InterpolationHandler'
+            // $"".M();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, @"$""""").WithArguments("string", "M", "E.extension(InterpolationHandler).M()", "InterpolationHandler").WithLocation(1, 1),
+            // (2,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'InterpolationHandler i' is malformed and cannot be interpreted. Construct an instance of 'InterpolationHandler' manually.
+            // E.M($"");
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("InterpolationHandler i", "InterpolationHandler").WithLocation(2, 5),
+            // (2,5): error CS7036: There is no argument given that corresponds to the required parameter 'param' of 'InterpolationHandler.InterpolationHandler(int, int, InterpolationHandler)'
+            // E.M($"");
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"$""""").WithArguments("param", "InterpolationHandler.InterpolationHandler(int, int, InterpolationHandler)").WithLocation(2, 5),
+            // (2,5): error CS1615: Argument 3 may not be passed with the 'out' keyword
+            // E.M($"");
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, @"$""""").WithArguments("3", "out").WithLocation(2, 5)
+        );
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]

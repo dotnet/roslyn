@@ -1258,7 +1258,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypedConstant constructorArgument = arguments.Attribute.CommonConstructorArguments[0];
 
             ImmutableArray<ParameterSymbol> containingSymbolParameters = ContainingSymbol.GetParameters();
-            ParameterSymbol? extensionParameter = ContainingType.ExtensionParameter;
+            // If we're analyzing the extension marker method itself, then we're not actually in an extension context, even though our containing type
+            // is the extension skeleton type.
+            ParameterSymbol? extensionParameter = ContainingSymbol is SynthesizedExtensionMarker ? null : ContainingType.ExtensionParameter;
 
             ImmutableArray<int> parameterOrdinals;
             if (attributeIndex == 0)
@@ -1348,16 +1350,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (string.Equals(extensionParameter?.Name, name, StringComparison.Ordinal))
                 {
-                    // We decode the indexes on the symbol that the extension parameter wraps, so to determine equality we need to compare against the underlying parameter.
-                    if (string.Equals(Name, name, StringComparison.Ordinal)
-                        && extensionParameter is ReceiverParameterSymbol { UnderlyingParameter: var underlying }
-                        && (object)underlying == this)
-                    {
-                        // InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.
-                        diagnostics.Add(ErrorCode.ERR_CannotUseSelfAsInterpolatedStringHandlerArgument, arguments.AttributeSyntaxOpt.Location);
-                        return null;
-                    }
-
                     if (!ContainingSymbol.RequiresInstanceReceiver())
                     {
                         // '{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
