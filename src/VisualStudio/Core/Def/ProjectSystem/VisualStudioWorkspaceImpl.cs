@@ -102,7 +102,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     /// </summary>
     private readonly JoinableTaskCollection _updateUIContextJoinableTasks;
 
-    private OpenFileTracker? _openFileTracker;
+    private readonly OpenFileTracker _openFileTracker;
     private UIContext? _solutionClosingContext;
 
     internal IFileChangeWatcher FileChangeWatcher { get; }
@@ -130,6 +130,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
         _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
         _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
+        _workspaceListener = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
 
         _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
         _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
@@ -139,15 +140,20 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         ProjectSystemProjectFactory = new ProjectSystemProjectFactory(
             this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps, _threadingContext.DisposalToken);
 
-        InitializeUIAffinitizedServicesAsync(asyncServiceProvider).Forget();
+        _openFileTracker = new OpenFileTracker(
+            this,
+            ProjectSystemProjectFactory,
+            exportProvider.GetExport<Microsoft.VisualStudio.Text.Editor.IEditorOptionsFactoryService>(),
+            _workspaceListener,
+            exportProvider.GetExportedValue<OpenTextBufferProvider>());
+
+        InitializeUIAffinitizedServicesAsync().Forget();
 
         _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
             exportProvider.GetExportedValue<ExternalErrorDiagnosticUpdateSource>(),
             isThreadSafe: true);
 
         _updateUIContextJoinableTasks = new JoinableTaskCollection(_threadingContext.JoinableTaskContext);
-
-        _workspaceListener = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
 
         // Set up our telemetry session and log an event for the version
         var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
@@ -181,7 +187,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
         KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
         {
-            KnownUIContexts.SolutionBuildingContext.UIContextChanged += (object _, UIContextChangedEventArgs e) =>
+            KnownUIContexts.SolutionBuildingContext.UIContextChanged += (_, e) =>
             {
                 if (e.Activated)
                 {
@@ -206,7 +212,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         ProjectSystemProjectFactory.SolutionClosing = e.Activated;
     }
 
-    public async Task InitializeUIAffinitizedServicesAsync(IAsyncServiceProvider asyncServiceProvider)
+    public async Task InitializeUIAffinitizedServicesAsync()
     {
         // Yield the thread, so the caller can proceed and return immediately.
         // Create services that are bound to the UI thread
@@ -214,26 +220,10 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         _solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
         _solutionClosingContext.UIContextChanged += SolutionClosingContext_UIContextChanged;
-
-        var openFileTracker = await OpenFileTracker.CreateAsync(this, ProjectSystemProjectFactory, asyncServiceProvider).ConfigureAwait(true);
-
-        // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
-        // WARNING: if we do .ConfigureAwait(true) here, it means we're trying to transition to the UI thread while
-        // semaphore is acquired; if the UI thread is blocked trying to acquire the semaphore, we could deadlock.
-        using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
-        {
-            _openFileTracker = openFileTracker;
-        }
-
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
-
-        // This must be called after the _openFileTracker was assigned; this way we know that a file added from the project system either got checked
-        // in CheckForAddedFileBeingOpenMaybeAsync, or we catch it here.
-        openFileTracker.CheckForOpenFilesThatWeMissed();
     }
 
     public Task CheckForAddedFileBeingOpenMaybeAsync(bool useAsync, ImmutableArray<string> newFileNames)
-        => _openFileTracker?.CheckForAddedFileBeingOpenMaybeAsync(useAsync, newFileNames) ?? Task.CompletedTask;
+        => _openFileTracker.CheckForAddedFileBeingOpenMaybeAsync(useAsync, newFileNames);
 
     internal void AddProjectToInternalMaps(ProjectSystemProject project, IVsHierarchy? hierarchy, Guid guid, string projectSystemName)
     {

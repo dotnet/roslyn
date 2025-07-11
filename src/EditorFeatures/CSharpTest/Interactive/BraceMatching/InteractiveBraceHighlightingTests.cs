@@ -151,18 +151,20 @@ public sealed class InteractiveBraceHighlightingTests
     [WpfFact]
     public async Task TestSwitch()
     {
-        var code = @"
-class C
-{
-    void M(int variable)
-    {
-        switch (variable)
-        {
-            case 0:
-                break;
-        }
-    }
-} ";
+        var code = """
+
+            class C
+            {
+                void M(int variable)
+                {
+                    switch (variable)
+                    {
+                        case 0:
+                            break;
+                    }
+                }
+            } 
+            """;
         using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions: TestOptions.Script);
         var buffer = workspace.Documents.First().GetTextBuffer();
 

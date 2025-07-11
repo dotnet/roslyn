@@ -46,30 +46,30 @@ public sealed class OutVariableArgumentProviderTests : AbstractCSharpArgumentPro
     [InlineData("ref")]
     [InlineData("in")]
     public Task TestUnsupportedModifiers(string modifier)
-        => VerifyDefaultValueAsync($@"
-class C
-{{
-    void Method()
-    {{
-        TryParse($$)
-    }}
+        => VerifyDefaultValueAsync($$"""
+            class C
+            {
+                void Method()
+                {
+                    TryParse($$)
+                }
 
-    bool TryParse({modifier} int value) => throw null;
-}}
-", expectedDefaultValue: null);
+                bool TryParse({{modifier}} int value) => throw null;
+            }
+            """, expectedDefaultValue: null);
 
     [Fact]
     public async Task TestDeclareVariable()
     {
-        var markup = $@"
-class C
-{{
-    void Method()
-    {{
-        int.TryParse(""x"", $$)
-    }}
-}}
-";
+        var markup = $$"""
+            class C
+            {
+                void Method()
+                {
+                    int.TryParse("x", $$)
+                }
+            }
+            """;
 
         await VerifyDefaultValueAsync(markup, "out var result");
         await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
@@ -93,16 +93,16 @@ class C
             (false, false) => s_useExplicitMetadataTypeOptions,
         };
 
-        await VerifyDefaultValueAsync($@"
-using System;
-class C
-{{
-    void Method()
-    {{
-        int.TryParse(""x"", $$)
-    }}
-}}
-", expected, options: options);
+        await VerifyDefaultValueAsync($$"""
+            using System;
+            class C
+            {
+                void Method()
+                {
+                    int.TryParse("x", $$)
+                }
+            }
+            """, expected, options: options);
     }
 
     [Theory]
@@ -111,20 +111,20 @@ class C
     [InlineData("int?")]
     public async Task TestDeclareVariableEscapedIdentifier(string type)
     {
-        var markup = $@"
-class C
-{{
-    void Method()
-    {{
-        this.Target($$);
-    }}
+        var markup = $$"""
+            class C
+            {
+                void Method()
+                {
+                    this.Target($$);
+                }
 
-    void Target(out {type} @void)
-    {{
-        @void = default;
-    }}
-}}
-";
+                void Target(out {{type}} @void)
+                {
+                    @void = default;
+                }
+            }
+            """;
 
         await VerifyDefaultValueAsync(markup, "out var @void");
         await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");

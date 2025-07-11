@@ -669,14 +669,16 @@ public sealed class ShortKeywordRecommenderTests : KeywordRecommenderTests
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/53585")]
     [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithoutAsync))]
     public Task TestAfterKeywordIndicatingLocalFunctionWithoutAsync(string keyword)
-        => VerifyKeywordAsync(AddInsideMethod($@"
-{keyword} $$"));
+        => VerifyKeywordAsync(AddInsideMethod($"""
+            {keyword} $$
+            """));
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
     [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithAsync))]
     public Task TestNotAfterKeywordIndicatingLocalFunctionWithAsync(string keyword)
-        => VerifyAbsenceAsync(AddInsideMethod($@"
-{keyword} $$"));
+        => VerifyAbsenceAsync(AddInsideMethod($"""
+            {keyword} $$
+            """));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64585")]
     public Task TestAfterRequired()

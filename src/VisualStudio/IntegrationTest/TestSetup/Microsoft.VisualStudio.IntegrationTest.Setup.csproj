@@ -13,6 +13,8 @@
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <DeployExtension>true</DeployExtension>
+
   </PropertyGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">

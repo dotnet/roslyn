@@ -1801,12 +1801,16 @@ public sealed class SolutionTests : TestBase
 
     [Theory]
     [InlineData("#if DEBUG", false, LanguageNames.CSharp)]
-    [InlineData(@"#region ""goo""", true, LanguageNames.CSharp)]
+    [InlineData("""
+        #region "goo"
+        """, true, LanguageNames.CSharp)]
     [InlineData(@"#nullable enable", true, LanguageNames.CSharp)]
     [InlineData(@"#elif DEBUG", true, LanguageNames.CSharp)]
     [InlineData("// File", true, LanguageNames.CSharp)]
     [InlineData("#if DEBUG", false, LanguageNames.VisualBasic)]
-    [InlineData(@"#region ""goo""", true, LanguageNames.VisualBasic)]
+    [InlineData("""
+        #region "goo"
+        """, true, LanguageNames.VisualBasic)]
     [InlineData(@"#ElseIf DEBUG", true, LanguageNames.VisualBasic)]
     [InlineData("' File", true, LanguageNames.VisualBasic)]
     public async Task ChangingPreprocessorDirectivesMayReparse(string source, bool expectReuse, string languageName)
@@ -3650,14 +3654,16 @@ public sealed class SolutionTests : TestBase
         var pid = ProjectId.CreateNewId();
         var did = DocumentId.CreateNewId(pid);
 
-        var text = @"public class C {
-    public void Method1() {}
-    public void Method2() {}
-    public void Method3() {}
-    public void Method4() {}
-    public void Method5() {}
-    public void Method6() {}
-}";
+        var text = """
+            public class C {
+                public void Method1() {}
+                public void Method2() {}
+                public void Method3() {}
+                public void Method4() {}
+                public void Method5() {}
+                public void Method6() {}
+            }
+            """;
 
         using var workspace = CreateWorkspace();
         var sol = workspace.CurrentSolution
@@ -3674,20 +3680,22 @@ public sealed class SolutionTests : TestBase
         var pid = ProjectId.CreateNewId();
         var did = DocumentId.CreateNewId(pid);
 
-        var text = @"Public Class C
-    Sub Method1()
-    End Sub
-    Sub Method2()
-    End Sub
-    Sub Method3()
-    End Sub
-    Sub Method4()
-    End Sub
-    Sub Method5()
-    End Sub
-    Sub Method6()
-    End Sub
-End Class";
+        var text = """
+            Public Class C
+                Sub Method1()
+                End Sub
+                Sub Method2()
+                End Sub
+                Sub Method3()
+                End Sub
+                Sub Method4()
+                End Sub
+                Sub Method5()
+                End Sub
+                Sub Method6()
+                End Sub
+            End Class
+            """;
 
         using var workspace = CreateWorkspace();
         var sol = workspace.CurrentSolution
@@ -3961,24 +3969,25 @@ End Class";
         var did2 = DocumentId.CreateNewId(pid2);
         var did3 = DocumentId.CreateNewId(pid3);
 
-        var text1 = @"
-Public Class A
-End Class";
+        var text1 = """
+            Public Class A
+            End Class
+            """;
 
-        var text2 = @"
-Public Class B
-End Class
-";
+        var text2 = """
+            Public Class B
+            End Class
+            """;
 
-        var text3 = @"
-public class C : B {
-}
-";
+        var text3 = """
+            public class C : B {
+            }
+            """;
 
-        var text4 = @"
-public class C : A {
-}
-";
+        var text4 = """
+            public class C : A {
+            }
+            """;
 
         var solution = new AdhocWorkspace().CurrentSolution
             .AddProject(pid1, "GooA", "Goo.dll", LanguageNames.VisualBasic)
@@ -4849,14 +4858,15 @@ public class C : A {
         solution = solution.AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp)
             .WithProjectMetadataReferences(projectId, [NetFramework.mscorlib])
             .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithNullableContextOptions(NullableContextOptions.Enable));
-        solution = solution.AddDocument(sourceDocumentId, "Test.cs", @"
-class C
-{
-    void M(C? c)
-    {
-        _ = c.ToString();   // warning CS8602: Dereference of a possibly null reference.
-    }
-}", filePath: @"Z:\Test.cs");
+        solution = solution.AddDocument(sourceDocumentId, "Test.cs", """
+            class C
+            {
+                void M(C? c)
+                {
+                    _ = c.ToString();   // warning CS8602: Dereference of a possibly null reference.
+                }
+            }
+            """, filePath: @"Z:\Test.cs");
 
         var originalSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
         var originalCompilation = await solution.GetProject(projectId).GetCompilationAsync();

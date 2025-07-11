@@ -433,17 +433,19 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
             public async Task TestFixAllInDocument()
             {
                 var addedGlobalSuppressions =
-$@"// This file is used by Code Analysis to maintain SuppressMessage
-// attributes that are applied to this project.
-// Project-level suppressions either have no target or are given
-// a specific target and scoped to a namespace, type, member, etc.
+                    $"""
+                    // This file is used by Code Analysis to maintain SuppressMessage
+                    // attributes that are applied to this project.
+                    // Project-level suppressions either have no target or are given
+                    // a specific target and scoped to a namespace, type, member, etc.
 
-using System.Diagnostics.CodeAnalysis;
+                    using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""member"", Target = ""~M:Class1.Method~System.Int32"")]
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class1"")]
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class2"")]
-"
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "member", Target = "~M:Class1.Method~System.Int32")]
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class1")]
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
+
+                    """
 .Replace("<", "&lt;").Replace(">", "&gt;");
 
                 var expected = """
@@ -540,18 +542,20 @@ using System.Diagnostics.CodeAnalysis;
             public async Task TestFixAllInProject()
             {
                 var addedGlobalSuppressions =
-$@"// This file is used by Code Analysis to maintain SuppressMessage
-// attributes that are applied to this project.
-// Project-level suppressions either have no target or are given
-// a specific target and scoped to a namespace, type, member, etc.
+                    $"""
+                    // This file is used by Code Analysis to maintain SuppressMessage
+                    // attributes that are applied to this project.
+                    // Project-level suppressions either have no target or are given
+                    // a specific target and scoped to a namespace, type, member, etc.
 
-using System.Diagnostics.CodeAnalysis;
+                    using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""member"", Target = ""~M:Class1.Method~System.Int32"")]
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class1"")]
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class2"")]
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class3"")]
-"
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "member", Target = "~M:Class1.Method~System.Int32")]
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class1")]
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class3")]
+
+                    """
 .Replace("<", "&lt;").Replace(">", "&gt;");
 
                 var expected = """
@@ -648,33 +652,33 @@ using System.Diagnostics.CodeAnalysis;
             public async Task TestFixAllInSolution()
             {
                 var addedGlobalSuppressionsProject1 =
-$@"// This file is used by Code Analysis to maintain SuppressMessage
-// attributes that are applied to this project.
-// Project-level suppressions either have no target or are given
-// a specific target and scoped to a namespace, type, member, etc.
+                    $"""
+                    // This file is used by Code Analysis to maintain SuppressMessage
+                    // attributes that are applied to this project.
+                    // Project-level suppressions either have no target or are given
+                    // a specific target and scoped to a namespace, type, member, etc.
 
-using System.Diagnostics.CodeAnalysis;
+                    using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""member"", Target = ""~M:Class1.Method~System.Int32"")]
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class1"")]
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class2"")]
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class3"")]
-
-".Replace("<", "&lt;").Replace(">", "&gt;");
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "member", Target = "~M:Class1.Method~System.Int32")]
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class1")]
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class3")]
+                    """.Replace("<", "&lt;").Replace(">", "&gt;");
 
                 var addedGlobalSuppressionsProject2 =
-$@"// This file is used by Code Analysis to maintain SuppressMessage
-// attributes that are applied to this project.
-// Project-level suppressions either have no target or are given
-// a specific target and scoped to a namespace, type, member, etc.
+                    $"""
+                    // This file is used by Code Analysis to maintain SuppressMessage
+                    // attributes that are applied to this project.
+                    // Project-level suppressions either have no target or are given
+                    // a specific target and scoped to a namespace, type, member, etc.
 
-using System.Diagnostics.CodeAnalysis;
+                    using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""member"", Target = ""~M:Class1.Method~System.Int32"")]
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class1"")]
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class2"")]
-
-".Replace("<", "&lt;").Replace(">", "&gt;");
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "member", Target = "~M:Class1.Method~System.Int32")]
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class1")]
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
+                    """.Replace("<", "&lt;").Replace(">", "&gt;");
 
                 var expected = """
                     <Workspace>
@@ -799,17 +803,19 @@ using System.Diagnostics.CodeAnalysis;
             public async Task TestFixAllInContainingType()
             {
                 var addedGlobalSuppressions =
-$@"// This file is used by Code Analysis to maintain SuppressMessage
-// attributes that are applied to this project.
-// Project-level suppressions either have no target or are given
-// a specific target and scoped to a namespace, type, member, etc.
+                    $"""
+                    // This file is used by Code Analysis to maintain SuppressMessage
+                    // attributes that are applied to this project.
+                    // Project-level suppressions either have no target or are given
+                    // a specific target and scoped to a namespace, type, member, etc.
 
-using System.Diagnostics.CodeAnalysis;
+                    using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""member"", Target = ""~M:Class1.Method1~System.Int32"")]
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""member"", Target = ""~M:Class1.Method2~System.Int32"")]
-[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class1"")]
-"
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "member", Target = "~M:Class1.Method1~System.Int32")]
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "member", Target = "~M:Class1.Method2~System.Int32")]
+                    [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class1")]
+
+                    """
 .Replace("<", "&lt;").Replace(">", "&gt;");
 
                 var expected = """
@@ -897,15 +903,17 @@ using System.Diagnostics.CodeAnalysis;
         public async Task TestFixAllInProject()
         {
             var addedGlobalSuppressions =
-$@"// This file is used by Code Analysis to maintain SuppressMessage
-// attributes that are applied to this project.
-// Project-level suppressions either have no target or are given
-// a specific target and scoped to a namespace, type, member, etc.
+                $"""
+                // This file is used by Code Analysis to maintain SuppressMessage
+                // attributes that are applied to this project.
+                // Project-level suppressions either have no target or are given
+                // a specific target and scoped to a namespace, type, member, etc.
 
-using System.Diagnostics.CodeAnalysis;
+                using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""NoLocationDiagnostic"", ""NoLocationDiagnostic:NoLocationDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
-"
+                [assembly: SuppressMessage("NoLocationDiagnostic", "NoLocationDiagnostic:NoLocationDiagnostic", Justification = "{FeaturesResources.Pending}")]
+
+                """
 .Replace("<", "&lt;").Replace(">", "&gt;");
 
             var expected = """

@@ -52,30 +52,32 @@ public sealed class ConvertDirectCastToTryCastTests
     public Task ConvertFromExplicitToAsSpecialTypes(string targetType)
         => new VerifyCS.Test
         {
-            TestCode = @$"
-using System;
-using System.Collections.Generic;
+            TestCode = $$"""
+            using System;
+            using System.Collections.Generic;
 
-class Program
-{{
-    public static void Main()
-    {{
-        var o = new object();
-        var x = ([||]{targetType})o;
-    }}
-}}",
-            FixedCode = @$"
-using System;
-using System.Collections.Generic;
+            class Program
+            {
+                public static void Main()
+                {
+                    var o = new object();
+                    var x = ([||]{{targetType}})o;
+                }
+            }
+            """,
+            FixedCode = $$"""
+            using System;
+            using System.Collections.Generic;
 
-class Program
-{{
-    public static void Main()
-    {{
-        var o = new object();
-        var x = o as {targetType};
-    }}
-}}",
+            class Program
+            {
+                public static void Main()
+                {
+                    var o = new object();
+                    var x = o as {{targetType}};
+                }
+            }
+            """,
             CodeActionValidationMode = CodeActionValidationMode.Full,
         }.RunAsync();
 
@@ -167,30 +169,30 @@ class Program
     [InlineData("interface", false)]
     public async Task ConvertFromExplicitToAs_ConcreteClassOrInterfaceConstraint(string targetTypeKind, bool shouldBeFixed)
     {
-        var initialMarkup = @$"
-public {targetTypeKind} Target {{ }}
+        var initialMarkup = $$"""
+            public {{targetTypeKind}} Target { }
 
-public class C
-{{
-    public void M<T>() where T: Target
-    {{
-        var o = new object();
-        var t = (T[||])o;
-    }}
-}}
-";
-        var fixedCode = @$"
-public {targetTypeKind} Target {{ }}
+            public class C
+            {
+                public void M<T>() where T: Target
+                {
+                    var o = new object();
+                    var t = (T[||])o;
+                }
+            }
+            """;
+        var fixedCode = $$"""
+            public {{targetTypeKind}} Target { }
 
-public class C
-{{
-    public void M<T>() where T: Target
-    {{
-        var o = new object();
-        var t = o as T;
-    }}
-}}
-";
+            public class C
+            {
+                public void M<T>() where T: Target
+                {
+                    var o = new object();
+                    var t = o as T;
+                }
+            }
+            """;
         await new VerifyCS.Test
         {
             TestCode = initialMarkup,
@@ -269,28 +271,28 @@ public class C
     public Task ConvertFromExplicitToAs_Nested(string cast, string asExpression)
         => new VerifyCS.Test
         {
-            TestCode = @$"
-class C {{ }}
+            TestCode = $$"""
+            class C { }
 
-class Program
-{{
-    public static void Main()
-    {{
-        var x = {cast};
-    }}
-}}
-",
-            FixedCode = @$"
-class C {{ }}
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = {{cast}};
+                }
+            }
+            """,
+            FixedCode = $$"""
+            class C { }
 
-class Program
-{{
-    public static void Main()
-    {{
-        var x = {asExpression};
-    }}
-}}
-",
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = {{asExpression}};
+                }
+            }
+            """,
             CodeActionValidationMode = CodeActionValidationMode.Full,
         }.RunAsync();
 
@@ -328,24 +330,24 @@ class Program
     public Task ConvertFromExplicitToAs_Trivia(string cast, string asExpression)
         => new VerifyCS.Test
         {
-            TestCode = @$"
-class Program
-{{
-    public static void Main()
-    {{
-        var x = {cast};
-    }}
-}}
-",
-            FixedCode = @$"
-class Program
-{{
-    public static void Main()
-    {{
-        var x = {asExpression};
-    }}
-}}
-",
+            TestCode = $$"""
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = {{cast}};
+                }
+            }
+            """,
+            FixedCode = $$"""
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = {{asExpression}};
+                }
+            }
+            """,
             CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
         }.RunAsync();
 

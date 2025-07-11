@@ -31,51 +31,67 @@ public sealed class FormattingEngineMultiSpanTests : CSharpFormattingTestBase
 
     [Fact]
     public Task DoNotFormatTriviaOutsideOfSpan_IncludingTrailingTriviaOnNewLine()
-        => AssertFormatAsync(@"namespace A
-/*1*/{
-        }/*2*/      
+        => AssertFormatAsync("""
+            namespace A
+            /*1*/{
+                    }/*2*/      
 
-class A /*1*/{}/*2*/", @"namespace A
-{
-}      
+            class A /*1*/{}/*2*/
+            """, """
+            namespace A
+            {
+            }      
 
-class A { }");
+            class A { }
+            """);
 
     [Fact]
     public Task FormatIncludingTrivia()
-        => AssertFormatAsync(@"namespace A
-/*1*/{
-        }   /*2*/   
+        => AssertFormatAsync("""
+            namespace A
+            /*1*/{
+                    }   /*2*/   
 
-class A /*1*/{}/*2*/", @"namespace A
-{
-}
+            class A /*1*/{}/*2*/
+            """, """
+            namespace A
+            {
+            }
 
-class A { }");
+            class A { }
+            """);
 
     [Fact]
     public Task MergeSpanAndFormat()
-        => AssertFormatAsync(@"namespace A
-/*1*/{
-        }   /*2*/   /*1*/
+        => AssertFormatAsync("""
+            namespace A
+            /*1*/{
+                    }   /*2*/   /*1*/
 
-class A{}/*2*/", @"namespace A
-{
-}
+            class A{}/*2*/
+            """, """
+            namespace A
+            {
+            }
 
-class A { }");
+            class A { }
+            """);
 
     [Fact]
     public Task OverlappedSpan()
-        => AssertFormatAsync(@"namespace A
-/*1*/{
-     /*1*/   }   /*2*/   
+        => AssertFormatAsync("""
+            namespace A
+            /*1*/{
+                 /*1*/   }   /*2*/   
 
-class A{}/*2*/", @"namespace A
-{
-}
+            class A{}/*2*/
+            """, """
+            namespace A
+            {
+            }
 
-class A { }");
+            class A { }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
     public async Task FormatSpanNullReference01()
@@ -84,19 +100,23 @@ class A { }");
         {
             { CSharpFormattingOptions2.IndentBlock, false }
         };
-        await AssertFormatAsync(@"/*1*/class C
-{
-    void F()
-    {
-        System.Console.WriteLine();
-    }
-}/*2*/", @"class C
-{
-    void F()
-    {
-    System.Console.WriteLine();
-    }
-}", changedOptionSet: changingOptions);
+        await AssertFormatAsync("""
+            /*1*/class C
+            {
+                void F()
+                {
+                    System.Console.WriteLine();
+                }
+            }/*2*/
+            """, """
+            class C
+            {
+                void F()
+                {
+                System.Console.WriteLine();
+                }
+            }
+            """, changedOptionSet: changingOptions);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
@@ -106,19 +126,23 @@ class A { }");
         {
             { CSharpFormattingOptions2.WrappingPreserveSingleLine, false }
         };
-        await AssertFormatAsync(@"class C/*1*/
-{
-    void F()
-    {
-        System.Console.WriteLine();
-    }
-}/*2*/", @"class C
-{
-    void F()
-    {
-        System.Console.WriteLine();
-    }
-}", changedOptionSet: changingOptions);
+        await AssertFormatAsync("""
+            class C/*1*/
+            {
+                void F()
+                {
+                    System.Console.WriteLine();
+                }
+            }/*2*/
+            """, """
+            class C
+            {
+                void F()
+                {
+                    System.Console.WriteLine();
+                }
+            }
+            """, changedOptionSet: changingOptions);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539231")]

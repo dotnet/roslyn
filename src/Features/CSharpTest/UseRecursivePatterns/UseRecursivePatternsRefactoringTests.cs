@@ -178,67 +178,83 @@ public sealed class UseRecursivePatternsRefactoringTests
     private static string WrapInIfStatement(string actual, string? entry = null)
     {
         var markup =
-@"
-            if (" + actual + @") {}
-";
+            """
+
+                        if (
+            """ + actual + """
+            ) {}
+
+            """;
         return CreateMarkup(markup, entry);
     }
 
     private static string WrapInSwitchArm(string actual, string? entry = null)
     {
         var markup =
-@"
-            _ = this switch
-            {
-                " + actual + @" => 0
-            };
-";
+            """
+
+                        _ = this switch
+                        {
+                            
+            """ + actual + """
+             => 0
+                        };
+
+            """;
         return CreateMarkup(markup, entry);
     }
 
     private static string WrapInSwitchLabel(string actual, string? entry = null)
     {
         var markup =
-@"
-            switch (this)
-            {
-                case " + actual + @":
-                    break;
-            };
-";
+            """
+
+                        switch (this)
+                        {
+                            case 
+            """ + actual + """
+            :
+                                break;
+                        };
+
+            """;
         return CreateMarkup(markup, entry);
     }
 
     private static string CreateMarkup(string actual, string? entry = null)
     {
-        var markup = @"
-namespace NS
-{
-    class C : B
-    {
-        void Test()
-        {
-            " + actual + @"
-        }
-    }
-    class B
-    {
-        public const C n = null;
-        public C a, b, c, d;
-        public int P1, P2, P3;
-        public bool B1, B2;
-        public C CP1, CP2;
-        public static C SCP1, SCP2;
-        public static int SP1, SP2;
-        public C m() { return null; }
-        public D cf = null;
-    }
+        var markup = """
 
-    class D
-    {
-        public int C = 0;
-    }
-}";
+            namespace NS
+            {
+                class C : B
+                {
+                    void Test()
+                    {
+                        
+            """ + actual + """
+
+                    }
+                }
+                class B
+                {
+                    public const C n = null;
+                    public C a, b, c, d;
+                    public int P1, P2, P3;
+                    public bool B1, B2;
+                    public C CP1, CP2;
+                    public static C SCP1, SCP2;
+                    public static int SP1, SP2;
+                    public C m() { return null; }
+                    public D cf = null;
+                }
+
+                class D
+                {
+                    public int C = 0;
+                }
+            }
+            """;
         return entry is null ? markup : markup.Replace(entry, "[||]" + entry);
     }
 }

@@ -49,11 +49,6 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private bool _semanticContextError;
     private bool _semanticContextUsed;
 
-    /// <summary>
-    /// Backing field for <see cref="IsInProgress"/>.
-    /// </summary>
-    private bool _isInProgress = false;
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public RenameFlyoutViewModel BaseViewModel { get; }
@@ -75,15 +70,15 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         get
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            return _isInProgress;
+            return field;
         }
         set
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            _isInProgress = value;
+            field = value;
             NotifyPropertyChanged(nameof(IsInProgress));
         }
-    }
+    } = false;
 
     public string StatusMessage => _smartRenameSession.StatusMessage;
 
@@ -108,20 +103,18 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     /// </summary>
     public bool IsUsingSemanticContext { get; }
 
-    private string? _selectedSuggestedName;
-
     /// <summary>
     /// The last selected name when user click one of the suggestions. <see langword="null"/> if user hasn't clicked any suggestions.
     /// </summary>
     public string? SelectedSuggestedName
     {
-        get => _selectedSuggestedName;
+        get;
         set
         {
-            if (_selectedSuggestedName != value)
+            if (field != value)
             {
                 _threadingContext.ThrowIfNotOnUIThread();
-                _selectedSuggestedName = value;
+                field = value;
                 BaseViewModel.IdentifierText = value ?? string.Empty;
             }
         }

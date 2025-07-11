@@ -1646,13 +1646,17 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
     public async Task FormatAttributeAtEndOfFile(bool trailingNewLine)
     {
         var endOfFile = trailingNewLine ? Environment.NewLine : "";
-        var expected = $@"using System.Diagnostics.CodeAnalysis;
+        var expected = $"""
+            using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""Globalization"", ""CA1308: Normalize strings to uppercase"", Justification = ""My reason"", Scope = ""member"", Target = ""~M:Method"")]{endOfFile}";
+            [assembly: SuppressMessage("Globalization", "CA1308: Normalize strings to uppercase", Justification = "My reason", Scope = "member", Target = "~M:Method")]{endOfFile}
+            """;
 
-        await AssertFormatAsync(expected, $@"using System.Diagnostics.CodeAnalysis;
+        await AssertFormatAsync(expected, $"""
+            using System.Diagnostics.CodeAnalysis;
 
-[assembly:SuppressMessage(""Globalization"", ""CA1308: Normalize strings to uppercase"", Justification = ""My reason"", Scope = ""member"", Target = ""~M:Method"") ] {endOfFile}", spans: null);
+            [assembly:SuppressMessage("Globalization", "CA1308: Normalize strings to uppercase", Justification = "My reason", Scope = "member", Target = "~M:Method") ] {endOfFile}
+            """, spans: null);
         await AssertFormatAsync(expected, expected, spans: null);
     }
 

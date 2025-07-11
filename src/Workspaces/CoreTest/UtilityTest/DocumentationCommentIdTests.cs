@@ -60,28 +60,28 @@ public sealed partial class DocumentationCommentIdTests : TestBase
     [Fact]
     public void TestCSharpTypeIds()
     {
-        var compilation = CreateCSharpCompilation(@"
-enum Color { Red, Blue, Green }
-namespace Acme
-{
-    interface IProcess { }
-    struct ValueType
-    {
-        private int total;
-    }
-    class Widget : IProcess
-    {
-        public class NestedClass { }
-        public interface IMenuItem { }
-        public delegate void Del(int i);
-        public enum Direction { North, South, East, West }
-    }
-    class MyList<T>
-    {
-        class Helper<U,V> { }
-    }
-}
-");
+        var compilation = CreateCSharpCompilation("""
+            enum Color { Red, Blue, Green }
+            namespace Acme
+            {
+                interface IProcess { }
+                struct ValueType
+                {
+                    private int total;
+                }
+                class Widget : IProcess
+                {
+                    public class NestedClass { }
+                    public interface IMenuItem { }
+                    public delegate void Del(int i);
+                    public enum Direction { North, South, East, West }
+                }
+                class MyList<T>
+                {
+                    class Helper<U,V> { }
+                }
+            }
+            """);
         CheckDeclarationId("T:Color", compilation.GetTypeByMetadataName("Color"), compilation);
         CheckDeclarationId("T:Acme.IProcess", compilation.GetTypeByMetadataName("Acme.IProcess"), compilation);
         CheckDeclarationId("T:Acme.ValueType", compilation.GetTypeByMetadataName("Acme.ValueType"), compilation);
@@ -97,32 +97,32 @@ namespace Acme
     [Fact]
     public void TestCSharpFields()
     {
-        var compilation = CreateCSharpCompilation(@"
-enum Color { Red, Blue, Green }
-namespace Acme
-{
-    interface IProcess { }
-    struct ValueType
-    {
-        private int total;
-    }
-    class Widget : IProcess
-    {
-        public class NestedClass
-        {
-             private int value;
-        }
-        private string message;
-        private static Color defaultColor;
-        private const double PI = 3.14159;
-        protected readonly double monthlyAverage;
-        private long[] array1;
-        private widget[,] array2;
-        private unsafe int *pCount;
-        private unsafe float **ppValues;
-    }
-}
-");
+        var compilation = CreateCSharpCompilation("""
+            enum Color { Red, Blue, Green }
+            namespace Acme
+            {
+                interface IProcess { }
+                struct ValueType
+                {
+                    private int total;
+                }
+                class Widget : IProcess
+                {
+                    public class NestedClass
+                    {
+                         private int value;
+                    }
+                    private string message;
+                    private static Color defaultColor;
+                    private const double PI = 3.14159;
+                    protected readonly double monthlyAverage;
+                    private long[] array1;
+                    private widget[,] array2;
+                    private unsafe int *pCount;
+                    private unsafe float **ppValues;
+                }
+            }
+            """);
 
         CheckDeclarationId<IFieldSymbol>("F:Acme.ValueType.total", compilation, s => s.Name == "total");
         CheckDeclarationId<IFieldSymbol>("F:Acme.Widget.NestedClass.value", compilation, s => s.Name == "value");
@@ -139,18 +139,18 @@ namespace Acme
     [Fact]
     public void TestCSharpConstructors()
     {
-        var compilation = CreateCSharpCompilation(@"
-namespace Acme
-{
-    interface IProcess { }
-    class Widget : IProcess
-    {
-        static Widget() { }
-        public Widget() { }
-        public Widget(string s) { }
-    }
-}
-");
+        var compilation = CreateCSharpCompilation("""
+            namespace Acme
+            {
+                interface IProcess { }
+                class Widget : IProcess
+                {
+                    static Widget() { }
+                    public Widget() { }
+                    public Widget(string s) { }
+                }
+            }
+            """);
 
         CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.#cctor", compilation, s => s.MethodKind == MethodKind.StaticConstructor);
         CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.#ctor", compilation, s => s.MethodKind == MethodKind.Constructor && s.Parameters.Length == 0);
@@ -160,16 +160,16 @@ namespace Acme
     [Fact]
     public void TestCSharpDestructors()
     {
-        var compilation = CreateCSharpCompilation(@"
-namespace Acme
-{
-    interface IProcess { }
-    class Widget : IProcess
-    {
-        ~Widget() { }
-    }
-}
-");
+        var compilation = CreateCSharpCompilation("""
+            namespace Acme
+            {
+                interface IProcess { }
+                class Widget : IProcess
+                {
+                    ~Widget() { }
+                }
+            }
+            """);
 
         CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.Finalize", compilation, s => s.MethodKind == MethodKind.Destructor);
     }
@@ -177,41 +177,41 @@ namespace Acme
     [Fact]
     public void TestCSharpMethods()
     {
-        var compilation = CreateCSharpCompilation(@"
-enum Color { Red, Blue, Green }
-namespace Acme
-{
-    struct ValueType
-    {
-        public void M(int i) { }
-    }
-    interface IProcess { }
-    class Widget : IProcess
-    {
-        public class NestedClass 
-        {
-            public void M(int i) { }
-        }
-        public static void M0() { }
-        public void M1(char c, out float f, ref ValueType v) { }
-        public void M2(short[] x1, int[,] x2, long[][] x3) { }
-        public void M3(long[][] x3, Widget[][,,] x4) { }
-        public void M4(char *pc, Color **pf) { }
-        public void M5(void *pv, double *[][,] pd) { }
-        public void M6(int i, params object[] args) { }
-    }
-    class MyList<T>
-    {
-        public void Test(T t) { }
-    }
-    class UseList
-    {
-        public void Process(MyList<int> list) { }
-        public MyList<T> GetValues<T>(T inputValue) { return null; }
-        public void Process2<T>(MyList<T> list) { }
-    }
-}
-");
+        var compilation = CreateCSharpCompilation("""
+            enum Color { Red, Blue, Green }
+            namespace Acme
+            {
+                struct ValueType
+                {
+                    public void M(int i) { }
+                }
+                interface IProcess { }
+                class Widget : IProcess
+                {
+                    public class NestedClass 
+                    {
+                        public void M(int i) { }
+                    }
+                    public static void M0() { }
+                    public void M1(char c, out float f, ref ValueType v) { }
+                    public void M2(short[] x1, int[,] x2, long[][] x3) { }
+                    public void M3(long[][] x3, Widget[][,,] x4) { }
+                    public void M4(char *pc, Color **pf) { }
+                    public void M5(void *pv, double *[][,] pd) { }
+                    public void M6(int i, params object[] args) { }
+                }
+                class MyList<T>
+                {
+                    public void Test(T t) { }
+                }
+                class UseList
+                {
+                    public void Process(MyList<int> list) { }
+                    public MyList<T> GetValues<T>(T inputValue) { return null; }
+                    public void Process2<T>(MyList<T> list) { }
+                }
+            }
+            """);
 
         CheckDeclarationId<IMethodSymbol>("M:Acme.ValueType.M(System.Int32)", compilation, s => s.Name == "M" && s.Parameters is [{ Type.Name: "Int32" }]);
         CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.NestedClass.M(System.Int32)", compilation, s => s.Name == "M" && s.Parameters is [{ Type.Name: "Int32" }]);
@@ -231,18 +231,18 @@ namespace Acme
     [Fact]
     public void TestCSharpPropertiesAndIndexers()
     {
-        var compilation = CreateCSharpCompilation(@"
-namespace Acme
-{
-    interface IProcess { }
-    class Widget : IProcess
-    {
-        public int Width { get { return 0; } set { } }
-        public int this[int i] { get { return 0; } set { } }
-        public int this[string s, int i] { get { return 0; } set { } }
-    }
-}
-");
+        var compilation = CreateCSharpCompilation("""
+            namespace Acme
+            {
+                interface IProcess { }
+                class Widget : IProcess
+                {
+                    public int Width { get { return 0; } set { } }
+                    public int this[int i] { get { return 0; } set { } }
+                    public int this[string s, int i] { get { return 0; } set { } }
+                }
+            }
+            """);
 
         CheckDeclarationIdExact<IPropertySymbol>("P:Acme.Widget.Width", compilation, p => p.Name == "Width");
         CheckDeclarationIdExact<IPropertySymbol>("P:Acme.Widget.Item(System.Int32)", compilation, p => p.Parameters.Length == 1);
@@ -252,31 +252,31 @@ namespace Acme
     [Fact]
     public void TestCSharpEvents()
     {
-        var compilation = CreateCSharpCompilation(@"
-namespace Acme
-{
-    class Widget : IProcess
-    {
-        public delegate void Del(int i);
-        public event Del AnEvent;
-    }
-}
-");
+        var compilation = CreateCSharpCompilation("""
+            namespace Acme
+            {
+                class Widget : IProcess
+                {
+                    public delegate void Del(int i);
+                    public event Del AnEvent;
+                }
+            }
+            """);
         CheckDeclarationId<IEventSymbol>("E:Acme.Widget.AnEvent", compilation, e => e.Name == "AnEvent");
     }
 
     [Fact]
     public void TestCSharpUnaryOperators()
     {
-        var compilation = CreateCSharpCompilation(@"
-namespace Acme
-{
-    class Widget : IProcess
-    {
-        public static Widget operator+(Widget x) { return x; }
-    }
-}
-");
+        var compilation = CreateCSharpCompilation("""
+            namespace Acme
+            {
+                class Widget : IProcess
+                {
+                    public static Widget operator+(Widget x) { return x; }
+                }
+            }
+            """);
 
         CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.op_UnaryPlus(Acme.Widget)", compilation, m => m.MethodKind == MethodKind.UserDefinedOperator && m.Parameters.Length == 1);
     }
@@ -284,15 +284,15 @@ namespace Acme
     [Fact]
     public void TestCSharpBinaryOperators()
     {
-        var compilation = CreateCSharpCompilation(@"
-namespace Acme
-{
-    class Widget : IProcess
-    {
-        public static Widget operator+(Widget x1, Widget x2) { return x1; }
-    }
-}
-");
+        var compilation = CreateCSharpCompilation("""
+            namespace Acme
+            {
+                class Widget : IProcess
+                {
+                    public static Widget operator+(Widget x1, Widget x2) { return x1; }
+                }
+            }
+            """);
 
         CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.op_Addition(Acme.Widget,Acme.Widget)", compilation, m => m.MethodKind == MethodKind.UserDefinedOperator && m.Parameters.Length == 2);
     }
@@ -300,16 +300,16 @@ namespace Acme
     [Fact]
     public void TestCSharpConversionOperators()
     {
-        var compilation = CreateCSharpCompilation(@"
-namespace Acme
-{
-    class Widget : IProcess
-    {
-        public static explicit operator int(Widget x) { return 0; }
-        public static implicit operator long(Widget x) { return 0; }
-    }
-}
-");
+        var compilation = CreateCSharpCompilation("""
+            namespace Acme
+            {
+                class Widget : IProcess
+                {
+                    public static explicit operator int(Widget x) { return 0; }
+                    public static implicit operator long(Widget x) { return 0; }
+                }
+            }
+            """);
 
         CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.op_Explicit(Acme.Widget)~System.Int32", compilation, m => m.MethodKind == MethodKind.Conversion && m.Parameters.Length == 1 && m.ReturnType.Name == "Int32");
         CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.op_Implicit(Acme.Widget)~System.Int64", compilation, m => m.MethodKind == MethodKind.Conversion && m.Parameters.Length == 1 && m.ReturnType.Name == "Int64");
@@ -318,19 +318,19 @@ namespace Acme
     [Fact]
     public void TestTypeReferences()
     {
-        var compilation = CreateCSharpCompilation(@"
-namespace Acme
-{
-    class OuterType<A>
-    {
-        class InnerType<B, C>
-        {
-        }
+        var compilation = CreateCSharpCompilation("""
+            namespace Acme
+            {
+                class OuterType<A>
+                {
+                    class InnerType<B, C>
+                    {
+                    }
 
-        public void M<D>(D d) { }
-    }
-}
-");
+                    public void M<D>(D d) { }
+                }
+            }
+            """);
 
         var outerType = compilation.GetTypeByMetadataName("Acme.OuterType`1");
         var innerType = compilation.GetTypeByMetadataName("Acme.OuterType`1+InnerType`2");

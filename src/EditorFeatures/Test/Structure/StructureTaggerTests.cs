@@ -33,24 +33,26 @@ public sealed class StructureTaggerTests
         bool showBlockStructureGuidesForCommentsAndPreprocessorRegions)
     {
         var code =
-@"using System;
-namespace MyNamespace
-{
-#region MyRegion
-    public class MyClass
-    {
-        static void Main(string[] args)
-        {
-            if (false)
+            """
+            using System;
+            namespace MyNamespace
             {
-                return;
-            }
+            #region MyRegion
+                public class MyClass
+                {
+                    static void Main(string[] args)
+                    {
+                        if (false)
+                        {
+                            return;
+                        }
 
-            int x = 5;
-        }
-    }
-#endregion
-}";
+                        int x = 5;
+                    }
+                }
+            #endregion
+            }
+            """;
 
         using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeatures);
         var globalOptions = workspace.GlobalOptions;
@@ -108,16 +110,16 @@ namespace MyNamespace
         bool showBlockStructureGuidesForCodeLevelConstructs)
     {
         var code =
-@"
-namespace Foo;
+            """
+            namespace Foo;
 
-using System;
-using System.Linq;
-public class Bar
-{
+            using System;
+            using System.Linq;
+            public class Bar
+            {
 
-}
-";
+            }
+            """;
 
         using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeatures);
         var globalOptions = workspace.GlobalOptions;
@@ -152,17 +154,17 @@ public class Bar
         bool showBlockStructureGuidesForCommentsAndPreprocessorRegions)
     {
         var code =
-@"
-namespace Foo;
-/// <summary>
-/// 
-/// </summary>
+            """
+            namespace Foo;
+            /// <summary>
+            /// 
+            /// </summary>
 
-public class Bar
-{
+            public class Bar
+            {
 
-}
-";
+            }
+            """;
 
         using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeatures);
         var globalOptions = workspace.GlobalOptions;
@@ -197,17 +199,17 @@ public class Bar
         bool showBlockStructureGuidesForCodeLevelConstructs)
     {
         var code =
-@"
-namespace Foo
-{
-    using System;
-    using System.Linq;
-    public class Bar
-    {
+            """
+            namespace Foo
+            {
+                using System;
+                using System.Linq;
+                public class Bar
+                {
 
-    }
-}
-";
+                }
+            }
+            """;
 
         using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeatures);
         var globalOptions = workspace.GlobalOptions;
@@ -246,20 +248,22 @@ namespace Foo
         bool showBlockStructureGuidesForDeclarationLevelConstructs,
         bool showBlockStructureGuidesForCodeLevelConstructs)
     {
-        var code = @"Imports System
-Namespace MyNamespace
-#Region ""MyRegion""
-    Module M
-        Sub Main(args As String())
-            If False Then
-                Return
-            End If
+        var code = """
+            Imports System
+            Namespace MyNamespace
+            #Region "MyRegion"
+                Module M
+                    Sub Main(args As String())
+                        If False Then
+                            Return
+                        End If
 
-            Dim x As Integer = 5
-        End Sub
-    End Module
-#End Region
-End Namespace";
+                        Dim x As Integer = 5
+                    End Sub
+                End Module
+            #End Region
+            End Namespace
+            """;
 
         using var workspace = EditorTestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeatures);
         var globalOptions = workspace.GlobalOptions;
@@ -283,7 +287,9 @@ End Namespace";
                 Assert.Equal(collapseRegionsWhenCollapsingToDefinitions, regionTag.IsImplementation);
                 Assert.Equal(11, GetCollapsedHintLineCount(regionTag));
                 Assert.Equal(PredefinedStructureTagTypes.Nonstructural, regionTag.Type);
-                Assert.Equal(@"#Region ""MyRegion""", GetHeaderText(regionTag));
+                Assert.Equal("""
+                    #Region "MyRegion"
+                    """, GetHeaderText(regionTag));
             },
             moduleTag =>
             {
@@ -312,10 +318,12 @@ End Namespace";
     [WpfFact]
     public async Task OutliningTaggerTooltipText()
     {
-        var code = @"Module Module1
-    Sub Main(args As String())
-    End Sub
-End Module";
+        var code = """
+            Module Module1
+                Sub Main(args As String())
+                End Sub
+            End Module
+            """;
 
         using var workspace = EditorTestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeatures);
         var tags = await GetTagsFromWorkspaceAsync(workspace);
@@ -329,15 +337,16 @@ End Module";
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2094051")]
     public async Task IfShouldBeCollapsed()
     {
-        var code = @"
-Module Program
-    Sub Main(args As String())
-        Dim str = """"
-        If str.Contains(""foo"") Then
+        var code = """
+            Module Program
+                Sub Main(args As String())
+                    Dim str = ""
+                    If str.Contains("foo") Then
 
-        End If
-    End Sub
-End Module";
+                    End If
+                End Sub
+            End Module
+            """;
 
         using var workspace = EditorTestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeatures);
         var tags = await GetTagsFromWorkspaceAsync(workspace);

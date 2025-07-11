@@ -17,27 +17,29 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel;
 public sealed class FileCodeClassTests : AbstractFileCodeElementTests
 {
     public FileCodeClassTests()
-        : base(@"using System;
+        : base("""
+            using System;
 
-public abstract class Goo : IDisposable, ICloneable
-{
-}
+            public abstract class Goo : IDisposable, ICloneable
+            {
+            }
 
-[Serializable]
-public class Bar
-{
-    int a;
+            [Serializable]
+            public class Bar
+            {
+                int a;
 
-    public int A
-    {
-        get
-        {
-            return a;
-        }
-    }
+                public int A
+                {
+                    get
+                    {
+                        return a;
+                    }
+                }
 
-    public string WindowsUserID => ""Domain""; 
-}")
+                public string WindowsUserID => "Domain"; 
+            }
+            """)
     {
     }
 

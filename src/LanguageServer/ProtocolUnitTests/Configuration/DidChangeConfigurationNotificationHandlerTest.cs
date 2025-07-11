@@ -52,16 +52,18 @@ public sealed class DidChangeConfigurationNotificationHandlerTest : AbstractLang
         };
 
         await CreateTestLspServerAsync(
-            @"
-public class B { }", mutatingLspWorkspace, initializationOptions);
+            """
+            public class B { }
+            """, mutatingLspWorkspace, initializationOptions);
         Assert.False(clientCallbackTarget.ReceivedWorkspaceConfigurationRequest);
     }
 
     [Theory, CombinatorialData]
     public async Task VerifyWorkflow(bool mutatingLspWorkspace)
     {
-        var markup = @"
-public class A { }";
+        var markup = """
+            public class A { }
+            """;
 
         var clientCapabilities = new ClientCapabilities()
         {

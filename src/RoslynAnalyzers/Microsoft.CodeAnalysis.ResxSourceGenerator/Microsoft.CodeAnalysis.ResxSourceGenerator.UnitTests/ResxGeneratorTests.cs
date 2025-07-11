@@ -12,69 +12,71 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
 {
     public class ResxGeneratorTests
     {
-        private const string ResxHeader = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<root>
-  <xsd:schema id=""root"" xmlns="""" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:msdata=""urn:schemas-microsoft-com:xml-msdata"">
-    <xsd:import namespace=""http://www.w3.org/XML/1998/namespace"" />
-    <xsd:element name=""root"" msdata:IsDataSet=""true"">
-      <xsd:complexType>
-        <xsd:choice maxOccurs=""unbounded"">
-          <xsd:element name=""metadata"">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name=""value"" type=""xsd:string"" minOccurs=""0"" />
-              </xsd:sequence>
-              <xsd:attribute name=""name"" use=""required"" type=""xsd:string"" />
-              <xsd:attribute name=""type"" type=""xsd:string"" />
-              <xsd:attribute name=""mimetype"" type=""xsd:string"" />
-              <xsd:attribute ref=""xml:space"" />
-            </xsd:complexType>
-          </xsd:element>
-          <xsd:element name=""assembly"">
-            <xsd:complexType>
-              <xsd:attribute name=""alias"" type=""xsd:string"" />
-              <xsd:attribute name=""name"" type=""xsd:string"" />
-            </xsd:complexType>
-          </xsd:element>
-          <xsd:element name=""data"">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name=""value"" type=""xsd:string"" minOccurs=""0"" msdata:Ordinal=""1"" />
-                <xsd:element name=""comment"" type=""xsd:string"" minOccurs=""0"" msdata:Ordinal=""2"" />
-              </xsd:sequence>
-              <xsd:attribute name=""name"" type=""xsd:string"" use=""required"" msdata:Ordinal=""1"" />
-              <xsd:attribute name=""type"" type=""xsd:string"" msdata:Ordinal=""3"" />
-              <xsd:attribute name=""mimetype"" type=""xsd:string"" msdata:Ordinal=""4"" />
-              <xsd:attribute ref=""xml:space"" />
-            </xsd:complexType>
-          </xsd:element>
-          <xsd:element name=""resheader"">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name=""value"" type=""xsd:string"" minOccurs=""0"" msdata:Ordinal=""1"" />
-              </xsd:sequence>
-              <xsd:attribute name=""name"" type=""xsd:string"" use=""required"" />
-            </xsd:complexType>
-          </xsd:element>
-        </xsd:choice>
-      </xsd:complexType>
-    </xsd:element>
-  </xsd:schema>
-  <resheader name=""resmimetype"">
-    <value>text/microsoft-resx</value>
-  </resheader>
-  <resheader name=""version"">
-    <value>2.0</value>
-  </resheader>
-  <resheader name=""reader"">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </resheader>
-  <resheader name=""writer"">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </resheader>
-";
-        private const string ResxFooter = @"
-</root>";
+        private const string ResxHeader = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <root>
+              <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+                <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+                <xsd:element name="root" msdata:IsDataSet="true">
+                  <xsd:complexType>
+                    <xsd:choice maxOccurs="unbounded">
+                      <xsd:element name="metadata">
+                        <xsd:complexType>
+                          <xsd:sequence>
+                            <xsd:element name="value" type="xsd:string" minOccurs="0" />
+                          </xsd:sequence>
+                          <xsd:attribute name="name" use="required" type="xsd:string" />
+                          <xsd:attribute name="type" type="xsd:string" />
+                          <xsd:attribute name="mimetype" type="xsd:string" />
+                          <xsd:attribute ref="xml:space" />
+                        </xsd:complexType>
+                      </xsd:element>
+                      <xsd:element name="assembly">
+                        <xsd:complexType>
+                          <xsd:attribute name="alias" type="xsd:string" />
+                          <xsd:attribute name="name" type="xsd:string" />
+                        </xsd:complexType>
+                      </xsd:element>
+                      <xsd:element name="data">
+                        <xsd:complexType>
+                          <xsd:sequence>
+                            <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                            <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+                          </xsd:sequence>
+                          <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+                          <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+                          <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+                          <xsd:attribute ref="xml:space" />
+                        </xsd:complexType>
+                      </xsd:element>
+                      <xsd:element name="resheader">
+                        <xsd:complexType>
+                          <xsd:sequence>
+                            <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                          </xsd:sequence>
+                          <xsd:attribute name="name" type="xsd:string" use="required" />
+                        </xsd:complexType>
+                      </xsd:element>
+                    </xsd:choice>
+                  </xsd:complexType>
+                </xsd:element>
+              </xsd:schema>
+              <resheader name="resmimetype">
+                <value>text/microsoft-resx</value>
+              </resheader>
+              <resheader name="version">
+                <value>2.0</value>
+              </resheader>
+              <resheader name="reader">
+                <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+              </resheader>
+              <resheader name="writer">
+                <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+              </resheader>
+            """;
+        private const string ResxFooter = """
+            </root>
+            """;
 
         [Theory]
         [InlineData(CSharpLanguageVersion.CSharp5, Skip = "Expression-bodied members are not supported in C# 5")]
@@ -85,10 +87,12 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
         public async Task SingleString_DefaultCSharpAsync(CSharpLanguageVersion languageVersion)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyCS.Test(identifier: languageVersion.ToString())
@@ -106,10 +110,12 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
         public async Task TwoResourcesSameName_DefaultCSharpAsync()
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyCS.Test()
@@ -124,17 +130,17 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
                     },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-build_property.RootNamespace = TestProject
+                        build_property.RootNamespace = TestProject
 
-[/0/First/Resources.resx]
-build_metadata.AdditionalFiles.RelativeDir = First/
+                        [/0/First/Resources.resx]
+                        build_metadata.AdditionalFiles.RelativeDir = First/
 
-[/0/Second/Resources.resx]
-build_metadata.AdditionalFiles.RelativeDir = Second/
-"),
+                        [/0/Second/Resources.resx]
+                        build_metadata.AdditionalFiles.RelativeDir = Second/
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -144,10 +150,12 @@ build_metadata.AdditionalFiles.RelativeDir = Second/
         public async Task TwoResourcesSameName_DefaultVisualBasicAsync()
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyVB.Test()
@@ -162,17 +170,17 @@ build_metadata.AdditionalFiles.RelativeDir = Second/
                     },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-build_property.RootNamespace = TestProject
+                        build_property.RootNamespace = TestProject
 
-[/0/First/Resources.resx]
-build_metadata.AdditionalFiles.RelativeDir = First/
+                        [/0/First/Resources.resx]
+                        build_metadata.AdditionalFiles.RelativeDir = First/
 
-[/0/Second/Resources.resx]
-build_metadata.AdditionalFiles.RelativeDir = Second/
-"),
+                        [/0/Second/Resources.resx]
+                        build_metadata.AdditionalFiles.RelativeDir = Second/
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -182,10 +190,12 @@ build_metadata.AdditionalFiles.RelativeDir = Second/
         public async Task SingleString_DefaultVisualBasicAsync()
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyVB.Test
@@ -201,10 +211,12 @@ build_metadata.AdditionalFiles.RelativeDir = Second/
         public async Task SingleString_DisableCodeGenAsync()
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyCS.Test
@@ -215,12 +227,12 @@ build_metadata.AdditionalFiles.RelativeDir = Second/
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", @"
-is_global = true
+                        ("/.globalconfig", """
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.GenerateSource = false
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.GenerateSource = false
+                        """),
                     },
                 },
             }.RunAsync();
@@ -233,12 +245,12 @@ build_metadata.AdditionalFiles.GenerateSource = false
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", @"
-is_global = true
+                        ("/.globalconfig", """
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.GenerateSource = false
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.GenerateSource = false
+                        """),
                     },
                 },
             }.RunAsync();
@@ -251,10 +263,12 @@ build_metadata.AdditionalFiles.GenerateSource = false
         public async Task SingleString_RootNamespaceCSharpAsync(string rootNamespace)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyCS.Test(identifier: rootNamespace)
@@ -264,11 +278,11 @@ build_metadata.AdditionalFiles.GenerateSource = false
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-build_property.RootNamespace = {rootNamespace}
-"),
+                        build_property.RootNamespace = {rootNamespace}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -281,10 +295,12 @@ build_property.RootNamespace = {rootNamespace}
         public async Task SingleString_RootNamespaceVisualBasicAsync(string rootNamespace)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyVB.Test(identifier: rootNamespace)
@@ -294,11 +310,11 @@ build_property.RootNamespace = {rootNamespace}
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-build_property.RootNamespace = {rootNamespace}
-"),
+                        build_property.RootNamespace = {rootNamespace}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -311,10 +327,12 @@ build_property.RootNamespace = {rootNamespace}
         public async Task SingleString_RelativeDirCSharpAsync(string relativeDir)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyCS.Test(identifier: relativeDir)
@@ -324,12 +342,12 @@ build_property.RootNamespace = {rootNamespace}
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.RelativeDir = {relativeDir}
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.RelativeDir = {relativeDir}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -342,10 +360,12 @@ build_metadata.AdditionalFiles.RelativeDir = {relativeDir}
         public async Task SingleString_RelativeDirVisualBasicAsync(string relativeDir)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyVB.Test(identifier: relativeDir)
@@ -355,12 +375,12 @@ build_metadata.AdditionalFiles.RelativeDir = {relativeDir}
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.RelativeDir = {relativeDir}
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.RelativeDir = {relativeDir}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -373,10 +393,12 @@ build_metadata.AdditionalFiles.RelativeDir = {relativeDir}
         public async Task SingleString_ClassNameCSharpAsync(string className)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyCS.Test(identifier: className)
@@ -386,12 +408,12 @@ build_metadata.AdditionalFiles.RelativeDir = {relativeDir}
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.ClassName = {className}
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.ClassName = {className}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -404,10 +426,12 @@ build_metadata.AdditionalFiles.ClassName = {className}
         public async Task SingleString_ClassNameVisualBasicAsync(string className)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyVB.Test(identifier: className)
@@ -417,12 +441,12 @@ build_metadata.AdditionalFiles.ClassName = {className}
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.ClassName = {className}
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.ClassName = {className}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -433,22 +457,25 @@ build_metadata.AdditionalFiles.ClassName = {className}
         public async Task SingleString_OmitGetResourceStringCSharpAsync(bool omitGetResourceString)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
-            var customGetResourceString = @"#nullable enable
+            var customGetResourceString = """
+                #nullable enable
 
-namespace TestProject
-{
-    internal static partial class Resources
-    {
-        internal static string? GetResourceString(string resourceKey, string? defaultValue = null) => throw null!;
-    }
-}
-";
+                namespace TestProject
+                {
+                    internal static partial class Resources
+                    {
+                        internal static string? GetResourceString(string resourceKey, string? defaultValue = null) => throw null!;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test(identifier: omitGetResourceString.ToString())
             {
@@ -458,12 +485,12 @@ namespace TestProject
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.OmitGetResourceString = {(omitGetResourceString ? "true" : "false")}
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.OmitGetResourceString = {(omitGetResourceString ? "true" : "false")}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -474,21 +501,23 @@ build_metadata.AdditionalFiles.OmitGetResourceString = {(omitGetResourceString ?
         public async Task SingleString_OmitGetResourceStringVisualBasicAsync(bool omitGetResourceString)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
-            var customGetResourceString = @"
-Namespace Global.TestProject
-    Friend Partial Class Resources
-        Friend Shared Function GetResourceString(resourceKey As String, Optional defaultValue As String = Nothing)
-            Return """"
-        End Function
-    End Class
-End Namespace
-";
+            var customGetResourceString = """
+                Namespace Global.TestProject
+                    Friend Partial Class Resources
+                        Friend Shared Function GetResourceString(resourceKey As String, Optional defaultValue As String = Nothing)
+                            Return ""
+                        End Function
+                    End Class
+                End Namespace
+                """;
 
             await new VerifyVB.Test(identifier: omitGetResourceString.ToString())
             {
@@ -498,12 +527,12 @@ End Namespace
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.OmitGetResourceString = {(omitGetResourceString ? "true" : "false")}
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.OmitGetResourceString = {(omitGetResourceString ? "true" : "false")}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -514,10 +543,12 @@ build_metadata.AdditionalFiles.OmitGetResourceString = {(omitGetResourceString ?
         public async Task SingleString_AsConstantsCSharpAsync(bool asConstants)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyCS.Test(identifier: asConstants.ToString())
@@ -527,12 +558,12 @@ build_metadata.AdditionalFiles.OmitGetResourceString = {(omitGetResourceString ?
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.AsConstants = {(asConstants ? "true" : "false")}
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.AsConstants = {(asConstants ? "true" : "false")}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -543,10 +574,12 @@ build_metadata.AdditionalFiles.AsConstants = {(asConstants ? "true" : "false")}
         public async Task SingleString_AsConstantsVisualBasicAsync(bool asConstants)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyVB.Test(identifier: asConstants.ToString())
@@ -556,12 +589,12 @@ build_metadata.AdditionalFiles.AsConstants = {(asConstants ? "true" : "false")}
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.AsConstants = {(asConstants ? "true" : "false")}
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.AsConstants = {(asConstants ? "true" : "false")}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -572,10 +605,12 @@ build_metadata.AdditionalFiles.AsConstants = {(asConstants ? "true" : "false")}
         public async Task SingleString_IncludeDefaultValuesCSharpAsync(bool includeDefaultValues)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyCS.Test(identifier: includeDefaultValues.ToString())
@@ -585,12 +620,12 @@ build_metadata.AdditionalFiles.AsConstants = {(asConstants ? "true" : "false")}
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.IncludeDefaultValues = {(includeDefaultValues ? "true" : "false")}
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.IncludeDefaultValues = {(includeDefaultValues ? "true" : "false")}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -601,10 +636,12 @@ build_metadata.AdditionalFiles.IncludeDefaultValues = {(includeDefaultValues ? "
         public async Task SingleString_IncludeDefaultValuesVisualBasicAsync(bool includeDefaultValues)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyVB.Test(identifier: includeDefaultValues.ToString())
@@ -614,12 +651,12 @@ build_metadata.AdditionalFiles.IncludeDefaultValues = {(includeDefaultValues ? "
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.IncludeDefaultValues = {(includeDefaultValues ? "true" : "false")}
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.IncludeDefaultValues = {(includeDefaultValues ? "true" : "false")}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -632,10 +669,12 @@ build_metadata.AdditionalFiles.IncludeDefaultValues = {(includeDefaultValues ? "
             bool emitFormatMethods)
         {
             var code = ResxHeader
-                + $@"  <data name=""Name"" xml:space=""preserve"">
-    <value>value {{{placeholder}}}</value>
-    <comment>comment</comment>
-  </data>"
+                + $$"""
+                  <data name="Name" xml:space="preserve">
+                    <value>value {{{placeholder}}}</value>
+                    <comment>comment</comment>
+                  </data>
+                """
                 + ResxFooter;
 
             await new VerifyCS.Test(identifier: $"{placeholder}_{emitFormatMethods}")
@@ -645,12 +684,12 @@ build_metadata.AdditionalFiles.IncludeDefaultValues = {(includeDefaultValues ? "
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.EmitFormatMethods = {(emitFormatMethods ? "true" : "false")}
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.EmitFormatMethods = {(emitFormatMethods ? "true" : "false")}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -662,10 +701,12 @@ build_metadata.AdditionalFiles.EmitFormatMethods = {(emitFormatMethods ? "true" 
         public async Task SingleString_EmitFormatMethodsVisualBasicAsync(bool emitFormatMethods)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyVB.Test(identifier: emitFormatMethods.ToString())
@@ -675,12 +716,12 @@ build_metadata.AdditionalFiles.EmitFormatMethods = {(emitFormatMethods ? "true" 
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.EmitFormatMethods = {(emitFormatMethods ? "true" : "false")}
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.EmitFormatMethods = {(emitFormatMethods ? "true" : "false")}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -691,10 +732,12 @@ build_metadata.AdditionalFiles.EmitFormatMethods = {(emitFormatMethods ? "true" 
         public async Task SingleString_PublicCSharpAsync(bool publicResource)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyCS.Test(identifier: publicResource.ToString())
@@ -704,12 +747,12 @@ build_metadata.AdditionalFiles.EmitFormatMethods = {(emitFormatMethods ? "true" 
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.Public = {(publicResource ? "true" : "false")}
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.Public = {(publicResource ? "true" : "false")}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -720,10 +763,12 @@ build_metadata.AdditionalFiles.Public = {(publicResource ? "true" : "false")}
         public async Task SingleString_PublicVisualBasicAsync(bool publicResource)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             await new VerifyVB.Test(identifier: publicResource.ToString())
@@ -733,12 +778,12 @@ build_metadata.AdditionalFiles.Public = {(publicResource ? "true" : "false")}
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.Public = {(publicResource ? "true" : "false")}
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.Public = {(publicResource ? "true" : "false")}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -752,10 +797,12 @@ build_metadata.AdditionalFiles.Public = {(publicResource ? "true" : "false")}
         public async Task SingleString_NoWarnsCSharpAsync(string noWarn)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             var id = string.Join("_", noWarn.Replace(" ", "").Split(",", System.StringSplitOptions.TrimEntries | System.StringSplitOptions.RemoveEmptyEntries));
@@ -767,12 +814,12 @@ build_metadata.AdditionalFiles.Public = {(publicResource ? "true" : "false")}
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.NoWarn = {noWarn}
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.NoWarn = {noWarn}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();
@@ -786,10 +833,12 @@ build_metadata.AdditionalFiles.NoWarn = {noWarn}
         public async Task SingleString_NoWarnsVisualBasicAsync(string noWarn)
         {
             var code = ResxHeader
-                + @"  <data name=""Name"" xml:space=""preserve"">
-    <value>value</value>
-    <comment>comment</comment>
-  </data>"
+                + """
+                <data name="Name" xml:space="preserve">
+                  <value>value</value>
+                  <comment>comment</comment>
+                </data>
+                """
                 + ResxFooter;
 
             var id = string.Join("_", noWarn.Replace(" ", "").Split(",", System.StringSplitOptions.TrimEntries | System.StringSplitOptions.RemoveEmptyEntries));
@@ -801,12 +850,12 @@ build_metadata.AdditionalFiles.NoWarn = {noWarn}
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
-                        ("/.globalconfig", $@"
-is_global = true
+                        ("/.globalconfig", $"""
+                        is_global = true
 
-[/0/Resources.resx]
-build_metadata.AdditionalFiles.NoWarn = {noWarn}
-"),
+                        [/0/Resources.resx]
+                        build_metadata.AdditionalFiles.NoWarn = {noWarn}
+                        """),
                     },
                 },
             }.AddGeneratedSources().RunAsync();

@@ -17,31 +17,32 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
-        internal const string PerformanceSensitiveAttributeSource = @"
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading.Tasks;
+        internal const string PerformanceSensitiveAttributeSource = """
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics;
+            using System.Threading.Tasks;
 
-namespace Roslyn.Utilities
-{
-    [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = true, Inherited = false)]
-    internal sealed class PerformanceSensitiveAttribute : Attribute
-    {
-        public PerformanceSensitiveAttribute(string uri)
-        {
-            Uri = uri;
-        }
+            namespace Roslyn.Utilities
+            {
+                [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = true, Inherited = false)]
+                internal sealed class PerformanceSensitiveAttribute : Attribute
+                {
+                    public PerformanceSensitiveAttribute(string uri)
+                    {
+                        Uri = uri;
+                    }
 
-        public string Uri { get; }
-        public string Constraint { get; set; }
-        public bool AllowCaptures { get; set; }
-        public bool AllowGenericEnumeration { get; set; }
-        public bool AllowLocks { get; set; }
-        public bool OftenCompletesSynchronously { get; set; }
-        public bool IsParallelEntry { get; set; }
-    }
-}";
+                    public string Uri { get; }
+                    public string Constraint { get; set; }
+                    public bool AllowCaptures { get; set; }
+                    public bool AllowGenericEnumeration { get; set; }
+                    public bool AllowLocks { get; set; }
+                    public bool OftenCompletesSynchronously { get; set; }
+                    public bool IsParallelEntry { get; set; }
+                }
+            }
+            """;
 
         public static DiagnosticResult Diagnostic()
             => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, DefaultVerifier>.Diagnostic();

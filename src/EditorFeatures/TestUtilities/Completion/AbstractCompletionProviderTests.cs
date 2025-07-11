@@ -794,15 +794,16 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
 
     protected static string CreateMarkupForProjectWithMetadataReference(string markup, string metadataReferenceCode, string sourceLanguage, string referencedLanguage)
     {
-        return string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
-        <Document FilePath=""SourceDocument"">{1}</Document>
-        <MetadataReferenceFromSource Language=""{2}"" CommonReferences=""true"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"" {4}>
-            <Document FilePath=""ReferencedDocument"">{3}</Document>
-        </MetadataReferenceFromSource>
-    </Project>
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(metadataReferenceCode), GetLanguageVersionAttribute(referencedLanguage));
+        return string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true" AssemblyName="Project1">
+                    <Document FilePath="SourceDocument">{1}</Document>
+                    <MetadataReferenceFromSource Language="{2}" CommonReferences="true" IncludeXmlDocComments="true" DocumentationMode="Diagnose" {4}>
+                        <Document FilePath="ReferencedDocument">{3}</Document>
+                    </MetadataReferenceFromSource>
+                </Project>
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(metadataReferenceCode), GetLanguageVersionAttribute(referencedLanguage));
     }
 
     protected async Task VerifyItemWithAliasedMetadataReferencesAsync(string markup, string metadataAlias, string expectedItem, int expectedSymbols,
@@ -815,21 +816,24 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
 
     private static string GetLanguageVersionAttribute(string languageName)
     {
-        return languageName == LanguageNames.CSharp ? @"LanguageVersion = ""preview""" : string.Empty;
+        return languageName == LanguageNames.CSharp ? """
+            LanguageVersion = "preview"
+            """ : string.Empty;
     }
 
     protected static string CreateMarkupForProjectWithAliasedMetadataReference(string markup, string metadataAlias, string referencedCode, string sourceLanguage, string referencedLanguage, bool hasGlobalAlias = true)
     {
         var aliases = hasGlobalAlias ? $"{metadataAlias},{MetadataReferenceProperties.GlobalAlias}" : $"{metadataAlias}";
-        return string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"" {1}>
-        <Document FilePath=""SourceDocument"">{2}</Document>
-        <MetadataReferenceFromSource Language=""{3}"" CommonReferences=""true"" Aliases=""{4}"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"" {5}>
-            <Document FilePath=""ReferencedDocument"">{6}</Document>
-        </MetadataReferenceFromSource>
-    </Project>
-</Workspace>", sourceLanguage, GetLanguageVersionAttribute(sourceLanguage), SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(aliases), GetLanguageVersionAttribute(referencedLanguage), SecurityElement.Escape(referencedCode));
+        return string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true" AssemblyName="Project1" {1}>
+                    <Document FilePath="SourceDocument">{2}</Document>
+                    <MetadataReferenceFromSource Language="{3}" CommonReferences="true" Aliases="{4}" IncludeXmlDocComments="true" DocumentationMode="Diagnose" {5}>
+                        <Document FilePath="ReferencedDocument">{6}</Document>
+                    </MetadataReferenceFromSource>
+                </Project>
+            </Workspace>
+            """, sourceLanguage, GetLanguageVersionAttribute(sourceLanguage), SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(aliases), GetLanguageVersionAttribute(referencedLanguage), SecurityElement.Escape(referencedCode));
     }
 
     protected async Task VerifyItemWithProjectReferenceAsync(string markup, string referencedCode, string expectedItem, int expectedSymbols, string sourceLanguage, string referencedLanguage)
@@ -841,44 +845,47 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
 
     protected static string CreateMarkupForProjectWithAliasedProjectReference(string markup, string projectAlias, string referencedCode, string sourceLanguage, string referencedLanguage)
     {
-        return string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
-        <ProjectReference Alias=""{4}"">ReferencedProject</ProjectReference>
-        <Document FilePath=""SourceDocument"">{1}</Document>
-    </Project>
-    <Project Language=""{2}"" CommonReferences=""true"" AssemblyName=""ReferencedProject"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
-        <Document FilePath=""ReferencedDocument"">{3}</Document>
-    </Project>
-    
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(referencedCode), SecurityElement.Escape(projectAlias));
+        return string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true" AssemblyName="Project1">
+                    <ProjectReference Alias="{4}">ReferencedProject</ProjectReference>
+                    <Document FilePath="SourceDocument">{1}</Document>
+                </Project>
+                <Project Language="{2}" CommonReferences="true" AssemblyName="ReferencedProject" IncludeXmlDocComments="true" DocumentationMode="Diagnose">
+                    <Document FilePath="ReferencedDocument">{3}</Document>
+                </Project>
+
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(referencedCode), SecurityElement.Escape(projectAlias));
     }
 
     protected static string CreateMarkupForProjectWithProjectReference(string markup, string referencedCode, string sourceLanguage, string referencedLanguage)
     {
-        return string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"" {1}>
-        <ProjectReference>ReferencedProject</ProjectReference>
-        <Document FilePath=""SourceDocument"">{2}</Document>
-    </Project>
-    <Project Language=""{3}"" CommonReferences=""true"" AssemblyName=""ReferencedProject"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"" {4}>
-        <Document FilePath=""ReferencedDocument"">{5}</Document>
-    </Project>
-    
-</Workspace>", sourceLanguage, GetLanguageVersionAttribute(sourceLanguage), SecurityElement.Escape(markup), referencedLanguage, GetLanguageVersionAttribute(referencedLanguage), SecurityElement.Escape(referencedCode));
+        return string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true" AssemblyName="Project1" {1}>
+                    <ProjectReference>ReferencedProject</ProjectReference>
+                    <Document FilePath="SourceDocument">{2}</Document>
+                </Project>
+                <Project Language="{3}" CommonReferences="true" AssemblyName="ReferencedProject" IncludeXmlDocComments="true" DocumentationMode="Diagnose" {4}>
+                    <Document FilePath="ReferencedDocument">{5}</Document>
+                </Project>
+
+            </Workspace>
+            """, sourceLanguage, GetLanguageVersionAttribute(sourceLanguage), SecurityElement.Escape(markup), referencedLanguage, GetLanguageVersionAttribute(referencedLanguage), SecurityElement.Escape(referencedCode));
     }
 
     protected static string CreateMarkupForProjectWithMultupleProjectReferences(string sourceText, string sourceLanguage, string referencedLanguage, string[] referencedTexts)
     {
-        return $@"
-<Workspace>
-    <Project Language=""{sourceLanguage}"" CommonReferences=""true"" AssemblyName=""Project1"">
-{GetProjectReferenceElements(referencedTexts)}
-        <Document FilePath=""SourceDocument"">{SecurityElement.Escape(sourceText)}</Document>
-    </Project>
-{GetReferencedProjectElements(referencedLanguage, referencedTexts)}
-</Workspace>";
+        return $"""
+            <Workspace>
+                <Project Language="{sourceLanguage}" CommonReferences="true" AssemblyName="Project1">
+            {GetProjectReferenceElements(referencedTexts)}
+                    <Document FilePath="SourceDocument">{SecurityElement.Escape(sourceText)}</Document>
+                </Project>
+            {GetReferencedProjectElements(referencedLanguage, referencedTexts)}
+            </Workspace>
+            """;
 
         static string GetProjectReferenceElements(string[] referencedTexts)
         {
@@ -896,10 +903,11 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
             var builder = new StringBuilder();
             for (var i = 0; i < referencedTexts.Length; ++i)
             {
-                builder.Append($@"
-<Project Language=""{language}"" CommonReferences=""true"" AssemblyName=""ReferencedProject{i}"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
-  <Document FilePath=""ReferencedDocument{i}"">{SecurityElement.Escape(referencedTexts[i])}</Document>
-</Project>");
+                builder.Append($"""
+                    <Project Language="{language}" CommonReferences="true" AssemblyName="ReferencedProject{i}" IncludeXmlDocComments="true" DocumentationMode="Diagnose">
+                      <Document FilePath="ReferencedDocument{i}">{SecurityElement.Escape(referencedTexts[i])}</Document>
+                    </Project>
+                    """);
             }
 
             return builder.ToString();
@@ -908,18 +916,19 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
 
     protected static string CreateMarkupForProjecWithVBProjectReference(string markup, string referencedCode, string sourceLanguage, string rootNamespace = "")
     {
-        return string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
-        <ProjectReference>ReferencedProject</ProjectReference>
-        <Document FilePath=""SourceDocument"">{1}</Document>
-    </Project>
-    <Project Language=""{2}"" CommonReferences=""true"" AssemblyName=""ReferencedProject"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
-        <Document FilePath=""ReferencedDocument"">{3}</Document>
-        <CompilationOptions RootNamespace=""{4}""/>
-    </Project>
-    
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup), LanguageNames.VisualBasic, SecurityElement.Escape(referencedCode), rootNamespace);
+        return string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true" AssemblyName="Project1">
+                    <ProjectReference>ReferencedProject</ProjectReference>
+                    <Document FilePath="SourceDocument">{1}</Document>
+                </Project>
+                <Project Language="{2}" CommonReferences="true" AssemblyName="ReferencedProject" IncludeXmlDocComments="true" DocumentationMode="Diagnose">
+                    <Document FilePath="ReferencedDocument">{3}</Document>
+                    <CompilationOptions RootNamespace="{4}"/>
+                </Project>
+
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(markup), LanguageNames.VisualBasic, SecurityElement.Escape(referencedCode), rootNamespace);
     }
 
     private Task VerifyItemInSameProjectAsync(string markup, string referencedCode, string expectedItem, int expectedSymbols, string sourceLanguage)
@@ -936,13 +945,14 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
         string sourceFileName = "SourceDocument",
         string referencedFileName = "ReferencedDocument")
     {
-        return string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"" Name=""ProjectName"" {5}>
-        <Document FilePath=""{3}"">{1}</Document>
-        <Document FilePath=""{4}"">{2}</Document>
-    </Project>    
-</Workspace>", sourceLanguage, SecurityElement.Escape(sourceCode), SecurityElement.Escape(referencedCode), sourceFileName, referencedFileName, GetLanguageVersionAttribute(sourceLanguage));
+        return string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true" Name="ProjectName" {5}>
+                    <Document FilePath="{3}">{1}</Document>
+                    <Document FilePath="{4}">{2}</Document>
+                </Project>    
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(sourceCode), SecurityElement.Escape(referencedCode), sourceFileName, referencedFileName, GetLanguageVersionAttribute(sourceLanguage));
     }
 
     private async Task VerifyItemWithReferenceWorkerAsync(
@@ -989,14 +999,15 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
 
     protected async Task VerifyItemWithMscorlib45Async(string markup, string expectedItem, string expectedDescription, string sourceLanguage)
     {
-        var xmlString = string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferencesNet45=""true""> 
-        <Document FilePath=""SourceDocument"">
-{1}
-        </Document>
-    </Project>
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup));
+        var xmlString = string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferencesNet45="true"> 
+                    <Document FilePath="SourceDocument">
+            {1}
+                    </Document>
+                </Project>
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(markup));
 
         await VerifyItemWithMscorlib45WorkerAsync(xmlString, expectedItem, expectedDescription);
     }

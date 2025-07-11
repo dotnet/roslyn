@@ -27,1528 +27,1546 @@ internal sealed class StyleViewModel : AbstractOptionPreviewViewModel
 {
     #region "Preview Text"
 
-    private const string s_fieldDeclarationPreviewTrue = @"
-class C{
-    int capacity;
-    void Method()
-    {
-//[
-        this.capacity = 0;
-//]
-    }
-}";
-
-    private const string s_fieldDeclarationPreviewFalse = @"
-class C{
-    int capacity;
-    void Method()
-    {
-//[
-        capacity = 0;
-//]
-    }
-}";
-
-    private const string s_propertyDeclarationPreviewTrue = @"
-class C{
-    public int Id { get; set; }
-    void Method()
-    {
-//[
-        this.Id = 0;
-//]
-    }
-}";
-
-    private const string s_propertyDeclarationPreviewFalse = @"
-class C{
-    public int Id { get; set; }
-    void Method()
-    {
-//[
-        Id = 0;
-//]
-    }
-}";
-
-    private const string s_eventDeclarationPreviewTrue = @"
-using System;
-class C{
-    event EventHandler Elapsed;
-    void Handler(object sender, EventArgs args)
-    {
-//[
-        this.Elapsed += Handler;
-//]
-    }
-}";
-
-    private const string s_eventDeclarationPreviewFalse = @"
-using System;
-class C{
-    event EventHandler Elapsed;
-    void Handler(object sender, EventArgs args)
-    {
-//[
-        Elapsed += Handler;
-//]
-    }
-}";
-
-    private const string s_methodDeclarationPreviewTrue = @"
-using System;
-class C{
-    void Display()
-    {
-//[
-        this.Display();
-//]
-    }
-}";
-
-    private const string s_methodDeclarationPreviewFalse = @"
-using System;
-class C{
-    void Display()
-    {
-//[
-        Display();
-//]
-    }
-}";
-
-    private const string s_intrinsicPreviewDeclarationTrue = @"
-class Program
-{
-//[
-    private int _member;
-    static void M(int argument)
-    {
-        int local;
-    }
-//]
-}";
-
-    private const string s_intrinsicPreviewDeclarationFalse = @"
-using System;
-class Program
-{
-//[
-    private Int32 _member;
-    static void M(Int32 argument)
-    {
-        Int32 local;
-    }
-//]
-}";
-
-    private const string s_intrinsicPreviewMemberAccessTrue = @"
-class Program
-{
-//[
-    static void M()
-    {
-        var local = int.MaxValue;
-    }
-//]
-}";
-
-    private const string s_intrinsicPreviewMemberAccessFalse = @"
-using System;
-class Program
-{
-//[
-    static void M()
-    {
-        var local = Int32.MaxValue;
-    }
-//]
-}";
-
-    private static readonly string s_varForIntrinsicsPreviewFalse = $@"
-using System;
-class C{{
-    void Method()
-    {{
-//[
-        int x = 5; // {ServicesVSResources.built_in_types}
-//]
-    }}
-}}";
-
-    private static readonly string s_varForIntrinsicsPreviewTrue = $@"
-using System;
-class C{{
-    void Method()
-    {{
-//[
-        var x = 5; // {ServicesVSResources.built_in_types}
-//]
-    }}
-}}";
-
-    private static readonly string s_varWhereApparentPreviewFalse = $@"
-using System;
-class C{{
-    void Method()
-    {{
-//[
-        C cobj = new C(); // {ServicesVSResources.type_is_apparent_from_assignment_expression}
-//]
-    }}
-}}";
-
-    private static readonly string s_varWhereApparentPreviewTrue = $@"
-using System;
-class C{{
-    void Method()
-    {{
-//[
-        var cobj = new C(); // {ServicesVSResources.type_is_apparent_from_assignment_expression}
-//]
-    }}
-}}";
-
-    private static readonly string s_varWherePossiblePreviewFalse = $@"
-using System;
-class C{{
-    void Init()
-    {{
-//[
-        Action f = this.Init(); // {ServicesVSResources.everywhere_else}
-//]
-    }}
-}}";
-
-    private static readonly string s_varWherePossiblePreviewTrue = $@"
-using System;
-class C{{
-    void Init()
-    {{
-//[
-        var f = this.Init(); // {ServicesVSResources.everywhere_else}
-//]
-    }}
-}}";
-
-    private static readonly string s_preferThrowExpression = $@"
-using System;
-
-class C
-{{
-    private string s;
-
-    void M1(string s)
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        this.s = s ?? throw new ArgumentNullException(nameof(s));
-//]
-    }}
-    void M2(string s)
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        if (s == null)
-        {{
-            throw new ArgumentNullException(nameof(s));
-        }}
-
-        this.s = s;
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferCoalesceExpression = $@"
-using System;
-
-class C
-{{
-    private string s;
-
-    void M1(string s)
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var v = x ?? y;
-//]
-    }}
-    void M2(string s)
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        var v = x != null ? x : y; // {ServicesVSResources.or}
-        var v = x == null ? y : x;
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferConditionalDelegateCall = $@"
-using System;
-
-class C
-{{
-    private string s;
-
-    void M1(string s)
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        func?.Invoke(args);
-//]
-    }}
-    void M2(string s)
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        if (func != null)
-        {{
-            func(args);
-        }}
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferNullPropagation = $@"
-using System;
-
-class C
-{{
-    void M1(object o)
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var v = o?.ToString();
-//]
-    }}
-    void M2(object o)
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        var v = o == null ? null : o.ToString(); // {ServicesVSResources.or}
-        var v = o != null ? o.ToString() : null;
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferSwitchExpression = $@"
-class C
-{{
-    void M1()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        return num switch
-        {{
-            1 => 1,
-            _ => 2,
-        }}
-//]
-    }}
-    void M2()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        switch (num)
-        {{
-            case 1:
-                return 1;
-            default:
-                return 2;
-        }}
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferPatternMatching = $@"
-class C
-{{
-    void M1()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        return num is 1 or 2;
-//]
-    }}
-    void M2()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        return num == 1 || num == 2;
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferPatternMatchingOverAsWithNullCheck = $@"
-class C
-{{
-    void M1()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        if (o is string s)
-        {{
-        }}
-//]
-    }}
-    void M2()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        var s = o as string;
-        if (s != null)
-        {{
-        }}
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferPatternMatchingOverMixedTypeCheck = $@"
-class C
-{{
-    void M1()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        if (o is not string s)
-        {{
-        }}
-//]
-    }}
-    void M2()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        if (!(o is string s))
-        {{
-        }}
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferConditionalExpressionOverIfWithAssignments = $@"
-class C
-{{
-    void M()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        string s = expr ? ""hello"" : ""world"";
-
-        // {ServicesVSResources.Over_colon}
-        string s;
-        if (expr)
-        {{
-            s = ""hello"";
-        }}
-        else
-        {{
-            s = ""world"";
-        }}
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferConditionalExpressionOverIfWithReturns = $@"
-class C
-{{
-    void M()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        return expr ? ""hello"" : ""world"";
-
-        // {ServicesVSResources.Over_colon}
-        if (expr)
-        {{
-            return ""hello"";
-        }}
-        else
-        {{
-            return ""world"";
-        }}
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferPatternMatchingOverIsWithCastCheck = $@"
-class C
-{{
-    void M1()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        if (o is int i)
-        {{
-        }}
-//]
-    }}
-    void M2()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        if (o is int)
-        {{
-            var i = (int)o;
-        }}
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferObjectInitializer = $@"
-using System;
-
-class Customer
-{{
-    private int Age;
-
-    void M1()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var c = new Customer()
-        {{
-            Age = 21
-        }};
-//]
-    }}
-    void M2()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        var c = new Customer();
-        c.Age = 21;
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferCollectionInitializer = $@"
-using System.Collections.Generic;
-
-class Customer
-{{
-    private int Age;
-
-    void M1()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var list = new List<int>
-        {{
-            1,
-            2,
-            3
-        }};
-//]
-    }}
-    void M2()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        var list = new List<int>();
-        list.Add(1);
-        list.Add(2);
-        list.Add(3);
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferExplicitTupleName = $@"
-class Customer
-{{
-    void M1()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        (string name, int age) customer = GetCustomer();
-        var name = customer.name;
-        var age = customer.age;
-//]
-    }}
-    void M2()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        (string name, int age) customer = GetCustomer();
-        var name = customer.Item1;
-        var age = customer.Item2;
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferSimpleDefaultExpression = $@"
-using System.Threading;
-
-class Customer1
-{{
-//[
-    // {ServicesVSResources.Prefer_colon}
-    void DoWork(CancellationToken cancellationToken = default) {{ }}
-//]
-}}
-class Customer2
-{{
-//[
-    // {ServicesVSResources.Over_colon}
-    void DoWork(CancellationToken cancellationToken = default(CancellationToken)) {{ }}
-//]
-}}
-";
-
-    private static readonly string s_preferSimplifiedConditionalExpression = $@"
-using System.Threading;
-
-class Customer1
-{{
-    bool A() => true;
-    bool B() => true;
-
-    void M1()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var x = A() && B();
-//]
-    }}
-    
-    void M2()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        var x = A() && B() ? true : false
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferInferredTupleName = $@"
-using System.Threading;
-
-class Customer
-{{
-    void M1(int age, string name)
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var tuple = (age, name);
-//]
-    }}
-    void M2(int age, string name)
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        var tuple = (age: age, name: name);
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferInferredAnonymousTypeMemberName = $@"
-using System.Threading;
-
-class Customer
-{{
-    void M1(int age, string name)
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var anon = new {{ age, name }};
-//]
-    }}
-    void M2(int age, string name)
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        var anon = new {{ age = age, name = name }};
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferInlinedVariableDeclaration = $@"
-using System;
-
-class Customer
-{{
-    void M1(string value)
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        if (int.TryParse(value, out int i))
-        {{
-        }}
-//]
-    }}
-    void M2(string value)
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        int i;
-        if (int.TryParse(value, out i))
-        {{
-        }}
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferDeconstructedVariableDeclaration = $@"
-using System;
-
-class Customer
-{{
-    void M1(string value)
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var (name, age) = GetPersonTuple();
-        Console.WriteLine($""{{name}} {{age}}"");
-
-        (int x, int y) = GetPointTuple();
-        Console.WriteLine($""{{x}} {{y}}"");
-//]
-    }}
-    void M2(string value)
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        var person = GetPersonTuple();
-        Console.WriteLine($""{{person.name}} {{person.age}}"");
-
-        (int x, int y) point = GetPointTuple();
-        Console.WriteLine($""{{point.x}} {{point.y}}"");
-//]
-    }}
-}}
-";
-
-    private static readonly string s_doNotPreferBraces = $@"
-using System;
-
-class Customer
-{{
-    private int Age;
-
-    void M1()
-    {{
-//[
-        // {ServicesVSResources.Allow_colon}
-        if (test) Console.WriteLine(""Text"");
-
-        // {ServicesVSResources.Allow_colon}
-        if (test)
-            Console.WriteLine(""Text"");
-
-        // {ServicesVSResources.Allow_colon}
-        if (test)
-            Console.WriteLine(
-                ""Text"");
-
-        // {ServicesVSResources.Allow_colon}
-        if (test)
-        {{
-            Console.WriteLine(
-                ""Text"");
-        }}
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferBracesWhenMultiline = $@"
-using System;
-
-class Customer
-{{
-    private int Age;
-
-    void M1()
-    {{
-//[
-        // {ServicesVSResources.Allow_colon}
-        if (test) Console.WriteLine(""Text"");
-
-        // {ServicesVSResources.Allow_colon}
-        if (test)
-            Console.WriteLine(""Text"");
-
-        // {ServicesVSResources.Prefer_colon}
-        if (test)
-        {{
-            Console.WriteLine(
-                ""Text"");
-        }}
-//]
-    }}
-    void M2()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        if (test)
-            Console.WriteLine(
-                ""Text"");
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferBraces = $@"
-using System;
-
-class Customer
-{{
-    private int Age;
-
-    void M1()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        if (test)
-        {{
-            Console.WriteLine(""Text"");
-        }}
-//]
-    }}
-    void M2()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        if (test)
-            Console.WriteLine(""Text"");
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferAutoProperties = $@"
-using System;
-
-class Customer1
-{{
-//[
-    // {ServicesVSResources.Prefer_colon}
-    public int Age {{ get; }}
-//]
-}}
-class Customer2
-{{
-//[
-    // {ServicesVSResources.Over_colon}
-    private int age;
-
-    public int Age
-    {{
-        get
-        {{
-            return age;
-        }}
-    }}
-//]
-}}
-";
-
-    private static readonly string s_preferFileScopedNamespace = $@"
-//[
-// {ServicesVSResources.Prefer_colon}
-namespace A.B.C;
-
-public class Program
-{{
-}}
-//]
-//[
-// {ServicesVSResources.Over_colon}
-namespace A.B.C
-{{
-    public class Program
-    {{
-    }}
-}}
-//]
-";
-
-    private static readonly string s_preferBlockNamespace = $@"
-//[
-// {ServicesVSResources.Prefer_colon}
-namespace A.B.C
-{{
-    public class Program
-    {{
-    }}
-}}
-//]
-//[
-// {ServicesVSResources.Over_colon}
-namespace A.B.C;
-
-public class Program
-{{
-}}
-//]
-";
-
-    private static readonly string s_preferSimpleUsingStatement = $@"
-using System;
-
-class Customer1
-{{
-//[
-    // {ServicesVSResources.Prefer_colon}
-    void Method()
-    {{
-        using var resource = GetResource();
-        ProcessResource(resource);
-    }}
-//]
-}}
-class Customer2
-{{
-//[
-    // {ServicesVSResources.Over_colon}
-    void Method()
-    {{
-        using (var resource = GetResource())
-        {{
-            ProcessResource(resource);
-        }}
-    }}
-//]
-}}
-";
-
-    private static readonly string s_preferSystemHashCode = $@"
-using System;
-
-class Customer1
-{{
-    int a, b, c;
-//[
-    // {ServicesVSResources.Prefer_colon}
-    // {ServicesVSResources.Requires_System_HashCode_be_present_in_project}
-    public override int GetHashCode()
-    {{
-        return System.HashCode.Combine(a, b, c);
-    }}
-//]
-}}
-class Customer2
-{{
-    int a, b, c;
-//[
-    // {ServicesVSResources.Over_colon}
-    public override int GetHashCode()
-    {{
-        var hashCode = 339610899;
-        hashCode = hashCode * -1521134295 + a.GetHashCode();
-        hashCode = hashCode * -1521134295 + b.GetHashCode();
-        hashCode = hashCode * -1521134295 + c.GetHashCode();
-        return hashCode;
-    }}
-//]
-}}
-";
-
-    private static readonly string s_preferMethodGroupConversion = $@"
-using System;
-
-class Customer1
-{{
-    public void M()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        Action<object> writeObject = Console.Write;
-//]
-    }}
-}}
-class Customer2
-{{
-    public void M()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        Action<object> writeObject = obj => Console.Write(obj);
-//]
-    }}
-//]
-}}
-";
-
-    private static readonly string s_preferTopLevelStatements = $@"
-using System;
-//[
-// {ServicesVSResources.Prefer_colon}
-Console.WriteLine(""Hello, World!"");
-//]
-
-//[
-// {ServicesVSResources.Over_colon}
-internal class Program
-{{
-    private static void Main(string[] args)
-    {{
-        Console.WriteLine(""Hello, World!"");
-    }}
-}}
-//]
-";
-
-    private static readonly string s_preferProgramMain = $@"
-using System;
-
-//[
-// {ServicesVSResources.Prefer_colon}
-internal class Program
-{{
-    private static void Main(string[] args)
-    {{
-        Console.WriteLine(""Hello, World!"");
-    }}
-}}
-//]
-
-//[
-// {ServicesVSResources.Over_colon}
-Console.WriteLine(""Hello, World!"");
-//]
-";
-
-    private static readonly string s_preferLocalFunctionOverAnonymousFunction = $@"
-using System;
-
-class Customer
-{{
-    void M1(string value)
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        int fibonacci(int n)
-        {{
-            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
-        }}
-//]
-    }}
-    void M2(string value)
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        Func<int, int> fibonacci = null;
-        fibonacci = (int n) =>
-        {{
-            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
-        }};
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferCompoundAssignments = $@"
-using System;
-class Customer
-{{
-    void M1(int value)
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        value += 10;
-//]
-    }}
-    void M2(int value)
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        value = value + 10
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferImplicitObjectCreationWhenTypeIsApparent = $@"
-using System.Collections.Generic;
-class Order {{}}
-
-//[
-class Customer
-{{
-    // {ServicesVSResources.Prefer_colon}
-    private readonly List<Order> orders = new();
-
-    // {ServicesVSResources.Over_colon}
-    private readonly List<Order> orders = new List<Order>();
-}}
-//]
-";
-
-    private static readonly string s_preferIndexOperator = $@"
-using System;
-
-class Customer
-{{
-    void M1(string value)
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var ch = value[^1];
-//]
-    }}
-    void M2(string value)
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        var ch = value[value.Length - 1];
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferRangeOperator = $@"
-using System;
-
-class Customer
-{{
-    void M1(string value)
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var sub = value[1..^1];
-//]
-    }}
-    void M2(string value)
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        var sub = value.Substring(1, value.Length - 2);
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferTupleSwap = $@"
-using System;
-
-class Customer
-{{
-    void M1(string[] args)
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        (args[1], args[0]) = (args[0], args[1]);
-//]
-    }}
-    void M2(string[] args)
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        var temp = args[0];
-        args[0] = args[1];
-        args[1] = temp;
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferIsNullOverReferenceEquals = $@"
-using System;
-
-class Customer
-{{
-    void M1(string value1, string value2)
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        if (value1 is null)
-            return;
-
-        if (value2 is null)
-            return;
-//]
-    }}
-    void M2(string value1, string value2)
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        if (object.ReferenceEquals(value1, null))
-            return;
-
-        if ((object)value2 == null)
-            return;
-//]
-    }}
-}}
-";
-
-    private static readonly string s_preferNullcheckOverTypeCheck = $@"
-using System;
-
-class Customer
-{{
-    void M1(string value1, string value2)
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        if (value1 is null)
-            return;
-
-        if (value2 is not null)
-            return;
-//]
-    }}
-    void M2(string value1, string value2)
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        if (value1 is not object)
-            return;
-
-        if (value2 is object)
-            return;
-//]
-    }}
-}}
-";
+    private const string s_fieldDeclarationPreviewTrue = """
+        class C{
+            int capacity;
+            void Method()
+            {
+        //[
+                this.capacity = 0;
+        //]
+            }
+        }
+        """;
+
+    private const string s_fieldDeclarationPreviewFalse = """
+        class C{
+            int capacity;
+            void Method()
+            {
+        //[
+                capacity = 0;
+        //]
+            }
+        }
+        """;
+
+    private const string s_propertyDeclarationPreviewTrue = """
+        class C{
+            public int Id { get; set; }
+            void Method()
+            {
+        //[
+                this.Id = 0;
+        //]
+            }
+        }
+        """;
+
+    private const string s_propertyDeclarationPreviewFalse = """
+        class C{
+            public int Id { get; set; }
+            void Method()
+            {
+        //[
+                Id = 0;
+        //]
+            }
+        }
+        """;
+
+    private const string s_eventDeclarationPreviewTrue = """
+        using System;
+        class C{
+            event EventHandler Elapsed;
+            void Handler(object sender, EventArgs args)
+            {
+        //[
+                this.Elapsed += Handler;
+        //]
+            }
+        }
+        """;
+
+    private const string s_eventDeclarationPreviewFalse = """
+        using System;
+        class C{
+            event EventHandler Elapsed;
+            void Handler(object sender, EventArgs args)
+            {
+        //[
+                Elapsed += Handler;
+        //]
+            }
+        }
+        """;
+
+    private const string s_methodDeclarationPreviewTrue = """
+        using System;
+        class C{
+            void Display()
+            {
+        //[
+                this.Display();
+        //]
+            }
+        }
+        """;
+
+    private const string s_methodDeclarationPreviewFalse = """
+        using System;
+        class C{
+            void Display()
+            {
+        //[
+                Display();
+        //]
+            }
+        }
+        """;
+
+    private const string s_intrinsicPreviewDeclarationTrue = """
+        class Program
+        {
+        //[
+            private int _member;
+            static void M(int argument)
+            {
+                int local;
+            }
+        //]
+        }
+        """;
+
+    private const string s_intrinsicPreviewDeclarationFalse = """
+        using System;
+        class Program
+        {
+        //[
+            private Int32 _member;
+            static void M(Int32 argument)
+            {
+                Int32 local;
+            }
+        //]
+        }
+        """;
+
+    private const string s_intrinsicPreviewMemberAccessTrue = """
+        class Program
+        {
+        //[
+            static void M()
+            {
+                var local = int.MaxValue;
+            }
+        //]
+        }
+        """;
+
+    private const string s_intrinsicPreviewMemberAccessFalse = """
+        using System;
+        class Program
+        {
+        //[
+            static void M()
+            {
+                var local = Int32.MaxValue;
+            }
+        //]
+        }
+        """;
+
+    private static readonly string s_varForIntrinsicsPreviewFalse = $$"""
+        using System;
+        class C{
+            void Method()
+            {
+        //[
+                int x = 5; // {{ServicesVSResources.built_in_types}}
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_varForIntrinsicsPreviewTrue = $$"""
+        using System;
+        class C{
+            void Method()
+            {
+        //[
+                var x = 5; // {{ServicesVSResources.built_in_types}}
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_varWhereApparentPreviewFalse = $$"""
+        using System;
+        class C{
+            void Method()
+            {
+        //[
+                C cobj = new C(); // {{ServicesVSResources.type_is_apparent_from_assignment_expression}}
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_varWhereApparentPreviewTrue = $$"""
+        using System;
+        class C{
+            void Method()
+            {
+        //[
+                var cobj = new C(); // {{ServicesVSResources.type_is_apparent_from_assignment_expression}}
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_varWherePossiblePreviewFalse = $$"""
+        using System;
+        class C{
+            void Init()
+            {
+        //[
+                Action f = this.Init(); // {{ServicesVSResources.everywhere_else}}
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_varWherePossiblePreviewTrue = $$"""
+        using System;
+        class C{
+            void Init()
+            {
+        //[
+                var f = this.Init(); // {{ServicesVSResources.everywhere_else}}
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferThrowExpression = $$"""
+        using System;
+
+        class C
+        {
+            private string s;
+
+            void M1(string s)
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                this.s = s ?? throw new ArgumentNullException(nameof(s));
+        //]
+            }
+            void M2(string s)
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                if (s == null)
+                {
+                    throw new ArgumentNullException(nameof(s));
+                }
+
+                this.s = s;
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferCoalesceExpression = $$"""
+        using System;
+
+        class C
+        {
+            private string s;
+
+            void M1(string s)
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var v = x ?? y;
+        //]
+            }
+            void M2(string s)
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                var v = x != null ? x : y; // {{ServicesVSResources.or}}
+                var v = x == null ? y : x;
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferConditionalDelegateCall = $$"""
+        using System;
+
+        class C
+        {
+            private string s;
+
+            void M1(string s)
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                func?.Invoke(args);
+        //]
+            }
+            void M2(string s)
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                if (func != null)
+                {
+                    func(args);
+                }
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferNullPropagation = $$"""
+        using System;
+
+        class C
+        {
+            void M1(object o)
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var v = o?.ToString();
+        //]
+            }
+            void M2(object o)
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                var v = o == null ? null : o.ToString(); // {{ServicesVSResources.or}}
+                var v = o != null ? o.ToString() : null;
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferSwitchExpression = $$"""
+        class C
+        {
+            void M1()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                return num switch
+                {
+                    1 => 1,
+                    _ => 2,
+                }
+        //]
+            }
+            void M2()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                switch (num)
+                {
+                    case 1:
+                        return 1;
+                    default:
+                        return 2;
+                }
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferPatternMatching = $$"""
+        class C
+        {
+            void M1()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                return num is 1 or 2;
+        //]
+            }
+            void M2()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                return num == 1 || num == 2;
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferPatternMatchingOverAsWithNullCheck = $$"""
+        class C
+        {
+            void M1()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                if (o is string s)
+                {
+                }
+        //]
+            }
+            void M2()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                var s = o as string;
+                if (s != null)
+                {
+                }
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferPatternMatchingOverMixedTypeCheck = $$"""
+        class C
+        {
+            void M1()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                if (o is not string s)
+                {
+                }
+        //]
+            }
+            void M2()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                if (!(o is string s))
+                {
+                }
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferConditionalExpressionOverIfWithAssignments = $$"""
+        class C
+        {
+            void M()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                string s = expr ? "hello" : "world";
+
+                // {{ServicesVSResources.Over_colon}}
+                string s;
+                if (expr)
+                {
+                    s = "hello";
+                }
+                else
+                {
+                    s = "world";
+                }
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferConditionalExpressionOverIfWithReturns = $$"""
+        class C
+        {
+            void M()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                return expr ? "hello" : "world";
+
+                // {{ServicesVSResources.Over_colon}}
+                if (expr)
+                {
+                    return "hello";
+                }
+                else
+                {
+                    return "world";
+                }
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferPatternMatchingOverIsWithCastCheck = $$"""
+        class C
+        {
+            void M1()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                if (o is int i)
+                {
+                }
+        //]
+            }
+            void M2()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                if (o is int)
+                {
+                    var i = (int)o;
+                }
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferObjectInitializer = $$"""
+        using System;
+
+        class Customer
+        {
+            private int Age;
+
+            void M1()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var c = new Customer()
+                {
+                    Age = 21
+                };
+        //]
+            }
+            void M2()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                var c = new Customer();
+                c.Age = 21;
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferCollectionInitializer = $$"""
+        using System.Collections.Generic;
+
+        class Customer
+        {
+            private int Age;
+
+            void M1()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var list = new List<int>
+                {
+                    1,
+                    2,
+                    3
+                };
+        //]
+            }
+            void M2()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                var list = new List<int>();
+                list.Add(1);
+                list.Add(2);
+                list.Add(3);
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferExplicitTupleName = $$"""
+        class Customer
+        {
+            void M1()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                (string name, int age) customer = GetCustomer();
+                var name = customer.name;
+                var age = customer.age;
+        //]
+            }
+            void M2()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                (string name, int age) customer = GetCustomer();
+                var name = customer.Item1;
+                var age = customer.Item2;
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferSimpleDefaultExpression = $$"""
+        using System.Threading;
+
+        class Customer1
+        {
+        //[
+            // {{ServicesVSResources.Prefer_colon}}
+            void DoWork(CancellationToken cancellationToken = default) { }
+        //]
+        }
+        class Customer2
+        {
+        //[
+            // {{ServicesVSResources.Over_colon}}
+            void DoWork(CancellationToken cancellationToken = default(CancellationToken)) { }
+        //]
+        }
+        """;
+
+    private static readonly string s_preferSimplifiedConditionalExpression = $$"""
+        using System.Threading;
+
+        class Customer1
+        {
+            bool A() => true;
+            bool B() => true;
+
+            void M1()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var x = A() && B();
+        //]
+            }
+
+            void M2()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                var x = A() && B() ? true : false
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferInferredTupleName = $$"""
+        using System.Threading;
+
+        class Customer
+        {
+            void M1(int age, string name)
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var tuple = (age, name);
+        //]
+            }
+            void M2(int age, string name)
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                var tuple = (age: age, name: name);
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferInferredAnonymousTypeMemberName = $$"""
+        using System.Threading;
+
+        class Customer
+        {
+            void M1(int age, string name)
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var anon = new { age, name };
+        //]
+            }
+            void M2(int age, string name)
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                var anon = new { age = age, name = name };
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferInlinedVariableDeclaration = $$"""
+        using System;
+
+        class Customer
+        {
+            void M1(string value)
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                if (int.TryParse(value, out int i))
+                {
+                }
+        //]
+            }
+            void M2(string value)
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                int i;
+                if (int.TryParse(value, out i))
+                {
+                }
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferDeconstructedVariableDeclaration = $$"""
+        using System;
+
+        class Customer
+        {
+            void M1(string value)
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var (name, age) = GetPersonTuple();
+                Console.WriteLine($"{name} {age}");
+
+                (int x, int y) = GetPointTuple();
+                Console.WriteLine($"{x} {y}");
+        //]
+            }
+            void M2(string value)
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                var person = GetPersonTuple();
+                Console.WriteLine($"{person.name} {person.age}");
+
+                (int x, int y) point = GetPointTuple();
+                Console.WriteLine($"{point.x} {point.y}");
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_doNotPreferBraces = $$"""
+        using System;
+
+        class Customer
+        {
+            private int Age;
+
+            void M1()
+            {
+        //[
+                // {{ServicesVSResources.Allow_colon}}
+                if (test) Console.WriteLine("Text");
+
+                // {{ServicesVSResources.Allow_colon}}
+                if (test)
+                    Console.WriteLine("Text");
+
+                // {{ServicesVSResources.Allow_colon}}
+                if (test)
+                    Console.WriteLine(
+                        "Text");
+
+                // {{ServicesVSResources.Allow_colon}}
+                if (test)
+                {
+                    Console.WriteLine(
+                        "Text");
+                }
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferBracesWhenMultiline = $$"""
+        using System;
+
+        class Customer
+        {
+            private int Age;
+
+            void M1()
+            {
+        //[
+                // {{ServicesVSResources.Allow_colon}}
+                if (test) Console.WriteLine("Text");
+
+                // {{ServicesVSResources.Allow_colon}}
+                if (test)
+                    Console.WriteLine("Text");
+
+                // {{ServicesVSResources.Prefer_colon}}
+                if (test)
+                {
+                    Console.WriteLine(
+                        "Text");
+                }
+        //]
+            }
+            void M2()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                if (test)
+                    Console.WriteLine(
+                        "Text");
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferBraces = $$"""
+        using System;
+
+        class Customer
+        {
+            private int Age;
+
+            void M1()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                if (test)
+                {
+                    Console.WriteLine("Text");
+                }
+        //]
+            }
+            void M2()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                if (test)
+                    Console.WriteLine("Text");
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferAutoProperties = $$"""
+        using System;
+
+        class Customer1
+        {
+        //[
+            // {{ServicesVSResources.Prefer_colon}}
+            public int Age { get; }
+        //]
+        }
+        class Customer2
+        {
+        //[
+            // {{ServicesVSResources.Over_colon}}
+            private int age;
+
+            public int Age
+            {
+                get
+                {
+                    return age;
+                }
+            }
+        //]
+        }
+        """;
+
+    private static readonly string s_preferFileScopedNamespace = $$"""
+        //[
+        // {{ServicesVSResources.Prefer_colon}}
+        namespace A.B.C;
+
+        public class Program
+        {
+        }
+        //]
+        //[
+        // {{ServicesVSResources.Over_colon}}
+        namespace A.B.C
+        {
+            public class Program
+            {
+            }
+        }
+        //]
+        """;
+
+    private static readonly string s_preferBlockNamespace = $$"""
+        //[
+        // {{ServicesVSResources.Prefer_colon}}
+        namespace A.B.C
+        {
+            public class Program
+            {
+            }
+        }
+        //]
+        //[
+        // {{ServicesVSResources.Over_colon}}
+        namespace A.B.C;
+
+        public class Program
+        {
+        }
+        //]
+        """;
+
+    private static readonly string s_preferSimpleUsingStatement = $$"""
+        using System;
+
+        class Customer1
+        {
+        //[
+            // {{ServicesVSResources.Prefer_colon}}
+            void Method()
+            {
+                using var resource = GetResource();
+                ProcessResource(resource);
+            }
+        //]
+        }
+        class Customer2
+        {
+        //[
+            // {{ServicesVSResources.Over_colon}}
+            void Method()
+            {
+                using (var resource = GetResource())
+                {
+                    ProcessResource(resource);
+                }
+            }
+        //]
+        }
+        """;
+
+    private static readonly string s_preferSystemHashCode = $$"""
+        using System;
+
+        class Customer1
+        {
+            int a, b, c;
+        //[
+            // {{ServicesVSResources.Prefer_colon}}
+            // {{ServicesVSResources.Requires_System_HashCode_be_present_in_project}}
+            public override int GetHashCode()
+            {
+                return System.HashCode.Combine(a, b, c);
+            }
+        //]
+        }
+        class Customer2
+        {
+            int a, b, c;
+        //[
+            // {{ServicesVSResources.Over_colon}}
+            public override int GetHashCode()
+            {
+                var hashCode = 339610899;
+                hashCode = hashCode * -1521134295 + a.GetHashCode();
+                hashCode = hashCode * -1521134295 + b.GetHashCode();
+                hashCode = hashCode * -1521134295 + c.GetHashCode();
+                return hashCode;
+            }
+        //]
+        }
+        """;
+
+    private static readonly string s_preferMethodGroupConversion = $$"""
+        using System;
+
+        class Customer1
+        {
+            public void M()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                Action<object> writeObject = Console.Write;
+        //]
+            }
+        }
+        class Customer2
+        {
+            public void M()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                Action<object> writeObject = obj => Console.Write(obj);
+        //]
+            }
+        //]
+        }
+        """;
+
+    private static readonly string s_preferTopLevelStatements = $$"""
+        using System;
+        //[
+        // {{ServicesVSResources.Prefer_colon}}
+        Console.WriteLine("Hello, World!");
+        //]
+
+        //[
+        // {{ServicesVSResources.Over_colon}}
+        internal class Program
+        {
+            private static void Main(string[] args)
+            {
+                Console.WriteLine("Hello, World!");
+            }
+        }
+        //]
+        """;
+
+    private static readonly string s_preferProgramMain = $$"""
+        using System;
+
+        //[
+        // {{ServicesVSResources.Prefer_colon}}
+        internal class Program
+        {
+            private static void Main(string[] args)
+            {
+                Console.WriteLine("Hello, World!");
+            }
+        }
+        //]
+
+        //[
+        // {{ServicesVSResources.Over_colon}}
+        Console.WriteLine("Hello, World!");
+        //]
+        """;
+
+    private static readonly string s_preferLocalFunctionOverAnonymousFunction = $$"""
+        using System;
+
+        class Customer
+        {
+            void M1(string value)
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                int fibonacci(int n)
+                {
+                    return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+                }
+        //]
+            }
+            void M2(string value)
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                Func<int, int> fibonacci = null;
+                fibonacci = (int n) =>
+                {
+                    return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+                };
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferCompoundAssignments = $$"""
+        using System;
+        class Customer
+        {
+            void M1(int value)
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                value += 10;
+        //]
+            }
+            void M2(int value)
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                value = value + 10
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferImplicitObjectCreationWhenTypeIsApparent = $$"""
+        using System.Collections.Generic;
+        class Order {}
+
+        //[
+        class Customer
+        {
+            // {{ServicesVSResources.Prefer_colon}}
+            private readonly List<Order> orders = new();
+
+            // {{ServicesVSResources.Over_colon}}
+            private readonly List<Order> orders = new List<Order>();
+        }
+        //]
+        """;
+
+    private static readonly string s_preferIndexOperator = $$"""
+        using System;
+
+        class Customer
+        {
+            void M1(string value)
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var ch = value[^1];
+        //]
+            }
+            void M2(string value)
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                var ch = value[value.Length - 1];
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferRangeOperator = $$"""
+        using System;
+
+        class Customer
+        {
+            void M1(string value)
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var sub = value[1..^1];
+        //]
+            }
+            void M2(string value)
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                var sub = value.Substring(1, value.Length - 2);
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferTupleSwap = $$"""
+        using System;
+
+        class Customer
+        {
+            void M1(string[] args)
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                (args[1], args[0]) = (args[0], args[1]);
+        //]
+            }
+            void M2(string[] args)
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                var temp = args[0];
+                args[0] = args[1];
+                args[1] = temp;
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferIsNullOverReferenceEquals = $$"""
+        using System;
+
+        class Customer
+        {
+            void M1(string value1, string value2)
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                if (value1 is null)
+                    return;
+
+                if (value2 is null)
+                    return;
+        //]
+            }
+            void M2(string value1, string value2)
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                if (object.ReferenceEquals(value1, null))
+                    return;
+
+                if ((object)value2 == null)
+                    return;
+        //]
+            }
+        }
+        """;
+
+    private static readonly string s_preferNullcheckOverTypeCheck = $$"""
+        using System;
+
+        class Customer
+        {
+            void M1(string value1, string value2)
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                if (value1 is null)
+                    return;
+
+                if (value2 is not null)
+                    return;
+        //]
+            }
+            void M2(string value1, string value2)
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                if (value1 is not object)
+                    return;
+
+                if (value2 is object)
+                    return;
+        //]
+            }
+        }
+        """;
 
     #region expression and block bodies
 
-    private const string s_preferExpressionBodyForMethods = @"
-using System;
-
-//[
-class Customer
-{
-    private int Age;
-
-    public int GetAge() => this.Age;
-}
-//]
-";
-
-    private const string s_preferBlockBodyForMethods = @"
-using System;
-
-//[
-class Customer
-{
-    private int Age;
-
-    public int GetAge()
-    {
-        return this.Age;
-    }
-}
-//]
-";
-
-    private const string s_preferExpressionBodyForConstructors = @"
-using System;
-
-//[
-class Customer
-{
-    private int Age;
-
-    public Customer(int age) => Age = age;
-}
-//]
-";
-
-    private const string s_preferBlockBodyForConstructors = @"
-using System;
-
-//[
-class Customer
-{
-    private int Age;
-
-    public Customer(int age)
-    {
-        Age = age;
-    }
-}
-//]
-";
-
-    private const string s_preferExpressionBodyForOperators = @"
-using System;
-
-struct ComplexNumber
-{
-//[
-    public static ComplexNumber operator +(ComplexNumber c1, ComplexNumber c2)
-        => new ComplexNumber(c1.Real + c2.Real, c1.Imaginary + c2.Imaginary);
-//]
-}
-";
-
-    private const string s_preferBlockBodyForOperators = @"
-using System;
-
-struct ComplexNumber
-{
-//[
-    public static ComplexNumber operator +(ComplexNumber c1, ComplexNumber c2)
-    {
-        return new ComplexNumber(c1.Real + c2.Real, c1.Imaginary + c2.Imaginary);
-    }
-//]
-}
-";
-
-    private const string s_preferExpressionBodyForProperties = @"
-using System;
-
-//[
-class Customer
-{
-    private int _age;
-    public int Age => _age;
-}
-//]
-";
-
-    private const string s_preferBlockBodyForProperties = @"
-using System;
-
-//[
-class Customer
-{
-    private int _age;
-    public int Age { get { return _age; } }
-}
-//]
-";
-
-    private const string s_preferExpressionBodyForAccessors = @"
-using System;
-
-//[
-class Customer
-{
-    private int _age;
-    public int Age
-    {
-        get => _age;
-        set => _age = value;
-    }
-}
-//]
-";
-
-    private const string s_preferBlockBodyForAccessors = @"
-using System;
-
-//[
-class Customer
-{
-    private int _age;
-    public int Age
-    {
-        get { return _age; }
-        set { _age = value; }
-    }
-}
-//]
-";
-
-    private const string s_preferExpressionBodyForIndexers = @"
-using System;
-
-//[
-class List<T>
-{
-    private T[] _values;
-    public T this[int i] => _values[i];
-}
-//]
-";
-
-    private const string s_preferBlockBodyForIndexers = @"
-using System;
-
-//[
-class List<T>
-{
-    private T[] _values;
-    public T this[int i] { get { return _values[i]; } }
-}
-//]
-";
-
-    private const string s_preferExpressionBodyForLambdas = @"
-
-using System;
-
-class Customer
-{
-    void Method()
-    {
-//[
-        Func<int, string> f = a => a.ToString();
-//]
-    }
-}
-";
-
-    private const string s_preferBlockBodyForLambdas = @"
-using System;
-
-class Customer
-{
-    void Method()
-    {
-//[
-        Func<int, string> f = a =>
-        {
-            return a.ToString();
-        };
-//]
-    }
-}
-";
-
-    private const string s_preferExpressionBodyForLocalFunctions = @"
-using System;
-
-//[
-class Customer
-{
-    private int Age;
-
-    public int GetAge() 
-    {
-        return GetAgeLocal();
-        
-        int GetAgeLocal() => this.Age;
-    }
-}
-//]
-";
-
-    private const string s_preferBlockBodyForLocalFunctions = @"
-using System;
-
-//[
-class Customer
-{
-    private int Age;
-
-    public int GetAge()
-    {
-        return GetAgeLocal();
-        
-        int GetAgeLocal()
-        {
-            return this.Age;
-        }
-    }
-}
-//]
-";
-
-    private static readonly string s_preferReadonly = $@"
-class Customer1
-{{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        // '_value' can only be assigned in constructor
-        private readonly int _value = 0;
-//]
-}}
-class Customer2
-{{
-//[
-        // {ServicesVSResources.Over_colon}
-        // '_value' can be assigned anywhere
-        private int _value = 0;
-//]
-}}
-";
-
-    private static readonly string[] s_usingDirectivePlacement = [$@"
-//[
-    namespace Namespace
-    {{
-        // {CSharpVSResources.Inside_namespace}
+    private const string s_preferExpressionBodyForMethods = """
         using System;
-        using System.Linq;
+
+        //[
+        class Customer
+        {
+            private int Age;
+
+            public int GetAge() => this.Age;
+        }
+        //]
+        """;
+
+    private const string s_preferBlockBodyForMethods = """
+        using System;
+
+        //[
+        class Customer
+        {
+            private int Age;
+
+            public int GetAge()
+            {
+                return this.Age;
+            }
+        }
+        //]
+        """;
+
+    private const string s_preferExpressionBodyForConstructors = """
+        using System;
+
+        //[
+        class Customer
+        {
+            private int Age;
+
+            public Customer(int age) => Age = age;
+        }
+        //]
+        """;
+
+    private const string s_preferBlockBodyForConstructors = """
+        using System;
+
+        //[
+        class Customer
+        {
+            private int Age;
+
+            public Customer(int age)
+            {
+                Age = age;
+            }
+        }
+        //]
+        """;
+
+    private const string s_preferExpressionBodyForOperators = """
+        using System;
+
+        struct ComplexNumber
+        {
+        //[
+            public static ComplexNumber operator +(ComplexNumber c1, ComplexNumber c2)
+                => new ComplexNumber(c1.Real + c2.Real, c1.Imaginary + c2.Imaginary);
+        //]
+        }
+        """;
+
+    private const string s_preferBlockBodyForOperators = """
+        using System;
+
+        struct ComplexNumber
+        {
+        //[
+            public static ComplexNumber operator +(ComplexNumber c1, ComplexNumber c2)
+            {
+                return new ComplexNumber(c1.Real + c2.Real, c1.Imaginary + c2.Imaginary);
+            }
+        //]
+        }
+        """;
+
+    private const string s_preferExpressionBodyForProperties = """
+        using System;
+
+        //[
+        class Customer
+        {
+            private int _age;
+            public int Age => _age;
+        }
+        //]
+        """;
+
+    private const string s_preferBlockBodyForProperties = """
+        using System;
+
+        //[
+        class Customer
+        {
+            private int _age;
+            public int Age { get { return _age; } }
+        }
+        //]
+        """;
+
+    private const string s_preferExpressionBodyForAccessors = """
+        using System;
+
+        //[
+        class Customer
+        {
+            private int _age;
+            public int Age
+            {
+                get => _age;
+                set => _age = value;
+            }
+        }
+        //]
+        """;
+
+    private const string s_preferBlockBodyForAccessors = """
+        using System;
+
+        //[
+        class Customer
+        {
+            private int _age;
+            public int Age
+            {
+                get { return _age; }
+                set { _age = value; }
+            }
+        }
+        //]
+        """;
+
+    private const string s_preferExpressionBodyForIndexers = """
+        using System;
+
+        //[
+        class List<T>
+        {
+            private T[] _values;
+            public T this[int i] => _values[i];
+        }
+        //]
+        """;
+
+    private const string s_preferBlockBodyForIndexers = """
+        using System;
+
+        //[
+        class List<T>
+        {
+            private T[] _values;
+            public T this[int i] { get { return _values[i]; } }
+        }
+        //]
+        """;
+
+    private const string s_preferExpressionBodyForLambdas = """
+        using System;
 
         class Customer
-        {{
-        }}
-    }}
-//]", $@"
-//[
-    // {CSharpEditorResources.Outside_namespace}
-    using System;
-    using System.Linq;
+        {
+            void Method()
+            {
+        //[
+                Func<int, string> f = a => a.ToString();
+        //]
+            }
+        }
+        """;
 
-    namespace Namespace
-    {{
+    private const string s_preferBlockBodyForLambdas = """
+        using System;
+
         class Customer
-        {{
-        }}
-    }}
-//]
-"];
+        {
+            void Method()
+            {
+        //[
+                Func<int, string> f = a =>
+                {
+                    return a.ToString();
+                };
+        //]
+            }
+        }
+        """;
 
-    private static readonly string s_preferReadOnlyStruct = $@"
-//[
-// {ServicesVSResources.Prefer_colon}
-readonly struct Point
-{{
-    public readonly int X, Y;
-}}
-//]
-//[
-// {ServicesVSResources.Over_colon}
-struct Point
-{{
-    public readonly int X, Y;
-}}
-//]
-";
+    private const string s_preferExpressionBodyForLocalFunctions = """
+        using System;
 
-    private static readonly string s_preferStaticLocalFunction = $@"
-class Customer1
-{{
-//[
-    void Method()
-    {{
-        // {ServicesVSResources.Prefer_colon}
-        static int fibonacci(int n)
-        {{
-            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
-        }}
-    }}
-//]
-}}
-class Customer2
-{{
-//[
-    void Method()
-    {{
-        // {ServicesVSResources.Over_colon}
-        int fibonacci(int n)
-        {{
-            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
-        }}
-    }}
-//]
-}}
-";
+        //[
+        class Customer
+        {
+            private int Age;
+
+            public int GetAge() 
+            {
+                return GetAgeLocal();
+
+                int GetAgeLocal() => this.Age;
+            }
+        }
+        //]
+        """;
+
+    private const string s_preferBlockBodyForLocalFunctions = """
+        using System;
+
+        //[
+        class Customer
+        {
+            private int Age;
+
+            public int GetAge()
+            {
+                return GetAgeLocal();
+
+                int GetAgeLocal()
+                {
+                    return this.Age;
+                }
+            }
+        }
+        //]
+        """;
+
+    private static readonly string s_preferReadonly = $$"""
+        class Customer1
+        {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                // '_value' can only be assigned in constructor
+                private readonly int _value = 0;
+        //]
+        }
+        class Customer2
+        {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                // '_value' can be assigned anywhere
+                private int _value = 0;
+        //]
+        }
+        """;
+
+    private static readonly string[] s_usingDirectivePlacement = [$$"""
+        //[
+            namespace Namespace
+            {
+                // {{CSharpVSResources.Inside_namespace}}
+                using System;
+                using System.Linq;
+
+                class Customer
+                {
+                }
+            }
+        //]
+        """, $$"""
+        //[
+            // {{CSharpEditorResources.Outside_namespace}}
+            using System;
+            using System.Linq;
+
+            namespace Namespace
+            {
+                class Customer
+                {
+                }
+            }
+        //]
+        """];
+
+    private static readonly string s_preferReadOnlyStruct = $$"""
+        //[
+        // {{ServicesVSResources.Prefer_colon}}
+        readonly struct Point
+        {
+            public readonly int X, Y;
+        }
+        //]
+        //[
+        // {{ServicesVSResources.Over_colon}}
+        struct Point
+        {
+            public readonly int X, Y;
+        }
+        //]
+        """;
+
+    private static readonly string s_preferStaticLocalFunction = $$"""
+        class Customer1
+        {
+        //[
+            void Method()
+            {
+                // {{ServicesVSResources.Prefer_colon}}
+                static int fibonacci(int n)
+                {
+                    return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+                }
+            }
+        //]
+        }
+        class Customer2
+        {
+        //[
+            void Method()
+            {
+                // {{ServicesVSResources.Over_colon}}
+                int fibonacci(int n)
+                {
+                    return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+                }
+            }
+        //]
+        }
+        """;
 
     private static readonly string s_preferStaticAnonymousFunction = $$"""
         using System;
@@ -1566,626 +1584,626 @@ class Customer2
 
     #region New Line Preferences
 
-    private static readonly string s_allow_embedded_statements_on_same_line_true = $@"
-class Class2
-{{
-    void Method(int a, int b)
-    {{
-//[
-        // {ServicesVSResources.Allow_colon}
-        if (a > b) return true;
-//]
-        return false;
-    }}
-}}
-";
+    private static readonly string s_allow_embedded_statements_on_same_line_true = $$"""
+        class Class2
+        {
+            void Method(int a, int b)
+            {
+        //[
+                // {{ServicesVSResources.Allow_colon}}
+                if (a > b) return true;
+        //]
+                return false;
+            }
+        }
+        """;
 
-    private static readonly string s_allow_embedded_statements_on_same_line_false = $@"
-class Class1
-{{
-    void Method(int a, int b)
-    {{
-//[
-        // {ServicesVSResources.Require_colon}
-        if (a > b)
-            return true;
-//]
-        return false;
-    }}
-}}
-class Class2
-{{
-    void Method(int a, int b)
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        if (a > b) return true;
-//]
-        return false;
-    }}
-}}
-";
+    private static readonly string s_allow_embedded_statements_on_same_line_false = $$"""
+        class Class1
+        {
+            void Method(int a, int b)
+            {
+        //[
+                // {{ServicesVSResources.Require_colon}}
+                if (a > b)
+                    return true;
+        //]
+                return false;
+            }
+        }
+        class Class2
+        {
+            void Method(int a, int b)
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                if (a > b) return true;
+        //]
+                return false;
+            }
+        }
+        """;
 
-    private static readonly string s_allow_blank_line_between_consecutive_braces_true = $@"
-class Class2
-{{
-//[
-    // {ServicesVSResources.Allow_colon}
-    void Method()
-    {{
-        if (true)
-        {{
-            DoWork();
-        }}
+    private static readonly string s_allow_blank_line_between_consecutive_braces_true = $$"""
+        class Class2
+        {
+        //[
+            // {{ServicesVSResources.Allow_colon}}
+            void Method()
+            {
+                if (true)
+                {
+                    DoWork();
+                }
 
-    }}
-//]
-}}
-";
+            }
+        //]
+        }
+        """;
 
-    private static readonly string s_allow_blank_line_between_consecutive_braces_false = $@"
-class Class1
-{{
-//[
-    // {ServicesVSResources.Require_colon}
-    void Method()
-    {{
-        if (true)
-        {{
-            DoWork();
-        }}
-    }}
-//]
-}}
-class Class2
-{{
-//[
-    // {ServicesVSResources.Over_colon}
-    void Method()
-    {{
-        if (true)
-        {{
-            DoWork();
-        }}
+    private static readonly string s_allow_blank_line_between_consecutive_braces_false = $$"""
+        class Class1
+        {
+        //[
+            // {{ServicesVSResources.Require_colon}}
+            void Method()
+            {
+                if (true)
+                {
+                    DoWork();
+                }
+            }
+        //]
+        }
+        class Class2
+        {
+        //[
+            // {{ServicesVSResources.Over_colon}}
+            void Method()
+            {
+                if (true)
+                {
+                    DoWork();
+                }
 
-    }}
-//]
-}}
-";
+            }
+        //]
+        }
+        """;
 
-    private static readonly string s_allow_multiple_blank_lines_true = $@"
-class Class2
-{{
-    void Method()
-    {{
-//[
-        // {ServicesVSResources.Allow_colon}
-        if (true)
-        {{
-            DoWork();
-        }}
-
-
-        return;
-//]
-    }}
-}}
-";
-
-    private static readonly string s_allow_multiple_blank_lines_false = $@"
-class Class1
-{{
-    void Method()
-    {{
-//[
-        // {ServicesVSResources.Require_colon}
-        if (true)
-        {{
-            DoWork();
-        }}
-
-        return;
-//]
-    }}
-}}
-class Class2
-{{
-    void Method()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        if (true)
-        {{
-            DoWork();
-        }}
+    private static readonly string s_allow_multiple_blank_lines_true = $$"""
+        class Class2
+        {
+            void Method()
+            {
+        //[
+                // {{ServicesVSResources.Allow_colon}}
+                if (true)
+                {
+                    DoWork();
+                }
 
 
-        return;
-//]
-    }}
-}}
-";
+                return;
+        //]
+            }
+        }
+        """;
 
-    private static readonly string s_allow_statement_immediately_after_block_true = $@"
-class Class2
-{{
-    void Method()
-    {{
-//[
-        // {ServicesVSResources.Allow_colon}
-        if (true)
-        {{
-            DoWork();
-        }}
-        return;
-//]
-    }}
-}}
-";
+    private static readonly string s_allow_multiple_blank_lines_false = $$"""
+        class Class1
+        {
+            void Method()
+            {
+        //[
+                // {{ServicesVSResources.Require_colon}}
+                if (true)
+                {
+                    DoWork();
+                }
 
-    private static readonly string s_allow_statement_immediately_after_block_false = $@"
-class Class1
-{{
-    void Method()
-    {{
-//[
-        // {ServicesVSResources.Require_colon}
-        if (true)
-        {{
-            DoWork();
-        }}
+                return;
+        //]
+            }
+        }
+        class Class2
+        {
+            void Method()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                if (true)
+                {
+                    DoWork();
+                }
 
-        return;
-//]
-    }}
-}}
-class Class2
-{{
-    void Method()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        if (true)
-        {{
-            DoWork();
-        }}
-        return;
-//]
-    }}
-}}
-";
 
-    private static readonly string s_allow_blank_line_after_colon_in_constructor_initializer_true = $@"
-class Class
-{{
-//[
-    // {ServicesVSResources.Allow_colon}
-    public Class() :
-        base()
-    {{
-    }}
-//]
-}}
-";
+                return;
+        //]
+            }
+        }
+        """;
 
-    private static readonly string s_allow_blank_line_after_colon_in_constructor_initializer_false = $@"
-namespace NS1
-{{
-    class Class
-    {{
-    //[
-        // {ServicesVSResources.Require_colon}
-        public Class()
-            : base()
-        {{
-        }}
-    //]
-    }}
-}}
-namespace NS2
-{{
-    class Class
-    {{
-    //[
-        // {ServicesVSResources.Over_colon}
-        public Class() :
-            base()
-        {{
-        }}
-    //]
-    }}
-}}
-";
+    private static readonly string s_allow_statement_immediately_after_block_true = $$"""
+        class Class2
+        {
+            void Method()
+            {
+        //[
+                // {{ServicesVSResources.Allow_colon}}
+                if (true)
+                {
+                    DoWork();
+                }
+                return;
+        //]
+            }
+        }
+        """;
 
-    private static readonly string s_allow_blank_line_after_token_in_conditional_expression_true = $@"
-class Class
-{{
-//[
-    // {ServicesVSResources.Allow_colon}
-    void Method()
-    {{
-        var result = CheckCondition() ?
-            WhenTrue :
-            WhenFalse;
-    }}
-//]
-}}
-";
+    private static readonly string s_allow_statement_immediately_after_block_false = $$"""
+        class Class1
+        {
+            void Method()
+            {
+        //[
+                // {{ServicesVSResources.Require_colon}}
+                if (true)
+                {
+                    DoWork();
+                }
 
-    private static readonly string s_allow_blank_line_after_token_in_conditional_expression_false = $@"
-namespace NS1
-{{
-    class Class
-    {{
-    //[
-        // {ServicesVSResources.Require_colon}
-        void Method()
-        {{
-            var result = CheckCondition()
-                ? WhenTrue
-                : WhenFalse;
-        }}
-    //]
-    }}
-}}
-namespace NS2
-{{
-    class Class
-    {{
-    //[
-        // {ServicesVSResources.Over_colon}
-        void Method()
-        {{
-            var result = CheckCondition() ?
-                WhenTrue :
-                WhenFalse;
-        }}
-    //]
-    }}
-}}
-";
+                return;
+        //]
+            }
+        }
+        class Class2
+        {
+            void Method()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                if (true)
+                {
+                    DoWork();
+                }
+                return;
+        //]
+            }
+        }
+        """;
 
-    private static readonly string s_allow_blank_line_after_token_in_arrow_expression_clause_true = $@"
-class Class
-{{
-//[
-    // {ServicesVSResources.Allow_colon}
-    int Method() =>
-        1 + 1;
-//]
-}}
-";
+    private static readonly string s_allow_blank_line_after_colon_in_constructor_initializer_true = $$"""
+        class Class
+        {
+        //[
+            // {{ServicesVSResources.Allow_colon}}
+            public Class() :
+                base()
+            {
+            }
+        //]
+        }
+        """;
 
-    private static readonly string s_allow_blank_line_after_token_in_arrow_expression_clause_false = $@"
-namespace NS1
-{{
-    class Class
-    {{
-    //[
-        // {ServicesVSResources.Require_colon}
-        int Method()
-            => 1 + 1;
-    //]
-    }}
-}}
-namespace NS2
-{{
-    class Class
-    {{
-    //[
-        // {ServicesVSResources.Over_colon}
-        int Method() =>
-            1 + 1;
-    //]
-    }}
-}}
-";
+    private static readonly string s_allow_blank_line_after_colon_in_constructor_initializer_false = $$"""
+        namespace NS1
+        {
+            class Class
+            {
+            //[
+                // {{ServicesVSResources.Require_colon}}
+                public Class()
+                    : base()
+                {
+                }
+            //]
+            }
+        }
+        namespace NS2
+        {
+            class Class
+            {
+            //[
+                // {{ServicesVSResources.Over_colon}}
+                public Class() :
+                    base()
+                {
+                }
+            //]
+            }
+        }
+        """;
+
+    private static readonly string s_allow_blank_line_after_token_in_conditional_expression_true = $$"""
+        class Class
+        {
+        //[
+            // {{ServicesVSResources.Allow_colon}}
+            void Method()
+            {
+                var result = CheckCondition() ?
+                    WhenTrue :
+                    WhenFalse;
+            }
+        //]
+        }
+        """;
+
+    private static readonly string s_allow_blank_line_after_token_in_conditional_expression_false = $$"""
+        namespace NS1
+        {
+            class Class
+            {
+            //[
+                // {{ServicesVSResources.Require_colon}}
+                void Method()
+                {
+                    var result = CheckCondition()
+                        ? WhenTrue
+                        : WhenFalse;
+                }
+            //]
+            }
+        }
+        namespace NS2
+        {
+            class Class
+            {
+            //[
+                // {{ServicesVSResources.Over_colon}}
+                void Method()
+                {
+                    var result = CheckCondition() ?
+                        WhenTrue :
+                        WhenFalse;
+                }
+            //]
+            }
+        }
+        """;
+
+    private static readonly string s_allow_blank_line_after_token_in_arrow_expression_clause_true = $$"""
+        class Class
+        {
+        //[
+            // {{ServicesVSResources.Allow_colon}}
+            int Method() =>
+                1 + 1;
+        //]
+        }
+        """;
+
+    private static readonly string s_allow_blank_line_after_token_in_arrow_expression_clause_false = $$"""
+        namespace NS1
+        {
+            class Class
+            {
+            //[
+                // {{ServicesVSResources.Require_colon}}
+                int Method()
+                    => 1 + 1;
+            //]
+            }
+        }
+        namespace NS2
+        {
+            class Class
+            {
+            //[
+                // {{ServicesVSResources.Over_colon}}
+                int Method() =>
+                    1 + 1;
+            //]
+            }
+        }
+        """;
 
     #endregion
 
     #region arithmetic binary parentheses
 
-    private readonly string s_arithmeticBinaryAlwaysForClarity = $@"
-class C
-{{
-    void M()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var v = a + (b * c);
+    private readonly string s_arithmeticBinaryAlwaysForClarity = $$"""
+        class C
+        {
+            void M()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var v = a + (b * c);
 
-        // {ServicesVSResources.Over_colon}
-        var v = a + b * c;
-//]
-    }}
-}}
-";
+                // {{ServicesVSResources.Over_colon}}
+                var v = a + b * c;
+        //]
+            }
+        }
+        """;
 
-    private readonly string s_arithmeticBinaryNeverIfUnnecessary = $@"
-class C
-{{
-    void M()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var v = a + b * c;
+    private readonly string s_arithmeticBinaryNeverIfUnnecessary = $$"""
+        class C
+        {
+            void M()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var v = a + b * c;
 
-        // {ServicesVSResources.Over_colon}
-        var v = a + (b * c);
-//]
-    }}
-}}
-";
+                // {{ServicesVSResources.Over_colon}}
+                var v = a + (b * c);
+        //]
+            }
+        }
+        """;
 
     #endregion
 
     #region relational binary parentheses
 
-    private readonly string s_relationalBinaryAlwaysForClarity = $@"
-class C
-{{
-    void M()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var v = (a < b) == (c > d);
+    private readonly string s_relationalBinaryAlwaysForClarity = $$"""
+        class C
+        {
+            void M()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var v = (a < b) == (c > d);
 
-        // {ServicesVSResources.Over_colon}
-        var v = a < b == c > d;
-//]
-    }}
-}}
-";
+                // {{ServicesVSResources.Over_colon}}
+                var v = a < b == c > d;
+        //]
+            }
+        }
+        """;
 
-    private readonly string s_relationalBinaryNeverIfUnnecessary = $@"
-class C
-{{
-    void M()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var v = a < b == c > d;
+    private readonly string s_relationalBinaryNeverIfUnnecessary = $$"""
+        class C
+        {
+            void M()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var v = a < b == c > d;
 
-        // {ServicesVSResources.Over_colon}
-        var v = (a < b) == (c > d);
-//]
-    }}
-}}
-";
+                // {{ServicesVSResources.Over_colon}}
+                var v = (a < b) == (c > d);
+        //]
+            }
+        }
+        """;
 
     #endregion
 
     #region other binary parentheses
 
-    private readonly string s_otherBinaryAlwaysForClarity = $@"
-class C
-{{
-    void M()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var v = a || (b && c);
+    private readonly string s_otherBinaryAlwaysForClarity = $$"""
+        class C
+        {
+            void M()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var v = a || (b && c);
 
-        // {ServicesVSResources.Over_colon}
-        var v = a || b && c;
-//]
-    }}
-}}
-";
+                // {{ServicesVSResources.Over_colon}}
+                var v = a || b && c;
+        //]
+            }
+        }
+        """;
 
-    private readonly string s_otherBinaryNeverIfUnnecessary = $@"
-class C
-{{
-    void M()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var v = a || b && c;
+    private readonly string s_otherBinaryNeverIfUnnecessary = $$"""
+        class C
+        {
+            void M()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var v = a || b && c;
 
-        // {ServicesVSResources.Over_colon}
-        var v = a || (b && c);
-//]
-    }}
-}}
-";
+                // {{ServicesVSResources.Over_colon}}
+                var v = a || (b && c);
+        //]
+            }
+        }
+        """;
 
     #endregion
 
     #region other parentheses
 
-    private readonly string s_otherParenthesesAlwaysForClarity = $@"
-class C
-{{
-    void M()
-    {{
-//[
-        // {ServicesVSResources.Keep_all_parentheses_in_colon}
-        var v = (a.b).Length;
-//]
-    }}
-}}
-";
+    private readonly string s_otherParenthesesAlwaysForClarity = $$"""
+        class C
+        {
+            void M()
+            {
+        //[
+                // {{ServicesVSResources.Keep_all_parentheses_in_colon}}
+                var v = (a.b).Length;
+        //]
+            }
+        }
+        """;
 
-    private readonly string s_otherParenthesesNeverIfUnnecessary = $@"
-class C
-{{
-    void M()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var v = a.b.Length;
+    private readonly string s_otherParenthesesNeverIfUnnecessary = $$"""
+        class C
+        {
+            void M()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                var v = a.b.Length;
 
-        // {ServicesVSResources.Over_colon}
-        var v = (a.b).Length;
-//]
-    }}
-}}
-";
+                // {{ServicesVSResources.Over_colon}}
+                var v = (a.b).Length;
+        //]
+            }
+        }
+        """;
 
     #endregion
 
     #region unused parameters
 
-    private static readonly string s_avoidUnusedParametersNonPublicMethods = $@"
-class C1
-{{
-//[
-    // {ServicesVSResources.Prefer_colon}
-    private void M()
-    {{
-    }}
-//]
-}}
-class C2
-{{
-//[
-    // {ServicesVSResources.Over_colon}
-    private void M(int param)
-    {{
-    }}
-//]
-}}
-";
+    private static readonly string s_avoidUnusedParametersNonPublicMethods = $$"""
+        class C1
+        {
+        //[
+            // {{ServicesVSResources.Prefer_colon}}
+            private void M()
+            {
+            }
+        //]
+        }
+        class C2
+        {
+        //[
+            // {{ServicesVSResources.Over_colon}}
+            private void M(int param)
+            {
+            }
+        //]
+        }
+        """;
 
-    private static readonly string s_avoidUnusedParametersAllMethods = $@"
-class C1
-{{
-//[
-    // {ServicesVSResources.Prefer_colon}
-    public void M()
-    {{
-    }}
-//]
-}}
-class C2
-{{
-//[
-    // {ServicesVSResources.Over_colon}
-    public void M(int param)
-    {{
-    }}
-//]
-}}
-";
+    private static readonly string s_avoidUnusedParametersAllMethods = $$"""
+        class C1
+        {
+        //[
+            // {{ServicesVSResources.Prefer_colon}}
+            public void M()
+            {
+            }
+        //]
+        }
+        class C2
+        {
+        //[
+            // {{ServicesVSResources.Over_colon}}
+            public void M(int param)
+            {
+            }
+        //]
+        }
+        """;
     #endregion
 
     #region unused values
 
-    private static readonly string s_avoidUnusedValueAssignmentUnusedLocal = $@"
-class C
-{{
-    int M()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        int unused = Computation();  // {ServicesVSResources.Unused_value_is_explicitly_assigned_to_an_unused_local}
-        int x = 1;
-//]
-        return x;
-    }}
+    private static readonly string s_avoidUnusedValueAssignmentUnusedLocal = $$"""
+        class C
+        {
+            int M()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                int unused = Computation();  // {{ServicesVSResources.Unused_value_is_explicitly_assigned_to_an_unused_local}}
+                int x = 1;
+        //]
+                return x;
+            }
 
-    int Computation() => 0;
-}}
-class C2
-{{
-    int M()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        int x = Computation();  // {ServicesVSResources.Value_assigned_here_is_never_used}
-        x = 1;
-//]
-        return x;
-    }}
+            int Computation() => 0;
+        }
+        class C2
+        {
+            int M()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                int x = Computation();  // {{ServicesVSResources.Value_assigned_here_is_never_used}}
+                x = 1;
+        //]
+                return x;
+            }
 
-    int Computation() => 0;
-}}
-";
+            int Computation() => 0;
+        }
+        """;
 
-    private static readonly string s_avoidUnusedValueAssignmentDiscard = $@"
-class C
-{{
-    int M()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        _ = Computation();      // {ServicesVSResources.Unused_value_is_explicitly_assigned_to_discard}
-        int x = 1;
-//]
-        return x;
-    }}
+    private static readonly string s_avoidUnusedValueAssignmentDiscard = $$"""
+        class C
+        {
+            int M()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                _ = Computation();      // {{ServicesVSResources.Unused_value_is_explicitly_assigned_to_discard}}
+                int x = 1;
+        //]
+                return x;
+            }
 
-    int Computation() => 0;
-}}
-class C2
-{{
-    int M()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        int x = Computation();  // {ServicesVSResources.Value_assigned_here_is_never_used}
-        x = 1;
-//]
-        return x;
-    }}
+            int Computation() => 0;
+        }
+        class C2
+        {
+            int M()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                int x = Computation();  // {{ServicesVSResources.Value_assigned_here_is_never_used}}
+                x = 1;
+        //]
+                return x;
+            }
 
-    int Computation() => 0;
-}}
-";
+            int Computation() => 0;
+        }
+        """;
 
-    private static readonly string s_avoidUnusedValueExpressionStatementUnusedLocal = $@"
-class C
-{{
-    void M()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        int unused = Computation();  //  {ServicesVSResources.Unused_value_is_explicitly_assigned_to_an_unused_local}
-//]
-    }}
+    private static readonly string s_avoidUnusedValueExpressionStatementUnusedLocal = $$"""
+        class C
+        {
+            void M()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                int unused = Computation();  //  {{ServicesVSResources.Unused_value_is_explicitly_assigned_to_an_unused_local}}
+        //]
+            }
 
-    int Computation() => 0;
-}}
-class C2
-{{
-    void M()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        Computation();               // {ServicesVSResources.Value_returned_by_invocation_is_implicitly_ignored}
-//]
-    }}
+            int Computation() => 0;
+        }
+        class C2
+        {
+            void M()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                Computation();               // {{ServicesVSResources.Value_returned_by_invocation_is_implicitly_ignored}}
+        //]
+            }
 
-    int Computation() => 0;
-}}
-";
+            int Computation() => 0;
+        }
+        """;
 
-    private static readonly string s_avoidUnusedValueExpressionStatementDiscard = $@"
-class C
-{{
-    void M()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        _ = Computation();      // {ServicesVSResources.Unused_value_is_explicitly_assigned_to_discard}
-//]
-    }}
+    private static readonly string s_avoidUnusedValueExpressionStatementDiscard = $$"""
+        class C
+        {
+            void M()
+            {
+        //[
+                // {{ServicesVSResources.Prefer_colon}}
+                _ = Computation();      // {{ServicesVSResources.Unused_value_is_explicitly_assigned_to_discard}}
+        //]
+            }
 
-    int Computation() => 0;
-}}
-class C2
-{{
-    void M()
-    {{
-//[
-        // {ServicesVSResources.Over_colon}
-        Computation();          // {ServicesVSResources.Value_returned_by_invocation_is_implicitly_ignored}
-//]
-    }}
+            int Computation() => 0;
+        }
+        class C2
+        {
+            void M()
+            {
+        //[
+                // {{ServicesVSResources.Over_colon}}
+                Computation();          // {{ServicesVSResources.Value_returned_by_invocation_is_implicitly_ignored}}
+        //]
+            }
 
-    int Computation() => 0;
-}}
-";
+            int Computation() => 0;
+        }
+        """;
     #endregion
     #endregion
 

@@ -40,34 +40,36 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = xunitWithCombinatorial,
-                TestCode = $@"using Xunit;
+                TestCode = $$"""
+                using Xunit;
 
-class TestClass
-{{
-    [{attributeName}]
-    public void $$Method()
-    {{
-    }}
-}}
+                class TestClass
+                {
+                    [{{attributeName}}]
+                    public void $$Method()
+                    {
+                    }
+                }
 
-class CustomFactAttribute : FactAttribute {{ }}
-class CustomTheoryAttribute : TheoryAttribute {{ }}
-",
-                FixedCode = $@"using Xunit;
+                class CustomFactAttribute : FactAttribute { }
+                class CustomTheoryAttribute : TheoryAttribute { }
+                """,
+                FixedCode = $$"""
+                using Xunit;
 
-class TestClass
-{{
-    [{updatedName}]
-    [CombinatorialData]
-    public void $$Method([CombinatorialRange(0, 10)] int iteration)
-    {{
-        _ = iteration;
-    }}
-}}
+                class TestClass
+                {
+                    [{{updatedName}}]
+                    [CombinatorialData]
+                    public void $$Method([CombinatorialRange(0, 10)] int iteration)
+                    {
+                        _ = iteration;
+                    }
+                }
 
-class CustomFactAttribute : FactAttribute {{ }}
-class CustomTheoryAttribute : TheoryAttribute {{ }}
-",
+                class CustomFactAttribute : FactAttribute { }
+                class CustomTheoryAttribute : TheoryAttribute { }
+                """,
             }.RunAsync();
         }
 
@@ -91,29 +93,31 @@ class CustomTheoryAttribute : TheoryAttribute {{ }}
             await new VerifyVB.Test
             {
                 ReferenceAssemblies = xunitWithCombinatorial,
-                TestCode = $@"Imports Xunit
+                TestCode = $"""
+                Imports Xunit
 
-Class TestClass
-    <{attributeName}>
-    Public Sub $$Method()
-    End Sub
-End Class
+                Class TestClass
+                    <{attributeName}>
+                    Public Sub $$Method()
+                    End Sub
+                End Class
 
-Class CustomFactAttribute : Inherits FactAttribute : End Class
-Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
-",
-                FixedCode = $@"Imports Xunit
+                Class CustomFactAttribute : Inherits FactAttribute : End Class
+                Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
+                """,
+                FixedCode = $"""
+                Imports Xunit
 
-Class TestClass
-    <{updatedName}>
-    <CombinatorialData>
-    Public Sub $$Method(<CombinatorialRange(0, 10)> iteration As Integer)
-    End Sub
-End Class
+                Class TestClass
+                    <{updatedName}>
+                    <CombinatorialData>
+                    Public Sub $$Method(<CombinatorialRange(0, 10)> iteration As Integer)
+                    End Sub
+                End Class
 
-Class CustomFactAttribute : Inherits FactAttribute : End Class
-Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
-",
+                Class CustomFactAttribute : Inherits FactAttribute : End Class
+                Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
+                """,
             }.RunAsync();
         }
 
@@ -136,34 +140,36 @@ Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = xunitWithCombinatorial,
-                TestCode = $@"using Xunit;
+                TestCode = $$"""
+                using Xunit;
 
-class TestClass
-{{
-    [{attributeName}, Trait(""Key"", ""Value"")]
-    public void $$Method()
-    {{
-    }}
-}}
+                class TestClass
+                {
+                    [{{attributeName}}, Trait("Key", "Value")]
+                    public void $$Method()
+                    {
+                    }
+                }
 
-class CustomFactAttribute : FactAttribute {{ }}
-class CustomTheoryAttribute : TheoryAttribute {{ }}
-",
-                FixedCode = $@"using Xunit;
+                class CustomFactAttribute : FactAttribute { }
+                class CustomTheoryAttribute : TheoryAttribute { }
+                """,
+                FixedCode = $$"""
+                using Xunit;
 
-class TestClass
-{{
-    [{updatedName}, Trait(""Key"", ""Value"")]
-    [CombinatorialData]
-    public void $$Method([CombinatorialRange(0, 10)] int iteration)
-    {{
-        _ = iteration;
-    }}
-}}
+                class TestClass
+                {
+                    [{{updatedName}}, Trait("Key", "Value")]
+                    [CombinatorialData]
+                    public void $$Method([CombinatorialRange(0, 10)] int iteration)
+                    {
+                        _ = iteration;
+                    }
+                }
 
-class CustomFactAttribute : FactAttribute {{ }}
-class CustomTheoryAttribute : TheoryAttribute {{ }}
-",
+                class CustomFactAttribute : FactAttribute { }
+                class CustomTheoryAttribute : TheoryAttribute { }
+                """,
             }.RunAsync();
         }
 
@@ -187,29 +193,31 @@ class CustomTheoryAttribute : TheoryAttribute {{ }}
             await new VerifyVB.Test
             {
                 ReferenceAssemblies = xunitWithCombinatorial,
-                TestCode = $@"Imports Xunit
+                TestCode = $"""
+                Imports Xunit
 
-Class TestClass
-    <{attributeName}, Trait(""Key"", ""Value"")>
-    Public Sub $$Method()
-    End Sub
-End Class
+                Class TestClass
+                    <{attributeName}, Trait("Key", "Value")>
+                    Public Sub $$Method()
+                    End Sub
+                End Class
 
-Class CustomFactAttribute : Inherits FactAttribute : End Class
-Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
-",
-                FixedCode = $@"Imports Xunit
+                Class CustomFactAttribute : Inherits FactAttribute : End Class
+                Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
+                """,
+                FixedCode = $"""
+                Imports Xunit
 
-Class TestClass
-    <{updatedName}, Trait(""Key"", ""Value"")>
-    <CombinatorialData>
-    Public Sub $$Method(<CombinatorialRange(0, 10)> iteration As Integer)
-    End Sub
-End Class
+                Class TestClass
+                    <{updatedName}, Trait("Key", "Value")>
+                    <CombinatorialData>
+                    Public Sub $$Method(<CombinatorialRange(0, 10)> iteration As Integer)
+                    End Sub
+                End Class
 
-Class CustomFactAttribute : Inherits FactAttribute : End Class
-Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
-",
+                Class CustomFactAttribute : Inherits FactAttribute : End Class
+                Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
+                """,
             }.RunAsync();
         }
 
@@ -220,21 +228,22 @@ Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
         [InlineData("CustomTheoryAttribute")]
         public async Task NoIterationsForTheoryWithInlineData_CSharp(string attributeName)
         {
-            var testCode = $@"using Xunit;
+            var testCode = $$"""
+                using Xunit;
 
-class TestClass
-{{
-    [{attributeName}]
-    [InlineData(true)]
-    public void $$Method(bool arg)
-    {{
-        _ = arg;
-    }}
-}}
+                class TestClass
+                {
+                    [{{attributeName}}]
+                    [InlineData(true)]
+                    public void $$Method(bool arg)
+                    {
+                        _ = arg;
+                    }
+                }
 
-class CustomFactAttribute : FactAttribute {{ }}
-class CustomTheoryAttribute : TheoryAttribute {{ }}
-";
+                class CustomFactAttribute : FactAttribute { }
+                class CustomTheoryAttribute : TheoryAttribute { }
+                """;
 
             await new VerifyCS.Test
             {
@@ -251,18 +260,19 @@ class CustomTheoryAttribute : TheoryAttribute {{ }}
         [InlineData("CustomTheoryAttribute")]
         public async Task NoIterationsForTheoryWithInlineData_VisualBasic(string attributeName)
         {
-            var testCode = $@"Imports Xunit
+            var testCode = $"""
+                Imports Xunit
 
-Class TestClass
-    <{attributeName}>
-    <InlineData(True)>
-    Public Sub $$Method(arg As Boolean)
-    End Sub
-End Class
+                Class TestClass
+                    <{attributeName}>
+                    <InlineData(True)>
+                    Public Sub $$Method(arg As Boolean)
+                    End Sub
+                End Class
 
-Class CustomFactAttribute : Inherits FactAttribute : End Class
-Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
-";
+                Class CustomFactAttribute : Inherits FactAttribute : End Class
+                Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
+                """;
 
             await new VerifyVB.Test
             {
@@ -279,21 +289,22 @@ Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
         [InlineData("CustomTheoryAttribute")]
         public async Task NoIterationsForTheoryWithIterations_CSharp(string attributeName)
         {
-            var testCode = $@"using Xunit;
+            var testCode = $$"""
+                using Xunit;
 
-class TestClass
-{{
-    [{attributeName}]
-    [CombinatorialData]
-    public void $$Method([CombinatorialRange(0, 10)] int iteration)
-    {{
-        _ = iteration;
-    }}
-}}
+                class TestClass
+                {
+                    [{{attributeName}}]
+                    [CombinatorialData]
+                    public void $$Method([CombinatorialRange(0, 10)] int iteration)
+                    {
+                        _ = iteration;
+                    }
+                }
 
-class CustomFactAttribute : FactAttribute {{ }}
-class CustomTheoryAttribute : TheoryAttribute {{ }}
-";
+                class CustomFactAttribute : FactAttribute { }
+                class CustomTheoryAttribute : TheoryAttribute { }
+                """;
 
             await new VerifyCS.Test
             {
@@ -310,18 +321,19 @@ class CustomTheoryAttribute : TheoryAttribute {{ }}
         [InlineData("CustomTheoryAttribute")]
         public async Task NoIterationsForTheoryWithIterations_VisualBasic(string attributeName)
         {
-            var testCode = $@"Imports Xunit
+            var testCode = $"""
+                Imports Xunit
 
-Class TestClass
-    <{attributeName}>
-    <CombinatorialData>
-    Public Sub $$Method(<CombinatorialRange(0, 10)> iteration As Integer)
-    End Sub
-End Class
+                Class TestClass
+                    <{attributeName}>
+                    <CombinatorialData>
+                    Public Sub $$Method(<CombinatorialRange(0, 10)> iteration As Integer)
+                    End Sub
+                End Class
 
-Class CustomFactAttribute : Inherits FactAttribute : End Class
-Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
-";
+                Class CustomFactAttribute : Inherits FactAttribute : End Class
+                Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
+                """;
 
             await new VerifyVB.Test
             {
@@ -340,37 +352,39 @@ Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
             => new VerifyCS.Test
             {
                 ReferenceAssemblies = xunitWithCombinatorial,
-                TestCode = $@"using Xunit;
+                TestCode = $$"""
+                using Xunit;
 
-class TestClass
-{{
-    [{attributeName}]
-    [CombinatorialData]
-    public void $$Method(bool arg)
-    {{
-        _ = arg;
-    }}
-}}
+                class TestClass
+                {
+                    [{{attributeName}}]
+                    [CombinatorialData]
+                    public void $$Method(bool arg)
+                    {
+                        _ = arg;
+                    }
+                }
 
-class CustomFactAttribute : FactAttribute {{ }}
-class CustomTheoryAttribute : TheoryAttribute {{ }}
-",
-                FixedCode = $@"using Xunit;
+                class CustomFactAttribute : FactAttribute { }
+                class CustomTheoryAttribute : TheoryAttribute { }
+                """,
+                FixedCode = $$"""
+                using Xunit;
 
-class TestClass
-{{
-    [{attributeName}]
-    [CombinatorialData]
-    public void $$Method(bool arg, [CombinatorialRange(0, 10)] int iteration)
-    {{
-        _ = iteration;
-        _ = arg;
-    }}
-}}
+                class TestClass
+                {
+                    [{{attributeName}}]
+                    [CombinatorialData]
+                    public void $$Method(bool arg, [CombinatorialRange(0, 10)] int iteration)
+                    {
+                        _ = iteration;
+                        _ = arg;
+                    }
+                }
 
-class CustomFactAttribute : FactAttribute {{ }}
-class CustomTheoryAttribute : TheoryAttribute {{ }}
-",
+                class CustomFactAttribute : FactAttribute { }
+                class CustomTheoryAttribute : TheoryAttribute { }
+                """,
             }.RunAsync();
 
         [Theory]
@@ -382,30 +396,32 @@ class CustomTheoryAttribute : TheoryAttribute {{ }}
             => new VerifyVB.Test
             {
                 ReferenceAssemblies = xunitWithCombinatorial,
-                TestCode = $@"Imports Xunit
+                TestCode = $"""
+                Imports Xunit
 
-Class TestClass
-    <{attributeName}>
-    <CombinatorialData>
-    Public Sub $$Method(arg As Boolean)
-    End Sub
-End Class
+                Class TestClass
+                    <{attributeName}>
+                    <CombinatorialData>
+                    Public Sub $$Method(arg As Boolean)
+                    End Sub
+                End Class
 
-Class CustomFactAttribute : Inherits FactAttribute : End Class
-Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
-",
-                FixedCode = $@"Imports Xunit
+                Class CustomFactAttribute : Inherits FactAttribute : End Class
+                Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
+                """,
+                FixedCode = $"""
+                Imports Xunit
 
-Class TestClass
-    <{attributeName}>
-    <CombinatorialData>
-    Public Sub $$Method(arg As Boolean, <CombinatorialRange(0, 10)> iteration As Integer)
-    End Sub
-End Class
+                Class TestClass
+                    <{attributeName}>
+                    <CombinatorialData>
+                    Public Sub $$Method(arg As Boolean, <CombinatorialRange(0, 10)> iteration As Integer)
+                    End Sub
+                End Class
 
-Class CustomFactAttribute : Inherits FactAttribute : End Class
-Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
-",
+                Class CustomFactAttribute : Inherits FactAttribute : End Class
+                Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
+                """,
             }.RunAsync();
     }
 }

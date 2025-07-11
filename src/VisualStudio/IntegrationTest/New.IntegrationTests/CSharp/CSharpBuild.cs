@@ -30,15 +30,17 @@ public class CSharpBuild : AbstractIntegrationTest
     [IdeFact]
     public async Task BuildProject()
     {
-        await TestServices.Editor.SetTextAsync(@"using System;
+        await TestServices.Editor.SetTextAsync("""
+            using System;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        Console.WriteLine(""Hello, World!"");
-    }
-}", HangMitigatingCancellationToken);
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Console.WriteLine("Hello, World!");
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         var succeed = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
         Assert.True(succeed);
@@ -61,7 +63,9 @@ class Program
 
         File.Delete(logFileName);
 
-        var commandLine = $"\"{pathToSolution}\" /Rebuild Debug /Out \"{logFileName}\" /rootsuffix RoslynDev /log";
+        var commandLine = $"""
+            "{pathToSolution}" /Rebuild Debug /Out "{logFileName}" /rootsuffix RoslynDev /log
+            """;
 
         var process = Process.Start(pathToDevenv, commandLine);
         var exitCode = await process.WaitForExitAsync(HangMitigatingCancellationToken);

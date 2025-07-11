@@ -864,11 +864,13 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
     public async Task TestSourceGeneratedDocumentEvents()
     {
         var doc1Text = "public class C { }";
-        var workspaceElement = $@"<Workspace>
-  <Project AssemblyName=""Test"" Language=""C#"" CommonReferences=""true"">
-    <DocumentFromSourceGenerator FilePath=""test1.cs"">{new XText(doc1Text)}</DocumentFromSourceGenerator>
-  </Project>
-</Workspace>";
+        var workspaceElement = $"""
+            <Workspace>
+              <Project AssemblyName="Test" Language="C#" CommonReferences="true">
+                <DocumentFromSourceGenerator FilePath="test1.cs">{new XText(doc1Text)}</DocumentFromSourceGenerator>
+              </Project>
+            </Workspace>
+            """;
         using var workspace = EditorTestWorkspace.Create(workspaceElement, composition: EditorTestCompositions.EditorFeatures);
         var document = workspace.Documents.Single();
 
@@ -1407,15 +1409,16 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
         var originalText = "class Program1 { }";
         var updatedText = "class Program2 { }";
 
-        var input = $@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""Test.cs"">{originalText}</Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Assembly1"" LinkFilePath=""Test.cs"" />
-    </Project>
-</Workspace>";
+        var input = $"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="Test.cs">{originalText}</Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document IsLinkFile="true" LinkAssemblyName="Assembly1" LinkFilePath="Test.cs" />
+                </Project>
+            </Workspace>
+            """;
 
         using var workspace = EditorTestWorkspace.Create(input, composition: EditorTestCompositions.EditorFeatures, openDocuments: true);
         var eventArgs = new List<WorkspaceChangeEventArgs>();

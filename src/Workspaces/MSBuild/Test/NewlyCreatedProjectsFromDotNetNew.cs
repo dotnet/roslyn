@@ -138,7 +138,9 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
     {
         if (ignoredDiagnostics?.Length > 0)
         {
-            TestOutput.WriteLine($"Ignoring compiler diagnostics: \"{string.Join("\", \"", ignoredDiagnostics)}\"");
+            TestOutput.WriteLine($"""
+                Ignoring compiler diagnostics: "{string.Join("\", \"", ignoredDiagnostics)}"
+                """);
         }
 
         var projectDirectory = SolutionDirectory.Path;
@@ -173,7 +175,9 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
 
             TryCopyGlobalJson(outputDirectory);
 
-            var newResult = RunDotNet($"new \"{templateName}\" -o \"{outputDirectory}\" --language \"{language}\"", LoggerFactory, outputDirectory);
+            var newResult = RunDotNet($"""
+                new "{templateName}" -o "{outputDirectory}" --language "{language}"
+                """, LoggerFactory, outputDirectory);
 
             // Most templates invoke restore as a post-creation action. However, some, like the
             // Maui templates, do not run restore since they require additional workloads to be

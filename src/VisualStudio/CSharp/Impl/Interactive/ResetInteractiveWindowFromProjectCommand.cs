@@ -61,7 +61,9 @@ internal sealed class ResetInteractiveWindowFromProjectCommand(
             uiThreadOperationExecutor,
             monitorSelection,
             solutionBuildManager,
-            static referenceName => $"#r \"{referenceName}\"",
+            static referenceName => $"""
+            #r "{referenceName}"
+            """,
             static namespaceName => $"using {namespaceName};");
 
         var vsInteractiveWindow = interactiveWindowProvider.Open(instanceId: 0, focus: true);

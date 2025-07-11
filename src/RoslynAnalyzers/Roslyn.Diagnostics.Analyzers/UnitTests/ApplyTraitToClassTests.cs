@@ -22,30 +22,30 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
             => new VerifyCS.Test
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
-                TestCode = $@"
-using Xunit;
+                TestCode = $$"""
+                using Xunit;
 
-class C
-{{
-    [$$Trait(""{name}"", ""{value}"")]
-    public void Method() {{ }}
+                class C
+                {
+                    [$$Trait("{{name}}", "{{value}}")]
+                    public void Method() { }
 
-    [Fact, Trait(""{name}"", ""{value}"")]
-    public void Method2() {{ }}
-}}
-",
-                FixedCode = $@"
-using Xunit;
+                    [Fact, Trait("{{name}}", "{{value}}")]
+                    public void Method2() { }
+                }
+                """,
+                FixedCode = $$"""
+                using Xunit;
 
-[Trait(""{name}"", ""{value}"")]
-class C
-{{
-    public void Method() {{ }}
+                [Trait("{{name}}", "{{value}}")]
+                class C
+                {
+                    public void Method() { }
 
-    [Fact]
-    public void Method2() {{ }}
-}}
-",
+                    [Fact]
+                    public void Method2() { }
+                }
+                """,
             }.RunAsync();
 
         [Theory]
@@ -56,32 +56,32 @@ class C
             => new VerifyVB.Test
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
-                TestCode = $@"
-Imports Xunit
+                TestCode = $"""
+                Imports Xunit
 
-Class C
-    <$$Trait(""{name}"", ""{value}"")>
-    Public Sub Method()
-    End Sub
+                Class C
+                    <$$Trait("{name}", "{value}")>
+                    Public Sub Method()
+                    End Sub
 
-    <Fact, Trait(""{name}"", ""{value}"")>
-    Public Sub Method2()
-    End Sub
-End Class
-",
-                FixedCode = $@"
-Imports Xunit
+                    <Fact, Trait("{name}", "{value}")>
+                    Public Sub Method2()
+                    End Sub
+                End Class
+                """,
+                FixedCode = $"""
+                Imports Xunit
 
-<Trait(""{name}"", ""{value}"")>
-Class C
-    Public Sub Method()
-    End Sub
+                <Trait("{name}", "{value}")>
+                Class C
+                    Public Sub Method()
+                    End Sub
 
-    <Fact>
-    Public Sub Method2()
-    End Sub
-End Class
-",
+                    <Fact>
+                    Public Sub Method2()
+                    End Sub
+                End Class
+                """,
             }.RunAsync();
 
         [Theory]
@@ -92,30 +92,30 @@ End Class
             => new VerifyCS.Test
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
-                TestCode = $@"
-using Xunit;
+                TestCode = $$"""
+                using Xunit;
 
-class C
-{{
-    [$$Trait("""", """")]
-    public void Method() {{ }}
+                class C
+                {
+                    [$$Trait("", "")]
+                    public void Method() { }
 
-    [Fact, Trait(""{name}"", ""{value}"")]
-    public void Method2() {{ }}
-}}
-",
-                FixedCode = $@"
-using Xunit;
+                    [Fact, Trait("{{name}}", "{{value}}")]
+                    public void Method2() { }
+                }
+                """,
+                FixedCode = $$"""
+                using Xunit;
 
-[Trait("""", """")]
-class C
-{{
-    public void Method() {{ }}
+                [Trait("", "")]
+                class C
+                {
+                    public void Method() { }
 
-    [Fact, Trait(""{name}"", ""{value}"")]
-    public void Method2() {{ }}
-}}
-",
+                    [Fact, Trait("{{name}}", "{{value}}")]
+                    public void Method2() { }
+                }
+                """,
             }.RunAsync();
 
         [Theory]
@@ -126,32 +126,32 @@ class C
             => new VerifyVB.Test
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
-                TestCode = $@"
-Imports Xunit
+                TestCode = $"""
+                Imports Xunit
 
-Class C
-    <$$Trait("""", """")>
-    Public Sub Method()
-    End Sub
+                Class C
+                    <$$Trait("", "")>
+                    Public Sub Method()
+                    End Sub
 
-    <Fact, Trait(""{name}"", ""{value}"")>
-    Public Sub Method2()
-    End Sub
-End Class
-",
-                FixedCode = $@"
-Imports Xunit
+                    <Fact, Trait("{name}", "{value}")>
+                    Public Sub Method2()
+                    End Sub
+                End Class
+                """,
+                FixedCode = $"""
+                Imports Xunit
 
-<Trait("""", """")>
-Class C
-    Public Sub Method()
-    End Sub
+                <Trait("", "")>
+                Class C
+                    Public Sub Method()
+                    End Sub
 
-    <Fact, Trait(""{name}"", ""{value}"")>
-    Public Sub Method2()
-    End Sub
-End Class
-",
+                    <Fact, Trait("{name}", "{value}")>
+                    Public Sub Method2()
+                    End Sub
+                End Class
+                """,
             }.RunAsync();
     }
 }
