@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-
 namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
 internal class ProjectSystemProjectCreationInfo
 {
-    public string? AssemblyName { get; set; }
-    public string? FilePath { get; set; }
-    public string? CompilationOutputAssemblyFilePath { get; set; }
+    public string? AssemblyName { get; init; }
+    public string? FilePath { get; init; }
+    public string? CompilationOutputAssemblyFilePath { get; init; }
 }
