@@ -728,14 +728,15 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
             new SignatureHelpTestItem("Program(int i1, int i2, int i3)", currentParameterIndex: expectedParameterIndex, isSelected: true),
         };
 
-        await TestAsync($@"
-class Program
-{{
-    Program() [|: this({arguments}|])
-    {{
-    }}
-    Program(int i1, int i2, int i3) {{ }}
-}}", expectedOrderedItems);
+        await TestAsync($$"""
+            class Program
+            {
+                Program() [|: this({{arguments}}|])
+                {
+                }
+                Program(int i1, int i2, int i3) { }
+            }
+            """, expectedOrderedItems);
     }
 
     [Theory]
@@ -762,14 +763,15 @@ class Program
             new SignatureHelpTestItem("Program(string s, string s2)", currentParameterIndex: expectedParameterIndex, isSelected: expecteSelectedIndex == index++),
         };
 
-        await TestAsync($@"
-class Program
-{{
-    Program() [|: this({arguments}|])
-    {{
-    }}
-    Program(int i, string s) {{ }}
-    Program(string s, string s2) {{ }}
-}}", expectedOrderedItems);
+        await TestAsync($$"""
+            class Program
+            {
+                Program() [|: this({{arguments}}|])
+                {
+                }
+                Program(int i, string s) { }
+                Program(string s, string s2) { }
+            }
+            """, expectedOrderedItems);
     }
 }

@@ -29,9 +29,6 @@ internal readonly struct NameDeclarationInfo(
 
     private static readonly ImmutableArray<SymbolKindOrTypeKind> s_propertySyntaxKind =
         [new SymbolKindOrTypeKind(SymbolKind.Property)];
-
-    private readonly ImmutableArray<SymbolKindOrTypeKind> _possibleSymbolKinds = possibleSymbolKinds;
-
     public readonly DeclarationModifiers Modifiers = declarationModifiers;
     public readonly Accessibility? DeclaredAccessibility = accessibility;
 
@@ -39,7 +36,7 @@ internal readonly struct NameDeclarationInfo(
     public readonly IAliasSymbol? Alias = alias;
     public readonly ISymbol? Symbol = symbol;
 
-    public ImmutableArray<SymbolKindOrTypeKind> PossibleSymbolKinds => _possibleSymbolKinds.NullToEmpty();
+    public ImmutableArray<SymbolKindOrTypeKind> PossibleSymbolKinds { get => field.NullToEmpty(); } = possibleSymbolKinds;
 
     public static async Task<NameDeclarationInfo> GetDeclarationInfoAsync(Document document, int position, CancellationToken cancellationToken)
     {

@@ -274,7 +274,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rewrittenReceiver.Type is { });
             var variableRepresentsLocation = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
 
-            var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
+            var receiverTemp = _factory.StoreToTemp(
+                rewrittenReceiver,
+                out assignmentToTemp,
+                refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None,
+                isKnownToReferToTempIfReferenceType: !variableRepresentsLocation || rewrittenReceiver.Type.IsValueType ||
+                                                     !CodeGenerator.HasHome(rewrittenReceiver,
+                                                                            CodeGenerator.AddressKind.Constrained,
+                                                                            _factory.CurrentFunction,
+                                                                            peVerifyCompatEnabled: false,
+                                                                            stackLocalsOpt: null));
             temps.Add(receiverTemp.LocalSymbol);
 
             if (!isRegularCompoundAssignment &&
@@ -476,7 +485,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression TransformImplicitIndexerAccess(
             BoundImplicitIndexerAccess indexerAccess,
-            bool isRegularCompoundAssignment,
             ArrayBuilder<BoundExpression> stores,
             ArrayBuilder<LocalSymbol> temps,
             bool isDynamicAssignment)
@@ -486,19 +494,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything))
             {
-                return TransformIndexPatternIndexerAccess(indexerAccess, isRegularCompoundAssignment, stores, temps, isDynamicAssignment);
+                return TransformIndexPatternIndexerAccess(indexerAccess, stores, temps, isDynamicAssignment);
             }
 
             throw ExceptionUtilities.UnexpectedValue(indexerAccess.Argument.Type);
         }
 
-        private BoundExpression TransformIndexPatternIndexerAccess(BoundImplicitIndexerAccess implicitIndexerAccess, bool isRegularCompoundAssignment, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment)
+        private BoundExpression TransformIndexPatternIndexerAccess(BoundImplicitIndexerAccess implicitIndexerAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment)
         {
             Debug.Assert(implicitIndexerAccess.IndexerOrSliceAccess.GetRefKind() == RefKind.None);
             var access = GetUnderlyingIndexerOrSliceAccess(
                 implicitIndexerAccess,
                 isLeftOfAssignment: true,
-                isRegularAssignmentOrRegularCompoundAssignment: isRegularCompoundAssignment,
+                isRegularAssignment: false,
                 cacheAllArgumentsOnly: false,
                 stores, temps);
 
@@ -696,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (implicitIndexerAccess.GetRefKind() == RefKind.None)
                         {
-                            return TransformImplicitIndexerAccess(implicitIndexerAccess, isRegularCompoundAssignment, stores, temps, isDynamicAssignment);
+                            return TransformImplicitIndexerAccess(implicitIndexerAccess, stores, temps, isDynamicAssignment);
                         }
                     }
                     break;
@@ -796,6 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (eventAccess.EventSymbol.IsWindowsRuntimeEvent)
                         {
+                            Debug.Assert(!isRegularCompoundAssignment);
                             // This is a temporary object that will be rewritten away before the lowering completes.
                             return eventAccess.Update(TransformPropertyOrEventReceiver(eventAccess.EventSymbol, eventAccess.ReceiverOpt,
                                                                                        isRegularCompoundAssignment, stores, temps),

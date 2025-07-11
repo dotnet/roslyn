@@ -92,48 +92,51 @@ public sealed class EditSessionActiveStatementsTests : TestBase
     {
         var markedSources = new[]
         {
-@"class Test1
-{
-    static void M1()
-    {
-        try { } finally { <AS:1>F1();</AS:1> }
-    }
+            """
+            class Test1
+            {
+                static void M1()
+                {
+                    try { } finally { <AS:1>F1();</AS:1> }
+                }
 
-    static void F1()
-    {
-        <AS:0>Console.WriteLine(1);</AS:0>
-    }
-}",
-@"class Test2
-{
-    static void M2()
-    {
-        try
-        {
-          try
-          {
-              <AS:3>F2();</AS:3>
-          }
-          catch (Exception1 e1)
-          {
-          }
-        }
-        catch (Exception2 e2)
-        {
-        }
-    }
+                static void F1()
+                {
+                    <AS:0>Console.WriteLine(1);</AS:0>
+                }
+            }
+            """,
+            """
+            class Test2
+            {
+                static void M2()
+                {
+                    try
+                    {
+                      try
+                      {
+                          <AS:3>F2();</AS:3>
+                      }
+                      catch (Exception1 e1)
+                      {
+                      }
+                    }
+                    catch (Exception2 e2)
+                    {
+                    }
+                }
 
-    static void F2()
-    {
-        <AS:2>Test1.M1()</AS:2>
-    }
+                static void F2()
+                {
+                    <AS:2>Test1.M1()</AS:2>
+                }
 
-    static void Main()
-    {
-        try { <AS:4>M2();</AS:4> } finally { }
-    }
-}
-"
+                static void Main()
+                {
+                    try { <AS:4>M2();</AS:4> } finally { }
+                }
+            }
+            """
         };
 
         var module1 = new Guid("11111111-1111-1111-1111-111111111111");
@@ -302,27 +305,29 @@ public sealed class EditSessionActiveStatementsTests : TestBase
     public async Task BaseActiveStatementsAndExceptionRegions2()
     {
         var baseSource =
-@"class Test
-{
-    static void F1()
-    {   
-        try
-        {
-            <AS:0>F2();</AS:0>
-        }
-        catch (Exception) {
-            Console.WriteLine(1);
-            Console.WriteLine(2);
-            Console.WriteLine(3);
-        }
-        /*insert1[1]*/
-    }
+            """
+            class Test
+            {
+                static void F1()
+                {   
+                    try
+                    {
+                        <AS:0>F2();</AS:0>
+                    }
+                    catch (Exception) {
+                        Console.WriteLine(1);
+                        Console.WriteLine(2);
+                        Console.WriteLine(3);
+                    }
+                    /*insert1[1]*/
+                }
 
-    static void F2()
-    {
-        <AS:1>throw new Exception();</AS:1>
-    }
-}";
+                static void F2()
+                {
+                    <AS:1>throw new Exception();</AS:1>
+                }
+            }
+            """;
         var updatedSource = Update(baseSource, marker: "1");
 
         var module1 = new Guid("11111111-1111-1111-1111-111111111111");
@@ -410,66 +415,68 @@ public sealed class EditSessionActiveStatementsTests : TestBase
     public async Task BaseActiveStatementsAndExceptionRegions_WithInitialNonRemappableRegions()
     {
         var markedSourceV1 =
-@"class Test
-{
-    static void F1()
-    {
-        try
-        {
-            <AS:0>M();</AS:0>
-        }
-        <ER:0.0>catch
-        {
-        }</ER:0.0>
-    }
+            """
+            class Test
+            {
+                static void F1()
+                {
+                    try
+                    {
+                        <AS:0>M();</AS:0>
+                    }
+                    <ER:0.0>catch
+                    {
+                    }</ER:0.0>
+                }
 
-    static void F2()
-    {   /*delete2
-      */try
-        {
-        }
-        <ER:1.0>catch
-        {
-            <AS:1>M();</AS:1>
-        }</ER:1.0>/*insert2[1]*/
-    }
+                static void F2()
+                {   /*delete2
+                  */try
+                    {
+                    }
+                    <ER:1.0>catch
+                    {
+                        <AS:1>M();</AS:1>
+                    }</ER:1.0>/*insert2[1]*/
+                }
 
-    static void F3()
-    {   
-        try
-        {
-            try 
-            {   /*delete1
-              */<AS:2>M();</AS:2>/*insert1[3]*/
+                static void F3()
+                {   
+                    try
+                    {
+                        try 
+                        {   /*delete1
+                          */<AS:2>M();</AS:2>/*insert1[3]*/
+                        }
+                        <ER:2.0>finally
+                        {
+                        }</ER:2.0>
+                    }
+                    <ER:2.1>catch
+                    {
+                    }</ER:2.1>
+            /*delete1
+
+            */  }
+
+                static void F4()
+                {   /*insert1[1]*//*insert2[2]*/
+                    try
+                    {
+                        try
+                        {
+                        }
+                        <ER:3.0>catch
+                        {
+                            <AS:3>M();</AS:3>
+                        }</ER:3.0>
+                    }
+                    <ER:3.1>catch
+                    {
+                    }</ER:3.1>
+                }
             }
-            <ER:2.0>finally
-            {
-            }</ER:2.0>
-        }
-        <ER:2.1>catch
-        {
-        }</ER:2.1>
-/*delete1
-
-*/  }
-
-    static void F4()
-    {   /*insert1[1]*//*insert2[2]*/
-        try
-        {
-            try
-            {
-            }
-            <ER:3.0>catch
-            {
-                <AS:3>M();</AS:3>
-            }</ER:3.0>
-        }
-        <ER:3.1>catch
-        {
-        }</ER:3.1>
-    }
-}";
+            """;
         var markedSourceV2 = Update(markedSourceV1, marker: "1");
         var markedSourceV3 = Update(markedSourceV2, marker: "2");
 
@@ -620,24 +627,26 @@ public sealed class EditSessionActiveStatementsTests : TestBase
     {
         var markedSources = new[]
         {
-@"class C
-{
-    static void M()
-    {
-        try 
-        {
-            <AS:1>M();</AS:1>
-        }
-        catch (Exception e)
-        {
-        }
-    }
+            """
+            class C
+            {
+                static void M()
+                {
+                    try 
+                    {
+                        <AS:1>M();</AS:1>
+                    }
+                    catch (Exception e)
+                    {
+                    }
+                }
 
-    static void F()
-    {
-        <AS:0>M();</AS:0>
-    }
-}"
+                static void F()
+                {
+                    <AS:0>M();</AS:0>
+                }
+            }
+            """
         };
 
         var thread1 = Guid.NewGuid();

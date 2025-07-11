@@ -870,19 +870,23 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
     [InlineData('t')]
     public Task TestCommonPatternInName_KeepUnderscoreIfNameWithoutItIsInvalid(char commonPatternChar)
         => TestInRegularAndScriptAsync(
-$@"class Program
-{{
-    [|int {commonPatternChar}_0;|]
-}}",
-$@"class Program
-{{
-    int {commonPatternChar}_0;
+            $$"""
+            class Program
+            {
+                [|int {{commonPatternChar}}_0;|]
+            }
+            """,
+            $$"""
+            class Program
+            {
+                int {{commonPatternChar}}_0;
 
-    public Program(int _0{{|Navigation:)|}}
-    {{
-        {commonPatternChar}_0 = _0;
-    }}
-}}");
+                public Program(int _0{|Navigation:)|}
+                {
+                    {{commonPatternChar}}_0 = _0;
+                }
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14219")]
     public Task TestUnderscoreInName_PreferThis()

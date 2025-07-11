@@ -17,29 +17,31 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel;
 public sealed class FileCodeVariableTests : AbstractFileCodeElementTests
 {
     public FileCodeVariableTests()
-        : base(@"using System;
+        : base("""
+            using System;
 
-public class A
-{
-    // This is a comment.
-    public int intA;
+            public class A
+            {
+                // This is a comment.
+                public int intA;
 
-   /// <summary>
-   /// This is a summary.
-   /// </summary>
-    protected int intB;
+               /// <summary>
+               /// This is a summary.
+               /// </summary>
+                protected int intB;
 
-    [Serializable]
-    private int intC = 4;
-    int intD;
+                [Serializable]
+                private int intC = 4;
+                int intD;
 
-    public static const int FORTYTWO = 42;
-}
+                public static const int FORTYTWO = 42;
+            }
 
-unsafe public struct DevDivBugs70194
-{
-    fixed char buffer[100];
-}")
+            unsafe public struct DevDivBugs70194
+            {
+                fixed char buffer[100];
+            }
+            """)
     {
     }
 

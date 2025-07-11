@@ -34,13 +34,14 @@ public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [InlineData("struct")]
     [InlineData("interface")]
     public Task TestClass2(string typeKind)
-        => VerifyBlockSpansAsync($@"
-{{|hint:$$class C{{|textspan:
-{{
-}}|}}|}}
-{typeKind}D
-{{
-}}",
+        => VerifyBlockSpansAsync($$"""
+            {|hint:$$class C{|textspan:
+            {
+            }|}|}
+            {{typeKind}}D
+            {
+            }
+            """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 
     [Theory]
@@ -52,14 +53,15 @@ public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [InlineData("struct")]
     [InlineData("interface")]
     public Task TestClass3(string typeKind)
-        => VerifyBlockSpansAsync($@"
-{{|hint:$$class C{{|textspan:
-{{
-}}|}}|}}
+        => VerifyBlockSpansAsync($$"""
+            {|hint:$$class C{|textspan:
+            {
+            }|}|}
 
-{typeKind}D
-{{
-}}",
+            {{typeKind}}D
+            {
+            }
+            """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 
     [Fact]
@@ -104,13 +106,14 @@ public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [InlineData("struct")]
     [InlineData("interface")]
     public Task TestInterface2(string typeKind)
-        => VerifyBlockSpansAsync($@"
-{{|hint:$$interface I{{|textspan:
-{{
-}}|}}|}}
-{typeKind}D
-{{
-}}",
+        => VerifyBlockSpansAsync($$"""
+            {|hint:$$interface I{|textspan:
+            {
+            }|}|}
+            {{typeKind}}D
+            {
+            }
+            """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 
     [Theory]
@@ -122,14 +125,15 @@ public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [InlineData("struct")]
     [InlineData("interface")]
     public Task TestInterface3(string typeKind)
-        => VerifyBlockSpansAsync($@"
-{{|hint:$$interface I{{|textspan:
-{{
-}}|}}|}}
+        => VerifyBlockSpansAsync($$"""
+            {|hint:$$interface I{|textspan:
+            {
+            }|}|}
 
-{typeKind}D
-{{
-}}",
+            {{typeKind}}D
+            {
+            }
+            """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 
     [Fact]
@@ -174,13 +178,14 @@ public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [InlineData("struct")]
     [InlineData("interface")]
     public Task TestStruct2(string typeKind)
-        => VerifyBlockSpansAsync($@"
-{{|hint:$$struct C{{|textspan:
-{{
-}}|}}|}}
-{typeKind}D
-{{
-}}",
+        => VerifyBlockSpansAsync($$"""
+            {|hint:$$struct C{|textspan:
+            {
+            }|}|}
+            {{typeKind}}D
+            {
+            }
+            """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 
     [Theory]
@@ -192,14 +197,15 @@ public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [InlineData("struct")]
     [InlineData("interface")]
     public Task TestStruct3(string typeKind)
-        => VerifyBlockSpansAsync($@"
-{{|hint:$$struct C{{|textspan:
-{{
-}}|}}|}}
+        => VerifyBlockSpansAsync($$"""
+            {|hint:$$struct C{|textspan:
+            {
+            }|}|}
 
-{typeKind}D
-{{
-}}",
+            {{typeKind}}D
+            {
+            }
+            """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 
     [Fact]

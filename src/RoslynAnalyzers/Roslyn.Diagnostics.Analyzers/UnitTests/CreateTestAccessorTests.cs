@@ -24,24 +24,28 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("[|class TestClass|] ")]
         public async Task CreateTestAccessorCSharpAsync(string typeHeader)
         {
-            var source = typeHeader + @"{
-}";
-            var fixedSourceBody = @"{
-    internal TestAccessor GetTestAccessor()
-    {
-        return new TestAccessor(this);
-    }
+            var source = typeHeader + """
+                {
+                }
+                """;
+            var fixedSourceBody = """
+                {
+                    internal TestAccessor GetTestAccessor()
+                    {
+                        return new TestAccessor(this);
+                    }
 
-    internal readonly struct TestAccessor
-    {
-        private readonly TestClass _instance;
+                    internal readonly struct TestAccessor
+                    {
+                        private readonly TestClass _instance;
 
-        internal TestAccessor(TestClass instance)
-        {
-            _instance = instance;
-        }
-    }
-}";
+                        internal TestAccessor(TestClass instance)
+                        {
+                            _instance = instance;
+                        }
+                    }
+                }
+                """;
 
             var fixedSource = "class TestClass " + fixedSourceBody;
             await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
@@ -59,24 +63,28 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("[|struct TestStruct|] ")]
         public async Task CreateTestAccessorStructCSharpAsync(string typeHeader)
         {
-            var source = typeHeader + @"{
-}";
-            var fixedSourceBody = @"{
-    internal TestAccessor GetTestAccessor()
-    {
-        return new TestAccessor(this);
-    }
+            var source = typeHeader + """
+                {
+                }
+                """;
+            var fixedSourceBody = """
+                {
+                    internal TestAccessor GetTestAccessor()
+                    {
+                        return new TestAccessor(this);
+                    }
 
-    internal readonly struct TestAccessor
-    {
-        private readonly TestStruct _instance;
+                    internal readonly struct TestAccessor
+                    {
+                        private readonly TestStruct _instance;
 
-        internal TestAccessor(TestStruct instance)
-        {
-            _instance = instance;
-        }
-    }
-}";
+                        internal TestAccessor(TestStruct instance)
+                        {
+                            _instance = instance;
+                        }
+                    }
+                }
+                """;
 
             var fixedSource = "struct TestStruct " + fixedSourceBody;
             await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
@@ -94,24 +102,28 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("[|record TestRecord|] ")]
         public async Task CreateTestAccessorRecordCSharpAsync(string typeHeader)
         {
-            var source = typeHeader + @"{
-}";
-            var fixedSourceBody = @"{
-    internal TestAccessor GetTestAccessor()
-    {
-        return new TestAccessor(this);
-    }
+            var source = typeHeader + """
+                {
+                }
+                """;
+            var fixedSourceBody = """
+                {
+                    internal TestAccessor GetTestAccessor()
+                    {
+                        return new TestAccessor(this);
+                    }
 
-    internal readonly struct TestAccessor
-    {
-        private readonly TestRecord _instance;
+                    internal readonly struct TestAccessor
+                    {
+                        private readonly TestRecord _instance;
 
-        internal TestAccessor(TestRecord instance)
-        {
-            _instance = instance;
-        }
-    }
-}";
+                        internal TestAccessor(TestRecord instance)
+                        {
+                            _instance = instance;
+                        }
+                    }
+                }
+                """;
 
             var fixedSource = "record TestRecord " + fixedSourceBody;
             await new VerifyCS.Test
@@ -156,23 +168,27 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("[|Class TestClass|]")]
         public async Task CreateTestAccessorVisualBasicAsync(string typeHeader)
         {
-            var fixedSourceBody = @"
-    Friend Function GetTestAccessor() As TestAccessor
-        Return New TestAccessor(Me)
-    End Function
+            var fixedSourceBody = """
 
-    Friend Structure TestAccessor
-        Private ReadOnly _instance As TestClass
+                    Friend Function GetTestAccessor() As TestAccessor
+                        Return New TestAccessor(Me)
+                    End Function
 
-        Friend Sub New(instance As TestClass)
-            _instance = instance
-        End Sub
-    End Structure
-End Class";
+                    Friend Structure TestAccessor
+                        Private ReadOnly _instance As TestClass
+
+                        Friend Sub New(instance As TestClass)
+                            _instance = instance
+                        End Sub
+                    End Structure
+                End Class
+                """;
 
             var fixedSource = "Class TestClass" + fixedSourceBody;
-            await VerifyVB.VerifyRefactoringAsync($@"{typeHeader}
-End Class", fixedSource);
+            await VerifyVB.VerifyRefactoringAsync($"""
+                {typeHeader}
+                End Class
+                """, fixedSource);
 
             // Applying the refactoring a second time does not produce any changes
             fixedSource = typeHeader + fixedSourceBody;
@@ -187,23 +203,27 @@ End Class", fixedSource);
         [InlineData("[|Structure TestStructure|]")]
         public async Task CreateTestAccessorStructureVisualBasicAsync(string typeHeader)
         {
-            var fixedSourceBody = @"
-    Friend Function GetTestAccessor() As TestAccessor
-        Return New TestAccessor(Me)
-    End Function
+            var fixedSourceBody = """
 
-    Friend Structure TestAccessor
-        Private ReadOnly _instance As TestStructure
+                    Friend Function GetTestAccessor() As TestAccessor
+                        Return New TestAccessor(Me)
+                    End Function
 
-        Friend Sub New(instance As TestStructure)
-            _instance = instance
-        End Sub
-    End Structure
-End Structure";
+                    Friend Structure TestAccessor
+                        Private ReadOnly _instance As TestStructure
+
+                        Friend Sub New(instance As TestStructure)
+                            _instance = instance
+                        End Sub
+                    End Structure
+                End Structure
+                """;
 
             var fixedSource = "Structure TestStructure" + fixedSourceBody;
-            await VerifyVB.VerifyRefactoringAsync($@"{typeHeader}
-End Structure", fixedSource);
+            await VerifyVB.VerifyRefactoringAsync($"""
+                {typeHeader}
+                End Structure
+                """, fixedSource);
 
             // Applying the refactoring a second time does not produce any changes
             fixedSource = typeHeader + fixedSourceBody;

@@ -34,726 +34,789 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
     [WpfFact]
     public void AddComment_SingleLineSelected()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|var i = 1;|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;*/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;*/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_SingleLineWithWhitespaceSelected()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-[|        var i = 1;|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-[|/*        var i = 1;*/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+            [|        var i = 1;|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+            [|/*        var i = 1;*/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CaretInsideSingleLine()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        var$$ i = 1;
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        var[|/**/|] i = 1;
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    var$$ i = 1;
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    var[|/**/|] i = 1;
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_PartialLineSelected()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        var [|i = 1|];
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        var [|/*i = 1*/|];
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    var [|i = 1|];
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    var [|/*i = 1*/|];
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CaretInsideToken()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        va$$r i = 1;
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        var[|/**/|] i = 1;
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    va$$r i = 1;
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    var[|/**/|] i = 1;
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CaretInsideOperatorToken()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        Func<int, bool> myFunc = x =$$> x == 5;
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        Func<int, bool> myFunc = x =>[|/**/|] x == 5;
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    Func<int, bool> myFunc = x =$$> x == 5;
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    Func<int, bool> myFunc = x =>[|/**/|] x == 5;
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CaretInsideNewline()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        var i = 1;$$
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        var i = 1;[|/**/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    var i = 1;$$
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    var i = 1;[|/**/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_MultiLineSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        var j = 2;
-        var k = 3;|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        var j = 2;
-        var k = 3;*/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    var j = 2;
+                    var k = 3;|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    var j = 2;
+                    var k = 3;*/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_MultiLineSelectionWithWhitespace()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        var j = 2;
-        var k = 3;
-    
-|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        var j = 2;
-        var k = 3;
-    
-*/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    var j = 2;
+                    var k = 3;
+
+            |]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    var j = 2;
+                    var k = 3;
+
+            */|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_SingleLineCommentInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|//var i = 1;
-        var j = 2;|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*//var i = 1;
-        var j = 2;*/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|//var i = 1;
+                    var j = 2;|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*//var i = 1;
+                    var j = 2;*/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_BlockCommentBetweenCodeInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        /*var j = 2;
-        var k = 3;*/
-        var l = 4;|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        *//*var j = 2;
-        var k = 3;*//*
-        var l = 4;*/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    /*var j = 2;
+                    var k = 3;*/
+                    var l = 4;|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    *//*var j = 2;
+                    var k = 3;*//*
+                    var l = 4;*/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_SequentialBlockCommentBetweenCodeInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        /*var j = 2;
-        var k = 3;*//*
-        var l = 4;*/
-        var m = 5;|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        *//*var j = 2;
-        var k = 3;*//*
-        var l = 4;*//*
-        var m = 5;*/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    /*var j = 2;
+                    var k = 3;*//*
+                    var l = 4;*/
+                    var m = 5;|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    *//*var j = 2;
+                    var k = 3;*//*
+                    var l = 4;*//*
+                    var m = 5;*/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_SequentialBlockCommentsAndWhitespaceBetweenCodeInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        /*var j = 2;
-        var k = 3;*/
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    /*var j = 2;
+                    var k = 3;*/
 
-    /*
-        var l = 4;*/
-        var m = 5;|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        *//*var j = 2;
-        var k = 3;*/
+                /*
+                    var l = 4;*/
+                    var m = 5;|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    *//*var j = 2;
+                    var k = 3;*/
 
-    /*
-        var l = 4;*//*
-        var m = 5;*/|]
-    }
-}");
+                /*
+                    var l = 4;*//*
+                    var m = 5;*/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CodeBetweenBlockCommentsInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        var j = 2;*/
-        var k = 3;
-        /*var l = 4;
-        var m = 5;*/|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        var j = 2;*//*
-        var k = 3;
-        *//*var l = 4;
-        var m = 5;*/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    var j = 2;*/
+                    var k = 3;
+                    /*var l = 4;
+                    var m = 5;*/|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    var j = 2;*//*
+                    var k = 3;
+                    *//*var l = 4;
+                    var m = 5;*/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CodeThenCommentInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        /*var j = 2;
-        var k = 3;*/|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        *//*var j = 2;
-        var k = 3;*/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    /*var j = 2;
+                    var k = 3;*/|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    *//*var j = 2;
+                    var k = 3;*/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CodeThenCommentAndWhitespaceInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        /*var j = 2;
-        var k = 3;*/
-  |]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        *//*var j = 2;
-        var k = 3;*/
-  |]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    /*var j = 2;
+                    var k = 3;*/
+              |]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    *//*var j = 2;
+                    var k = 3;*/
+              |]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CloseCommentOnlyInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        var j = 2;*/
-        var k = 3;|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        var j = 2;*/
-        var k = 3;*/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    var j = 2;*/
+                    var k = 3;|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    var j = 2;*/
+                    var k = 3;*/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CodeThenPartialCommentInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        /*var j = 2;
-        var|] k = 3;*/
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        *//*var j = 2;
-        var*/|]/* k = 3;*/
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    /*var j = 2;
+                    var|] k = 3;*/
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    *//*var j = 2;
+                    var*/|]/* k = 3;*/
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CommentThenCodeInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        var j = 2;*/
-        var k = 3;|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        var j = 2;*//*
-        var k = 3;*/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    var j = 2;*/
+                    var k = 3;|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    var j = 2;*//*
+                    var k = 3;*/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CommentAndWhitespaceThenCodeInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-[|        /*var i = 1;
-        var j = 2;*/
-        var k = 3;
-  |]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-[|        /*var i = 1;
-        var j = 2;*//*
-        var k = 3;
-  */|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+            [|        /*var i = 1;
+                    var j = 2;*/
+                    var k = 3;
+              |]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+            [|        /*var i = 1;
+                    var j = 2;*//*
+                    var k = 3;
+              */|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CommentCloseMarkerThenCodeInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        /*var i = 1;
-        var j = 2;[|*/
-        var k = 3;|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        /*var i = 1;
-        var j = 2;[|*//*
-        var k = 3;*/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    /*var i = 1;
+                    var j = 2;[|*/
+                    var k = 3;|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    /*var i = 1;
+                    var j = 2;[|*//*
+                    var k = 3;*/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CodeThenCommentStartMarkerInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        var j = 2;/*|]
-        var k = 3;*/
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        var j = 2;*//*|]
-        var k = 3;*/
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    var j = 2;/*|]
+                    var k = 3;*/
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    var j = 2;*//*|]
+                    var k = 3;*/
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_PartialCommentThenCodeInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        /*var i = 1;
-        var [|j = 2;*/
-        var k = 3;|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        /*var i = 1;
-        var */[|/*j = 2;*//*
-        var k = 3;*/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    /*var i = 1;
+                    var [|j = 2;*/
+                    var k = 3;|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    /*var i = 1;
+                    var */[|/*j = 2;*//*
+                    var k = 3;*/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CaretBeforeBlockOnNewLine()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {$$
-        /*var i = 1;*/
-    }
-}", @"
-class C
-{
-    void M()
-    {[|/**/|]
-        /*var i = 1;*/
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {$$
+                    /*var i = 1;*/
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {[|/**/|]
+                    /*var i = 1;*/
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CaretBeforeCodeAndBlock()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-    $$    var /*i*/ = 1;
-    }
-}", @"
-class C
-{
-    void M()
-    {
-    [|/**/|]    var /*i*/ = 1;
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                $$    var /*i*/ = 1;
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                [|/**/|]    var /*i*/ = 1;
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CaretAfterBlockOnNewLine()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        /*var i = 1*/
-$$
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        /*var i = 1*/
-[|/**/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    /*var i = 1*/
+            $$
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    /*var i = 1*/
+            [|/**/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_CaretAfterBlockAndCode()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        /*var */i = 1;  $$
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        /*var */i = 1;  [|/**/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    /*var */i = 1;  $$
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    /*var */i = 1;  [|/**/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_BlockSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|var i = 1;|]
-        [|var j = 2;|]
-        [|var k = 3;|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;*/|]
-        [|/*var j = 2;*/|]
-        [|/*var k = 3;*/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;|]
+                    [|var j = 2;|]
+                    [|var k = 3;|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;*/|]
+                    [|/*var j = 2;*/|]
+                    [|/*var k = 3;*/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_BlockSelectionPartiallyCommented()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;|]
-        [|var j = 2;*/|]
-        [|var k = 3;  |]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;*/|]/*
-        */[|/*var j = 2;*/|]
-        [|/*var k = 3;  */|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;|]
+                    [|var j = 2;*/|]
+                    [|var k = 3;  |]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;*/|]/*
+                    */[|/*var j = 2;*/|]
+                    [|/*var k = 3;  */|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_DirectiveInsideSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-#if false
-        var j = 2;
-#endif
-        var k = 3;|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-#if false
-        var j = 2;
-#endif
-        var k = 3;*/|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+            #if false
+                    var j = 2;
+            #endif
+                    var k = 3;|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+            #if false
+                    var j = 2;
+            #endif
+                    var k = 3;*/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void AddComment_WithProjectionBuffer()
     {
-        ToggleCommentWithProjectionBuffer(@"&lt; html &gt;@{|S1:|}", @"
-{|S1:class C
-{
-    void M()
-    {
-        [|var i = 1;|]
-    }
-}|}", @"&lt; html &gt;@class C
-{
-    void M()
-    {
-        [|/*var i = 1;*/|]
-    }
-}");
+        ToggleCommentWithProjectionBuffer(@"&lt; html &gt;@{|S1:|}", """
+            {|S1:class C
+            {
+                void M()
+                {
+                    [|var i = 1;|]
+                }
+            }|}
+            """, """
+            &lt; html &gt;@class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;*/|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
@@ -765,406 +828,441 @@ class C
     [WpfFact]
     public void RemoveComment_CaretInsideBlock()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        /*var i = 1;
-        var $$j = 2;
-        var k = 3;*/
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        var j = 2;
-        var k = 3;|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    /*var i = 1;
+                    var $$j = 2;
+                    var k = 3;*/
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    var j = 2;
+                    var k = 3;|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CaretInsideSequentialBlock()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        /*var i = 1;
-        var $$j = 2;*//*
-        var k = 3;*/
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        var j = 2;|]/*
-        var k = 3;*/
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    /*var i = 1;
+                    var $$j = 2;*//*
+                    var k = 3;*/
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    var j = 2;|]/*
+                    var k = 3;*/
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CaretBeforeBlockOnlyWhitespace()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-    $$    /*var i = 1;
-        var*//* j = 2;*/
-        var k = 3;
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        var|]/* j = 2;*/
-        var k = 3;
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                $$    /*var i = 1;
+                    var*//* j = 2;*/
+                    var k = 3;
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    var|]/* j = 2;*/
+                    var k = 3;
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CaretBeforeMultipleBlocksOnlyWhitespace()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-    $$    /*var*/ i = 1/**/;
-        var/* j = 2;*/
-        var k = 3;
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|var|] i = 1/**/;
-        var/* j = 2;*/
-        var k = 3;
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                $$    /*var*/ i = 1/**/;
+                    var/* j = 2;*/
+                    var k = 3;
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|var|] i = 1/**/;
+                    var/* j = 2;*/
+                    var k = 3;
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CaretAfterBlockOnlyWhitespace()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        /*var i = 1;
-        var j = 2;*/    $$
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        var j = 2;|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    /*var i = 1;
+                    var j = 2;*/    $$
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    var j = 2;|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CaretAfterMultipleBlocksOnlyWhitespace()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        var i = 1;
-        /*var*/ j /*= 2;*/   $$
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        var i = 1;
-        /*var*/ j [|= 2;|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    var i = 1;
+                    /*var*/ j /*= 2;*/   $$
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    var i = 1;
+                    /*var*/ j [|= 2;|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CaretInsideUnclosedBlock()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        /*var i = 1;
-        var $$j = 2;
-        var k = 3;
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        var j = 2;
-        var k = 3;
-    }
-}|]");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    /*var i = 1;
+                    var $$j = 2;
+                    var k = 3;
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    var j = 2;
+                    var k = 3;
+                }
+            }|]
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CommentInsideSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        var j = 2;
-        var k = 3;*/|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        var j = 2;
-        var k = 3;|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    var j = 2;
+                    var k = 3;*/|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    var j = 2;
+                    var k = 3;|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CommentAndWhitespaceInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {[|
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {[|
 
-        /*var i = 1;
-        var j = 2;
-        var k = 3;*/          |]
-    }
-}", @"
-class C
-{
-    void M()
-    {
+                    /*var i = 1;
+                    var j = 2;
+                    var k = 3;*/          |]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
 
-        [|var i = 1;
-        var j = 2;
-        var k = 3;|]
-    }
-}");
+                    [|var i = 1;
+                    var j = 2;
+                    var k = 3;|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CommentWithSingleLineCommentInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        //var j = 2;
-        var k = 3;*/|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        //var j = 2;
-        var k = 3;|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    //var j = 2;
+                    var k = 3;*/|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    //var j = 2;
+                    var k = 3;|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_SequentialBlockInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        *//*var j = 2;
-        var k = 3;*/|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        var j = 2;
-        var k = 3;|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    *//*var j = 2;
+                    var k = 3;*/|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    var j = 2;
+                    var k = 3;|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_SequentialBlockAndWhitespaceInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {[|
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {[|
 
-        /*var i = 1;
-        */   
-  /*var j = 2;
-        var k = 3;*/       |]
-    }
-}", @"
-class C
-{
-    void M()
-    {
+                    /*var i = 1;
+                    */   
+              /*var j = 2;
+                    var k = 3;*/       |]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
 
-        [|var i = 1;
+                    [|var i = 1;
 
-        var j = 2;
-        var k = 3;|]
-    }
-}");
+                    var j = 2;
+                    var k = 3;|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_CommentPartiallyInsideSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        /*var [|i = 1;
-        var j = 2;|]
-        var k = 3;*/
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        var j = 2;
-        var k = 3;|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    /*var [|i = 1;
+                    var j = 2;|]
+                    var k = 3;*/
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    var j = 2;
+                    var k = 3;|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_PartialSequentialBlockInSelection()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        /*var [|i = 1;
-        *//*var j = 2;
-        var |]k = 3;*/
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        var j = 2;
-        var k = 3;|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    /*var [|i = 1;
+                    *//*var j = 2;
+                    var |]k = 3;*/
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    var j = 2;
+                    var k = 3;|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_BlockSelectionWithMultipleComments()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;*/|]
-        [|/*var j = 2;*/|]
-        [|/*var k = 3;*/|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|var i = 1;|]
-        [|var j = 2;|]
-        [|var k = 3;|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;*/|]
+                    [|/*var j = 2;*/|]
+                    [|/*var k = 3;*/|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;|]
+                    [|var j = 2;|]
+                    [|var k = 3;|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_BlockSelectionWithOneComment()
     {
-        ToggleComment(@"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;|]
-        [|var j = 2;  |]
-        [|var k = 3;*/|]
-    }
-}", @"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        var j = 2;
-        var k = 3;|]
-    }
-}");
+        ToggleComment("""
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;|]
+                    [|var j = 2;  |]
+                    [|var k = 3;*/|]
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    var j = 2;
+                    var k = 3;|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void RemoveComment_WithProjectionBuffer()
     {
-        ToggleCommentWithProjectionBuffer(@"&lt; html &gt;@{|S1:|}", @"
-{|S1:class C
-{
-    void M()
-    {
-        [|/*var i = 1;*/|]
-    }
-}|}", @"&lt; html &gt;@class C
-{
-    void M()
-    {
-        [|var i = 1;|]
-    }
-}");
+        ToggleCommentWithProjectionBuffer(@"&lt; html &gt;@{|S1:|}", """
+            {|S1:class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;*/|]
+                }
+            }|}
+            """, """
+            &lt; html &gt;@class C
+            {
+                void M()
+                {
+                    [|var i = 1;|]
+                }
+            }
+            """);
     }
 
     [WpfFact]
@@ -1172,38 +1270,41 @@ class C
     {
         var expectedText = new[]
         {
-@"
-class C
-{
-    void M()
-    {
-        [|/*var i = 1;
-        var j = 2;
-        var k = 3;*/|]
-    }
-}",
-@"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        var j = 2;
-        var k = 3;|]
-    }
-}"
+            """
+            class C
+            {
+                void M()
+                {
+                    [|/*var i = 1;
+                    var j = 2;
+                    var k = 3;*/|]
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    var j = 2;
+                    var k = 3;|]
+                }
+            }
+            """
         };
 
-        ToggleCommentMultiple(@"
-class C
-{
-    void M()
-    {
-        [|var i = 1;
-        var j = 2;
-        var k = 3;|]
-    }
-}", expectedText);
+        ToggleCommentMultiple("""
+            class C
+            {
+                void M()
+                {
+                    [|var i = 1;
+                    var j = 2;
+                    var k = 3;|]
+                }
+            }
+            """, expectedText);
     }
 
     [WpfFact]
@@ -1211,39 +1312,42 @@ class C
     {
         var expectedText = new[]
         {
-@"
-class C
-{
-    void M()
-    {
-        /*var i = 1;
-        */[|/*var *//* j = 2;
-        var k = 3;*/|]
-    }
-}",
-@"
-class C
-{
-    void M()
-    {
-        /*var i = 1;
-        */
-        [|var j = 2;
-        var k = 3;|]
-    }
-}"
+            """
+            class C
+            {
+                void M()
+                {
+                    /*var i = 1;
+                    */[|/*var *//* j = 2;
+                    var k = 3;*/|]
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    /*var i = 1;
+                    */
+                    [|var j = 2;
+                    var k = 3;|]
+                }
+            }
+            """
         };
 
-        ToggleCommentMultiple(@"
-class C
-{
-    void M()
-    {
-        /*var i = 1;
-        [|var */ j = 2;
-        var k = 3;|]
-    }
-}", expectedText);
+        ToggleCommentMultiple("""
+            class C
+            {
+                void M()
+                {
+                    /*var i = 1;
+                    [|var */ j = 2;
+                    var k = 3;|]
+                }
+            }
+            """, expectedText);
     }
 
     internal override AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(EditorTestWorkspace workspace)

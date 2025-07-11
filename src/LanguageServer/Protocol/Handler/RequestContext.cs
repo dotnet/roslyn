@@ -55,7 +55,7 @@ internal readonly struct RequestContext
     /// </remarks>
     private readonly StrongBox<(Workspace Workspace, Solution Solution, TextDocument? Document)>? _lspSolution;
 
-    public ILspLogger Logger => _logger;
+    public ILspLogger Logger { get; }
 
     /// <summary>
     /// The workspace this request is for, if applicable.  This will be present if <see cref="Document"/> is
@@ -162,11 +162,6 @@ internal readonly struct RequestContext
 
     public readonly CancellationToken QueueCancellationToken;
 
-    /// <summary>
-    /// Tracing object that can be used to log information about the status of requests.
-    /// </summary>
-    private readonly ILspLogger _logger;
-
     public RequestContext(
         Workspace? workspace,
         Solution? solution,
@@ -197,7 +192,7 @@ internal readonly struct RequestContext
         ServerKind = serverKind;
         SupportedLanguages = supportedLanguages;
         _documentChangeTracker = documentChangeTracker;
-        _logger = logger;
+        Logger = logger;
         _trackedDocuments = trackedDocuments;
         _lspServices = lspServices;
         QueueCancellationToken = queueCancellationToken;
@@ -339,22 +334,22 @@ internal readonly struct RequestContext
     }
 
     public void TraceDebug(string message)
-        => _logger.LogDebug(message);
+        => Logger.LogDebug(message);
 
     /// <summary>
     /// Logs an informational message.
     /// </summary>
     public void TraceInformation(string message)
-        => _logger.LogInformation(message);
+        => Logger.LogInformation(message);
 
     public void TraceWarning(string message)
-        => _logger.LogWarning(message);
+        => Logger.LogWarning(message);
 
     public void TraceError(string message)
-        => _logger.LogError(message);
+        => Logger.LogError(message);
 
     public void TraceException(Exception exception)
-        => _logger.LogException(exception);
+        => Logger.LogException(exception);
 
     public T GetRequiredLspService<T>() where T : class, ILspService
     {

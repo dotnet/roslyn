@@ -32,15 +32,17 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
 
     protected static string GetMarkup(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source, LanguageVersion languageVersion)
-        => $@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{languageVersion.ToDisplayString()}"">
-        <Document FilePath=""Test2.cs"">
-<![CDATA[
-{source}
-]]>
-        </Document>
-    </Project>
-</Workspace>";
+        => $"""
+        <Workspace>
+            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" LanguageVersion="{languageVersion.ToDisplayString()}">
+                <Document FilePath="Test2.cs">
+        <![CDATA[
+        {source}
+        ]]>
+                </Document>
+            </Project>
+        </Workspace>
+        """;
 
     protected override EditorTestWorkspace CreateWorkspace([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fileContents)
         => EditorTestWorkspace.CreateCSharp(fileContents, composition: GetComposition());

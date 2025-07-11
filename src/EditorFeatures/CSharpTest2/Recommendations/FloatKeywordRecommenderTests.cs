@@ -652,14 +652,16 @@ public sealed class FloatKeywordRecommenderTests : KeywordRecommenderTests
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/53585")]
     [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithoutAsync))]
     public Task TestAfterKeywordIndicatingLocalFunctionWithoutAsync(string keyword)
-        => VerifyKeywordAsync(AddInsideMethod($@"
-{keyword} $$"));
+        => VerifyKeywordAsync(AddInsideMethod($"""
+            {keyword} $$
+            """));
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
     [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithAsync))]
     public Task TestNotAfterKeywordIndicatingLocalFunctionWithAsync(string keyword)
-        => VerifyAbsenceAsync(AddInsideMethod($@"
-{keyword} $$"));
+        => VerifyAbsenceAsync(AddInsideMethod($"""
+            {keyword} $$
+            """));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64585")]
     public Task TestAfterRequired()
@@ -735,10 +737,12 @@ public sealed class FloatKeywordRecommenderTests : KeywordRecommenderTests
     [InlineData("record")]
     public Task TestAfterRefInClassInterfaceStructRecord(string type)
         => VerifyKeywordAsync(
-$@"{type} N
-{{
-    ref $$
-}}");
+            $$"""
+            {{type}} N
+            {
+                ref $$
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
     [InlineData("class")]
@@ -747,10 +751,12 @@ $@"{type} N
     [InlineData("record")]
     public Task TestAfterReadonlyInClassInterfaceStructRecord(string type)
         => VerifyKeywordAsync(
-$@"{type} N
-{{
-    readonly $$
-}}");
+            $$"""
+            {{type}} N
+            {
+                readonly $$
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
     [InlineData("class")]
@@ -759,10 +765,12 @@ $@"{type} N
     [InlineData("record")]
     public Task TestAfterRefReadonlyInClassInterfaceStructRecord(string type)
         => VerifyKeywordAsync(
-$@"{type} N
-{{
-    ref readonly $$
-}}");
+            $$"""
+            {{type}} N
+            {
+                ref readonly $$
+            }
+            """);
 
     [Fact]
     public Task TestWithinExtension()
