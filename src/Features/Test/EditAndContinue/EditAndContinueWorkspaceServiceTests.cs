@@ -1783,14 +1783,12 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // We do not reload the content of out-of-sync file for analyzer query.
         // We don't check if the content on disk has been updated to match either.
-        // Document state can only be reset via UpdateBaselines.
         sourceFile.WriteAllText(source0, Encoding.UTF8);
         docDiagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
         Assert.Empty(docDiagnostics);
 
         // rebuild triggers reload of out-of-sync file content:
         moduleId = EmitAndLoadLibraryToDebuggee(projectId, source0, sourceFilePath: sourceFile.Path);
-        debuggingSession.UpdateBaselines(solution.WithDocumentText(documentId, CreateText(source0)), [projectId]);
 
         results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
@@ -1811,7 +1809,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         AssertEx.SequenceEqual(["ENC0110"], InspectDiagnosticIds(results.Diagnostics));
 
         debuggingSession.DiscardSolutionUpdate();
-        
+
         if (breakMode)
         {
             ExitBreakState(debuggingSession);

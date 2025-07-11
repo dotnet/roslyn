@@ -683,36 +683,6 @@ internal sealed class DebuggingSession : IDisposable
         }
     }
 
-    // TODO: remove once the debugger implements https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2459003
-    public void UpdateBaselines(Solution solution, ImmutableArray<ProjectId> rebuiltProjects)
-    {
-        ThrowIfDisposed();
-
-        // Make sure the solution snapshot has all source-generated documents up-to-date.
-        solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
-
-        LastCommittedSolution.CommitChanges(solution, staleProjects: null, projectsToUnstale: rebuiltProjects);
-
-        // Wait for all operations on baseline to finish before we dispose the readers.
-
-        _baselineContentAccessLock.EnterWriteLock();
-
-        lock (_projectEmitBaselinesGuard)
-        {
-            DiscardProjectBaselinesNoLock(solution, rebuiltProjects);
-        }
-
-        _baselineContentAccessLock.ExitWriteLock();
-
-        foreach (var projectId in rebuiltProjects)
-        {
-            _editSessionTelemetry.LogUpdatedBaseline(solution.GetRequiredProject(projectId).State.ProjectInfo.Attributes.TelemetryId);
-        }
-
-        // Restart edit session reusing previous non-remappable regions and break state:
-        RestartEditSession(nonRemappableRegions: null, inBreakState: null);
-    }
-
     /// <summary>
     /// Returns <see cref="ActiveStatementSpan"/>s for each document of <paramref name="documentIds"/>,
     /// or default if not in a break state.

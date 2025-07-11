@@ -252,12 +252,6 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         _encService.DiscardSolutionUpdate(sessionId);
     }
 
-    public void UpdateBaselines(Solution solution, ImmutableArray<ProjectId> projectIds)
-    {
-        var sessionId = GetDebuggingSession();
-        _encService.UpdateBaselines(sessionId, solution, projectIds);
-    }
-
     public void EndSession()
     {
         _encService.EndDebuggingSession(GetDebuggingSession());

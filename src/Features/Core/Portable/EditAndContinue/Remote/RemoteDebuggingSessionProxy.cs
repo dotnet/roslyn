@@ -111,22 +111,6 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
             cancellationToken).ConfigureAwait(false);
     }
 
-    public async ValueTask UpdateBaselinesAsync(Solution solution, ImmutableArray<ProjectId> rebuiltProjects, CancellationToken cancellationToken)
-    {
-        var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
-        if (client == null)
-        {
-            GetLocalService().UpdateBaselines(sessionId, solution, rebuiltProjects);
-        }
-        else
-        {
-            var result = await client.TryInvokeAsync<IRemoteEditAndContinueService>(
-                solution,
-                (service, solutionInfo, cancellationToken) => service.UpdateBaselinesAsync(solutionInfo, sessionId, rebuiltProjects, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
-    }
-
     public async ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
     {
         var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
