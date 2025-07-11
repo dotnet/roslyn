@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             if (_loggingStream is object)
             {
                 var threadId = Environment.CurrentManagedThreadId;
-                var prefix = $"ID={_identifier} TID={threadId}: ";
+                var prefix = $"[{DateTimeOffset.Now:o}] ID={_identifier} TID={threadId}: ";
                 string output = prefix + message + Environment.NewLine;
                 byte[] bytes = Encoding.UTF8.GetBytes(output);
 
