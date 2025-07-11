@@ -6598,7 +6598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private (MethodSymbol method, ImmutableArray<VisitResult> results, bool returnNotNull) ReInferMethodAndVisitArguments(
-            BoundExpression node,
+            BoundNode node,
             BoundExpression? receiverOpt,
             TypeWithState receiverType,
             MethodSymbol method,
@@ -7099,7 +7099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (node is BoundForEachStatement { EnumeratorInfoOpt: { GetEnumeratorInfo: { Method: { TypeArgumentsWithAnnotations: { IsEmpty: false } } } } })
+            if (node is BoundForEachStatement { EnumeratorInfoOpt: { GetEnumeratorInfo: { Method: var getEnumeratorMethod } } } && getEnumeratorMethod.GetMemberArityIncludingExtension() > 0)
             {
                 return true;
             }
@@ -8662,6 +8662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static Symbol AsMemberOfType(TypeSymbol? type, Symbol symbol)
         {
             Debug.Assert((object)symbol != null);
+            Debug.Assert(!symbol.GetIsNewExtensionMember());
 
             var containingType = type as NamedTypeSymbol;
             if (containingType is null || containingType.IsErrorType() || symbol is ErrorMethodSymbol)
@@ -11586,25 +11587,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol? reinferredGetEnumeratorMethod = null;
 
-            if (enumeratorInfoOpt?.GetEnumeratorInfo is { Method: { IsExtensionMethod: true, Parameters: var parameters } } enumeratorMethodInfo) // Tracked by https://github.com/dotnet/roslyn/issues/78828: Test this code path with new extensions
+            if (enumeratorInfoOpt?.GetEnumeratorInfo is { } enumeratorMethodInfo
+                && (enumeratorMethodInfo.Method.IsExtensionMethod || enumeratorMethodInfo.Method.GetIsNewExtensionMember()))
             {
                 // this is case 7
                 // We do not need to do this same analysis for non-extension methods because they do not have generic parameters that
                 // can be inferred from usage like extension methods can. We don't warn about default arguments at the call site, so
                 // there's nothing that can be learned from the non-extension case.
-                var (method, results, _) = VisitArguments(
-                    node,
-                    enumeratorMethodInfo.Arguments,
+                (reinferredGetEnumeratorMethod, var results, _) = ReInferMethodAndVisitArguments(
+                    node: node,
+                    receiverOpt: expr,
+                    receiverType: default,
+                    method: enumeratorMethodInfo.Method,
+                    arguments: enumeratorMethodInfo.Arguments,
                     refKindsOpt: default,
-                    parameters,
                     argsToParamsOpt: default,
                     defaultArguments: enumeratorMethodInfo.DefaultArguments,
                     expanded: enumeratorMethodInfo.Expanded,
                     invokedAsExtensionMethod: true,
-                    enumeratorMethodInfo.Method);
+                    suppressAdjustmentForNewExtension: false,
+                    firstArgumentResult: _visitResult);
 
                 targetTypeWithAnnotations = results[0].LValueType;
-                reinferredGetEnumeratorMethod = method;
             }
             else if (conversion.IsIdentity ||
                 (conversion.Kind == ConversionKind.ExplicitReference && resultType.SpecialType == SpecialType.System_String))
@@ -11633,12 +11637,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // This is case 8. There was not a successful binding, as a successful binding will _always_ generate one of the
                     // above conversions. Just return, as we want to suppress further errors.
+                    Debug.Assert(node.HasErrors);
                     return;
                 }
             }
             else
             {
                 // This is also case 8.
+                Debug.Assert(node.HasErrors);
                 return;
             }
 
@@ -11653,7 +11659,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings: false,
                 AssignmentKind.Assignment);
 
-            bool reportedDiagnostic = enumeratorInfoOpt?.GetEnumeratorInfo.Method is { IsExtensionMethod: true } // Tracked by https://github.com/dotnet/roslyn/issues/78828: Test this code path with new extensions
+            bool reportedDiagnostic = enumeratorInfoOpt?.GetEnumeratorInfo.Method is { } getEnumeratorMethod
+                    && (getEnumeratorMethod.IsExtensionMethod || getEnumeratorMethod.GetIsNewExtensionMember())
                 ? false
                 : CheckPossibleNullReceiver(expr);
 
