@@ -2097,9 +2097,11 @@ options: ImplicitTypeWhereApparent());
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
-    public Task DoNotSuggestVarOnStackAllocExpressions_SpanType_NestedConditional()
-        => TestMissingInRegularAndScriptAsync("""
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79337")]
+    public Task DoSuggestVarOnStackAllocExpressions_SpanType_NestedConditional()
+        => TestInRegularAndScript1Async("""
             using System;
             namespace System
             {
@@ -2115,11 +2117,29 @@ options: ImplicitTypeWhereApparent());
                     [|Span<int>|] x = choice ? stackalloc int [10] : stackalloc int [100];
                 }
             }
+            """, """
+            using System;
+            namespace System
+            {
+                public readonly ref struct Span<T> 
+                {
+                    unsafe public Span(void* pointer, int length) { }
+                }
+            }
+            class C
+            {
+                static void M(bool choice)
+                {
+                    var x = choice ? stackalloc int [10] : stackalloc int [100];
+                }
+            }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
-    public Task DoNotSuggestVarOnStackAllocExpressions_SpanType_NestedCast()
-        => TestMissingInRegularAndScriptAsync("""
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79337")]
+    public Task DoSuggestVarOnStackAllocExpressions_SpanType_NestedCast()
+        => TestInRegularAndScript1Async("""
             using System;
             namespace System
             {
@@ -2133,6 +2153,22 @@ options: ImplicitTypeWhereApparent());
                 static void M()
                 {
                     [|Span<int>|] x = (Span<int>)stackalloc int [100];
+                }
+            }
+            """, """
+            using System;
+            namespace System
+            {
+                public readonly ref struct Span<T> 
+                {
+                    unsafe public Span(void* pointer, int length) { }
+                }
+            }
+            class C
+            {
+                static void M()
+                {
+                    var x = (Span<int>)stackalloc int [100];
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
