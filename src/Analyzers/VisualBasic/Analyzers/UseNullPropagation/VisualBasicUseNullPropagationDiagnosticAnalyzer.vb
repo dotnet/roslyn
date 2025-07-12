@@ -24,6 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             MultiLineIfBlockSyntax,
             ExpressionStatementSyntax)
 
+        Public Shared ReadOnly Instance As New VisualBasicUseNullPropagationDiagnosticAnalyzer()
+
         Protected Overrides ReadOnly Property IfStatementSyntaxKind As SyntaxKind = SyntaxKind.MultiLineIfBlock
 
         Protected Overrides ReadOnly Property SemanticFacts As ISemanticFacts = VisualBasicSemanticFacts.Instance
