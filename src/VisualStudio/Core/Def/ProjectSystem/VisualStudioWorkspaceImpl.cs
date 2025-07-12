@@ -112,7 +112,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;
     private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
     private readonly IAsynchronousOperationListener _workspaceListener;
-    private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
 
     /// <summary>
     /// Only read/written on hte UI thread.
@@ -173,40 +172,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     }
 
     internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;
-
-    internal void SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents()
-    {
-        // TODO: further understand if this needs the foreground thread for any reason. UIContexts are safe to read from the UI thread;
-        // it's not clear to me why this is being asserted.
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        if (_isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents)
-        {
-            return;
-        }
-
-        // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
-        KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
-        {
-            KnownUIContexts.SolutionBuildingContext.UIContextChanged += (_, e) =>
-            {
-                if (e.Activated)
-                {
-                    ExternalErrorDiagnosticUpdateSource.OnSolutionBuildStarted();
-                }
-                else
-                {
-                    // A real build just finished.  Clear out any results from the last "run code analysis" command.
-                    this.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>().Clear();
-                    ExternalErrorDiagnosticUpdateSource.OnSolutionBuildCompleted();
-                }
-            };
-
-            ExternalErrorDiagnosticUpdateSource.OnSolutionBuildStarted();
-        });
-
-        _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents = true;
-    }
 
     public Task CheckForAddedFileBeingOpenMaybeAsync(bool useAsync, ImmutableArray<string> newFileNames)
         => _openFileTracker.CheckForAddedFileBeingOpenMaybeAsync(useAsync, newFileNames);
