@@ -522,9 +522,9 @@ End Class
                 Dim result = Await AnalyzeDocumentAsync(oldProject, oldDocument)
 
                 Assert.False(result.HasChanges)
-                Assert.True(result.AnalysisBlocked)
+                Assert.False(result.AnalysisBlocked)
                 Assert.False(result.HasBlockingRudeEdits)
-                Assert.NotNull(result.SyntaxError)
+                Assert.Null(result.SyntaxError)
             End Using
         End Function
 
@@ -555,9 +555,9 @@ End Class
                 Dim result = Await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId))
 
                 Assert.False(result.HasChanges)
-                Assert.True(result.AnalysisBlocked)
+                Assert.False(result.AnalysisBlocked)
                 Assert.False(result.HasBlockingRudeEdits)
-                Assert.NotNull(result.SyntaxError)
+                Assert.Null(result.SyntaxError)
             End Using
         End Function
 

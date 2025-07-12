@@ -36,7 +36,7 @@ internal sealed class DocumentAnalysisResults
     public ImmutableArray<RudeEditDiagnostic> RudeEdits { get; }
 
     /// <summary>
-    /// The first syntax error, or null if the document does not have syntax errors reported by the compiler.
+    /// The first syntax error, if the document <see cref="HasChanges"/> and a syntax error. Null otherwise.
     /// </summary>
     public Diagnostic? SyntaxError { get; }
 
@@ -90,7 +90,7 @@ internal sealed class DocumentAnalysisResults
     public TimeSpan ElapsedTime { get; }
 
     /// <summary>
-    /// Document contains errors that block EnC analysis.
+    /// True if the document <see cref="HasChanges"/> and contains errors that block EnC analysis.
     /// </summary>
     public bool AnalysisBlocked { get; }
 

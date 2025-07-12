@@ -394,8 +394,8 @@ public sealed class CSharpEditAndContinueAnalyzerTests
         var result = await AnalyzeDocumentAsync(oldProject, oldDocument);
 
         Assert.False(result.HasChanges);
-        Assert.True(result.AnalysisBlocked);
-        Assert.NotNull(result.SyntaxError);
+        Assert.False(result.AnalysisBlocked);
+        Assert.Null(result.SyntaxError);
         Assert.False(result.HasBlockingRudeEdits);
     }
 
@@ -432,8 +432,8 @@ public sealed class CSharpEditAndContinueAnalyzerTests
         var result = await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId));
 
         Assert.False(result.HasChanges);
-        Assert.True(result.AnalysisBlocked);
-        Assert.NotNull(result.SyntaxError);
+        Assert.False(result.AnalysisBlocked);
+        Assert.Null(result.SyntaxError);
         Assert.False(result.HasBlockingRudeEdits);
     }
 
