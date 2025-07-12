@@ -103,6 +103,8 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     private readonly JoinableTaskCollection _updateUIContextJoinableTasks;
 
     private readonly OpenFileTracker _openFileTracker;
+    private readonly UIContext _solutionClosingContext;
+
     internal IFileChangeWatcher FileChangeWatcher { get; }
 
     internal ProjectSystemProjectFactory ProjectSystemProjectFactory { get; }
@@ -138,8 +140,8 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         ProjectSystemProjectFactory = new ProjectSystemProjectFactory(
             this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps, _threadingContext.DisposalToken);
 
-        var solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
-        solutionClosingContext.UIContextChanged += (_, e) => ProjectSystemProjectFactory.SolutionClosing = e.Activated;
+        _solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
+        _solutionClosingContext.UIContextChanged += SolutionClosingContext_UIContextChanged;
 
         _openFileTracker = new OpenFileTracker(
             this,
@@ -163,6 +165,11 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             static m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
 
         SubscribeToSourceGeneratorImpactingEvents();
+    }
+
+    private void SolutionClosingContext_UIContextChanged(object sender, UIContextChangedEventArgs e)
+    {
+        ProjectSystemProjectFactory.SolutionClosing = e.Activated;
     }
 
     internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;
@@ -1454,6 +1461,10 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             {
                 _lazyExternalErrorDiagnosticUpdateSource.Value.Dispose();
             }
+
+            // Make sure we unsubscribe this, or otherwise this will cause a leak in unit tests since the UIContext for SolutionClosing is a static that is shared
+            // across all tests.
+            _solutionClosingContext?.UIContextChanged -= SolutionClosingContext_UIContextChanged;
         }
 
         base.Dispose(finalize);
