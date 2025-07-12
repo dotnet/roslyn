@@ -114,7 +114,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     private readonly IAsynchronousOperationListener _workspaceListener;
 
     /// <summary>
-    /// Only read/written on hte UI thread.
+    /// Only read/written on the UI thread.
     /// </summary>
     private bool _isShowingDocumentChangeErrorInfoBar = false;
     private bool _ignoreDocumentTextChangeErrors;
