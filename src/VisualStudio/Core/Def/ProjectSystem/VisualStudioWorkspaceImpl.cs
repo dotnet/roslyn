@@ -149,9 +149,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             _workspaceListener,
             exportProvider.GetExportedValue<OpenTextBufferProvider>());
 
-        _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
-            exportProvider.GetExportedValue<ExternalErrorDiagnosticUpdateSource>(),
-            isThreadSafe: true);
+        _lazyExternalErrorDiagnosticUpdateSource = exportProvider.GetExport<ExternalErrorDiagnosticUpdateSource>();
 
         _updateUIContextJoinableTasks = new JoinableTaskCollection(_threadingContext.JoinableTaskContext);
 
