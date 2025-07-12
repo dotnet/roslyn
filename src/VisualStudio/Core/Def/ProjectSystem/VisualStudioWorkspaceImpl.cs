@@ -1457,11 +1457,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             _textBufferFactoryService.TextBufferCreated -= AddTextBufferCloneServiceToBuffer;
             _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
 
-            if (_lazyExternalErrorDiagnosticUpdateSource.IsValueCreated)
-            {
-                _lazyExternalErrorDiagnosticUpdateSource.Value.Dispose();
-            }
-
             // Make sure we unsubscribe this, or otherwise this will cause a leak in unit tests since the UIContext for SolutionClosing is a static that is shared
             // across all tests.
             _solutionClosingContext?.UIContextChanged -= SolutionClosingContext_UIContextChanged;
