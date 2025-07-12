@@ -562,4 +562,48 @@ public sealed class UseExpressionBodyForPropertiesAnalyzerTests
             """;
         await TestWithUseExpressionBody(code, code, LanguageVersionExtensions.CSharpNext);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38057")]
+    public async Task TestUseExpressionBodyPreserveComments2()
+    {
+        var code = """
+            public class C
+            {
+                {|IDE0025:public long Length // cool prop
+                {
+                    get { return 1 + 2; }
+                }|}
+            }
+            """;
+        var fixedCode = """
+            public class C
+            {
+                public long Length // cool prop
+                    => 1 + 2;
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact]
+    public async Task TestUseExpressionBodyPreserveComments3()
+    {
+        var code = """
+            public class C
+            {
+                {|IDE0025:public long Length // cool prop
+                {
+                /*a*/ get { return 1 + 2; }
+                }|}
+            }
+            """;
+        var fixedCode = """
+            public class C
+            {
+                public long Length // cool prop
+                /*a*/ => 1 + 2;
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
 }
