@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Telemetry;
@@ -66,8 +65,6 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
                 // and we don't want the case where VisualStudioProjectFactory is constructed on the main thread to block on that.
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
                 _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
-
-                _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
             });
     }
 

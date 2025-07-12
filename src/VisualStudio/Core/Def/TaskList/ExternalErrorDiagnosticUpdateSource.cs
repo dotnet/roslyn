@@ -17,16 +17,17 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.RpcContracts.DiagnosticManagement;
 using Microsoft.VisualStudio.RpcContracts.Utilities;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+
 /// <summary>
 /// Diagnostic source for warnings and errors reported from explicit build command invocations in Visual Studio.
 /// VS workspaces calls into us when a build is invoked or completed in Visual Studio.
@@ -79,6 +80,26 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
             _listener,
             _disposalToken
         );
+
+        // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
+        KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
+        {
+            KnownUIContexts.SolutionBuildingContext.UIContextChanged += (_, e) =>
+            {
+                if (e.Activated)
+                {
+                    OnSolutionBuildStarted();
+                }
+                else
+                {
+                    // A real build just finished.  Clear out any results from the last "run code analysis" command.
+                    _workspace.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>().Clear();
+                    OnSolutionBuildCompleted();
+                }
+            };
+
+            OnSolutionBuildStarted();
+        });
     }
 
     private async ValueTask ProcessTaskQueueItemsAsync(ImmutableSegmentedList<Func<CancellationToken, Task>> list, CancellationToken cancellationToken)
