@@ -8662,7 +8662,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static Symbol AsMemberOfType(TypeSymbol? type, Symbol symbol)
         {
             Debug.Assert((object)symbol != null);
-            Debug.Assert(!symbol.GetIsNewExtensionMember());
+            // https://github.com/dotnet/roslyn/issues/78828: This method should not be used with new extension members.
+            //Debug.Assert(!symbol.GetIsNewExtensionMember());
 
             var containingType = type as NamedTypeSymbol;
             if (containingType is null || containingType.IsErrorType() || symbol is ErrorMethodSymbol)
