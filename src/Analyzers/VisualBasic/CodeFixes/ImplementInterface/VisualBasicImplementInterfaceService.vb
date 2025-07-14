@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
     <ExportLanguageService(GetType(IImplementInterfaceService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicImplementInterfaceService
+    Partial Friend NotInheritable Class VisualBasicImplementInterfaceService
         Inherits AbstractImplementInterfaceService
 
         <ImportingConstructor>
@@ -37,6 +37,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
         Protected Overrides Function AllowDelegateAndEnumConstraints(options As ParseOptions) As Boolean
             Return False
+        End Function
+
+        Protected Overrides Function IsTypeInInterfaceBaseList(type As SyntaxNode) As Boolean
+            Return TypeOf type?.Parent Is ImplementsStatementSyntax
         End Function
 
         Protected Overrides Function TryInitializeState(

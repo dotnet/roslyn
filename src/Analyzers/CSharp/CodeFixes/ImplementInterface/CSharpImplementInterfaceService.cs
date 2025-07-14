@@ -37,6 +37,9 @@ internal sealed class CSharpImplementInterfaceService() : AbstractImplementInter
     protected override bool AllowDelegateAndEnumConstraints(ParseOptions options)
         => options.LanguageVersion() >= LanguageVersion.CSharp7_3;
 
+    protected override bool IsTypeInInterfaceBaseList(SyntaxNode? type)
+        => type?.Parent is BaseTypeSyntax { Parent: BaseListSyntax } baseTypeParent && baseTypeParent.Type == type;
+
     protected override bool TryInitializeState(
         Document document, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken,
         [NotNullWhen(true)] out SyntaxNode? classOrStructDecl,

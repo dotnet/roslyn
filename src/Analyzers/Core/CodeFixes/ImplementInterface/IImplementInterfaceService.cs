@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
 
@@ -44,4 +45,7 @@ internal interface IImplementInterfaceService : ILanguageService
         ImplementInterfaceConfiguration configuration,
         Compilation compilation,
         ISymbol interfaceMember);
+
+    Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+        Document document, SyntaxNode? interfaceType, CancellationToken cancellationToken);
 }
