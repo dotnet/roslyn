@@ -1420,8 +1420,9 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             _textBufferFactoryService.TextBufferCreated -= AddTextBufferCloneServiceToBuffer;
             _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
 
-            // Make sure we unsubscribe this, or otherwise this will cause a leak in unit tests since the UIContext for SolutionClosing is a static that is shared
-            // across all tests.
+            // UIContext.FromUIContextGuid internally has a map from the GUID to the context object itself that is stored in a static;
+            // if we don't unsubscribe, it will leak our workspace object which can cause memory leaks in tests that create a whole MEF container
+            // per test.
             _solutionClosingContext?.UIContextChanged -= SolutionClosingContext_UIContextChanged;
         }
 
