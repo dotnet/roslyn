@@ -1187,19 +1187,20 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/46927"), CombinatorialData]
     public Task FirstArgumentOfInvocation_NoParameter(bool hasTypedChar)
-        => VerifyNotBuilderAsync($@"
-using System;
-interface Foo
-{{
-    bool Bar() => true;
-}}
-class P
-{{
-    void M(Foo f)
-    {{
-        f.Bar({(hasTypedChar ? "s" : "")}$$
-    }}
-}}");
+        => VerifyNotBuilderAsync($$"""
+            using System;
+            interface Foo
+            {
+                bool Bar() => true;
+            }
+            class P
+            {
+                void M(Foo f)
+                {
+                    f.Bar({{(hasTypedChar ? "s" : "")}}$$
+                }
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/46927"), CombinatorialData]
     public async Task FirstArgumentOfInvocation_PossibleLambdaExpression(bool isLambda, bool hasTypedChar)
@@ -1208,20 +1209,21 @@ class P
             ? "bool Bar(Func<int, bool> predicate) => true;"
             : "bool Bar(int x) => true;";
 
-        var markup = $@"
-using System;
-interface Foo
-{{
-    bool Bar() => true;
-    {overload}
-}}
-class P
-{{
-    void M(Foo f)
-    {{
-        f.Bar({(hasTypedChar ? "s" : "")}$$
-    }}
-}}";
+        var markup = $$"""
+            using System;
+            interface Foo
+            {
+                bool Bar() => true;
+                {{overload}}
+            }
+            class P
+            {
+                void M(Foo f)
+                {
+                    f.Bar({{(hasTypedChar ? "s" : "")}}$$
+                }
+            }
+            """;
         if (isLambda)
         {
             await VerifyBuilderAsync(markup);
@@ -1237,20 +1239,21 @@ class P
     [InlineData("string x = null, string y = null, params string[] z")]
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/49656")]
     public Task FirstArgumentOfInvocation_WithOverloadAcceptEmptyArgumentList(string overloadParameterList)
-        => VerifyBuilderAsync($@"
-using System;
-interface Foo
-{{
-    bool Bar({overloadParameterList}) => true;
-    bool Bar(Func<int, bool> predicate) => true;
-}}
-class P
-{{
-    void M(Foo f)
-    {{
-        f.Bar($$)
-    }}
-}}");
+        => VerifyBuilderAsync($$"""
+            using System;
+            interface Foo
+            {
+                bool Bar({{overloadParameterList}}) => true;
+                bool Bar(Func<int, bool> predicate) => true;
+            }
+            class P
+            {
+                void M(Foo f)
+                {
+                    f.Bar($$)
+                }
+            }
+            """);
 
     private async Task VerifyNotBuilderAsync(string markup)
         => await VerifyWorkerAsync(markup, isBuilder: false);

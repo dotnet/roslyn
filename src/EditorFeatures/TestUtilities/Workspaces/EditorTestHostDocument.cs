@@ -38,11 +38,6 @@ public sealed class EditorTestHostDocument : TestHostDocument
     /// </summary>
     private ITextBuffer2? _textBuffer;
 
-    /// <summary>
-    /// The <see cref="ITextSnapshot"/> when the buffer was first created, which can be used for tracking changes to the current buffer.
-    /// </summary>
-    private ITextSnapshot? _initialTextSnapshot;
-
     internal EditorTestHostDocument(
         ExportProvider exportProvider,
         HostLanguageServices? languageServiceProvider,
@@ -77,7 +72,7 @@ public sealed class EditorTestHostDocument : TestHostDocument
         if (textBuffer != null)
         {
             _textBuffer = textBuffer;
-            _initialTextSnapshot = textBuffer.CurrentSnapshot;
+            InitialTextSnapshot = textBuffer.CurrentSnapshot;
         }
     }
 
@@ -103,13 +98,18 @@ public sealed class EditorTestHostDocument : TestHostDocument
     }
 
     // TODO: delete this
+    /// <summary>
+    /// The <see cref="ITextSnapshot"/> when the buffer was first created, which can be used for tracking changes to the current buffer.
+    /// </summary>
     public ITextSnapshot InitialTextSnapshot
     {
         get
         {
-            Contract.ThrowIfNull(_initialTextSnapshot);
-            return _initialTextSnapshot;
+            Contract.ThrowIfNull(field);
+            return field;
         }
+
+        private set;
     }
 
     public IWpfTextView GetTextView()
@@ -151,7 +151,7 @@ public sealed class EditorTestHostDocument : TestHostDocument
             var contentType = LanguageServiceProvider.GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType();
 
             _textBuffer = workspace!.GetOrCreateBufferForPath(FilePath, contentType, LanguageServiceProvider.Language, InitialText);
-            _initialTextSnapshot = _textBuffer.CurrentSnapshot;
+            InitialTextSnapshot = _textBuffer.CurrentSnapshot;
         }
 
         if (workspace != null)
@@ -197,13 +197,6 @@ public sealed class EditorTestHostDocument : TestHostDocument
 
     public SourceTextContainer GetOpenTextContainer()
         => this.GetTextBuffer().AsTextContainer();
-
-    private void Update(string newText)
-    {
-        using var edit = this.GetTextBuffer().CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
-        edit.Replace(new Span(0, this.GetTextBuffer().CurrentSnapshot.Length), newText);
-        edit.Apply();
-    }
 
     internal void CloseTextView()
     {

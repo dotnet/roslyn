@@ -194,17 +194,18 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
         for (var i = 0; i <= 4; i++)
         {
-            workspaceXml += $@"
-<Document FilePath = ""C{i}.cs"">
-class C{i}
-{{
-    void M()
-    {{
-        C5 c = new C5();
-        c.Ext(1, ""two"");
-    }}
-}}
-</Document>";
+            workspaceXml += $$"""
+                <Document FilePath = "C{{i}}.cs">
+                class C{{i}}
+                {
+                    void M()
+                    {
+                        C5 c = new C5();
+                        c.Ext(1, "two");
+                    }
+                }
+                </Document>
+                """;
         }
 
         workspaceXml += """
@@ -224,17 +225,18 @@ class C{i}
 
         for (var i = 6; i <= 9; i++)
         {
-            workspaceXml += $@"
-<Document FilePath = ""C{i}.cs"">
-class C{i}
-{{
-    void M()
-    {{
-        C5 c = new C5();
-        c.Ext(1, ""two"");
-    }}
-}}
-</Document>";
+            workspaceXml += $$"""
+                <Document FilePath = "C{{i}}.cs">
+                class C{{i}}
+                {
+                    void M()
+                    {
+                        C5 c = new C5();
+                        c.Ext(1, "two");
+                    }
+                }
+                </Document>
+                """;
         }
 
         workspaceXml += """
@@ -278,17 +280,18 @@ class C{i}
 
         for (var i = 0; i <= 4; i++)
         {
-            workspaceXml += $@"
-<Document FilePath = ""C{i}.cs"">
-class C{i}
-{{
-    void M()
-    {{
-        C5 c = new C5();
-        c.Ext(1, ""two"");
-    }}
-}}
-</Document>";
+            workspaceXml += $$"""
+                <Document FilePath = "C{{i}}.cs">
+                class C{{i}}
+                {
+                    void M()
+                    {
+                        C5 c = new C5();
+                        c.Ext(1, "two");
+                    }
+                }
+                </Document>
+                """;
         }
 
         workspaceXml += """
@@ -308,17 +311,18 @@ class C{i}
 
         for (var i = 6; i <= 9; i++)
         {
-            workspaceXml += $@"
-<Document FilePath = ""C{i}.cs"">
-class C{i}
-{{
-    void M()
-    {{
-        C5 c = new C5();
-        c.Ext(1, ""two"");
-    }}
-}}
-</Document>";
+            workspaceXml += $$"""
+                <Document FilePath = "C{{i}}.cs">
+                class C{{i}}
+                {
+                    void M()
+                    {
+                        C5 c = new C5();
+                        c.Ext(1, "two");
+                    }
+                }
+                </Document>
+                """;
         }
 
         workspaceXml += """

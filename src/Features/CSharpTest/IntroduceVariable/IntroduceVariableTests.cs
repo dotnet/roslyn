@@ -690,7 +690,7 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
                 }
             }
             """,
-options: ImplicitTypingEverywhere());
+            options: ImplicitTypingEverywhere());
 
     [Fact]
     public Task TestNameConflict2NotVar()
@@ -773,7 +773,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-options: ImplicitTypingEverywhere());
+            options: ImplicitTypingEverywhere());
 
     [Fact]
     public Task TestNameVerbatimIdentifier1NoVar()
@@ -906,7 +906,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-options: ImplicitTypingEverywhere());
+            options: ImplicitTypingEverywhere());
 
     [Fact]
     public Task TestNameVerbatimIdentifier2NoVar()
@@ -986,7 +986,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-index: 2);
+            index: 2);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540468")]
     public Task TestCantExtractMethodTypeParameterToField()
@@ -1018,7 +1018,7 @@ index: 2);
                 }
             }
             """,
-options: ImplicitTypingEverywhere());
+            options: ImplicitTypingEverywhere());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540468")]
     public Task TestCantExtractMethodTypeParameterToFieldCount()
@@ -1036,7 +1036,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-count: 2);
+            count: 2);
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552389")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540482")]
@@ -1079,7 +1079,7 @@ count: 2);
                 }
             }
             """,
-index: 2);
+            index: 2);
 
     [Fact]
     public Task TestLocalConstant()
@@ -1103,7 +1103,7 @@ index: 2);
                 }
             }
             """,
-index: 2);
+            index: 2);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542699")]
     public Task TestFieldConstant()
@@ -1137,7 +1137,7 @@ index: 2);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542781")]
     public Task TestMissingOnExpressionStatement()
@@ -1264,7 +1264,7 @@ index: 1);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestSingleQueryReplaceAll()
@@ -1304,7 +1304,7 @@ index: 1);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestNestedQueryReplaceOne1()
@@ -1403,7 +1403,7 @@ index: 1);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestNestedQueryReplaceOne2()
@@ -1502,7 +1502,7 @@ index: 1);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact, WorkItem(10742, "DevDiv_Projects/Roslyn")]
     public Task TestAnonymousTypeMemberAssignment()
@@ -1564,7 +1564,7 @@ index: 1);
                 }
             }
             """,
-options: ImplicitTypingEverywhere());
+            options: ImplicitTypingEverywhere());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543832")]
     public Task TestMissingOnGenericTypeParameter()
@@ -1893,7 +1893,7 @@ options: ImplicitTypingEverywhere());
             }
             #line default
             """,
-parseOptions: TestOptions.Regular);
+            parseOptions: TestOptions.Regular);
 
     [Fact]
     public Task TestMissingOnNamespace()
@@ -2092,7 +2092,7 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
     public Task TestPreferGenerateConstantField3()
@@ -2116,7 +2116,7 @@ index: 1);
                 }
             }
             """,
-index: 2);
+            index: 2);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
     public Task TestPreferGenerateConstantField4()
@@ -2140,7 +2140,7 @@ index: 2);
                 }
             }
             """,
-index: 3);
+            index: 3);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
     public Task TestNoGenerateConstantFieldIfAccessingLocal1()
@@ -2191,7 +2191,7 @@ index: 3);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
     public Task TestNoGenerateConstantFieldIfNotAccessingLocal1()
@@ -2246,7 +2246,7 @@ index: 1);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
     public Task TestNoGenerateConstantFieldIfNotAccessingLocal3()
@@ -2274,7 +2274,7 @@ index: 1);
                 }
             }
             """,
-index: 2);
+            index: 2);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
     public Task TestNoGenerateConstantFieldIfNotAccessingLocal4()
@@ -2302,7 +2302,7 @@ index: 2);
                 }
             }
             """,
-index: 3);
+            index: 3);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606347")]
     public Task InsertNeededCast1()
@@ -2466,7 +2466,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-index: 2);
+            index: 2);
 
     [Fact]
     public Task TestInSwitchSection_AllOccurencesMultiStatement()
@@ -2506,7 +2506,7 @@ index: 2);
                 }
             }
             """,
-index: 3);
+            index: 3);
 
     [Fact]
     public Task TestInSwitchSection_AllOccurencesDifferentSections()
@@ -2546,7 +2546,7 @@ index: 3);
                 }
             }
             """,
-index: 3);
+            index: 3);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
     public Task TestLambdaParameter1()
@@ -2577,7 +2577,7 @@ index: 3);
                 }
             }
             """,
-options: ImplicitTypingEverywhere());
+            options: ImplicitTypingEverywhere());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
     public Task TestLambdaParameter2()
@@ -2608,7 +2608,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-options: ImplicitTypingEverywhere());
+            options: ImplicitTypingEverywhere());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
     public Task TestLambdaParameter3()
@@ -2639,7 +2639,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-options: ImplicitTypingEverywhere());
+            options: ImplicitTypingEverywhere());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
     public Task TestLambdaParameter4()
@@ -2756,7 +2756,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-options: ImplicitTypingEverywhere());
+            options: ImplicitTypingEverywhere());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530919")]
     public Task TestNullableOfPointerTypeNotVar()
@@ -2813,7 +2813,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-options: ImplicitTypingEverywhere());
+            options: ImplicitTypingEverywhere());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655498")]
     public Task HandleParenthesizedExpression()
@@ -2874,7 +2874,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-index: 2);
+            index: 2);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828108")]
     public Task UseNewSemanticModelForSimplification()
@@ -2911,7 +2911,7 @@ index: 2);
                 }
             }
             """,
-options: ImplicitTypingEverywhere());
+            options: ImplicitTypingEverywhere());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
     public Task TestInCollectionInitializer()
@@ -2939,7 +2939,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-options: ImplicitTypingEverywhere());
+            options: ImplicitTypingEverywhere());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
     public Task TestInCollectionInitializerNoVar()
@@ -2998,7 +2998,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-options: ImplicitTypingEverywhere());
+            options: ImplicitTypingEverywhere());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
     public Task TestInArrayInitializer()
@@ -3026,7 +3026,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-options: ImplicitTypingEverywhere());
+            options: ImplicitTypingEverywhere());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
     public Task TestInArrayInitializerWithoutVar()
@@ -3089,8 +3089,8 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-index: 1,
-options: ImplicitTypingEverywhere());
+            index: 1,
+            options: ImplicitTypingEverywhere());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939259")]
     public Task TestIntroduceLocalWithTriviaInMultiLineStatements()
@@ -3307,7 +3307,7 @@ class C
 string.Format(FeaturesResources.Introduce_local_constant_for_0, """
 @"a b c"
 """),
-index: 2);
+            index: 2);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
     public Task TestIntroduceVariableTextDoesntSpanLines2()
@@ -7928,7 +7928,7 @@ class C
                 }
             }
             """,
-        index: 2);
+            index: 2);
 
     [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/61796")]

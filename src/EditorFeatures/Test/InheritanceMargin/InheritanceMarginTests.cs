@@ -38,17 +38,21 @@ public sealed class InheritanceMarginTests
         TestHost testHost,
         params TestInheritanceMemberItem[] memberItems)
     {
-        markup = @$"<![CDATA[
-{markup}]]>";
+        markup = $"""
+            <![CDATA[
+            {markup}]]>
+            """;
 
-        var workspaceFile = $@"
-<Workspace>
-   <Project Language=""{languageName}"" CommonReferences=""true"">
-       <Document>
-            {markup}
-       </Document>
-   </Project>
-</Workspace>";
+        var workspaceFile = $"""
+
+            <Workspace>
+               <Project Language="{languageName}" CommonReferences="true">
+                   <Document>
+                        {markup}
+                   </Document>
+               </Project>
+            </Workspace>
+            """;
 
         var cancellationToken = CancellationToken.None;
 
@@ -67,17 +71,19 @@ public sealed class InheritanceMarginTests
         TestHost testHost,
         params TestInheritanceMemberItem[] memberItems)
     {
-        var workspaceFile = $@"
-<Workspace>
-   <Project Language=""{languageName}"" CommonReferences=""true"">
-       <Document>
-            <![CDATA[{markup1}]]>
-       </Document>
-       <Document>
-            <![CDATA[{markup2}]]>
-       </Document>
-   </Project>
-</Workspace>";
+        var workspaceFile = $"""
+
+            <Workspace>
+               <Project Language="{languageName}" CommonReferences="true">
+                   <Document>
+                        <![CDATA[{markup1}]]>
+                   </Document>
+                   <Document>
+                        <![CDATA[{markup2}]]>
+                   </Document>
+               </Project>
+            </Workspace>
+            """;
 
         var cancellationToken = CancellationToken.None;
 
@@ -187,22 +193,24 @@ public sealed class InheritanceMarginTests
         TestHost testHost)
     {
         var workspaceFile =
-            $@"
-<Workspace>
-    <Project Language=""{markup1.languageName}"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <ProjectReference>Assembly2</ProjectReference>
-        <Document>
-            <![CDATA[
-                {markup1.markupInProject1}]]>
-        </Document>
-    </Project>
-    <Project Language=""{markup2.languageName}"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-            <![CDATA[
-                {markup2.markupInProject2}]]>
-        </Document>
-    </Project>
-</Workspace>";
+            $"""
+
+            <Workspace>
+                <Project Language="{markup1.languageName}" AssemblyName="Assembly1" CommonReferences="true">
+                    <ProjectReference>Assembly2</ProjectReference>
+                    <Document>
+                        <![CDATA[
+                            {markup1.markupInProject1}]]>
+                    </Document>
+                </Project>
+                <Project Language="{markup2.languageName}" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document>
+                        <![CDATA[
+                            {markup2.markupInProject2}]]>
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
 
         var cancellationToken = CancellationToken.None;
         using var testWorkspace = TestWorkspace.Create(
@@ -360,10 +368,12 @@ public sealed class InheritanceMarginTests
     [Theory, CombinatorialData]
     public Task TestCSharpClassWithErrorBaseType(TestHost testHost)
     {
-        return VerifyNoItemForDocumentAsync(@"
-public class Bar : SomethingUnknown
-{
-}", LanguageNames.CSharp, testHost);
+        return VerifyNoItemForDocumentAsync("""
+
+            public class Bar : SomethingUnknown
+            {
+            }
+            """, LanguageNames.CSharp, testHost);
     }
 
     [Theory, CombinatorialData]
@@ -385,12 +395,14 @@ public class Bar : SomethingUnknown
                     relationship: InheritanceRelationship.ImplementedMember,
                     inMetadata: true)]);
 
-        return VerifyInSingleDocumentAsync(@"
-using System.Collections;
-public class Bar : IEnumerable
-{
-    public IEnumerator GetEnumerator () { return null };
-}", LanguageNames.CSharp, testHost, itemForBar, itemForGetEnumerator);
+        return VerifyInSingleDocumentAsync("""
+
+            using System.Collections;
+            public class Bar : IEnumerable
+            {
+                public IEnumerator GetEnumerator () { return null };
+            }
+            """, LanguageNames.CSharp, testHost, itemForBar, itemForGetEnumerator);
     }
 
     [Theory, CombinatorialData]
@@ -413,12 +425,14 @@ public class Bar : IEnumerable
                     relationship: InheritanceRelationship.ImplementedInterface)]);
 
         return VerifyInSingleDocumentAsync(
-            @"
-interface {|target1:IBar|} { }
-public class {|target2:Bar|} : IBar
-{
-}
-            ",
+            """
+
+            interface {|target1:IBar|} { }
+            public class {|target2:Bar|} : IBar
+            {
+            }
+                        
+            """,
             LanguageNames.CSharp,
             testHost,
             itemOnLine2,
@@ -446,10 +460,12 @@ public class {|target2:Bar|} : IBar
             );
 
         return VerifyInSingleDocumentAsync(
-            @"
-        interface {|target1:IBar|} { }
-        interface {|target2:IBar2|} : IBar { }
-                    ",
+            """
+
+                    interface {|target1:IBar|} { }
+                    interface {|target2:IBar2|} : IBar { }
+                                
+            """,
             LanguageNames.CSharp,
             testHost,
             itemOnLine2,
@@ -477,10 +493,12 @@ public class {|target2:Bar|} : IBar
         );
 
         return VerifyInSingleDocumentAsync(
-            @"
-        class {|target2:A|} { }
-        class {|target1:B|} : A { }
-                    ",
+            """
+
+                    class {|target2:A|} { }
+                    class {|target1:B|} : A { }
+                                
+            """,
             LanguageNames.CSharp,
             testHost,
             itemOnLine2,
@@ -498,10 +516,12 @@ public class {|target2:Bar|} : IBar
     [InlineData("interface", TestHost.OutOfProcess)]
     public Task TestCSharpTypeWithoutBaseType(string typeName, TestHost testHost)
     {
-        return VerifyNoItemForDocumentAsync($@"
-        public {typeName} Bar
-        {{
-        }}", LanguageNames.CSharp, testHost);
+        return VerifyNoItemForDocumentAsync($$"""
+
+                    public {{typeName}} Bar
+                    {
+                    }
+            """, LanguageNames.CSharp, testHost);
     }
 
     [Theory]
@@ -516,13 +536,15 @@ public class {|target2:Bar|} : IBar
     public Task TestCSharpSpecialMember(string memberDeclaration, TestHost testHost)
     {
         return VerifyInSingleDocumentAsync(
-            $@"
-        public abstract class {{|target1:Bar1|}}
-        {{}}
-        public class {{|{SearchAreaTag}:Bar : Bar1
-        {{
-            {{{memberDeclaration}|}}
-        }}",
+            $$"""
+
+                    public abstract class {|target1:Bar1|}
+                    {}
+                    public class {|{{SearchAreaTag}}:Bar : Bar1
+                    {
+                        {{{memberDeclaration}}|}
+                    }
+            """,
             LanguageNames.CSharp,
             testHost,
             new TestInheritanceMemberItem(
@@ -570,19 +592,21 @@ public class {|target2:Bar|} : IBar
                 relationship: InheritanceRelationship.ImplementedMember)]);
 
         return VerifyInSingleDocumentAsync(
-            @"
-        using System;
-        interface {|target2:IBar|}
-        {
-            event EventHandler {|target4:e|};
-        }
-        public class {|target1:Bar|} : IBar
-        {
-            public event EventHandler {|target3:e|}
-            {
-                add {} remove {}
-            }
-        }",
+            """
+
+                    using System;
+                    interface {|target2:IBar|}
+                    {
+                        event EventHandler {|target4:e|};
+                    }
+                    public class {|target1:Bar|} : IBar
+                    {
+                        public event EventHandler {|target3:e|}
+                        {
+                            add {} remove {}
+                        }
+                    }
+            """,
             LanguageNames.CSharp,
             testHost,
             itemForIBar,
@@ -643,15 +667,17 @@ public class {|target2:Bar|} : IBar
                 relationship: InheritanceRelationship.ImplementedMember)]);
 
         return VerifyInSingleDocumentAsync(
-            @"using System;
-        interface {|target2:IBar|}
-        {
-            event EventHandler {|target5:e1|}, {|target6:e2|};
-        }
-        public class {|target1:Bar|} : IBar
-        {
-            public event EventHandler {|target3:e1|}, {|target4:e2|};
-        }",
+            """
+            using System;
+                    interface {|target2:IBar|}
+                    {
+                        event EventHandler {|target5:e1|}, {|target6:e2|};
+                    }
+                    public class {|target1:Bar|} : IBar
+                    {
+                        public event EventHandler {|target3:e1|}, {|target4:e2|};
+                    }
+            """,
             LanguageNames.CSharp,
             testHost,
             itemForIBar,
@@ -756,21 +782,23 @@ public class {|target2:Bar|} : IBar
             );
 
         return VerifyInSingleDocumentAsync(
-            @"using System;
-        interface {|target1:IBar|}
-        {
-            void {|target4:Foo|}();
-            int {|target6:Poo|} { get; set; }
-            event EventHandler {|target8:Eoo|};
-            int {|target9:this|}[int i] { get; set; }
-        }
-        public class {|target2:Bar|} : IBar
-        {
-            public void {|target3:Foo|}() { }
-            public int {|target5:Poo|} { get; set; }
-            public event EventHandler {|target7:Eoo|};
-            public int {|target10:this|}[int i] { get => 1; set { } }
-        }",
+            """
+            using System;
+                    interface {|target1:IBar|}
+                    {
+                        void {|target4:Foo|}();
+                        int {|target6:Poo|} { get; set; }
+                        event EventHandler {|target8:Eoo|};
+                        int {|target9:this|}[int i] { get; set; }
+                    }
+                    public class {|target2:Bar|} : IBar
+                    {
+                        public void {|target3:Foo|}() { }
+                        public int {|target5:Poo|} { get; set; }
+                        public event EventHandler {|target7:Eoo|};
+                        public int {|target10:this|}[int i] { get => 1; set { } }
+                    }
+            """,
             LanguageNames.CSharp,
             testHost,
             itemForEooInClass,
@@ -857,20 +885,22 @@ public class {|target2:Bar|} : IBar
                     relationship: InheritanceRelationship.BaseType)]);
 
         return VerifyInSingleDocumentAsync(
-            $@"using System;
-        public abstract class {{|target2:Bar|}}
-        {{
-            public {modifier} void {{|target4:Foo|}}();
-            public {modifier} int {{|target6:Poo|}} {{ get; set; }}
-            public {modifier} event EventHandler {{|target8:Eoo|}};
-        }}
-        public class {{|target1:Bar2|}} : Bar
-        {{
-            public override void {{|target3:Foo|}}() {{ }}
-            public override int {{|target5:Poo|}} {{ get; set; }}
-            public override event EventHandler {{|target7:Eoo|}};
-        }}
-                    ",
+            $$"""
+            using System;
+                    public abstract class {|target2:Bar|}
+                    {
+                        public {{modifier}} void {|target4:Foo|}();
+                        public {{modifier}} int {|target6:Poo|} { get; set; }
+                        public {{modifier}} event EventHandler {|target8:Eoo|};
+                    }
+                    public class {|target1:Bar2|} : Bar
+                    {
+                        public override void {|target3:Foo|}() { }
+                        public override int {|target5:Poo|} { get; set; }
+                        public override event EventHandler {|target7:Eoo|};
+                    }
+
+            """,
             LanguageNames.CSharp,
             testHost,
             itemForBar,
@@ -886,33 +916,37 @@ public class {|target2:Bar|} : IBar
     [Theory, CombinatorialData]
     public Task TestCSharpOverrideMemberCanFindImplementingInterface(bool testDuplicate, TestHost testHost)
     {
-        var markup1 = @"using System;
-        public interface {|target4:IBar|}
-        {
-            void {|target6:Foo|}();
-        }
-        public class {|target1:Bar1|} : IBar
-        {
-            public virtual void {|target2:Foo|}() { }
-        }
-        public class {|target5:Bar2|} : Bar1
-        {
-            public override void {|target3:Foo|}() { }
-        }";
+        var markup1 = """
+            using System;
+                    public interface {|target4:IBar|}
+                    {
+                        void {|target6:Foo|}();
+                    }
+                    public class {|target1:Bar1|} : IBar
+                    {
+                        public virtual void {|target2:Foo|}() { }
+                    }
+                    public class {|target5:Bar2|} : Bar1
+                    {
+                        public override void {|target3:Foo|}() { }
+                    }
+            """;
 
-        var markup2 = @"using System;
-        public interface {|target4:IBar|}
-        {
-            void {|target6:Foo|}();
-        }
-        public class {|target1:Bar1|} : IBar
-        {
-            public virtual void {|target2:Foo|}() { }
-        }
-        public class {|target5:Bar2|} : Bar1, IBar
-        {
-            public override void {|target3:Foo|}() { }
-        }";
+        var markup2 = """
+            using System;
+                    public interface {|target4:IBar|}
+                    {
+                        void {|target6:Foo|}();
+                    }
+                    public class {|target1:Bar1|} : IBar
+                    {
+                        public virtual void {|target2:Foo|}() { }
+                    }
+                    public class {|target5:Bar2|} : Bar1, IBar
+                    {
+                        public override void {|target3:Foo|}() { }
+                    }
+            """;
 
         var itemForIBar = new TestInheritanceMemberItem(
             lineNumber: 2,
@@ -1088,20 +1122,22 @@ public class {|target2:Bar|} : IBar
                 relationship: InheritanceRelationship.BaseType)]);
 
         return VerifyInSingleDocumentAsync(
-            $@"using System;
-        public abstract class {{|target2:Bar|}}
-        {{
-            public {modifier} void {{|target4:Foo|}}();
-            public {modifier} int {{|target6:Poo|}} {{ get; set; }}
-            public {modifier} event EventHandler {{|target8:Eoo|}};
-        }}
-        public class {{|target1:Bar2|}} : Bar
-        {{
-            public override void {{|target3:Foo|}}(int i) {{ }}
-            public override string {{|target5:Poo|}} {{ get; set; }}
-            public override event Action {{|target7:Eoo|}};
-        }}
-                    ",
+            $$"""
+            using System;
+                    public abstract class {|target2:Bar|}
+                    {
+                        public {{modifier}} void {|target4:Foo|}();
+                        public {{modifier}} int {|target6:Poo|} { get; set; }
+                        public {{modifier}} event EventHandler {|target8:Eoo|};
+                    }
+                    public class {|target1:Bar2|} : Bar
+                    {
+                        public override void {|target3:Foo|}(int i) { }
+                        public override string {|target5:Poo|} { get; set; }
+                        public override event Action {|target7:Eoo|};
+                    }
+
+            """,
             LanguageNames.CSharp,
             testHost,
             itemForBar,
@@ -1152,16 +1188,18 @@ public class {|target2:Bar|} : IBar
                     relationship: InheritanceRelationship.ImplementedMember)]);
 
         return VerifyInSingleDocumentAsync(
-            @"
-public interface {|target2:IBar|}<T>
-{
-    void {|target4:Foo|}();
-}
+            """
 
-public class {|target1:Bar2|} : IBar<int>, IBar<string>
-{
-    public void {|target3:Foo|}();
-}",
+            public interface {|target2:IBar|}<T>
+            {
+                void {|target4:Foo|}();
+            }
+
+            public class {|target1:Bar2|} : IBar<int>, IBar<string>
+            {
+                public void {|target3:Foo|}();
+            }
+            """,
             LanguageNames.CSharp,
             testHost,
             itemForIBar,
@@ -1206,19 +1244,21 @@ public class {|target1:Bar2|} : IBar<int>, IBar<string>
                     relationship: InheritanceRelationship.ImplementedMember)]);
 
         return VerifyInSingleDocumentAsync(
-            @"
-interface {|target2:IBar|}<T>
-{
-    void {|target3:Foo|}(T t);
-}
+            """
 
-abstract class {|target1:AbsBar|} : IBar<int>
-{
-    void IBar<int>.{|target4:Foo|}(int t)
-    {
-        throw new System.NotImplementedException();
-    }
-}",
+            interface {|target2:IBar|}<T>
+            {
+                void {|target3:Foo|}(T t);
+            }
+
+            abstract class {|target1:AbsBar|} : IBar<int>
+            {
+                void IBar<int>.{|target4:Foo|}(int t)
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """,
             LanguageNames.CSharp,
             testHost,
             itemForIBar,
@@ -1327,24 +1367,26 @@ abstract class {|target1:AbsBar|} : IBar<int>
                     relationship: InheritanceRelationship.ImplementedMember)]);
 
         return VerifyInSingleDocumentAsync(
-            @"
-interface {|target5:I1|}<T> where T : I1<T>
-{
-    static abstract void {|target4:M1|}();
-    static abstract int {|target7:P1|} { get; set; }
-    static abstract event EventHandler {|target9:e1|};
-    static abstract int operator {|target11:+|}(T i1);
-    static abstract implicit operator {|target12:int|}(T i1);
-}
+            """
 
-public class {|target1:Class1|} : I1<Class1>
-{
-    public static void {|target2:M1|}() {}
-    public static int {|target6:P1|} { get => 1; set { } }
-    public static event EventHandler {|target8:e1|};
-    public static int operator {|target10:+|}(Class1 i) => 1;
-    public static implicit operator {|target13:int|}(Class1 i) => 0;
-}",
+            interface {|target5:I1|}<T> where T : I1<T>
+            {
+                static abstract void {|target4:M1|}();
+                static abstract int {|target7:P1|} { get; set; }
+                static abstract event EventHandler {|target9:e1|};
+                static abstract int operator {|target11:+|}(T i1);
+                static abstract implicit operator {|target12:int|}(T i1);
+            }
+
+            public class {|target1:Class1|} : I1<Class1>
+            {
+                public static void {|target2:M1|}() {}
+                public static int {|target6:P1|} { get => 1; set { } }
+                public static event EventHandler {|target8:e1|};
+                public static int operator {|target10:+|}(Class1 i) => 1;
+                public static implicit operator {|target13:int|}(Class1 i) => 0;
+            }
+            """,
             LanguageNames.CSharp,
             testHost,
             itemForI1,
@@ -1389,19 +1431,21 @@ public class {|target1:Class1|} : I1<Class1>
                     relationship: InheritanceRelationship.ImplementedInterface)]);
 
         return VerifyInSingleDocumentAsync(
-            @"
-interface {|target1:IBar|}
-{ 
-}
+            """
 
-public partial class {|target2:Bar|} : IBar
-{
-}
+            interface {|target1:IBar|}
+            { 
+            }
 
-public partial class {|target3:Bar|}
-{
-}
-            ",
+            public partial class {|target2:Bar|} : IBar
+            {
+            }
+
+            public partial class {|target3:Bar|}
+            {
+            }
+                        
+            """,
             LanguageNames.CSharp,
             testHost,
             itemOnLine2,
@@ -1427,9 +1471,11 @@ public partial class {|target3:Bar|}
     public Task TestEmptyFileMultipleGlobalImportInOtherFile(TestHost testHost)
     {
         return VerifyInMultipleDocumentsAsync(
-            @"", @"
-{|target1:global using System;|}
-{|target2:global using System.Collections;|}", LanguageNames.CSharp,
+            @"", """
+
+            {|target1:global using System;|}
+            {|target2:global using System.Collections;|}
+            """, LanguageNames.CSharp,
             testHost,
             new TestInheritanceMemberItem(
             lineNumber: 0,
@@ -1449,8 +1495,10 @@ public partial class {|target3:Bar|}
     public Task TestFileWithUsing_SingleGlobalImportInOtherFile(TestHost testHost)
     {
         return VerifyInMultipleDocumentsAsync(
-            @"
-using System.Collections;", @"{|target1:global using System;|}", LanguageNames.CSharp,
+            """
+
+            using System.Collections;
+            """, @"{|target1:global using System;|}", LanguageNames.CSharp,
             testHost,
             new TestInheritanceMemberItem(
             lineNumber: 1,
@@ -1464,9 +1512,11 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
     public Task TestIgnoreGlobalImportFromSameFile(TestHost testHost)
     {
         return VerifyInMultipleDocumentsAsync(
-            @"
-global using System.Collections.Generic;
-using System.Collections;", @"{|target1:global using System;|}", LanguageNames.CSharp,
+            """
+
+            global using System.Collections.Generic;
+            using System.Collections;
+            """, @"{|target1:global using System;|}", LanguageNames.CSharp,
             testHost,
             new TestInheritanceMemberItem(
             lineNumber: 1,
@@ -1483,12 +1533,14 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
     [Theory, CombinatorialData]
     public Task TestVisualBasicWithErrorBaseType(TestHost testHost)
     {
-        return VerifyNoItemForDocumentAsync(@"
-        Namespace MyNamespace
-            Public Class Bar
-                Implements SomethingNotExist
-            End Class
-        End Namespace", LanguageNames.VisualBasic, testHost);
+        return VerifyNoItemForDocumentAsync("""
+
+                    Namespace MyNamespace
+                        Public Class Bar
+                            Implements SomethingNotExist
+                        End Class
+                    End Namespace
+            """, LanguageNames.VisualBasic, testHost);
     }
 
     [Theory, CombinatorialData]
@@ -1510,15 +1562,17 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
                     relationship: InheritanceRelationship.ImplementedMember,
                     inMetadata: true)]);
 
-        return VerifyInSingleDocumentAsync(@"
-        Namespace MyNamespace
-            Public Class Bar
-                Implements System.Collections.IEnumerable
-                Public Function GetEnumerator() As System.Collections.IEnumerator Implements System.Collections.IEnumerable.GetEnumerator
-                    Throw New NotImplementedException()
-                End Function
-            End Class
-        End Namespace", LanguageNames.VisualBasic, testHost, itemForBar, itemForGetEnumerator);
+        return VerifyInSingleDocumentAsync("""
+
+                    Namespace MyNamespace
+                        Public Class Bar
+                            Implements System.Collections.IEnumerable
+                            Public Function GetEnumerator() As System.Collections.IEnumerator Implements System.Collections.IEnumerable.GetEnumerator
+                                Throw New NotImplementedException()
+                            End Function
+                        End Class
+                    End Namespace
+            """, LanguageNames.VisualBasic, testHost, itemForBar, itemForGetEnumerator);
     }
 
     [Theory, CombinatorialData]
@@ -1541,12 +1595,14 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
                 relationship: InheritanceRelationship.ImplementedInterface)]);
 
         return VerifyInSingleDocumentAsync(
-            @"
-        Interface {|target2:IBar|}
-        End Interface
-        Class {|target1:Bar|}
-            Implements IBar
-        End Class",
+            """
+
+                    Interface {|target2:IBar|}
+                    End Interface
+                    Class {|target1:Bar|}
+                        Implements IBar
+                    End Class
+            """,
             LanguageNames.VisualBasic,
             testHost,
             itemForIBar,
@@ -1571,12 +1627,14 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
                 targetSymbolDisplayName: "IBar2",
                 locationTag: "target2",
                 relationship: InheritanceRelationship.InheritedInterface)]);
-        return VerifyInSingleDocumentAsync(@"
-        Interface {|target2:IBar2|}
-        End Interface
-        Interface {|target1:IBar|}
-            Inherits IBar2
-        End Interface", LanguageNames.VisualBasic, testHost, itemForIBar2, itemForIBar);
+        return VerifyInSingleDocumentAsync("""
+
+                    Interface {|target2:IBar2|}
+                    End Interface
+                    Interface {|target1:IBar|}
+                        Inherits IBar2
+                    End Interface
+            """, LanguageNames.VisualBasic, testHost, itemForIBar2, itemForIBar);
     }
 
     [Theory, CombinatorialData]
@@ -1597,12 +1655,14 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
                 targetSymbolDisplayName: "Bar2",
                 locationTag: "target2",
                 relationship: InheritanceRelationship.BaseType)]);
-        return VerifyInSingleDocumentAsync(@"
-        Class {|target2:Bar2|}
-        End Class
-        Class {|target1:Bar|}
-            Inherits Bar2
-        End Class", LanguageNames.VisualBasic, testHost, itemForBar2, itemForBar);
+        return VerifyInSingleDocumentAsync("""
+
+                    Class {|target2:Bar2|}
+                    End Class
+                    Class {|target1:Bar|}
+                        Inherits Bar2
+                    End Class
+            """, LanguageNames.VisualBasic, testHost, itemForBar2, itemForBar);
     }
 
     [Theory]
@@ -1616,20 +1676,24 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
     [InlineData("Interface", TestHost.OutOfProcess)]
     public Task TestVisualBasicTypeWithoutBaseType(string typeName, TestHost testHost)
     {
-        return VerifyNoItemForDocumentAsync($@"
-        {typeName} Bar
-        End {typeName}", LanguageNames.VisualBasic, testHost);
+        return VerifyNoItemForDocumentAsync($"""
+
+                    {typeName} Bar
+                    End {typeName}
+            """, LanguageNames.VisualBasic, testHost);
     }
 
     [Theory, CombinatorialData]
     public Task TestVisualBasicMetadataInterface(TestHost testHost)
     {
         return VerifyInSingleDocumentAsync(
-            @"
-        Imports System.Collections
-        Class Bar
-            Implements IEnumerable
-        End Class",
+            """
+
+                    Imports System.Collections
+                    Class Bar
+                        Implements IEnumerable
+                    End Class
+            """,
             LanguageNames.VisualBasic,
             testHost,
             new TestInheritanceMemberItem(
@@ -1686,14 +1750,16 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
                 relationship: InheritanceRelationship.ImplementedMember)]);
 
         return VerifyInSingleDocumentAsync(
-            @"
-        Interface {|target2:IBar|}
-            Event {|target4:e|} As EventHandler
-        End Interface
-        Class {|target1:Bar|}
-            Implements IBar
-            Public Event {|target3:e|} As EventHandler Implements IBar.e
-        End Class",
+            """
+
+                    Interface {|target2:IBar|}
+                        Event {|target4:e|} As EventHandler
+                    End Interface
+                    Class {|target1:Bar|}
+                        Implements IBar
+                        Public Event {|target3:e|} As EventHandler Implements IBar.e
+                    End Class
+            """,
             LanguageNames.VisualBasic,
             testHost,
             itemForIBar,
@@ -1738,15 +1804,17 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
                 relationship: InheritanceRelationship.ImplementedMember)]);
 
         return VerifyInSingleDocumentAsync(
-            @"
-        Interface {|target2:IBar|}
-            Event {|target4:e|} As EventHandler
-        End Interface
-        Class {|target1:Bar|}
-            Implements IBar
-            Public Custom Event {|target3:e|} As EventHandler Implements IBar.e
-            End Event
-        End Class",
+            """
+
+                    Interface {|target2:IBar|}
+                        Event {|target4:e|} As EventHandler
+                    End Interface
+                    Class {|target1:Bar|}
+                        Implements IBar
+                        Public Custom Event {|target3:e|} As EventHandler Implements IBar.e
+                        End Event
+                    End Class
+            """,
             LanguageNames.VisualBasic,
             testHost,
             itemForIBar,
@@ -1807,25 +1875,27 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
                 relationship: InheritanceRelationship.ImplementedMember)]);
 
         return VerifyInSingleDocumentAsync(
-            @"
-        Interface {|target2:IBar|}
-            Property {|target4:Poo|} As Integer
-            Function {|target6:Foo|}() As Integer
-        End Interface
+            """
 
-        Class {|target1:Bar|}
-            Implements IBar
-            Public Property {|target3:Poo|} As Integer Implements IBar.Poo
-                Get
-                    Return 1
-                End Get
-                Set(value As Integer)
-                End Set
-            End Property
-            Public Function {|target5:Foo|}() As Integer Implements IBar.Foo
-                Return 1
-            End Function
-        End Class",
+                    Interface {|target2:IBar|}
+                        Property {|target4:Poo|} As Integer
+                        Function {|target6:Foo|}() As Integer
+                    End Interface
+
+                    Class {|target1:Bar|}
+                        Implements IBar
+                        Public Property {|target3:Poo|} As Integer Implements IBar.Poo
+                            Get
+                                Return 1
+                            End Get
+                            Set(value As Integer)
+                            End Set
+                        End Property
+                        Public Function {|target5:Foo|}() As Integer Implements IBar.Foo
+                            Return 1
+                        End Function
+                    End Class
+            """,
             LanguageNames.VisualBasic,
             testHost,
             itemForIBar,
@@ -1872,18 +1942,20 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
                         relationship: InheritanceRelationship.OverriddenMember)]);
 
         return VerifyInSingleDocumentAsync(
-            @"
-        MustInherit Class {|target2:Bar1|}
-            Public MustOverride Sub {|target4:Foo|}()
-        End Class
+            """
 
-        Class {|target1:Bar|}
-            Inherits Bar1
-            Public Overrides Sub {|target3:Foo|}()
-            End Sub
-        End Class",
+                    MustInherit Class {|target2:Bar1|}
+                        Public MustOverride Sub {|target4:Foo|}()
+                    End Class
+
+                    Class {|target1:Bar|}
+                        Inherits Bar1
+                        Public Overrides Sub {|target3:Foo|}()
+                        End Sub
+                    End Class
+            """,
             LanguageNames.VisualBasic,
-             testHost,
+            testHost,
             itemForBar1,
             itemForBar,
             itemForFooInBar1,
@@ -1893,39 +1965,43 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
     [Theory, CombinatorialData]
     public Task TestVisualBasicOverrideMemberCanFindImplementingInterface(bool testDuplicate, TestHost testHost)
     {
-        var markup1 = @"
-        Interface {|target4:IBar|}
-            Sub {|target6:Foo|}()
-        End Interface
+        var markup1 = """
 
-        Class {|target1:Bar1|}
-            Implements IBar
-            Public Overridable Sub {|target2:Foo|}() Implements IBar.Foo
-            End Sub
-        End Class
+                    Interface {|target4:IBar|}
+                        Sub {|target6:Foo|}()
+                    End Interface
 
-        Class {|target5:Bar2|}
-            Inherits Bar1
-            Public Overrides Sub {|target3:Foo|}()
-            End Sub
-        End Class";
+                    Class {|target1:Bar1|}
+                        Implements IBar
+                        Public Overridable Sub {|target2:Foo|}() Implements IBar.Foo
+                        End Sub
+                    End Class
 
-        var markup2 = @"
-        Interface {|target4:IBar|}
-            Sub {|target6:Foo|}()
-        End Interface
+                    Class {|target5:Bar2|}
+                        Inherits Bar1
+                        Public Overrides Sub {|target3:Foo|}()
+                        End Sub
+                    End Class
+            """;
 
-        Class {|target1:Bar1|}
-            Implements IBar
-            Public Overridable Sub {|target2:Foo|}() Implements IBar.Foo
-            End Sub
-        End Class
+        var markup2 = """
 
-        Class {|target5:Bar2|}
-            Inherits Bar1
-            Public Overrides Sub {|target3:Foo|}()
-            End Sub
-        End Class";
+                    Interface {|target4:IBar|}
+                        Sub {|target6:Foo|}()
+                    End Interface
+
+                    Class {|target1:Bar1|}
+                        Implements IBar
+                        Public Overridable Sub {|target2:Foo|}() Implements IBar.Foo
+                        End Sub
+                    End Class
+
+                    Class {|target5:Bar2|}
+                        Inherits Bar1
+                        Public Overrides Sub {|target3:Foo|}()
+                        End Sub
+                    End Class
+            """;
         var itemForIBar = new TestInheritanceMemberItem(
             lineNumber: 2,
             memberName: "Interface IBar",
@@ -2080,23 +2156,25 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
                     relationship: InheritanceRelationship.ImplementedMember)]);
 
         return VerifyInSingleDocumentAsync(
-            @"
-        Public Interface {|target5:IBar|}(Of T)
-            Sub {|target6:Foo|}()
-        End Interface
+            """
 
-        Public Class {|target1:Bar|}
-            Implements IBar(Of Integer)
-            Implements IBar(Of String)
+                    Public Interface {|target5:IBar|}(Of T)
+                        Sub {|target6:Foo|}()
+                    End Interface
 
-            Public Sub {|target3:Foo|}() Implements IBar(Of Integer).Foo
-                Throw New NotImplementedException()
-            End Sub
+                    Public Class {|target1:Bar|}
+                        Implements IBar(Of Integer)
+                        Implements IBar(Of String)
 
-            Private Sub {|target4:IBar_Foo|}() Implements IBar(Of String).Foo
-                Throw New NotImplementedException()
-            End Sub
-        End Class",
+                        Public Sub {|target3:Foo|}() Implements IBar(Of Integer).Foo
+                            Throw New NotImplementedException()
+                        End Sub
+
+                        Private Sub {|target4:IBar_Foo|}() Implements IBar(Of String).Foo
+                            Throw New NotImplementedException()
+                        End Sub
+                    End Class
+            """,
             LanguageNames.VisualBasic,
             testHost,
             itemForIBar,
@@ -2144,21 +2222,25 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
                     relationship: InheritanceRelationship.ImplementingMember)]);
 
         return VerifyInDifferentProjectsAsync(
-            (@"
-        using MyNamespace;
-        namespace BarNs
-        {
-            public class {|target2:Bar|} : IBar
-            {
-                public void {|target4:Foo|}() { }
-            }
-        }", LanguageNames.CSharp),
-            (@"
-        Namespace MyNamespace
-            Public Interface {|target1:IBar|}
-                Sub {|target3:Foo|}()
-            End Interface
-        End Namespace", LanguageNames.VisualBasic),
+            ("""
+
+                    using MyNamespace;
+                    namespace BarNs
+                    {
+                        public class {|target2:Bar|} : IBar
+                        {
+                            public void {|target4:Foo|}() { }
+                        }
+                    }
+            """, LanguageNames.CSharp),
+            ("""
+
+                    Namespace MyNamespace
+                        Public Interface {|target1:IBar|}
+                            Sub {|target3:Foo|}()
+                        End Interface
+                    End Namespace
+            """, LanguageNames.VisualBasic),
             [itemForBar, itemForFooInMarkup1],
             [itemForIBar, itemForFooInMarkup2],
             testHost);
@@ -2211,24 +2293,28 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
                     relationship: InheritanceRelationship.ImplementingMember)]);
 
         return VerifyInDifferentProjectsAsync(
-            (@"
-        Imports BarNs
-        Namespace MyNamespace
-            Public Class {|target2:Bar44|}
-                Implements IBar
+            ("""
 
-                Public Sub {|target4:Foo|}() Implements IBar.Foo
-                End Sub
-            End Class
-        End Namespace", LanguageNames.VisualBasic),
-            (@"
-        namespace BarNs
-        {
-            public interface {|target1:IBar|}
-            {
-                void {|target3:Foo|}();
-            }
-        }", LanguageNames.CSharp),
+                    Imports BarNs
+                    Namespace MyNamespace
+                        Public Class {|target2:Bar44|}
+                            Implements IBar
+
+                            Public Sub {|target4:Foo|}() Implements IBar.Foo
+                            End Sub
+                        End Class
+                    End Namespace
+            """, LanguageNames.VisualBasic),
+            ("""
+
+                    namespace BarNs
+                    {
+                        public interface {|target1:IBar|}
+                        {
+                            void {|target3:Foo|}();
+                        }
+                    }
+            """, LanguageNames.CSharp),
             [itemForProjectImports, itemForBar44, itemForFooInMarkup1],
             [itemForIBar, itemForFooInMarkup2],
             testHost);
@@ -2273,23 +2359,27 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
                 relationship: InheritanceRelationship.ImplementedInterface)]);
 
         return VerifyInDifferentProjectsAsync(
-            (@"
-        using MyNamespace;
-        namespace BarNs
-        {
-            public class {|target1:Bar|} : IBar
-            {
-            }
-        }", LanguageNames.CSharp),
-            (@"
-        Namespace MyNamespace
-            Public Interface {|target2:IBar|}
-            End Interface
+            ("""
 
-            Public Class {|target3:Bar|}
-                Implements IBar
-            End Class
-        End Namespace", LanguageNames.VisualBasic),
+                    using MyNamespace;
+                    namespace BarNs
+                    {
+                        public class {|target1:Bar|} : IBar
+                        {
+                        }
+                    }
+            """, LanguageNames.CSharp),
+            ("""
+
+                    Namespace MyNamespace
+                        Public Interface {|target2:IBar|}
+                        End Interface
+
+                        Public Class {|target3:Bar|}
+                            Implements IBar
+                        End Class
+                    End Namespace
+            """, LanguageNames.VisualBasic),
             [itemForBarInMarkup1],
             [itemForIBar, itemForBarInMarkup2],
             testHost);
@@ -2334,23 +2424,27 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
                 relationship: InheritanceRelationship.ImplementedInterface)]);
 
         return VerifyInDifferentProjectsAsync(
-            (@"
-        using MyNamespace;
-        namespace BarNs
-        {
-            public class {|target1:Bar|} : IBar
-            {
-            }
-        }", LanguageNames.CSharp),
-            (@"
-        namespace MyNamespace {
-            public interface {|target2:IBar|}
-            {}
+            ("""
 
-            public class {|target3:Bar|}
-                : IBar
-            {}
-        }", LanguageNames.CSharp),
+                    using MyNamespace;
+                    namespace BarNs
+                    {
+                        public class {|target1:Bar|} : IBar
+                        {
+                        }
+                    }
+            """, LanguageNames.CSharp),
+            ("""
+
+                    namespace MyNamespace {
+                        public interface {|target2:IBar|}
+                        {}
+
+                        public class {|target3:Bar|}
+                            : IBar
+                        {}
+                    }
+            """, LanguageNames.CSharp),
             [itemForBarInMarkup1],
             [itemForIBar, itemForBarInMarkup2],
             testHost);
@@ -2358,15 +2452,17 @@ using System.Collections;", @"{|target1:global using System;|}", LanguageNames.C
 
     [Theory, CombinatorialData]
     public Task TestHiddenLocationSymbol(TestHost testHost)
-        => VerifyNoItemForDocumentAsync(@"
-public class {|target2:B|} : C
-{
-}
+        => VerifyNoItemForDocumentAsync("""
 
-#line hidden
-public class {|target1:C|}
-{
-}",
+            public class {|target2:B|} : C
+            {
+            }
+
+            #line hidden
+            public class {|target1:C|}
+            {
+            }
+            """,
             LanguageNames.CSharp,
             testHost);
 
@@ -2376,41 +2472,45 @@ public class {|target1:C|}
     {
         // 1. If the searching span is the empty body, nothing should be returned.
 
-        await VerifyNoItemForDocumentAsync($@"
-public class B : C
-{{
+        await VerifyNoItemForDocumentAsync($$"""
 
-{{|{SearchAreaTag}:
+            public class B : C
+            {
+
+            {|{{SearchAreaTag}}:
 
 
 
 
-|}}
+            |}
 
-}}
+            }
 
-public class C
-{{
-}}",
+            public class C
+            {
+            }
+            """,
             LanguageNames.CSharp,
             testHost);
 
         // 2. If the searching span contains the identifier, correct result should be returned.
 
-        await VerifyInSingleDocumentAsync($@"
-public class {{|{SearchAreaTag}:B|}} : C
-{{
+        await VerifyInSingleDocumentAsync($$"""
+
+            public class {|{{SearchAreaTag}}:B|} : C
+            {
 
 
 
 
 
 
-}}
+            }
 
-public class {{|target:C|}}
-{{
-}}",
+            public class {|target:C|}
+            {
+            }
+            """,
             LanguageNames.CSharp,
             testHost,
             memberItems: [new TestInheritanceMemberItem(

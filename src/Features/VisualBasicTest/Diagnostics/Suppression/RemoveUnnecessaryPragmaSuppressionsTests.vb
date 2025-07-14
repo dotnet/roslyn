@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Remove
     <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessarySuppressions)>
     <WorkItem("https://github.com/dotnet/roslyn/issues/44177")>
     Public NotInheritable Class RemoveUnnecessaryInlineSuppressionsTests
-        Inherits AbstractUnncessarySuppressionDiagnosticTest
+        Inherits AbstractUnnecessarySuppressionDiagnosticTest
 
         Public Sub New(logger As ITestOutputHelper)
             MyBase.New(logger)

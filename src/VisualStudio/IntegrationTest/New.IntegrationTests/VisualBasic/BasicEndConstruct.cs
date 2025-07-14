@@ -24,74 +24,90 @@ public class BasicEndConstruct : AbstractEditorTest
     [IdeFact]
     public async Task EndConstruct()
     {
-        await SetUpEditorAsync(@"
-Class Program
-    Sub Main()
-        If True Then $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Class Program
+                Sub Main()
+                    If True Then $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
         // Send a space to convert virtual whitespace into real whitespace
         await TestServices.Input.SendAsync([VirtualKeyCode.RETURN, " "], HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Class Program
-    Sub Main()
-        If True Then
-             $$
-        End If
-    End Sub
-End Class", assertCaretPosition: true, HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.TextContainsAsync("""
+
+            Class Program
+                Sub Main()
+                    If True Then
+                         $$
+                    End If
+                End Sub
+            End Class
+            """, assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task IntelliSenseCompletedWhile()
     {
-        await SetUpEditorAsync(@"
-Class Program
-    Sub Main()
-        $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Class Program
+                Sub Main()
+                    $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
         // Send a space to convert virtual whitespace into real whitespace
         await TestServices.Input.SendAsync(["While True", VirtualKeyCode.RETURN, " "], HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Class Program
-    Sub Main()
-        While True
-             $$
-        End While
-    End Sub
-End Class", assertCaretPosition: true, HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.TextContainsAsync("""
+
+            Class Program
+                Sub Main()
+                    While True
+                         $$
+                    End While
+                End Sub
+            End Class
+            """, assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task InterfaceToClassFixup()
     {
-        await SetUpEditorAsync(@"
-Interface$$ C
-End Interface", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Interface$$ C
+            End Interface
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.BACK, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync(["Class", VirtualKeyCode.TAB], HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Class C
-End Class", cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.TextContainsAsync("""
+
+            Class C
+            End Class
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task CaseInsensitiveSubToFunction()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Public Sub$$ Goo()
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Class C
+                Public Sub$$ Goo()
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.BACK, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync(["fu", VirtualKeyCode.TAB], HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Class C
-    Public Function Goo()
-    End Function
-End Class", cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.TextContainsAsync("""
+
+            Class C
+                Public Function Goo()
+                End Function
+            End Class
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 }

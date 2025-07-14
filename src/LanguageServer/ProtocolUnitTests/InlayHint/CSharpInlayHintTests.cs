@@ -25,75 +25,87 @@ public sealed class CSharpInlayHintTests : AbstractInlayHintTests
 
     [Theory, CombinatorialData]
     public Task TestOneInlayParameterHintAsync(bool mutatingLspWorkspace)
-        => RunVerifyInlayHintAsync(@"class A
-{
-    void M(int x)
-    {
-    }
+        => RunVerifyInlayHintAsync("""
+            class A
+            {
+                void M(int x)
+                {
+                }
 
-    void M2()
-    {
-        M({|x:|}5);
-    }
-}", mutatingLspWorkspace);
+                void M2()
+                {
+                    M({|x:|}5);
+                }
+            }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
     public Task TestMultipleInlayParameterHintsAsync(bool mutatingLspWorkspace)
-        => RunVerifyInlayHintAsync(@"class A
-{
-    void M(int a, double b, bool c)
-    {
-    }
+        => RunVerifyInlayHintAsync("""
+            class A
+            {
+                void M(int a, double b, bool c)
+                {
+                }
 
-    void M2()
-    {
-        M({|a:|}5, {|b:|}5.5, {|c:|}true);
-    }
-}", mutatingLspWorkspace);
+                void M2()
+                {
+                    M({|a:|}5, {|b:|}5.5, {|c:|}true);
+                }
+            }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
     public Task TestOneInlayTypeHintAsync(bool mutatingLspWorkspace)
-        => RunVerifyInlayHintAsync(@"class A
-{
-    void M()
-    {
-        var {|int:|}x = 5;
-    }
-}", mutatingLspWorkspace);
+        => RunVerifyInlayHintAsync("""
+            class A
+            {
+                void M()
+                {
+                    var {|int:|}x = 5;
+                }
+            }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
     public Task TestMultipleInlayTypeHintsAsync(bool mutatingLspWorkspace)
-        => RunVerifyInlayHintAsync(@"using System;
-class A
-{
-    void M()
-    {
-        var {|int:|}x = 5;
-        var {|object:|}obj = new Object();
-    }
-}", mutatingLspWorkspace);
+        => RunVerifyInlayHintAsync("""
+            using System;
+            class A
+            {
+                void M()
+                {
+                    var {|int:|}x = 5;
+                    var {|object:|}obj = new Object();
+                }
+            }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
     public Task TestInlayTypeHintsDeconstructAsync(bool mutatingLspWorkspace)
-        => RunVerifyInlayHintAsync(@"class A
-{
-    void X((int, bool) d)
-    {
-        var (i, b) = d;
-    }
-}", mutatingLspWorkspace, hasTextEdits: false);
+        => RunVerifyInlayHintAsync("""
+            class A
+            {
+                void X((int, bool) d)
+                {
+                    var (i, b) = d;
+                }
+            }
+            """, mutatingLspWorkspace, hasTextEdits: false);
 
     [Theory, CombinatorialData]
     public async Task TestReturnsInlayHintsEvenIfCacheMisses(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        var {|int:|}x = 5;
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    var {|int:|}x = 5;
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
         testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.CSharp, true);
         testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(InlineHintsOptionsStorage.EnabledForTypes, LanguageNames.CSharp, true);

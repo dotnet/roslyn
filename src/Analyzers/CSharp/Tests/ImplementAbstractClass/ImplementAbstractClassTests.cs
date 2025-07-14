@@ -2233,30 +2233,34 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
     [InlineData(" where T : struct", "T?")]
     public Task TestUnconstrainedGenericNullable_NoRegression(string constraint, string passToBase)
         => TestAllOptionsOffAsync(
-$@"#nullable enable
+            $$"""
+            #nullable enable
 
-abstract class B<T>
-{{
-    public abstract T? M();
-}}
+            abstract class B<T>
+            {
+                public abstract T? M();
+            }
 
-class [|D<T>|] : B<{passToBase}>{constraint}
-{{
-}}",
-$@"#nullable enable
+            class [|D<T>|] : B<{{passToBase}}>{{constraint}}
+            {
+            }
+            """,
+            $$"""
+            #nullable enable
 
-abstract class B<T>
-{{
-    public abstract T? M();
-}}
+            abstract class B<T>
+            {
+                public abstract T? M();
+            }
 
-class D<T> : B<{passToBase}>{constraint}
-{{
-    public override T? M()
-    {{
-        throw new System.NotImplementedException();
-    }}
-}}");
+            class D<T> : B<{{passToBase}}>{{constraint}}
+            {
+                public override T? M()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53012")]
     public Task TestNullableGenericType()

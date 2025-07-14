@@ -1044,19 +1044,21 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                  $"a{@$"{1:000}"}"
                  """)]
     public Task TestInliningOfInterpolatedString(string before, string after)
-        => VerifyCS.VerifyRefactoringAsync($@"
-class C
-{{
-    void M() {{
-        _ = {before};
-    }}
-}}", $@"
-class C
-{{
-    void M() {{
-        _ = {after};
-    }}
-}}");
+        => VerifyCS.VerifyRefactoringAsync($$"""
+            class C
+            {
+                void M() {
+                    _ = {{before}};
+                }
+            }
+            """, $$"""
+            class C
+            {
+                void M() {
+                    _ = {{after}};
+                }
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/49229")]
     [InlineData("""

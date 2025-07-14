@@ -40,19 +40,20 @@ public sealed class ExplicitInterfaceTypeCompletionProviderTests : AbstractCShar
     [InlineData("record struct")]
     public async Task TestAtStartOfRecord(string record)
     {
-        var markup = $@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""Preview"">
-        <Document>
-using System.Collections;
+        var markup = $$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" LanguageVersion="Preview">
+                    <Document>
+            using System.Collections;
 
-{record} C : IList
-{{
-    int $$
-}}
-        </Document>
-    </Project>
-</Workspace>";
+            {{record}} C : IList
+            {
+                int $$
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
 
         await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
         await VerifyItemExistsAsync(markup, "IEnumerable");

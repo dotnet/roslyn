@@ -62,14 +62,18 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
             // Makes a string of form "{0} {1}..."
             static string MakeInterpolatedString(int numberOfParameters)
             {
-                var interpolatedString = "\"";
+                var interpolatedString = """
+                    "
+                    """;
 
                 for (var i = 0; i < numberOfParameters; i++)
                 {
                     interpolatedString += $"{{{i}}}";
                 }
 
-                return interpolatedString + "\"";
+                return interpolatedString + """
+                    "
+                    """;
             }
 
             // Makes a string of form "{0} {1}..., 0, 1, ..."

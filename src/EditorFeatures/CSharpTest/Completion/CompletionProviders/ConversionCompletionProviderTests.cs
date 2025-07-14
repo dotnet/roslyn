@@ -142,21 +142,21 @@ public sealed class ConversionCompletionProviderTests : AbstractCSharpCompletion
             ? (markup, expectedItem) => VerifyItemExistsAsync(markup, expectedItem, displayTextPrefix: "(", displayTextSuffix: ")")
             : (markup, expectedItem) => VerifyItemIsAbsentAsync(markup, expectedItem, displayTextPrefix: "(", displayTextSuffix: ")");
 
-        await verifyFunc(@$"
-public class C
-{{
-    public static explicit operator float(C c) => 0;
-}}
+        await verifyFunc($$"""
+            public class C
+            {
+                public static explicit operator float(C c) => 0;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        {expression}
-    }}
-}}
-", "float");
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    {{expression}}
+                }
+            }
+            """, "float");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -201,41 +201,41 @@ public class Program
     [InlineData("using N1.Nested1;using N1.Nested2;", "Nested1.C", "Nested2.C")]
     public async Task ExplicitUserDefinedConversionTypeDisplayStringIsMinimal(string usingDirective, string displayText1, string displayText2)
     {
-        var items = await GetCompletionItemsAsync(@$"
-namespace N1.Nested1
-{{
-    public class C
-    {{
-    }}
-}}
+        var items = await GetCompletionItemsAsync($$"""
+            namespace N1.Nested1
+            {
+                public class C
+                {
+                }
+            }
 
-namespace N1.Nested2
-{{
-    public class C
-    {{
-    }}
-}}
-namespace N2
-{{
-    public class Conversion
-    {{
-        public static explicit operator N1.Nested1.C(Conversion _) => new N1.Nested1.C();
-        public static explicit operator N1.Nested2.C(Conversion _) => new N1.Nested2.C();
-    }}
-}}
-namespace N1
-{{
-    {usingDirective}
-    public class Test
-    {{
-        public void M()
-        {{
-            var conversion = new N2.Conversion();
-            conversion.$$
-        }}
-    }}
-}}
-", SourceCodeKind.Regular);
+            namespace N1.Nested2
+            {
+                public class C
+                {
+                }
+            }
+            namespace N2
+            {
+                public class Conversion
+                {
+                    public static explicit operator N1.Nested1.C(Conversion _) => new N1.Nested1.C();
+                    public static explicit operator N1.Nested2.C(Conversion _) => new N1.Nested2.C();
+                }
+            }
+            namespace N1
+            {
+                {{usingDirective}}
+                public class Test
+                {
+                    public void M()
+                    {
+                        var conversion = new N2.Conversion();
+                        conversion.$$
+                    }
+                }
+            }
+            """, SourceCodeKind.Regular);
         Assert.Collection(items,
             i => Assert.Equal(displayText1, i.DisplayText),
             i => Assert.Equal(displayText2, i.DisplayText));
@@ -421,16 +421,16 @@ namespace N1
     {
         // built-in numeric conversions:
         // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
-        var items = await GetCompletionItemsAsync(@$"
-public class Program
-{{
-    public static void Main()
-    {{
-        {fromType} i = default({fromType});
-        i.$$
-    }}
-}}
-", SourceCodeKind.Regular);
+        var items = await GetCompletionItemsAsync($$"""
+            public class Program
+            {
+                public static void Main()
+                {
+                    {{fromType}} i = default({{fromType}});
+                    i.$$
+                }
+            }
+            """, SourceCodeKind.Regular);
         AssertEx.SetEqual(items.Select(i => i.DisplayText), toTypes);
     }
 
@@ -451,8 +451,10 @@ public class Program
             glyph: Glyph.OperatorPublic,
             matchingFilters: [FilterSet.OperatorFilter],
             expectedDescriptionOrNull:
-$@"int.explicit operator byte(int value)
-{(FormatExplicitConversionDescription(fromType: "int", toType: "byte"))}");
+            $"""
+            int.explicit operator byte(int value)
+            {(FormatExplicitConversionDescription(fromType: "int", toType: "byte"))}
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -472,8 +474,10 @@ $@"int.explicit operator byte(int value)
             glyph: Glyph.OperatorPublic,
             matchingFilters: [FilterSet.OperatorFilter],
             expectedDescriptionOrNull:
-$@"int.explicit operator byte?(int? value)
-{(FormatExplicitConversionDescription(fromType: "int", toType: "byte"))}");
+            $"""
+            int.explicit operator byte?(int? value)
+            {(FormatExplicitConversionDescription(fromType: "int", toType: "byte"))}
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -514,8 +518,10 @@ $@"int.explicit operator byte?(int? value)
             glyph: Glyph.OperatorPublic,
             matchingFilters: [FilterSet.OperatorFilter],
             expectedDescriptionOrNull:
-$@"E.explicit operator int(E value)
-{FormatExplicitConversionDescription("E", "int")}");
+            $"""
+            E.explicit operator int(E value)
+            {FormatExplicitConversionDescription("E", "int")}
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -536,8 +542,10 @@ $@"E.explicit operator int(E value)
             glyph: Glyph.OperatorPublic,
             matchingFilters: [FilterSet.OperatorFilter],
             expectedDescriptionOrNull:
-$@"E.explicit operator int?(E? value)
-{(FormatExplicitConversionDescription(fromType: "E", toType: "int"))}");
+            $"""
+            E.explicit operator int?(E? value)
+            {(FormatExplicitConversionDescription(fromType: "E", toType: "int"))}
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -564,8 +572,10 @@ $@"E.explicit operator int?(E? value)
             glyph: Glyph.OperatorPublic,
             matchingFilters: [FilterSet.OperatorFilter],
             expectedDescriptionOrNull:
-@$"B.E.explicit operator int(B.E value)
-{FormatExplicitConversionDescription("B.E", "int")}");
+            $"""
+            B.E.explicit operator int(B.E value)
+            {FormatExplicitConversionDescription("B.E", "int")}
+            """);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -579,17 +589,17 @@ $@"E.explicit operator int?(E? value)
         Func<string, Task> verifyFunc = conversionIsOffered
             ? markup => VerifyItemExistsAsync(markup, "int", displayTextPrefix: "(", displayTextSuffix: ")")
             : markup => VerifyNoItemsExistAsync(markup);
-        await verifyFunc(@$"
-public enum E {{ One }}
-public class Program
-{{
-    public static void Main()
-    {{
-        var e = E.One;
-        {expression}
-    }}
-}}
-");
+        await verifyFunc($$"""
+            public enum E { One }
+            public class Program
+            {
+                public static void Main()
+                {
+                    var e = E.One;
+                    {{expression}}
+                }
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -615,17 +625,17 @@ public class Program
     [InlineData("C", "byte")]
     [InlineData("byte", "C")]
     public Task ExplicitBuiltinConversionWithAlias(string fromType, string expected)
-        => VerifyItemExistsAsync(@$"
-using C = System.Char;
-public class Program
-{{
-    public static void Main()
-    {{
-        var test = new {fromType}();
-        var i = test.$$
-    }}
-}}
-", expected, displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.OperatorPublic, matchingFilters: [FilterSet.OperatorFilter]);
+        => VerifyItemExistsAsync($$"""
+            using C = System.Char;
+            public class Program
+            {
+                public static void Main()
+                {
+                    var test = new {{fromType}}();
+                    var i = test.$$
+                }
+            }
+            """, expected, displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.OperatorPublic, matchingFilters: [FilterSet.OperatorFilter]);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     public async Task TestEditorBrowsableOnConversionIsRespected_EditorBrowsableStateNever()

@@ -40,15 +40,15 @@ public sealed partial class FormattingTests : TestBase
     [Fact]
     public void TestVisualBasicFormatting()
     {
-        AssertFormatVB(@"
-Public Class C
-    Public X As Integer
-End Class
-", @"
-Public Class C
-Public X As Integer
-End Class
-");
+        AssertFormatVB("""
+            Public Class C
+                Public X As Integer
+            End Class
+            """, """
+            Public Class C
+            Public X As Integer
+            End Class
+            """);
     }
 
     [Fact]

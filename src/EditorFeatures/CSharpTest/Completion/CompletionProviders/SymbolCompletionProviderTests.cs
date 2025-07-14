@@ -3943,8 +3943,8 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             class C { }
             $$
             """,
-"value",
-expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+            "value",
+            expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
     [Fact]
     public Task ValueNotAfterGlobalStatement_Interactive()
@@ -3953,8 +3953,8 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             System.Console.WriteLine();
             $$
             """,
-"value",
-expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+            "value",
+            expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
     [Fact]
     public Task ValueNotAfterGlobalVariableDeclaration_Interactive()
@@ -3963,8 +3963,8 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             int i = 0;
             $$
             """,
-"value",
-expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+            "value",
+            expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
     [Fact]
     public Task ValueNotInUsingAlias()
@@ -3987,7 +3987,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                   set {
                     $$
             """,
-"value");
+            "value");
 
     [Fact]
     public Task ValueInsideAdder()
@@ -3998,7 +3998,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                   add {
                     $$
             """,
-"value");
+            "value");
 
     [Fact]
     public Task ValueInsideRemover()
@@ -4009,7 +4009,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                   remove {
                     $$
             """,
-"value");
+            "value");
 
     [Fact]
     public Task ValueNotAfterDot()
@@ -4020,7 +4020,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                   set {
                     this.$$
             """,
-"value");
+            "value");
 
     [Fact]
     public Task ValueNotAfterArrow()
@@ -4031,7 +4031,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                   set {
                     a->$$
             """,
-"value");
+            "value");
 
     [Fact]
     public Task ValueNotAfterColonColon()
@@ -4042,7 +4042,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                   set {
                     a::$$
             """,
-"value");
+            "value");
 
     [Fact]
     public Task ValueNotInGetter()
@@ -4053,7 +4053,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                   get {
                     $$
             """,
-"value");
+            "value");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
     public Task NotAfterNullableType()
@@ -4064,7 +4064,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     int goo = 0;
                     C? $$
             """,
-"goo");
+            "goo");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
     public Task NotAfterNullableTypeAlias()
@@ -4076,7 +4076,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     int goo = 0;
                     A? $$
             """,
-"goo");
+            "goo");
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
@@ -4088,7 +4088,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     int goo = 0;
                     C? f$$
             """,
-"goo");
+            "goo");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
     public Task AfterQuestionMarkInConditional()
@@ -4100,7 +4100,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     int goo = 0;
                     b? $$
             """,
-"goo");
+            "goo");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
     public Task AfterQuestionMarkAndPartialIdentifierInConditional()
@@ -4112,7 +4112,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     int goo = 0;
                     b? f$$
             """,
-"goo");
+            "goo");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
     public Task NotAfterPointerType()
@@ -4123,7 +4123,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     int goo = 0;
                     C* $$
             """,
-"goo");
+            "goo");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
     public Task NotAfterPointerTypeAlias()
@@ -4135,7 +4135,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     int goo = 0;
                     A* $$
             """,
-"goo");
+            "goo");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
     public Task NotAfterPointerTypeAndPartialIdentifier()
@@ -4146,7 +4146,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     int goo = 0;
                     C* f$$
             """,
-"goo");
+            "goo");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
     public Task AfterAsteriskInMultiplication()
@@ -4158,7 +4158,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     int goo = 0;
                     i* $$
             """,
-"goo");
+            "goo");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
     public Task AfterAsteriskAndPartialIdentifierInMultiplication()
@@ -4170,7 +4170,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     int goo = 0;
                     i* f$$
             """,
-"goo");
+            "goo");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543868")]
     public Task AfterEventFieldDeclaredInSameType()
@@ -4181,7 +4181,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 void M() {
                     E.$$
             """,
-"Invoke");
+            "Invoke");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543868")]
     public Task NotAfterFullEventDeclaredInSameType()
@@ -4192,7 +4192,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 void M() {
                     E.$$
             """,
-"Invoke");
+            "Invoke");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543868")]
     public Task NotAfterEventDeclaredInDifferentType()
@@ -4202,7 +4202,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 void M() {
                     System.Console.CancelKeyPress.$$
             """,
-"Invoke");
+            "Invoke");
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]

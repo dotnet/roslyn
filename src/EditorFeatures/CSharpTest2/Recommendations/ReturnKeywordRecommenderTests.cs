@@ -374,8 +374,8 @@ public sealed class ReturnKeywordRecommenderTests : KeywordRecommenderTests
                     }
                 }
                 """,
-                CSharpNextParseOptions,
-                CSharpNextScriptParseOptions);
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
 
     [Fact]
     public Task TestWithinExtension2()
@@ -389,6 +389,6 @@ public sealed class ReturnKeywordRecommenderTests : KeywordRecommenderTests
                     }
                 }
                 """,
-                CSharpNextParseOptions,
-                CSharpNextScriptParseOptions);
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
 }

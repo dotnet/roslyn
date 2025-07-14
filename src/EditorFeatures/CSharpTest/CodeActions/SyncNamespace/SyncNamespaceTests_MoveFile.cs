@@ -25,19 +25,20 @@ public sealed partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var expectedFolders = new List<string[]>();
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-        await TestMoveFileToMatchNamespace($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]{declaredNamespace}
-{{    
-    class Class1
-    {{
-    }}
-}}  
-        </Document>
-    </Project>
-</Workspace>", expectedFolders);
+        await TestMoveFileToMatchNamespace($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            namespace [||]{{declaredNamespace}}
+            {    
+                class Class1
+                {
+                }
+            }  
+                    </Document>
+                </Project>
+            </Workspace>
+            """, expectedFolders);
     }
 
     [Fact]
@@ -50,18 +51,19 @@ namespace [||]{declaredNamespace}
         var expectedFolders = new List<string[]>();
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-        await TestMoveFileToMatchNamespace($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]{declaredNamespace};
+        await TestMoveFileToMatchNamespace($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            namespace [||]{{declaredNamespace}};
 
-class Class1
-{{
-}}  
-        </Document>
-    </Project>
-</Workspace>", expectedFolders);
+            class Class1
+            {
+            }  
+                    </Document>
+                </Project>
+            </Workspace>
+            """, expectedFolders);
     }
 
     [Fact]
@@ -79,19 +81,20 @@ class Class1
         };
 
         var (folder, filePath) = CreateDocumentFilePath([]);
-        await TestMoveFileToMatchNamespace($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]{declaredNamespace}
-{{    
-    class Class1
-    {{
-    }}
-}}  
-        </Document>
-    </Project>
-</Workspace>", expectedFolders);
+        await TestMoveFileToMatchNamespace($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            namespace [||]{{declaredNamespace}}
+            {    
+                class Class1
+                {
+                }
+            }  
+                    </Document>
+                </Project>
+            </Workspace>
+            """, expectedFolders);
     }
 
     [Fact]
@@ -110,27 +113,28 @@ namespace [||]{declaredNamespace}
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath(["B", "C"], "File2.cs");   // file2 is in <root>\B\C\
-        await TestMoveFileToMatchNamespace($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]{declaredNamespace}
-{{    
-    class Class1
-    {{
-    }}
-}}  
-        </Document>        
-        <Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-namespace Foo
-{{    
-    class Class2
-    {{
-    }}
-}}  
-        </Document>  
-    </Project>
-</Workspace>", expectedFolders);
+        await TestMoveFileToMatchNamespace($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            namespace [||]{{declaredNamespace}}
+            {    
+                class Class1
+                {
+                }
+            }  
+                    </Document>        
+                    <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}"> 
+            namespace Foo
+            {    
+                class Class2
+                {
+                }
+            }  
+                    </Document>  
+                </Project>
+            </Workspace>
+            """, expectedFolders);
     }
 
     [Fact]
@@ -147,20 +151,21 @@ namespace Foo
         };
 
         var (folder, filePath) = CreateDocumentFilePath(["A", "B", "C"]);
-        await TestMoveFileToMatchNamespace($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}"">   
-class [||]Class1
-{{
-}}
+        await TestMoveFileToMatchNamespace($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}">   
+            class [||]Class1
+            {
+            }
 
-class Class2
-{{
-}}
-        </Document>
-    </Project>
-</Workspace>", expectedFolders);
+            class Class2
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, expectedFolders);
     }
 
     [Fact]
@@ -182,27 +187,28 @@ class Class2
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath(["B.C"], "File2.cs");   // file2 is in <root>\B.C\
-        await TestMoveFileToMatchNamespace($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]{declaredNamespace}
-{{    
-    class Class1
-    {{
-    }}
-}}  
-        </Document>        
-        <Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-namespace Foo
-{{    
-    class Class2
-    {{
-    }}
-}}  
-        </Document>  
-    </Project>
-</Workspace>", expectedFolders);
+        await TestMoveFileToMatchNamespace($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            namespace [||]{{declaredNamespace}}
+            {    
+                class Class1
+                {
+                }
+            }  
+                    </Document>        
+                    <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}"> 
+            namespace Foo
+            {    
+                class Class2
+                {
+                }
+            }  
+                    </Document>  
+                </Project>
+            </Workspace>
+            """, expectedFolders);
     }
 
     [Fact]
@@ -227,35 +233,36 @@ namespace Foo
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath(["B", "C.D"], "File2.cs");   // file2 is in <root>\B\C.D\
         var documentPath3 = CreateDocumentFilePath(["B.C"], "File3.cs");   // file3 is in <root>\B.C\
-        await TestMoveFileToMatchNamespace($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]{declaredNamespace}
-{{    
-    class Class1
-    {{
-    }}
-}}  
-        </Document>        
-        <Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-namespace Foo
-{{    
-    class Class2
-    {{
-    }}
-}}  
-        </Document>      
-        <Document Folders=""{documentPath3.folder}"" FilePath=""{documentPath3.filePath}""> 
-namespace Foo
-{{    
-    class Class2
-    {{
-    }}
-}}  
-        </Document>  
-    </Project>
-</Workspace>", expectedFolders);
+        await TestMoveFileToMatchNamespace($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            namespace [||]{{declaredNamespace}}
+            {    
+                class Class1
+                {
+                }
+            }  
+                    </Document>        
+                    <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}"> 
+            namespace Foo
+            {    
+                class Class2
+                {
+                }
+            }  
+                    </Document>      
+                    <Document Folders="{{documentPath3.folder}}" FilePath="{{documentPath3.filePath}}"> 
+            namespace Foo
+            {    
+                class Class2
+                {
+                }
+            }  
+                    </Document>  
+                </Project>
+            </Workspace>
+            """, expectedFolders);
     }
 
     [Fact]
@@ -272,27 +279,28 @@ namespace Foo
 
         var (folder, filePath) = CreateDocumentFilePath(["B.C"], "File1.cs");                          // file1 is in <root>\B.C\
         var documentPath2 = CreateDocumentFilePath(["B", "Foo"], "File2.cs");   // file2 is in <root>\B\Foo\
-        await TestMoveFileToMatchNamespace($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]{declaredNamespace}
-{{    
-    class Class1
-    {{
-    }}
-}}  
-        </Document>        
-        <Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-namespace Foo
-{{    
-    class Class2
-    {{
-    }}
-}}  
-        </Document>  
-    </Project>
-</Workspace>", expectedFolders);
+        await TestMoveFileToMatchNamespace($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            namespace [||]{{declaredNamespace}}
+            {    
+                class Class1
+                {
+                }
+            }  
+                    </Document>        
+                    <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}"> 
+            namespace Foo
+            {    
+                class Class2
+                {
+                }
+            }  
+                    </Document>  
+                </Project>
+            </Workspace>
+            """, expectedFolders);
     }
 
     [Fact]
@@ -308,27 +316,28 @@ namespace Foo
 
         var (folder, filePath) = CreateDocumentFilePath(["Foo.Bar", "Baz"], "File1.cs");  // file1 is in <root>\Foo.Bar\Baz\
         var documentPath2 = CreateDocumentFilePath(["B", "Foo"], "File2.cs");   // file2 is in <root>\B\Foo\
-        await TestMoveFileToMatchNamespace($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]{declaredNamespace}
-{{    
-    class Class1
-    {{
-    }}
-}}  
-        </Document>        
-        <Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-namespace Foo
-{{    
-    class Class2
-    {{
-    }}
-}}  
-        </Document>  
-    </Project>
-</Workspace>", expectedFolders);
+        await TestMoveFileToMatchNamespace($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            namespace [||]{{declaredNamespace}}
+            {    
+                class Class1
+                {
+                }
+            }  
+                    </Document>        
+                    <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}"> 
+            namespace Foo
+            {    
+                class Class2
+                {
+                }
+            }  
+                    </Document>  
+                </Project>
+            </Workspace>
+            """, expectedFolders);
     }
 
     [Fact]
@@ -344,24 +353,25 @@ namespace Foo
 
         var (folder, filePath) = CreateDocumentFilePath(["Foo.Bar", "Baz"], "File1.cs");  // file1 is in <root>\Foo.Bar\Baz\
         var documentPath2 = CreateDocumentFilePath(["B", "Foo"], "File2.cs");   // file2 is in <root>\B\Foo\
-        await TestMoveFileToMatchNamespace($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]{declaredNamespace};
+        await TestMoveFileToMatchNamespace($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            namespace [||]{{declaredNamespace}};
 
-class Class1
-{{
-}}  
-        </Document>        
-        <Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-namespace Foo;
+            class Class1
+            {
+            }  
+                    </Document>        
+                    <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}"> 
+            namespace Foo;
 
-class Class2
-{{
-}}  
-        </Document>  
-    </Project>
-</Workspace>", expectedFolders);
+            class Class2
+            {
+            }  
+                    </Document>  
+                </Project>
+            </Workspace>
+            """, expectedFolders);
     }
 }

@@ -31,205 +31,205 @@ public sealed class FormattingAnalyzerTests
 
     [Fact]
     public Task TestMissingSpace()
-        => Verify.VerifyCodeFixAsync(@"
-class TypeName
-{
-    void Method()
-    {
-        if[||](true)[||]return;
-    }
-}
-", @"
-class TypeName
-{
-    void Method()
-    {
-        if (true) return;
-    }
-}
-");
+        => Verify.VerifyCodeFixAsync("""
+            class TypeName
+            {
+                void Method()
+                {
+                    if[||](true)[||]return;
+                }
+            }
+            """, """
+            class TypeName
+            {
+                void Method()
+                {
+                    if (true) return;
+                }
+            }
+            """);
 
     [Fact]
     public Task TestAlreadyFormatted()
-        => Verify.VerifyAnalyzerAsync(@"
-class MyClass
-{
-    void MyMethod()
-    {
-    }
-}
-");
+        => Verify.VerifyAnalyzerAsync("""
+            class MyClass
+            {
+                void MyMethod()
+                {
+                }
+            }
+            """);
 
     [Fact]
     public Task TestNeedsIndentation()
-        => Verify.VerifyCodeFixAsync(@"
-class MyClass
-{
-  $$void MyMethod()
-  $${
-  $$}
-}
-", @"
-class MyClass
-{
-    void MyMethod()
-    {
-    }
-}
-");
+        => Verify.VerifyCodeFixAsync("""
+            class MyClass
+            {
+              $$void MyMethod()
+              $${
+              $$}
+            }
+            """, """
+            class MyClass
+            {
+                void MyMethod()
+                {
+                }
+            }
+            """);
 
     [Fact]
     public Task TestNeedsIndentationButSuppressed()
-        => Verify.VerifyCodeFixAsync(@"
-class MyClass
-{
-  $$void MyMethod1()
-  $${
-  $$}
+        => Verify.VerifyCodeFixAsync("""
+            class MyClass
+            {
+              $$void MyMethod1()
+              $${
+              $$}
 
-#pragma warning disable format
-		void MyMethod2()
-  {
-  }
-#pragma warning restore format
+            #pragma warning disable format
+            		void MyMethod2()
+              {
+              }
+            #pragma warning restore format
 
-  void MyMethod3()
-  $${
-  $$}
-}
-", @"
-class MyClass
-{
-    void MyMethod1()
-    {
-    }
+              void MyMethod3()
+              $${
+              $$}
+            }
+            """, """
+            class MyClass
+            {
+                void MyMethod1()
+                {
+                }
 
-#pragma warning disable format
-		void MyMethod2()
-  {
-  }
-#pragma warning restore format
+            #pragma warning disable format
+            		void MyMethod2()
+              {
+              }
+            #pragma warning restore format
 
-  void MyMethod3()
-    {
-    }
-}
-");
+              void MyMethod3()
+                {
+                }
+            }
+            """);
 
     [Fact]
     public Task TestWhitespaceBetweenMethods1()
-        => Verify.VerifyCodeFixAsync(@"
-class MyClass
-{
-    void MyMethod1()
-    {
-    }
-[| |]
-    void MyMethod2()
-    {
-    }
-}
-", @"
-class MyClass
-{
-    void MyMethod1()
-    {
-    }
+        => Verify.VerifyCodeFixAsync("""
+            class MyClass
+            {
+                void MyMethod1()
+                {
+                }
+            [| |]
+                void MyMethod2()
+                {
+                }
+            }
+            """, """
+            class MyClass
+            {
+                void MyMethod1()
+                {
+                }
 
-    void MyMethod2()
-    {
-    }
-}
-");
+                void MyMethod2()
+                {
+                }
+            }
+            """);
 
     [Fact]
     public Task TestWhitespaceBetweenMethods2()
-        => Verify.VerifyCodeFixAsync(@"
-class MyClass
-{
-    void MyMethod1()
-    {
-    }[| |]
+        => Verify.VerifyCodeFixAsync("""
+            class MyClass
+            {
+                void MyMethod1()
+                {
+                }[| |]
 
-    void MyMethod2()
-    {
-    }
-}
-", @"
-class MyClass
-{
-    void MyMethod1()
-    {
-    }
+                void MyMethod2()
+                {
+                }
+            }
+            """, """
+            class MyClass
+            {
+                void MyMethod1()
+                {
+                }
 
-    void MyMethod2()
-    {
-    }
-}
-");
+                void MyMethod2()
+                {
+                }
+            }
+            """);
 
     [Fact]
     public Task TestWhitespaceBetweenMethods3()
-        => Verify.VerifyCodeFixAsync(@"
-class MyClass
-{
-    void MyMethod1()
-    {
-    }[| 
- 
-    |]void MyMethod2()
-    {
-    }
-}
-", @"
-class MyClass
-{
-    void MyMethod1()
-    {
-    }
+        => Verify.VerifyCodeFixAsync("""
+            class MyClass
+            {
+                void MyMethod1()
+                {
+                }[| 
+                
+                |]void MyMethod2()
+                {
+                }
+            }
+            """, """
+            class MyClass
+            {
+                void MyMethod1()
+                {
+                }
 
-    void MyMethod2()
-    {
-    }
-}
-");
+                void MyMethod2()
+                {
+                }
+            }
+            """);
 
     [Fact]
     public Task TestOverIndentation()
-        => Verify.VerifyCodeFixAsync(@"
-class MyClass
-{
-    [|    |]void MyMethod()
-    [|    |]{
-    [|    |]}
-}
-", @"
-class MyClass
-{
-    void MyMethod()
-    {
-    }
-}
-");
+        => Verify.VerifyCodeFixAsync("""
+            class MyClass
+            {
+                [|    |]void MyMethod()
+                [|    |]{
+                [|    |]}
+            }
+            """, """
+            class MyClass
+            {
+                void MyMethod()
+                {
+                }
+            }
+            """);
 
     [Fact]
     public Task TestIncrementalFixesFullLine()
         => new Verify.Test
         {
-            TestCode = @"
-class MyClass
-{
-    int Property1$${$$get;$$set;$$}
-    int Property2$${$$get;$$}
-}
-",
-            FixedCode = @"
-class MyClass
-{
-    int Property1 { get; set; }
-    int Property2 { get; }
-}
-",
+            TestCode = """
+            class MyClass
+            {
+                int Property1$${$$get;$$set;$$}
+                int Property2$${$$get;$$}
+            }
+            """,
+            FixedCode = """
+            class MyClass
+            {
+                int Property1 { get; set; }
+                int Property2 { get; }
+            }
+            """,
 
             // Each application of a single code fix covers all diagnostics on the same line. In total, two lines
             // require changes so the number of incremental iterations is exactly 2.
@@ -239,19 +239,19 @@ class MyClass
     [Fact]
     public async Task TestEditorConfigUsed()
     {
-        var testCode = @"
-class MyClass {
-    void MyMethod()[| |]{
-    }
-}
-";
-        var fixedCode = @"
-class MyClass {
-    void MyMethod()
-    {
-    }
-}
-";
+        var testCode = """
+            class MyClass {
+                void MyMethod()[| |]{
+                }
+            }
+            """;
+        var fixedCode = """
+            class MyClass {
+                void MyMethod()
+                {
+                }
+            }
+            """;
         await new Verify.Test
         {
             TestState =
@@ -259,11 +259,11 @@ class MyClass {
                 Sources = { testCode },
                 AnalyzerConfigFiles =
                 {
-                    ("/.editorconfig", @"
-root = true
-[*.cs]
-csharp_new_line_before_open_brace = methods
-"),
+                    ("/.editorconfig", """
+                    root = true
+                    [*.cs]
+                    csharp_new_line_before_open_brace = methods
+                    """),
                 },
             },
             FixedState = { Sources = { fixedCode } },
@@ -273,154 +273,154 @@ csharp_new_line_before_open_brace = methods
     [Fact]
     public async Task TestRegion()
     {
-        var testCode = @"
-class MyClass
-{
-#if true
-    public void M()
-    {
-        #region ABC1
-        System.Console.WriteLine();
-        #endregion
-    }
-#else
-    public void M()
-    {
-        #region ABC2
-        System.Console.WriteLine();
-        #endregion
-    }
-#endif
-}
-";
+        var testCode = """
+            class MyClass
+            {
+            #if true
+                public void M()
+                {
+                    #region ABC1
+                    System.Console.WriteLine();
+                    #endregion
+                }
+            #else
+                public void M()
+                {
+                    #region ABC2
+                    System.Console.WriteLine();
+                    #endregion
+                }
+            #endif
+            }
+            """;
         await Verify.VerifyCodeFixAsync(testCode, testCode);
     }
 
     [Fact]
     public Task TestRegion2()
-        => Verify.VerifyCodeFixAsync(@"
-class MyClass
-{
-#if true
-    public void M()
-    {
-[||]#region OUTER1
-        #region ABC1
-        System.Console.WriteLine();
-        #endregion
-[||]#endregion
-    }
-#else
-    public void M()
-    {
-#region OUTER2
-        #region ABC2
-        System.Console.WriteLine();
-        #endregion
-#endregion
-    }
-#endif
-}
-", @"
-class MyClass
-{
-#if true
-    public void M()
-    {
-        #region OUTER1
-        #region ABC1
-        System.Console.WriteLine();
-        #endregion
-        #endregion
-    }
-#else
-    public void M()
-    {
-#region OUTER2
-        #region ABC2
-        System.Console.WriteLine();
-        #endregion
-#endregion
-    }
-#endif
-}
-");
+        => Verify.VerifyCodeFixAsync("""
+            class MyClass
+            {
+            #if true
+                public void M()
+                {
+            [||]#region OUTER1
+                    #region ABC1
+                    System.Console.WriteLine();
+                    #endregion
+            [||]#endregion
+                }
+            #else
+                public void M()
+                {
+            #region OUTER2
+                    #region ABC2
+                    System.Console.WriteLine();
+                    #endregion
+            #endregion
+                }
+            #endif
+            }
+            """, """
+            class MyClass
+            {
+            #if true
+                public void M()
+                {
+                    #region OUTER1
+                    #region ABC1
+                    System.Console.WriteLine();
+                    #endregion
+                    #endregion
+                }
+            #else
+                public void M()
+                {
+            #region OUTER2
+                    #region ABC2
+                    System.Console.WriteLine();
+                    #endregion
+            #endregion
+                }
+            #endif
+            }
+            """);
 
     [Fact]
     public Task TestRegion3()
-        => Verify.VerifyCodeFixAsync(@"
-class MyClass
-{
-#if true
-    public void M()
-    {
-[||]#region ABC1
-        System.Console.WriteLine();
-[||]#endregion
-    }
-#else
-    public void M()
-    {
-#region ABC2
-        System.Console.WriteLine();
-#endregion
-    }
-#endif
-}
-", @"
-class MyClass
-{
-#if true
-    public void M()
-    {
-        #region ABC1
-        System.Console.WriteLine();
-        #endregion
-    }
-#else
-    public void M()
-    {
-#region ABC2
-        System.Console.WriteLine();
-#endregion
-    }
-#endif
-}
-");
+        => Verify.VerifyCodeFixAsync("""
+            class MyClass
+            {
+            #if true
+                public void M()
+                {
+            [||]#region ABC1
+                    System.Console.WriteLine();
+            [||]#endregion
+                }
+            #else
+                public void M()
+                {
+            #region ABC2
+                    System.Console.WriteLine();
+            #endregion
+                }
+            #endif
+            }
+            """, """
+            class MyClass
+            {
+            #if true
+                public void M()
+                {
+                    #region ABC1
+                    System.Console.WriteLine();
+                    #endregion
+                }
+            #else
+                public void M()
+                {
+            #region ABC2
+                    System.Console.WriteLine();
+            #endregion
+                }
+            #endif
+            }
+            """);
 
     [Fact]
     public Task TestRegion4()
-        => Verify.VerifyCodeFixAsync(@"
-class MyClass
-{
-#if true
-    public void M()
-    {
-[||]#region ABC1
-        System.Console.WriteLine();
-[||]#endregion
-    }
-#else
-                        #region ABC2
-        public void M() { }
-                        #endregion
-#endif
-}
-", @"
-class MyClass
-{
-#if true
-    public void M()
-    {
-        #region ABC1
-        System.Console.WriteLine();
-        #endregion
-    }
-#else
-                        #region ABC2
-        public void M() { }
-                        #endregion
-#endif
-}
-");
+        => Verify.VerifyCodeFixAsync("""
+            class MyClass
+            {
+            #if true
+                public void M()
+                {
+            [||]#region ABC1
+                    System.Console.WriteLine();
+            [||]#endregion
+                }
+            #else
+                                    #region ABC2
+                    public void M() { }
+                                    #endregion
+            #endif
+            }
+            """, """
+            class MyClass
+            {
+            #if true
+                public void M()
+                {
+                    #region ABC1
+                    System.Console.WriteLine();
+                    #endregion
+                }
+            #else
+                                    #region ABC2
+                    public void M() { }
+                                    #endregion
+            #endif
+            }
+            """);
 }

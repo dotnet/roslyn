@@ -143,7 +143,7 @@ namespace Analyzer.Utilities
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation);
             return analyzerConfigOptions.GetOptionValue(
                 optionName, tree, rule,
-                tryParseValue: static (string value, out TEnum result) => Enum.TryParse(value, ignoreCase: true, result: out result),
+                tryParseValue: static (value, out result) => Enum.TryParse(value, ignoreCase: true, result: out result),
                 defaultValue: defaultValue);
         }
 

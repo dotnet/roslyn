@@ -37,8 +37,6 @@ public sealed class QuickInfoSection
     public static QuickInfoSection Create(string? kind, ImmutableArray<TaggedText> taggedParts)
         => new(kind, taggedParts);
 
-    private string? _text;
-
     /// <summary>
     /// The text of the section without tags.
     /// </summary>
@@ -46,19 +44,21 @@ public sealed class QuickInfoSection
     {
         get
         {
-            if (_text == null)
+            if (field == null)
             {
                 if (TaggedParts.Length == 0)
                 {
-                    _text = string.Empty;
+                    field = string.Empty;
                 }
                 else
                 {
-                    Interlocked.CompareExchange(ref _text, string.Concat(TaggedParts.Select(t => t.Text)), null);
+                    Interlocked.CompareExchange(ref field, string.Concat(TaggedParts.Select(t => t.Text)), null);
                 }
             }
 
-            return _text;
+            return field;
         }
+
+        private set;
     }
 }

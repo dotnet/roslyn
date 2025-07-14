@@ -234,6 +234,6 @@ public sealed class PropertyKeywordRecommenderTests : KeywordRecommenderTests
                     }
                 }
                 """,
-                CSharpNextParseOptions,
-                CSharpNextScriptParseOptions);
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
 }

@@ -18,84 +18,84 @@ public sealed class EnableNullableFixAllTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task EnableNullable_FixAllInSolution()
-        => TestInRegularAndScriptAsync(@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-{|FixAllInSolution:|}#nullable enable
+        => TestInRegularAndScriptAsync("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            {|FixAllInSolution:|}#nullable enable
 
-class Example
-{
-  string? value;
-}
-        </Document>
-        <Document>
-class Example2
-{
-  string value;
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Example3
-{
-#nullable enable
-  string? value;
-#nullable restore
-}
-        </Document>
-        <Document>
-#nullable disable
+            class Example
+            {
+              string? value;
+            }
+                    </Document>
+                    <Document>
+            class Example2
+            {
+              string value;
+            }
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document>
+            class Example3
+            {
+            #nullable enable
+              string? value;
+            #nullable restore
+            }
+                    </Document>
+                    <Document>
+            #nullable disable
 
-class Example4
-{
-  string value;
-}
-        </Document>
-    </Project>
-</Workspace>
-", @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            class Example4
+            {
+              string value;
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
 
-class Example
-{
-  string? value;
-}
-        </Document>
-        <Document>
-#nullable disable
+            class Example
+            {
+              string? value;
+            }
+                    </Document>
+                    <Document>
+            #nullable disable
 
-class Example2
-{
-  string value;
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-#nullable disable
+            class Example2
+            {
+              string value;
+            }
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document>
+            #nullable disable
 
-class Example3
-{
-#nullable restore
-  string? value;
-#nullable disable
-}
-        </Document>
-        <Document>
-#nullable disable
+            class Example3
+            {
+            #nullable restore
+              string? value;
+            #nullable disable
+            }
+                    </Document>
+                    <Document>
+            #nullable disable
 
-class Example4
-{
-  string value;
-}
-        </Document>
-    </Project>
-</Workspace>
-");
+            class Example4
+            {
+              string value;
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
 
     [Theory]
     [InlineData("FixAllInDocument")]
@@ -103,42 +103,42 @@ class Example4
     [InlineData("FixAllInContainingMember")]
     [InlineData("FixAllInContainingType")]
     public Task EnableNullable_UnsupportedFixAllScopes(string fixAllScope)
-        => TestMissingInRegularAndScriptAsync($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-{{|{fixAllScope}:|}}#nullable enable
+        => TestMissingInRegularAndScriptAsync($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            {|{{fixAllScope}}:|}#nullable enable
 
-class Example
-{{
-  string? value;
-}}
-        </Document>
-        <Document>
-class Example2
-{{
-  string value;
-}}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Example3
-{{
-#nullable enable
-  string? value;
-#nullable restore
-}}
-        </Document>
-        <Document>
-#nullable disable
+            class Example
+            {
+              string? value;
+            }
+                    </Document>
+                    <Document>
+            class Example2
+            {
+              string value;
+            }
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document>
+            class Example3
+            {
+            #nullable enable
+              string? value;
+            #nullable restore
+            }
+                    </Document>
+                    <Document>
+            #nullable disable
 
-class Example4
-{{
-  string value;
-}}
-        </Document>
-    </Project>
-</Workspace>
-");
+            class Example4
+            {
+              string value;
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
 }

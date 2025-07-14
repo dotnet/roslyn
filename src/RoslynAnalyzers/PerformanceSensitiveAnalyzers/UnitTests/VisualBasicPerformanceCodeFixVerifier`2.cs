@@ -14,31 +14,31 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
-        private const string PerformanceSensitiveAttributeSource = @"
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports System.Threading.Tasks
+        private const string PerformanceSensitiveAttributeSource = """
+            Imports System
+            Imports System.Collections.Generic
+            Imports System.Diagnostics
+            Imports System.Threading.Tasks
 
-Namespace Global.Roslyn.Utilities
-    <AttributeUsage(AttributeTargets.Constructor Or AttributeTargets.Method Or AttributeTargets.Property Or AttributeTargets.Field, AllowMultiple:=True, Inherited:=False)>
-    Friend NotInheritable Class PerformanceSensitiveAttribute
-        Inherits Attribute
+            Namespace Global.Roslyn.Utilities
+                <AttributeUsage(AttributeTargets.Constructor Or AttributeTargets.Method Or AttributeTargets.Property Or AttributeTargets.Field, AllowMultiple:=True, Inherited:=False)>
+                Friend NotInheritable Class PerformanceSensitiveAttribute
+                    Inherits Attribute
 
-        Public Sub New(uri As String)
-            Me.Uri = uri
-        End Sub
+                    Public Sub New(uri As String)
+                        Me.Uri = uri
+                    End Sub
 
-        Public ReadOnly Property Uri As String
-        Public Property Constraint As String
-        Public Property AllowCaptures As Boolean
-        Public Property AllowGenericEnumeration As Boolean
-        Public Property AllowLocks As Boolean
-        Public Property OftenCompletesSynchronously As Boolean
-        Public Property IsParallelEntry As Boolean
-    End Class
-End Namespace
-";
+                    Public ReadOnly Property Uri As String
+                    Public Property Constraint As String
+                    Public Property AllowCaptures As Boolean
+                    Public Property AllowGenericEnumeration As Boolean
+                    Public Property AllowLocks As Boolean
+                    Public Property OftenCompletesSynchronously As Boolean
+                    Public Property IsParallelEntry As Boolean
+                End Class
+            End Namespace
+            """;
 
         public static DiagnosticResult Diagnostic()
             => VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix, DefaultVerifier>.Diagnostic();

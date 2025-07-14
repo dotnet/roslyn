@@ -167,25 +167,26 @@ namespace Metrics
 
             static ErrorCode usage()
             {
-                Console.WriteLine(@"
-Usage: Metrics.exe <arguments>
+                Console.WriteLine("""
+                    Usage: Metrics.exe <arguments>
 
-Help for command-line arguments:
+                    Help for command-line arguments:
 
-/project:<project-file>  [Short form: /p:<project-file>]
-Project(s) to analyze.
+                    /project:<project-file>  [Short form: /p:<project-file>]
+                    Project(s) to analyze.
 
-/solution:<solution-file>  [Short form: /s:<solution-file>]
-Solution(s) to analyze.
+                    /solution:<solution-file>  [Short form: /s:<solution-file>]
+                    Solution(s) to analyze.
 
-/out:<file>  [Short form: /o:<file>]
-Metrics results XML output file.
+                    /out:<file>  [Short form: /o:<file>]
+                    Metrics results XML output file.
 
-/quiet  [Short form: /q]
-Silence all console output other than error reporting.
+                    /quiet  [Short form: /q]
+                    Silence all console output other than error reporting.
 
-/help  [Short form: /?]
-Display this help message.");
+                    /help  [Short form: /?]
+                    Display this help message.
+                    """);
                 return ErrorCode.Usage;
             }
 

@@ -15,205 +15,239 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
 {
     [Fact]
     public Task MoveType_ActionCounts_RenameOnly()
-        => TestActionCountAsync(@"namespace N1
-{
-    class Class1[||]
-    {
-    }
-}", count: 2);
+        => TestActionCountAsync("""
+            namespace N1
+            {
+                class Class1[||]
+                {
+                }
+            }
+            """, count: 2);
 
     [Fact]
     public Task MoveType_AvailableBeforeHeader()
-        => TestActionCountAsync(@"namespace N1
-{
-    [||]
-    class Class1
-    {
-    }
-}", count: 2);
+        => TestActionCountAsync("""
+            namespace N1
+            {
+                [||]
+                class Class1
+                {
+                }
+            }
+            """, count: 2);
 
     [Fact]
     public Task MoveType_AvailableBeforeAttributeOnHeader()
-        => TestActionCountAsync(@"namespace N1
-{
-    [||][X]
-    class Class1
-    {
-    }
-}", count: 2);
+        => TestActionCountAsync("""
+            namespace N1
+            {
+                [||][X]
+                class Class1
+                {
+                }
+            }
+            """, count: 2);
 
     [Fact]
     public Task MoveType_AvailableOnHeaderIncludingWhitespaceAndAttribute()
-        => TestActionCountAsync(@"namespace N1
-{[|
-    [X]
-    class Class1
-    {|]
-    }
-}", count: 2);
+        => TestActionCountAsync("""
+            namespace N1
+            {[|
+                [X]
+                class Class1
+                {|]
+                }
+            }
+            """, count: 2);
 
     [Fact]
     public Task MoveType_AvailableAfterHeader()
-        => TestActionCountAsync(@"namespace N1
-{
-    class Class1
-    [||]{
-    }
-}", count: 2);
+        => TestActionCountAsync("""
+            namespace N1
+            {
+                class Class1
+                [||]{
+                }
+            }
+            """, count: 2);
 
     [Fact]
     public Task MoveType_AvailableIncludingDocumentationCommentAndHeader()
-        => TestActionCountAsync(@"namespace N1
-{
-    [|/// <summary>
-    /// Documentation comment.
-    /// </summary>
-    class Class1|]
-    {
-    }
-}", count: 2);
+        => TestActionCountAsync("""
+            namespace N1
+            {
+                [|/// <summary>
+                /// Documentation comment.
+                /// </summary>
+                class Class1|]
+                {
+                }
+            }
+            """, count: 2);
 
     [Fact]
     public Task MoveType_AvailableIncludingDocumentationCommentAndAttributeAndHeader()
-        => TestActionCountAsync(@"using System;
-namespace N1
-{
-    [|/// <summary>
-    /// Documentation comment.
-    /// </summary>
-    [Obsolete]
-    class Class1|]
-    {
-    }
-}", count: 2);
+        => TestActionCountAsync("""
+            using System;
+            namespace N1
+            {
+                [|/// <summary>
+                /// Documentation comment.
+                /// </summary>
+                [Obsolete]
+                class Class1|]
+                {
+                }
+            }
+            """, count: 2);
 
     [Fact]
     public Task MoveType_NotAvailableBeforeType()
-        => TestMissingInRegularAndScriptAsync(@"[|namespace N1
-{|]
-    class Class1
-    {
-    }
-}");
+        => TestMissingInRegularAndScriptAsync("""
+            [|namespace N1
+            {|]
+                class Class1
+                {
+                }
+            }
+            """);
 
     [Fact]
     public Task MoveType_NotAvailableInsideType()
-        => TestMissingInRegularAndScriptAsync(@"namespace N1
-{
-    class Class1
-    {[|
-        void M()
-        {
-        }|]
-    }
-}");
+        => TestMissingInRegularAndScriptAsync("""
+            namespace N1
+            {
+                class Class1
+                {[|
+                    void M()
+                    {
+                    }|]
+                }
+            }
+            """);
 
     [Fact]
     public Task MoveType_NotAvailableAfterType()
-        => TestMissingInRegularAndScriptAsync(@"namespace N1
-{
-    class Class1
-    {
-        void M()
-        {
-        }
-    }
+        => TestMissingInRegularAndScriptAsync("""
+            namespace N1
+            {
+                class Class1
+                {
+                    void M()
+                    {
+                    }
+                }
 
-    [|class test1|]
-    {
-    }
-}");
+                [|class test1|]
+                {
+                }
+            }
+            """);
 
     [Fact]
     public Task MoveType_NotAvailableAroundDocumentationCommentAboveHeader()
-        => TestMissingInRegularAndScriptAsync(@"namespace N1
-{
-    [|/// <summary>
-    /// Documentation comment.
-    /// </summary>|]
-    class Class1
-    {
-    }
-}");
+        => TestMissingInRegularAndScriptAsync("""
+            namespace N1
+            {
+                [|/// <summary>
+                /// Documentation comment.
+                /// </summary>|]
+                class Class1
+                {
+                }
+            }
+            """);
 
     [Fact]
     public Task MoveType_NotAvailableAroundAttributeAboveHeader()
-        => TestMissingInRegularAndScriptAsync(@"using System;
-namespace N1
-{
-    [|[Obsolete]|]
-    class Class1
-    {
-    }
-}");
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            namespace N1
+            {
+                [|[Obsolete]|]
+                class Class1
+                {
+                }
+            }
+            """);
 
     [Fact]
     public Task MoveType_NotAvailableAroundDocumentationCommentAndAttributeAboveHeader()
-        => TestMissingInRegularAndScriptAsync(@"using System;
-namespace N1
-{
-    [|/// <summary>
-    /// Documentation comment.
-    /// </summary>
-    [Obsolete]|]
-    class Class1
-    {
-    }
-}");
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            namespace N1
+            {
+                [|/// <summary>
+                /// Documentation comment.
+                /// </summary>
+                [Obsolete]|]
+                class Class1
+                {
+                }
+            }
+            """);
 
     [Fact]
     public Task MoveType_NotAvailableInsideDocumentationCommentAndAttributeAboveHeader()
-        => TestMissingInRegularAndScriptAsync(@"using System;
-namespace N1
-{
-    /// <summary>
-    /// [|Documentation comment.
-    /// </summary>
-    [Obso|]lete]
-    class Class1
-    {
-    }
-}");
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            namespace N1
+            {
+                /// <summary>
+                /// [|Documentation comment.
+                /// </summary>
+                [Obso|]lete]
+                class Class1
+                {
+                }
+            }
+            """);
 
     [Fact]
     public Task MoveType_ActionCounts_MoveOnly()
-        => TestActionCountAsync(@"namespace N1
-{
-    class Class1[||]
-    {
-    }
+        => TestActionCountAsync("""
+            namespace N1
+            {
+                class Class1[||]
+                {
+                }
 
-    class test1 /* this matches file name assigned by TestWorkspace*/
-    {
-    }
-}", count: 1);
+                class test1 /* this matches file name assigned by TestWorkspace*/
+                {
+                }
+            }
+            """, count: 1);
 
     [Fact]
     public Task MoveType_ActionCounts_RenameAndMove()
-        => TestActionCountAsync(@"namespace N1
-{
-    class Class1[||]
-    {
-    }
+        => TestActionCountAsync("""
+            namespace N1
+            {
+                class Class1[||]
+                {
+                }
 
-    class Class2
-    {
-    }
-}", count: 3);
+                class Class2
+                {
+                }
+            }
+            """, count: 3);
 
     [Fact]
     public Task MoveType_ActionCounts_All()
-        => TestActionCountAsync(@"namespace N1
-{
-    class OuterType
-    {
-        class InnerType[||]
-        {
-        }
-    }
+        => TestActionCountAsync("""
+            namespace N1
+            {
+                class OuterType
+                {
+                    class InnerType[||]
+                    {
+                    }
+                }
 
-    class Class1
-    {
-    }
-}", count: 5);
+                class Class1
+                {
+                }
+            }
+            """, count: 5);
 }

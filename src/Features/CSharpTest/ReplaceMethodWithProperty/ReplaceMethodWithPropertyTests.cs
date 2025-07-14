@@ -509,7 +509,7 @@ public sealed class ReplaceMethodWithPropertyTests : AbstractCSharpCodeActionTes
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestExplicitInterfaceMethod_1()
@@ -1035,7 +1035,7 @@ index: 1);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestUpdateGetSetReference_NonInvoked()
@@ -1081,7 +1081,7 @@ index: 1);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestUpdateGetSet_SetterAccessibility()
@@ -1117,7 +1117,7 @@ index: 1);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestUpdateGetSet_ExpressionBodies()
@@ -1150,7 +1150,7 @@ index: 1);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestUpdateGetSet_GetInSetReference()
@@ -1196,7 +1196,7 @@ index: 1);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestUpdateGetSet_UpdateSetParameterName_1()
@@ -1234,7 +1234,7 @@ index: 1);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestUpdateGetSet_UpdateSetParameterName_2()
@@ -1272,7 +1272,7 @@ index: 1);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestUpdateGetSet_SetReferenceInSetter()
@@ -1310,7 +1310,7 @@ index: 1);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestVirtualGetWithOverride_1()
@@ -1351,7 +1351,7 @@ index: 1);
                 }
             }
             """,
-index: 0);
+            index: 0);
 
     [Fact]
     public Task TestVirtualGetWithOverride_2()
@@ -1394,7 +1394,7 @@ index: 0);
                 }
             }
             """,
-index: 0);
+            index: 0);
 
     [Fact]
     public Task TestGetWithInterface()
@@ -1428,7 +1428,7 @@ index: 0);
                 }
             }
             """,
-index: 0);
+            index: 0);
 
     [Fact]
     public Task TestWithPartialClasses()
@@ -1467,7 +1467,7 @@ index: 0);
             {
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestUpdateGetSetCaseInsensitive()
@@ -1503,7 +1503,7 @@ index: 1);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task Tuple()
@@ -1617,7 +1617,7 @@ index: 1);
                 }
             }
             """,
-count: 1, new TestParameters(options: AllCodeStyleOff));
+            count: 1, new TestParameters(options: AllCodeStyleOff));
 
     [Fact]
     public Task TestOutVarDeclaration_1()
@@ -1662,7 +1662,7 @@ count: 1, new TestParameters(options: AllCodeStyleOff));
                 }
             }
             """,
-index: 0);
+            index: 0);
 
     [Fact]
     public Task TestOutVarDeclaration_2()
@@ -1707,7 +1707,7 @@ index: 0);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestOutVarDeclaration_3()
@@ -1870,8 +1870,8 @@ index: 1);
                 int Goo { get => 1; set => _i = value; }
             }
             """,
-index: 1,
-options: PreferExpressionBodiedAccessors);
+            index: 1,
+            options: PreferExpressionBodiedAccessors);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle5()
@@ -1907,8 +1907,8 @@ options: PreferExpressionBodiedAccessors);
                 }
             }
             """,
-index: 1,
-options: PreferExpressionBodiedProperties);
+            index: 1,
+            options: PreferExpressionBodiedProperties);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle6()
@@ -1933,8 +1933,8 @@ options: PreferExpressionBodiedProperties);
                 int Goo { get => 1; set => _i = value; }
             }
             """,
-index: 1,
-options: PreferExpressionBodiedAccessorsAndProperties);
+            index: 1,
+            options: PreferExpressionBodiedAccessorsAndProperties);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle7()
@@ -2559,7 +2559,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/57769")]

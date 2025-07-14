@@ -110,9 +110,11 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
             new TextChange(new TextSpan(0, 0), "//"),
             new TextChange(new TextSpan(16, 0), "//"),
         };
-        CommentSelection(@"this is |start| some 
-text that is |end| on
-multiple lines", expectedChanges, supportBlockComments: true);
+        CommentSelection("""
+            this is |start| some 
+            text that is |end| on
+            multiple lines
+            """, expectedChanges, supportBlockComments: true);
     }
 
     [WpfFact]
@@ -132,14 +134,16 @@ multiple lines", expectedChanges, supportBlockComments: true);
             new TextChange(new TextSpan(41, 0), "//"),
         };
         CommentSelection(
-            @"
-class Goo
-{
-    |start|void M()
-    {
-    }|end|
-}
-",
+            """
+
+            class Goo
+            {
+                |start|void M()
+                {
+                }|end|
+            }
+
+            """,
             expectedChanges,
             supportBlockComments: false,
             expectedSelectedSpans: new[] { Span.FromBounds(16, 48) });
@@ -149,11 +153,13 @@ class Goo
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563924")]
     public void Comment_ApplyTwice()
     {
-        var code = @"|start|class C
-{
-    void M() { }
-}|end|
-";
+        var code = """
+            |start|class C
+            {
+                void M() { }
+            }|end|
+
+            """;
         var exportProvider = CreateExportProvider();
         using var disposableView = EditorFactory.CreateView(exportProvider, code);
         var selectedSpans = SetupSelection(disposableView.TextView);
@@ -196,14 +202,16 @@ class Goo
             new TextChange(new TextSpan(34, 0), "//"),
             new TextChange(new TextSpan(41, 0), "//"),
         };
-        CommentSelection(@"
-class Goo
-{
-|start|    void M()
-    {
-    }
-|end|}
-", expectedChanges, supportBlockComments: false);
+        CommentSelection("""
+
+            class Goo
+            {
+            |start|    void M()
+                {
+                }
+            |end|}
+
+            """, expectedChanges, supportBlockComments: false);
     }
 
     [WpfFact]
@@ -216,14 +224,16 @@ class Goo
             new TextChange(new TextSpan(41, 0), "//"),
         };
 
-        CommentSelection(@"
-class Goo
-{
-|start||end|    void M()
-|start||end|    {
-|start||end|    }
-}
-", expectedChanges, supportBlockComments: true);
+        CommentSelection("""
+
+            class Goo
+            {
+            |start||end|    void M()
+            |start||end|    {
+            |start||end|    }
+            }
+
+            """, expectedChanges, supportBlockComments: true);
     }
 
     [WpfFact]
@@ -236,14 +246,16 @@ class Goo
             new TextChange(new TextSpan(41, 0), "//"),
         };
 
-        CommentSelection(@"
-class Goo
-{
-    |start||end|void M()
-    |start||end|{
-    |start||end|}
-}
-", expectedChanges, supportBlockComments: true);
+        CommentSelection("""
+
+            class Goo
+            {
+                |start||end|void M()
+                |start||end|{
+                |start||end|}
+            }
+
+            """, expectedChanges, supportBlockComments: true);
     }
 
     [WpfFact]
@@ -259,15 +271,17 @@ class Goo
             new TextChange(new TextSpan(52, 0), "//"),
         };
 
-        CommentSelection(@"
-class Goo
-{
-    |start|v|end|oid M()
-    |start|{|end|
-    |start|o|end|ther
-    |start|}|end|
-}
-", expectedChanges, supportBlockComments: true);
+        CommentSelection("""
+
+            class Goo
+            {
+                |start|v|end|oid M()
+                |start|{|end|
+                |start|o|end|ther
+                |start|}|end|
+            }
+
+            """, expectedChanges, supportBlockComments: true);
     }
 
     [WpfFact]
@@ -279,14 +293,16 @@ class Goo
             new TextChange(new TextSpan(34, 0), "//"),
             new TextChange(new TextSpan(41, 0), "//"),
         };
-        CommentSelection(@"
-class Goo
-{
-    |start|v|end|oid M()
-    |start|{|end|
-    |start|}|end|
-}
-", expectedChanges, supportBlockComments: false);
+        CommentSelection("""
+
+            class Goo
+            {
+                |start|v|end|oid M()
+                |start|{|end|
+                |start|}|end|
+            }
+
+            """, expectedChanges, supportBlockComments: false);
     }
 
     [WpfFact]
@@ -332,17 +348,19 @@ class Goo
             new TextChange(new TextSpan(128, 2), string.Empty),
         };
 
-        UncommentSelection(@"
-class C
-{
-|start|    //void M()
-    //{
-        //if (true)
-        //{
-            SomethingNotCommented();
-        //}
-    //}
-|end|}", expectedChanges, Span.FromBounds(14, 119), supportBlockComments: true);
+        UncommentSelection("""
+
+            class C
+            {
+            |start|    //void M()
+                //{
+                    //if (true)
+                    //{
+                        SomethingNotCommented();
+                    //}
+                //}
+            |end|}
+            """, expectedChanges, Span.FromBounds(14, 119), supportBlockComments: true);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563927")]
@@ -364,14 +382,16 @@ class C
                 Span.FromBounds(20, 21)
              };
 
-        UncommentSelection(@"
-class Goo
-{
-    |start|/*v*/|end|oid M()
-    |start|//{  |end|
-    |start|/*o*/|end|ther
-    |start|//}  |end|
-}", expectedChanges, expectedSelectedSpans, supportBlockComments: true);
+        UncommentSelection("""
+
+            class Goo
+            {
+                |start|/*v*/|end|oid M()
+                |start|//{  |end|
+                |start|/*o*/|end|ther
+                |start|//}  |end|
+            }
+            """, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
     }
 
     [WpfFact]
@@ -383,10 +403,12 @@ class Goo
             new TextChange(new TextSpan(19, 2), string.Empty),
             new TextChange(new TextSpan(26, 2), string.Empty),
         };
-        UncommentSelection(@"
-//|start|//namespace N
-////{
-//|end|//}", expectedChanges, Span.FromBounds(2, 25), supportBlockComments: true);
+        UncommentSelection("""
+
+            //|start|//namespace N
+            ////{
+            //|end|//}
+            """, expectedChanges, Span.FromBounds(2, 25), supportBlockComments: true);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530300")]
@@ -474,17 +496,19 @@ class Goo
             Span.FromBounds(18, 110)
         };
 
-        UncommentSelection(@"
-class A
-{
-    |start|/*
-    void M()
-    {
-            // A comment
-            // Another comment
-    }
-    */|end|
-}", expectedChanges, expectedSelectedSpans, supportBlockComments: true);
+        UncommentSelection("""
+
+            class A
+            {
+                |start|/*
+                void M()
+                {
+                        // A comment
+                        // Another comment
+                }
+                */|end|
+            }
+            """, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31669")]
@@ -501,19 +525,21 @@ class A
             Span.FromBounds(20, 112)
         };
 
-        UncommentSelection(@"
-class A
-{
-|start|
-    /*
-    void M()
-    {
-            // A comment
-            // Another comment
-    }
-    */
-|end|
-}", expectedChanges, expectedSelectedSpans, supportBlockComments: true);
+        UncommentSelection("""
+
+            class A
+            {
+            |start|
+                /*
+                void M()
+                {
+                        // A comment
+                        // Another comment
+                }
+                */
+            |end|
+            }
+            """, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31669")]
@@ -530,17 +556,19 @@ class A
             Span.FromBounds(18, 110)
         };
 
-        UncommentSelection(@"
-class A
-{
-|start|    /*
-    void M()
-    {
-            // A comment
-            // Another comment
-    }
-    */
-|end|}", expectedChanges, expectedSelectedSpans, supportBlockComments: true);
+        UncommentSelection("""
+
+            class A
+            {
+            |start|    /*
+                void M()
+                {
+                        // A comment
+                        // Another comment
+                }
+                */
+            |end|}
+            """, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31669")]
@@ -557,17 +585,19 @@ class A
             Span.FromBounds(18, 110)
         };
 
-        UncommentSelection(@"
-class A
-{
-    /*
-    void |start|M|end|()
-    {
-            // A comment
-            // Another comment
-    }
-    */
-}", expectedChanges, expectedSelectedSpans, supportBlockComments: true);
+        UncommentSelection("""
+
+            class A
+            {
+                /*
+                void |start|M|end|()
+                {
+                        // A comment
+                        // Another comment
+                }
+                */
+            }
+            """, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31669")]
@@ -583,17 +613,19 @@ class A
             Span.FromBounds(43, 65)
         };
 
-        UncommentSelection(@"
-class A
-{
-    /*
-    void M()
-    {
-            // A |start|comm|end|ent
-            // Another comment
-    }
-    */
-}", expectedChanges, expectedSelectedSpans, supportBlockComments: true);
+        UncommentSelection("""
+
+            class A
+            {
+                /*
+                void M()
+                {
+                        // A |start|comm|end|ent
+                        // Another comment
+                }
+                */
+            }
+            """, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31669")]
@@ -609,17 +641,19 @@ class A
             Span.FromBounds(22, 65)
         };
 
-        UncommentSelection(@"
-class A
-{
-    /*
-    void |start|M()
-    {
-            // A comm|end|ent
-            // Another comment
-    }
-    */
-}", expectedChanges, expectedSelectedSpans, supportBlockComments: true);
+        UncommentSelection("""
+
+            class A
+            {
+                /*
+                void |start|M()
+                {
+                        // A comm|end|ent
+                        // Another comment
+                }
+                */
+            }
+            """, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31669")]
@@ -641,17 +675,19 @@ class A
             Span.FromBounds(14, 108)
         };
 
-        UncommentSelection(@"
-class A
-{
-    |start|///*
-    //void M()
-    //{
-    //     // A comment
-    //     // Another comment
-    //}
-    //*/|end|
-}", expectedChanges, expectedSelectedSpans, supportBlockComments: true);
+        UncommentSelection("""
+
+            class A
+            {
+                |start|///*
+                //void M()
+                //{
+                //     // A comment
+                //     // Another comment
+                //}
+                //*/|end|
+            }
+            """, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
     }
 
     private static void UncommentSelection(string code, IEnumerable<TextChange> expectedChanges, Span expectedSelectedSpan, bool supportBlockComments)

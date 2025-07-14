@@ -299,7 +299,7 @@ public sealed class ArgumentWrappingTests : AbstractWrappingTests
                 }
             }
             """,
-GetIndentionColumn(30),
+            GetIndentionColumn(30),
 """
 class C {
     void Goo() {
@@ -400,7 +400,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
+            GetIndentionColumn(30),
 """
 class C {
     void Goo() {
@@ -498,7 +498,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(25),
+            GetIndentionColumn(25),
 """
 class C {
     void Goo() {
@@ -584,7 +584,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(20),
+            GetIndentionColumn(20),
 """
 class C {
     void Bar() {
@@ -650,7 +650,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
+            GetIndentionColumn(30),
 """
 class C {
     void Bar() {
@@ -744,7 +744,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
+            GetIndentionColumn(30),
 """
 class C {
     void Bar() {
@@ -830,7 +830,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
+            GetIndentionColumn(30),
 """
 class C {
     void Bar() {

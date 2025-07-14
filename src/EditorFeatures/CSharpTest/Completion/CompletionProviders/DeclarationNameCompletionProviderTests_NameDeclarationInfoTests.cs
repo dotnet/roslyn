@@ -475,16 +475,16 @@ public sealed class DeclarationNameCompletion_ContextTests
     [InlineData("C")]
     [InlineData("List<string>")]
     public Task ModifierExclusionInsideMethod_Const(string type)
-        => VerifySymbolKinds($@"
-using System.Collections.Generic;
-class C
-{{
-    void M()
-    {{
-        const {type} $$
-    }}
-}}
-",
+        => VerifySymbolKinds($$"""
+            using System.Collections.Generic;
+            class C
+            {
+                void M()
+                {
+                    const {{type}} $$
+                }
+            }
+            """,
             new SymbolKindOrTypeKind(SymbolKind.Local));
 
     [Theory]
@@ -492,16 +492,16 @@ class C
     [InlineData("C")]
     [InlineData("List<string>")]
     public Task ModifierExclusionInsideMethod_ConstLocalDeclaration(string type)
-        => VerifySymbolKinds($@"
-using System.Collections.Generic;
-class C
-{{
-    void M()
-    {{
-        const {type} v$$ = default;
-    }}
-}}
-",
+        => VerifySymbolKinds($$"""
+            using System.Collections.Generic;
+            class C
+            {
+                void M()
+                {
+                    const {{type}} v$$ = default;
+                }
+            }
+            """,
             new SymbolKindOrTypeKind(SymbolKind.Local));
 
     [Theory]
@@ -509,18 +509,18 @@ class C
     [InlineData("C")]
     [InlineData("List<string>")]
     public Task ModifierExclusionInsideMethod_ConstLocalFunction(string type)
-        => VerifySymbolKinds($@"
-using System.Collections.Generic;
-class C
-{{
-    void M()
-    {{
-        const {type} v$$()
-        {{
-        }}
-    }}
-}}
-",
+        => VerifySymbolKinds($$"""
+            using System.Collections.Generic;
+            class C
+            {
+                void M()
+                {
+                    const {{type}} v$$()
+                    {
+                    }
+                }
+            }
+            """,
             new SymbolKindOrTypeKind(SymbolKind.Local));
 
     [Theory]
@@ -528,16 +528,16 @@ class C
     [InlineData("C")]
     [InlineData("List<string>")]
     public Task ModifierExclusionInsideMethod_Async(string type)
-        => VerifySymbolKinds($@"
-using System.Collections.Generic;
-class C
-{{
-    void M()
-    {{
-        async {type} v$$
-    }}
-}}
-",
+        => VerifySymbolKinds($$"""
+            using System.Collections.Generic;
+            class C
+            {
+                void M()
+                {
+                    async {{type}} v$$
+                }
+            }
+            """,
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
 
     [Theory]
@@ -545,16 +545,16 @@ class C
     [InlineData("C")]
     [InlineData("List<string>")]
     public Task ModifierExclusionInsideMethod_AsyncLocalDeclaration(string type)
-        => VerifySymbolKinds($@"
-using System.Collections.Generic;
-class C
-{{
-    void M()
-    {{
-        async {type} v$$ = default;
-    }}
-}}
-",
+        => VerifySymbolKinds($$"""
+            using System.Collections.Generic;
+            class C
+            {
+                void M()
+                {
+                    async {{type}} v$$ = default;
+                }
+            }
+            """,
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
 
     [Theory]
@@ -562,18 +562,18 @@ class C
     [InlineData("C")]
     [InlineData("List<string>")]
     public Task ModifierExclusionInsideMethod_AsyncLocalFunction(string type)
-        => VerifySymbolKinds($@"
-using System.Collections.Generic;
-class C
-{{
-    void M()
-    {{
-        async {type} v$$()
-        {{
-        }}
-    }}
-}}
-",
+        => VerifySymbolKinds($$"""
+            using System.Collections.Generic;
+            class C
+            {
+                void M()
+                {
+                    async {{type}} v$$()
+                    {
+                    }
+                }
+            }
+            """,
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
 
     [Theory]
@@ -581,16 +581,16 @@ class C
     [InlineData("C")]
     [InlineData("List<string>")]
     public Task ModifierExclusionInsideMethod_Unsafe(string type)
-        => VerifySymbolKinds($@"
-using System.Collections.Generic;
-class C
-{{
-    void M()
-    {{
-        unsafe {type} $$
-    }}
-}}
-",
+        => VerifySymbolKinds($$"""
+            using System.Collections.Generic;
+            class C
+            {
+                void M()
+                {
+                    unsafe {{type}} $$
+                }
+            }
+            """,
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
 
     [Theory]
@@ -598,16 +598,16 @@ class C
     [InlineData("C")]
     [InlineData("List<string>")]
     public Task ModifierExclusionInsideMethod_UnsafeLocalDeclaration(string type)
-        => VerifySymbolKinds($@"
-using System.Collections.Generic;
-class C
-{{
-    void M()
-    {{
-        unsafe {type} v$$ = default;
-    }}
-}}
-",
+        => VerifySymbolKinds($$"""
+            using System.Collections.Generic;
+            class C
+            {
+                void M()
+                {
+                    unsafe {{type}} v$$ = default;
+                }
+            }
+            """,
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
 
     [Theory]
@@ -615,18 +615,18 @@ class C
     [InlineData("C")]
     [InlineData("List<string>")]
     public Task ModifierExclusionInsideMethod_UnsafeLocalFunction(string type)
-        => VerifySymbolKinds($@"
-using System.Collections.Generic;
-class C
-{{
-    void M()
-    {{
-        unsafe {type} v$$()
-        {{
-        }}
-    }}
-}}
-",
+        => VerifySymbolKinds($$"""
+            using System.Collections.Generic;
+            class C
+            {
+                void M()
+                {
+                    unsafe {{type}} v$$()
+                    {
+                    }
+                }
+            }
+            """,
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
 
     [Fact]

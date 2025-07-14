@@ -136,7 +136,7 @@ public sealed class GenerateConstructorTests(ITestOutputHelper logger)
                 }
             }
             """,
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
+            options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589")]
     public async Task TestWithNoArgs()
@@ -3486,7 +3486,7 @@ class C
                 }
             }
             """,
-parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
+            parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12182")]
     public Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument_CSharp6()
@@ -3514,7 +3514,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
                 }
             }
             """,
-parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
+            parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12182")]
     public Task TestOutVariableDeclaration_ExplicitlyTyped_CSharp6()
@@ -3542,7 +3542,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
                 }
             }
             """,
-parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
+            parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12182")]
     public Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument_CSharp6()
@@ -3570,7 +3570,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
                 }
             }
             """,
-parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
+            parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13749")]
     public Task Support_Readonly_Properties()
@@ -3758,52 +3758,50 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
     [InlineData("int")]
     public Task TestMethodGroupWithMissingSystemActionAndFunc(string returnType)
         => TestInRegularAndScriptAsync(
-$@"
-<Workspace>
-    <Project Language=""C#"" CommonReferencesMinCorlib=""true"">
-        <Document><![CDATA[
-class C
-{{
-    void M()
-    {{
-        new [|Class|](Method);
-    }}
+            $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferencesMinCorlib="true">
+                    <Document><![CDATA[class C
+            {
+                void M()
+                {
+                    new [|Class|](Method);
+                }
 
-    {returnType} Method()
-    {{
-    }}
-}}
+                {{returnType}} Method()
+                {
+                }
+            }
 
-internal class Class
-{{
-}}
-]]>
-        </Document>
-    </Project>
-</Workspace>",
-$@"
-class C
-{{
-    void M()
-    {{
-        new Class(Method);
-    }}
+            internal class Class
+            {
+            }]]></Document>
+                </Project>
+            </Workspace>
+            """,
+            $$"""
+            class C
+            {
+                void M()
+                {
+                    new Class(Method);
+                }
 
-    {returnType} Method()
-    {{
-    }}
-}}
+                {{returnType}} Method()
+                {
+                }
+            }
 
-internal class Class
-{{
-    private object method;
+            internal class Class
+            {
+                private object method;
 
-    public Class(object method)
-    {{
-        this.method = method;
-    }}
-}}
-");
+                public Class(object method)
+                {
+                    this.method = method;
+                }
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14077")]
     public Task TestGenerateFieldNoNamingStyle()
@@ -4007,31 +4005,33 @@ internal class Class
     [InlineData("t_s", "s")]
     public Task GenerateConstructor_ArgumentHasCommonPrefix(string argumentName, string fieldName)
         => TestInRegularAndScriptAsync(
-$@"
-class Program
-{{
-    static void Main(string[] args)
-    {{
-        string {argumentName} = "";
-        new Prog[||]ram({argumentName});
-    }}
-}}",
-$@"
-class Program
-{{
-    private string {fieldName};
+            $$"""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    string {{argumentName}} = ";
+                    new Prog[||]ram({{argumentName}});
+                }
+            }
+            """,
+            $$"""
+            class Program
+            {
+                private string {{fieldName}};
 
-    public Program(string {fieldName})
-    {{
-        this.{fieldName} = {fieldName};
-    }}
+                public Program(string {{fieldName}})
+                {
+                    this.{{fieldName}} = {{fieldName}};
+                }
 
-    static void Main(string[] args)
-    {{
-        string {argumentName} = "";
-        new Program({argumentName});
-    }}
-}}");
+                static void Main(string[] args)
+                {
+                    string {{argumentName}} = ";
+                    new Program({{argumentName}});
+                }
+            }
+            """);
 
     [Fact]
     public Task TestWithTopLevelNullability()

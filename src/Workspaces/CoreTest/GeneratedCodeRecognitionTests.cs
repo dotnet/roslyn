@@ -57,16 +57,16 @@ public sealed class GeneratedCodeRecognitionTests
         var project = CreateProject();
 
         var projectWithUserConfiguredGeneratedCodeTrue = project.AddAnalyzerConfigDocument(".editorconfig",
-            SourceText.From(@"
-[*.{cs,vb}]
-generated_code = true
-"), filePath: @"z:\.editorconfig").Project;
+            SourceText.From("""
+                [*.{cs,vb}]
+                generated_code = true
+                """), filePath: @"z:\.editorconfig").Project;
 
         var projectWithUserConfiguredGeneratedCodeFalse = project.AddAnalyzerConfigDocument(".editorconfig",
-            SourceText.From(@"
-[*.{cs,vb}]
-generated_code = false
-"), filePath: @"z:\.editorconfig").Project;
+            SourceText.From("""
+                [*.{cs,vb}]
+                generated_code = false
+                """), filePath: @"z:\.editorconfig").Project;
 
         foreach (var fileName in fileNames)
         {

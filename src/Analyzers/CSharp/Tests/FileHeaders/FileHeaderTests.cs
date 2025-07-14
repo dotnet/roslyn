@@ -41,10 +41,10 @@ public sealed class FileHeaderTests
             {
             }
             """,
-            EditorConfig = $@"
-[*]
-{fileHeaderTemplate}
-",
+            EditorConfig = $"""
+            [*]
+            {fileHeaderTemplate}
+            """,
         }.RunAsync();
 
     /// <summary>
@@ -294,11 +294,13 @@ public sealed class FileHeaderTests
     public Task TestInvalidFileHeaderWithoutTextAsync(string comment)
         => new VerifyCS.Test
         {
-            TestCode = $@"{comment}
+            TestCode = $$"""
+            {{comment}}
 
-namespace Bar
-{{
-}}",
+            namespace Bar
+            {
+            }
+            """,
             FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
@@ -376,15 +378,16 @@ namespace Bar
     public Task TestValidFileHeaderInRegionAsync(string startLabel, string endLabel)
         => new VerifyCS.Test
         {
-            TestCode = $@"#region{startLabel}
-// Copyright (c) SomeCorp. All rights reserved.
-// Licensed under the ??? license. See LICENSE file in the project root for full license information.
-#endregion{endLabel}
+            TestCode = $$"""
+            #region{{startLabel}}
+            // Copyright (c) SomeCorp. All rights reserved.
+            // Licensed under the ??? license. See LICENSE file in the project root for full license information.
+            #endregion{{endLabel}}
 
-namespace Bar
-{{
-}}
-",
+            namespace Bar
+            {
+            }
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
 
@@ -395,27 +398,29 @@ namespace Bar
     public Task TestInvalidFileHeaderWithWrongTextInRegionAsync(string startLabel, string endLabel)
         => new VerifyCS.Test
         {
-            TestCode = $@"#region{startLabel}
-[|//|] Copyright (c) OtherCorp. All rights reserved.
-// Licensed under the ??? license. See LICENSE file in the project root for full license information.
-#endregion{endLabel}
+            TestCode = $$"""
+            #region{{startLabel}}
+            [|//|] Copyright (c) OtherCorp. All rights reserved.
+            // Licensed under the ??? license. See LICENSE file in the project root for full license information.
+            #endregion{{endLabel}}
 
-namespace Bar
-{{
-}}
-",
-            FixedCode = $@"// Copyright (c) SomeCorp. All rights reserved.
-// Licensed under the ??? license. See LICENSE file in the project root for full license information.
+            namespace Bar
+            {
+            }
+            """,
+            FixedCode = $$"""
+            // Copyright (c) SomeCorp. All rights reserved.
+            // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
-#region{startLabel}
-// Copyright (c) OtherCorp. All rights reserved.
-// Licensed under the ??? license. See LICENSE file in the project root for full license information.
-#endregion{endLabel}
+            #region{{startLabel}}
+            // Copyright (c) OtherCorp. All rights reserved.
+            // Licensed under the ??? license. See LICENSE file in the project root for full license information.
+            #endregion{{endLabel}}
 
-namespace Bar
-{{
-}}
-",
+            namespace Bar
+            {
+            }
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
 
@@ -471,13 +476,15 @@ namespace Bar
     public Task TestInvalidFileHeaderWithWrongTextAfterBlankLineAsync(string firstLine)
         => new VerifyCS.Test
         {
-            TestCode = $@"{firstLine}
-[|//|] Copyright (c) OtherCorp. All rights reserved.
-// Licensed under the ??? license. See LICENSE file in the project root for full license information.
+            TestCode = $$"""
+            {{firstLine}}
+            [|//|] Copyright (c) OtherCorp. All rights reserved.
+            // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
-namespace Bar
-{{
-}}",
+            namespace Bar
+            {
+            }
+            """,
             FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.

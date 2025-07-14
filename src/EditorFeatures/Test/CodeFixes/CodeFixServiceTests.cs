@@ -39,9 +39,9 @@ public sealed class CodeFixServiceTests
     public async Task TestGetFirstDiagnosticWithFixAsync()
     {
         var fixers = CreateFixers();
-        var code = @"
-    a
-";
+        var code = """
+            a
+            """;
         using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
 
         var diagnosticService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
@@ -996,15 +996,16 @@ public sealed class CodeFixServiceTests
         var expectDeprioritization = GetExpectDeprioritization(actionKind, diagnosticOnFixLineInPriorSnapshot, addNewLineWithEdit);
 
         var priorSnapshotFixLine = diagnosticOnFixLineInPriorSnapshot ? "int x1 = 0;" : "System.Console.WriteLine();";
-        var code = $@"
-#pragma warning disable CS0219
-class C
-{{
-    void M()
-    {{
-        {priorSnapshotFixLine}
-    }}
-}}";
+        var code = $$"""
+            #pragma warning disable CS0219
+            class C
+            {
+                void M()
+                {
+                    {{priorSnapshotFixLine}}
+                }
+            }
+            """;
 
         var codeFix = new FixerForDeprioritizedAnalyzer();
         var analyzer = new DeprioritizedAnalyzer(actionKind);

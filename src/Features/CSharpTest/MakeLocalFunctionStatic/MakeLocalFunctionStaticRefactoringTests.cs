@@ -307,7 +307,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                 }  
             }
             """,
-parseOptions: CSharp8ParseOptions);
+            parseOptions: CSharp8ParseOptions);
 
     [Fact]
     public Task TestMultipleVariables()
@@ -590,7 +590,7 @@ parseOptions: CSharp8ParseOptions);
                 }  
             }
             """,
-parseOptions: CSharp8ParseOptions);
+            parseOptions: CSharp8ParseOptions);
 
     [Fact]
     public Task TestNonCamelCaseCapture()
@@ -625,7 +625,7 @@ parseOptions: CSharp8ParseOptions);
                 }  
             }
             """,
-parseOptions: CSharp8ParseOptions);
+            parseOptions: CSharp8ParseOptions);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46858")]
     public Task ShouldNotTriggerIfCallsOtherLocalFunction()
@@ -691,7 +691,7 @@ parseOptions: CSharp8ParseOptions);
                 }  
             }
             """,
-parseOptions: CSharp8ParseOptions);
+            parseOptions: CSharp8ParseOptions);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53179")]
     public Task TestLocalFunctionAsTopLevelStatement()

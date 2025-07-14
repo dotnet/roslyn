@@ -229,11 +229,13 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     public void RangeToTextSpanLineEndOfDocumentWithEndOfLineChars()
     {
         var markup =
-@"void M()
-{
-    var x = 5;
-}
-"; // add additional end line 
+            """
+            void M()
+            {
+                var x = 5;
+            }
+
+            """; // add additional end line 
 
         var sourceText = SourceText.From(markup);
 
@@ -277,10 +279,12 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
          */
 
         var markup =
-@"void M()
-{
-    var x = 5;
-}";
+            """
+            void M()
+            {
+                var x = 5;
+            }
+            """;
         return markup;
     }
 

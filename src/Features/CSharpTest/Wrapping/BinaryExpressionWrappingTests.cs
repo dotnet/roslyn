@@ -237,7 +237,7 @@ public sealed class BinaryExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """,
-EndOfLine,
+            EndOfLine,
 """
 class C {
     void Bar() {
@@ -259,7 +259,7 @@ class C {
                 }
             }
             """,
-BeginningOfLine,
+            BeginningOfLine,
 """
 class C {
     void Bar() {
@@ -281,7 +281,7 @@ class C {
                 }
             }
             """,
-EndOfLine,
+            EndOfLine,
 """
 class C {
     void Bar() {
@@ -304,7 +304,7 @@ class C {
                 }
             }
             """,
-BeginningOfLine,
+            BeginningOfLine,
 """
 class C {
     void Bar() {
@@ -330,7 +330,7 @@ class C {
                 }
             }
             """,
-EndOfLine,
+            EndOfLine,
 """
 class C {
     void Bar() {
@@ -366,7 +366,7 @@ class C {
                 }
             }
             """,
-BeginningOfLine,
+            BeginningOfLine,
 """
 class C {
     void Bar() {
@@ -430,7 +430,7 @@ class C {
                 }
             }
             """,
-EndOfLine,
+            EndOfLine,
 """
 class C {
     void Bar() {
@@ -461,7 +461,7 @@ class C {
                 }
             }
             """,
-BeginningOfLine,
+            BeginningOfLine,
 """
 class C {
     void Bar() {
@@ -481,7 +481,7 @@ class C {
                 }
             }
             """,
-BeginningOfLine,
+            BeginningOfLine,
 """
 class C {
     void Goo() {
@@ -511,7 +511,7 @@ class C {
                 }
             }
             """,
-EndOfLine,
+            EndOfLine,
 """
 class C {
     void Goo() {
@@ -539,7 +539,7 @@ class C {
                 bool v = [||]a && b && c;
             }
             """,
-BeginningOfLine,
+            BeginningOfLine,
 """
 class C {
     bool v = a
@@ -563,7 +563,7 @@ class C {
                 bool v = [||]a && b && c;
             }
             """,
-EndOfLine,
+            EndOfLine,
 """
 class C {
     bool v = a &&
@@ -589,7 +589,7 @@ class C {
                 }
             }
             """,
-EndOfLine,
+            EndOfLine,
 """
 class C {
     void Bar() {
@@ -621,7 +621,7 @@ class C {
                 }
             }
             """,
-BeginningOfLine,
+            BeginningOfLine,
 """
 class C {
     void Bar() {
@@ -694,7 +694,7 @@ class C {
                     [||]a && b && c;
             }
             """,
-BeginningOfLine,
+            BeginningOfLine,
 """
 class C {
     bool v =
@@ -713,7 +713,7 @@ class C {
                     [||]a && b && c;
             }
             """,
-EndOfLine,
+            EndOfLine,
 """
 class C {
     bool v =
@@ -732,7 +732,7 @@ class C {
                 bool v = [||]a + b + c + d == x * y * z;
             }
             """,
-EndOfLine,
+            EndOfLine,
 """
 class C
 {

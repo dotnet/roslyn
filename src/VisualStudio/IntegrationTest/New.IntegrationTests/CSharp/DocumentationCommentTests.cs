@@ -25,32 +25,36 @@ public sealed class DocumentationCommentTests : AbstractEditorTest
     [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/54391")]
     public async Task TypingCharacter_MultiCaret()
     {
-        await SetUpEditorAsync(@"
-//{|selection:|}
-class C1 { }
+        await SetUpEditorAsync("""
 
-//{|selection:|}
-class C2 { }
+            //{|selection:|}
+            class C1 { }
 
-//{|selection:|}
-class C3 { }
-", HangMitigatingCancellationToken);
+            //{|selection:|}
+            class C2 { }
+
+            //{|selection:|}
+            class C3 { }
+
+            """, HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync('/', HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-/// <summary>
-/// $$
-/// </summary>
-class C1 { }
+        await TestServices.EditorVerifier.TextContainsAsync("""
 
-/// <summary>
-/// 
-/// </summary>
-class C2 { }
+            /// <summary>
+            /// $$
+            /// </summary>
+            class C1 { }
 
-/// <summary>
-/// 
-/// </summary>
-class C3 { }
-", assertCaretPosition: true, cancellationToken: HangMitigatingCancellationToken);
+            /// <summary>
+            /// 
+            /// </summary>
+            class C2 { }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            class C3 { }
+
+            """, assertCaretPosition: true, cancellationToken: HangMitigatingCancellationToken);
     }
 }

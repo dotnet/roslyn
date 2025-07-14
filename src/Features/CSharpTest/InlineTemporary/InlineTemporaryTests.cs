@@ -432,7 +432,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
             { int [||]x = 42;
             var a = new { x }; }
             """,
-                   @"{ var a = new { x = 42 }; }");
+            @"{ var a = new { x = 42 }; }");
 
     [Fact]
     public Task TestParenthesizedAtReference_Case3()
@@ -441,7 +441,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
             { int [||]x = 1 + 1;
             int y = x * 2; }
             """,
-                   @"{ int y = (1 + 1) * 2; }");
+            @"{ int y = (1 + 1) * 2; }");
 
     [Fact]
     public Task DoNotBreakOverloadResolution_Case5()
