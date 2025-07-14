@@ -17,7 +17,6 @@ using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests;
@@ -96,7 +95,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
     /// platform DLL, like the object pool, will be in the VS platform directory. Need to fall back
     /// to the compiler context to find those.
     /// </summary>
-    [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79352")]
+    [Fact]
     public void FallbackToCompilerContext()
     {
         var dir1 = TempRoot.CreateDirectory().Path;
