@@ -237,19 +237,28 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
             switch (parent)
             {
                 case IfStatementSyntax ifStatement:
-                    return node.IsDescendantOfOrSelfWith(ifStatement.Condition);
+                    return IsNodeWithinCondition(node, ifStatement.Condition);
                 case WhileStatementSyntax whileStatement:
-                    return node.IsDescendantOfOrSelfWith(whileStatement.Condition);
+                    return IsNodeWithinCondition(node, whileStatement.Condition);
                 case ForStatementSyntax forStatement:
-                    return forStatement.Condition != null && node.IsDescendantOfOrSelfWith(forStatement.Condition);
+                    return forStatement.Condition != null && IsNodeWithinCondition(node, forStatement.Condition);
                 case DoStatementSyntax doStatement:
-                    return node.IsDescendantOfOrSelfWith(doStatement.Condition);
+                    return IsNodeWithinCondition(node, doStatement.Condition);
                 case ConditionalExpressionSyntax conditionalExpression:
-                    return node.IsDescendantOfOrSelfWith(conditionalExpression.Condition);
+                    return IsNodeWithinCondition(node, conditionalExpression.Condition);
             }
             parent = parent.Parent;
         }
         return false;
+    }
+
+    private static bool IsNodeWithinCondition(SyntaxNode node, SyntaxNode condition)
+    {
+        if (condition == null)
+            return false;
+
+        // Check if node is the condition itself or a descendant of the condition
+        return node == condition || condition.DescendantNodesAndSelf().Contains(node);
     }
 
     private static void RemoveSuppressOperationForConditionalExpression(ArrayBuilder<SuppressOperation> list, BinaryExpressionSyntax binaryExpression)
