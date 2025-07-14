@@ -22,7 +22,7 @@ using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Edito
 using OptionsCollectionAlias = OptionsCollection;
 #endif
 
-public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest(ITestOutputHelper logger)
+public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest(ITestOutputHelper? logger)
     : AbstractDiagnosticProviderBasedUserDiagnosticTest(logger)
 {
     protected override ParseOptions GetScriptOptions() => Options.Script;
