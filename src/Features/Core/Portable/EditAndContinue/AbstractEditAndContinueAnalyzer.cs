@@ -574,17 +574,16 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
             // Changes in parse options might change the meaning of the code even if nothing else changed.
             // If we allowed changing parse options such as preprocessor directives, enabled features, or language version
-            // it would lead to degraded experience for the user since the parts of the source file that haven't changed
+            // it would lead to degraded experience for the user -- the parts of the source file that haven't changed
             // since the option changed would have different semantics than the parts that have changed.
             //
-            // All rude edits related to project-level setting changes will be reported during delta emit.
-            // Here we ship the analysis of the document.
+            // Skip further analysis of the document if we detect any such change (classified as rude edits) in parse options.
             if (GetParseOptionsRudeEdits(oldTree.Options, newTree.Options).Any())
             {
                 log.Write($"Parse options differ for '{filePath}'");
 
-                // Rude edits will be reported when emitting deltas.
-                return DocumentAnalysisResults.Blocked(documentId, filePath, [], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+                // All rude edits related to project-level setting changes will be reported during delta emit.
+                return DocumentAnalysisResults.Blocked(documentId, filePath, rudeEdits: [], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
             }
 
             var capabilities = new EditAndContinueCapabilitiesGrantor(await lazyCapabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
