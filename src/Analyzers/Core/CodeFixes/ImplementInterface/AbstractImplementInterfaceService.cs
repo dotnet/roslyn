@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface;
 
 using static ImplementHelpers;
 
-internal abstract partial class AbstractImplementInterfaceService : IImplementInterfaceService
+internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarationSyntax> : IImplementInterfaceService
+    where TTypeDeclarationSyntax : SyntaxNode
 {
     protected const string DisposingName = "disposing";
 
@@ -44,6 +45,16 @@ internal abstract partial class AbstractImplementInterfaceService : IImplementIn
     protected abstract SyntaxNode CreateFinalizer(SyntaxGenerator generator, INamedTypeSymbol classType, string disposeMethodDisplayString);
 
     protected abstract bool IsTypeInInterfaceBaseList([NotNullWhen(true)] SyntaxNode? type);
+    protected abstract void AddInterfaceTypes(TTypeDeclarationSyntax typeDeclaration, ArrayBuilder<SyntaxNode> result);
+
+    public ImmutableArray<SyntaxNode> GetInterfaceTypes(SyntaxNode typeDeclaration)
+    {
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var result);
+        if (typeDeclaration is TTypeDeclarationSyntax typeSyntax)
+            AddInterfaceTypes(typeSyntax, result);
+
+        return result.ToImmutableAndClear();
+    }
 
     public async Task<Document> ImplementInterfaceAsync(
         Document document, ImplementTypeOptions options, SyntaxNode node, CancellationToken cancellationToken)
