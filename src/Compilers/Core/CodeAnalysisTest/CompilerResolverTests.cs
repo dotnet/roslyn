@@ -4,10 +4,12 @@
 
 #if NET
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests;
 public sealed class CompilerResolverTests : IDisposable
 {
     public TempRoot TempRoot { get; }
-    public int DefaultLoadContextCount { get; }
+    public ImmutableArray<string?> DefaultLoadContextAssemblies { get; }
     public AssemblyLoadContext CompilerContext { get; }
     public AssemblyLoadContext ScratchContext { get; }
     public Assembly AssemblyInCompilerContext { get; }
@@ -25,7 +27,7 @@ public sealed class CompilerResolverTests : IDisposable
     public CompilerResolverTests()
     {
         TempRoot = new TempRoot();
-        DefaultLoadContextCount = AssemblyLoadContext.Default.Assemblies.Count();
+        DefaultLoadContextAssemblies = AssemblyLoadContext.Default.Assemblies.SelectAsArray(a => a.FullName);
         CompilerContext = new AssemblyLoadContext(nameof(CompilerResolverTests), isCollectible: true);
         AssemblyInCompilerContext = CompilerContext.LoadFromAssemblyPath(typeof(AnalyzerAssemblyLoader).Assembly.Location);
         ScratchContext = new AssemblyLoadContext("Scratch", isCollectible: true);
@@ -35,7 +37,7 @@ public sealed class CompilerResolverTests : IDisposable
     public void Dispose()
     {
         // This test should not pollute the default load context and hence interfere with other tests.
-        Assert.Equal(DefaultLoadContextCount, AssemblyLoadContext.Default.Assemblies.Count());
+        AssertEx.SetEqual(DefaultLoadContextAssemblies, AssemblyLoadContext.Default.Assemblies.SelectAsArray(a => a.FullName));
         CompilerContext.Unload();
         ScratchContext.Unload();
         TempRoot.Dispose();

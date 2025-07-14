@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -15,6 +16,7 @@ using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -23,11 +25,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests;
 public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
 {
     private TempRoot TempRoot { get; } = new TempRoot();
-    private int InitialAssemblyCount { get; }
+    private ImmutableArray<string?> InitialAssemblies { get; }
 
     public RazorAnalyzerAssemblyResolverTests()
     {
-        InitialAssemblyCount = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.Count();
+        InitialAssemblies = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.SelectAsArray(a => a.FullName);
     }
 
     public void Dispose()
@@ -35,8 +37,8 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         TempRoot.Dispose();
 
         // This test should not change the set of assemblies loaded in the current context.
-        var count = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.Count();
-        Assert.Equal(InitialAssemblyCount, count);
+        var count = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.SelectAsArray(a => a.FullName);
+        AssertEx.SetEqual(InitialAssemblies, count);
     }
 
     private void CreateRazorAssemblies(string directory, string versionNumber = "1.0.0.0")
