@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasInterpolatedStringHandlerArgumentError => false;
 
-        internal override ScopedKind DeclaredScope => throw ExceptionUtilities.Unreachable();
+        internal sealed override ScopedKind DeclaredScope => throw ExceptionUtilities.Unreachable();
 
         internal sealed override ScopedKind EffectiveScope => _scope;
 

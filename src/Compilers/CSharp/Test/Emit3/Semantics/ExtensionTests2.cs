@@ -6878,7 +6878,7 @@ unsafe static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension(method unmanaged void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall) *()[])",
+        AssertEx.Equal("extension(method unmanaged void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall) *()[])",
             extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension(delegate* unmanaged[Stdcall, Thiscall]<void>[])", extension.ComputeExtensionMarkerRawName());
     }
@@ -6899,7 +6899,7 @@ unsafe static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension(method unmanaged void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall) *()[])",
+        AssertEx.Equal("extension(method unmanaged void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall) *()[])",
             extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension(delegate* unmanaged[Thiscall, Stdcall]<void>[])", extension.ComputeExtensionMarkerRawName());
     }
@@ -6920,7 +6920,7 @@ unsafe static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension(method unmanaged void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvSuppressGCTransition) *()[])",
+        AssertEx.Equal("extension(method unmanaged void modopt(System.Runtime.CompilerServices.CallConvSuppressGCTransition) modopt(System.Runtime.CompilerServices.CallConvStdcall) *()[])",
             extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension(delegate* unmanaged[Stdcall, SuppressGCTransition]<void>[])", extension.ComputeExtensionMarkerRawName());
     }
@@ -7128,7 +7128,7 @@ unsafe static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension(method unmanaged System.Int32& modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvSuppressGCTransition) modreq(System.Runtime.InteropServices.InAttribute) *()[])",
+        AssertEx.Equal("extension(method unmanaged System.Int32& modreq(System.Runtime.InteropServices.InAttribute) modopt(System.Runtime.CompilerServices.CallConvSuppressGCTransition) modopt(System.Runtime.CompilerServices.CallConvStdcall) *()[])",
             extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension(delegate* unmanaged[Stdcall, SuppressGCTransition]<ref readonly System.Int32>[])", extension.ComputeExtensionMarkerRawName());
 
@@ -8306,7 +8306,7 @@ enum @for { A = 0 }
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension([MyAttribute/*()*/(EnumProperty = 0, TypeProperty = typeof(@for))] System.Int32)",
+        AssertEx.Equal("extension([MyAttribute/*()*/(EnumProperty = 0, TypeProperty = typeof(for))] System.Int32)",
             extension.ComputeExtensionMarkerRawName());
     }
 
@@ -9104,7 +9104,7 @@ public static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension([MyAttribute/*(System.Int32 modopt(System.String) modopt(System.Int32))*/(42)] System.Int32)", extension.ComputeExtensionMarkerRawName());
+        AssertEx.Equal("extension([MyAttribute/*(System.Int32 modopt(System.Int32) modopt(System.String))*/(42)] System.Int32)", extension.ComputeExtensionMarkerRawName());
     }
 
     [Fact]
@@ -9137,7 +9137,7 @@ public static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension([MyAttribute/*(System.Int32 modopt(System.Int32) modopt(System.String))*/(42)] System.Int32)", extension.ComputeExtensionMarkerRawName());
+        AssertEx.Equal("extension([MyAttribute/*(System.Int32 modopt(System.String) modopt(System.Int32))*/(42)] System.Int32)", extension.ComputeExtensionMarkerRawName());
     }
 
     [Fact]
@@ -9170,7 +9170,7 @@ public static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension([MyAttribute/*(System.Int32[] modopt(System.String) modopt(System.Int32))*/([42])] System.Int32)", extension.ComputeExtensionMarkerRawName());
+        AssertEx.Equal("extension([MyAttribute/*(System.Int32[] modopt(System.Int32) modopt(System.String))*/([42])] System.Int32)", extension.ComputeExtensionMarkerRawName());
     }
 
     [Fact]
@@ -9203,7 +9203,7 @@ public static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension([MyAttribute/*(System.Int32 modopt(System.String) modopt(System.Int32)[])*/([42])] System.Int32)", extension.ComputeExtensionMarkerRawName());
+        AssertEx.Equal("extension([MyAttribute/*(System.Int32 modopt(System.Int32) modopt(System.String)[])*/([42])] System.Int32)", extension.ComputeExtensionMarkerRawName());
     }
 
     [Fact]
@@ -9239,7 +9239,7 @@ unsafe public static class E
             Diagnostic(ErrorCode.ERR_BadAttributeParamType, "My").WithArguments("x", "int*").WithLocation(3, 16));
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension([MyAttribute/*(System.Int32* modopt(System.String) modopt(System.Int32))*/(error)] System.Int32)", extension.ComputeExtensionMarkerRawName());
+        AssertEx.Equal("extension([MyAttribute/*(System.Int32* modopt(System.Int32) modopt(System.String))*/(error)] System.Int32)", extension.ComputeExtensionMarkerRawName());
     }
 
     [Fact]
@@ -9275,7 +9275,7 @@ unsafe public static class E
             Diagnostic(ErrorCode.ERR_BadAttributeParamType, "My").WithArguments("x", "int*").WithLocation(3, 16));
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension([MyAttribute/*(System.Int32 modopt(System.String) modopt(System.Int32)*)*/(error)] System.Int32)", extension.ComputeExtensionMarkerRawName());
+        AssertEx.Equal("extension([MyAttribute/*(System.Int32 modopt(System.Int32) modopt(System.String)*)*/(error)] System.Int32)", extension.ComputeExtensionMarkerRawName());
     }
 
     [Fact]
@@ -9502,7 +9502,7 @@ class C
 }
 
 class MyAttribute : System.Attribute 
-{ 
+{
     public MyAttribute(C.Nested x) { }
 }
 """;
@@ -9534,7 +9534,7 @@ class C
 }
 
 unsafe class MyAttribute : System.Attribute 
-{ 
+{
     public MyAttribute(delegate*<void> x) { }
 }
 """;
@@ -9546,6 +9546,246 @@ unsafe class MyAttribute : System.Attribute
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension([MyAttribute/*(method void *())*/(error)] System.Int32 i)", extension.ComputeExtensionMarkerRawName());
+    }
+
+    [Fact]
+    public void MarkerTypeRawName_72()
+    {
+        // attribute with params
+        var src = """
+public static class E
+{
+    extension([My(1, 2)] int i)
+    {
+    }
+}
+
+class MyAttribute : System.Attribute 
+{
+    public MyAttribute(params int[] i) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension([MyAttribute/*(System.Int32[])*/([1, 2])] System.Int32 i)", extension.ComputeExtensionMarkerRawName());
+    }
+
+    [Fact]
+    public void MarkerTypeRawName_73()
+    {
+        // attribute with params
+        var src = """
+public static class E
+{
+    extension([My(null)] int i)
+    {
+    }
+}
+
+class MyAttribute : System.Attribute 
+{
+    public MyAttribute(params int[] i) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension([MyAttribute/*(System.Int32[])*/(null)] System.Int32 i)", extension.ComputeExtensionMarkerRawName());
+    }
+
+    [Fact]
+    public void MarkerTypeRawName_74()
+    {
+        // attribute with params
+        var src = """
+public static class E
+{
+    extension([My(new[] { 1, 2 })] int i)
+    {
+    }
+}
+
+class MyAttribute : System.Attribute 
+{
+    public MyAttribute(params int[] i) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension([MyAttribute/*(System.Int32[])*/([1, 2])] System.Int32 i)", extension.ComputeExtensionMarkerRawName());
+    }
+
+    [Fact]
+    public void MarkerTypeRawName_75()
+    {
+        // attribute with typeof with C#-isms
+        var src = """
+public static class E
+{
+    extension([My(typeof((int a, int b)))] int i)
+    {
+    }
+}
+
+class MyAttribute : System.Attribute 
+{
+    public MyAttribute(System.Type t) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension([MyAttribute/*(System.Type)*/(typeof(System.ValueTuple`2<System.Int32, System.Int32>))] System.Int32 i)",
+            extension.ComputeExtensionMarkerRawName());
+    }
+
+    [Fact]
+    public void MarkerTypeRawName_76()
+    {
+        // file-local type
+        var src = """
+public static class E
+{
+    extension([My(typeof(C))] int i)
+    {
+    }
+}
+
+file class C { }
+
+class MyAttribute : System.Attribute 
+{
+    public MyAttribute(System.Type t) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension([MyAttribute/*(System.Type)*/(typeof(<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C))] System.Int32 i)",
+            extension.ComputeExtensionMarkerRawName());
+    }
+
+    [Fact]
+    public void MarkerTypeRawName_77()
+    {
+        // file-local type
+        var src = """
+file static class E
+{
+    extension([My(null)] int i)
+    {
+    }
+}
+
+file class C { }
+
+file class MyAttribute : System.Attribute 
+{
+    public MyAttribute(C c) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,16): error CS0181: Attribute constructor parameter 'c' has type 'C', which is not a valid attribute parameter type
+            //     extension([My(null)] int i)
+            Diagnostic(ErrorCode.ERR_BadAttributeParamType, "My").WithArguments("c", "C").WithLocation(3, 16));
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension([MyAttribute/*(<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C)*/(error)] System.Int32 i)",
+            extension.ComputeExtensionMarkerRawName());
+    }
+
+    [Fact]
+    public void MarkerTypeRawName_78()
+    {
+        // unbound generic type
+        var src = """
+public static class E
+{
+    extension([My(typeof(C<>))] int i)
+    {
+    }
+}
+
+public class C<T> { }
+public class MyAttribute : System.Attribute 
+{
+    public MyAttribute(System.Type t) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension([MyAttribute/*(System.Type)*/(typeof(C`1))] System.Int32 i)",
+            extension.ComputeExtensionMarkerRawName());
+    }
+
+    [Fact]
+    public void MarkerTypeRawName_79()
+    {
+        // attribute with user-defined struct
+        var src = """
+public static class E
+{
+    extension([My(new S())] int i)
+    {
+    }
+}
+
+public struct S { }
+
+public class MyAttribute : System.Attribute 
+{
+    public MyAttribute(S s) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,16): error CS0181: Attribute constructor parameter 's' has type 'S', which is not a valid attribute parameter type
+            //     extension([My(new S())] int i)
+            Diagnostic(ErrorCode.ERR_BadAttributeParamType, "My").WithArguments("s", "S").WithLocation(3, 16));
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension([MyAttribute/*(S)*/(error)] System.Int32 i)",
+            extension.ComputeExtensionMarkerRawName());
+    }
+
+    [Fact]
+    public void MarkerTypeRawName_80()
+    {
+        // attribute with user-defined struct
+        var src = """
+public static class E
+{
+    extension([My(default)] int i)
+    {
+    }
+}
+
+public struct S { }
+
+public class MyAttribute : System.Attribute 
+{
+    public MyAttribute(S s) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,16): error CS0181: Attribute constructor parameter 's' has type 'S', which is not a valid attribute parameter type
+            //     extension([My(new S())] int i)
+            Diagnostic(ErrorCode.ERR_BadAttributeParamType, "My").WithArguments("s", "S").WithLocation(3, 16));
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension([MyAttribute/*(S)*/(error)] System.Int32 i)",
+            extension.ComputeExtensionMarkerRawName());
     }
 }
 

@@ -267,6 +267,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void appendTypeArguments(NamedTypeSymbol namedType, StringBuilder builder)
             {
+                if (namedType.IsUnboundGenericType)
+                {
+                    return;
+                }
+
                 var typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 namedType.GetAllTypeArgumentsNoUseSiteDiagnostics(typeArguments);
                 if (typeArguments.Count > 0)
@@ -372,8 +377,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static void appendModifiers(ImmutableArray<CustomModifier> customModifiers, StringBuilder builder)
             {
                 // Order of modifiers is significant in metadata so we preserve the order.
-                foreach (CustomModifier modifier in customModifiers)
+                // We reverse order of modifiers to match CIL order
+                for (int i = customModifiers.Length - 1; i >= 0; i--)
                 {
+                    var modifier = customModifiers[i];
                     var modifierBuilder = PooledStringBuilder.GetInstance();
                     modifierBuilder.Builder.Append(modifier.IsOptional ? " modopt(" : " modreq(");
 
@@ -388,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// This name uses a C#-looking format to encode C#-level information of an extension block (ie. arity, constraints, extended type, attributes and C#-isms like tuple names).
         /// It is meant to be hashed to produce the content-based name for the extension marker type.
-        /// /// </summary>
+        /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when appending to a StringBuilder past the <see cref="StringBuilder.MaxCapacity"/> limit.</exception>
         internal string ComputeExtensionMarkerRawName()
         {
@@ -925,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypedConstantKind.Type:
                         Debug.Assert(argument.ValueInternal is not null);
                         builder.Append("typeof(");
-                        appendType((TypeSymbol)argument.ValueInternal, builder);
+                        AppendClrType((TypeSymbol)argument.ValueInternal, modifiers: [], builder);
                         builder.Append(')');
                         break;
 
