@@ -9787,5 +9787,63 @@ public class MyAttribute : System.Attribute
         AssertEx.Equal("extension([MyAttribute/*(S)*/(error)] System.Int32 i)",
             extension.ComputeExtensionMarkerRawName());
     }
+
+    [Fact]
+    public void MarkerTypeRawName_81()
+    {
+        // attribute with two properties of the same name
+        var ilSrc = """
+.class public auto ansi beforefieldinit MyAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: nop
+        IL_0008: ret
+    }
+
+    .property instance int32 Property()
+    {
+         .set instance void MyAttribute::set_Property(int32)
+    }
+
+     .method private hidebysig specialname instance void set_Property ( int32 'value' ) cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+
+    .property instance int64 Property()
+    {
+         .set instance void MyAttribute::set_Property(int64)
+    }
+
+     .method private hidebysig specialname instance void set_Property ( int64 'value' ) cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+public static class E
+{
+    extension([My(Property = (int)1)] int)
+    {
+    }
+}
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (3,19): error CS0246: The type or namespace name 'Property' could not be found (are you missing a using directive or an assembly reference?)
+            //     extension([My(Property = (int)1)] int)
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Property").WithArguments("Property").WithLocation(3, 19));
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension([MyAttribute/*()*/] System.Int32)", extension.ComputeExtensionMarkerRawName());
+    }
 }
 
