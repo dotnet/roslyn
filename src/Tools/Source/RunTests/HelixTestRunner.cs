@@ -227,7 +227,7 @@ internal sealed class HelixTestRunner
                         <PayloadDirectory>{workItemPayloadDir}</PayloadDirectory>
                         <Command>{commandPrefix}{commandFileName}</Command>
                         <PostCommands>{commandPrefix}{postCommandFileName}</PostCommands>
-                        <Timeout>00:60:00</Timeout>
+                        <Timeout>01:00:00</Timeout>
                         <ExpectedExecutionTime>{helixWorkItem.EstimatedExecutionTime}</ExpectedExecutionTime>
                     </HelixWorkItem>
                 """);
@@ -420,6 +420,9 @@ internal sealed class HelixTestRunner
 
         // The xml file must end in test-results.xml for the Azure Pipelines reporter to pick it up.
         builder.AppendLine($@"/Logger:xunit;LogFilePath=work-item-test-results.xml");
+
+        // Also add a console logger so that the helix log reports results as we go.
+        builder.AppendLine($@"/Logger:console;verbosity=detailed");
 
         // Specifies the results directory - this is where dumps from the blame options will get published. 
         builder.AppendLine($"/ResultsDirectory:.");
