@@ -31,7 +31,9 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
 
         if (_options.WrappingPreserveSingleLine == newOptions.WrappingPreserveSingleLine &&
-            _options.WrappingKeepStatementsOnSingleLine == newOptions.WrappingKeepStatementsOnSingleLine)
+            _options.WrappingKeepStatementsOnSingleLine == newOptions.WrappingKeepStatementsOnSingleLine &&
+            _options.WrapConditionalExpressions == newOptions.WrapConditionalExpressions &&
+            _options.IndentWrappedConditionalExpressions == newOptions.IndentWrappedConditionalExpressions)
         {
             return this;
         }
@@ -48,6 +50,8 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         AddStatementExceptBlockSuppressOperations(list, node);
 
         AddSpecificNodesSuppressOperations(list, node);
+
+        AddConditionalWrappingOperations(list, node);
 
         if (!_options.WrappingPreserveSingleLine)
         {
@@ -191,5 +195,67 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
                 return operation;
             },
             span);
+    }
+
+    private void AddConditionalWrappingOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
+    {
+        // Only process binary expressions that are within conditional statements
+        if (node is not BinaryExpressionSyntax binaryExpression)
+        {
+            return;
+        }
+
+        // Check if this binary expression is within a conditional statement
+        if (!IsInConditionalStatement(binaryExpression))
+        {
+            return;
+        }
+
+        // If wrapping is enabled for conditional expressions
+        if (_options.WrapConditionalExpressions)
+        {
+            // Remove suppress operations for logical operators to allow wrapping
+            RemoveSuppressOperationForConditionalExpression(list, binaryExpression);
+        }
+    }
+
+    private static bool IsInConditionalStatement(SyntaxNode node)
+    {
+        // Check if this node is within an if/while/for statement condition
+        var parent = node.Parent;
+        while (parent != null)
+        {
+            switch (parent)
+            {
+                case IfStatementSyntax ifStatement:
+                    return node.IsDescendantOfOrSelfWith(ifStatement.Condition);
+                case WhileStatementSyntax whileStatement:
+                    return node.IsDescendantOfOrSelfWith(whileStatement.Condition);
+                case ForStatementSyntax forStatement:
+                    return forStatement.Condition != null && node.IsDescendantOfOrSelfWith(forStatement.Condition);
+                case DoStatementSyntax doStatement:
+                    return node.IsDescendantOfOrSelfWith(doStatement.Condition);
+                case ConditionalExpressionSyntax conditionalExpression:
+                    return node.IsDescendantOfOrSelfWith(conditionalExpression.Condition);
+            }
+            parent = parent.Parent;
+        }
+        return false;
+    }
+
+    private static void RemoveSuppressOperationForConditionalExpression(ArrayBuilder<SuppressOperation> list, BinaryExpressionSyntax binaryExpression)
+    {
+        // Only handle logical operators (&&, ||)
+        if (binaryExpression.OperatorToken.Kind() is not (SyntaxKind.AmpersandAmpersandToken or SyntaxKind.BarBarToken))
+        {
+            return;
+        }
+
+        // Remove suppress operations around the binary operator to allow wrapping
+        var leftEnd = binaryExpression.Left.GetLastToken(includeZeroWidth: true);
+        var rightStart = binaryExpression.Right.GetFirstToken(includeZeroWidth: true);
+        
+        // Remove suppression around the operator to allow line breaks
+        RemoveSuppressOperation(list, leftEnd, rightStart);
     }
 }

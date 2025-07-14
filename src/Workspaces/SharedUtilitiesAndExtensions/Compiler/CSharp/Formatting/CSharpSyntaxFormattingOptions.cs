@@ -59,6 +59,8 @@ internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOpt
     [DataMember] public IndentationPlacement Indentation { get; init; } = IndentationDefault;
     [DataMember] public bool WrappingKeepStatementsOnSingleLine { get; init; } = true;
     [DataMember] public bool WrappingPreserveSingleLine { get; init; } = true;
+    [DataMember] public bool WrapConditionalExpressions { get; init; } = false;
+    [DataMember] public bool IndentWrappedConditionalExpressions { get; init; } = false;
     [DataMember] public CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations { get; init; } = s_defaultNamespaceDeclarations;
     [DataMember] public CodeStyleOption2<bool> PreferTopLevelStatements { get; init; } = s_trueWithSilentEnforcement;
     [DataMember] public int CollectionExpressionWrappingLength { get; init; } = 120;
@@ -110,6 +112,8 @@ internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOpt
             (options.GetOption(CSharpFormattingOptions2.IndentSwitchSection) ? IndentationPlacement.SwitchSection : 0);
         WrappingKeepStatementsOnSingleLine = options.GetOption(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine);
         WrappingPreserveSingleLine = options.GetOption(CSharpFormattingOptions2.WrappingPreserveSingleLine);
+        WrapConditionalExpressions = options.GetOption(CSharpFormattingOptions2.WrapConditionalExpressions);
+        IndentWrappedConditionalExpressions = options.GetOption(CSharpFormattingOptions2.IndentWrappedConditionalExpressions);
         NamespaceDeclarations = options.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);
         PreferTopLevelStatements = options.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);
         CollectionExpressionWrappingLength = options.GetOption(CSharpFormattingOptions2.CollectionExpressionWrappingLength);
