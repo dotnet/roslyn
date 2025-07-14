@@ -424,6 +424,9 @@ internal sealed class HelixTestRunner
         // Specifies the results directory - this is where dumps from the blame options will get published. 
         builder.AppendLine($"/ResultsDirectory:.");
 
+        var blameOption = "CollectDump;CollectHangDump";
+        builder.AppendLine($"/Blame:{blameOption};TestTimeout=15minutes;DumpType=full");
+
         // Build the filter string
         if (testMethodNames.Any())
         {
