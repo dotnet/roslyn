@@ -608,12 +608,12 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         while (syntaxFacts.IsQualifiedName(topNameNode.Parent))
             topNameNode = topNameNode.Parent;
 
-        var parent = topNameNode.GetRequiredParent();
+        var parent = topNameNode?.Parent;
 
         // typeof/sizeof are a special case where we don't want to return a TypeOrNamespaceUsageInfo, but rather a ValueUsageInfo.Name.
         // This brings it in line with nameof(...), making all those operators appear in a similar fashion.
-        if (parent.RawKind == syntaxFacts.SyntaxKinds.TypeOfExpression ||
-            parent.RawKind == syntaxFacts.SyntaxKinds.SizeOfExpression)
+        if (parent?.RawKind == syntaxFacts.SyntaxKinds.TypeOfExpression ||
+            parent?.RawKind == syntaxFacts.SyntaxKinds.SizeOfExpression)
         {
             return new(ValueUsageInfo.Name, typeOrNamespaceUsageInfoOpt: null);
         }
