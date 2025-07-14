@@ -34,7 +34,9 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
 
         if (_options.SeparateImportDirectiveGroups == newOptions.SeparateImportDirectiveGroups &&
             _options.WrapConditionalExpressions == newOptions.WrapConditionalExpressions &&
-            _options.IndentWrappedConditionalExpressions == newOptions.IndentWrappedConditionalExpressions)
+            _options.IndentWrappedConditionalExpressions == newOptions.IndentWrappedConditionalExpressions &&
+            _options.WrapMethodCallChains == newOptions.WrapMethodCallChains &&
+            _options.IndentWrappedMethodCallChains == newOptions.IndentWrappedMethodCallChains)
         {
             return this;
         }
@@ -226,6 +228,13 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         if (conditionalNewLineOperation != null)
         {
             return conditionalNewLineOperation;
+        }
+
+        // Handle dots in method call chains
+        var methodCallChainNewLineOperation = GetMethodCallChainNewLineOperation(previousToken, currentToken);
+        if (methodCallChainNewLineOperation != null)
+        {
+            return methodCallChainNewLineOperation;
         }
 
         return nextOperation.Invoke(in previousToken, in currentToken);
@@ -614,5 +623,36 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             parent = parent.Parent;
         }
         return false;
+    }
+
+    private AdjustNewLinesOperation? GetMethodCallChainNewLineOperation(SyntaxToken previousToken, SyntaxToken currentToken)
+    {
+        // Only handle dot tokens if method call chain wrapping is enabled
+        if (!_options.WrapMethodCallChains)
+        {
+            return null;
+        }
+
+        // Check if we're dealing with a dot token
+        if (currentToken.Kind() != SyntaxKind.DotToken)
+        {
+            return null;
+        }
+
+        // Check if this dot token is part of a method call chain
+        if (currentToken.Parent is MemberAccessExpressionSyntax memberAccess && 
+            IsPartOfMethodCallChain(memberAccess))
+        {
+            // Allow wrapping before dots in method call chains
+            return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+        }
+
+        return null;
+    }
+
+    private static bool IsPartOfMethodCallChain(MemberAccessExpressionSyntax memberAccess)
+    {
+        // Check if the left side is an invocation or another member access
+        return memberAccess.Expression is InvocationExpressionSyntax or MemberAccessExpressionSyntax;
     }
 }

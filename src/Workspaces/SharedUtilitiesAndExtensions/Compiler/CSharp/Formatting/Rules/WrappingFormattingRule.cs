@@ -33,7 +33,9 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         if (_options.WrappingPreserveSingleLine == newOptions.WrappingPreserveSingleLine &&
             _options.WrappingKeepStatementsOnSingleLine == newOptions.WrappingKeepStatementsOnSingleLine &&
             _options.WrapConditionalExpressions == newOptions.WrapConditionalExpressions &&
-            _options.IndentWrappedConditionalExpressions == newOptions.IndentWrappedConditionalExpressions)
+            _options.IndentWrappedConditionalExpressions == newOptions.IndentWrappedConditionalExpressions &&
+            _options.WrapMethodCallChains == newOptions.WrapMethodCallChains &&
+            _options.IndentWrappedMethodCallChains == newOptions.IndentWrappedMethodCallChains)
         {
             return this;
         }
@@ -52,6 +54,8 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         AddSpecificNodesSuppressOperations(list, node);
 
         AddConditionalWrappingOperations(list, node);
+
+        AddMethodCallChainWrappingOperations(list, node);
 
         if (!_options.WrappingPreserveSingleLine)
         {
@@ -257,5 +261,79 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         
         // Remove suppression around the operator to allow line breaks
         RemoveSuppressOperation(list, leftEnd, rightStart);
+    }
+
+    private void AddMethodCallChainWrappingOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
+    {
+        // If wrapping is not enabled for method call chains, do nothing
+        if (!_options.WrapMethodCallChains)
+        {
+            return;
+        }
+
+        // Process member access expressions (e.g., obj.Method1().Method2())
+        if (node is MemberAccessExpressionSyntax memberAccess)
+        {
+            // Check if this is part of a method call chain
+            if (IsPartOfMethodCallChain(memberAccess))
+            {
+                RemoveSuppressOperationForMethodCallChain(list, memberAccess);
+            }
+            return;
+        }
+
+        // Process invocation expressions (e.g., Method1().Method2())
+        if (node is InvocationExpressionSyntax invocation)
+        {
+            // Check if this invocation is part of a method call chain
+            if (IsPartOfMethodCallChain(invocation))
+            {
+                RemoveSuppressOperationForMethodCallChain(list, invocation);
+            }
+            return;
+        }
+    }
+
+    private static bool IsPartOfMethodCallChain(SyntaxNode node)
+    {
+        // Check if this node is part of a method call chain by looking for:
+        // 1. Member access expressions that are part of chained calls
+        // 2. Invocation expressions that are part of chained calls
+
+        // For member access, check if the expression is an invocation or another member access
+        if (node is MemberAccessExpressionSyntax memberAccess)
+        {
+            // Check if the left side is an invocation or another member access
+            return memberAccess.Expression is InvocationExpressionSyntax or MemberAccessExpressionSyntax;
+        }
+
+        // For invocation, check if it's part of a larger chain
+        if (node is InvocationExpressionSyntax invocation)
+        {
+            // Check if this invocation is followed by another member access
+            return invocation.Parent is MemberAccessExpressionSyntax;
+        }
+
+        return false;
+    }
+
+    private static void RemoveSuppressOperationForMethodCallChain(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
+    {
+        if (node is MemberAccessExpressionSyntax memberAccess)
+        {
+            // Remove suppress operations around the dot token to allow wrapping
+            var leftEnd = memberAccess.Expression.GetLastToken(includeZeroWidth: true);
+            var rightStart = memberAccess.Name.GetFirstToken(includeZeroWidth: true);
+            
+            RemoveSuppressOperation(list, leftEnd, rightStart);
+        }
+        else if (node is InvocationExpressionSyntax invocation && invocation.Parent is MemberAccessExpressionSyntax parentMemberAccess)
+        {
+            // Remove suppress operations around the dot token after the invocation
+            var leftEnd = invocation.GetLastToken(includeZeroWidth: true);
+            var rightStart = parentMemberAccess.Name.GetFirstToken(includeZeroWidth: true);
+            
+            RemoveSuppressOperation(list, leftEnd, rightStart);
+        }
     }
 }

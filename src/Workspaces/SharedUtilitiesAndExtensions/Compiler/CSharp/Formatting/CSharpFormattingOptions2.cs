@@ -239,6 +239,16 @@ internal static partial class CSharpFormattingOptions2
         defaultValue: false)
         .WithPublicOption(PublicFeatureName, "IndentWrappedConditionalExpressions");
 
+    public static Option2<bool> WrapMethodCallChains { get; } = CreateOption(
+        CSharpFormattingOptionGroups.Wrapping, "csharp_wrap_method_call_chains",
+        defaultValue: false)
+        .WithPublicOption(PublicFeatureName, "WrapMethodCallChains");
+
+    public static Option2<bool> IndentWrappedMethodCallChains { get; } = CreateOption(
+        CSharpFormattingOptionGroups.Wrapping, "csharp_indent_wrapped_method_call_chains",
+        defaultValue: false)
+        .WithPublicOption(PublicFeatureName, "IndentWrappedMethodCallChains");
+
     public static Option2<NewLineBeforeOpenBracePlacement> NewLineBeforeOpenBrace { get; } = CreateOption(
         FormattingOptionGroups.NewLine,
         name: "csharp_new_line_before_open_brace",
