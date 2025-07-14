@@ -254,6 +254,66 @@ class var<T> { }
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/79100")>
+        Public Async Function TestNamedType_TypeOfOperator_Name(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class {|Definition:Celsius|}
+        {
+            public {|Definition:Celsius|}()
+            {
+                System.Type t = typeof({|ValueUsageInfo.Name:[|$$Celsius|]|});
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/79100")>
+        Public Async Function TestNamedType_SizeOfOperator_Name(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class {|Definition:Celsius|}
+        {
+            public {|Definition:Celsius|}()
+            {
+                int t = sizeof({|ValueUsageInfo.Name:[|$$Celsius|]|});
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/79100")>
+        Public Async Function TestNamedType_NameOfOperator_Name(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class {|Definition:Celsius|}
+        {
+            public {|Definition:Celsius|}()
+            {
+                string t = nameof({|ValueUsageInfo.Name:[|$$Celsius|]|});
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539799")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_InaccessibleType(kind As TestKind, host As TestHost) As Task
