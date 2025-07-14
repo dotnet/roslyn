@@ -48,4 +48,6 @@ internal interface IImplementInterfaceService : ILanguageService
 
     Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
         Document document, SyntaxNode? interfaceType, CancellationToken cancellationToken);
+
+    ImmutableArray<SyntaxNode> GetInterfaceTypes(SyntaxNode typeDeclaration);
 }
