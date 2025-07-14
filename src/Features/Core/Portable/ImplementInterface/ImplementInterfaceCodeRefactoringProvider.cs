@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-    Name = nameof(ImplementInterfaceCodeRefactoringProvider)), Shared]
+    Name = PredefinedCodeRefactoringProviderNames.ImplementInterface), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class ImplementInterfaceCodeRefactoringProvider() : CodeRefactoringProvider
