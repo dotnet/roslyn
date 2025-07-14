@@ -1002,21 +1002,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case float f:
                         // Note: we're printing as bits to avoid any loss
                         int i2 = BitConverter.ToInt32(BitConverter.GetBytes(f), startIndex: 0);
-                        if (!BitConverter.IsLittleEndian)
-                        {
-                            i2 = BinaryPrimitives.ReverseEndianness(i2);
-                        }
-
+                        // Do we need some adjustment for endianness? Tracked by https://github.com/dotnet/roslyn/issues/79374
                         builder.Append(i2.ToString(CultureInfo.InvariantCulture));
                         break;
                     case double d:
                         // Note: we're printing as bits to avoid any loss
                         long l2 = BitConverter.DoubleToInt64Bits(d);
-                        if (!BitConverter.IsLittleEndian)
-                        {
-                            l2 = BinaryPrimitives.ReverseEndianness(l2);
-                        }
-
+                        // Do we need some adjustment for endianness? Tracked by https://github.com/dotnet/roslyn/issues/79374
                         builder.Append(l2.ToString(CultureInfo.InvariantCulture));
                         break;
                     case char c:
