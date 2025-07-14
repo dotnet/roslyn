@@ -36,8 +36,6 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
         if (_options.LabelPositioning == newOptions.LabelPositioning &&
             _options.Indentation == newOptions.Indentation &&
-            _options.WrapConditionalExpressions == newOptions.WrapConditionalExpressions &&
-            _options.IndentWrappedConditionalExpressions == newOptions.IndentWrappedConditionalExpressions &&
             _options.WrapMethodCallChains == newOptions.WrapMethodCallChains &&
             _options.IndentWrappedMethodCallChains == newOptions.IndentWrappedMethodCallChains)
         {

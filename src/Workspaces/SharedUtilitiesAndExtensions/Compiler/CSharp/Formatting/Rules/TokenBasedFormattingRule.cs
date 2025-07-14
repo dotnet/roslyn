@@ -474,7 +474,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
         }
 
-        // For spacing between the identifier and the conditional operator 
+        // For spacing between the identifier and the conditional access operator (?)
         if (currentToken.IsKind(SyntaxKind.QuestionToken) && currentToken.Parent.IsKind(SyntaxKind.ConditionalAccessExpression))
         {
             return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
