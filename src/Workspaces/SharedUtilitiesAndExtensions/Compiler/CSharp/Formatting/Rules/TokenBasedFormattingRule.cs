@@ -34,10 +34,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
 
         if (_options.SeparateImportDirectiveGroups == newOptions.SeparateImportDirectiveGroups &&
             _options.WrapCallChains == newOptions.WrapCallChains &&
-            _options.IndentWrappedCallChains == newOptions.IndentWrappedCallChains &&
-            _options.WrapParameters == newOptions.WrapParameters &&
-            _options.AlignWrappedParameters == newOptions.AlignWrappedParameters &&
-            _options.WrapParametersOnNewLine == newOptions.WrapParametersOnNewLine)
+            _options.IndentWrappedCallChains == newOptions.IndentWrappedCallChains)
         {
             return this;
         }

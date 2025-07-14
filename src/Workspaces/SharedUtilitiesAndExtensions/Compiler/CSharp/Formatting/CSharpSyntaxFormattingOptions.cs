@@ -61,9 +61,7 @@ internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOpt
     [DataMember] public bool WrappingPreserveSingleLine { get; init; } = true;
     [DataMember] public bool WrapCallChains { get; init; } = false;
     [DataMember] public bool IndentWrappedCallChains { get; init; } = false;
-    [DataMember] public bool WrapParameters { get; init; } = false;
-    [DataMember] public bool AlignWrappedParameters { get; init; } = false;
-    [DataMember] public bool WrapParametersOnNewLine { get; init; } = false;
+
     [DataMember] public CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations { get; init; } = s_defaultNamespaceDeclarations;
     [DataMember] public CodeStyleOption2<bool> PreferTopLevelStatements { get; init; } = s_trueWithSilentEnforcement;
     [DataMember] public int CollectionExpressionWrappingLength { get; init; } = 120;
@@ -117,9 +115,7 @@ internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOpt
         WrappingPreserveSingleLine = options.GetOption(CSharpFormattingOptions2.WrappingPreserveSingleLine);
         WrapCallChains = options.GetOption(CSharpFormattingOptions2.WrapCallChains);
         IndentWrappedCallChains = options.GetOption(CSharpFormattingOptions2.IndentWrappedCallChains);
-        WrapParameters = options.GetOption(CSharpFormattingOptions2.WrapParameters);
-        AlignWrappedParameters = options.GetOption(CSharpFormattingOptions2.AlignWrappedParameters);
-        WrapParametersOnNewLine = options.GetOption(CSharpFormattingOptions2.WrapParametersOnNewLine);
+
         NamespaceDeclarations = options.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);
         PreferTopLevelStatements = options.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);
         CollectionExpressionWrappingLength = options.GetOption(CSharpFormattingOptions2.CollectionExpressionWrappingLength);

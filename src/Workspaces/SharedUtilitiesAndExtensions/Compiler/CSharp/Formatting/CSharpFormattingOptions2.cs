@@ -239,20 +239,7 @@ internal static partial class CSharpFormattingOptions2
         defaultValue: false)
         .WithPublicOption(PublicFeatureName, "IndentWrappedCallChains");
 
-    public static Option2<bool> WrapParameters { get; } = CreateOption(
-        CSharpFormattingOptionGroups.Wrapping, "csharp_wrap_parameters",
-        defaultValue: false)
-        .WithPublicOption(PublicFeatureName, "WrapParameters");
 
-    public static Option2<bool> AlignWrappedParameters { get; } = CreateOption(
-        CSharpFormattingOptionGroups.Wrapping, "csharp_align_wrapped_parameters",
-        defaultValue: false)
-        .WithPublicOption(PublicFeatureName, "AlignWrappedParameters");
-
-    public static Option2<bool> WrapParametersOnNewLine { get; } = CreateOption(
-        CSharpFormattingOptionGroups.Wrapping, "csharp_wrap_parameters_on_new_line",
-        defaultValue: false)
-        .WithPublicOption(PublicFeatureName, "WrapParametersOnNewLine");
 
     public static Option2<NewLineBeforeOpenBracePlacement> NewLineBeforeOpenBrace { get; } = CreateOption(
         FormattingOptionGroups.NewLine,
