@@ -229,16 +229,6 @@ internal static partial class CSharpFormattingOptions2
         CSharpSyntaxFormattingOptions.Default.WrappingKeepStatementsOnSingleLine)
         .WithPublicOption(PublicFeatureName, "WrappingKeepStatementsOnSingleLine");
 
-    public static Option2<bool> WrapConditionalExpressions { get; } = CreateOption(
-        CSharpFormattingOptionGroups.Wrapping, "csharp_wrap_conditional_expressions",
-        defaultValue: false)
-        .WithPublicOption(PublicFeatureName, "WrapConditionalExpressions");
-
-    public static Option2<bool> IndentWrappedConditionalExpressions { get; } = CreateOption(
-        CSharpFormattingOptionGroups.Wrapping, "csharp_indent_wrapped_conditional_expressions",
-        defaultValue: false)
-        .WithPublicOption(PublicFeatureName, "IndentWrappedConditionalExpressions");
-
     public static Option2<bool> WrapMethodCallChains { get; } = CreateOption(
         CSharpFormattingOptionGroups.Wrapping, "csharp_wrap_method_call_chains",
         defaultValue: false)

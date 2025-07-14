@@ -33,8 +33,6 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
 
         if (_options.SeparateImportDirectiveGroups == newOptions.SeparateImportDirectiveGroups &&
-            _options.WrapConditionalExpressions == newOptions.WrapConditionalExpressions &&
-            _options.IndentWrappedConditionalExpressions == newOptions.IndentWrappedConditionalExpressions &&
             _options.WrapMethodCallChains == newOptions.WrapMethodCallChains &&
             _options.IndentWrappedMethodCallChains == newOptions.IndentWrappedMethodCallChains &&
             _options.WrapParameters == newOptions.WrapParameters &&
@@ -224,13 +222,6 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             }
 
             return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
-        }
-
-        // Handle logical operators in conditional expressions
-        var conditionalNewLineOperation = GetConditionalExpressionNewLineOperation(previousToken, currentToken);
-        if (conditionalNewLineOperation != null)
-        {
-            return conditionalNewLineOperation;
         }
 
         // Handle dots in method call chains
@@ -577,55 +568,6 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         }
 
         return nextOperation.Invoke(in previousToken, in currentToken);
-    }
-
-    private AdjustNewLinesOperation? GetConditionalExpressionNewLineOperation(SyntaxToken previousToken, SyntaxToken currentToken)
-    {
-        // Only handle logical operators if conditional expression wrapping is enabled
-        if (!_options.WrapConditionalExpressions)
-        {
-            return null;
-        }
-
-        // Check if we're dealing with logical operators
-        if (currentToken.Kind() is not (SyntaxKind.AmpersandAmpersandToken or SyntaxKind.BarBarToken))
-        {
-            return null;
-        }
-
-        // Check if this logical operator is within a conditional statement
-        if (currentToken.Parent is BinaryExpressionSyntax binaryExpression && 
-            IsInConditionalStatement(binaryExpression))
-        {
-            // Allow wrapping before logical operators
-            return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
-        }
-
-        return null;
-    }
-
-    private static bool IsInConditionalStatement(SyntaxNode node)
-    {
-        // Check if this node is within an if/while/for statement condition
-        var parent = node.Parent;
-        while (parent != null)
-        {
-            switch (parent)
-            {
-                case IfStatementSyntax ifStatement:
-                    return node.IsDescendantOfOrSelfWith(ifStatement.Condition);
-                case WhileStatementSyntax whileStatement:
-                    return node.IsDescendantOfOrSelfWith(whileStatement.Condition);
-                case ForStatementSyntax forStatement:
-                    return forStatement.Condition != null && node.IsDescendantOfOrSelfWith(forStatement.Condition);
-                case DoStatementSyntax doStatement:
-                    return node.IsDescendantOfOrSelfWith(doStatement.Condition);
-                case ConditionalExpressionSyntax conditionalExpression:
-                    return node.IsDescendantOfOrSelfWith(conditionalExpression.Condition);
-            }
-            parent = parent.Parent;
-        }
-        return false;
     }
 
     private AdjustNewLinesOperation? GetMethodCallChainNewLineOperation(SyntaxToken previousToken, SyntaxToken currentToken)

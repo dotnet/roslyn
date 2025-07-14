@@ -32,8 +32,6 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
 
         if (_options.WrappingPreserveSingleLine == newOptions.WrappingPreserveSingleLine &&
             _options.WrappingKeepStatementsOnSingleLine == newOptions.WrappingKeepStatementsOnSingleLine &&
-            _options.WrapConditionalExpressions == newOptions.WrapConditionalExpressions &&
-            _options.IndentWrappedConditionalExpressions == newOptions.IndentWrappedConditionalExpressions &&
             _options.WrapMethodCallChains == newOptions.WrapMethodCallChains &&
             _options.IndentWrappedMethodCallChains == newOptions.IndentWrappedMethodCallChains &&
             _options.WrapParameters == newOptions.WrapParameters &&
@@ -55,8 +53,6 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         AddStatementExceptBlockSuppressOperations(list, node);
 
         AddSpecificNodesSuppressOperations(list, node);
-
-        AddConditionalWrappingOperations(list, node);
 
         AddMethodCallChainWrappingOperations(list, node);
 
@@ -204,77 +200,6 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
                 return operation;
             },
             span);
-    }
-
-    private void AddConditionalWrappingOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
-    {
-        // Only process binary expressions that are within conditional statements
-        if (node is not BinaryExpressionSyntax binaryExpression)
-        {
-            return;
-        }
-
-        // Check if this binary expression is within a conditional statement
-        if (!IsInConditionalStatement(binaryExpression))
-        {
-            return;
-        }
-
-        // If wrapping is enabled for conditional expressions
-        if (_options.WrapConditionalExpressions)
-        {
-            // Remove suppress operations for logical operators to allow wrapping
-            RemoveSuppressOperationForConditionalExpression(list, binaryExpression);
-        }
-    }
-
-    private static bool IsInConditionalStatement(SyntaxNode node)
-    {
-        // Check if this node is within an if/while/for statement condition
-        var parent = node.Parent;
-        while (parent != null)
-        {
-            switch (parent)
-            {
-                case IfStatementSyntax ifStatement:
-                    return IsNodeWithinCondition(node, ifStatement.Condition);
-                case WhileStatementSyntax whileStatement:
-                    return IsNodeWithinCondition(node, whileStatement.Condition);
-                case ForStatementSyntax forStatement:
-                    return forStatement.Condition != null && IsNodeWithinCondition(node, forStatement.Condition);
-                case DoStatementSyntax doStatement:
-                    return IsNodeWithinCondition(node, doStatement.Condition);
-                case ConditionalExpressionSyntax conditionalExpression:
-                    return IsNodeWithinCondition(node, conditionalExpression.Condition);
-            }
-            parent = parent.Parent;
-        }
-        return false;
-    }
-
-    private static bool IsNodeWithinCondition(SyntaxNode node, SyntaxNode condition)
-    {
-        if (condition == null)
-            return false;
-
-        // Check if node is the condition itself or a descendant of the condition
-        return node == condition || condition.DescendantNodesAndSelf().Contains(node);
-    }
-
-    private static void RemoveSuppressOperationForConditionalExpression(ArrayBuilder<SuppressOperation> list, BinaryExpressionSyntax binaryExpression)
-    {
-        // Only handle logical operators (&&, ||)
-        if (binaryExpression.OperatorToken.Kind() is not (SyntaxKind.AmpersandAmpersandToken or SyntaxKind.BarBarToken))
-        {
-            return;
-        }
-
-        // Remove suppress operations around the binary operator to allow wrapping
-        var leftEnd = binaryExpression.Left.GetLastToken(includeZeroWidth: true);
-        var rightStart = binaryExpression.Right.GetFirstToken(includeZeroWidth: true);
-        
-        // Remove suppression around the operator to allow line breaks
-        RemoveSuppressOperation(list, leftEnd, rightStart);
     }
 
     private void AddMethodCallChainWrappingOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)

@@ -63,7 +63,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
         AddEmbeddedStatementsIndentationOperation(list, node);
 
-        AddConditionalAlignmentOperation(list, node);
+        AddCaseSectionIndentBlockOperation(list, node);
 
         AddMethodCallChainAlignmentOperation(list, node);
 
@@ -380,87 +380,17 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         }
     }
 
-    private void AddConditionalAlignmentOperation(List<IndentBlockOperation> list, SyntaxNode node)
+    private void AddCaseSectionIndentBlockOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
-        // Only process binary expressions that are within conditional statements
-        if (node is not BinaryExpressionSyntax binaryExpression)
+        if (node is SwitchSectionSyntax section)
         {
-            return;
-        }
-
-        // Check if this binary expression is within a conditional statement
-        if (!IsInConditionalStatement(binaryExpression))
-        {
-            return;
-        }
-
-        // Only add indentation operations if both wrapping and indentation are enabled
-        if (!_options.WrapConditionalExpressions || !_options.IndentWrappedConditionalExpressions)
-        {
-            return;
-        }
-
-        // Only handle logical operators (&&, ||)
-        if (binaryExpression.OperatorToken.Kind() is not (SyntaxKind.AmpersandAmpersandToken or SyntaxKind.BarBarToken))
-        {
-            return;
-        }
-
-        // Add indentation for the right side of the binary expression
-        AddIndentBlockOperationForConditionalExpression(list, binaryExpression);
-    }
-
-    private static bool IsInConditionalStatement(SyntaxNode node)
-    {
-        // Check if this node is within an if/while/for statement condition
-        var parent = node.Parent;
-        while (parent != null)
-        {
-            switch (parent)
+            var firstStatement = section.Statements.FirstOrDefault();
+            if (firstStatement != null && firstStatement is BlockSyntax)
             {
-                case IfStatementSyntax ifStatement:
-                    return node.IsDescendantOfOrSelfWith(ifStatement.Condition);
-                case WhileStatementSyntax whileStatement:
-                    return node.IsDescendantOfOrSelfWith(whileStatement.Condition);
-                case ForStatementSyntax forStatement:
-                    return forStatement.Condition != null && node.IsDescendantOfOrSelfWith(forStatement.Condition);
-                case DoStatementSyntax doStatement:
-                    return node.IsDescendantOfOrSelfWith(doStatement.Condition);
-                case ConditionalExpressionSyntax conditionalExpression:
-                    return node.IsDescendantOfOrSelfWith(conditionalExpression.Condition);
+                var block = (BlockSyntax)firstStatement;
+                AddIndentBlockOperation(list, block.OpenBraceToken, block.CloseBraceToken);
             }
-            parent = parent.Parent;
         }
-        return false;
-    }
-
-    private static void AddIndentBlockOperationForConditionalExpression(List<IndentBlockOperation> list, BinaryExpressionSyntax binaryExpression)
-    {
-        // Get the operator token and the right side of the expression
-        var operatorToken = binaryExpression.OperatorToken;
-        var rightSide = binaryExpression.Right;
-        
-        // Find the base token for indentation (left side of the top-level binary expression)
-        var baseToken = GetBaseTokenForConditionalExpression(binaryExpression);
-        
-        // Add indentation operation for the right side of the binary expression
-        var startToken = operatorToken;
-        var endToken = rightSide.GetLastToken(includeZeroWidth: true);
-        
-        AddIndentBlockOperation(list, baseToken, startToken, endToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
-    }
-
-    private static SyntaxToken GetBaseTokenForConditionalExpression(BinaryExpressionSyntax binaryExpression)
-    {
-        // Find the topmost binary expression in the chain
-        var current = binaryExpression;
-        while (current.Parent is BinaryExpressionSyntax parentBinary)
-        {
-            current = parentBinary;
-        }
-        
-        // Return the first token of the topmost binary expression
-        return current.GetFirstToken(includeZeroWidth: true);
     }
 
     private void AddMethodCallChainAlignmentOperation(List<IndentBlockOperation> list, SyntaxNode node)
