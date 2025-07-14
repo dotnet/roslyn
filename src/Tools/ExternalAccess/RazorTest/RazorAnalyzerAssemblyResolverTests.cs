@@ -17,6 +17,7 @@ using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests;
