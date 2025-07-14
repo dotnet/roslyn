@@ -582,7 +582,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         }
 
         // Check if this dot token is part of a method call chain
-        if (currentToken.Parent is MemberAccessExpressionSyntax memberAccess && 
+        if (currentToken.Parent is MemberAccessExpressionSyntax memberAccess &&
             IsPartOfCallChain(memberAccess))
         {
             // Allow wrapping before dots in method call chains

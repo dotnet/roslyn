@@ -426,14 +426,14 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         // Get the dot token and the right side of the expression
         var dotToken = memberAccess.OperatorToken;
         var rightSide = memberAccess.Name;
-        
+
         // Find the base expression for the method call chain
         var baseExpression = GetBaseExpressionForCallChain(memberAccess);
         var baseToken = baseExpression.GetFirstToken(includeZeroWidth: true);
-        
+
         var startToken = dotToken;
         var endToken = rightSide.GetLastToken(includeZeroWidth: true);
-        
+
         // Check if the base expression is a simple identifier
         // If it's a simple identifier (like 'y'), use regular indentation
         // If it's a complex expression (like 'log.Entries'), use alignment
@@ -457,7 +457,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         {
             current = parentMemberAccess;
         }
-        
+
         // Return the base expression (left side of the topmost member access)
         return current.Expression;
     }

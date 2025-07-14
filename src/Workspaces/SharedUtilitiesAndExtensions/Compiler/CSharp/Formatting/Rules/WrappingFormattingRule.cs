@@ -260,7 +260,7 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
             // Remove suppress operations around the dot token to allow wrapping
             var leftEnd = memberAccess.Expression.GetLastToken(includeZeroWidth: true);
             var rightStart = memberAccess.Name.GetFirstToken(includeZeroWidth: true);
-            
+
             RemoveSuppressOperation(list, leftEnd, rightStart);
         }
         else if (node is InvocationExpressionSyntax invocation && invocation.Parent is MemberAccessExpressionSyntax parentMemberAccess)
@@ -268,7 +268,7 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
             // Remove suppress operations around the dot token after the invocation
             var leftEnd = invocation.GetLastToken(includeZeroWidth: true);
             var rightStart = parentMemberAccess.Name.GetFirstToken(includeZeroWidth: true);
-            
+
             RemoveSuppressOperation(list, leftEnd, rightStart);
         }
     }
