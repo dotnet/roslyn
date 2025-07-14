@@ -14,13 +14,8 @@ using Xunit;
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 [Trait(Traits.Feature, Traits.Features.AddMissingImports)]
-public class CSharpAddMissingUsingsOnPaste : AbstractEditorTest
+public sealed class CSharpAddMissingUsingsOnPaste() : AbstractEditorTest(nameof(CSharpAddMissingUsingsOnPaste))
 {
-    public CSharpAddMissingUsingsOnPaste()
-        : base(nameof(CSharpAddMissingUsingsOnPaste))
-    {
-    }
-
     protected override string LanguageName => LanguageNames.CSharp;
 
     [IdeFact]
