@@ -461,6 +461,4 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         // Return the base expression (left side of the topmost member access)
         return current.Expression;
     }
-
-
 }

@@ -272,6 +272,4 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
             RemoveSuppressOperation(list, leftEnd, rightStart);
         }
     }
-
-
 }

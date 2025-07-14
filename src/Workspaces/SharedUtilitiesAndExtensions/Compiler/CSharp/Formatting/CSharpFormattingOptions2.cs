@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Options;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -238,8 +238,6 @@ internal static partial class CSharpFormattingOptions2
         CSharpFormattingOptionGroups.Wrapping, "csharp_indent_wrapped_call_chains",
         defaultValue: false)
         .WithPublicOption(PublicFeatureName, "IndentWrappedCallChains");
-
-
 
     public static Option2<NewLineBeforeOpenBracePlacement> NewLineBeforeOpenBrace { get; } = CreateOption(
         FormattingOptionGroups.NewLine,
