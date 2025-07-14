@@ -8215,4 +8215,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator" xml:space="preserve">
     <value>An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</value>
   </data>
+  <data name="ERR_InterpolatedStringHandlerArgumentDisallowed" xml:space="preserve">
+    <value>Interpolated string handler arguments are not allowed in this context.</value>
+  </data>
 </root>

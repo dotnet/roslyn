@@ -21333,6 +21333,7 @@ static class E
             int Increment() => E.field.i++;
             """;
 
+        // Should be 0033, https://github.com/dotnet/roslyn/issues/79379
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "1033" : null;
         var verifier = CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify)
             .VerifyDiagnostics();
@@ -21991,15 +21992,18 @@ static class E
         Assert.True(implM.Parameters[1].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
-    public void InterpolationHandler_ParameterErrors_MappedCorrectly_02()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [InlineData("i")]
+    [InlineData("")]
+    [InlineData("nonexistent")]
+    public void InterpolationHandler_ParameterErrors_MappedCorrectly_02(string attributeValue)
     {
-        var src = """
+        var src = $$"""
             [System.Runtime.CompilerServices.InterpolatedStringHandler]
             public struct InterpolationHandler
             {
 
-                public InterpolationHandler(int literalLength, int formattedCount, int i)
+                public InterpolationHandler(int literalLength, int formattedCount, InterpolationHandler i)
                 {
                     System.Console.WriteLine(i);
                 }
@@ -22009,7 +22013,7 @@ static class E
 
             public static class E
             {
-                extension([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("nonexistent")] InterpolationHandler i)
+                extension([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("{{attributeValue}}")] InterpolationHandler i)
                 {
                     public void M() {}
                 }
@@ -22018,9 +22022,9 @@ static class E
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyDiagnostics(
-            // (15,16): error CS8945: 'nonexistent' is not a valid parameter name from 'E.extension(InterpolationHandler).<Extension>$(InterpolationHandler)'.
-            //     extension([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("nonexistent")] InterpolationHandler i)
-            Diagnostic(ErrorCode.ERR_InvalidInterpolatedStringHandlerArgumentName, @"System.Runtime.CompilerServices.InterpolatedStringHandlerArgument(""nonexistent"")").WithArguments("nonexistent", "E.extension(InterpolationHandler).<Extension>$(InterpolationHandler)").WithLocation(15, 16)
+            // (15,16): error CS9325: Interpolated string handler arguments are not allowed in this context.
+            //     extension([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("")] InterpolationHandler i)
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentDisallowed, $@"System.Runtime.CompilerServices.InterpolatedStringHandlerArgument(""{attributeValue}"")").WithLocation(15, 16)
         );
 
         var tree = comp.SyntaxTrees[0];
@@ -22037,48 +22041,126 @@ static class E
         Assert.True(implM.Parameters[0].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
-    public void InterpolationHandler_ParameterErrors_MappedCorrectly_02_ReferencingSelf()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [InlineData("01 00 01 69 00 00")] // "i"
+    [InlineData("01 00 00 00 00")] // ""
+    [InlineData("01 00 0b 6e 6f 6e 65 78 69 73 74 65 6e 74 00 00")] // "nonexistent"
+    public void InterpolationHandler_ParameterErrors_MappedCorrectly_02_FromMetadata(string attributeValue)
     {
-        var src = """
-            [System.Runtime.CompilerServices.InterpolatedStringHandler]
-            public struct InterpolationHandler
-            {
+        // Equvalent to:
+        // [System.Runtime.CompilerServices.InterpolatedStringHandler]
+        // public struct InterpolationHandler
+        // {
 
-                public InterpolationHandler(int literalLength, int formattedCount, InterpolationHandler i)
-                {
-                    System.Console.WriteLine(i);
-                }
-                public void AppendLiteral(string value) { }
-                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
-            }
+        //     public InterpolationHandler(int literalLength, int formattedCount, InterpolationHandler i)
+        //     {
+        //         System.Console.WriteLine(i);
+        //     }
+        //     public void AppendLiteral(string value) { }
+        //     public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+        // }
 
-            public static class E
+        // public static class E
+        // {
+        //     extension([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("{attributeValue}")] InterpolationHandler i)
+        //     {
+        //         public void M() {}
+        //     }
+        // }
+        var il = $$"""
+            .class public sequential ansi sealed beforefieldinit InterpolationHandler
+                extends [mscorlib]System.ValueType
             {
-                extension([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("i")] InterpolationHandler i)
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute::.ctor() = (01 00 00 00)
+                .pack 0
+                .size 1
+
+                // Methods
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor (int32 literalLength, int32 formattedCount, valuetype InterpolationHandler param) cil managed 
                 {
-                    public void M() {}
-                }
-            }
+                    nop
+                    ret
+                } // end of method InterpolationHandler::.ctor
+
+                .method public hidebysig instance void AppendLiteral (string 'value') cil managed 
+                {
+                    nop
+                    ret
+                } // end of method InterpolationHandler::AppendLiteral
+
+                .method public hidebysig instance void AppendFormatted<T> (!!T hole, [opt] int32 'alignment', [opt] string format) cil managed 
+                {
+                    .param [2] = int32(0)
+                    .param [3] = nullref
+                    nop
+                    ret
+                } // end of method InterpolationHandler::AppendFormatted
+
+            } // end of class InterpolationHandler
+
+            .class public auto ansi abstract sealed beforefieldinit E extends [mscorlib]System.Object
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (01 00 00 00)
+                // Nested Types
+                .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+                    extends [mscorlib]System.Object
+                {
+                    .method private hidebysig specialname static void '<Extension>$' (valuetype InterpolationHandler i) cil managed
+                    {
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (01 00 00 00)
+                        .param [1]
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute::.ctor(string) = ({{attributeValue}})
+                        ret
+                    } // end of method '<>E__0'::'<Extension>$'
+
+                    .method public hidebysig instance void M () cil managed 
+                    {
+                        ldnull
+                        throw
+                    } // end of method '<>E__0'::M
+                } // end of class <>E__0
+
+                .method public hidebysig static void M (valuetype InterpolationHandler i) cil managed 
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    .param [1]
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute::.ctor(string) = ({{attributeValue}})
+                    nop
+                    ret
+                } // end of method E::M
+            } // end of class E
             """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        var src = """
+            $"".M();
+            E.M($"");
+            """;
+
+        var comp = CreateCompilationWithIL(src, ilSource: il, targetFramework: TargetFramework.Net90);
         comp.VerifyDiagnostics(
-            // (15,16): error CS8948: InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.
-            //     extension([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("i")] InterpolationHandler i)
-            Diagnostic(ErrorCode.ERR_CannotUseSelfAsInterpolatedStringHandlerArgument, @"System.Runtime.CompilerServices.InterpolatedStringHandlerArgument(""i"")").WithLocation(15, 16)
+            // (1,1): error CS1929: 'string' does not contain a definition for 'M' and the best extension method overload 'E.extension(InterpolationHandler).M()' requires a receiver of type 'InterpolationHandler'
+            // $"".M();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, @"$""""").WithArguments("string", "M", "E.extension(InterpolationHandler).M()", "InterpolationHandler").WithLocation(1, 1),
+            // (2,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'InterpolationHandler i' is malformed and cannot be interpreted. Construct an instance of 'InterpolationHandler' manually.
+            // E.M($"");
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("InterpolationHandler i", "InterpolationHandler").WithLocation(2, 5),
+            // (2,5): error CS7036: There is no argument given that corresponds to the required parameter 'param' of 'InterpolationHandler.InterpolationHandler(int, int, InterpolationHandler)'
+            // E.M($"");
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"$""""").WithArguments("param", "InterpolationHandler.InterpolationHandler(int, int, InterpolationHandler)").WithLocation(2, 5),
+            // (2,5): error CS1615: Argument 3 may not be passed with the 'out' keyword
+            // E.M($"");
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, @"$""""").WithArguments("3", "out").WithLocation(2, 5)
         );
 
-        var tree = comp.SyntaxTrees[0];
-        var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
+        var e = comp.GetTypeByMetadataName("E");
+        var symbol = e.GetTypeMembers().Single();
 
-        var symbol = model.GetDeclaredSymbol(extension);
-        AssertExtensionDeclaration(symbol);
-        var underlying = symbol.GetSymbol<NamedTypeSymbol>();
-        Assert.True(underlying.ExtensionParameter.HasInterpolatedStringHandlerArgumentError);
-        Assert.True(underlying.ExtensionParameter.InterpolatedStringHandlerArgumentIndexes.IsEmpty);
-        var implM = underlying.ContainingType.GetMember<MethodSymbol>("M");
+        Assert.True(symbol.ExtensionParameter.HasInterpolatedStringHandlerArgumentError);
+        Assert.True(symbol.ExtensionParameter.InterpolatedStringHandlerArgumentIndexes.IsEmpty);
+        var implM = symbol.ContainingType.GetMember<MethodSymbol>("M");
         Assert.True(implM.Parameters[0].HasInterpolatedStringHandlerArgumentError);
         Assert.True(implM.Parameters[0].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
     }
@@ -22132,164 +22214,6 @@ static class E
         Assert.True(implM.Parameters[0].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
         Assert.True(implM.Parameters[1].HasInterpolatedStringHandlerArgumentError);
         Assert.True(implM.Parameters[1].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
-    public void InterpolationHandler_ParameterErrors_MappedCorrectly_04()
-    {
-        var src = """
-            [System.Runtime.CompilerServices.InterpolatedStringHandler]
-            public struct InterpolationHandler
-            {
-
-                public InterpolationHandler(int literalLength, int formattedCount, InterpolationHandler i)
-                {
-                    System.Console.WriteLine(i);
-                }
-                public void AppendLiteral(string value) { }
-                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
-            }
-
-            public static class E
-            {
-                extension([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("")] InterpolationHandler i)
-                {
-                    public void M() {}
-                }
-            }
-            """;
-
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyDiagnostics(
-            // (15,16): error CS8944: 'E.extension(InterpolationHandler).<Extension>$(InterpolationHandler)' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
-            //     extension([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("")] InterpolationHandler i)
-            Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("""")").WithArguments("E.extension(InterpolationHandler).<Extension>$(InterpolationHandler)").WithLocation(15, 16)
-        );
-
-        var tree = comp.SyntaxTrees[0];
-        var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
-
-        var symbol = model.GetDeclaredSymbol(extension);
-        AssertExtensionDeclaration(symbol);
-        var underlying = symbol.GetSymbol<NamedTypeSymbol>();
-        Assert.True(underlying.ExtensionParameter.HasInterpolatedStringHandlerArgumentError);
-        Assert.True(underlying.ExtensionParameter.InterpolatedStringHandlerArgumentIndexes.IsEmpty);
-        var implM = underlying.ContainingType.GetMember<MethodSymbol>("M");
-        Assert.True(implM.Parameters[0].HasInterpolatedStringHandlerArgumentError);
-        Assert.True(implM.Parameters[0].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
-    public void InterpolationHandler_ParameterErrors_MappedCorrectly_04_FromMetadata()
-    {
-        // Equvalent to:
-        // [System.Runtime.CompilerServices.InterpolatedStringHandler]
-        // public struct InterpolationHandler
-        // {
-
-        //     public InterpolationHandler(int literalLength, int formattedCount, InterpolationHandler i)
-        //     {
-        //         System.Console.WriteLine(i);
-        //     }
-        //     public void AppendLiteral(string value) { }
-        //     public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
-        // }
-
-        // public static class E
-        // {
-        //     extension([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("")] InterpolationHandler i)
-        //     {
-        //         public void M() {}
-        //     }
-        // }
-        var il = $$"""
-            .class public sequential ansi sealed beforefieldinit InterpolationHandler
-                extends [mscorlib]System.ValueType
-            {
-                .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute::.ctor() = (01 00 00 00)
-                .pack 0
-                .size 1
-
-                // Methods
-                .method public hidebysig specialname rtspecialname 
-                    instance void .ctor (int32 literalLength, int32 formattedCount, valuetype InterpolationHandler param) cil managed 
-                {
-                    nop
-                    ret
-                } // end of method InterpolationHandler::.ctor
-
-                .method public hidebysig instance void AppendLiteral (string 'value') cil managed 
-                {
-                    nop
-                    ret
-                } // end of method InterpolationHandler::AppendLiteral
-
-                .method public hidebysig instance void AppendFormatted<T> (!!T hole, [opt] int32 'alignment', [opt] string format) cil managed 
-                {
-                    .param [2] = int32(0)
-                    .param [3] = nullref
-                    nop
-                    ret
-                } // end of method InterpolationHandler::AppendFormatted
-
-            } // end of class InterpolationHandler
-
-            .class public auto ansi abstract sealed beforefieldinit E extends [mscorlib]System.Object
-            {
-                .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (01 00 00 00)
-                // Nested Types
-                .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-                    extends [mscorlib]System.Object
-                {
-                    .method private hidebysig specialname static void '<Extension>$' (valuetype InterpolationHandler i) cil managed
-                    {
-                        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (01 00 00 00)
-                        .param [1]
-                        .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute::.ctor(string) = (01 00 00 00 00)
-                        ret
-                    } // end of method '<>E__0'::'<Extension>$'
-
-                    .method public hidebysig instance void M () cil managed 
-                    {
-                        ldnull
-                        throw
-                    } // end of method '<>E__0'::M
-                } // end of class <>E__0
-
-                .method public hidebysig static void M (valuetype InterpolationHandler i) cil managed 
-                {
-                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-                        01 00 00 00
-                    )
-                    .param [1]
-                    .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute::.ctor(string) = (01 00 00 00 00)
-                    nop
-                    ret
-                } // end of method E::M
-            } // end of class E
-            """;
-
-        var src = """
-            $"".M();
-            E.M($"");
-            """;
-
-        var comp = CreateCompilationWithIL(src, ilSource: il, targetFramework: TargetFramework.Net90);
-        comp.VerifyDiagnostics(
-            // (1,1): error CS1929: 'string' does not contain a definition for 'M' and the best extension method overload 'E.extension(InterpolationHandler).M()' requires a receiver of type 'InterpolationHandler'
-            // $"".M();
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, @"$""""").WithArguments("string", "M", "E.extension(InterpolationHandler).M()", "InterpolationHandler").WithLocation(1, 1),
-            // (2,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'InterpolationHandler i' is malformed and cannot be interpreted. Construct an instance of 'InterpolationHandler' manually.
-            // E.M($"");
-            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("InterpolationHandler i", "InterpolationHandler").WithLocation(2, 5),
-            // (2,5): error CS7036: There is no argument given that corresponds to the required parameter 'param' of 'InterpolationHandler.InterpolationHandler(int, int, InterpolationHandler)'
-            // E.M($"");
-            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"$""""").WithArguments("param", "InterpolationHandler.InterpolationHandler(int, int, InterpolationHandler)").WithLocation(2, 5),
-            // (2,5): error CS1615: Argument 3 may not be passed with the 'out' keyword
-            // E.M($"");
-            Diagnostic(ErrorCode.ERR_BadArgExtraRef, @"$""""").WithArguments("3", "out").WithLocation(2, 5)
-        );
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
