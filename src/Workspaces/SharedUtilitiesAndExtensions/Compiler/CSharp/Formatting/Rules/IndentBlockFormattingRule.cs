@@ -440,12 +440,14 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         if (baseExpression is IdentifierNameSyntax)
         {
             // Simple identifier case: indent by one level
-            AddIndentBlockOperation(list, baseToken, startToken, endToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+            AddIndentBlockOperation(list, baseToken, startToken, endToken,
+                IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
         }
         else
         {
             // Complex expression case: align to the dot position
-            SetAlignmentBlockOperation(list, baseToken, startToken, endToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+            SetAlignmentBlockOperation(list, baseToken, startToken, endToken,
+                IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
         }
     }
 
