@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -102,11 +103,24 @@ internal sealed class SolutionChecksumUpdater
 
     private void OnWorkspaceChangedImmediate(WorkspaceChangeEventArgs e)
     {
-        if (e.Kind == WorkspaceChangeKind.DocumentChanged)
+        if (e.Kind == WorkspaceChangeKind.DocumentChanged || e.Kind == WorkspaceChangeKind.AdditionalDocumentChanged)
         {
             var documentId = e.DocumentId!;
-            var oldDocument = e.OldSolution.GetRequiredDocument(documentId);
-            var newDocument = e.NewSolution.GetRequiredDocument(documentId);
+            TextDocument oldDocument;
+            TextDocument newDocument;
+
+            if (e.Kind == WorkspaceChangeKind.DocumentChanged)
+            {
+                oldDocument = e.OldSolution.GetRequiredDocument(documentId);
+                newDocument = e.NewSolution.GetRequiredDocument(documentId);
+            }
+            else
+            {
+                Debug.Assert(e.Kind == WorkspaceChangeKind.AdditionalDocumentChanged);
+
+                oldDocument = e.OldSolution.GetRequiredAdditionalDocument(documentId);
+                newDocument = e.NewSolution.GetRequiredAdditionalDocument(documentId);
+            }
 
             // Fire-and-forget to dispatch notification of this document change event to the remote side
             // and return to the caller as quickly as possible.
@@ -157,8 +171,8 @@ internal sealed class SolutionChecksumUpdater
     }
 
     private async Task DispatchSynchronizeTextChangesAsync(
-        Document oldDocument,
-        Document newDocument)
+        TextDocument oldDocument,
+        TextDocument newDocument)
     {
         // Explicitly force a yield point here to ensure this method returns to the caller immediately and that
         // all work is done off the calling thread.
