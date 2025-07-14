@@ -36,8 +36,8 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
         if (_options.LabelPositioning == newOptions.LabelPositioning &&
             _options.Indentation == newOptions.Indentation &&
-            _options.WrapMethodCallChains == newOptions.WrapMethodCallChains &&
-            _options.IndentWrappedMethodCallChains == newOptions.IndentWrappedMethodCallChains)
+            _options.WrapCallChains == newOptions.WrapCallChains &&
+            _options.IndentWrappedCallChains == newOptions.IndentWrappedCallChains)
         {
             return this;
         }
@@ -63,7 +63,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
         AddCaseSectionIndentBlockOperation(list, node);
 
-        AddMethodCallChainAlignmentOperation(list, node);
+        AddCallChainAlignmentOperation(list, node);
 
         AddParameterAlignmentOperation(list, node);
 
@@ -391,7 +391,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         }
     }
 
-    private void AddMethodCallChainAlignmentOperation(List<IndentBlockOperation> list, SyntaxNode node)
+    private void AddCallChainAlignmentOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
         // Only process member access expressions that are part of method call chains
         if (node is not MemberAccessExpressionSyntax memberAccess)
@@ -400,35 +400,35 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         }
 
         // Check if this member access is part of a method call chain
-        if (!IsPartOfMethodCallChain(memberAccess))
+        if (!IsPartOfCallChain(memberAccess))
         {
             return;
         }
 
         // Only add indentation operations if both wrapping and indentation are enabled
-        if (!_options.WrapMethodCallChains || !_options.IndentWrappedMethodCallChains)
+        if (!_options.WrapCallChains || !_options.IndentWrappedCallChains)
         {
             return;
         }
 
         // Add indentation for the method call chain
-        AddIndentBlockOperationForMethodCallChain(list, memberAccess);
+        AddIndentBlockOperationForCallChain(list, memberAccess);
     }
 
-    private static bool IsPartOfMethodCallChain(MemberAccessExpressionSyntax memberAccess)
+    private static bool IsPartOfCallChain(MemberAccessExpressionSyntax memberAccess)
     {
         // Check if the left side is an invocation or another member access
         return memberAccess.Expression is InvocationExpressionSyntax or MemberAccessExpressionSyntax;
     }
 
-    private static void AddIndentBlockOperationForMethodCallChain(List<IndentBlockOperation> list, MemberAccessExpressionSyntax memberAccess)
+    private static void AddIndentBlockOperationForCallChain(List<IndentBlockOperation> list, MemberAccessExpressionSyntax memberAccess)
     {
         // Get the dot token and the right side of the expression
         var dotToken = memberAccess.OperatorToken;
         var rightSide = memberAccess.Name;
         
         // Find the base expression for the method call chain
-        var baseExpression = GetBaseExpressionForMethodCallChain(memberAccess);
+        var baseExpression = GetBaseExpressionForCallChain(memberAccess);
         var baseToken = baseExpression.GetFirstToken(includeZeroWidth: true);
         
         var startToken = dotToken;
@@ -449,7 +449,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         }
     }
 
-    private static ExpressionSyntax GetBaseExpressionForMethodCallChain(MemberAccessExpressionSyntax memberAccess)
+    private static ExpressionSyntax GetBaseExpressionForCallChain(MemberAccessExpressionSyntax memberAccess)
     {
         // Find the topmost expression in the chain
         var current = memberAccess;

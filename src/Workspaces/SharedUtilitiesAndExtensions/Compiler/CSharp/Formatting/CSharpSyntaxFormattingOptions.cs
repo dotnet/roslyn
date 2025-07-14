@@ -59,8 +59,8 @@ internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOpt
     [DataMember] public IndentationPlacement Indentation { get; init; } = IndentationDefault;
     [DataMember] public bool WrappingKeepStatementsOnSingleLine { get; init; } = true;
     [DataMember] public bool WrappingPreserveSingleLine { get; init; } = true;
-    [DataMember] public bool WrapMethodCallChains { get; init; } = false;
-    [DataMember] public bool IndentWrappedMethodCallChains { get; init; } = false;
+    [DataMember] public bool WrapCallChains { get; init; } = false;
+    [DataMember] public bool IndentWrappedCallChains { get; init; } = false;
     [DataMember] public bool WrapParameters { get; init; } = false;
     [DataMember] public bool AlignWrappedParameters { get; init; } = false;
     [DataMember] public bool WrapParametersOnNewLine { get; init; } = false;
@@ -115,8 +115,8 @@ internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOpt
             (options.GetOption(CSharpFormattingOptions2.IndentSwitchSection) ? IndentationPlacement.SwitchSection : 0);
         WrappingKeepStatementsOnSingleLine = options.GetOption(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine);
         WrappingPreserveSingleLine = options.GetOption(CSharpFormattingOptions2.WrappingPreserveSingleLine);
-        WrapMethodCallChains = options.GetOption(CSharpFormattingOptions2.WrapMethodCallChains);
-        IndentWrappedMethodCallChains = options.GetOption(CSharpFormattingOptions2.IndentWrappedMethodCallChains);
+        WrapCallChains = options.GetOption(CSharpFormattingOptions2.WrapCallChains);
+        IndentWrappedCallChains = options.GetOption(CSharpFormattingOptions2.IndentWrappedCallChains);
         WrapParameters = options.GetOption(CSharpFormattingOptions2.WrapParameters);
         AlignWrappedParameters = options.GetOption(CSharpFormattingOptions2.AlignWrappedParameters);
         WrapParametersOnNewLine = options.GetOption(CSharpFormattingOptions2.WrapParametersOnNewLine);

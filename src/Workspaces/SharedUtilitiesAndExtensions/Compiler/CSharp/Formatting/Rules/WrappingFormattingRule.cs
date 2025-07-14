@@ -32,8 +32,8 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
 
         if (_options.WrappingPreserveSingleLine == newOptions.WrappingPreserveSingleLine &&
             _options.WrappingKeepStatementsOnSingleLine == newOptions.WrappingKeepStatementsOnSingleLine &&
-            _options.WrapMethodCallChains == newOptions.WrapMethodCallChains &&
-            _options.IndentWrappedMethodCallChains == newOptions.IndentWrappedMethodCallChains &&
+            _options.WrapCallChains == newOptions.WrapCallChains &&
+            _options.IndentWrappedCallChains == newOptions.IndentWrappedCallChains &&
             _options.WrapParameters == newOptions.WrapParameters &&
             _options.AlignWrappedParameters == newOptions.AlignWrappedParameters &&
             _options.WrapParametersOnNewLine == newOptions.WrapParametersOnNewLine)
@@ -54,7 +54,7 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
 
         AddSpecificNodesSuppressOperations(list, node);
 
-        AddMethodCallChainWrappingOperations(list, node);
+        AddCallChainWrappingOperations(list, node);
 
         AddParameterWrappingOperations(list, node);
 
@@ -202,10 +202,10 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
             span);
     }
 
-    private void AddMethodCallChainWrappingOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
+    private void AddCallChainWrappingOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         // If wrapping is not enabled for method call chains, do nothing
-        if (!_options.WrapMethodCallChains)
+        if (!_options.WrapCallChains)
         {
             return;
         }
@@ -214,9 +214,9 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         if (node is MemberAccessExpressionSyntax memberAccess)
         {
             // Check if this is part of a method call chain
-            if (IsPartOfMethodCallChain(memberAccess))
+            if (IsPartOfCallChain(memberAccess))
             {
-                RemoveSuppressOperationForMethodCallChain(list, memberAccess);
+                RemoveSuppressOperationForCallChain(list, memberAccess);
             }
             return;
         }
@@ -225,15 +225,15 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         if (node is InvocationExpressionSyntax invocation)
         {
             // Check if this invocation is part of a method call chain
-            if (IsPartOfMethodCallChain(invocation))
+            if (IsPartOfCallChain(invocation))
             {
-                RemoveSuppressOperationForMethodCallChain(list, invocation);
+                RemoveSuppressOperationForCallChain(list, invocation);
             }
             return;
         }
     }
 
-    private static bool IsPartOfMethodCallChain(SyntaxNode node)
+    private static bool IsPartOfCallChain(SyntaxNode node)
     {
         // Check if this node is part of a method call chain by looking for:
         // 1. Member access expressions that are part of chained calls
@@ -256,7 +256,7 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         return false;
     }
 
-    private static void RemoveSuppressOperationForMethodCallChain(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
+    private static void RemoveSuppressOperationForCallChain(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         if (node is MemberAccessExpressionSyntax memberAccess)
         {

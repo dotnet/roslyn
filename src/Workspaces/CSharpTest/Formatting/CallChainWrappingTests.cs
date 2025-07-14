@@ -11,28 +11,28 @@ using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions2;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting;
 
 [Trait(Traits.Feature, Traits.Features.Formatting)]
-public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
+public sealed class CallChainWrappingTests : CSharpFormattingTestBase
 {
-    private readonly OptionsCollection WrapMethodCallChainsEnabled = new(LanguageNames.CSharp)
+    private readonly OptionsCollection WrapCallChainsEnabled = new(LanguageNames.CSharp)
     {
-        { WrapMethodCallChains, true }
+        { WrapCallChains, true }
     };
 
-    private readonly OptionsCollection WrapMethodCallChainsDisabled = new(LanguageNames.CSharp)
+    private readonly OptionsCollection WrapCallChainsDisabled = new(LanguageNames.CSharp)
     {
-        { WrapMethodCallChains, false }
+        { WrapCallChains, false }
     };
 
-    private readonly OptionsCollection WrapAndIndentMethodCallChainsEnabled = new(LanguageNames.CSharp)
+    private readonly OptionsCollection WrapAndIndentCallChainsEnabled = new(LanguageNames.CSharp)
     {
-        { WrapMethodCallChains, true },
-        { IndentWrappedMethodCallChains, true }
+        { WrapCallChains, true },
+        { IndentWrappedCallChains, true }
     };
 
-    private readonly OptionsCollection IndentWrappedMethodCallChainsOnly = new(LanguageNames.CSharp)
+    private readonly OptionsCollection IndentWrappedCallChainsOnly = new(LanguageNames.CSharp)
     {
-        { WrapMethodCallChains, false },
-        { IndentWrappedMethodCallChains, true }
+        { WrapCallChains, false },
+        { IndentWrappedCallChains, true }
     };
 
     [Fact]
@@ -46,7 +46,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = data.Where(x => x.Value > 0).OrderBy(x => x.Name).Select(x => x.Value).ToList();
                 }
             }
-            """, WrapMethodCallChainsDisabled);
+            """, WrapCallChainsDisabled);
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = data.Where(x => x.Value > 0).OrderBy(x => x.Name).Select(x => x.Value).ToList();
                 }
             }
-            """, WrapMethodCallChainsEnabled);
+            """, WrapCallChainsEnabled);
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = data.Where(x => x.Value > 0).OrderBy(x => x.Name).Select(x => x.Value).ToList();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var logs = log.Entries.OrderBy(x => x.Time).ThenBy(x => x.Thread).ThenBy(x => x.LineNum).GroupBy(x => x.Group);
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     });
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -191,7 +191,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var x = y.GroupBy(i => i.Key.Id, i => i.Key.Version).Where(i => i.Count() > 1).ToImmutableArray();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -216,7 +216,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = source.Select<int, string>(x => x.ToString()).Where<string>(x => x.Length > 0).ToList<string>();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -241,7 +241,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = data.Where(x => x.GetValue().IsValid()).Select(x => x.GetName().ToUpper()).ToList();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -266,7 +266,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = Enumerable.Range(1, 10).Where(x => x % 2 == 0).Select(x => x * 2).ToArray();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -291,7 +291,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = data.Where(x => x.IsValid).Select(x => x.Name.ToUpper()).ToList();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -316,7 +316,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = data.Where(x => x[0] != null).Select(x => x[0].ToString()).ToList();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -341,7 +341,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = await data.Where(x => x.IsValid).SelectAsync(x => x.ProcessAsync()).ToListAsync();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -366,7 +366,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = data.Where(x => x.IsValid).Select(x => x.Name).ToList();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -392,7 +392,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = data.Where(x => x.Value > 0).OrderBy(x => x.Name).Select(x => x.Value).ToList();
                 }
             }
-            """, WrapMethodCallChainsEnabled);
+            """, WrapCallChainsEnabled);
     }
 
     [Fact]
@@ -416,7 +416,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = data.First().ToString();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -441,7 +441,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     return data.Where(x => x.IsValid).Select(x => x.Name).ToList();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -466,7 +466,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     DoSomething(data.Where(x => x.IsValid).Select(x => x.Name).ToList());
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -490,7 +490,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = condition ? data.Where(x => x.IsValid).ToList() : null;
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -518,7 +518,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result2 = data2.Select(x => x.Name).ToList();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -536,7 +536,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                         .ToList();
                 }
             }
-            """, WrapMethodCallChainsDisabled);
+            """, WrapCallChainsDisabled);
     }
 
     [Fact]
@@ -550,13 +550,17 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = data.Where(x => x.Value > 0).OrderBy(x => x.Name).Select(x => x.Value).ToList();
                 }
             }
-            """, IndentWrappedMethodCallChainsOnly);
+            """, IndentWrappedCallChainsOnly);
     }
 
     [Fact]
     public async Task TestEditorConfigIntegration_WrapOnly()
     {
-        // Test that the EditorConfig option works properly
+        var editorConfig = """
+            [*.cs]
+            csharp_wrap_call_chains = true
+            """;
+
         await AssertFormatAsync("""
             class C
             {
@@ -576,13 +580,18 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = data.Where(x => x.Value > 0).OrderBy(x => x.Name).ToList();
                 }
             }
-            """, WrapMethodCallChainsEnabled);
+            """, WrapCallChainsEnabled);
     }
 
     [Fact]
     public async Task TestEditorConfigIntegration_WrapAndIndent()
     {
-        // Test that both EditorConfig options work properly
+        var editorConfig = """
+            [*.cs]
+            csharp_wrap_call_chains = true
+            csharp_indent_wrapped_call_chains = true
+            """;
+
         await AssertFormatAsync("""
             class C
             {
@@ -602,7 +611,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = data.Where(x => x.Value > 0).OrderBy(x => x.Name).ToList();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -627,7 +636,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = data?.Where(x => x.IsValid).Select(x => x.Name).ToList();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -655,7 +664,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                                   select x.Name).Distinct().ToList();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -680,7 +689,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = data.Cast<string>().Where(x => x.Length > 0).ToList();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -706,7 +715,7 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = GetData().Where(x => x.Id > 0 && x.Name != null).Select(x => new { x.Id, UpperName = x.Name.ToUpper() }).OrderBy(x => x.UpperName).ToList();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 
     [Fact]
@@ -731,6 +740,6 @@ public sealed class MethodCallChainWrappingTests : CSharpFormattingTestBase
                     var result = obj.GetService<IDataService>().GetData().Where(x => x.IsValid).ToList();
                 }
             }
-            """, WrapAndIndentMethodCallChainsEnabled);
+            """, WrapAndIndentCallChainsEnabled);
     }
 } 

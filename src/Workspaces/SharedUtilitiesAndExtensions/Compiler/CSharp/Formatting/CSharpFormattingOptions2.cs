@@ -229,15 +229,15 @@ internal static partial class CSharpFormattingOptions2
         CSharpSyntaxFormattingOptions.Default.WrappingKeepStatementsOnSingleLine)
         .WithPublicOption(PublicFeatureName, "WrappingKeepStatementsOnSingleLine");
 
-    public static Option2<bool> WrapMethodCallChains { get; } = CreateOption(
-        CSharpFormattingOptionGroups.Wrapping, "csharp_wrap_method_call_chains",
+    public static Option2<bool> WrapCallChains { get; } = CreateOption(
+        CSharpFormattingOptionGroups.Wrapping, "csharp_wrap_call_chains",
         defaultValue: false)
-        .WithPublicOption(PublicFeatureName, "WrapMethodCallChains");
+        .WithPublicOption(PublicFeatureName, "WrapCallChains");
 
-    public static Option2<bool> IndentWrappedMethodCallChains { get; } = CreateOption(
-        CSharpFormattingOptionGroups.Wrapping, "csharp_indent_wrapped_method_call_chains",
+    public static Option2<bool> IndentWrappedCallChains { get; } = CreateOption(
+        CSharpFormattingOptionGroups.Wrapping, "csharp_indent_wrapped_call_chains",
         defaultValue: false)
-        .WithPublicOption(PublicFeatureName, "IndentWrappedMethodCallChains");
+        .WithPublicOption(PublicFeatureName, "IndentWrappedCallChains");
 
     public static Option2<bool> WrapParameters { get; } = CreateOption(
         CSharpFormattingOptionGroups.Wrapping, "csharp_wrap_parameters",

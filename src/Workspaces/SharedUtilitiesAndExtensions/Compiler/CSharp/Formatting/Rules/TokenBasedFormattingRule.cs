@@ -33,8 +33,8 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
 
         if (_options.SeparateImportDirectiveGroups == newOptions.SeparateImportDirectiveGroups &&
-            _options.WrapMethodCallChains == newOptions.WrapMethodCallChains &&
-            _options.IndentWrappedMethodCallChains == newOptions.IndentWrappedMethodCallChains &&
+            _options.WrapCallChains == newOptions.WrapCallChains &&
+            _options.IndentWrappedCallChains == newOptions.IndentWrappedCallChains &&
             _options.WrapParameters == newOptions.WrapParameters &&
             _options.AlignWrappedParameters == newOptions.AlignWrappedParameters &&
             _options.WrapParametersOnNewLine == newOptions.WrapParametersOnNewLine)
@@ -225,10 +225,10 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         }
 
         // Handle dots in method call chains
-        var methodCallChainNewLineOperation = GetMethodCallChainNewLineOperation(previousToken, currentToken);
-        if (methodCallChainNewLineOperation != null)
+        var callChainNewLineOperation = GetCallChainNewLineOperation(previousToken, currentToken);
+        if (callChainNewLineOperation != null)
         {
-            return methodCallChainNewLineOperation;
+            return callChainNewLineOperation;
         }
 
         return nextOperation.Invoke(in previousToken, in currentToken);
@@ -570,10 +570,10 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         return nextOperation.Invoke(in previousToken, in currentToken);
     }
 
-    private AdjustNewLinesOperation? GetMethodCallChainNewLineOperation(SyntaxToken previousToken, SyntaxToken currentToken)
+    private AdjustNewLinesOperation? GetCallChainNewLineOperation(SyntaxToken previousToken, SyntaxToken currentToken)
     {
         // Only handle dot tokens if method call chain wrapping is enabled
-        if (!_options.WrapMethodCallChains)
+        if (!_options.WrapCallChains)
         {
             return null;
         }
@@ -586,7 +586,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
 
         // Check if this dot token is part of a method call chain
         if (currentToken.Parent is MemberAccessExpressionSyntax memberAccess && 
-            IsPartOfMethodCallChain(memberAccess))
+            IsPartOfCallChain(memberAccess))
         {
             // Allow wrapping before dots in method call chains
             return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
@@ -595,7 +595,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         return null;
     }
 
-    private static bool IsPartOfMethodCallChain(MemberAccessExpressionSyntax memberAccess)
+    private static bool IsPartOfCallChain(MemberAccessExpressionSyntax memberAccess)
     {
         // Check if the left side is an invocation or another member access
         return memberAccess.Expression is InvocationExpressionSyntax or MemberAccessExpressionSyntax;
