@@ -378,7 +378,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         }
     }
 
-    private void AddCaseSectionIndentBlockOperation(List<IndentBlockOperation> list, SyntaxNode node)
+    private static void AddCaseSectionIndentBlockOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
         if (node is SwitchSectionSyntax section)
         {
@@ -386,7 +386,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
             if (firstStatement != null && firstStatement is BlockSyntax)
             {
                 var block = (BlockSyntax)firstStatement;
-                AddIndentBlockOperation(list, block.OpenBraceToken, block.CloseBraceToken);
+                list.Add(FormattingOperations.CreateIndentBlockOperation(block.OpenBraceToken, block.CloseBraceToken, 1, IndentBlockOption.RelativePosition));
             }
         }
     }
