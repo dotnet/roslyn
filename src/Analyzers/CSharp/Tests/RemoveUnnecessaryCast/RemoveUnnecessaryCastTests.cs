@@ -13484,4 +13484,28 @@ public sealed class RemoveUnnecessaryCastTests
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllCheck,
             DiagnosticSelector = d => d[1],
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60720")]
+    public Task TestNullableWithinGeneric()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System;
+                using System.Threading.Tasks;
+
+                Task<string?> M(string s, Func<string, Task<string>> func)
+                {
+                    return string.IsNullOrWhiteSpace(s)
+                        ? Task.FromResult<string?>(null)
+                        : (Task<string?>)func(s)!;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+        }.RunAsync();
 }
