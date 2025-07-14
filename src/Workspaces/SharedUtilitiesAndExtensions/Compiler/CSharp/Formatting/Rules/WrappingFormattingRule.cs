@@ -35,7 +35,10 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
             _options.WrapConditionalExpressions == newOptions.WrapConditionalExpressions &&
             _options.IndentWrappedConditionalExpressions == newOptions.IndentWrappedConditionalExpressions &&
             _options.WrapMethodCallChains == newOptions.WrapMethodCallChains &&
-            _options.IndentWrappedMethodCallChains == newOptions.IndentWrappedMethodCallChains)
+            _options.IndentWrappedMethodCallChains == newOptions.IndentWrappedMethodCallChains &&
+            _options.WrapParameters == newOptions.WrapParameters &&
+            _options.AlignWrappedParameters == newOptions.AlignWrappedParameters &&
+            _options.WrapParametersOnNewLine == newOptions.WrapParametersOnNewLine)
         {
             return this;
         }
@@ -56,6 +59,8 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         AddConditionalWrappingOperations(list, node);
 
         AddMethodCallChainWrappingOperations(list, node);
+
+        AddParameterWrappingOperations(list, node);
 
         if (!_options.WrappingPreserveSingleLine)
         {
@@ -332,6 +337,119 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
             // Remove suppress operations around the dot token after the invocation
             var leftEnd = invocation.GetLastToken(includeZeroWidth: true);
             var rightStart = parentMemberAccess.Name.GetFirstToken(includeZeroWidth: true);
+            
+            RemoveSuppressOperation(list, leftEnd, rightStart);
+        }
+    }
+
+    private void AddParameterWrappingOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
+    {
+        // If parameter wrapping is not enabled, do nothing
+        if (!_options.WrapParameters)
+        {
+            return;
+        }
+
+        // Process parameter lists in method declarations
+        if (node is ParameterListSyntax parameterList)
+        {
+            RemoveSuppressOperationForParameterList(list, parameterList);
+            return;
+        }
+
+        // Process argument lists in method calls
+        if (node is ArgumentListSyntax argumentList)
+        {
+            RemoveSuppressOperationForArgumentList(list, argumentList);
+            return;
+        }
+
+        // Process bracket parameter lists (indexers, attributes)
+        if (node is BracketedParameterListSyntax bracketedParameterList)
+        {
+            RemoveSuppressOperationForBracketedParameterList(list, bracketedParameterList);
+            return;
+        }
+
+        // Process bracketed argument lists (indexers, attributes)
+        if (node is BracketedArgumentListSyntax bracketedArgumentList)
+        {
+            RemoveSuppressOperationForBracketedArgumentList(list, bracketedArgumentList);
+            return;
+        }
+    }
+
+    private static void RemoveSuppressOperationForParameterList(ArrayBuilder<SuppressOperation> list, ParameterListSyntax parameterList)
+    {
+        // Only process if there are multiple parameters
+        if (parameterList.Parameters.Count <= 1)
+        {
+            return;
+        }
+
+        // Remove suppress operations around commas to allow wrapping
+        for (int i = 0; i < parameterList.Parameters.SeparatorCount; i++)
+        {
+            var separator = parameterList.Parameters.GetSeparator(i);
+            var leftEnd = parameterList.Parameters[i].GetLastToken(includeZeroWidth: true);
+            var rightStart = parameterList.Parameters[i + 1].GetFirstToken(includeZeroWidth: true);
+            
+            RemoveSuppressOperation(list, leftEnd, rightStart);
+        }
+    }
+
+    private static void RemoveSuppressOperationForArgumentList(ArrayBuilder<SuppressOperation> list, ArgumentListSyntax argumentList)
+    {
+        // Only process if there are multiple arguments
+        if (argumentList.Arguments.Count <= 1)
+        {
+            return;
+        }
+
+        // Remove suppress operations around commas to allow wrapping
+        for (int i = 0; i < argumentList.Arguments.SeparatorCount; i++)
+        {
+            var separator = argumentList.Arguments.GetSeparator(i);
+            var leftEnd = argumentList.Arguments[i].GetLastToken(includeZeroWidth: true);
+            var rightStart = argumentList.Arguments[i + 1].GetFirstToken(includeZeroWidth: true);
+            
+            RemoveSuppressOperation(list, leftEnd, rightStart);
+        }
+    }
+
+    private static void RemoveSuppressOperationForBracketedParameterList(ArrayBuilder<SuppressOperation> list, BracketedParameterListSyntax bracketedParameterList)
+    {
+        // Only process if there are multiple parameters
+        if (bracketedParameterList.Parameters.Count <= 1)
+        {
+            return;
+        }
+
+        // Remove suppress operations around commas to allow wrapping
+        for (int i = 0; i < bracketedParameterList.Parameters.SeparatorCount; i++)
+        {
+            var separator = bracketedParameterList.Parameters.GetSeparator(i);
+            var leftEnd = bracketedParameterList.Parameters[i].GetLastToken(includeZeroWidth: true);
+            var rightStart = bracketedParameterList.Parameters[i + 1].GetFirstToken(includeZeroWidth: true);
+            
+            RemoveSuppressOperation(list, leftEnd, rightStart);
+        }
+    }
+
+    private static void RemoveSuppressOperationForBracketedArgumentList(ArrayBuilder<SuppressOperation> list, BracketedArgumentListSyntax bracketedArgumentList)
+    {
+        // Only process if there are multiple arguments
+        if (bracketedArgumentList.Arguments.Count <= 1)
+        {
+            return;
+        }
+
+        // Remove suppress operations around commas to allow wrapping
+        for (int i = 0; i < bracketedArgumentList.Arguments.SeparatorCount; i++)
+        {
+            var separator = bracketedArgumentList.Arguments.GetSeparator(i);
+            var leftEnd = bracketedArgumentList.Arguments[i].GetLastToken(includeZeroWidth: true);
+            var rightStart = bracketedArgumentList.Arguments[i + 1].GetFirstToken(includeZeroWidth: true);
             
             RemoveSuppressOperation(list, leftEnd, rightStart);
         }

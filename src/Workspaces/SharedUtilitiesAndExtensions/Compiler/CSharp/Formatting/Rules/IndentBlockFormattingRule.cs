@@ -67,6 +67,8 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
         AddMethodCallChainAlignmentOperation(list, node);
 
+        AddParameterAlignmentOperation(list, node);
+
         AddTypeParameterConstraintClauseOperation(list, node);
     }
 
@@ -530,5 +532,270 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         
         // Return the base expression (left side of the topmost member access)
         return current.Expression;
+    }
+
+    private void AddParameterAlignmentOperation(List<IndentBlockOperation> list, SyntaxNode node)
+    {
+        // Only process if parameter wrapping is enabled
+        if (!_options.WrapParameters)
+        {
+            return;
+        }
+
+        // Process parameter lists in method declarations
+        if (node is ParameterListSyntax parameterList)
+        {
+            AddParameterListAlignmentOperation(list, parameterList);
+            return;
+        }
+
+        // Process argument lists in method calls
+        if (node is ArgumentListSyntax argumentList)
+        {
+            AddArgumentListAlignmentOperation(list, argumentList);
+            return;
+        }
+
+        // Process bracket parameter lists (indexers, attributes)
+        if (node is BracketedParameterListSyntax bracketedParameterList)
+        {
+            AddBracketedParameterListAlignmentOperation(list, bracketedParameterList);
+            return;
+        }
+
+        // Process bracketed argument lists (indexers, attributes)
+        if (node is BracketedArgumentListSyntax bracketedArgumentList)
+        {
+            AddBracketedArgumentListAlignmentOperation(list, bracketedArgumentList);
+            return;
+        }
+    }
+
+    private void AddParameterListAlignmentOperation(List<IndentBlockOperation> list, ParameterListSyntax parameterList)
+    {
+        // Only process if there are multiple parameters
+        if (parameterList.Parameters.Count <= 1)
+        {
+            return;
+        }
+
+        var openParen = parameterList.OpenParenToken;
+        var closeParen = parameterList.CloseParenToken;
+
+        if (_options.WrapParametersOnNewLine)
+        {
+            // First parameter on new line case
+            var firstParameter = parameterList.Parameters[0];
+            var lastParameter = parameterList.Parameters[parameterList.Parameters.Count - 1];
+            
+            if (_options.AlignWrappedParameters)
+            {
+                // Align all parameters with the opening parenthesis
+                AddIndentBlockOperation(list, openParen, firstParameter.GetFirstToken(), lastParameter.GetLastToken(), 
+                    IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+            }
+            else
+            {
+                // Just indent one level from the method declaration
+                AddIndentBlockOperation(list, openParen, firstParameter.GetFirstToken(), lastParameter.GetLastToken());
+            }
+        }
+        else if (_options.AlignWrappedParameters)
+        {
+            // Align parameters with the first parameter
+            if (parameterList.Parameters.Count > 1)
+            {
+                var firstParameter = parameterList.Parameters[0];
+                var lastParameter = parameterList.Parameters[parameterList.Parameters.Count - 1];
+                
+                // Align remaining parameters with the first parameter
+                for (int i = 1; i < parameterList.Parameters.Count; i++)
+                {
+                    var parameter = parameterList.Parameters[i];
+                    AddIndentBlockOperation(list, firstParameter.GetFirstToken(), parameter.GetFirstToken(), parameter.GetLastToken(),
+                        IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                }
+            }
+        }
+        else
+        {
+            // Basic wrapping - just indent one level
+            for (int i = 1; i < parameterList.Parameters.Count; i++)
+            {
+                var parameter = parameterList.Parameters[i];
+                AddIndentBlockOperation(list, openParen, parameter.GetFirstToken(), parameter.GetLastToken());
+            }
+        }
+    }
+
+    private void AddArgumentListAlignmentOperation(List<IndentBlockOperation> list, ArgumentListSyntax argumentList)
+    {
+        // Only process if there are multiple arguments
+        if (argumentList.Arguments.Count <= 1)
+        {
+            return;
+        }
+
+        var openParen = argumentList.OpenParenToken;
+        var closeParen = argumentList.CloseParenToken;
+
+        if (_options.WrapParametersOnNewLine)
+        {
+            // First argument on new line case
+            var firstArgument = argumentList.Arguments[0];
+            var lastArgument = argumentList.Arguments[argumentList.Arguments.Count - 1];
+            
+            if (_options.AlignWrappedParameters)
+            {
+                // Align all arguments with the opening parenthesis
+                AddIndentBlockOperation(list, openParen, firstArgument.GetFirstToken(), lastArgument.GetLastToken(), 
+                    IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+            }
+            else
+            {
+                // Just indent one level from the method call
+                AddIndentBlockOperation(list, openParen, firstArgument.GetFirstToken(), lastArgument.GetLastToken());
+            }
+        }
+        else if (_options.AlignWrappedParameters)
+        {
+            // Align arguments with the first argument
+            if (argumentList.Arguments.Count > 1)
+            {
+                var firstArgument = argumentList.Arguments[0];
+                var lastArgument = argumentList.Arguments[argumentList.Arguments.Count - 1];
+                
+                // Align remaining arguments with the first argument
+                for (int i = 1; i < argumentList.Arguments.Count; i++)
+                {
+                    var argument = argumentList.Arguments[i];
+                    AddIndentBlockOperation(list, firstArgument.GetFirstToken(), argument.GetFirstToken(), argument.GetLastToken(),
+                        IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                }
+            }
+        }
+        else
+        {
+            // Basic wrapping - just indent one level
+            for (int i = 1; i < argumentList.Arguments.Count; i++)
+            {
+                var argument = argumentList.Arguments[i];
+                AddIndentBlockOperation(list, openParen, argument.GetFirstToken(), argument.GetLastToken());
+            }
+        }
+    }
+
+    private void AddBracketedParameterListAlignmentOperation(List<IndentBlockOperation> list, BracketedParameterListSyntax bracketedParameterList)
+    {
+        // Only process if there are multiple parameters
+        if (bracketedParameterList.Parameters.Count <= 1)
+        {
+            return;
+        }
+
+        var openBracket = bracketedParameterList.OpenBracketToken;
+        var closeBracket = bracketedParameterList.CloseBracketToken;
+
+        if (_options.WrapParametersOnNewLine)
+        {
+            // First parameter on new line case
+            var firstParameter = bracketedParameterList.Parameters[0];
+            var lastParameter = bracketedParameterList.Parameters[bracketedParameterList.Parameters.Count - 1];
+            
+            if (_options.AlignWrappedParameters)
+            {
+                // Align all parameters with the opening bracket
+                AddIndentBlockOperation(list, openBracket, firstParameter.GetFirstToken(), lastParameter.GetLastToken(), 
+                    IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+            }
+            else
+            {
+                // Just indent one level from the declaration
+                AddIndentBlockOperation(list, openBracket, firstParameter.GetFirstToken(), lastParameter.GetLastToken());
+            }
+        }
+        else if (_options.AlignWrappedParameters)
+        {
+            // Align parameters with the first parameter
+            if (bracketedParameterList.Parameters.Count > 1)
+            {
+                var firstParameter = bracketedParameterList.Parameters[0];
+                var lastParameter = bracketedParameterList.Parameters[bracketedParameterList.Parameters.Count - 1];
+                
+                // Align remaining parameters with the first parameter
+                for (int i = 1; i < bracketedParameterList.Parameters.Count; i++)
+                {
+                    var parameter = bracketedParameterList.Parameters[i];
+                    AddIndentBlockOperation(list, firstParameter.GetFirstToken(), parameter.GetFirstToken(), parameter.GetLastToken(),
+                        IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                }
+            }
+        }
+        else
+        {
+            // Basic wrapping - just indent one level
+            for (int i = 1; i < bracketedParameterList.Parameters.Count; i++)
+            {
+                var parameter = bracketedParameterList.Parameters[i];
+                AddIndentBlockOperation(list, openBracket, parameter.GetFirstToken(), parameter.GetLastToken());
+            }
+        }
+    }
+
+    private void AddBracketedArgumentListAlignmentOperation(List<IndentBlockOperation> list, BracketedArgumentListSyntax bracketedArgumentList)
+    {
+        // Only process if there are multiple arguments
+        if (bracketedArgumentList.Arguments.Count <= 1)
+        {
+            return;
+        }
+
+        var openBracket = bracketedArgumentList.OpenBracketToken;
+        var closeBracket = bracketedArgumentList.CloseBracketToken;
+
+        if (_options.WrapParametersOnNewLine)
+        {
+            // First argument on new line case
+            var firstArgument = bracketedArgumentList.Arguments[0];
+            var lastArgument = bracketedArgumentList.Arguments[bracketedArgumentList.Arguments.Count - 1];
+            
+            if (_options.AlignWrappedParameters)
+            {
+                // Align all arguments with the opening bracket
+                AddIndentBlockOperation(list, openBracket, firstArgument.GetFirstToken(), lastArgument.GetLastToken(), 
+                    IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+            }
+            else
+            {
+                // Just indent one level from the call
+                AddIndentBlockOperation(list, openBracket, firstArgument.GetFirstToken(), lastArgument.GetLastToken());
+            }
+        }
+        else if (_options.AlignWrappedParameters)
+        {
+            // Align arguments with the first argument
+            if (bracketedArgumentList.Arguments.Count > 1)
+            {
+                var firstArgument = bracketedArgumentList.Arguments[0];
+                var lastArgument = bracketedArgumentList.Arguments[bracketedArgumentList.Arguments.Count - 1];
+                
+                // Align remaining arguments with the first argument
+                for (int i = 1; i < bracketedArgumentList.Arguments.Count; i++)
+                {
+                    var argument = bracketedArgumentList.Arguments[i];
+                    AddIndentBlockOperation(list, firstArgument.GetFirstToken(), argument.GetFirstToken(), argument.GetLastToken(),
+                        IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                }
+            }
+        }
+        else
+        {
+            // Basic wrapping - just indent one level
+            for (int i = 1; i < bracketedArgumentList.Arguments.Count; i++)
+            {
+                var argument = bracketedArgumentList.Arguments[i];
+                AddIndentBlockOperation(list, openBracket, argument.GetFirstToken(), argument.GetLastToken());
+            }
+        }
     }
 }

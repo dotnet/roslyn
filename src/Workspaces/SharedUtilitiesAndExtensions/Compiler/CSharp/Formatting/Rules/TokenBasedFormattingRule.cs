@@ -36,7 +36,10 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             _options.WrapConditionalExpressions == newOptions.WrapConditionalExpressions &&
             _options.IndentWrappedConditionalExpressions == newOptions.IndentWrappedConditionalExpressions &&
             _options.WrapMethodCallChains == newOptions.WrapMethodCallChains &&
-            _options.IndentWrappedMethodCallChains == newOptions.IndentWrappedMethodCallChains)
+            _options.IndentWrappedMethodCallChains == newOptions.IndentWrappedMethodCallChains &&
+            _options.WrapParameters == newOptions.WrapParameters &&
+            _options.AlignWrappedParameters == newOptions.AlignWrappedParameters &&
+            _options.WrapParametersOnNewLine == newOptions.WrapParametersOnNewLine)
         {
             return this;
         }
