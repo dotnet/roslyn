@@ -44,4 +44,18 @@ public sealed class ImplementInterfaceCodeRefactoringTests
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78294")]
+    public Task TestNotOnInterfaceInBody()
+        => VerifyCS.VerifyRefactoringAsync("""
+            interface IGoo
+            {
+                void Goo();
+            }
+
+            interface IBar : IGoo
+            {
+                $$
+            }
+            """);
 }
