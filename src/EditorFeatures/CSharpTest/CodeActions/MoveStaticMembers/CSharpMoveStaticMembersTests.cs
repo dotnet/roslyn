@@ -4,15 +4,18 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveStaticMembers;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.MoveStaticMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
-    Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveStaticMembers.CSharpMoveStaticMembersRefactoringProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveStaticMembers;
+
+using VerifyCS = CSharpCodeRefactoringVerifier<
+    CSharpMoveStaticMembersRefactoringProvider>;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
