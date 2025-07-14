@@ -15,6 +15,51 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
 
+/// <summary>
+/// Indicates whether a newline may validly follow the specified SyntaxToken without requiring an explicit line continuation sequence ' _' or terminating the containing statement.
+/// </summary>
+/// <param name="token">The token to test. This token must be parented by a SyntaxNode.</param>
+/// <returns>True if implicit line continuation is allowed after token.</returns>
+/// <remarks>
+/// <para>Refer to "Statements in Visual Basic", 2010 version, http://msdn.microsoft.com/en-us/library/865x40k4(v=vs.100).aspx 
+/// for examples.</para>
+/// <para>Implicit line continuation may be used in Visual Basic: </para>
+/// <list type="number">
+///   <item>After a comma (,).</item>
+///   <item>After a less-than sign (&lt;) or before a greater-than sign (&gt;) when you specify an attribute.</item>
+///   <item>After an open parenthesis (() or before a closing parenthesis ()).</item>
+///   <item>After an open curly brace ({) or before a closing curly brace (}).</item>
+///   <item>After an open embedded expression (&lt;%=) or before the close of an embedded expression (%&gt;) within an XML literal.</item>
+///   <item>
+///     <para>Before and after query operators (Aggregate, Distinct, From, Group By, Group Join, Join, Let, 
+/// Order By, Select, Skip, Skip While, Take, Take While, Where, In, Into, On, Ascending, and Descending).</para>
+///     <para>You cannot break a line between the keywords of query operators that are made up of multiple keywords 
+/// (Order By, Group Join, Take While, and Skip While).</para>
+///   </item>
+///   <item>After the concatenation operator (&amp;).</item>
+///   <item>After assignment operators (=, &amp;=, :=, +=, -=, *=, /=, \=, ^=, &lt;&lt;=, &gt;&gt;=).</item>
+///   <item>After binary operators (+, -, /, *, Mod, &lt;&gt;, &lt;, &gt;, &lt;=, &gt;=, ^, &gt;&gt;, &lt;&lt;, And, AndAlso, Or, OrElse, Like, Xor) within an expression.</item>
+///   <item>After the Is and IsNot operators.</item>
+///   <item>After a less-than sign (&lt;) or before a greater-than sign (&gt;) when you specify an attribute.</item>
+///   <item>
+///     <para>Also after a greater-than sign (&gt;) when you specify an attribute.</para>
+///     <para>However, you must include a line-continuation character (_) when you specify assembly-level or module-level attributes.</para>
+///   </item>
+///   <item>
+///     <para>After a member qualifier character (.) and before the member name.</para>
+///     <para>However, you must include a line-continuation character (_) following a member qualifier character when you are using the With statement or 
+/// supplying values in the initialization list for a type.</para>
+///   </item>
+///   <item>
+///     <para>After an XML axis property qualifier (. or ...).</para> 
+///     <para>However, you must include a line-continuation character (_) when you specify a member qualifier when you are using the With keyword.</para>
+///   </item>
+///   <item>After the From keyword in a collection initializer.</item>
+///   <item>After the With keyword in a member initializer.</item>
+///   <item>After the In keyword in a For Each statement.</item>
+/// </list>
+/// </remarks>
+
 internal abstract class AbstractDocumentationCommentFormattingService : IDocumentationCommentFormattingService
 {
     private enum DocumentationCommentListType
@@ -142,11 +187,14 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             {
                 // Mark the end of the previous list item
                 Builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
+                _pendingSingleSpace = false; // Clear pending whitespace After ListItem
             }
-
+            else
+            {
+                MarkLineBreak();
+            }
             // The next list item has an incremented index, and has not yet been rendered to Builder.
             _listStack[^1] = (type, index + 1, renderedItem: false);
-            MarkLineBreak();
         }
 
         public void PopList()
@@ -208,6 +256,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             else
             {
                 _pendingLineBreak = true;
+
             }
 
             // Reset flag.
