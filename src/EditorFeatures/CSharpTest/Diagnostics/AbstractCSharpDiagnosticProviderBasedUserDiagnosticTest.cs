@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Xunit.Abstractions;
@@ -151,4 +153,13 @@ public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosti
     internal OptionsCollection IgnoreAllParentheses => ParenthesesOptionsProvider.IgnoreAllParentheses;
     internal OptionsCollection RemoveAllUnnecessaryParentheses => ParenthesesOptionsProvider.RemoveAllUnnecessaryParentheses;
     internal OptionsCollection RequireAllParenthesesForClarity => ParenthesesOptionsProvider.RequireAllParenthesesForClarity;
+
+    internal new Task TestInRegularAndScript1Async(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        int index = 0,
+        TestParameters parameters = null)
+    {
+        return base.TestInRegularAndScript1Async(initialMarkup, expectedMarkup, index, parameters);
+    }
 }

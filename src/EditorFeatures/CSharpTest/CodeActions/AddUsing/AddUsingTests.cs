@@ -6633,4 +6633,17 @@ testHost);
             """,
             index: 0,
             parameters: new TestParameters(testHost: testHost));
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/72022")]
+    public Task TestAssemblyLevelAttribute(TestHost testHost)
+        => TestAsync(
+            """
+            [assembly: [|NeutralResourcesLanguage|]("en")]
+            """,
+            """
+            using System.Resources;
+
+            [assembly: NeutralResourcesLanguage("en")]
+            """, testHost);
 }
