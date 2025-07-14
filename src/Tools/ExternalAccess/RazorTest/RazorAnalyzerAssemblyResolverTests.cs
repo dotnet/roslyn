@@ -130,7 +130,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         });
     }
 
-    [Fact]
+    [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79352")]
     public void FirstLoadWins()
     {
         var dir1 = TempRoot.CreateDirectory().Path;
@@ -154,7 +154,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         });
     }
 
-    [Fact]
+    [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79352")]
     public void ChooseServiceHubFolder()
     {
         var dir = TempRoot.CreateDirectory().Path;
