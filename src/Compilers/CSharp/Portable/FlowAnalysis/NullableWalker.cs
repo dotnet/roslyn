@@ -7094,17 +7094,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // invocation (such as a synthesized call from a query interpretation).
         private static bool HasImplicitTypeArguments(BoundNode node)
         {
-            if (node is BoundCollectionElementInitializer { AddMethod: { TypeArgumentsWithAnnotations: { IsEmpty: false } } })
-            {
-                return true;
-            }
-
-            if (node is BoundForEachStatement { EnumeratorInfoOpt: { GetEnumeratorInfo: { Method: var getEnumeratorMethod } } } && getEnumeratorMethod.GetMemberArityIncludingExtension() > 0)
-            {
-                return true;
-            }
-
-            if (node is BoundPropertyAccess or BoundIncrementOperator or BoundCompoundAssignmentOperator)
+            if (node is BoundCollectionElementInitializer
+                or BoundForEachStatement
+                or BoundPropertyAccess
+                or BoundIncrementOperator
+                or BoundCompoundAssignmentOperator)
             {
                 return true;
             }
