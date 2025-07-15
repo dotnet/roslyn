@@ -395,7 +395,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod2()
@@ -447,7 +447,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod3()
@@ -499,7 +499,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod4()
@@ -551,7 +551,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod5()
@@ -603,7 +603,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod6()
@@ -655,7 +655,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod7()
@@ -707,7 +707,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod8()
@@ -759,7 +759,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod9()
@@ -811,7 +811,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod10()
@@ -883,7 +883,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod11()
@@ -955,8 +955,8 @@ parseOptions: null);
                 }
             }
             """,
-index: 1,
-parseOptions: null);
+            index: 1,
+            parseOptions: null);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3818")]
     public Task InExtensionMethodUnderConditionalAccessExpression()
@@ -1113,7 +1113,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/16547")]
@@ -1388,7 +1388,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55117")]
     public Task TestMethodConflictWithGenericExtension()
