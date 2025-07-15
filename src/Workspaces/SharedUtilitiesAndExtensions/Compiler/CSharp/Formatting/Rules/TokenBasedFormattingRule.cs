@@ -222,7 +222,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         }
 
         // Handle dots in method call chains
-        var callChainNewLineOperation = GetCallChainNewLineOperation(previousToken, currentToken);
+        var callChainNewLineOperation = GetCallChainNewLineOperation(currentToken);
         if (callChainNewLineOperation != null)
         {
             return callChainNewLineOperation;
@@ -567,7 +567,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         return nextOperation.Invoke(in previousToken, in currentToken);
     }
 
-    private AdjustNewLinesOperation? GetCallChainNewLineOperation(SyntaxToken previousToken, SyntaxToken currentToken)
+    private AdjustNewLinesOperation? GetCallChainNewLineOperation(SyntaxToken currentToken)
     {
         // Only handle dot tokens if method call chain wrapping is enabled
         if (!_options.WrapCallChains)
