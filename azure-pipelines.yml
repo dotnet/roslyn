@@ -400,6 +400,8 @@ stages:
           configuration: Release
       - name: compilerChange
         value: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      - name: NUGET_PACKAGES
+        value: $(Build.SourcesDirectory)\.packages
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
