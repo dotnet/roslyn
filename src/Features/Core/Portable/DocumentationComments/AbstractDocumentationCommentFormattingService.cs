@@ -211,7 +211,6 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             else
             {
                 _pendingLineBreak = true;
-
             }
 
             // Reset flag.
