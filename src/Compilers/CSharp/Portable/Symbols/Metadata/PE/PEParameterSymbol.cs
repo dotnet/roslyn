@@ -868,7 +868,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return default;
             }
-            else if (ContainingType is PENamedTypeSymbol { IsExtension: true } containingPE
+            else if (ContainingSymbol is MethodSymbol { Name: WellKnownMemberNames.ExtensionMarkerMethodName }
+                && ContainingType is PENamedTypeSymbol { IsExtension: true } containingPE
                 && containingPE.GetMarkerMethodSymbol() is MethodSymbol markerMethod
                 && (object)markerMethod == ContainingSymbol)
             {
