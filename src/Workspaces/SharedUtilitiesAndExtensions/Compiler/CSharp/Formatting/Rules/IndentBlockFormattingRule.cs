@@ -61,8 +61,6 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
         AddEmbeddedStatementsIndentationOperation(list, node);
 
-        AddCaseSectionIndentBlockOperation(list, node);
-
         AddCallChainAlignmentOperation(list, node);
 
         AddTypeParameterConstraintClauseOperation(list, node);
@@ -373,19 +371,6 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         {
             // embedded statement is done
             AddIndentBlockOperation(list, firstToken, lastToken, TextSpan.FromBounds(firstToken.FullSpan.Start, lastToken.FullSpan.End));
-        }
-    }
-
-    private static void AddCaseSectionIndentBlockOperation(List<IndentBlockOperation> list, SyntaxNode node)
-    {
-        if (node is SwitchSectionSyntax section)
-        {
-            var firstStatement = section.Statements.FirstOrDefault();
-            if (firstStatement != null && firstStatement is BlockSyntax)
-            {
-                var block = (BlockSyntax)firstStatement;
-                list.Add(FormattingOperations.CreateIndentBlockOperation(block.OpenBraceToken, block.CloseBraceToken, 1, IndentBlockOption.RelativePosition));
-            }
         }
     }
 
