@@ -1255,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters, arguments.AttributeSyntaxOpt.Location);
             }
 
-            if (ContainingSymbol is SynthesizedExtensionMarker { Parameters: [var param, ..] } && (object)param == this)
+            if (ContainingSymbol is SynthesizedExtensionMarker)
             {
                 // Interpolated string handler arguments are not allowed in this context.
                 diagnostics.Add(ErrorCode.ERR_InterpolatedStringHandlerArgumentDisallowed, arguments.AttributeSyntaxOpt.Location);
@@ -1266,9 +1266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypedConstant constructorArgument = arguments.Attribute.CommonConstructorArguments[0];
 
             ImmutableArray<ParameterSymbol> containingSymbolParameters = ContainingSymbol.GetParameters();
-            // If we're analyzing the extension marker method itself, then we're not actually in an extension context, even though our containing type
-            // is the extension marker type.
-            ParameterSymbol? extensionParameter = ContainingSymbol is SynthesizedExtensionMarker ? null : ContainingType.ExtensionParameter;
+            ParameterSymbol? extensionParameter = ContainingType.ExtensionParameter;
 
             ImmutableArray<int> parameterOrdinals;
             if (attributeIndex == 0)
