@@ -2970,4 +2970,33 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             }
             """,
             options: Option(CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Error));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77011")]
+    public Task TestKeepThisIfPreferredCodeStyle()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                [|private readonly string a;|]
+
+                public C(string a)
+                {
+                    this.a = a;
+                }
+
+                public string A => a;
+            }
+            """,
+            """
+            class C
+            {
+                public C(string a)
+                {
+                    this.A = a;
+                }
+
+                public string A { get; }
+            }
+            """,
+            options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
 }

@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -322,19 +323,28 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
                     // if that name is in scope and isn't a reference to the new property.  If that's the case, then we
                     // qualify with `this.fieldName` or `ClassName.FieldName` to avoid any collisions.
                     var symbols = semanticModel.LookupSymbols(node.SpanStart, name: property.Name);
-                    if (symbols.Length > 0 && !symbols.Any(s => s.OriginalDefinition.Equals(property.OriginalDefinition)))
+                    if (symbols.Length > 0 && symbols.All(s => !s.OriginalDefinition.Equals(property.OriginalDefinition)))
                     {
                         var qualifiedName = generator.MemberAccessExpression(
                             property.IsStatic ? generator.TypeExpression(property.ContainingType) : generator.ThisExpression(),
                             newNameNode);
                         editor.ReplaceNode(node, qualifiedName.WithTriviaFrom(node));
-                        continue;
+                    }
+                    else
+                    {
+                        // The name was standing alone and didn't bind to any other symbol.  Just do the trivial rename here.
+                        editor.ReplaceNode(node, newNameNode.WithTriviaFrom(node));
                     }
                 }
-
-                // Otherwise, we're referencing the field in a complex way (like `this.fieldName`).  In this case, we can just
-                // trivially replace `fieldName` with `propertyName` and have it work.
-                editor.ReplaceNode(node, newNameNode.WithTriviaFrom(node));
+                else
+                {
+                    // Otherwise, we're referencing the field in a complex way (like `this.fieldName`).  In this case, we can just
+                    // trivially replace `fieldName` with `propertyName` and have it work.  Note: we add the simplifier annotation
+                    // here as well.  That way we can attempt to simplify the code if the user does not prefer `this` qualifiers
+                    // for properties.
+                    editor.ReplaceNode(node, newNameNode.WithTriviaFrom(node));
+                    editor.ReplaceNode(node.GetRequiredParent(), (current, _) => current.WithAdditionalAnnotations(Simplifier.Annotation));
+                }
             }
         }
 
