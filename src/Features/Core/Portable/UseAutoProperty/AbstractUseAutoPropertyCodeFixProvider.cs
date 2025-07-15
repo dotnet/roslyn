@@ -121,8 +121,6 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         if (field == null || property == null)
             return currentSolution;
 
-        // var locations = diagnostic.AdditionalLocations;
-
         var fieldDocument = currentSolution.GetRequiredDocument(field.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).SyntaxTree);
         var propertyDocument = currentSolution.GetRequiredDocument(property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).SyntaxTree);
 
