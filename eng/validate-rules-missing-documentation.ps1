@@ -12,8 +12,15 @@ try {
   Push-Location $RepoRoot
   $prepareMachine = $ci
 
-  $projectFilePath = Join-Path $RepoRoot "src\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj"
-  Exec-DotNet "build $projectFilePath -t:GenerateRulesMissingDocumentation -p:RoslynEnforceCodeStyle=false -p:RunAnalyzersDuringBuild=false -p:ContinuousIntegrationBuild=$ci -c Release"
+  $projectPath = Join-Path $RepoRoot "src\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj"
+  
+  $args = "-t:GenerateRulesMissingDocumentation -p:RoslynEnforceCodeStyle=false -p:RunAnalyzersDuringBuild=false /p:Configuration=Release"
+
+  if ($ci) {
+    $args += " /p:ContinuousIntegrationBuild=true"
+  }
+
+  Exec-DotNet "build $args $projectPath"
 }
 catch {
   Write-Host $_
