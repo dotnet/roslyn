@@ -460,6 +460,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return false;
             }
 
+            logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
+
             if (PlatformInformation.IsWindows)
             {
                 // As far as I can tell, there isn't a way to use the Process class to
@@ -475,8 +477,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 uint dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW;
 
                 PROCESS_INFORMATION processInfo;
-
-                logger.Log("Attempting to create process '{0}'", serverInfo.processFilePath);
 
                 var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
 
@@ -524,6 +524,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     if (Process.Start(startInfo) is { } process)
                     {
                         processId = process.Id;
+                        logger.Log("Successfully created process with process id {0}", processId);
                         return true;
                     }
                     else
