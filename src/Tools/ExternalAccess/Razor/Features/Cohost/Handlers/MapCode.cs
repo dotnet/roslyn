@@ -20,7 +20,7 @@ internal static class MapCode
         bool supportsDocumentChanges,
         CancellationToken cancellationToken)
     {
-         // Razor can't construct a RazorCohostRequestContext so we need to handle the null case, for their tests
+        // Razor can't construct a RazorCohostRequestContext so we need to handle the null case, for their tests
         var logger = context is { } razorContext ? razorContext.GetRequiredService<ILspLogger>() : NoOpLspLogger.Instance;
         return MapCodeHandler.GetMappedWorkspaceEditAsync(solution, mappings, supportsDocumentChanges, logger, cancellationToken);
     }
