@@ -63,8 +63,9 @@ try {
   if ($ci) {
     $args += " /p:ContinuousIntegrationBuild=true"
 
-    $packageRoot = Join-Path $RepoRoot ".packages"
-    $args += " /p:NuGetPackageRoot=$packageRoot/"
+    # Since this build is running in CI we need to set the nuget package directory so that we restore locally.
+    $env:NUGET_PACKAGES = Join-Path $RepoRoot '.packages\'
+    $env:RESTORENOCACHE = $true
   }
 
   Exec-DotNet "build $args $projectPath"

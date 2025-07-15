@@ -128,7 +128,7 @@
     </Dependency>
     <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="10.0.0-beta.25262.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>80c4e4d26cb85c86f7e1be77d2d9eceeef0f3493</Sha>
+      <Sha>8e06dd15dc337e7424fad6e544913e7627742ffd</Sha>
     </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview.23468.1">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
