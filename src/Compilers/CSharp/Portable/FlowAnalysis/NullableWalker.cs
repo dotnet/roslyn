@@ -6615,7 +6615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             refKindsOpt = GetArgumentRefKinds(refKindsOpt, adjustForNewExtension, method, arguments.Length);
 
-            if (!receiverType.HasNullType)
+            if (!method.GetIsNewExtensionMember() && !receiverType.HasNullType)
             {
                 // Update method based on inferred receiver type.
                 method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
@@ -11592,7 +11592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (reinferredGetEnumeratorMethod, var results, _) = ReInferMethodAndVisitArguments(
                     node: node,
                     receiverOpt: expr,
-                    receiverType: default,
+                    receiverType: resultTypeWithState,
                     method: enumeratorMethodInfo.Method,
                     arguments: enumeratorMethodInfo.Arguments,
                     refKindsOpt: default,
