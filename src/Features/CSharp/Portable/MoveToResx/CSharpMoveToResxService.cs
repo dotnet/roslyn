@@ -13,9 +13,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.MoveToResx;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class MoveToResx : DiagnosticAnalyzer
+internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DiagnosticAnalyzer
 {
-    public const string DiagnosticId = "MoveToResx";
+    public const string DiagnosticId = IDEDiagnosticIds.MoveToResxDiagnosticId;
 
     private static readonly LocalizableString Title = new LocalizableResourceString(nameof(CSharpFeaturesResources.Move_to_Resx), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
     private static readonly LocalizableString MessageFormat = new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_Resx_for_user_facing_strings), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
