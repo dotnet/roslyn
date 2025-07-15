@@ -13161,6 +13161,34 @@ static class E
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
+    public void ExtensionGetEnumerator_NullReceiver_Classic()
+    {
+        var src = """
+            #nullable enable
+            C? c = null;
+            foreach (var x in c) // 1
+            {
+                System.Console.Write(x);
+                break;
+            }
+
+            class C
+            {
+            }
+
+            static class E
+            {
+                public static System.Collections.Generic.IEnumerator<int> GetEnumerator(this C c) => throw null!;
+            }
+            """;
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,19): warning CS8604: Possible null reference argument for parameter 'c' in 'IEnumerator<int> E.GetEnumerator(C c)'.
+            // foreach (var x in c) // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "c").WithArguments("c", "IEnumerator<int> E.GetEnumerator(C c)").WithLocation(3, 19));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
     public void ExtensionGetEnumerator_Reinference()
     {
         var src = """
