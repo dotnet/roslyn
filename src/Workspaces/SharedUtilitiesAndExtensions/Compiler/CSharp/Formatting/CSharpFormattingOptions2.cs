@@ -231,45 +231,39 @@ internal static partial class CSharpFormattingOptions2
 
     public static Option2<bool> WrapCallChains { get; } = CreateOption(
         CSharpFormattingOptionGroups.Wrapping, "csharp_wrap_call_chains",
-        defaultValue: false)
-        .WithPublicOption(PublicFeatureName, "WrapCallChains");
+        defaultValue: false);
 
     public static Option2<bool> IndentWrappedCallChains { get; } = CreateOption(
         CSharpFormattingOptionGroups.Wrapping, "csharp_indent_wrapped_call_chains",
-        defaultValue: false)
-        .WithPublicOption(PublicFeatureName, "IndentWrappedCallChains");
+        defaultValue: false);
 
     public static Option2<ParameterWrappingOptionsInternal> ParameterWrapping { get; } = CreateOption(
         CSharpFormattingOptionGroups.Wrapping, "csharp_parameter_wrapping",
         defaultValue: ParameterWrappingOptionsInternal.DoNotWrap,
         new EditorConfigValueSerializer<ParameterWrappingOptionsInternal>(
             s => ParseEditorConfigParameterWrapping(s),
-            GetParameterWrappingOptionEditorConfigString))
-        .WithPublicOption(PublicFeatureName, "ParameterWrapping");
+            GetParameterWrappingOptionEditorConfigString));
 
     public static Option2<ParameterFirstPlacementOptionsInternal> ParameterFirstPlacement { get; } = CreateOption(
         CSharpFormattingOptionGroups.Wrapping, "csharp_parameter_first_placement",
         defaultValue: ParameterFirstPlacementOptionsInternal.SameLine,
         new EditorConfigValueSerializer<ParameterFirstPlacementOptionsInternal>(
             s => ParseEditorConfigParameterFirstPlacement(s),
-            GetParameterFirstPlacementOptionEditorConfigString))
-        .WithPublicOption(PublicFeatureName, "ParameterFirstPlacement");
+            GetParameterFirstPlacementOptionEditorConfigString));
 
     public static Option2<ParameterAlignmentOptionsInternal> ParameterAlignment { get; } = CreateOption(
         CSharpFormattingOptionGroups.Wrapping, "csharp_parameter_alignment",
         defaultValue: ParameterAlignmentOptionsInternal.AlignWithFirst,
         new EditorConfigValueSerializer<ParameterAlignmentOptionsInternal>(
             s => ParseEditorConfigParameterAlignment(s),
-            GetParameterAlignmentOptionEditorConfigString))
-        .WithPublicOption(PublicFeatureName, "ParameterAlignment");
+            GetParameterAlignmentOptionEditorConfigString));
 
     public static Option2<BinaryExpressionWrappingOptionsInternal> BinaryExpressionWrapping { get; } = CreateOption(
         CSharpFormattingOptionGroups.Wrapping, "csharp_binary_expression_wrapping",
         defaultValue: BinaryExpressionWrappingOptionsInternal.DoNotWrap,
         new EditorConfigValueSerializer<BinaryExpressionWrappingOptionsInternal>(
             s => ParseEditorConfigBinaryExpressionWrapping(s),
-            GetBinaryExpressionWrappingOptionEditorConfigString))
-        .WithPublicOption(PublicFeatureName, "BinaryExpressionWrapping");
+            GetBinaryExpressionWrappingOptionEditorConfigString));
 
     public static Option2<NewLineBeforeOpenBracePlacement> NewLineBeforeOpenBrace { get; } = CreateOption(
         FormattingOptionGroups.NewLine,
