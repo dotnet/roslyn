@@ -55,13 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToResx
                 return;
             }
 
-            // Order .resx files by directory distance to the code file
-            var codeFilePath = context.Document.FilePath;
-            var orderedResx = codeFilePath != null
-                ? allResx.OrderBy(f => DirectoryDistance(codeFilePath, f.FilePath)).ToList()
-                : allResx;
-
-            var nestedActions = orderedResx
+            var nestedActions = allResx
                 .Select(resx =>
                 {
                     var resxName = Path.GetFileName(resx.FilePath);
@@ -84,28 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToResx
         {
             return project.AdditionalDocuments
                 .Where(f => f.FilePath != null && string.Equals(".resx", Path.GetExtension(f.FilePath), StringComparison.OrdinalIgnoreCase));
-        }
-
-        // Lower is closer. 0 = same dir, 1 = parent/child, etc.
-        private static int DirectoryDistance(string file1, string file2)
-        {
-            if (file1 == null || file2 == null)
-                return int.MaxValue;
-            var dir1 = Path.GetDirectoryName(file1);
-            var dir2 = Path.GetDirectoryName(file2);
-            if (dir1 == null || dir2 == null)
-                return int.MaxValue;
-            if (string.Equals(dir1, dir2, StringComparison.OrdinalIgnoreCase))
-                return 0;
-
-            // Split into parts
-            var parts1 = dir1.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            var parts2 = dir2.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            int common = 0;
-            while (common < parts1.Length && common < parts2.Length && string.Equals(parts1[common], parts2[common], StringComparison.OrdinalIgnoreCase))
-                common++;
-            // Distance = steps up + steps down
-            return (parts1.Length - common) + (parts2.Length - common);
         }
 
         private static async Task<Solution> MoveStringToResxAndReplaceLiteralAsync(
@@ -226,8 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToResx
                 var allResx = GetAllResxFiles(project).ToList();
                 if (allResx.Count == 0)
                     return null;
-                var codeFilePath = document.FilePath;
-                var resx = codeFilePath != null ? allResx.OrderBy(f => DirectoryDistance(codeFilePath, f.FilePath)).First() : allResx.First();
+                var resx = allResx.First();
                 var resxSourceText = await resx.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
                 var xdoc = XDocument.Parse(resxSourceText.ToString());
                 var newRoot = root;
