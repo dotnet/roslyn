@@ -24,15 +24,6 @@ internal interface IImplementInterfaceService : ILanguageService
 {
     Task<Document> ImplementInterfaceAsync(Document document, ImplementTypeOptions options, SyntaxNode node, CancellationToken cancellationToken);
 
-    Task<ImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken);
-
-    Task<Document> ImplementInterfaceAsync(
-        Document document,
-        ImplementInterfaceInfo info,
-        ImplementTypeOptions options,
-        ImplementInterfaceConfiguration configuration,
-        CancellationToken cancellationToken);
-
     /// <summary>
     /// Produces the symbol that implements that provided <paramref name="interfaceMember"/> within the corresponding
     /// <see cref="ImplementInterfaceInfo.ClassOrStructType"/>, based on the provided <paramref name="options"/> and

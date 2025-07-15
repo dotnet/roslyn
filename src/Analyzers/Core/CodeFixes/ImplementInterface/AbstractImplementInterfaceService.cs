@@ -76,7 +76,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
         }
     }
 
-    public async Task<ImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken)
+    private async Task<ImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken)
     {
         var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         return State.Generate(this, document, model, interfaceType, cancellationToken)?.Info;
@@ -105,7 +105,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
         return [.. trivia];
     }
 
-    public async Task<Document> ImplementInterfaceAsync(
+    private async Task<Document> ImplementInterfaceAsync(
         Document document,
         ImplementInterfaceInfo info,
         ImplementTypeOptions options,
