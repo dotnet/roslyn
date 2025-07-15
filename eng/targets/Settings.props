@@ -66,10 +66,10 @@
     <NoWarn Condition="'$(DefineConstants.Contains(`CODE_STYLE`))' == 'false'">$(NoWarn);RS1041;RS1038</NoWarn>
   </PropertyGroup>
 
-  <!-- Workaround an Arcade SDK issue -->
+  <!-- Workaround an Arcade SDK behavior -->
   <PropertyGroup Condition="'$(ContinuousIntegrationBuild)' == 'true' and '$(DotNetBuildSourceOnly)' != 'true'">
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and '$(OS)' == 'Windows_NT'">$([MSBuild]::NormalizeDirectory('$(UserProfile)', '.nuget', 'packages'))</NuGetPackageRoot>
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and '$(OS)' != 'Windows_NT'">$([MSBuild]::NormalizeDirectory('$(HOME)', '.nuget', 'packages'))</NuGetPackageRoot>
+    <NuGetPackageRoot Condition="'$(OS)' == 'Windows_NT'">$([MSBuild]::NormalizeDirectory('$(UserProfile)', '.nuget', 'packages'))</NuGetPackageRoot>
+    <NuGetPackageRoot Condition="'$(OS)' != 'Windows_NT'">$([MSBuild]::NormalizeDirectory('$(HOME)', '.nuget', 'packages'))</NuGetPackageRoot>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)TargetFrameworks.props" />
