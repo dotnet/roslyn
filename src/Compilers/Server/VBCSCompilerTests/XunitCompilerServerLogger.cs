@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             TestOutputHelper = testOutputHelper;
         }
 
-        public void Log(string message)
+        public void Log(string message, bool excludeFromBinlog = false)
         {
             TestOutputHelper.WriteLine(message);
         }
