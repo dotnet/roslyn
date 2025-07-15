@@ -176,14 +176,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            foreach (var (key, _) in other)
-            {
-                if (!features.ContainsKey(key))
-                {
-                    return false;
-                }
-            }
-
             return true;
         }
 

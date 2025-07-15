@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// <summary>
 /// Represents project properties and items that impact parse options, compilation options and source file context interpretation.
 /// 
-/// Projects settings fall into following categories:
+/// Project settings fall into following categories:
 /// 1) Change requires restart. Error is reported.
 ///    E.g. language version
 ///    
