@@ -41919,6 +41919,224 @@ static class E
     }
 
     [Fact]
+    public void RefAnalysis_Invocation_11()
+    {
+        // Based on this extension, but missing the implementation method:
+        // static class E
+        // {
+        //     extension(ref int i)
+        //     {
+        //         public ref int M() => ref i;
+        //     }
+        // }
+        string ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32& i ) cil managed 
+        {
+            IL_0000: ret
+        }
+
+        .method public hidebysig instance int32& M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
+}
+""";
+
+        string source = """
+class C
+{
+    ref int M2()
+    {
+        int i = 0;
+        return ref i.M();
+    }
+
+    ref int M3()
+    {
+        int i = 0;
+        return ref E.M(ref i);
+    }
+}
+""";
+
+        var comp = CreateCompilationWithIL(source, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (6,22): error CS0570: 'E.extension(ref int).M()' is not supported by the language
+            //         return ref i.M();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(ref int).M()").WithLocation(6, 22),
+            // (12,22): error CS0570: 'E.extension(ref int).M()' is not supported by the language
+            //         return ref E.M(ref i);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(ref int).M()").WithLocation(12, 22));
+    }
+
+    [Fact]
+    public void RefAnalysis_Deconstruct_01()
+    {
+        var source = """
+int i = 0;
+(int x1, int x2) = i;
+
+public static class E
+{
+    extension(ref int i)
+    {
+        public void Deconstruct(out int x1, out int x2) => throw null!;
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): error CS1510: A ref or out value must be an assignable variable
+            // (int x1, int x2) = i;
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(int x1, int x2) = i").WithLocation(2, 1));
+
+        source = """
+int i = 0;
+(int x1, int x2) = i;
+
+public static class E
+{
+    public static void Deconstruct(this ref int i, out int x1, out int x2) => throw null!;
+}
+""";
+
+        comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): error CS1510: A ref or out value must be an assignable variable
+            // (int x1, int x2) = i;
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(int x1, int x2) = i").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void RefAnalysis_Deconstruct_02()
+    {
+        // Based on this extension, but missing the implementation method:
+        // public static class E
+        // {
+        //     extension(object o)
+        //     {
+        //         public void Deconstruct(out int x1, out int x2) => throw null!;
+        //     }
+        // }
+        string ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( object o ) cil managed 
+        {
+            IL_0000: ret
+        }
+
+        .method public hidebysig instance void Deconstruct ( [out] int32& x1, [out] int32& x2 ) cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
+}
+""";
+
+        var source = """
+object o = new object();
+(int x1, int x2) = o;
+""";
+
+        var comp = CreateCompilationWithIL(source, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (2,20): error CS0570: 'E.extension(object).Deconstruct(out int, out int)' is not supported by the language
+            // (int x1, int x2) = o;
+            Diagnostic(ErrorCode.ERR_BindToBogus, "o").WithArguments("E.extension(object).Deconstruct(out int, out int)").WithLocation(2, 20),
+            // (2,20): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+            // (int x1, int x2) = o;
+            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "o").WithArguments("object", "2").WithLocation(2, 20));
+    }
+
+    [Fact]
+    public void RefAnalysis_Deconstruct_03()
+    {
+        var source = """
+int i = 0;
+(int x1, int x2) = ref i;
+
+public static class E
+{
+    extension(ref int i)
+    {
+        public void Deconstruct(out int x1, out int x2) => throw null!;
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (2,20): error CS1073: Unexpected token 'ref'
+            // (int x1, int x2) = ref i;
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(2, 20));
+    }
+
+    [Fact]
+    public void RefAnalysis_Foreach_01()
+    {
+        // Based on this extension, but missing the implementation method:
+        // public static class E
+        // {
+        //     extension(object o)
+        //     {
+        //         public IEnumerator<int> GetEnumerator() => throw null!;
+        //     }
+        // }
+        string ilSrc = """
+
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( object o ) cil managed 
+        {
+            IL_0000: ret
+        }
+
+        .method public hidebysig instance class [mscorlib]System.Collections.Generic.IEnumerator`1<int32> GetEnumerator () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
+}
+""";
+
+        var source = """
+foreach (var x in new object()) { }
+""";
+
+        var comp = CreateCompilationWithIL(source, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,19): error CS0570: 'E.extension(object).GetEnumerator()' is not supported by the language
+            // foreach (var x in new object()) { }
+            Diagnostic(ErrorCode.ERR_BindToBogus, "new object()").WithArguments("E.extension(object).GetEnumerator()").WithLocation(1, 19),
+            // (1,19): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+            // foreach (var x in new object()) { }
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new object()").WithArguments("object", "GetEnumerator").WithLocation(1, 19));
+    }
+
+    [Fact]
     public void RefAnalysis_PropertyAccess_01()
     {
         string source = """
@@ -42006,6 +42224,84 @@ static class E
             // (14,32): error CS8157: Cannot return 'ri' by reference because it was initialized to a value that cannot be returned by reference
             //         return ref E.get_P(ref ri);
             Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "ri").WithArguments("ri").WithLocation(14, 32));
+    }
+
+    [Fact]
+    public void RefAnalysis_PropertyAccess_03()
+    {
+        string source = """
+class C
+{
+    void M()
+    {
+        int i = 0;
+        i.P++;
+    }
+}
+
+static class E
+{
+    extension(ref int i)
+    {
+        public int P { get => i; set { i = value; } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void RefAnalysis_PropertyAccess_04()
+    {
+        string source = """
+class C
+{
+    void M()
+    {
+        int i = 0;
+        i.P++;
+    }
+}
+
+static class E
+{
+    extension(ref int i)
+    {
+        public ref int P => ref i;
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void RefAnalysis_PropertyAccess_05()
+    {
+        string source = """
+class C
+{
+    void M()
+    {
+        int i = 0;
+        i.P += 42;
+    }
+}
+
+static class E
+{
+    extension(ref int i)
+    {
+        public int P { get => i; set { i = value; } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]

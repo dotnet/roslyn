@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should be able to remove this method once all the callers are updated to account for new extension members
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should be able to remove this method once all the callers are updated to account for new extension members TODO2
         /// <summary>
         /// Lookup extension methods by name and arity in the given binder and
         /// check viability in this binder. The lookup is performed on a single
