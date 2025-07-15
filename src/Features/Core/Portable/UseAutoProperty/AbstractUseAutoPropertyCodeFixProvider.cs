@@ -309,7 +309,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
             var generator = editor.Generator;
             var newNameNode = generator.IdentifierName(property.Name);
 
-            foreach (var location in group)
+            foreach (var location in group.Distinct(LinkedFileReferenceLocationEqualityComparer.Instance))
             {
                 if (location.IsImplicit)
                     continue;
