@@ -177,16 +177,9 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         linkedFiles.AddRange(fieldDocument.GetLinkedDocumentIds());
         linkedFiles.AddRange(propertyDocument.GetLinkedDocumentIds());
 
-        var canEdit = new Dictionary<DocumentId, bool>();
-
         // Now, rename all usages of the field to point at the property.
         currentSolution = await UpdateReferencesAsync(
-             currentSolution,
-             linkedFiles,
-             canEdit,
-             fieldLocations,
-             property,
-             cancellationToken).ConfigureAwait(false);
+             currentSolution, linkedFiles, fieldLocations, property, cancellationToken).ConfigureAwait(false);
 
         // Now find the field and property again post rename.
         fieldDocument = currentSolution.GetRequiredDocument(fieldDocument.Id);
@@ -284,13 +277,13 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 
     private static async Task<Solution> UpdateReferencesAsync(
         Solution solution,
-        HashSet<DocumentId> linkedFiles,
-        Dictionary<DocumentId, bool> canEdit,
+        HashSet<DocumentId> linkedDocuments,
         ImmutableArray<ReferencedSymbol> fieldLocations,
         IPropertySymbol property,
         CancellationToken cancellationToken)
     {
         var solutionEditor = new SolutionEditor(solution);
+        var canEditMap = new Dictionary<DocumentId, bool>();
 
         foreach (var group in fieldLocations.SelectMany(loc => loc.Locations).GroupBy(loc => loc.Document))
         {
@@ -298,7 +291,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 
             var document = group.Key;
 
-            if (!CanEditDocument(solution, document.Id, linkedFiles, canEdit))
+            if (!CanEditDocument(solution, document.Id, linkedDocuments, canEditMap))
                 continue;
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -347,6 +340,18 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         }
 
         return solutionEditor.GetChangedSolution();
+
+        bool CanEditDocument(DocumentId documentId)
+        {
+            if (!canEditMap.TryGetValue(documentId, out var canEditDocument))
+            {
+                var document = solution.GetDocument(documentId);
+                canEditDocument = document != null && !linkedDocuments.Contains(document.Id);
+                canEditMap[documentId] = canEditDocument;
+            }
+
+            return canEditDocument;
+        }
     }
 
     private async Task<(IFieldSymbol? fieldSymbol, IPropertySymbol? propertySymbol)> MapDiagnosticToCurrentSolutionAsync(
@@ -411,22 +416,6 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         }
 
         return false;
-    }
-
-    private static bool CanEditDocument(
-        Solution solution,
-        DocumentId documentId,
-        HashSet<DocumentId> linkedDocuments,
-        Dictionary<DocumentId, bool> canEdit)
-    {
-        if (!canEdit.TryGetValue(documentId, out var canEditDocument))
-        {
-            var document = solution.GetDocument(documentId);
-            canEditDocument = document != null && !linkedDocuments.Contains(document.Id);
-            canEdit[documentId] = canEditDocument;
-        }
-
-        return canEditDocument;
     }
 
     private async Task<SyntaxNode> FormatAsync(
