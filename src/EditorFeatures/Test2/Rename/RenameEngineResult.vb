@@ -142,8 +142,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 ' marshaled back.
 
                 Return Renamer.RenameSymbolAsync(
-                    solution, symbol, renameTo, renameOptions,
-                    nonConflictSymbolKeys:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
+                    solution, symbol, renameTo, renameOptions, CancellationToken.None).GetAwaiter().GetResult()
             End If
         End Function
 

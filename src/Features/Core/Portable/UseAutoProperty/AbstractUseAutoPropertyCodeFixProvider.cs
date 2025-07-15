@@ -180,34 +180,13 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 
         var canEdit = new Dictionary<DocumentId, bool>();
 
-        // Now, rename all usages of the field to point at the property.  Except don't actually 
-        // rename the field itself.  We want to be able to find it again post rename.
-        //
-        // We're asking the rename API to update a bunch of references to an existing field to the same name as an
-        // existing property.  Rename will often flag this situation as an unresolvable conflict because the new
-        // name won't bind to the field anymore.
-        //
-        // To address this, we let rename know that there is no conflict if the new symbol it resolves to is the
-        // same as the property we're trying to get the references pointing to.
-
-        //var filteredLocations = fieldLocations.Filter(
-        //    (documentId, span) =>
-        //        fieldDocument.Id == documentId ? !span.IntersectsWith(declarator.Span) : true && // The span check only makes sense if we are in the same file
-        //        CanEditDocument(currentSolution, documentId, linkedFiles, canEdit));
-
-        //var resolution = await filteredLocations.ResolveConflictsAsync(
-        //    field, property.Name,
-        //    nonConflictSymbolKeys: [property.GetSymbolKey(cancellationToken)],
-        //    cancellationToken).ConfigureAwait(false);
-
-        //Contract.ThrowIfFalse(resolution.IsSuccessful);
-
+        // Now, rename all usages of the field to point at the property.
         currentSolution = await UpdateReferencesAsync(
              currentSolution,
              linkedFiles,
              canEdit,
              fieldLocations,
-             property.Name,
+             property,
              cancellationToken).ConfigureAwait(false);
 
         // Now find the field and property again post rename.
@@ -309,7 +288,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         HashSet<DocumentId> linkedFiles,
         Dictionary<DocumentId, bool> canEdit,
         ImmutableArray<ReferencedSymbol> fieldLocations,
-        string newName,
+        IPropertySymbol property,
         CancellationToken cancellationToken)
     {
         var solutionEditor = new SolutionEditor(solution);
@@ -323,8 +302,12 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
             if (!CanEditDocument(solution, document.Id, linkedFiles, canEdit))
                 continue;
 
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var editor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
-            var newNameNode = editor.Generator.IdentifierName(newName);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            var generator = editor.Generator;
+            var newNameNode = generator.IdentifierName(property.Name);
 
             foreach (var location in group)
             {
@@ -332,6 +315,25 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
                     continue;
 
                 var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+                if (syntaxFacts.GetRootStandaloneExpression(node) == node)
+                {
+                    // We're referencing the field as a trivial name (like `fieldName`).  In this case, we might run into
+                    // problems with symbol collisions if we just change the name to `propertyName`.  So instead, we check
+                    // if that name is in scope and isn't a reference to the new property.  If that's the case, then we
+                    // qualify with `this.fieldName` or `ClassName.FieldName` to avoid any collisions.
+                    var symbols = semanticModel.LookupSymbols(node.SpanStart, name: property.Name);
+                    if (symbols.Length > 0 && !symbols.Any(s => s.OriginalDefinition.Equals(property.OriginalDefinition)))
+                    {
+                        var qualifiedName = generator.MemberAccessExpression(
+                            property.IsStatic ? generator.TypeExpression(property.ContainingType) : generator.ThisExpression(),
+                            newNameNode);
+                        editor.ReplaceNode(node, qualifiedName.WithTriviaFrom(node));
+                        continue;
+                    }
+                }
+
+                // Otherwise, we're referencing the field in a complex way (like `this.fieldName`).  In this case, we can just
+                // trivially replace `fieldName` with `propertyName` and have it work.
                 editor.ReplaceNode(node, newNameNode.WithTriviaFrom(node));
             }
         }
