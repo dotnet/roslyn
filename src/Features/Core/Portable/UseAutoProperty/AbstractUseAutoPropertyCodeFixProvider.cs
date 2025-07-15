@@ -291,7 +291,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 
             var document = group.Key;
 
-            if (!CanEditDocument(solution, document.Id, linkedDocuments, canEditMap))
+            if (!CanEditDocument(document.Id))
                 continue;
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
