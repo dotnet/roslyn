@@ -753,6 +753,37 @@ def[||]   """
 """");
     }
 
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/74661")]
+    public void TestNormalTextIntoMultiLineRawStringMultiLine14()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+                abc
+                    def
+                        ghi
+            """,
+            """"
+            var x = """
+                [||]
+                """
+            """",
+            """"
+            var x = """
+                abc
+                    def
+                        ghi[||]
+                """
+            """",
+                        afterUndo:
+            """"
+            var x = """
+                    abc
+                    def
+                        ghi[||]
+                """
+            """");
+    }
+
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawStringHeader1()
     {
