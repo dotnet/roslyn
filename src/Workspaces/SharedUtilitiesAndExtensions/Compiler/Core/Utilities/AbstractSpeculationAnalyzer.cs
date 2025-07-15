@@ -374,12 +374,12 @@ internal abstract class AbstractSpeculationAnalyzer<
             return false;
         }
 
-        if (symbol.IsReducedExtension() && !newSymbol.IsReducedExtension())
+        if (symbol.IsReducedExtension())
         {
             symbol = ((IMethodSymbol)symbol).GetConstructedReducedFrom()!;
         }
 
-        if (newSymbol.IsReducedExtension() && !symbol.IsReducedExtension())
+        if (newSymbol.IsReducedExtension())
         {
             newSymbol = ((IMethodSymbol)newSymbol).GetConstructedReducedFrom()!;
         }
