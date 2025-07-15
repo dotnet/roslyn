@@ -62,6 +62,9 @@ try {
 
   if ($ci) {
     $args += " /p:ContinuousIntegrationBuild=true"
+
+    $packageRoot = Join-Path $RepoRoot ".packages"
+    $args += " /p:NuGetPackageRoot=$packageRoot/"
   }
 
   Exec-DotNet "build $args $projectPath"
