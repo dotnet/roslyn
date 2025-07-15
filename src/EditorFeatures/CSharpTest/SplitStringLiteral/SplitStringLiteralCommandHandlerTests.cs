@@ -458,7 +458,7 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """,
-            verifyUndo: false);
+        verifyUndo: false);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/41322")]
@@ -467,8 +467,8 @@ public sealed class SplitStringLiteralCommandHandlerTests
         // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
         // When that issue is fixed, we can reenable verifyUndo
         TestHandled(
-        "class C\n{\n    void M()\n    {\n        var v = \"[||]\";\n    }\n}",
-        "class C\n{\n    void M()\n    {\n        var v = \"\" +\n            \"[||]\";\n    }\n}",
+"class C\n{\n    void M()\n    {\n        var v = \"[||]\";\n    }\n}",
+"class C\n{\n    void M()\n    {\n        var v = \"\" +\n            \"[||]\";\n    }\n}",
         verifyUndo: false,
         endOfLine: "\n");
     }
@@ -498,8 +498,8 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """,
-            verifyUndo: false,
-            IndentStyle.Block);
+        verifyUndo: false,
+        IndentStyle.Block);
     }
 
     [WpfFact]
@@ -527,8 +527,8 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """,
-            verifyUndo: false,
-            IndentStyle.None);
+        verifyUndo: false,
+        IndentStyle.None);
     }
 
     [WpfFact]
@@ -847,7 +847,7 @@ endOfLine: "\n");
                 }
             }
             """,
-            verifyUndo: false);
+        verifyUndo: false);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
@@ -887,7 +887,7 @@ endOfLine: "\n");
                 }
             }
             """,
-            verifyUndo: false);
+        verifyUndo: false);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
@@ -927,7 +927,7 @@ endOfLine: "\n");
                 }
             }
             """,
-            verifyUndo: false);
+        verifyUndo: false);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
@@ -967,7 +967,7 @@ endOfLine: "\n");
                 }
             }
             """,
-            verifyUndo: false);
+        verifyUndo: false);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
@@ -1007,7 +1007,7 @@ endOfLine: "\n");
                 }
             }
             """,
-            verifyUndo: false);
+        verifyUndo: false);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
@@ -1047,7 +1047,7 @@ endOfLine: "\n");
                 }
             }
             """,
-            verifyUndo: false);
+        verifyUndo: false);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
@@ -1162,7 +1162,7 @@ endOfLine: "\n");
             	}
             }
             """,
-            useTabs: true);
+        useTabs: true);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40277")]
@@ -1190,7 +1190,7 @@ endOfLine: "\n");
             	}
             }
             """,
-            useTabs: true);
+        useTabs: true);
     }
 
     [WpfFact]

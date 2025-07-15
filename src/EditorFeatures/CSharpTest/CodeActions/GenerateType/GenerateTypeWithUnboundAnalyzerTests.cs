@@ -51,5 +51,5 @@ public sealed partial class GenerateTypeWithUnboundAnalyzerTests : AbstractCShar
             {
             }
             """,
-            index: 1);
+index: 1);
 }

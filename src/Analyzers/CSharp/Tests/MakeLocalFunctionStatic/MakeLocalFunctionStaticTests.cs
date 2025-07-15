@@ -290,25 +290,25 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
                 }
             }
             """,
-            $$"""
-            using System;
+$$"""
+using System;
 
-            class C
-            {
-                void M()
-                {
-                    bool otherFunction()
-                    {
-                        return true;
-                    }{{leadingTrivia}}
-                    static int fibonacci(int n)
-                    {
-                        return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
-                    }
-                }
-            }
-            """,
-            parseOptions: CSharp8ParseOptions);
+class C
+{
+    void M()
+    {
+        bool otherFunction()
+        {
+            return true;
+        }{{leadingTrivia}}
+        static int fibonacci(int n)
+        {
+            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+        }
+    }
+}
+""",
+parseOptions: CSharp8ParseOptions);
 
     [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     [InlineData("")]
@@ -328,19 +328,19 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
                 }
             }
             """,
-            $$"""
-            using System;
+$$"""
+using System;
 
-            class C
-            {
-                void M()
-                {
-                    bool otherFunction() => true;{{leadingTrivia}}
-                    static int fibonacci(int n) => n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
-                }
-            }
-            """,
-            parseOptions: CSharp8ParseOptions);
+class C
+{
+    void M()
+    {
+        bool otherFunction() => true;{{leadingTrivia}}
+        static int fibonacci(int n) => n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+    }
+}
+""",
+parseOptions: CSharp8ParseOptions);
 
     [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     [InlineData("")]
@@ -378,7 +378,7 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
                 }
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+parseOptions: CSharp8ParseOptions);
 
     [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     [InlineData("\r\n")]
@@ -415,7 +415,7 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
                 }
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+parseOptions: CSharp8ParseOptions);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/46858")]

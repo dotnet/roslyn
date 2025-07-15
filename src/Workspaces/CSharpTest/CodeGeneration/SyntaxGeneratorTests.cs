@@ -175,7 +175,7 @@ public sealed class SyntaxGeneratorTests
             using System; 
             public class MyAttribute : Attribute { }
             """,
-            @"[MyAttribute]")),
+@"[MyAttribute]")),
 @"[global::MyAttribute]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
@@ -183,7 +183,7 @@ public sealed class SyntaxGeneratorTests
             using System; 
             public class MyAttribute : Attribute { public MyAttribute(object value) { } }
             """,
-            @"[MyAttribute(null)]")),
+@"[MyAttribute(null)]")),
 @"[global::MyAttribute(null)]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
@@ -191,7 +191,7 @@ public sealed class SyntaxGeneratorTests
             using System; 
             public class MyAttribute : Attribute { public MyAttribute(int value) { } }
             """,
-            @"[MyAttribute(123)]")),
+@"[MyAttribute(123)]")),
 @"[global::MyAttribute(123)]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
@@ -199,7 +199,7 @@ public sealed class SyntaxGeneratorTests
             using System; 
             public class MyAttribute : Attribute { public MyAttribute(double value) { } }
             """,
-            @"[MyAttribute(12.3)]")),
+@"[MyAttribute(12.3)]")),
 @"[global::MyAttribute(12.3)]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
@@ -207,7 +207,7 @@ public sealed class SyntaxGeneratorTests
             using System; 
             public class MyAttribute : Attribute { public MyAttribute(string value) { } }
             """,
-            @"[MyAttribute(""value"")]")),
+@"[MyAttribute(""value"")]")),
 @"[global::MyAttribute(""value"")]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
@@ -216,7 +216,7 @@ public sealed class SyntaxGeneratorTests
             public enum E { A, B, C }
             public class MyAttribute : Attribute { public MyAttribute(E value) { } }
             """,
-            @"[MyAttribute(E.A)]")),
+@"[MyAttribute(E.A)]")),
 @"[global::MyAttribute(global::E.A)]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
@@ -224,7 +224,7 @@ public sealed class SyntaxGeneratorTests
             using System; 
             public class MyAttribute : Attribute { public MyAttribute(Type value) { } }
             """,
-            @"[MyAttribute(typeof (MyAttribute))]")),
+@"[MyAttribute(typeof (MyAttribute))]")),
 @"[global::MyAttribute(typeof(global::MyAttribute))]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
@@ -232,7 +232,7 @@ public sealed class SyntaxGeneratorTests
             using System; 
             public class MyAttribute : Attribute { public MyAttribute(int[] values) { } }
             """,
-            @"[MyAttribute(new [] {1, 2, 3})]")),
+@"[MyAttribute(new [] {1, 2, 3})]")),
 @"[global::MyAttribute(new[] { 1, 2, 3 })]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
@@ -240,7 +240,7 @@ public sealed class SyntaxGeneratorTests
             using System; 
             public class MyAttribute : Attribute { public int Value {get; set;} }
             """,
-            @"[MyAttribute(Value = 123)]")),
+@"[MyAttribute(Value = 123)]")),
 @"[global::MyAttribute(Value = 123)]");
 
         var attributes = Generator.GetAttributes(Generator.AddAttributes(

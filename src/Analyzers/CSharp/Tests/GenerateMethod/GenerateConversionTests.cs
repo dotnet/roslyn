@@ -125,7 +125,7 @@ public sealed class GenerateConversionTests(ITestOutputHelper logger)
                 public static implicit operator C(int v) => throw new NotImplementedException();
             }
             """,
-            options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
     public Task TestGenerateImplicitConversionAwaitExpression()

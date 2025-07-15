@@ -8346,8 +8346,8 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
               </CompilationUnit>
             </Tree>
             """,
-            @"",
-            @"");
+    @"",
+    @"");
     }
 
     [Fact]

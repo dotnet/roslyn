@@ -14,14 +14,14 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: "\n",
-            """"
-            var x = """
-                [||]
-                """
-            """",
-            "var x = \"\"\"\r\n    \n    [||]\r\n    \"\"\"",
+""""
+var x = """
+    [||]
+    """
+"""",
+"var x = \"\"\"\r\n    \n    [||]\r\n    \"\"\"",
             afterUndo:
-            "var x = \"\"\"\r\n    \n[||]\r\n    \"\"\"");
+"var x = \"\"\"\r\n    \n[||]\r\n    \"\"\"");
     }
 
     [WpfFact]
@@ -32,24 +32,24 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
 
 
             """,
-            """"
-            var x = """
-                [||]
-                """
-            """",
-            """"
-            var x = """
+""""
+var x = """
+    [||]
+    """
+"""",
+""""
+var x = """
     
-                [||]
-                """
-            """",
+    [||]
+    """
+"""",
             afterUndo:
-            """"
-            var x = """
+""""
+var x = """
     
-            [||]
-                """
-            """");
+[||]
+    """
+"""");
     }
 
     [WpfFact]
@@ -57,22 +57,22 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """    """,
-            """"
-            var x = """
-                [||]
-                """
-            """",
-            """"
-            var x = """
-                    [||]
-                """
-            """",
+""""
+var x = """
+    [||]
+    """
+"""",
+""""
+var x = """
+        [||]
+    """
+"""",
             afterUndo:
-            """"
-            var x = """
-                [||]
-                """
-            """");
+""""
+var x = """
+    [||]
+    """
+"""");
     }
 
     [WpfFact]
@@ -83,24 +83,24 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
                 
 
             """,
-            """"
-            var x = """
-                [||]
-                """
-            """",
-            """"
-            var x = """
+""""
+var x = """
+    [||]
+    """
+"""",
+""""
+var x = """
     
-                [||]
-                """
-            """",
+    [||]
+    """
+"""",
             afterUndo:
-            """"
-            var x = """
+""""
+var x = """
         
-            [||]
-                """
-            """");
+[||]
+    """
+"""");
     }
 
     [WpfFact]
@@ -108,22 +108,22 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """'""",
-            """"
-            var x = """
-                [||]
-                """
-            """",
-            """"
-            var x = """
-                '[||]
-                """
-            """",
+""""
+var x = """
+    [||]
+    """
+"""",
+""""
+var x = """
+    '[||]
+    """
+"""",
             afterUndo:
-            """"
-            var x = """
-                [||]
-                """
-            """");
+""""
+var x = """
+    [||]
+    """
+"""");
     }
 
     [WpfFact]
@@ -133,22 +133,22 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             pasteText: """
             "
             """,
-            """"
-            var x = """
-                [||]
-                """
-            """",
-            """"
-            var x = """
-                "[||]
-                """
-            """",
+""""
+var x = """
+    [||]
+    """
+"""",
+""""
+var x = """
+    "[||]
+    """
+"""",
             afterUndo:
-            """"
-            var x = """
-                [||]
-                """
-            """");
+""""
+var x = """
+    [||]
+    """
+"""");
     }
 
     [WpfFact]
@@ -158,22 +158,22 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             pasteText: """"
             """
             """",
-            """"
-            var x = """
-                [||]
-                """
-            """",
-            """""
-            var x = """"
-                """[||]
-                """"
-            """"",
+""""
+var x = """
+    [||]
+    """
+"""",
+"""""
+var x = """"
+    """[||]
+    """"
+""""",
             afterUndo:
-            """"
-            var x = """
-                """[||]
-                """
-            """");
+""""
+var x = """
+    """[||]
+    """
+"""");
     }
 
     [WpfFact]
@@ -183,22 +183,22 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             pasteText: """"
             """
             """",
-            """"
-            var x = """  
-                [||]
-                """  
-            """",
-            """""
-            var x = """"  
-                """[||]
-                """"  
-            """"",
+""""
+var x = """  
+    [||]
+    """  
+"""",
+"""""
+var x = """"  
+    """[||]
+    """"  
+""""",
             afterUndo:
-            """"
-            var x = """  
-                """[||]
-                """  
-            """");
+""""
+var x = """  
+    """[||]
+    """  
+"""");
     }
 
     [WpfFact]
@@ -208,22 +208,22 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             pasteText: """"
             """
             """",
-            """"
-            var x = """  
-                "[||]
-                """  
-            """",
-            """"""
-            var x = """""  
-                """"[||]
-                """""  
-            """""",
+""""
+var x = """  
+    "[||]
+    """  
+"""",
+""""""
+var x = """""  
+    """"[||]
+    """""  
+"""""",
             afterUndo:
-            """""
-            var x = """  
-                """"[||]
-                """  
-            """"");
+"""""
+var x = """  
+    """"[||]
+    """  
+""""");
     }
 
     [WpfFact]
@@ -233,22 +233,22 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             pasteText: """"
             """
             """",
-            """"
-            var x = """  
-                "[||]"  
-                """  
-            """",
-            """""""
-            var x = """"""  
-                """"[||]"  
-                """"""  
-            """"""",
+""""
+var x = """  
+    "[||]"  
+    """  
+"""",
+"""""""
+var x = """"""  
+    """"[||]"  
+    """"""  
+""""""",
             afterUndo:
-            """""
-            var x = """  
-                """"[||]"  
-                """  
-            """"");
+"""""
+var x = """  
+    """"[||]"  
+    """  
+""""");
     }
 
     [WpfFact]
@@ -258,22 +258,22 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             pasteText: """"
             """
             """",
-            """"
-            var x = """  
-                [||]"
-                """  
-            """",
-            """"""
-            var x = """""  
-                """[||]"
-                """""  
-            """""",
+""""
+var x = """  
+    [||]"
+    """  
+"""",
+""""""
+var x = """""  
+    """[||]"
+    """""  
+"""""",
             afterUndo:
-            """"
-            var x = """  
-                """[||]"
-                """  
-            """");
+""""
+var x = """  
+    """[||]"
+    """  
+"""");
     }
 
     [WpfFact]
@@ -283,22 +283,22 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             pasteText: """""
             """"
             """"",
-            """"
-            var x = """
-                [||]
-                """
-            """",
-            """"""
-            var x = """""
-                """"[||]
-                """""
-            """""",
+""""
+var x = """
+    [||]
+    """
+"""",
+""""""
+var x = """""
+    """"[||]
+    """""
+"""""",
             afterUndo:
-            """""
-            var x = """
-                """"[||]
-                """
-            """"");
+"""""
+var x = """
+    """"[||]
+    """
+""""");
     }
 
     [WpfFact]
@@ -306,22 +306,22 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """  ""  """,
-            """"
-            var x = """
-                [||]
-                """
-            """",
-            """"
-            var x = """
-                ""  [||]
-                """
-            """",
+""""
+var x = """
+    [||]
+    """
+"""",
+""""
+var x = """
+    ""  [||]
+    """
+"""",
             afterUndo:
-            """"
-            var x = """
-                  ""  [||]
-                """
-            """");
+""""
+var x = """
+      ""  [||]
+    """
+"""");
     }
 
     [WpfFact]
@@ -329,22 +329,22 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """abc""",
-            """"
-            var x = """
-                [||]
-                """
-            """",
-            """"
-            var x = """
-                abc[||]
-                """
-            """",
+""""
+var x = """
+    [||]
+    """
+"""",
+""""
+var x = """
+    abc[||]
+    """
+"""",
             afterUndo:
-            """"
-            var x = """
-                [||]
-                """
-            """");
+""""
+var x = """
+    [||]
+    """
+"""");
     }
 
     [WpfFact]
@@ -355,24 +355,24 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             abc
             def
             """,
-            """"
-            var x = """
-                [||]
-                """
-            """",
-            """"
-            var x = """
-                abc
-                def[||]
-                """
-            """",
+""""
+var x = """
+    [||]
+    """
+"""",
+""""
+var x = """
+    abc
+    def[||]
+    """
+"""",
             afterUndo:
-            """"
-            var x = """
-                abc
-            def[||]
-                """
-            """");
+""""
+var x = """
+    abc
+def[||]
+    """
+"""");
     }
 
     [WpfFact]
@@ -383,24 +383,24 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             abc
             def
             """,
-            """"
-            var x = """
-            [||]
-                """
-            """",
-            """"
-            var x = """
-                abc
-                def[||]
-                """
-            """",
+""""
+var x = """
+[||]
+    """
+"""",
+""""
+var x = """
+    abc
+    def[||]
+    """
+"""",
             afterUndo:
-            """"
-            var x = """
-            abc
-            def[||]
-                """
-            """");
+""""
+var x = """
+abc
+def[||]
+    """
+"""");
     }
 
     [WpfFact]
@@ -411,25 +411,25 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             abc
             def
             """,
-            """"
-            var x = """[||]
+""""
+var x = """[||]
 
-                """
-            """",
-            """"
-            var x = """
-                abc
-                def[||]
+    """
+"""",
+""""
+var x = """
+    abc
+    def[||]
 
-                """
-            """",
+    """
+"""",
             afterUndo:
-            """"
-            var x = """abc
-            def[||]
+""""
+var x = """abc
+def[||]
 
-                """
-            """");
+    """
+"""");
     }
 
     [WpfFact]
@@ -440,24 +440,24 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             abc
             def
             """,
-            """"
-            var x = """
-                goo[||]
-                """
-            """",
-            """"
-            var x = """
-                gooabc
-                def[||]
-                """
-            """",
+""""
+var x = """
+    goo[||]
+    """
+"""",
+""""
+var x = """
+    gooabc
+    def[||]
+    """
+"""",
             afterUndo:
-            """"
-            var x = """
-                gooabc
-            def[||]
-                """
-            """");
+""""
+var x = """
+    gooabc
+def[||]
+    """
+"""");
     }
 
     [WpfFact]
@@ -468,24 +468,24 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             abc
             def
             """,
-            """"
-            var x = """
-                goo[||]bar
-                """
-            """",
-            """"
-            var x = """
-                gooabc
-                def[||]bar
-                """
-            """",
+""""
+var x = """
+    goo[||]bar
+    """
+"""",
+""""
+var x = """
+    gooabc
+    def[||]bar
+    """
+"""",
             afterUndo:
-            """"
-            var x = """
-                gooabc
-            def[||]bar
-                """
-            """");
+""""
+var x = """
+    gooabc
+def[||]bar
+    """
+"""");
     }
 
     [WpfFact]
@@ -497,26 +497,26 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             def
 
             """,
-            """"
-            var x = """
-                goo[||]bar
-                """
-            """",
-            """"
-            var x = """
-                gooabc
-                def
-                [||]bar
-                """
-            """",
+""""
+var x = """
+    goo[||]bar
+    """
+"""",
+""""
+var x = """
+    gooabc
+    def
+    [||]bar
+    """
+"""",
             afterUndo:
-            """"
-            var x = """
-                gooabc
-            def
-            [||]bar
-                """
-            """");
+""""
+var x = """
+    gooabc
+def
+[||]bar
+    """
+"""");
     }
 
     [WpfFact]
@@ -528,26 +528,26 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
                 def
             ghi
             """,
-            """"
-            var x = """
-                [||]
-                """
-            """",
-            """"
-            var x = """
-                abc
-                    def
-                ghi[||]
-                """
-            """",
+""""
+var x = """
+    [||]
+    """
+"""",
+""""
+var x = """
+    abc
+        def
+    ghi[||]
+    """
+"""",
             afterUndo:
-            """"
-            var x = """
-                abc
-                def
-            ghi[||]
-                """
-            """");
+""""
+var x = """
+    abc
+    def
+ghi[||]
+    """
+"""");
     }
 
     [WpfFact]
@@ -559,26 +559,26 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
                 def
             ghi
             """,
-            """"
-            var x = """
-                      [||]
-                      """
-            """",
-            """"
-            var x = """
-                      abc
-                          def
-                      ghi[||]
-                      """
-            """",
+""""
+var x = """
+          [||]
+          """
+"""",
+""""
+var x = """
+          abc
+              def
+          ghi[||]
+          """
+"""",
             afterUndo:
-            """"
-            var x = """
-                      abc
-                def
-            ghi[||]
-                      """
-            """");
+""""
+var x = """
+          abc
+    def
+ghi[||]
+          """
+"""");
     }
 
     [WpfFact]
@@ -590,24 +590,24 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
                 def
                 ghi
             """,
-            """"
-            var x = """
-                [||]
-                """
-            """",
-            """"
-            var x = """
-                abc
-                def
-                ghi[||]
-                """
-            """",
+""""
+var x = """
+    [||]
+    """
+"""",
+""""
+var x = """
+    abc
+    def
+    ghi[||]
+    """
+"""",
             afterUndo:
-            """"
-            var x = """
-                [||]
-                """
-            """");
+""""
+var x = """
+    [||]
+    """
+"""");
     }
 
     [WpfFact]
@@ -619,26 +619,26 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
                 def
                 ghi
             """,
-            """"
-            var x = """
-                [||]
-                """
-            """",
-            """"
-            var x = """
-                abc
-                def
-                ghi[||]
-                """
-            """",
+""""
+var x = """
+    [||]
+    """
+"""",
+""""
+var x = """
+    abc
+    def
+    ghi[||]
+    """
+"""",
             afterUndo:
-            """"
-            var x = """
-                    abc
-                def
-                ghi[||]
-                """
-            """");
+""""
+var x = """
+        abc
+    def
+    ghi[||]
+    """
+"""");
     }
 
     [WpfFact]
@@ -650,26 +650,26 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
                 def
                 ghi
             """,
-            """"
-            var x = """
-                [||]
-                """
-            """",
-            """"
-            var x = """
-                    abc
-                def
-                ghi[||]
-                """
-            """",
+""""
+var x = """
+    [||]
+    """
+"""",
+""""
+var x = """
+        abc
+    def
+    ghi[||]
+    """
+"""",
             afterUndo:
-            """"
-            var x = """
-                        abc
-                def
-                ghi[||]
-                """
-            """");
+""""
+var x = """
+            abc
+    def
+    ghi[||]
+    """
+"""");
     }
 
     [WpfFact]
@@ -680,22 +680,22 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             abc
             def
             """,
-            """"
-            var x = """[||]{|Selection:
+""""
+var x = """[||]{|Selection:
 
-                |}"""
-            """",
-            """"
-            var x = """
-                abc
-                def
-                [||]"""
-            """",
+    |}"""
+"""",
+""""
+var x = """
+    abc
+    def
+    [||]"""
+"""",
             afterUndo:
-            """"
-            var x = """abc
-            def[||]"""
-            """");
+""""
+var x = """abc
+def[||]"""
+"""");
     }
 
     [WpfFact]
@@ -707,24 +707,24 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             def
 
             """,
-            """"
-            var x = """[||]{|Selection:
+""""
+var x = """[||]{|Selection:
 
-                |}"""
-            """",
-            """"
-            var x = """
-                abc
-                def
+    |}"""
+"""",
+""""
+var x = """
+    abc
+    def
     
-                [||]"""
-            """",
+    [||]"""
+"""",
             afterUndo:
-            """"
-            var x = """abc
-            def
-            [||]"""
-            """");
+""""
+var x = """abc
+def
+[||]"""
+"""");
     }
 
     [WpfFact]
@@ -735,22 +735,22 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             abc
             def
             """,
-            """"
-            var x = """[||]{|Selection:
+""""
+var x = """[||]{|Selection:
 
-             |}   """
-            """",
-            """"
-            var x = """
-                abc
-                def
-             [||]   """
-            """",
+ |}   """
+"""",
+""""
+var x = """
+    abc
+    def
+ [||]   """
+"""",
             afterUndo:
-            """"
-            var x = """abc
-            def[||]   """
-            """");
+""""
+var x = """abc
+def[||]   """
+"""");
     }
 
     [WpfFact]
@@ -758,23 +758,23 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """bar""",
-            """"
-            var x = """[||]
-                goo
-                """
-            """",
-            """"
-            var x = """
-                bar[||]
-                goo
-                """
-            """",
+""""
+var x = """[||]
+    goo
+    """
+"""",
+""""
+var x = """
+    bar[||]
+    goo
+    """
+"""",
             afterUndo:
-            """"
-            var x = """bar[||]
-                goo
-                """
-            """");
+""""
+var x = """bar[||]
+    goo
+    """
+"""");
     }
 
     [WpfFact]
@@ -784,20 +784,20 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             pasteText: """
             ""
             """,
-            """"
-            var x = """[||]{|Selection:
+""""
+var x = """[||]{|Selection:
 
-                |}"""
-            """",
-            """"
-            var x = """
-                ""
-                [||]"""
-            """",
+    |}"""
+"""",
+""""
+var x = """
+    ""
+    [||]"""
+"""",
             afterUndo:
-            """"""
-            var x = """""[||]"""
-            """""");
+""""""
+var x = """""[||]"""
+"""""");
     }
 
     [WpfFact]
@@ -807,19 +807,19 @@ public sealed class PasteUnknownSourceIntoMultiLineRawStringTests
             pasteText: """"
             """
             """",
-            """"
-            var x = """[||]{|Selection:
+""""
+var x = """[||]{|Selection:
 
-                |}"""
-            """",
-            """""
-            var x = """"
-                """
-                [||]""""
-            """"",
+    |}"""
+"""",
+"""""
+var x = """"
+    """
+    [||]""""
+""""",
             afterUndo:
-            """""""
-            var x = """"""[||]"""
-            """"""");
+"""""""
+var x = """"""[||]"""
+""""""");
     }
 }

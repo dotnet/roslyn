@@ -14,12 +14,12 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: "\n",
-            """"
-            var x = $"""[||] """
-            """",
-            "var x = $\"\"\"\r\n    \n    [||] \r\n    \"\"\"",
+""""
+var x = $"""[||] """
+"""",
+"var x = $\"\"\"\r\n    \n    [||] \r\n    \"\"\"",
             afterUndo:
-            "var x = $\"\"\"\n[||] \"\"\"");
+"var x = $\"\"\"\n[||] \"\"\"");
     }
 
     [WpfFact]
@@ -27,12 +27,12 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: "\n",
-            """"
-            var x = $""" [||]"""
-            """",
-            "var x = $\"\"\"\r\n     \n    \r\n    [||]\"\"\"",
+""""
+var x = $""" [||]"""
+"""",
+"var x = $\"\"\"\r\n     \n    \r\n    [||]\"\"\"",
             afterUndo:
-            "var x = $\"\"\" \n[||]\"\"\"");
+"var x = $\"\"\" \n[||]\"\"\"");
     }
 
     [WpfFact]
@@ -43,20 +43,20 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
 
 
             """,
-            """"
-            var x = $"""[||] """
-            """",
-            """"
-            var x = $"""
+""""
+var x = $"""[||] """
+"""",
+""""
+var x = $"""
     
-                [||] 
-                """
-            """",
+    [||] 
+    """
+"""",
             afterUndo:
-            """"
-            var x = $"""
-            [||] """
-            """");
+""""
+var x = $"""
+[||] """
+"""");
     }
 
     [WpfFact]
@@ -67,20 +67,20 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
 
 
             """,
-            """"
-            var x = $""" [||]"""
-            """",
-            """"
-            var x = $"""
+""""
+var x = $""" [||]"""
+"""",
+""""
+var x = $"""
      
     
-                [||]"""
-            """",
+    [||]"""
+"""",
             afterUndo:
-            """"
-            var x = $""" 
-            [||]"""
-            """");
+""""
+var x = $""" 
+[||]"""
+"""");
     }
 
     [WpfFact]
@@ -88,16 +88,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """    """,
-            """"
-            var x = $"""[||] """
-            """",
-            """"
-            var x = $"""    [||] """
-            """",
+""""
+var x = $"""[||] """
+"""",
+""""
+var x = $"""    [||] """
+"""",
             afterUndo:
-            """"
-            var x = $"""[||] """
-            """");
+""""
+var x = $"""[||] """
+"""");
     }
 
     [WpfFact]
@@ -105,16 +105,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """    """,
-            """"
-            var x = $""" [||]"""
-            """",
-            """"
-            var x = $"""     [||]"""
-            """",
+""""
+var x = $""" [||]"""
+"""",
+""""
+var x = $"""     [||]"""
+"""",
             afterUndo:
-            """"
-            var x = $""" [||]"""
-            """");
+""""
+var x = $""" [||]"""
+"""");
     }
 
     [WpfFact]
@@ -125,24 +125,24 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
                 
 
             """,
-            """"
-            var x = $"""
-                [||]
-                """
-            """",
-            """"
-            var x = $"""
+""""
+var x = $"""
+    [||]
+    """
+"""",
+""""
+var x = $"""
     
-                [||]
-                """
-            """",
+    [||]
+    """
+"""",
             afterUndo:
-            """"
-            var x = $"""
+""""
+var x = $"""
         
-            [||]
-                """
-            """");
+[||]
+    """
+"""");
     }
 
     [WpfFact]
@@ -150,16 +150,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """'""",
-            """"
-            var x = $"""[||] """
-            """",
-            """"
-            var x = $"""'[||] """
-            """",
+""""
+var x = $"""[||] """
+"""",
+""""
+var x = $"""'[||] """
+"""",
             afterUndo:
-            """"
-            var x = $"""[||] """
-            """");
+""""
+var x = $"""[||] """
+"""");
     }
 
     [WpfFact]
@@ -167,16 +167,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """'""",
-            """"
-            var x = $""" [||]"""
-            """",
-            """"
-            var x = $""" '[||]"""
-            """",
+""""
+var x = $""" [||]"""
+"""",
+""""
+var x = $""" '[||]"""
+"""",
             afterUndo:
-            """"
-            var x = $""" [||]"""
-            """");
+""""
+var x = $""" [||]"""
+"""");
     }
 
     [WpfFact]
@@ -186,18 +186,18 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             pasteText: """
             "
             """,
-            """"
-            var x = $"""[||] """
-            """",
-            """"
-            var x = $"""
-                "[||] 
-                """
-            """",
+""""
+var x = $"""[||] """
+"""",
+""""
+var x = $"""
+    "[||] 
+    """
+"""",
             afterUndo:
-            """""
-            var x = $""""[||] """
-            """"");
+"""""
+var x = $""""[||] """
+""""");
     }
 
     [WpfFact]
@@ -207,18 +207,18 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             pasteText: """
             "
             """,
-            """"
-            var x = $""" [||]"""
-            """",
-            """"
-            var x = $"""
-                 "
-                [||]"""
-            """",
+""""
+var x = $""" [||]"""
+"""",
+""""
+var x = $"""
+     "
+    [||]"""
+"""",
             afterUndo:
-            """"
-            var x = $""" "[||]"""
-            """");
+""""
+var x = $""" "[||]"""
+"""");
     }
 
     [WpfFact]
@@ -228,18 +228,18 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             pasteText: """"
             """
             """",
-            """"
-            var x = $"""[||] """
-            """",
-            """""
-            var x = $""""
-                """[||] 
-                """"
-            """"",
+""""
+var x = $"""[||] """
+"""",
+"""""
+var x = $""""
+    """[||] 
+    """"
+""""",
             afterUndo:
-            """""""
-            var x = $""""""[||] """
-            """"""");
+"""""""
+var x = $""""""[||] """
+""""""");
     }
 
     [WpfFact]
@@ -249,18 +249,18 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             pasteText: """"
             """
             """",
-            """"
-            var x = $""" [||]"""
-            """",
-            """""
-            var x = $""""
-                 """
-                [||]""""
-            """"",
+""""
+var x = $""" [||]"""
+"""",
+"""""
+var x = $""""
+     """
+    [||]""""
+""""",
             afterUndo:
-            """"
-            var x = $""" """[||]"""
-            """");
+""""
+var x = $""" """[||]"""
+"""");
     }
 
     [WpfFact]
@@ -270,16 +270,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             pasteText: """"
             """
             """",
-            """"
-            var x = $""" "[||] """
-            """",
-            """"""
-            var x = $""""" """"[||] """""
-            """""",
+""""
+var x = $""" "[||] """
+"""",
+""""""
+var x = $""""" """"[||] """""
+"""""",
             afterUndo:
-            """""
-            var x = $""" """"[||] """
-            """"");
+"""""
+var x = $""" """"[||] """
+""""");
     }
 
     [WpfFact]
@@ -289,16 +289,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             pasteText: """"
             """
             """",
-            """"
-            var x = $""" "[||]" """
-            """",
-            """""""
-            var x = $"""""" """"[||]" """"""
-            """"""",
+""""
+var x = $""" "[||]" """
+"""",
+"""""""
+var x = $"""""" """"[||]" """"""
+""""""",
             afterUndo:
-            """""
-            var x = $""" """"[||]" """
-            """"");
+"""""
+var x = $""" """"[||]" """
+""""");
     }
 
     [WpfFact]
@@ -308,16 +308,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             pasteText: """"
             """
             """",
-            """"
-            var x = $""" [||]" """
-            """",
-            """"""
-            var x = $""""" """[||]" """""
-            """""",
+""""
+var x = $""" [||]" """
+"""",
+""""""
+var x = $""""" """[||]" """""
+"""""",
             afterUndo:
-            """"
-            var x = $""" """[||]" """
-            """");
+""""
+var x = $""" """[||]" """
+"""");
     }
 
     [WpfFact]
@@ -327,22 +327,22 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             pasteText: """""
             """"
             """"",
-            """"
-            var x = $"""
-                [||]
-                """
-            """",
-            """"""
-            var x = $"""""
-                """"[||]
-                """""
-            """""",
+""""
+var x = $"""
+    [||]
+    """
+"""",
+""""""
+var x = $"""""
+    """"[||]
+    """""
+"""""",
             afterUndo:
-            """""
-            var x = $"""
-                """"[||]
-                """
-            """"");
+"""""
+var x = $"""
+    """"[||]
+    """
+""""");
     }
 
     [WpfFact]
@@ -350,16 +350,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """{""",
-            """"
-            var x = $"""[||] """
-            """",
-            """"
-            var x = $$"""{[||] """
-            """",
+""""
+var x = $"""[||] """
+"""",
+""""
+var x = $$"""{[||] """
+"""",
             afterUndo:
-            """"
-            var x = $"""{[||] """
-            """");
+""""
+var x = $"""{[||] """
+"""");
     }
 
     [WpfFact]
@@ -367,16 +367,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """{""",
-            """"
-            var x = $""" [||]"""
-            """",
-            """"
-            var x = $$""" {[||]"""
-            """",
+""""
+var x = $""" [||]"""
+"""",
+""""
+var x = $$""" {[||]"""
+"""",
             afterUndo:
-            """"
-            var x = $""" {[||]"""
-            """");
+""""
+var x = $""" {[||]"""
+"""");
     }
 
     [WpfFact]
@@ -386,18 +386,18 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             pasteText: """
             "{{{
             """,
-            """"
-            var x = $"""[||] """
-            """",
-            """"
-            var x = $$$$"""
-                "{{{[||] 
-                """
-            """",
+""""
+var x = $"""[||] """
+"""",
+""""
+var x = $$$$"""
+    "{{{[||] 
+    """
+"""",
             afterUndo:
-            """""
-            var x = $""""{{{[||] """
-            """"");
+"""""
+var x = $""""{{{[||] """
+""""");
     }
 
     [WpfFact]
@@ -407,18 +407,18 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             pasteText: """"
             """{{{
             """",
-            """"
-            var x = $"""[||] """
-            """",
-            """""
-            var x = $$$$""""
-                """{{{[||] 
-                """"
-            """"",
+""""
+var x = $"""[||] """
+"""",
+"""""
+var x = $$$$""""
+    """{{{[||] 
+    """"
+""""",
             afterUndo:
-            """""""
-            var x = $""""""{{{[||] """
-            """"""");
+"""""""
+var x = $""""""{{{[||] """
+""""""");
     }
 
     [WpfFact]
@@ -426,16 +426,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """" """{{{"""",
-            """"
-            var x = $"""[||] """
-            """",
-            """""
-            var x = $$$$"""" """{{{[||] """"
-            """"",
+""""
+var x = $"""[||] """
+"""",
+"""""
+var x = $$$$"""" """{{{[||] """"
+""""",
             afterUndo:
-            """"
-            var x = $""" """{{{[||] """
-            """");
+""""
+var x = $""" """{{{[||] """
+"""");
     }
 
     [WpfFact]
@@ -443,16 +443,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """{{{""",
-            """"
-            var x = $"""[||] """
-            """",
-            """"
-            var x = $$$$"""{{{[||] """
-            """",
+""""
+var x = $"""[||] """
+"""",
+""""
+var x = $$$$"""{{{[||] """
+"""",
             afterUndo:
-            """"
-            var x = $"""{{{[||] """
-            """");
+""""
+var x = $"""{{{[||] """
+"""");
     }
 
     [WpfFact]
@@ -460,16 +460,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """{{{""",
-            """"
-            var x = $""" [||]"""
-            """",
-            """"
-            var x = $$$$""" {{{[||]"""
-            """",
+""""
+var x = $""" [||]"""
+"""",
+""""
+var x = $$$$""" {{{[||]"""
+"""",
             afterUndo:
-            """"
-            var x = $""" {{{[||]"""
-            """");
+""""
+var x = $""" {{{[||]"""
+"""");
     }
 
     [WpfFact]
@@ -477,16 +477,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """{{{""",
-            """"
-            var x = $""" "[||] """
-            """",
-            """"
-            var x = $$$$""" "{{{[||] """
-            """",
+""""
+var x = $""" "[||] """
+"""",
+""""
+var x = $$$$""" "{{{[||] """
+"""",
             afterUndo:
-            """"
-            var x = $""" "{{{[||] """
-            """");
+""""
+var x = $""" "{{{[||] """
+"""");
     }
 
     [WpfFact]
@@ -494,16 +494,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """{{{""",
-            """"
-            var x = $""" "[||]" """
-            """",
-            """"
-            var x = $$$$""" "{{{[||]" """
-            """",
+""""
+var x = $""" "[||]" """
+"""",
+""""
+var x = $$$$""" "{{{[||]" """
+"""",
             afterUndo:
-            """"
-            var x = $""" "{{{[||]" """
-            """");
+""""
+var x = $""" "{{{[||]" """
+"""");
     }
 
     [WpfFact]
@@ -511,16 +511,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """{{{""",
-            """"
-            var x = $""" [||]" """
-            """",
-            """"
-            var x = $$$$""" {{{[||]" """
-            """",
+""""
+var x = $""" [||]" """
+"""",
+""""
+var x = $$$$""" {{{[||]" """
+"""",
             afterUndo:
-            """"
-            var x = $""" {{{[||]" """
-            """");
+""""
+var x = $""" {{{[||]" """
+"""");
     }
 
     [WpfFact]
@@ -528,16 +528,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """{0}""",
-            """"
-            var x = $""" [||] """
-            """",
-            """"
-            var x = $""" {0}[||] """
-            """",
+""""
+var x = $""" [||] """
+"""",
+""""
+var x = $""" {0}[||] """
+"""",
             afterUndo:
-            """"
-            var x = $""" [||] """
-            """");
+""""
+var x = $""" [||] """
+"""");
     }
 
     [WpfFact]
@@ -545,16 +545,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """{}""",
-            """"
-            var x = $""" [||] """
-            """",
-            """"
-            var x = $$""" {}[||] """
-            """",
+""""
+var x = $""" [||] """
+"""",
+""""
+var x = $$""" {}[||] """
+"""",
             afterUndo:
-            """"
-            var x = $""" {}[||] """
-            """");
+""""
+var x = $""" {}[||] """
+"""");
     }
 
     [WpfFact]
@@ -562,16 +562,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """{}""",
-            """"
-            var x = $$""" [||] """
-            """",
-            """"
-            var x = $$""" {}[||] """
-            """",
+""""
+var x = $$""" [||] """
+"""",
+""""
+var x = $$""" {}[||] """
+"""",
             afterUndo:
-            """"
-            var x = $$""" [||] """
-            """");
+""""
+var x = $$""" [||] """
+"""");
     }
 
     [WpfFact]
@@ -579,16 +579,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """{{}""",
-            """"
-            var x = $$""" [||] """
-            """",
-            """"
-            var x = $$$""" {{}[||] """
-            """",
+""""
+var x = $$""" [||] """
+"""",
+""""
+var x = $$$""" {{}[||] """
+"""",
             afterUndo:
-            """"
-            var x = $$""" {{}[||] """
-            """");
+""""
+var x = $$""" {{}[||] """
+"""");
     }
 
     [WpfFact]
@@ -596,16 +596,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """{}}""",
-            """"
-            var x = $$""" [||] """
-            """",
-            """"
-            var x = $$$""" {}}[||] """
-            """",
+""""
+var x = $$""" [||] """
+"""",
+""""
+var x = $$$""" {}}[||] """
+"""",
             afterUndo:
-            """"
-            var x = $$""" {}}[||] """
-            """");
+""""
+var x = $$""" {}}[||] """
+"""");
     }
 
     [WpfFact]
@@ -613,16 +613,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """{{}}""",
-            """"
-            var x = $$""" [||] """
-            """",
-            """"
-            var x = $$$""" {{}}[||] """
-            """",
+""""
+var x = $$""" [||] """
+"""",
+""""
+var x = $$$""" {{}}[||] """
+"""",
             afterUndo:
-            """"
-            var x = $$""" {{}}[||] """
-            """");
+""""
+var x = $$""" {{}}[||] """
+"""");
     }
 
     [WpfFact]
@@ -630,16 +630,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """  ""  """,
-            """"
-            var x = $"""[||] """
-            """",
-            """"
-            var x = $"""  ""  [||] """
-            """",
+""""
+var x = $"""[||] """
+"""",
+""""
+var x = $"""  ""  [||] """
+"""",
             afterUndo:
-            """"
-            var x = $"""[||] """
-            """");
+""""
+var x = $"""[||] """
+"""");
     }
 
     [WpfFact]
@@ -647,16 +647,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """abc""",
-            """"
-            var x = $"""[||] """
-            """",
-            """"
-            var x = $"""abc[||] """
-            """",
+""""
+var x = $"""[||] """
+"""",
+""""
+var x = $"""abc[||] """
+"""",
             afterUndo:
-            """"
-            var x = $"""[||] """
-            """");
+""""
+var x = $"""[||] """
+"""");
     }
 
     [WpfFact]
@@ -664,16 +664,16 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     {
         TestPasteUnknownSource(
             pasteText: """abc""",
-            """"
-            var x = $""" [||]"""
-            """",
-            """"
-            var x = $""" abc[||]"""
-            """",
+""""
+var x = $""" [||]"""
+"""",
+""""
+var x = $""" abc[||]"""
+"""",
             afterUndo:
-            """"
-            var x = $""" [||]"""
-            """");
+""""
+var x = $""" [||]"""
+"""");
     }
 
     [WpfFact]
@@ -684,20 +684,20 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             abc
             def
             """,
-            """"
-            var x = $"""[||] """
-            """",
-            """"
-            var x = $"""
-                abc
-                def[||] 
-                """
-            """",
+""""
+var x = $"""[||] """
+"""",
+""""
+var x = $"""
+    abc
+    def[||] 
+    """
+"""",
             afterUndo:
-            """"
-            var x = $"""abc
-            def[||] """
-            """");
+""""
+var x = $"""abc
+def[||] """
+"""");
     }
 
     [WpfFact]
@@ -708,20 +708,20 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             abc
             def
             """,
-            """"
-            var x = $""" [||]"""
-            """",
-            """"
-            var x = $"""
-                 abc
-                def
-                [||]"""
-            """",
+""""
+var x = $""" [||]"""
+"""",
+""""
+var x = $"""
+     abc
+    def
+    [||]"""
+"""",
             afterUndo:
-            """"
-            var x = $""" abc
-            def[||]"""
-            """");
+""""
+var x = $""" abc
+def[||]"""
+"""");
     }
 
     [WpfFact]
@@ -732,20 +732,20 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             abc
             def
             """,
-            """"
-            var x = $"""goo[||]"""
-            """",
-            """"
-            var x = $"""
-                gooabc
-                def
-                [||]"""
-            """",
+""""
+var x = $"""goo[||]"""
+"""",
+""""
+var x = $"""
+    gooabc
+    def
+    [||]"""
+"""",
             afterUndo:
-            """"
-            var x = $"""gooabc
-            def[||]"""
-            """");
+""""
+var x = $"""gooabc
+def[||]"""
+"""");
     }
 
     [WpfFact]
@@ -756,20 +756,20 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             abc
             def
             """,
-            """"
-            var x = $"""goo[||]bar"""
-            """",
-            """"
-            var x = $"""
-                gooabc
-                def[||]bar
-                """
-            """",
+""""
+var x = $"""goo[||]bar"""
+"""",
+""""
+var x = $"""
+    gooabc
+    def[||]bar
+    """
+"""",
             afterUndo:
-            """"
-            var x = $"""gooabc
-            def[||]bar"""
-            """");
+""""
+var x = $"""gooabc
+def[||]bar"""
+"""");
     }
 
     [WpfFact]
@@ -781,22 +781,22 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             def
 
             """,
-            """"
-            var x = $"""goo[||]bar"""
-            """",
-            """"
-            var x = $"""
-                gooabc
-                def
-                [||]bar
-                """
-            """",
+""""
+var x = $"""goo[||]bar"""
+"""",
+""""
+var x = $"""
+    gooabc
+    def
+    [||]bar
+    """
+"""",
             afterUndo:
-            """"
-            var x = $"""gooabc
-            def
-            [||]bar"""
-            """");
+""""
+var x = $"""gooabc
+def
+[||]bar"""
+"""");
     }
 
     [WpfFact]
@@ -808,22 +808,22 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
                 def
             ghi
             """,
-            """"
-            var x = $"""[||] """
-            """",
-            """"
-            var x = $"""
-                abc
-                    def
-                ghi[||] 
-                """
-            """",
+""""
+var x = $"""[||] """
+"""",
+""""
+var x = $"""
+    abc
+        def
+    ghi[||] 
+    """
+"""",
             afterUndo:
-            """"
-            var x = $"""abc
-                def
-            ghi[||] """
-            """");
+""""
+var x = $"""abc
+    def
+ghi[||] """
+"""");
     }
 
     [WpfFact]
@@ -835,22 +835,22 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
                 def
             ghi
             """,
-            """"
-            var x = $""" [||]"""
-            """",
-            """"
-            var x = $"""
-                 abc
-                    def
-                ghi
-                [||]"""
-            """",
+""""
+var x = $""" [||]"""
+"""",
+""""
+var x = $"""
+     abc
+        def
+    ghi
+    [||]"""
+"""",
             afterUndo:
-            """"
-            var x = $""" abc
-                def
-            ghi[||]"""
-            """");
+""""
+var x = $""" abc
+    def
+ghi[||]"""
+"""");
     }
 
     [WpfFact]
@@ -862,22 +862,22 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
                 def
                 ghi
             """,
-            """"
-            var x = $"""[||] """
-            """",
-            """"
-            var x = $"""
-                abc
-                def
-                ghi[||] 
-                """
-            """",
+""""
+var x = $"""[||] """
+"""",
+""""
+var x = $"""
+    abc
+    def
+    ghi[||] 
+    """
+"""",
             afterUndo:
-            """"
-            var x = $"""abc
-                def
-                ghi[||] """
-            """");
+""""
+var x = $"""abc
+    def
+    ghi[||] """
+"""");
     }
 
     [WpfFact]
@@ -889,22 +889,22 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
                 def
                 ghi
             """,
-            """"
-            var x = $"""[||] """
-            """",
-            """"
-            var x = $"""
-                abc
-                def
-                ghi[||] 
-                """
-            """",
+""""
+var x = $"""[||] """
+"""",
+""""
+var x = $"""
+    abc
+    def
+    ghi[||] 
+    """
+"""",
             afterUndo:
-            """"
-            var x = $"""abc
-                def
-                ghi[||] """
-            """");
+""""
+var x = $"""abc
+    def
+    ghi[||] """
+"""");
     }
 
     [WpfFact]
@@ -916,22 +916,22 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
                 def
                 ghi
             """,
-            """"
-            var x = $"""[||] """
-            """",
-            """"
-            var x = $"""
-                abc
-                def
-                ghi[||] 
-                """
-            """",
+""""
+var x = $"""[||] """
+"""",
+""""
+var x = $"""
+    abc
+    def
+    ghi[||] 
+    """
+"""",
             afterUndo:
-            """"
-            var x = $"""    abc
-                def
-                ghi[||] """
-            """");
+""""
+var x = $"""    abc
+    def
+    ghi[||] """
+"""");
     }
 
     [WpfFact]
@@ -943,22 +943,22 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
                 def
                 ghi
             """,
-            """"
-            var x = $""" [||]"""
-            """",
-            """"
-            var x = $"""
-                 abc
-                def
-                ghi
-                [||]"""
-            """",
+""""
+var x = $""" [||]"""
+"""",
+""""
+var x = $"""
+     abc
+    def
+    ghi
+    [||]"""
+"""",
             afterUndo:
-            """"
-            var x = $"""     abc
-                def
-                ghi[||]"""
-            """");
+""""
+var x = $"""     abc
+    def
+    ghi[||]"""
+"""");
     }
 
     [WpfFact]
@@ -970,22 +970,22 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
                 def
                 ghi
             """,
-            """"
-            var x = $"""[||] """
-            """",
-            """"
-            var x = $"""
-                    abc
-                def
-                ghi[||] 
-                """
-            """",
+""""
+var x = $"""[||] """
+"""",
+""""
+var x = $"""
+        abc
+    def
+    ghi[||] 
+    """
+"""",
             afterUndo:
-            """"
-            var x = $"""        abc
-                def
-                ghi[||] """
-            """");
+""""
+var x = $"""        abc
+    def
+    ghi[||] """
+"""");
     }
 
     [WpfFact]
@@ -997,22 +997,22 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
                 def
                 ghi
             """,
-            """"
-            var x = $""" [||]"""
-            """",
-            """"
-            var x = $"""
-                     abc
-                def
-                ghi
-                [||]"""
-            """",
+""""
+var x = $""" [||]"""
+"""",
+""""
+var x = $"""
+         abc
+    def
+    ghi
+    [||]"""
+"""",
             afterUndo:
-            """"
-            var x = $"""         abc
-                def
-                ghi[||]"""
-            """");
+""""
+var x = $"""         abc
+    def
+    ghi[||]"""
+"""");
     }
 
     [WpfFact]
@@ -1023,20 +1023,20 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             abc
             def
             """,
-            """"
-            var x = $"""[||]{|Selection:    |}"""
-            """",
-            """"
-            var x = $"""
-                abc
-                def
-                [||]"""
-            """",
+""""
+var x = $"""[||]{|Selection:    |}"""
+"""",
+""""
+var x = $"""
+    abc
+    def
+    [||]"""
+"""",
             afterUndo:
-            """"
-            var x = $"""abc
-            def[||]"""
-            """");
+""""
+var x = $"""abc
+def[||]"""
+"""");
     }
 
     [WpfFact]
@@ -1047,20 +1047,20 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             abc
             def
             """,
-            """"
-            var x = $"""  [||]{|Selection:    |}  """
-            """",
-            """"
-            var x = $"""
-                  abc
-                def[||]  
-                """
-            """",
+""""
+var x = $"""  [||]{|Selection:    |}  """
+"""",
+""""
+var x = $"""
+      abc
+    def[||]  
+    """
+"""",
             afterUndo:
-            """"
-            var x = $"""  abc
-            def[||]  """
-            """");
+""""
+var x = $"""  abc
+def[||]  """
+"""");
     }
 
     [WpfFact]
@@ -1072,22 +1072,22 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             def
 
             """,
-            """"
-            var x = $"""[||]{|Selection:    |}"""
-            """",
-            """"
-            var x = $"""
-                abc
-                def
+""""
+var x = $"""[||]{|Selection:    |}"""
+"""",
+""""
+var x = $"""
+    abc
+    def
     
-                [||]"""
-            """",
+    [||]"""
+"""",
             afterUndo:
-            """"
-            var x = $"""abc
-            def
-            [||]"""
-            """");
+""""
+var x = $"""abc
+def
+[||]"""
+"""");
     }
 
     [WpfFact]
@@ -1099,22 +1099,22 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             def
 
             """,
-            """"
-            var x = $"""  [||]{|Selection:    |}  """
-            """",
-            """"
-            var x = $"""
-                  abc
-                def
-                [||]  
-                """
-            """",
+""""
+var x = $"""  [||]{|Selection:    |}  """
+"""",
+""""
+var x = $"""
+      abc
+    def
+    [||]  
+    """
+"""",
             afterUndo:
-            """"
-            var x = $"""  abc
-            def
-            [||]  """
-            """");
+""""
+var x = $"""  abc
+def
+[||]  """
+"""");
     }
 
     [WpfFact]
@@ -1125,20 +1125,20 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             abc
             def
             """,
-            """"
-            var x = $"""[||]{|Selection:    |}  """
-            """",
-            """"
-            var x = $"""
-                abc
-                def[||]  
-                """
-            """",
+""""
+var x = $"""[||]{|Selection:    |}  """
+"""",
+""""
+var x = $"""
+    abc
+    def[||]  
+    """
+"""",
             afterUndo:
-            """"
-            var x = $"""abc
-            def[||]  """
-            """");
+""""
+var x = $"""abc
+def[||]  """
+"""");
     }
 
     [WpfFact]
@@ -1149,20 +1149,20 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             abc
             def
             """,
-            """"
-            var x = $"""  [||]{|Selection:    |}"""
-            """",
-            """"
-            var x = $"""
-                  abc
-                def
-                [||]"""
-            """",
+""""
+var x = $"""  [||]{|Selection:    |}"""
+"""",
+""""
+var x = $"""
+      abc
+    def
+    [||]"""
+"""",
             afterUndo:
-            """"
-            var x = $"""  abc
-            def[||]"""
-            """");
+""""
+var x = $"""  abc
+def[||]"""
+"""");
     }
 
     [WpfFact]
@@ -1172,18 +1172,18 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             pasteText: """
             "bar
             """,
-            """"
-            var x = $"""[||]goo"""
-            """",
-            """"
-            var x = $"""
-                "bar[||]goo
-                """
-            """",
+""""
+var x = $"""[||]goo"""
+"""",
+""""
+var x = $"""
+    "bar[||]goo
+    """
+"""",
             afterUndo:
-            """""
-            var x = $""""bar[||]goo"""
-            """"");
+"""""
+var x = $""""bar[||]goo"""
+""""");
     }
 
     [WpfFact]
@@ -1193,18 +1193,18 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             pasteText: """
             bar"
             """,
-            """"
-            var x = $"""goo[||]"""
-            """",
-            """"
-            var x = $"""
-                goobar"
-                [||]"""
-            """",
+""""
+var x = $"""goo[||]"""
+"""",
+""""
+var x = $"""
+    goobar"
+    [||]"""
+"""",
             afterUndo:
-            """"
-            var x = $"""goobar"[||]"""
-            """");
+""""
+var x = $"""goobar"[||]"""
+"""");
     }
 
     [WpfFact]
@@ -1214,18 +1214,18 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             pasteText: """
             ""
             """,
-            """"
-            var x = $"""[||]{|Selection:    |}"""
-            """",
-            """"
-            var x = $"""
-                ""
-                [||]"""
-            """",
+""""
+var x = $"""[||]{|Selection:    |}"""
+"""",
+""""
+var x = $"""
+    ""
+    [||]"""
+"""",
             afterUndo:
-            """"""
-            var x = $"""""[||]"""
-            """""");
+""""""
+var x = $"""""[||]"""
+"""""");
     }
 
     [WpfFact]
@@ -1235,17 +1235,17 @@ public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
             pasteText: """"
             """
             """",
-            """"
-            var x = $"""[||]{|Selection:    |}"""
-            """",
-            """""
-            var x = $""""
-                """
-                [||]""""
-            """"",
+""""
+var x = $"""[||]{|Selection:    |}"""
+"""",
+"""""
+var x = $""""
+    """
+    [||]""""
+""""",
             afterUndo:
-            """""""
-            var x = $""""""[||]"""
-            """"""");
+"""""""
+var x = $""""""[||]"""
+""""""");
     }
 }

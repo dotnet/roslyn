@@ -244,47 +244,47 @@ public sealed class ChainedExpressionWrappingTests : AbstractWrappingTests
             }
             """,
             GetIndentionColumn(35),
-            """
-            class C {
-                void Bar() {
-                    the.quick.brown().fox
-                        .jumped().over
-                        .the()
-                        .lazy()
-                        .dog();
-                }
-            }
-            """,
-            """
-            class C {
-                void Bar() {
-                    the.quick.brown().fox
-                             .jumped().over
-                             .the()
-                             .lazy()
-                             .dog();
-                }
-            }
-            """,
-            """
-            class C {
-                void Bar() {
-                    the.quick.brown().fox
-                        .jumped().over.the()
-                        .lazy().dog();
-                }
-            }
-            """,
-            """
-            class C {
-                void Bar() {
-                    the.quick.brown().fox
-                             .jumped().over
-                             .the().lazy()
-                             .dog();
-                }
-            }
-            """);
+"""
+class C {
+    void Bar() {
+        the.quick.brown().fox
+            .jumped().over
+            .the()
+            .lazy()
+            .dog();
+    }
+}
+""",
+"""
+class C {
+    void Bar() {
+        the.quick.brown().fox
+                 .jumped().over
+                 .the()
+                 .lazy()
+                 .dog();
+    }
+}
+""",
+"""
+class C {
+    void Bar() {
+        the.quick.brown().fox
+            .jumped().over.the()
+            .lazy().dog();
+    }
+}
+""",
+"""
+class C {
+    void Bar() {
+        the.quick.brown().fox
+                 .jumped().over
+                 .the().lazy()
+                 .dog();
+    }
+}
+""");
 
     [Fact]
     public Task TrailingLongWrapping2()
@@ -297,46 +297,46 @@ public sealed class ChainedExpressionWrappingTests : AbstractWrappingTests
             }
             """,
             GetIndentionColumn(40),
-            """
-            class C {
-                void Bar() {
-                    the.quick.brown().fox
-                        .jumped().over
-                        .the()
-                        .lazy()
-                        .dog();
-                }
-            }
-            """,
-            """
-            class C {
-                void Bar() {
-                    the.quick.brown().fox
-                             .jumped().over
-                             .the()
-                             .lazy()
-                             .dog();
-                }
-            }
-            """,
-            """
-            class C {
-                void Bar() {
-                    the.quick.brown().fox
-                        .jumped().over.the().lazy()
-                        .dog();
-                }
-            }
-            """,
-            """
-            class C {
-                void Bar() {
-                    the.quick.brown().fox
-                             .jumped().over.the()
-                             .lazy().dog();
-                }
-            }
-            """);
+"""
+class C {
+    void Bar() {
+        the.quick.brown().fox
+            .jumped().over
+            .the()
+            .lazy()
+            .dog();
+    }
+}
+""",
+"""
+class C {
+    void Bar() {
+        the.quick.brown().fox
+                 .jumped().over
+                 .the()
+                 .lazy()
+                 .dog();
+    }
+}
+""",
+"""
+class C {
+    void Bar() {
+        the.quick.brown().fox
+            .jumped().over.the().lazy()
+            .dog();
+    }
+}
+""",
+"""
+class C {
+    void Bar() {
+        the.quick.brown().fox
+                 .jumped().over.the()
+                 .lazy().dog();
+    }
+}
+""");
 
     [Fact]
     public Task TrailingLongWrapping3()
@@ -349,44 +349,44 @@ public sealed class ChainedExpressionWrappingTests : AbstractWrappingTests
             }
             """,
             GetIndentionColumn(60),
-            """
-            class C {
-                void Bar() {
-                    the.quick.brown().fox
-                        .jumped().over
-                        .the()
-                        .lazy()
-                        .dog();
-                }
-            }
-            """,
-            """
-            class C {
-                void Bar() {
-                    the.quick.brown().fox
-                             .jumped().over
-                             .the()
-                             .lazy()
-                             .dog();
-                }
-            }
-            """,
-            """
-            class C {
-                void Bar() {
-                    the.quick.brown().fox.jumped().over.the().lazy()
-                        .dog();
-                }
-            }
-            """,
-            """
-            class C {
-                void Bar() {
-                    the.quick.brown().fox.jumped().over.the().lazy()
-                             .dog();
-                }
-            }
-            """);
+"""
+class C {
+    void Bar() {
+        the.quick.brown().fox
+            .jumped().over
+            .the()
+            .lazy()
+            .dog();
+    }
+}
+""",
+"""
+class C {
+    void Bar() {
+        the.quick.brown().fox
+                 .jumped().over
+                 .the()
+                 .lazy()
+                 .dog();
+    }
+}
+""",
+"""
+class C {
+    void Bar() {
+        the.quick.brown().fox.jumped().over.the().lazy()
+            .dog();
+    }
+}
+""",
+"""
+class C {
+    void Bar() {
+        the.quick.brown().fox.jumped().over.the().lazy()
+                 .dog();
+    }
+}
+""");
 
     [Fact]
     public Task TestInConditionalAccess()

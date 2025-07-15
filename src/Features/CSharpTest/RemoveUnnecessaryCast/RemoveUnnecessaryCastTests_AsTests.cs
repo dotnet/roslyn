@@ -986,46 +986,46 @@ public sealed partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpD
             }
         }
         """,
-        """
-         using System;
+"""
+ using System;
 
-         interface IIncrementable
-         {
-             int Value { get; }
-             void Increment();
-         }
+ interface IIncrementable
+ {
+     int Value { get; }
+     void Increment();
+ }
 
-         struct S : IIncrementable
-         {
-             public int Value { get; private set; }
-             public void Increment() { Value++; }
-         }
+ struct S : IIncrementable
+ {
+     public int Value { get; private set; }
+     public void Increment() { Value++; }
+ }
 
-         class C: IIncrementable
-         {
-             public int Value { get; private set; }
-             public void Increment() { Value++; }
-         }
+ class C: IIncrementable
+ {
+     public int Value { get; private set; }
+     public void Increment() { Value++; }
+ }
 
-         static class Program
-         {
-             static void Main()
-             {
-                 Goo(new S(), new C());
-             }
+ static class Program
+ {
+     static void Main()
+     {
+         Goo(new S(), new C());
+     }
 
-             static void Goo<TAny, TClass>(TAny x, TClass y) 
-                 where TAny : IIncrementable
-                 where TClass : class, IIncrementable
-             {
-                 ((IIncrementable)x).Increment(); // False Unnecessary Cast
-                 y.Increment(); // Unnecessary Cast - OK
+     static void Goo<TAny, TClass>(TAny x, TClass y) 
+         where TAny : IIncrementable
+         where TClass : class, IIncrementable
+     {
+         ((IIncrementable)x).Increment(); // False Unnecessary Cast
+         y.Increment(); // Unnecessary Cast - OK
 
-                 Console.WriteLine(x.Value);
-                 Console.WriteLine(y.Value);
-             }
-         }
-         """);
+         Console.WriteLine(x.Value);
+         Console.WriteLine(y.Value);
+     }
+ }
+ """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545877")]
     public Task DoNotCrashOnIncompleteMethodDeclaration()

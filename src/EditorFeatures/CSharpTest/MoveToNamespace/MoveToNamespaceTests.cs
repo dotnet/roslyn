@@ -174,7 +174,7 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
                 }
             }
             """,
-            expectedMarkup: """
+                expectedMarkup: """
             namespace {|Warning:B|}
             {
                 class MyClass
@@ -730,7 +730,7 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
                 }
             }
             """,
-            expectedMarkup: $$"""
+                expectedMarkup: $$"""
             namespace A
             {
                 {{typeKeyword}} MyType
@@ -1295,7 +1295,7 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             {
             }
             """,
-            expectedMarkup: $$"""
+                expectedMarkup: $$"""
             namespace {|Warning:A|}
             {
                 {{typeKeyword}} MyType

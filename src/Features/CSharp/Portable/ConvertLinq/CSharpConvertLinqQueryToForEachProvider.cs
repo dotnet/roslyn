@@ -343,21 +343,21 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
                 methodSymbol.Parameters.Length == 0)
             {
                 return TryConvertIfInInvocation(
-                    invocationExpression,
-                    queryExpressionProcessingInfo,
-                    IsList,
-                    (listIdentifier, expression) => ExpressionStatement(InvocationExpression(
-                        MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            listIdentifier,
-                            IdentifierName(nameof(IList.Add))),
-                        ArgumentList([Argument(expression)]))),
-                    ObjectCreationExpression(
-                        methodSymbol.GenerateReturnTypeSyntax().WithAdditionalAnnotations(Simplifier.Annotation),
-                        ArgumentList(),
-                        initializer: null),
-                    variableName: "list",
-                    out documentUpdateInfo);
+                          invocationExpression,
+                          queryExpressionProcessingInfo,
+                          IsList,
+                          (listIdentifier, expression) => ExpressionStatement(InvocationExpression(
+                                MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    listIdentifier,
+                                    IdentifierName(nameof(IList.Add))),
+                                ArgumentList([Argument(expression)]))),
+                          ObjectCreationExpression(
+                              methodSymbol.GenerateReturnTypeSyntax().WithAdditionalAnnotations(Simplifier.Annotation),
+                              ArgumentList(),
+                              initializer: null),
+                           variableName: "list",
+                          out documentUpdateInfo);
             }
 
             documentUpdateInfo = null;

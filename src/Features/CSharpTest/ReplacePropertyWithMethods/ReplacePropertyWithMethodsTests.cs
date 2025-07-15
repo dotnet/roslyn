@@ -1772,19 +1772,19 @@ public sealed class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTe
                 }
             }
             """,
-            """
-            class C
-            {
-                private int GetProp()
-                {
-            #if true
-                    return 0;
-            #else
-                        return 1;
-            #endif
-                }
-            }
-            """);
+"""
+class C
+{
+    private int GetProp()
+    {
+#if true
+        return 0;
+#else
+            return 1;
+#endif
+    }
+}
+""");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
     public Task TestWithDirectives2()
@@ -1805,17 +1805,17 @@ public sealed class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTe
                 }
             }
             """,
-            """
-            class C
-            {
-                private int GetProp() =>
-            #if true
-                        0;
-            #else
-                        return 1;
-            #endif
-            }
-            """,
+"""
+class C
+{
+    private int GetProp() =>
+#if true
+            0;
+#else
+            return 1;
+#endif
+}
+""",
             options: PreferExpressionBodiedMethods);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
