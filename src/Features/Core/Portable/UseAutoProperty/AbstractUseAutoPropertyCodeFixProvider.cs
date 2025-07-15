@@ -16,10 +16,10 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -28,9 +28,21 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty;
 
 using static UseAutoPropertiesHelpers;
 
-internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider, TTypeDeclarationSyntax, TPropertyDeclaration, TVariableDeclarator, TConstructorDeclaration, TExpression>
+internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
+    TProvider,
+    TTypeDeclarationSyntax,
+    TPropertyDeclaration,
+    TVariableDeclarator,
+    TConstructorDeclaration,
+    TExpression>
     : CodeFixProvider
-    where TProvider : AbstractUseAutoPropertyCodeFixProvider<TProvider, TTypeDeclarationSyntax, TPropertyDeclaration, TVariableDeclarator, TConstructorDeclaration, TExpression>
+    where TProvider : AbstractUseAutoPropertyCodeFixProvider<
+        TProvider,
+        TTypeDeclarationSyntax,
+        TPropertyDeclaration,
+        TVariableDeclarator,
+        TConstructorDeclaration,
+        TExpression>
     where TTypeDeclarationSyntax : SyntaxNode
     where TPropertyDeclaration : SyntaxNode
     where TVariableDeclarator : SyntaxNode
@@ -48,7 +60,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider
     protected abstract TPropertyDeclaration GetPropertyDeclaration(SyntaxNode node);
     protected abstract SyntaxNode GetNodeToRemove(TVariableDeclarator declarator);
     protected abstract TPropertyDeclaration RewriteFieldReferencesInProperty(
-        TPropertyDeclaration property, LightweightRenameLocations fieldLocations, CancellationToken cancellationToken);
+        TPropertyDeclaration property, ImmutableArray<ReferencedSymbol> fieldLocations, CancellationToken cancellationToken);
 
     protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(
         Document document, SyntaxNode finalPropertyDeclaration);
@@ -108,7 +120,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider
         if (field == null || property == null)
             return currentSolution;
 
-        var locations = diagnostic.AdditionalLocations;
+        // var locations = diagnostic.AdditionalLocations;
 
         var fieldDocument = currentSolution.GetRequiredDocument(field.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).SyntaxTree);
         var propertyDocument = currentSolution.GetRequiredDocument(property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).SyntaxTree);
@@ -120,10 +132,8 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider
         var project = fieldDocument.Project;
         var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-        var renameOptions = new SymbolRenameOptions();
-
-        var fieldLocations = await Renamer.FindRenameLocationsAsync(
-            currentSolution, field, renameOptions, cancellationToken).ConfigureAwait(false);
+        var fieldLocations = await SymbolFinder.FindReferencesAsync(
+            field, currentSolution, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
 
         var declarator = (TVariableDeclarator)field.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
         var propertyDeclaration = GetPropertyDeclaration(property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken));
@@ -180,19 +190,25 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider
         // To address this, we let rename know that there is no conflict if the new symbol it resolves to is the
         // same as the property we're trying to get the references pointing to.
 
-        var filteredLocations = fieldLocations.Filter(
-            (documentId, span) =>
-                fieldDocument.Id == documentId ? !span.IntersectsWith(declarator.Span) : true && // The span check only makes sense if we are in the same file
-                CanEditDocument(currentSolution, documentId, linkedFiles, canEdit));
+        //var filteredLocations = fieldLocations.Filter(
+        //    (documentId, span) =>
+        //        fieldDocument.Id == documentId ? !span.IntersectsWith(declarator.Span) : true && // The span check only makes sense if we are in the same file
+        //        CanEditDocument(currentSolution, documentId, linkedFiles, canEdit));
 
-        var resolution = await filteredLocations.ResolveConflictsAsync(
-            field, property.Name,
-            nonConflictSymbolKeys: [property.GetSymbolKey(cancellationToken)],
-            cancellationToken).ConfigureAwait(false);
+        //var resolution = await filteredLocations.ResolveConflictsAsync(
+        //    field, property.Name,
+        //    nonConflictSymbolKeys: [property.GetSymbolKey(cancellationToken)],
+        //    cancellationToken).ConfigureAwait(false);
 
-        Contract.ThrowIfFalse(resolution.IsSuccessful);
+        //Contract.ThrowIfFalse(resolution.IsSuccessful);
 
-        currentSolution = resolution.NewSolution;
+        currentSolution = await UpdateReferencesAsync(
+             currentSolution,
+             linkedFiles,
+             canEdit,
+             fieldLocations,
+             property.Name,
+             cancellationToken).ConfigureAwait(false);
 
         // Now find the field and property again post rename.
         fieldDocument = currentSolution.GetRequiredDocument(fieldDocument.Id);
@@ -286,6 +302,41 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider
 
             return updatedSolution;
         }
+    }
+
+    private static async Task<Solution> UpdateReferencesAsync(
+        Solution solution,
+        HashSet<DocumentId> linkedFiles,
+        Dictionary<DocumentId, bool> canEdit,
+        ImmutableArray<ReferencedSymbol> fieldLocations,
+        string newName,
+        CancellationToken cancellationToken)
+    {
+        var solutionEditor = new SolutionEditor(solution);
+
+        foreach (var group in fieldLocations.SelectMany(loc => loc.Locations).GroupBy(loc => loc.Document))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var document = group.Key;
+
+            if (!CanEditDocument(solution, document.Id, linkedFiles, canEdit))
+                continue;
+
+            var editor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
+            var newNameNode = editor.Generator.IdentifierName(newName);
+
+            foreach (var location in group)
+            {
+                if (location.IsImplicit)
+                    continue;
+
+                var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+                editor.ReplaceNode(node, newNameNode.WithTriviaFrom(node));
+            }
+        }
+
+        return solutionEditor.GetChangedSolution();
     }
 
     private async Task<(IFieldSymbol? fieldSymbol, IPropertySymbol? propertySymbol)> MapDiagnosticToCurrentSolutionAsync(
@@ -390,39 +441,51 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider
     }
 
     private static bool IsWrittenToOutsideOfConstructorOrProperty(
-        IFieldSymbol field, LightweightRenameLocations renameLocations, TPropertyDeclaration propertyDeclaration, CancellationToken cancellationToken)
+        IFieldSymbol field,
+        ImmutableArray<ReferencedSymbol> referencedSymbols,
+        TPropertyDeclaration propertyDeclaration,
+        CancellationToken cancellationToken)
     {
-        var constructorSpans = field.ContainingType.GetMembers()
-                                                   .Where(m => m.IsConstructor())
-                                                   .SelectMany(c => c.DeclaringSyntaxReferences)
-                                                   .Select(s => s.GetSyntax(cancellationToken))
-                                                   .Select(n => n.FirstAncestorOrSelf<TConstructorDeclaration>())
-                                                   .WhereNotNull()
-                                                   .Select(d => (d.SyntaxTree.FilePath, d.Span))
-                                                   .ToSet();
-        return renameLocations.Locations.Any(
-            loc => IsWrittenToOutsideOfConstructorOrProperty(
-                renameLocations.Solution, loc, propertyDeclaration, constructorSpans, cancellationToken));
+        var constructorSpans = field.ContainingType
+            .GetMembers()
+            .Where(m => m.IsConstructor())
+            .SelectMany(c => c.DeclaringSyntaxReferences)
+            .Select(s => s.GetSyntax(cancellationToken))
+            .Select(n => n.FirstAncestorOrSelf<TConstructorDeclaration>())
+            .WhereNotNull()
+            .Select(d => (d.SyntaxTree.FilePath, d.Span))
+            .ToSet();
+
+        foreach (var referencedSymbol in referencedSymbols)
+        {
+            foreach (var location in referencedSymbol.LocationsArray)
+            {
+                if (IsWrittenToOutsideOfConstructorOrProperty(location, propertyDeclaration, constructorSpans, cancellationToken))
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool IsWrittenToOutsideOfConstructorOrProperty(
-        Solution solution,
-        RenameLocation location,
+        ReferenceLocation location,
         TPropertyDeclaration propertyDeclaration,
         ISet<(string filePath, TextSpan span)> constructorSpans,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        // We don't need a setter if we're not writing to this field.
         if (!location.IsWrittenTo)
-        {
-            // We don't need a setter if we're not writing to this field.
             return false;
-        }
 
-        var syntaxFacts = solution.GetRequiredDocument(location.DocumentId).GetRequiredLanguageService<ISyntaxFactsService>();
-        var node = location.Location.FindToken(cancellationToken).Parent;
+        if (location.IsImplicit)
+            return false;
 
+        var syntaxFacts = location.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+        var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
         while (node != null && !syntaxFacts.IsAnonymousOrLocalFunction(node))
         {
             if (node == propertyDeclaration)

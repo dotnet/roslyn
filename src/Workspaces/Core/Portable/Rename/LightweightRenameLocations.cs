@@ -115,7 +115,7 @@ internal sealed partial class LightweightRenameLocations
     }
 
     public Task<ConflictResolution> ResolveConflictsAsync(ISymbol symbol, string replacementText, ImmutableArray<SymbolKey> nonConflictSymbolKeys, CancellationToken cancellationToken)
-        => ConflictResolver.ResolveLightweightConflictsAsync(symbol, this, replacementText, nonConflictSymbolKeys, cancellationToken);
+        => ConflictResolver.ResolveLightweightConflictsAsync(symbol, this, replacementText, cancellationToken);
 
     public LightweightRenameLocations Filter(Func<DocumentId, TextSpan, bool> filter)
         => new(
