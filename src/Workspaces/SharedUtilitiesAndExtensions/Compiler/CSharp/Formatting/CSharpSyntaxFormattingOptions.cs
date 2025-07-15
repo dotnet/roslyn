@@ -62,6 +62,10 @@ internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOpt
     [DataMember] public bool WrapCallChains { get; init; } = false;
     [DataMember] public bool IndentWrappedCallChains { get; init; } = false;
 
+    [DataMember] public ParameterWrappingOptionsInternal ParameterWrapping { get; init; } = ParameterWrappingOptionsInternal.DoNotWrap;
+    [DataMember] public ParameterFirstPlacementOptionsInternal ParameterFirstPlacement { get; init; } = ParameterFirstPlacementOptionsInternal.SameLine;
+    [DataMember] public ParameterAlignmentOptionsInternal ParameterAlignment { get; init; } = ParameterAlignmentOptionsInternal.AlignWithFirst;
+
     [DataMember] public CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations { get; init; } = s_defaultNamespaceDeclarations;
     [DataMember] public CodeStyleOption2<bool> PreferTopLevelStatements { get; init; } = s_trueWithSilentEnforcement;
     [DataMember] public int CollectionExpressionWrappingLength { get; init; } = 120;
@@ -115,6 +119,10 @@ internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOpt
         WrappingPreserveSingleLine = options.GetOption(CSharpFormattingOptions2.WrappingPreserveSingleLine);
         WrapCallChains = options.GetOption(CSharpFormattingOptions2.WrapCallChains);
         IndentWrappedCallChains = options.GetOption(CSharpFormattingOptions2.IndentWrappedCallChains);
+
+        ParameterWrapping = options.GetOption(CSharpFormattingOptions2.ParameterWrapping);
+        ParameterFirstPlacement = options.GetOption(CSharpFormattingOptions2.ParameterFirstPlacement);
+        ParameterAlignment = options.GetOption(CSharpFormattingOptions2.ParameterAlignment);
 
         NamespaceDeclarations = options.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);
         PreferTopLevelStatements = options.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);

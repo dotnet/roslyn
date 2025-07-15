@@ -239,6 +239,30 @@ internal static partial class CSharpFormattingOptions2
         defaultValue: false)
         .WithPublicOption(PublicFeatureName, "IndentWrappedCallChains");
 
+    public static Option2<ParameterWrappingOptionsInternal> ParameterWrapping { get; } = CreateOption(
+        CSharpFormattingOptionGroups.Wrapping, "csharp_parameter_wrapping",
+        defaultValue: ParameterWrappingOptionsInternal.DoNotWrap,
+        new EditorConfigValueSerializer<ParameterWrappingOptionsInternal>(
+            s => ParseEditorConfigParameterWrapping(s),
+            GetParameterWrappingOptionEditorConfigString))
+        .WithPublicOption(PublicFeatureName, "ParameterWrapping");
+
+    public static Option2<ParameterFirstPlacementOptionsInternal> ParameterFirstPlacement { get; } = CreateOption(
+        CSharpFormattingOptionGroups.Wrapping, "csharp_parameter_first_placement",
+        defaultValue: ParameterFirstPlacementOptionsInternal.SameLine,
+        new EditorConfigValueSerializer<ParameterFirstPlacementOptionsInternal>(
+            s => ParseEditorConfigParameterFirstPlacement(s),
+            GetParameterFirstPlacementOptionEditorConfigString))
+        .WithPublicOption(PublicFeatureName, "ParameterFirstPlacement");
+
+    public static Option2<ParameterAlignmentOptionsInternal> ParameterAlignment { get; } = CreateOption(
+        CSharpFormattingOptionGroups.Wrapping, "csharp_parameter_alignment",
+        defaultValue: ParameterAlignmentOptionsInternal.AlignWithFirst,
+        new EditorConfigValueSerializer<ParameterAlignmentOptionsInternal>(
+            s => ParseEditorConfigParameterAlignment(s),
+            GetParameterAlignmentOptionEditorConfigString))
+        .WithPublicOption(PublicFeatureName, "ParameterAlignment");
+
     public static Option2<NewLineBeforeOpenBracePlacement> NewLineBeforeOpenBrace { get; } = CreateOption(
         FormattingOptionGroups.NewLine,
         name: "csharp_new_line_before_open_brace",
@@ -295,6 +319,56 @@ internal static partial class CSharpFormattingOptions2
     /// Options that can be set via editorconfig but we do not provide tooling support.
     /// </summary>
     internal static readonly ImmutableArray<IOption2> UndocumentedOptions = [CollectionExpressionWrappingLength];
+
+    private static ParameterWrappingOptionsInternal ParseEditorConfigParameterWrapping(string str)
+        => str switch
+        {
+            "do_not_wrap" => ParameterWrappingOptionsInternal.DoNotWrap,
+            "wrap_long_parameters" => ParameterWrappingOptionsInternal.WrapLongParameters,
+            "wrap_every_parameter" => ParameterWrappingOptionsInternal.WrapEveryParameter,
+            _ => ParameterWrappingOptionsInternal.DoNotWrap
+        };
+
+    private static string GetParameterWrappingOptionEditorConfigString(ParameterWrappingOptionsInternal value)
+        => value switch
+        {
+            ParameterWrappingOptionsInternal.DoNotWrap => "do_not_wrap",
+            ParameterWrappingOptionsInternal.WrapLongParameters => "wrap_long_parameters", 
+            ParameterWrappingOptionsInternal.WrapEveryParameter => "wrap_every_parameter",
+            _ => "do_not_wrap"
+        };
+
+    private static ParameterFirstPlacementOptionsInternal ParseEditorConfigParameterFirstPlacement(string str)
+        => str switch
+        {
+            "same_line" => ParameterFirstPlacementOptionsInternal.SameLine,
+            "new_line" => ParameterFirstPlacementOptionsInternal.NewLine,
+            _ => ParameterFirstPlacementOptionsInternal.SameLine
+        };
+
+    private static string GetParameterFirstPlacementOptionEditorConfigString(ParameterFirstPlacementOptionsInternal value)
+        => value switch
+        {
+            ParameterFirstPlacementOptionsInternal.SameLine => "same_line",
+            ParameterFirstPlacementOptionsInternal.NewLine => "new_line",
+            _ => "same_line"
+        };
+
+    private static ParameterAlignmentOptionsInternal ParseEditorConfigParameterAlignment(string str)
+        => str switch
+        {
+            "align_with_first" => ParameterAlignmentOptionsInternal.AlignWithFirst,
+            "indent" => ParameterAlignmentOptionsInternal.Indent,
+            _ => ParameterAlignmentOptionsInternal.AlignWithFirst
+        };
+
+    private static string GetParameterAlignmentOptionEditorConfigString(ParameterAlignmentOptionsInternal value)
+        => value switch
+        {
+            ParameterAlignmentOptionsInternal.AlignWithFirst => "align_with_first",
+            ParameterAlignmentOptionsInternal.Indent => "indent",
+            _ => "align_with_first"
+        };
 }
 
 internal enum LabelPositionOptionsInternal
@@ -319,6 +393,25 @@ internal enum BinaryOperatorSpacingOptionsInternal
 
     /// Remove Spacing
     Remove = 2
+}
+
+internal enum ParameterWrappingOptionsInternal
+{
+    DoNotWrap,
+    WrapLongParameters,
+    WrapEveryParameter
+}
+
+internal enum ParameterFirstPlacementOptionsInternal
+{
+    SameLine,
+    NewLine
+}
+
+internal enum ParameterAlignmentOptionsInternal
+{
+    AlignWithFirst,
+    Indent
 }
 
 internal static class CSharpFormattingOptionGroups
