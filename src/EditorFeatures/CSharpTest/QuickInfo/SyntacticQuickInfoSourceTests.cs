@@ -84,7 +84,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
                             }$$
                         }
             """,
-        "{");
+            "{");
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/325")]
     public Task ScopeBrackets_1()
@@ -260,7 +260,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
                 }
             }
             """,
-        "{");
+            "{");
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/325")]
     public Task ScopeBrackets_10()

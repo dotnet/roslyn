@@ -1281,16 +1281,16 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
     [Fact]
     public Task TestCommonAndSpecifiedParameterNamingStyle2_InitializeField()
         => TestInRegularAndScript1Async(
-"""
-class C
-{
-    private readonly string _s;
-
-    public C([||]string p_t_s_End)
+    """
+    class C
     {
+        private readonly string _s;
+
+        public C([||]string p_t_s_End)
+        {
+        }
     }
-}
-""",
+    """,
     """
     class C
     {
@@ -1406,16 +1406,16 @@ class C
     [Fact]
     public Task TestCommonAndSpecifiedParameterNamingStyle2_InitializeProperty()
         => TestInRegularAndScript1Async(
-"""
-class C
-{
-    public C([||]string p_t_s_End)
+    """
+    class C
     {
-    }
+        public C([||]string p_t_s_End)
+        {
+        }
 
-    public string S { get; }
-}
-""",
+        public string S { get; }
+    }
+    """,
     """
     class C
     {
