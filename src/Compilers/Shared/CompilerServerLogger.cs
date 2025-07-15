@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     internal interface ICompilerServerLogger
     {
         bool IsLogging { get; }
-        void Log(string message);
+        void Log(string message, bool excludeFromBinlog = false);
     }
 
     internal static class CompilerServerLoggerExtensions
@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        internal static void LogError(this ICompilerServerLogger logger, string message)
+        internal static void LogError(this ICompilerServerLogger logger, string message, bool excludeFromBinlog = false)
         {
             if (logger.IsLogging)
             {
-                logger.Log($"Error: {message}");
+                logger.Log($"Error: {message}", excludeFromBinlog: excludeFromBinlog);
             }
         }
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             _loggingStream = null;
         }
 
-        public void Log(string message)
+        public void Log(string message, bool excludeFromBinlog = false)
         {
             if (_loggingStream is object)
             {
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
         }
 
-        public void Log(string message)
+        public void Log(string message, bool excludeFromBinlog = false)
         {
         }
     }
