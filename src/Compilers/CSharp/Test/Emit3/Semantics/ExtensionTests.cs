@@ -13142,8 +13142,6 @@ static class E
 
             class C
             {
-                public bool MoveNext() => true;
-                public int Current => 42;
             }
 
             static class E
@@ -13177,12 +13175,16 @@ static class E
                 x.ToString(); // 1
             }
 
+            var d = M("a"); // 'C<string>'
+            foreach (var x in d)
+            {
+                x.ToString(); // ok
+            }
+
             C<T> M<T>(T item) => throw null!;
 
             class C<T>
             {
-                public bool MoveNext() => true;
-                public T Current => default!;
             }
 
             static class E
@@ -35734,7 +35736,7 @@ public static class Extensions
         public C.Enumerator GetEnumerator(int x = 1) => new C.Enumerator(x);
     }
 }";
-        var verifier = CompileAndVerify(source, expectedOutput: "23", parseOptions: TestOptions.RegularPreview);
+        var verifier = CompileAndVerify(source, expectedOutput: "23");
 
         VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>((CSharpCompilation)verifier.Compilation,
 @"
