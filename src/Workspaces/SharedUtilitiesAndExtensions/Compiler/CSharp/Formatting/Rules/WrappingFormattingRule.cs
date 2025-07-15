@@ -53,8 +53,6 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
 
         AddCallChainWrappingOperations(list, node);
 
-
-
         if (!_options.WrappingPreserveSingleLine)
         {
             RemoveSuppressOperationForBlock(list, node);

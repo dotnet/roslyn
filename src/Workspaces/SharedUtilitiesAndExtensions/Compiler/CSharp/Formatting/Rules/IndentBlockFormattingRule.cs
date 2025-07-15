@@ -65,8 +65,6 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
         AddCallChainAlignmentOperation(list, node);
 
-
-
         AddTypeParameterConstraintClauseOperation(list, node);
     }
 
