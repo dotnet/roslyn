@@ -7971,7 +7971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var methodGroup = (BoundMethodGroup)expr;
                         CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                         var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None);
-                        Debug.Assert(!resolution.IsNonMethodExtensionMember(out _));
+                        Debug.Assert(!resolution.IsNonMethodExtensionMember(out _)); // expr wouldn't be a method group in the first place if it resolved to a non-method extension member
                         diagnostics.Add(expr.Syntax, useSiteInfo);
                         if (!expr.HasAnyErrors)
                         {
@@ -10520,7 +10520,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 indexerOrSliceAccess = BindMethodGroupInvocation(syntax, syntax, method.Name, boundMethodGroup, analyzedArguments,
                     diagnostics, queryClause: null, ignoreNormalFormIfHasValidParamsParameter: true, anyApplicableCandidates: out bool _,
                     disallowExpandedNonArrayParams: false,
-                    acceptOnlyMethods: true).MakeCompilerGenerated(); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test effect of acceptOnlyMethods value TODO2
+                    acceptOnlyMethods: true) // acceptOnlyMethods is not relevant since we won't search extensions
+                    .MakeCompilerGenerated();
 
                 analyzedArguments.Free();
             }
@@ -10649,7 +10650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ResolveMethodGroup(
                 node, node.Syntax, node.Name, analyzedArguments, ref useSiteInfo,
                 options,
-                acceptOnlyMethods: true, // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Confirm this value is appropriate for all consumers of the enclosing method and test effect of this value for all of them TODO2
+                acceptOnlyMethods: false,
                 returnRefKind: returnRefKind, returnType: returnType,
                 callingConventionInfo: callingConventionInfo);
         }

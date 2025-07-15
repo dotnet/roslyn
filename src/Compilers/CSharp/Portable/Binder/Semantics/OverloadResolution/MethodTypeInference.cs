@@ -1518,7 +1518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnType: null,
                 callingConventionInfo: in callingConventionInfo);
 
-            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _));
+            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _)); // we wouldn't be looking at a method group in the first place if the source resolved to a non-method extension member
 
             TypeWithAnnotations type = default;
 

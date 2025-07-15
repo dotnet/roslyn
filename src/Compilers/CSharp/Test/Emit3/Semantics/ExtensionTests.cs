@@ -20367,7 +20367,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_InaccessibleMembers()
+    public void ExtensionMemberLookup_InaccessibleMembers_01()
     {
         var src = """
 object.Method();
@@ -20398,6 +20398,59 @@ static class E
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
         Assert.Equal([], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_InaccessibleMembers_02()
+    {
+        var src = """
+/*<bind>*/
+object.Member = 42;
+/*</bind>*/
+
+object.Member.ToString();
+object.Member++;
+
+public static class E
+{
+    extension(object)
+    {
+        private static int Member { get => 0; set { } }
+    }
+}
+""";
+        DiagnosticDescription[] expectedDiagnostics = [
+            // (2,8): error CS0117: 'object' does not contain a definition for 'Member'
+            // object.Member = 42;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Member").WithArguments("object", "Member").WithLocation(2, 8),
+            // (5,8): error CS0117: 'object' does not contain a definition for 'Member'
+            // object.Member.ToString();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Member").WithArguments("object", "Member").WithLocation(5, 8),
+            // (6,8): error CS0117: 'object' does not contain a definition for 'Member'
+            // object.Member++;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Member").WithArguments("object", "Member").WithLocation(6, 8)];
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.Member").First();
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+
+        string expectedOperationTree = """
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'object.Member = 42;')
+Expression:
+  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'object.Member = 42')
+    Left:
+      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'object.Member')
+        Children(1):
+            IOperation:  (OperationKind.None, Type: System.Object) (Syntax: 'object')
+    Right:
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+""";
+
+        VerifyOperationTreeAndDiagnosticsForTest<ExpressionStatementSyntax>(src, expectedOperationTree, expectedDiagnostics);
     }
 
     [Fact]
@@ -35305,6 +35358,33 @@ static class E
 
         memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M3<object>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void ExplicitTypeArguments_10()
+    {
+        var src = """
+string s = "";
+s.P<object> = 42;
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public int P { get => 0; set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,3): error CS1061: 'string' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // s.P<object> = 42;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P<object>").WithArguments("string", "P").WithLocation(2, 3));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.P<object>");
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
