@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
@@ -2940,4 +2941,33 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 readonly ref int P => ref i;
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77011")]
+    public Task TestRemoveThisIfPreferredCodeStyle()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                [|private readonly string a;|]
+
+                public C(string a)
+                {
+                    this.a = a;
+                }
+
+                public string A => a;
+            }
+            """,
+            """
+            class C
+            {
+                public C(string a)
+                {
+                    A = a;
+                }
+
+                public string A { get; }
+            }
+            """,
+            options: Option(CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Error));
 }
