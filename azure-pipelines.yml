@@ -400,6 +400,8 @@ stages:
           configuration: Release
       - name: compilerChange
         value: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      # Set NUGET_PACKAGES to fix issues with package Restore when building with `-ci`.
+      # Workaround for https://github.com/dotnet/arcade/issues/15970
       - name: NUGET_PACKAGES
         value: $(Build.SourcesDirectory)\.packages
     steps:

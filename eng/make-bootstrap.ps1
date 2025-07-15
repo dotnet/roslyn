@@ -63,7 +63,8 @@ try {
   if ($ci) {
     $args += " /p:ContinuousIntegrationBuild=true"
   
-    # Since this build is running in CI we need to set the nuget package directory so that we restore locally.
+    # Set NUGET_PACKAGES to fix issues with package Restore when building with `-ci`.
+    # Workaround for https://github.com/dotnet/arcade/issues/15970
     $env:NUGET_PACKAGES = Join-Path $RepoRoot '.packages\'
     $env:RESTORENOCACHE = $true
   }
