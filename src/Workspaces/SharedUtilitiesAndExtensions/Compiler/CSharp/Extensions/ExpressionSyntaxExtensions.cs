@@ -377,15 +377,18 @@ internal static partial class ExpressionSyntaxExtensions
             }
         }
 
-        // An inline array referenced as a Span<T> can be written into by anyone consuming the span.
+        // An inline array passed as a Span<T> can be written into by the callee, despite no ref at the callsite.  e.g.:
         //
         // void Mutate(Span<byte> bytes);
         // Mutate(this.inlineArray)
-        var expressionTypes = semanticModel.GetTypeInfo(expression, cancellationToken);
-        if (expressionTypes.ConvertedType.IsSpan() &&
-            expressionTypes.Type.IsInlineArray())
+        if (expression.Parent is ArgumentSyntax)
         {
-            return true;
+            var expressionTypes = semanticModel.GetTypeInfo(expression, cancellationToken);
+            if (expressionTypes.ConvertedType.IsSpan() &&
+                expressionTypes.Type.IsInlineArray())
+            {
+                return true;
+            }
         }
 
         return false;

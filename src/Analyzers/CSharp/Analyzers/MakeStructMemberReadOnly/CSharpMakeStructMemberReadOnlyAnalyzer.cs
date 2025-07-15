@@ -330,8 +330,6 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
 
             if (operation is IInlineArrayAccessOperation)
             {
-                // A span returns a mutable view over the underlying inline-array.  Pessimistically assume that it
-                // will be written into.  A more thorough analysis could identify how this span is actually used
                 // to determine if this is safe to make into a ReadOnlySpan or not.
                 if (operation.Type.IsSpan())
                     return true;
