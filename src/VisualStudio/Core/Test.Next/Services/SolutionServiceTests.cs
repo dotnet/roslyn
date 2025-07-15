@@ -985,7 +985,7 @@ public sealed class SolutionServiceTests
         objectReference.AssertReleased();
     }
 
-    [Fact]
+    [WpfFact]
     public void TestActiveDocumentSemanticModelCached()
     {
         var code = @"class Test { void Method() { } }";
@@ -1004,7 +1004,7 @@ public sealed class SolutionServiceTests
         objectReference.AssertHeld();
     }
 
-    [Fact]
+    [WpfFact]
     public void TestOnlyActiveDocumentSemanticModelCached()
     {
         using var workspace = TestWorkspace.Create("""
@@ -1039,7 +1039,7 @@ public sealed class SolutionServiceTests
         objectReference2.AssertReleased();
     }
 
-    [Fact]
+    [WpfFact]
     public void TestActiveAndRelatedDocumentSemanticModelCached()
     {
         using var workspace = TestWorkspace.Create("""
@@ -1081,7 +1081,7 @@ public sealed class SolutionServiceTests
         objectReference3.AssertHeld();
     }
 
-    [Fact]
+    [WpfFact]
     public async Task TestRemoteWorkspaceCachesNothingIfActiveDocumentNotSynced()
     {
         var code = @"class Test { void Method() { } }";
@@ -1108,7 +1108,7 @@ public sealed class SolutionServiceTests
         objectReference2.AssertReleased();
     }
 
-    [Theory, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestRemoteWorkspaceCachesPropertyIfActiveDocumentIsSynced(bool updatePrimaryBranch)
     {
         var code = @"class Test { void Method() { } }";
@@ -1137,7 +1137,7 @@ public sealed class SolutionServiceTests
         objectReference2.AssertHeld();
     }
 
-    [Theory, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task ValidateUpdaterInformsRemoteWorkspaceOfActiveDocument(bool updatePrimaryBranch)
     {
         var code = @"class Test { void Method() { } }";
@@ -1171,7 +1171,7 @@ public sealed class SolutionServiceTests
         objectReference2.AssertHeld();
     }
 
-    [Theory, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task ValidateUpdaterInformsRemoteWorkspaceOfActiveDocument_EvenAcrossActiveDocumentChanges(bool updatePrimaryBranch)
     {
         using var workspace = TestWorkspace.Create("""
