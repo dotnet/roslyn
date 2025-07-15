@@ -374,12 +374,12 @@ internal abstract class AbstractSpeculationAnalyzer<
             return false;
         }
 
-        if (symbol.IsReducedExtension())
+        if (symbol.IsReducedExtension() && !newSymbol.IsReducedExtension())
         {
             symbol = ((IMethodSymbol)symbol).GetConstructedReducedFrom()!;
         }
 
-        if (newSymbol.IsReducedExtension())
+        if (newSymbol.IsReducedExtension() && !symbol.IsReducedExtension())
         {
             newSymbol = ((IMethodSymbol)newSymbol).GetConstructedReducedFrom()!;
         }
@@ -401,7 +401,8 @@ internal abstract class AbstractSpeculationAnalyzer<
         if (s_includeNullabilityComparer.Equals(symbol, newSymbol))
             return true;
 
-        if (symbol is IMethodSymbol methodSymbol && newSymbol is IMethodSymbol newMethodSymbol)
+        if (symbol is IMethodSymbol methodSymbol &&
+            newSymbol is IMethodSymbol newMethodSymbol)
         {
             // If we have local functions, we can't use normal symbol equality for them (since that checks locations).
             // Have to defer to SymbolEquivalence instead.

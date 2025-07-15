@@ -6832,6 +6832,32 @@ new TestParameters(Options.Script));
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75570")]
+    public Task GenericMethodArgsWithNullabilityDifference()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            #nullable enable
+
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Linq;
+
+            class C1 { }
+
+            class C2 { }
+
+            class D
+            {
+                public static C2[] ConvertAll(IEnumerable<C1> values)
+                {
+                    return values.[|Select<C1, C2>|](Convert).ToArray();
+                }
+
+                [return: NotNullIfNotNull(nameof(value))]
+                private static C2? Convert(C1? value) => value is null ? null : new C2();
+            }
+            """);
+
     private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
         => await TestInRegularAndScript1Async(code, expected, index, new TestParameters(options: PreferIntrinsicTypeEverywhere));
 
