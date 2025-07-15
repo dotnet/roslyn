@@ -103,7 +103,7 @@ internal sealed class SolutionChecksumUpdater
 
     private void OnWorkspaceChangedImmediate(WorkspaceChangeEventArgs e)
     {
-        if (e.Kind == WorkspaceChangeKind.DocumentChanged || e.Kind == WorkspaceChangeKind.AdditionalDocumentChanged)
+        if (e.Kind is WorkspaceChangeKind.DocumentChanged or WorkspaceChangeKind.AdditionalDocumentChanged)
         {
             var documentId = e.DocumentId!;
             TextDocument oldDocument;
