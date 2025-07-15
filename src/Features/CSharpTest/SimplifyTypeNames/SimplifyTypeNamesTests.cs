@@ -6833,7 +6833,7 @@ new TestParameters(Options.Script));
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75570")]
-    public Task GenericMethodArgsWithNullabilityDifference()
+    public Task GenericMethodArgsWithNullabilityDifference1()
         => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
@@ -6855,6 +6855,33 @@ new TestParameters(Options.Script));
 
                 [return: NotNullIfNotNull(nameof(value))]
                 private static C2? Convert(C1? value) => value is null ? null : new C2();
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45484")]
+    public Task GenericMethodArgsWithNullabilityDifference2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            #nullable enable
+                        
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+
+            class C
+            {
+                bool M(IEnumerable<string> s, [NotNullWhen(true)] out string? result)
+                {
+                    return s.[|TryFirst<string>|](x => x.Length % 2 == 0, out result);
+                }
+            }
+
+            static class Extensions
+            {
+                public static bool TryFirst<T>(this IEnumerable<T> source, Func<T, bool> predicate, [MaybeNullWhen(false)] out T value)
+                {
+                    throw new NotImplementedException();
+                }
             }
             """);
 
