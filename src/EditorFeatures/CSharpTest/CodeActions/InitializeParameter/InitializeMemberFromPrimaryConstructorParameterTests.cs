@@ -1349,6 +1349,50 @@ public sealed partial class InitializeMemberFromPrimaryConstructorParameterTests
             </Workspace>
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76565")]
+    public Task TestCouldInitializeThrowingProperty_ButGeneratePropertyInstead()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C([||]string s)
+            {
+                private string S => throw new NotImplementedException();
+            }
+            """,
+            """
+            using System;
+
+            class C(string s)
+            {
+                public string S1 { get; } = s;
+
+                private string S => throw new NotImplementedException();
+            }
+            """, index: 1);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76565")]
+    public Task TestCouldInitializeThrowingProperty_ButGenerateFieldInstead()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C([||]string s)
+            {
+                private string S => throw new NotImplementedException();
+            }
+            """,
+            """
+            using System;
+
+            class C(string s)
+            {
+                private readonly string s = s;
+
+                private string S => throw new NotImplementedException();
+            }
+            """, index: 2);
+
     [Fact]
     public Task TestUpdateCodeToReferenceExistingField1()
         => TestInRegularAndScript1Async(

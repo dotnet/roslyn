@@ -172,14 +172,15 @@ internal static class CSharpCodeGenerationHelpers
         CSharpCodeGenerationContextInfo info,
         IList<bool>? availableIndices,
         Func<SyntaxList<TDeclaration>, TDeclaration?>? after = null,
-        Func<SyntaxList<TDeclaration>, TDeclaration?>? before = null)
+        Func<SyntaxList<TDeclaration>, TDeclaration?>? before = null,
+        Func<SyntaxList<TDeclaration>, int, bool>? canPlaceAtIndex = null)
         where TDeclaration : SyntaxNode
     {
         var index = GetInsertionIndex(
             declarationList, declaration, info, availableIndices,
             CSharpDeclarationComparer.WithoutNamesInstance,
             CSharpDeclarationComparer.WithNamesInstance,
-            after, before);
+            after, before, canPlaceAtIndex);
 
         availableIndices?.Insert(index, true);
 
