@@ -23021,7 +23021,6 @@ static class E
             // _ = 2.Property;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "2.Property").WithArguments("int", "Property").WithLocation(2, 5));
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : review the behavior of the semantic model APIs
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "1.Property");
@@ -23363,7 +23362,6 @@ static class E
             // _ = (2, 2).Property;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "(2, 2).Property").WithArguments("(int, int)", "Property").WithLocation(2, 5));
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : review the behavior of the semantic model APIs
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "(1, 1).Property");
@@ -35409,6 +35407,8 @@ static class E
         var symbol = model.GetDeclaredSymbol(extensionParameter);
         Assert.Equal(SymbolKind.Parameter, symbol.Kind);
         Assert.Equal("System.Int32 i", symbol.ToTestDisplayString());
+
+        Assert.Equal("E", model.GetEnclosingSymbol(extensionParameter.SpanStart).ToTestDisplayString());
     }
 
     readonly string[] _objectMembers = [
