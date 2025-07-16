@@ -102,6 +102,32 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             }
             """, new TestParameters(TestOptions.RegularPreview));
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76813")]
+    public Task TestSingleGetterFromField_CommentBeforeField()
+        => TestInRegularAndScript1Async(
+            """
+            class Class
+            {
+                // Comment to preserve
+                [|int i|];
+
+                int P
+                {
+                    get
+                    {
+                        return i;
+                    }
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                // Comment to preserve
+                int P { get; }
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28511")]
     public Task TestNullable1()
         => TestMissingInRegularAndScriptAsync(
