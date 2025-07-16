@@ -2326,6 +2326,96 @@ class C
     }
 
     [Fact]
+    public void Nullability_PropertyPattern_Reinference_02()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+
+            class Program
+            {
+                void M1(bool b)
+                {
+                    var item = "a";
+                    if (b)
+                    {
+                        item = null;
+                    }
+
+                    var list = M2(item); // List<string?>
+                    if (list is { First: var first }) // 1
+                    {
+                        first.ToString();
+                    }
+                }
+
+                List<T> M2<T>(T item) => [item];
+            }
+
+            static class ListExtensions
+            {
+                extension(List<string> list)
+                {
+                    public string First => list[0];
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (15,23): warning CS8620: Argument of type 'List<string?>' cannot be used for parameter 'list' of type 'List<string>' in 'extension(List<string>)' due to differences in the nullability of reference types.
+            //         if (list is { First: var first }) // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "First").WithArguments("System.Collections.Generic.List<string?>", "System.Collections.Generic.List<string>", "list", "extension(List<string>)").WithLocation(15, 23));
+    }
+
+    [Fact]
+    public void Nullability_PropertyPattern_Reinference_03()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+
+            class Program
+            {
+                void M1(bool b)
+                {
+                    var item = "a";
+                    if (b)
+                    {
+                        item = null;
+                    }
+
+                    var list = M2(item); // List<string?>
+                    if (list is { First: var first }) // 1
+                    {
+                        first.ToString(); // 2
+                    }
+                }
+
+                List<T> M2<T>(T item) => [item];
+            }
+
+            static class ListExtensions
+            {
+                extension<T>(List<T> list) where T : class
+                {
+                    public T First => list[0];
+                }
+            }
+            """;
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality consider reporting a better containing symbol
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (15,23): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'ListExtensions.extension<T>(List<T>)'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+            //         if (list is { First: var first }) // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "First").WithArguments("ListExtensions.extension<T>(System.Collections.Generic.List<T>)", "T", "string?").WithLocation(15, 23),
+            // (17,13): warning CS8602: Dereference of a possibly null reference.
+            //             first.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "first").WithLocation(17, 13));
+    }
+
+    [Fact]
     public void WellKnownAttribute_Conditional()
     {
         var src = """
