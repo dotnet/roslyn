@@ -21,11 +21,7 @@ internal sealed class XunitDisposeHook : MarshalByRefObject
         var xunitUtilities = AppDomain.CurrentDomain.GetAssemblies().Where(static assembly => assembly.GetName().Name.StartsWith("xunit.runner.visualstudio")).ToArray();
         foreach (var xunitUtility in xunitUtilities)
         {
-            var appDomainManagerType = xunitUtility.GetType("Xunit.AppDomainManager_AppDomain");
-            if (appDomainManagerType is null)
-                continue;
-
-            // AppDomainManager_AppDomain.Dispose() calls AppDomain.Unload(), which is unfortunately not reliable
+            // AppDomainManager_AppDomain.Dispose() / AppDomainManager calls AppDomain.Unload(), which is unfortunately not reliable
             // when the test creates STA COM objects. Since this call to Unload() only occurs at the end of testing
             // (immediately before the process is going to close anyway), we can simply hot-patch the executable
             // code in Dispose() to return without taking any action.
@@ -33,6 +29,18 @@ internal sealed class XunitDisposeHook : MarshalByRefObject
             // This is a workaround for https://github.com/xunit/xunit/issues/2097. The fix in
             // https://github.com/xunit/xunit/pull/2192 was not viable because xunit v2 is no longer shipping
             // updates. Once xunit v3 is available, it will no longer be necessary.
+
+            var appDomainManagerType = xunitUtility.GetType("Xunit.AppDomainManager_AppDomain");
+            if (appDomainManagerType is not null)
+                NoOpDispose(appDomainManagerType);
+
+            var appDomainManagerVSRunner = xunitUtility.GetType("Xunit.Runner.VisualStudio.AppDomainManager");
+            if (appDomainManagerVSRunner is not null)
+                NoOpDispose(appDomainManagerVSRunner);
+        }
+
+        static void NoOpDispose(Type appDomainManagerType)
+        {
             var method = appDomainManagerType.GetMethod("Dispose");
             RuntimeHelpers.PrepareMethod(method.MethodHandle);
             var functionPointer = method.MethodHandle.GetFunctionPointer();
