@@ -181,7 +181,7 @@ internal sealed class VisualStudioInlineRenameUndoManagerServiceFactory(
             }
 
             // This is where we apply the replacement text to each inline preview in the buffer.
-            // Needs to remove the "Attribute" suffix since the inline preview does not include the "Attribute" suffix in the replacement span
+            // Needs to remove the "Attribute" suffix, since the inline preview does not include the "Attribute" suffix in the replacement span,
             // so that the user does not see the suffix twice.
             ApplyReplacementText(subjectBuffer, bufferUndoState.TextUndoHistory, propagateSpansEditTag, spans,
                 currentState.ReplacementText.GetWithoutAttributeSuffix(document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive) ?? currentState.ReplacementText);
