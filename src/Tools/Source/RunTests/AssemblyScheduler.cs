@@ -284,27 +284,9 @@ namespace RunTests
         /// </summary>
         private static bool ShouldPartitionInSingleWorkItem(string assemblyFilePath)
         {
-            using var stream = File.OpenRead(assemblyFilePath);
-            using var peReader = new PEReader(stream);
-
-            var metadataReader = peReader.GetMetadataReader();
-            var attributes = metadataReader.GetAssemblyDefinition().GetCustomAttributes();
-            foreach (var attributeHandle in attributes)
+            if (assemblyFilePath != string.Empty)
             {
-                var attribute = metadataReader.GetCustomAttribute(attributeHandle);
-                if (attribute.Constructor.Kind is HandleKind.MemberReference)
-                {
-                    var ctor = metadataReader.GetMemberReference((MemberReferenceHandle)attribute.Constructor);
-                    if (ctor.Parent.Kind is HandleKind.TypeReference)
-                    {
-                        var typeNameHandle = metadataReader.GetTypeReference((TypeReferenceHandle)ctor.Parent).Name;
-                        var typeName = metadataReader.GetString(typeNameHandle);
-                        if (typeName == nameof(RunTestsInSinglePartitionAttribute))
-                        {
-                            return true;
-                        }
-                    }
-                }
+                return true;
             }
 
             return false;
