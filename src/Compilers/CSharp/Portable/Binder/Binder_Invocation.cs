@@ -2069,7 +2069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterListList = ArrayBuilder<ImmutableArray<ParameterSymbol>>.GetInstance();
             foreach (var p in properties)
             {
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130: Revisit this with new extensions
+                Debug.Assert(!p.GetIsNewExtensionMember());
                 if (p.ParameterCount > 0)
                 {
                     parameterListList.Add(p.Parameters);
