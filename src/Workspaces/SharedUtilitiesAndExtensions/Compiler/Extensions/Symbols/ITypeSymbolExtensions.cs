@@ -646,12 +646,6 @@ internal static partial class ITypeSymbolExtensions
             type = underlyingType;
         }
 
-        if (type.TypeKind != TypeKind.Struct)
-            return false;
-
-        if (type.IsReadOnly)
-            return false;
-
         switch (type.SpecialType)
         {
             case SpecialType.System_Boolean:
@@ -680,27 +674,32 @@ internal static partial class ITypeSymbolExtensions
                 break;
         }
 
-        if (type.IsErrorType())
-            return null;
-
         // Special case types that we know for certain are immutable, but which may have not been marked that way
         // (especially in older frameworks).
         if (IsWellKnownImmutableValueType(type))
+            return false;
+
+        // An error type may or may not be a struct, and it may or may not be mutable.  As we cannot make a determination,
+        // we return null to allow the caller to decide what to do.
+        if (type.IsErrorType())
+            return null;
+
+        if (type.TypeKind != TypeKind.Struct)
+            return false;
+
+        if (type.IsReadOnly)
             return false;
 
         var hasPrivateField = false;
         foreach (var member in type.GetMembers())
         {
             if (member is not IFieldSymbol fieldSymbol)
-            {
                 continue;
-            }
+
+            if (!fieldSymbol.IsConst && !fieldSymbol.IsReadOnly && !fieldSymbol.IsStatic)
+                return true;
 
             hasPrivateField |= fieldSymbol.DeclaredAccessibility == Accessibility.Private;
-            if (!fieldSymbol.IsConst && !fieldSymbol.IsReadOnly && !fieldSymbol.IsStatic)
-            {
-                return true;
-            }
         }
 
         if (!hasPrivateField)

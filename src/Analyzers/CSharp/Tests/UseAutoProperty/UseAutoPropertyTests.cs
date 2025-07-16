@@ -226,21 +226,25 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     [InlineData("ReadOnlySpan<int>")]
     [InlineData("TimeSpan")]
     public Task TestWellKnownImmutableValueType1(string typeName)
-        => TestMissingInRegularAndScriptAsync(
+        => TestInRegularAndScript1Async(
             $$"""
-            using System;
-
             class Class
             {
-                [|{{typeName}} i|];
+                [|System.{{typeName}} i|];
 
-                {{typeName}} P
+                System.{{typeName}} P
                 {
                     get
                     {
                         return i;
                     }
                 }
+            }
+            """,
+            $$"""
+            class Class
+            {
+                System.{{typeName}} P { get; }
             }
             """);
 
