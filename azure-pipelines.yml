@@ -410,7 +410,7 @@ stages:
       - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog 
         displayName: Restore
 
-      # We additionally restore during the build because a package we require for publish only restores when we pass `-publish`.
+      # We additionally restore during the build because the Microsoft.DotNet.Build.Tasks.Feed package only restores when we pass `-publish`. See https://github.com/dotnet/arcade/blob/37ccfd66358af6a37a0ec385ec31d1d71bdd8723/src/Microsoft.DotNet.Arcade.Sdk/tools/Tools.proj#L61-L66
       # Passing `-publish` during the restore step above fails due to no items needing published.
       - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -build -pack -publish -sign -binaryLogName Build.binlog /p:DotnetPublishUsingPipelines=true /p:ContinuousIntegrationBuildCorrectness=true
         displayName: Build
