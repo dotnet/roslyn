@@ -13073,7 +13073,63 @@ static class E
         Assert.Null(model.GetForEachStatementInfo(loop).CurrentProperty);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
+    public void InstanceMethodInvocation_PatternBased_ForEach_GetEnumerator_Conversion_Classic()
+    {
+        var src = """
+foreach (var x in new C())
+{
+    System.Console.Write(x);
+    break;
+}
+
+class C { }
+class D
+{
+    public bool MoveNext() => true;
+    public int Current => 42;
+}
+
+static class E
+{
+    public static D GetEnumerator(this object obj) => new D();
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
+    public void Foreach_GetEnumerator_ReceiverNullableWarning()
+    {
+        var src = """
+#nullable enable
+
+foreach (var x in ((C?)null).Id()) // 1
+{
+}
+
+class C
+{
+    public C Id() => this;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public System.Collections.Generic.IEnumerator<int> GetEnumerator() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,20): warning CS8602: Dereference of a possibly null reference.
+            // foreach (var x in ((C?)null).Id()) // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(C?)null").WithLocation(3, 20));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
     public void InstanceMethodInvocation_PatternBased_ForEach_GetEnumerator_Conversion()
     {
         var src = """
@@ -13098,15 +13154,110 @@ static class E
     }
 }
 """;
-        try
-        {
-            // Tracked by https://github.com/dotnet/roslyn/issues/78828 : assertion in NullableWalker
-            var comp = CreateCompilation(src);
-            CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
-        }
-        catch (InvalidOperationException)
-        {
-        }
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
+    public void ExtensionGetEnumerator_NullReceiver()
+    {
+        var src = """
+            #nullable enable
+            C? c = null;
+            foreach (var x in c) // 1
+            {
+                System.Console.Write(x);
+                break;
+            }
+
+            class C
+            {
+            }
+
+            static class E
+            {
+                extension(C c)
+                {
+                    public System.Collections.Generic.IEnumerator<int> GetEnumerator() => throw null!;
+                }
+            }
+            """;
+        var comp = CreateCompilation(src);
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality consider reporting a better containing symbol
+        comp.VerifyEmitDiagnostics(
+            // (3,19): warning CS8604: Possible null reference argument for parameter 'c' in 'extension(C)'.
+            // foreach (var x in c) // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "c").WithArguments("c", "extension(C)").WithLocation(3, 19));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
+    public void ExtensionGetEnumerator_NullReceiver_Classic()
+    {
+        var src = """
+            #nullable enable
+            C? c = null;
+            foreach (var x in c) // 1
+            {
+                System.Console.Write(x);
+                break;
+            }
+
+            class C
+            {
+            }
+
+            static class E
+            {
+                public static System.Collections.Generic.IEnumerator<int> GetEnumerator(this C c) => throw null!;
+            }
+            """;
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,19): warning CS8604: Possible null reference argument for parameter 'c' in 'IEnumerator<int> E.GetEnumerator(C c)'.
+            // foreach (var x in c) // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "c").WithArguments("c", "IEnumerator<int> E.GetEnumerator(C c)").WithLocation(3, 19));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
+    public void ExtensionGetEnumerator_Reinference()
+    {
+        var src = """
+            #nullable enable
+            var s = "a";
+            if (string.Empty == "")
+                s = null;
+
+            var c = M(s); // 'C<string?>'
+            foreach (var x in c)
+            {
+                x.ToString(); // 1
+            }
+
+            var d = M("a"); // 'C<string>'
+            foreach (var x in d)
+            {
+                x.ToString(); // ok
+            }
+
+            C<T> M<T>(T item) => throw null!;
+
+            class C<T>
+            {
+            }
+
+            static class E
+            {
+                extension<T>(C<T> c)
+                {
+                    public System.Collections.Generic.IEnumerator<T> GetEnumerator() => throw null!;
+                }
+            }
+            """;
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (9,5): warning CS8602: Dereference of a possibly null reference.
+            //     x.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(9, 5));
     }
 
     [Fact]
@@ -35643,7 +35794,7 @@ public static class Extensions
         public C.Enumerator GetEnumerator(int x = 1) => new C.Enumerator(x);
     }
 }";
-        var verifier = CompileAndVerify(source, expectedOutput: "23", parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never")); // Tracked by https://github.com/dotnet/roslyn/issues/78828: Nullable analysis asserts
+        var verifier = CompileAndVerify(source, expectedOutput: "23");
 
         VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>((CSharpCompilation)verifier.Compilation,
 @"
@@ -42134,10 +42285,12 @@ class C
 using System.Collections.Generic;
 
 object? oNull = null;
-foreach (var x in oNull) { x.ToString(); }
+foreach (var x in oNull)
+    x.ToString(); // 1
 
 object? oNotNull = new object();
-foreach (var y in oNotNull) { y.ToString(); }
+foreach (var y in oNotNull)
+    y.ToString();
 
 static class E
 {
@@ -42152,9 +42305,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,19): warning CS8602: Dereference of a possibly null reference.
-            // foreach (var x in oNull) { x.ToString(); }
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull").WithLocation(5, 19));
+            // (6,5): warning CS8602: Dereference of a possibly null reference.
+            //     x.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 5));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
