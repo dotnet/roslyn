@@ -2503,7 +2503,7 @@ class [|C|]
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
                             <Document>
-                                public class [|MyClassAttribute$$|] : System.Attribute
+                                public class [|MyClass$$Attribute|] : System.Attribute
                                 {
                                     public [|MyClassAttribute|]()
                                     {
