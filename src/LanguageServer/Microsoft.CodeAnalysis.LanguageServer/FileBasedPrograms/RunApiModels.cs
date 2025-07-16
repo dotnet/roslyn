@@ -43,7 +43,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms
             public required ImmutableArray<SimpleDiagnostic> Diagnostics { get; init; }
         }
     }
-    internal sealed class SimpleDiagnostic
+
+    internal sealed record SimpleDiagnostic
     {
         public required Position Location { get; init; }
         public required string Message { get; init; }
@@ -51,26 +52,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms
         /// <summary>
         /// An adapter of <see cref="FileLinePositionSpan"/> that ensures we JSON-serialize only the necessary fields.
         /// </summary>
-        public readonly struct Position
+        public readonly record struct Position
         {
             public string Path { get; init; }
             public LinePositionSpanInternal Span { get; init; }
         }
     }
 
-    internal struct LinePositionInternal
+    internal record struct LinePositionInternal
     {
-        public int Line { get; set; }
-        public int Character { get; set; }
+        public int Line { get; init; }
+        public int Character { get; init; }
     }
 
     /// <summary>
     /// Workaround for inability to deserialize directly to <see cref="LinePositionSpan"/>.
     /// </summary>
-    internal struct LinePositionSpanInternal
+    internal record struct LinePositionSpanInternal
     {
-        public LinePositionInternal Start { get; set; }
-        public LinePositionInternal End { get; set; }
+        public LinePositionInternal Start { get; init; }
+        public LinePositionInternal End { get; init; }
 
         public LinePositionSpan ToLinePositionSpan()
         {

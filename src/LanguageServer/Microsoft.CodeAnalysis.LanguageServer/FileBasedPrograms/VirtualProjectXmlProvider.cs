@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 [Export(typeof(VirtualProjectXmlProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
+internal class VirtualProjectXmlProvider(IDiagnosticsRefresher diagnosticRefresher, DotnetCliHelper dotnetCliHelper)
 {
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
     private readonly Dictionary<string, ImmutableArray<SimpleDiagnostic>> _diagnosticsByFilePath = [];
@@ -88,7 +88,12 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
             {
                 using (await _gate.DisposableWaitAsync(cancellationToken))
                 {
+                    _diagnosticsByFilePath.TryGetValue(documentFilePath, out var previousCachedDiagnostics);
                     _diagnosticsByFilePath[documentFilePath] = project.Diagnostics;
+
+                    // check for difference, and signal to host to update if so.
+                    if (previousCachedDiagnostics.IsDefault || !project.Diagnostics.SequenceEqual(previousCachedDiagnostics))
+                        diagnosticRefresher.RequestWorkspaceRefresh();
                 }
                 return (project.Content, project.Diagnostics);
             }
