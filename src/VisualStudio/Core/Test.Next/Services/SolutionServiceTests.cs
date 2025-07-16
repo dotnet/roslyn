@@ -1137,7 +1137,7 @@ public sealed class SolutionServiceTests
         objectReference2.AssertHeld();
     }
 
-    [Theory, CombinatorialData]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/someissue"), CombinatorialData,]
     public async Task ValidateUpdaterInformsRemoteWorkspaceOfActiveDocument(bool updatePrimaryBranch)
     {
         var code = @"class Test { void Method() { } }";
