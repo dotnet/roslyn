@@ -525,28 +525,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should be able to remove this method once all the callers are updated to account for new extension members TODO2
-        /// <summary>
-        /// Lookup extension methods by name and arity in the given binder and
-        /// check viability in this binder. The lookup is performed on a single
-        /// binder because extension method search stops at the first applicable
-        /// method group from the nearest enclosing namespace.
-        /// </summary>
-        private void LookupExtensionMethodsInSingleBinder(ExtensionScope scope, LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            var methods = ArrayBuilder<MethodSymbol>.GetInstance();
-            var binder = scope.Binder;
-            binder.GetCandidateExtensionMethods(methods, name, arity, options, this);
-
-            foreach (var method in methods)
-            {
-                SingleLookupResult resultOfThisMember = this.CheckViability(method, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
-                result.MergeEqual(resultOfThisMember);
-            }
-
-            methods.Free();
-        }
-
         #region "AttributeTypeLookup"
 
         /// <summary>

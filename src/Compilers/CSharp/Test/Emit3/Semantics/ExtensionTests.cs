@@ -36489,7 +36489,6 @@ public static class E
         public static int P2 => 0;
     }
 }
-
 """;
         var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
         libComp.VerifyEmitDiagnostics();
@@ -36522,6 +36521,22 @@ var x = object.M2;
 
 _ = object.P2;
 """;
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // object.M2();
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.M2()").WithArguments("extensions").WithLocation(1, 1),
+            // (2,19): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // System.Action a = object.M2;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.M2").WithArguments("extensions").WithLocation(2, 19),
+            // (3,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // var x = object.M2;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.M2").WithArguments("extensions").WithLocation(3, 9),
+            // (5,5): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = object.P2;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.P2").WithArguments("extensions").WithLocation(5, 5));
+        verifySymbolInfo(comp);
+
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -36588,7 +36603,6 @@ public static class E
         public System.Collections.IEnumerator GetEnumerator() => throw null;
     }
 }
-
 """;
         var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
         libComp.VerifyEmitDiagnostics();
@@ -36696,6 +36710,428 @@ static class Classic
             // (7,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //             42.Member();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "42.Member").WithArguments("extensions").WithLocation(7, 13));
+    }
+
+    [Fact]
+    public void LangVer_05()
+    {
+        // Function type with a type argument violating constraint
+        var libSrc = """
+public static class E
+{
+    extension(object o)
+    {
+        public void M<T>() where T : class { }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libRef = libComp.EmitToImageReference(expectedWarnings: null);
+
+        var src = """
+var x = new object().M<int>;
+""";
+
+        DiagnosticDescription[] cannotInferDelegateType = [
+            // (1,9): error CS8917: The delegate type could not be inferred.
+            // var x = new object().M<int>;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new object().M<int>").WithLocation(1, 9)];
+
+        var comp = CreateCompilation(src, references: [libRef]);
+        comp.VerifyDiagnostics(cannotInferDelegateType);
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp.VerifyDiagnostics(cannotInferDelegateType);
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
+        comp.VerifyDiagnostics(cannotInferDelegateType);
+
+        // Note: in older LangVer, new extension methods are subject to more stringent check than classic extension methods
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
+        comp.VerifyDiagnostics(cannotInferDelegateType);
+
+        src = """
+var x = new object().M<int>;
+
+public static class E
+{
+    public static void M<T>(this object o) where T : class { }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(cannotInferDelegateType);
+
+        comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        comp.VerifyDiagnostics(cannotInferDelegateType);
+
+        comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
+        comp.VerifyDiagnostics(cannotInferDelegateType);
+
+        comp = CreateCompilation(src, parseOptions: TestOptions.Regular12);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'E.M<T>(object)'
+            // var x = new object().M<int>;
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "new object().M<int>").WithArguments("E.M<T>(object)", "T", "int").WithLocation(1, 9));
+    }
+
+    [Fact]
+    public void LangVer_06()
+    {
+        // Function type with a type argument violating constraint, in outer scope
+        var libSrc = """
+namespace N
+{
+    public static class E1
+    {
+        extension(object o)
+        {
+            public void M<T>() where T : class { }
+        }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libRef = libComp.EmitToImageReference(expectedWarnings: null);
+
+        var src = """
+using N;
+var x = new object().M<int>;
+
+public static class E2
+{
+    public static void M<T>(this object o) { }
+}
+""";
+
+        DiagnosticDescription[] unnecessaryDirective = [
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using N;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)];
+
+        var comp = CreateCompilation(src, references: [libRef]);
+        comp.VerifyDiagnostics(unnecessaryDirective);
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp.VerifyDiagnostics(unnecessaryDirective);
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
+        comp.VerifyDiagnostics(unnecessaryDirective);
+
+        // Note: in older LangVer, we look at all scopes to determine the unique signature
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
+        comp.VerifyDiagnostics();
+
+        src = """
+var x = new object().M<int>;
+
+namespace N
+{
+    public static class E1
+    {
+        public static void M<T>(this object o) where T : class { }
+    }
+}
+
+public static class E2
+{
+    public static void M<T>(this object o) { }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        comp.VerifyDiagnostics();
+
+        comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
+        comp.VerifyDiagnostics();
+
+        comp = CreateCompilation(src, parseOptions: TestOptions.Regular12);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LangVer_07()
+    {
+        // Function type with a type argument violating constraint, in same scope
+        var libSrc = """
+public static class E1
+{
+    extension(object o)
+    {
+        public void M<T>() where T : class { }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libRef = libComp.EmitToImageReference(expectedWarnings: null);
+
+        var src = """
+var x = new object().M<int>;
+
+public static class E2
+{
+    public static void M<T>(this object o) { }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [libRef]);
+        comp.VerifyDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp.VerifyDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
+        comp.VerifyDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
+        comp.VerifyDiagnostics();
+
+        src = """
+var x = new object().M<int>;
+
+public static class E1
+{
+    public static void M<T>(this object o) where T : class { }
+}
+
+public static class E2
+{
+    public static void M<T>(this object o) { }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        comp.VerifyDiagnostics();
+
+        comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
+        comp.VerifyDiagnostics();
+
+        comp = CreateCompilation(src, parseOptions: TestOptions.Regular12);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LangVer_08()
+    {
+        // Function type with a type argument violating constraint, in same scope, different signatures
+        var libSrc = """
+public static class E1
+{
+    extension(object o)
+    {
+        public void M<T>(int i) where T : class { }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libRef = libComp.EmitToImageReference(expectedWarnings: null);
+
+        var src = """
+var x = new object().M<int>;
+
+public static class E2
+{
+    public static void M<T>(this object o) { }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [libRef]);
+        comp.VerifyDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp.VerifyDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
+        comp.VerifyDiagnostics();
+
+        // Note: in older LangVer, we look at all scopes to determine the unique signature, but we apply stricter standards to new extension methods
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
+        comp.VerifyDiagnostics();
+
+        src = """
+var x = new object().M<int>;
+
+public static class E1
+{
+    public static void M<T>(this object o, int i) where T : class { }
+}
+
+public static class E2
+{
+    public static void M<T>(this object o) { }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        comp.VerifyDiagnostics();
+
+        comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
+        comp.VerifyDiagnostics();
+
+        // Note: in older LangVer, classic extension methods candidates with broken constraints are still considered for unique signature
+        comp = CreateCompilation(src, parseOptions: TestOptions.Regular12);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS8917: The delegate type could not be inferred.
+            // var x = new object().M<int>;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new object().M<int>").WithLocation(1, 9));
+    }
+
+    [Fact]
+    public void LangVer_09()
+    {
+        // Function type with static/instance mismatch
+        var libSrc = """
+public static class E
+{
+    extension(object o)
+    {
+        public void M() { }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libRef = libComp.EmitToImageReference(expectedWarnings: null);
+
+        var src = """
+var x = object.M;
+""";
+
+        DiagnosticDescription[] expected = [
+            // (1,9): error CS8917: The delegate type could not be inferred.
+            // var x = object.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "object.M").WithLocation(1, 9)];
+
+        var comp = CreateCompilation(src, references: [libRef]);
+        comp.VerifyDiagnostics(expected);
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp.VerifyDiagnostics(expected);
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
+        comp.VerifyDiagnostics(expected);
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
+        comp.VerifyDiagnostics(expected);
+    }
+
+    [Fact]
+    public void LangVer_10()
+    {
+        // Function type with static/instance mismatch
+        var libSrc = """
+public static class E
+{
+    extension(object)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libRef = libComp.EmitToImageReference(expectedWarnings: null);
+
+        var src = """
+var x = new object().M;
+""";
+
+        DiagnosticDescription[] expected = [
+            // (1,9): error CS8917: The delegate type could not be inferred.
+            // var x = new object().M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new object().M").WithLocation(1, 9)];
+
+        var comp = CreateCompilation(src, references: [libRef]);
+        comp.VerifyDiagnostics(expected);
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp.VerifyDiagnostics(expected);
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
+        comp.VerifyDiagnostics(expected);
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
+        comp.VerifyDiagnostics(expected);
+    }
+
+    [Fact]
+    public void LangVer_11()
+    {
+        // Function type with static/instance mismatch
+        var src = """
+var x = object.M;
+
+public static class E
+{
+    public static void M(this object o) { }
+}
+""";
+        DiagnosticDescription[] expected = [
+            // (1,9): error CS8917: The delegate type could not be inferred.
+            // var x = object.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "object.M").WithLocation(1, 9)];
+
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(expected);
+
+        comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        comp.VerifyDiagnostics(expected);
+
+        comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
+        comp.VerifyDiagnostics(expected);
+
+        comp = CreateCompilation(src, parseOptions: TestOptions.Regular12);
+        comp.VerifyDiagnostics(expected);
+    }
+
+    [Fact]
+    public void LangVer_12()
+    {
+        // Function type with an extension property in outer scope
+        var libSrc = """
+namespace N
+{
+    public static class E1
+    {
+        extension(object o)
+        {
+            public int M => 0;
+        }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libRef = libComp.EmitToImageReference(expectedWarnings: null);
+
+        var src = """
+using N;
+var x = new object().M;
+
+public static class E2
+{
+    public static void M(this object o) { }
+}
+""";
+
+        DiagnosticDescription[] unnecessaryDirective = [
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using N;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)];
+
+        var comp = CreateCompilation(src, references: [libRef]);
+        comp.VerifyDiagnostics(unnecessaryDirective);
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp.VerifyDiagnostics(unnecessaryDirective);
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
+        comp.VerifyDiagnostics(unnecessaryDirective);
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
+        comp.VerifyDiagnostics();
     }
 
     [Fact]

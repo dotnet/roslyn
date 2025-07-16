@@ -8851,60 +8851,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable disable
 
-        private void PopulateExtensionMethodsFromSingleBinder(
-            ExtensionScope scope,
-            MethodGroup methodGroup,
-            SyntaxNode node,
-            BoundExpression left,
-            string rightName,
-            ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
-            BindingDiagnosticBag diagnostics)
-        {
-            int arity;
-            if (typeArgumentsWithAnnotations.IsDefault)
-            {
-                arity = 0;
-            }
-            else
-            {
-                arity = typeArgumentsWithAnnotations.Length;
-            }
-
-            var lookupResult = LookupResult.GetInstance();
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            this.LookupExtensionMethods(lookupResult, scope, rightName, arity, ref useSiteInfo);
-            diagnostics.Add(node, useSiteInfo);
-
-            if (lookupResult.IsMultiViable)
-            {
-                Debug.Assert(lookupResult.Symbols.Any());
-                var members = ArrayBuilder<Symbol>.GetInstance();
-                bool wasError;
-                Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, rightName, arity, members, diagnostics, out wasError, qualifierOpt: null);
-                Debug.Assert((object)symbol == null);
-                Debug.Assert(members.Count > 0);
-                methodGroup.PopulateWithExtensionMethods(left, members, typeArgumentsWithAnnotations, lookupResult.Kind);
-                members.Free();
-            }
-
-            lookupResult.Free();
-        }
-
-        private void LookupExtensionMethods(LookupResult lookupResult, ExtensionScope scope, string rightName, int arity, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            LookupOptions options;
-            if (arity == 0)
-            {
-                options = LookupOptions.AllMethodsOnArityZero;
-            }
-            else
-            {
-                options = LookupOptions.Default;
-            }
-
-            this.LookupExtensionMethodsInSingleBinder(scope, lookupResult, rightName, arity, options, ref useSiteInfo);
-        }
-
         protected BoundExpression BindFieldAccess(
             SyntaxNode node,
             BoundExpression receiver,
@@ -10901,22 +10847,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (node.ReceiverOpt is not BoundTypeExpression && node.SearchExtensions)
+            if (node.SearchExtensions)
             {
-                var receiver = node.ReceiverOpt!;
+                Debug.Assert(node.ReceiverOpt!.Type is not null); // extensions are only considered on member access
+
+                BoundExpression receiver = node.ReceiverOpt;
+                ImmutableArray<TypeWithAnnotations> typeArguments = node.TypeArgumentsOpt;
+                int arity = typeArguments.IsDefaultOrEmpty ? 0 : typeArguments.Length;
+                LookupOptions options = arity == 0 ? LookupOptions.AllMethodsOnArityZero : LookupOptions.Default;
+                var singleLookupResults = ArrayBuilder<SingleLookupResult>.GetInstance();
+                CompoundUseSiteInfo<AssemblySymbol> discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
                 foreach (var scope in new ExtensionScopes(this))
                 {
                     methods.Clear();
-                    var methodGroup = MethodGroup.GetInstance();
-                    PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, BindingDiagnosticBag.Discarded);
-                    foreach (var m in methodGroup.Methods)
+                    singleLookupResults.Clear();
+                    scope.Binder.EnumerateAllExtensionMembersInSingleBinder(singleLookupResults, node.Name, arity, options, originalBinder: this, ref discardedUseSiteInfo, ref discardedUseSiteInfo);
+
+                    foreach (SingleLookupResult singleLookupResult in singleLookupResults)
                     {
-                        if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced)
+                        Symbol extensionMember = singleLookupResult.Symbol;
+                        if (IsStaticInstanceMismatch(receiver, extensionMember))
                         {
-                            methods.Add(reduced);
+                            // Remove static/instance mismatches
+                            continue;
+                        }
+
+                        // Note: we only care about methods since we're already decided this is a method group (ie. not resolving to some other kind of extension member)
+                        if (extensionMember is MethodSymbol m)
+                        {
+                            if (m.GetIsNewExtensionMember())
+                            {
+                                // Note: new extension methods are subject to more stringent checks
+                                var substituted = (MethodSymbol?)extensionMember.GetReducedAndFilteredSymbol(typeArguments, receiver.Type, Compilation, checkFullyInferred: true);
+                                if (substituted is not null)
+                                {
+                                    methods.Add(substituted);
+                                }
+                            }
+                            else if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced)
+                            {
+                                methods.Add(reduced);
+                            }
                         }
                     }
-                    methodGroup.Free();
 
                     if (methods.Count == 0)
                     {
@@ -10927,6 +10901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         methods.Free();
                         useParams = false;
+                        singleLookupResults.Free();
                         return null;
                     }
 
@@ -10937,6 +10912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         methods.Free();
                         useParams = false;
+                        singleLookupResults.Free();
                         return null;
                     }
 
@@ -10949,10 +10925,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             methods.Free();
                             useParams = false;
+                            singleLookupResults.Free();
                             return null;
                         }
                     }
                 }
+
+                singleLookupResults.Free();
             }
 
             methods.Free();
@@ -10988,6 +10967,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method = null;
                 return false;
             }
+        }
+
+        private static bool IsStaticInstanceMismatch(BoundExpression receiver, Symbol extensionMember)
+        {
+            bool memberCountsAsStatic = extensionMember is MethodSymbol { IsExtensionMethod: true } ? false : extensionMember.IsStatic;
+            return receiver switch
+            {
+                BoundTypeOrValueExpression => false,
+                BoundTypeExpression => !memberCountsAsStatic,
+                _ => memberCountsAsStatic,
+            };
         }
 
         /// <summary>
@@ -11089,23 +11079,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var methods = ArrayBuilder<MethodSymbol>.GetInstance(capacity: singleLookupResults.Count);
                     foreach (SingleLookupResult singleLookupResult in singleLookupResults)
                     {
-                        // Remove static/instance mismatches
                         Symbol extensionMember = singleLookupResult.Symbol;
-                        bool memberCountsAsStatic = extensionMember is MethodSymbol { IsExtensionMethod: true } ? false : extensionMember.IsStatic;
-                        switch (node.ReceiverOpt)
+                        if (IsStaticInstanceMismatch(receiver, extensionMember))
                         {
-                            case BoundTypeOrValueExpression:
-                                break;
-                            case BoundTypeExpression:
-                                if (!memberCountsAsStatic) continue;
-                                break;
-                            default:
-                                if (memberCountsAsStatic) continue;
-                                break;
+                            // Remove static/instance mismatches
+                            continue;
                         }
 
                         // Note: we only care about methods since we're already decided this is a method group (ie. not resolving to some other kind of extension member)
-                        if (extensionMember is MethodSymbol method)
+                        if (extensionMember is MethodSymbol)
                         {
                             var substituted = (MethodSymbol?)extensionMember.GetReducedAndFilteredSymbol(typeArguments, receiver.Type, Compilation, checkFullyInferred: true);
                             if (substituted is not null)

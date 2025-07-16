@@ -14361,5 +14361,63 @@ public static class E
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension([MyAttribute/*()*/] System.Int32)", extension.ComputeExtensionMarkerRawName());
     }
+
+    [Fact]
+    public void FunctionType_MissingImplementationMethod()
+    {
+        // Based on the following, but without implementation method
+        // public static class E
+        // {
+        //     extension(int)
+        //     {
+        //         public static void M() { }
+        //     }
+        // }
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            IL_0000: ret
+        }
+
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
+}
+""";
+
+        var src = """
+var x = int.M;
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSrc, parseOptions: TestOptions.Regular12);
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS0570: 'E.extension(int).M()' is not supported by the language
+            // var x = int.M;
+            Diagnostic(ErrorCode.ERR_BindToBogus, "int.M").WithArguments("E.extension(int).M()").WithLocation(1, 9));
+
+        DiagnosticDescription[] expected = [
+            // (1,9): error CS0570: 'E.extension(int).M()' is not supported by the language
+            // var x = int.M;
+            Diagnostic(ErrorCode.ERR_BindToBogus, "int.M").WithArguments("E.extension(int).M()").WithLocation(1, 9)];
+
+        comp = CreateCompilationWithIL(src, ilSrc, parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics(expected);
+
+        comp = CreateCompilationWithIL(src, ilSrc, parseOptions: TestOptions.RegularNext);
+        comp.VerifyEmitDiagnostics(expected);
+
+        comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(expected);
+    }
 }
 
