@@ -540,9 +540,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 _sharedCompileCts = new CancellationTokenSource();
                 logger.Log($"CommandLine = '{commandLineCommands}'");
-                logger.Log($"BuildResponseFile = '{responseFileCommands}'",
-                    // Command line args can be long and are already included in the binlog.
-                    excludeFromBinlog: true);
+                logger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
                 var clientDirectory = Path.GetDirectoryName(PathToBuiltInTool);
                 if (clientDirectory is null || tempDirectory is null)
@@ -815,7 +813,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             var message = $"CompilerServer: {category} - {diagnostic} - {requestId}";
             if (kind == CompilationKind.FatalError)
             {
-                logger.LogError(message, excludeFromBinlog: true);
+                logger.LogError(message);
                 Log.LogError(message);
             }
             else

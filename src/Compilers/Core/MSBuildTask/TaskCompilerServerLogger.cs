@@ -20,9 +20,9 @@ internal sealed class TaskCompilerServerLogger(
 
     public bool IsLogging => true;
 
-    public void Log(string message, bool excludeFromBinlog = false)
+    public void Log(string message)
     {
         _inner.Log(message);
-        if (!excludeFromBinlog) _taskLogger.LogMessage(message);
+        _taskLogger.LogMessage(message);
     }
 }

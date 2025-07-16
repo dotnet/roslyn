@@ -12,6 +12,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities
         public bool IsLogging { get; set; }
         public Action<string> LogFunc { get; set; } = delegate { throw new InvalidOperationException(); };
 
-        public void Log(string message, bool excludeFromBinlog = false) => LogFunc(message);
+        public void Log(string message) => LogFunc(message);
     }
 }
