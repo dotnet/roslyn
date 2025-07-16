@@ -47,12 +47,15 @@ internal sealed class UseExpressionBodyForPropertiesHelper :
     protected override PropertyDeclarationSyntax WithSemicolonToken(PropertyDeclarationSyntax declaration, SyntaxToken token)
         => TransferTrailingCommentsToAfterExpressionBody(declaration.WithSemicolonToken(token));
 
-    protected override PropertyDeclarationSyntax WithExpressionBody(PropertyDeclarationSyntax declaration, ArrowExpressionClauseSyntax expressionBody)
-        => declaration.WithExpressionBody(expressionBody);
-
     private static PropertyDeclarationSyntax TransferTrailingCommentsToAfterExpressionBody(PropertyDeclarationSyntax declaration)
     {
+        // Don't need to transfer if we don't have an expression body, or it already has leading trivia (like comments).
+        // Those will already be formatted and placed properly.   We only want to transfer comments that were conceptually
+        // at the end of the property header before and should stay that way after becoming single line.
         if (declaration.ExpressionBody == null)
+            return declaration;
+
+        if (declaration.ExpressionBody.GetLeadingTrivia().Any(t => t.IsRegularComment()))
             return declaration;
 
         var trailingTrivia = declaration.Identifier.TrailingTrivia;
@@ -64,6 +67,9 @@ internal sealed class UseExpressionBodyForPropertiesHelper :
             .WithIdentifier(declaration.Identifier.WithTrailingTrivia(SyntaxFactory.Space))
             .WithTrailingTrivia(trailingTrivia.Take(trailingTrivia.IndexOf(lastComment) + 1).Concat(declaration.GetTrailingTrivia()));
     }
+
+    protected override PropertyDeclarationSyntax WithExpressionBody(PropertyDeclarationSyntax declaration, ArrowExpressionClauseSyntax expressionBody)
+        => declaration.WithExpressionBody(expressionBody);
 
     protected override PropertyDeclarationSyntax WithAccessorList(PropertyDeclarationSyntax declaration, AccessorListSyntax accessorListSyntax)
         => declaration.WithAccessorList(accessorListSyntax);

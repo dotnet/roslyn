@@ -378,7 +378,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38057")]
     public Task TestCommentAfterPropertyName()
         => TestInRegularAndScript1Async(
             """
