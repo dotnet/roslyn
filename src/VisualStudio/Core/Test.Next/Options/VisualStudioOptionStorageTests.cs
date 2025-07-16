@@ -249,9 +249,6 @@ public sealed class VisualStudioOptionStorageTests
             "file_header_template",                                                         // repository specific
             "csharp_binary_expression_wrapping",                                           // EditorConfig only option, no VS UI  
             "csharp_indent_wrapped_call_chains",                                           // EditorConfig only option, no VS UI
-            "csharp_parameter_alignment",                                                   // EditorConfig only option, no VS UI
-            "csharp_parameter_first_placement",                                            // EditorConfig only option, no VS UI
-            "csharp_parameter_wrapping",                                                    // EditorConfig only option, no VS UI
             "csharp_wrap_call_chains",                                                      // EditorConfig only option, no VS UI
             "dotnet_unsupported_wrapping_column",                                           // TODO: https://github.com/dotnet/roslyn/issues/66062
             "insert_final_newline",                                                         // TODO: https://github.com/dotnet/roslyn/issues/66062
