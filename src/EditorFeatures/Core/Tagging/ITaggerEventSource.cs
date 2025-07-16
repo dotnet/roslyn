@@ -41,7 +41,7 @@ internal interface ITaggerEventSource
 
     /// <summary>
     /// An event has happened on the thing the tagger is attached to.  The tagger should
-    /// recompute tags. May be raised on any thread.
+    /// recompute tags.
     /// </summary>
     event EventHandler<TaggerEventArgs> Changed;
 }
