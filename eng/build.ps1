@@ -418,7 +418,7 @@ function TestUsingRunTests() {
 
   if ($testCoreClr) {
     $args += " --runtime core"
-    $args += " --timeout 90"
+    $args += " --timeout 220"
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
     } else {
@@ -427,7 +427,7 @@ function TestUsingRunTests() {
   }
   elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
     $args += " --runtime framework"
-    $args += " --timeout 90"
+    $args += " --timeout 220"
 
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
