@@ -8964,7 +8964,14 @@ class MyAttribute : System.Attribute
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("""extension([MyAttribute/*(System.String)*/("\\r\\n\\t\\0\\a\\b\\f\\v\\U0001D11E\r\nend")] System.Int32)""", extension.ComputeExtensionMarkerRawName());
+        var escapedNewline = Environment.NewLine switch
+        {
+            "\r\n" => "\\r\\n",
+            "\n" => "\\n",
+            _ => throw ExceptionUtilities.Unreachable()
+        };
+
+        AssertEx.Equal($$"""extension([MyAttribute/*(System.String)*/("\\r\\n\\t\\0\\a\\b\\f\\v\\U0001D11E{{escapedNewline}}end")] System.Int32)""", extension.ComputeExtensionMarkerRawName());
     }
 
     [Fact]
@@ -9331,7 +9338,7 @@ unsafe public static class E
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension([MyAttribute/*(method unmanaged System.Int32 modopt(System.String)& " +
-            "modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvSuppressGCTransition) modreq(System.Runtime.InteropServices.InAttribute) *())*/(error)] System.Int32)",
+            "modreq(System.Runtime.InteropServices.InAttribute) modopt(System.Runtime.CompilerServices.CallConvSuppressGCTransition) modopt(System.Runtime.CompilerServices.CallConvStdcall) *())*/(error)] System.Int32)",
             extension.ComputeExtensionMarkerRawName());
     }
 
@@ -9388,7 +9395,7 @@ unsafe public static class E
 
         // Note: the order of modifiers is reversed (also shown in example below). Tracked by issue https://github.com/dotnet/roslyn/issues/79344
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension([MyAttribute/*(method unmanaged void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvSuppressGCTransition) modopt(System.String) *())*/(error)] System.Int32)",
+        AssertEx.Equal("extension([MyAttribute/*(method unmanaged void modopt(System.String) modopt(System.Runtime.CompilerServices.CallConvSuppressGCTransition) modopt(System.Runtime.CompilerServices.CallConvStdcall) *())*/(error)] System.Int32)",
             extension.ComputeExtensionMarkerRawName());
 
         ilSrc = """
