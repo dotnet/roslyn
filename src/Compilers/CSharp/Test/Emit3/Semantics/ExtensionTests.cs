@@ -24511,14 +24511,31 @@ static class E
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics(
+        DiagnosticDescription[] expectedDiagnostics = [
             // (4,1): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
             // await using var x = new C();
-            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new C();").WithArguments("C").WithLocation(4, 1)
-            );
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new C();").WithArguments("C").WithLocation(4, 1)];
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : verify IOperation
+        var comp = CreateCompilation(src).VerifyEmitDiagnostics(expectedDiagnostics);
+
+        string expectedOperationTree = """
+IUsingDeclarationOperation(IsAsynchronous: True) (OperationKind.UsingDeclaration, Type: null, IsInvalid) (Syntax: 'await using ...  = new C();')
+  DeclarationGroup:
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid, IsImplicit) (Syntax: 'await using ...  = new C();')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var x = new C()')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: C x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x = new C()')
+              Initializer:
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new C()')
+                  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C()')
+                    Arguments(0)
+                    Initializer:
+                      null
+        Initializer:
+          null
+""";
+
+        VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(src, expectedOperationTree, expectedDiagnostics);
     }
 
     [Fact]
@@ -27133,7 +27150,37 @@ static class E
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "hello").VerifyDiagnostics();
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : verify IOperation
+        string expectedOperationTree = """
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'string quer ... ) select x;')
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'string quer ... () select x')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.String query) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'query = fro ... () select x')
+        Initializer:
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= from x in ... () select x')
+            ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.String) (Syntax: 'from x in n ... () select x')
+              Expression:
+                IInvocationOperation ( System.String E.<>E__0.Select(System.Func<C, C> selector)) (OperationKind.Invocation, Type: System.String, IsImplicit) (Syntax: 'select x')
+                  Instance Receiver:
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer:
+                        null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
+                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<C, C>, IsImplicit) (Syntax: 'x')
+                          Target:
+                            IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'x')
+                              IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
+                                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
+                                  ReturnedValue:
+                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Initializer:
+    null
+""";
+
+        VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(src, expectedOperationTree, []);
     }
 
     [Fact]
