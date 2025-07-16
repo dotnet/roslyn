@@ -11,9 +11,13 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
@@ -21,8 +25,64 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 [Export(typeof(VirtualProjectXmlProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
+internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper) : IDiagnosticSourceProvider
 {
+    public bool IsDocument => true;
+
+    public const string FileBasedPrograms = nameof(FileBasedPrograms);
+    public string Name => FileBasedPrograms;
+
+    public bool IsEnabled(ClientCapabilities clientCapabilities) => true;
+
+    public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    private readonly SemaphoreSlim _gate = new(initialCount: 1);
+    private readonly Dictionary<string, ImmutableArray<SimpleDiagnostic>> _diagnosticsByFilePath = [];
+
+    internal async ValueTask<ImmutableArray<SimpleDiagnostic>> GetCachedDiagnosticsAsync(string path, CancellationToken cancellationToken)
+    {
+        using (await _gate.DisposableWaitAsync(cancellationToken))
+        {
+            _diagnosticsByFilePath.TryGetValue(path, out var diagnostics);
+            return diagnostics;
+        }
+    }
+
+    private class DiagnosticSource(ImmutableArray<SimpleDiagnostic> diagnostics) : IDiagnosticSource
+    {
+        public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+        {
+            var document = context.TextDocument;
+            if (document is null || string.IsNullOrEmpty(document.FilePath))
+                return [];
+
+            var simpleDiagnostics = await virtualProjectXmlProvider.GetCachedDiagnosticsAsync(document.FilePath, cancellationToken);
+            new
+        }
+
+        public TextDocumentIdentifier? GetDocumentIdentifier()
+        {
+            throw new NotImplementedException();
+        }
+
+        public ProjectOrDocumentId GetId()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Project GetProject()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsLiveSource() => false;
+
+        public string ToDisplayString() => $"{nameof(VirtualProjectXmlProvider)}.{nameof(DiagnosticSource)}";
+    }
+
     internal async Task<(string VirtualProjectXml, ImmutableArray<SimpleDiagnostic> Diagnostics)?> GetVirtualProjectContentAsync(string documentFilePath, ILogger logger, CancellationToken cancellationToken)
     {
         var workingDirectory = Path.GetDirectoryName(documentFilePath);
@@ -70,7 +130,10 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
 
             if (response is RunApiOutput.Project project)
             {
-
+                using (await _gate.DisposableWaitAsync(cancellationToken))
+                {
+                    _diagnosticsByFilePath[documentFilePath] = project.Diagnostics;
+                }
                 return (project.Content, project.Diagnostics);
             }
 
