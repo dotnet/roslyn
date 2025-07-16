@@ -2416,6 +2416,40 @@ class C
     }
 
     [Fact]
+    public void Nullability_PropertyPattern_Postcondition_01()
+    {
+        var source = """
+            #nullable enable
+            using System.Diagnostics.CodeAnalysis;
+
+            class Program
+            {
+                void M(object? obj)
+                {
+                    if (obj is { AsNotNull: var notNull })
+                        notNull.ToString();
+                }
+            }
+
+            static class Extensions
+            {
+                extension(object? obj)
+                {
+                    [NotNull]
+                    public object? AsNotNull => obj!;
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : should we extend member post-conditions to work with extension members?
+        comp.VerifyEmitDiagnostics(
+            // (9,13): warning CS8602: Dereference of a possibly null reference.
+            //             notNull.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "notNull").WithLocation(9, 13));
+    }
+
+    [Fact]
     public void WellKnownAttribute_Conditional()
     {
         var src = """

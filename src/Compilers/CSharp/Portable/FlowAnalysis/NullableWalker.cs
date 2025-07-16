@@ -4412,7 +4412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var symbol = objectInitializer.MemberSymbol;
 
-                // https://github.com/dotnet/roslyn/issues/78828: use containing type with new extensions
+                // https://github.com/dotnet/roslyn/issues/78828: adjust extension member based on new containing type
                 if (symbol != null && !symbol.GetIsNewExtensionMember())
                 {
                     Debug.Assert(TypeSymbol.Equals(objectInitializer.Type, GetTypeOrReturnType(symbol), TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
@@ -11325,7 +11325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private (PropertySymbol updatedProperty, bool returnNotNull) ReInferExtensionPropertyAccess(BoundNode node, PropertySymbol property, BoundExpression receiver)
+        private (PropertySymbol updatedProperty, bool returnNotNull) ReInferAndVisitExtensionPropertyAccess(BoundNode node, PropertySymbol property, BoundExpression receiver)
         {
             Debug.Assert(property.GetIsNewExtensionMember());
             ImmutableArray<BoundExpression> arguments = [receiver];
@@ -11352,7 +11352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (property.GetIsNewExtensionMember())
             {
                 Debug.Assert(node.ReceiverOpt is not null);
-                (updatedProperty, _) = ReInferExtensionPropertyAccess(node, property, node.ReceiverOpt);
+                (updatedProperty, _) = ReInferAndVisitExtensionPropertyAccess(node, property, node.ReceiverOpt);
 
                 TypeWithAnnotations typeWithAnnotations = GetTypeOrReturnTypeWithAnnotations(updatedProperty);
                 FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(updatedProperty);
