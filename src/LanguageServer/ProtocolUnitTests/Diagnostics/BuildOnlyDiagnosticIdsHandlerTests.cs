@@ -36,9 +36,10 @@ public sealed class BuildOnlyDiagnosticIdsHandlerTests(ITestOutputHelper testOut
     [WorkItem("https://github.com/dotnet/vscode-csharp/issues/5728")]
     public async Task TestVisualBasicBuildOnlyDiagnosticIdsAsync(bool mutatingLspWorkspace)
     {
-        await using var testLspServer = await CreateVisualBasicTestLspServerAsync(markup: @"
-Class C
-End Class", mutatingLspWorkspace);
+        await using var testLspServer = await CreateVisualBasicTestLspServerAsync(markup: """
+            Class C
+            End Class
+            """, mutatingLspWorkspace);
 
         var result = await testLspServer.ExecuteRequest0Async<BuildOnlyDiagnosticIdsResult>(BuildOnlyDiagnosticIdsHandler.BuildOnlyDiagnosticIdsMethodName,
             CancellationToken.None);

@@ -25,25 +25,26 @@ public sealed class SuppressMessageAttributeWorkspaceTests : SuppressMessageAttr
 
     private static readonly Lazy<MetadataReference> _unconditionalSuppressMessageRef = new(() =>
     {
-        const string unconditionalSuppressMessageDef = @"
-namespace System.Diagnostics.CodeAnalysis
-{
-    [System.AttributeUsage(System.AttributeTargets.All, AllowMultiple=true, Inherited=false)]
-    public sealed class UnconditionalSuppressMessageAttribute : System.Attribute
-    {
-        public UnconditionalSuppressMessageAttribute(string category, string checkId)
+        const string unconditionalSuppressMessageDef = """
+        namespace System.Diagnostics.CodeAnalysis
         {
-            Category = category;
-            CheckId = checkId;
+            [System.AttributeUsage(System.AttributeTargets.All, AllowMultiple=true, Inherited=false)]
+            public sealed class UnconditionalSuppressMessageAttribute : System.Attribute
+            {
+                public UnconditionalSuppressMessageAttribute(string category, string checkId)
+                {
+                    Category = category;
+                    CheckId = checkId;
+                }
+                public string Category { get; }
+                public string CheckId { get; }
+                public string Scope { get; set; }
+                public string Target { get; set; }
+                public string MessageId { get; set; }
+                public string Justification { get; set; }
+            }
         }
-        public string Category { get; }
-        public string CheckId { get; }
-        public string Scope { get; set; }
-        public string Target { get; set; }
-        public string MessageId { get; set; }
-        public string Justification { get; set; }
-    }
-}";
+        """;
         return CSharpCompilation.Create("unconditionalsuppress",
              options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
             syntaxTrees: [CSharpSyntaxTree.ParseText(unconditionalSuppressMessageDef)],
@@ -101,17 +102,17 @@ namespace System.Diagnostics.CodeAnalysis
         var diagnostic = Diagnostic("AD0001", null);
 
         // expect 3 different diagnostics with 3 different contexts.
-        await VerifyCSharpAsync(@"
-public class C
-{
-}
-public class C1
-{
-}
-public class C2
-{
-}
-",
+        await VerifyCSharpAsync("""
+            public class C
+            {
+            }
+            public class C1
+            {
+            }
+            public class C2
+            {
+            }
+            """,
             [new ThrowExceptionForEachNamedTypeAnalyzer(ExceptionDispatchInfo.Capture(new Exception()))],
             diagnostics: [diagnostic, diagnostic, diagnostic]);
     }

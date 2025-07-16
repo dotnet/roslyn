@@ -6,12 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
-    internal static class BasicBlockExtensions
+    internal static partial class BasicBlockExtensions
     {
         internal static IEnumerable<(BasicBlock predecessorBlock, BranchWithInfo branchWithInfo)> GetPredecessorsWithBranches(this BasicBlock basicBlock, ControlFlowGraph cfg)
         {
@@ -44,25 +44,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             return null;
-        }
-
-        public static IEnumerable<IOperation> DescendantOperations(this BasicBlock basicBlock)
-        {
-            foreach (var statement in basicBlock.Operations)
-            {
-                foreach (var operation in statement.DescendantsAndSelf())
-                {
-                    yield return operation;
-                }
-            }
-
-            if (basicBlock.BranchValue != null)
-            {
-                foreach (var operation in basicBlock.BranchValue.DescendantsAndSelf())
-                {
-                    yield return operation;
-                }
-            }
         }
 
         /// <summary>
@@ -199,8 +180,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 return false;
             }
 
-            using var processedOrdinals = PooledHashSet<int>.GetInstance();
-            using var unprocessedOrdinals = ArrayBuilder<int>.GetInstance();
+            using var _1 = PooledHashSet<int>.GetInstance(out var processedOrdinals);
+            using var _2 = ArrayBuilder<int>.GetInstance(out var unprocessedOrdinals);
             foreach (var predecessor in basicBlock.Predecessors)
             {
                 var sourceBlock = predecessor.Source;

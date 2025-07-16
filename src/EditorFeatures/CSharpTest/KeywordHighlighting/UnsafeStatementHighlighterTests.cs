@@ -18,9 +18,8 @@ public sealed class UnsafeStatementHighlighterTests : AbstractCSharpKeywordHighl
         => typeof(UnsafeStatementHighlighter);
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-    public async Task TestExample1_1()
-    {
-        await TestAsync(
+    public Task TestExample1_1()
+        => TestAsync(
             """
             class C
             {
@@ -37,5 +36,4 @@ public sealed class UnsafeStatementHighlighterTests : AbstractCSharpKeywordHighl
                 }
             }
             """);
-    }
 }

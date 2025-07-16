@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -19,7 +19,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             // TODO paulming: Review why InformationDisclosure and XSS sinks are different.
             var builder = PooledHashSet<SinkInfo>.GetInstance();
 
-            SinkKind[] sinkKinds = new SinkKind[] { SinkKind.InformationDisclosure, SinkKind.Xss };
+            SinkKind[] sinkKinds = [SinkKind.InformationDisclosure, SinkKind.Xss];
 
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemWebUIITextControl,
@@ -36,9 +36,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: null,
                 sinkMethodParameters: new[] {
                     ("Write", new[] { "ch", "obj", "s", "buffer" } ),
-                    ("BinaryWrite", new[] { "buffer" } ),
-                    ("TransmitFile", new[] { "filename" } ),
-                    ("WriteFile", new[] { "filename" } )
+                    ("BinaryWrite", ["buffer"] ),
+                    ("TransmitFile", ["filename"] ),
+                    ("WriteFile", ["filename"] )
                 });
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemWebHttpResponse,
@@ -48,9 +48,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: null,
                 sinkMethodParameters: new[] {
                     ("Write", new[] { "ch", "obj", "s", "buffer" } ),
-                    ("BinaryWrite", new[] { "buffer" } ),
-                    ("TransmitFile", new[] { "filename" } ),
-                    ("WriteFile", new[] { "filename" } )
+                    ("BinaryWrite", ["buffer"] ),
+                    ("TransmitFile", ["filename"] ),
+                    ("WriteFile", ["filename"] )
                 });
 
             builder.AddSinkInfo(

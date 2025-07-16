@@ -584,7 +584,7 @@ public static class E
 var person = new { Name = "John", Age = 30 };
 person.M();
 person.M2();
-_ = person.P;
+_ = person.Property;
 
 public static class E
 {
@@ -597,12 +597,32 @@ public static class E
     public static void M2<T>(this T t) { System.Console.Write("method2 "); }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : should work
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (4,12): error CS1061: '<anonymous type: string Name, int Age>' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type '<anonymous type: string Name, int Age>' could be found (are you missing a using directive or an assembly reference?)
-            // _ = person.P;
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("<anonymous type: string Name, int Age>", "P").WithLocation(4, 12));
+        CompileAndVerify(comp, expectedOutput: "method method2 property").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AnonymousType_02()
+    {
+        // instance members come first
+        var src = """
+System.Action a = () => { System.Console.Write("method "); };
+var person = new { DoStuff = a, Property = 42 };
+
+person.DoStuff();
+System.Console.Write(person.Property);
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void DoStuff() => throw null;
+        public int Property => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "method 42").VerifyDiagnostics();
     }
 
     [Fact]
@@ -2388,7 +2408,7 @@ static class E2
 """;
 
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : the diagnostic should describe what went wrong
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, the diagnostic should describe what went wrong
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // var x = object.M; // 1
@@ -2645,24 +2665,24 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         // missing implementation method for M
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 }
 """;
         var src = """
@@ -2714,24 +2734,24 @@ object.M();
         // Accessibility of extension marker is not private
         var ilSrc = $$"""
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method {{accessibility}} hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method {{accessibility}} hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -2763,24 +2783,24 @@ int.M();
         // Accessibility of extension marker is not private, instance extension method
         var ilSrc = $$"""
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method public hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method public hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig instance void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig instance void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M ( int32 i ) cil managed 
     {
@@ -2805,24 +2825,24 @@ int.M();
         // Extension marker method is generic
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$'<T> ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$'<T> ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -2847,24 +2867,24 @@ int.M();
         // Extension marker method is not static
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -2889,25 +2909,25 @@ int.M();
         // Extension marker doesn't return void
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static int32 '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static int32 '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
             IL_0000: ldc.i4.0
             IL_0001: ret
-		}
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -2932,24 +2952,24 @@ int.M();
         // Extension marker lacks its parameter
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' () cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' () cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -2974,24 +2994,24 @@ int.M();
         // Extension marker has an extra parameter
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '', string s ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '', string s ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -3050,30 +3070,30 @@ int.M();
         // Two extension markers
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method private hidebysig specialname static void '<Extension>$' ( string '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+        .method private hidebysig specialname static void '<Extension>$' ( string '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -3098,24 +3118,24 @@ int.M();
         // Arity mismatch between skeleton and implementation
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M<T> () cil managed 
     {
@@ -3140,24 +3160,24 @@ int.M();
         // Accessibility mismatch between skeleton and implementation
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method assembly hidebysig static void M () cil managed 
     {
@@ -3182,24 +3202,24 @@ int.M();
         // parameter count mismatch between skeleton and implementation
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M (string s) cil managed 
     {
@@ -3224,24 +3244,24 @@ int.M();
         // return type mismatch between skeleton and implementation
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static int32 M () cil managed 
     {
@@ -3266,24 +3286,24 @@ int.M();
         // parameter type mismatch, instance method
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig instance void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig instance void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M ( object i ) cil managed 
     {
@@ -3308,24 +3328,24 @@ int.M();
         // parameter type mismatch, instance method
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig instance void M ( string s ) cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig instance void M ( string s ) cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M ( int32 i, object s ) cil managed 
     {
@@ -3350,24 +3370,24 @@ int.M();
         // constraint mismatch between skeleton and implementation
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M<T> () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M<T> () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M<class T> () cil managed 
     {
@@ -3392,24 +3412,24 @@ int.M();
         // implementation is not static
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig instance void M () cil managed 
     {
@@ -3434,24 +3454,24 @@ int.M();
         // skeleton type is not sealed
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -3480,24 +3500,24 @@ int.M();
         // skeleton type is not public
         var ilSrc = $$"""
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested {{accessibility}} auto ansi specialname beforefieldinit sealed '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested {{accessibility}} auto ansi specialname beforefieldinit sealed '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -3524,24 +3544,24 @@ int.M();
         // skeleton type not sealed
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -3568,24 +3588,24 @@ int.M();
         // skeleton type has a base that's not object
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi specialname beforefieldinit sealed '<>E__0'
-		extends [mscorlib]System.String
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi specialname beforefieldinit sealed '<>E__0'
+        extends [mscorlib]System.String
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -3612,25 +3632,25 @@ int.M();
         // skeleton type implements an interface
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi specialname beforefieldinit sealed '<>E__0'
-		extends [mscorlib]System.Object
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi specialname beforefieldinit sealed '<>E__0'
+        extends [mscorlib]System.Object
         implements I
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -3661,24 +3681,24 @@ int.M();
         // parameter type mismatch, static method
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M ( string s ) cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M ( string s ) cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M ( object s ) cil managed 
     {
@@ -5392,7 +5412,7 @@ static class E
     public static void M2() { }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : cref, such unqualified references in CREF should work within context of enclosing static type
+        // Tracked by https://github.com/dotnet/roslyn/issues/78967 : cref, such unqualified references in CREF should work within context of enclosing static type
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics(
             // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).Method' that could not be resolved
@@ -5544,6 +5564,1638 @@ static class E
             // (1,16): warning CS1574: XML comment has cref attribute 'M(string)' that could not be resolved
             // /// <see cref="E.M(string)"/>
             Diagnostic(ErrorCode.WRN_BadXMLRef, "E.M(string)").WithArguments("M(string)").WithLocation(1, 16));
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_01()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        Assert.Equal("extension(System.Object)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_02()
+    {
+        // separator for containing types is slash
+        var src = """
+static class E
+{
+    extension(N1.N2.C1.C2.C3)
+    {
+    }
+}
+
+namespace N1
+{
+    namespace N2
+    {
+        class C1
+        {
+            public class C2
+            {
+                public class C3 { }
+            }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        Assert.Equal("extension(N1.N2.C1/C2/C3)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_03()
+    {
+        // containing type gets an arity, all type arguments are included
+        var src = """
+static class E
+{
+    extension(C1<int>.C2<string>)
+    {
+    }
+}
+
+class C1<T> { public class C2<U> { } }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension(C1`1/C2`1<System.Int32, System.String>)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_04()
+    {
+        // Arity above 10
+        var src = """
+static class E
+{
+    extension(C<int, int, int, int, int, int, int, int, int, int, int, int>)
+    {
+    }
+}
+
+class C<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension(C`12<System.Int32, System.Int32, System.Int32, System.Int32, " +
+            "System.Int32, System.Int32, System.Int32, System.Int32, " +
+            "System.Int32, System.Int32, System.Int32, System.Int32>)",
+            extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_05()
+    {
+        // Nested type arguments
+        var src = """
+static class E
+{
+    extension(C<C<int>>)
+    {
+    }
+}
+class C<T> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension(C`1<C`1<System.Int32>>)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_08()
+    {
+        // Short tuple
+        var src = """
+static class E
+{
+    extension((int alice, string bob))
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension(System.ValueTuple`2<System.Int32, System.String>)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_09()
+    {
+        // Long tuple
+        var src = """
+static class E
+{
+    extension((int x0, int x1, int x2, int x3, int x4, int x5, int x6, string x7))
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension(System.ValueTuple`8<System.Int32, System.Int32, System.Int32, System.Int32, " +
+            "System.Int32, System.Int32, System.Int32, System.ValueTuple`1<System.String>>)",
+            extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_10()
+    {
+        // Simple types
+        var src = """
+static class E
+{
+    extension(C<char, string, bool, sbyte, short, int, long, float, double, byte, ushort, uint, ulong>)
+    {
+    }
+}
+class C<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension(C`13<System.Char, System.String, System.Boolean, System.SByte, " +
+            "System.Int16, System.Int32, System.Int64, System.Single, System.Double, " +
+            "System.Byte, System.UInt16, System.UInt32, System.UInt64>)",
+            extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_11()
+    {
+        // Native ints
+        var src = """
+static class E
+{
+    extension((nint, nuint))
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension(System.ValueTuple`2<System.IntPtr, System.UIntPtr>)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_12()
+    {
+        // System.Nullable
+        var src = """
+static class E
+{
+    extension(int?)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension(System.Nullable`1<System.Int32>)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_13()
+    {
+        // Referencing type parameter
+        var src = """
+static class E
+{
+    extension<U>(U)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension<>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_14()
+    {
+        // Referencing over 10 type parameters as type arguments
+        var src = """
+static class E
+{
+    extension<U0, U1, U2, U3, U4, U5, U6, U7, U8, U9, U10, U11, U12>(C<U0, U1, U2, U3, U4, U5, U6, U7, U8, U9, U10, U11, U12>)
+    {
+    }
+}
+class C<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension<,,,,,,,,,,,,>(C`13<!0, !1, !2, !3, !4, !5, !6, !7, !8, !9, !10, !11, !12>)",
+            extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_15()
+    {
+        // Attributes are removed from CLR-level signature
+        var src = """
+static class E
+{
+    extension<[My] T>(T)
+    {
+    }
+}
+
+class MyAttribute : System.Attribute { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension<>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_16()
+    {
+        // Nullability annotations are removed from CLR-level signature
+        var src = """
+#nullable enable
+
+static class E
+{
+    extension(object?)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension(System.Object)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_17()
+    {
+        // Array
+        var src = """
+static class E
+{
+    extension(object[][,])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension(System.Object[,][])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_18()
+    {
+        // Array with nullability annotations
+        var src = """
+#nullable enable
+static class E
+{
+    extension(object?[]?[,])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(System.Object[][,])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_19()
+    {
+        // Vector / single-dimensional array
+        var src = """
+#nullable enable
+static class E
+{
+    extension(object[,])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(System.Object[,])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_20()
+    {
+        // Pointer type
+        var src = """
+unsafe static class E
+{
+    extension(int*[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(System.Int32*[])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_21()
+    {
+        // Pointer type
+        var src = """
+unsafe static class E
+{
+    extension(int**[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(System.Int32**[])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_22()
+    {
+        // Function pointer type
+        var src = """
+unsafe static class E
+{
+    extension(delegate*<int, string, void>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method void *(System.Int32, System.String)[])", extension.ComputeExtensionGroupingRawName());
+
+        var src2 = """
+unsafe struct C
+{
+    delegate*<int, string, void>[] field;
+}
+""";
+        CompileAndVerify(src2, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90, verify: Verification.FailsPEVerify).VerifyTypeIL("C", """
+.class private sequential ansi sealed beforefieldinit C
+    extends [System.Runtime]System.ValueType
+{
+    // Fields
+    .field private method void *(int32, string)[] 'field'
+} // end of class C
+""");
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_23()
+    {
+        // null ExtensionParameter
+        var src = """
+static class E
+{
+    extension(__arglist)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS1669: __arglist is not valid in this context
+            //     extension(__arglist)
+            Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15));
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension()", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_24()
+    {
+        // constraints: class
+        var src = """
+static class E
+{
+    extension<T>(T) where T : class
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<class>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_25()
+    {
+        // constraints: struct
+        var src = """
+static class E
+{
+    extension<T>(T) where T : struct
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<valuetype .ctor (System.ValueType)>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_26()
+    {
+        // constraints
+        var src = """
+static class E
+{
+    extension<T>(T) where T : class, new()
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<class .ctor>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_27()
+    {
+        // constraints
+        var src = """
+static class E
+{
+    extension<T>(T) where T : new(), class
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,31): error CS0401: The new() constraint must be the last restrictive constraint specified
+            //     extension<T>(T) where T : new(), class
+            Diagnostic(ErrorCode.ERR_NewBoundMustBeLast, "new").WithLocation(3, 31),
+            // (3,38): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+            //     extension<T>(T) where T : new(), class
+            Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(3, 38));
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<class .ctor>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_28()
+    {
+        // constraints: unmanaged
+        var src = """
+static class E
+{
+    extension<T>(T) where T : unmanaged
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<valuetype .ctor (System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType))>(!0)", extension.ComputeExtensionGroupingRawName());
+
+        var src2 = """
+unsafe struct C<T> where T : unmanaged
+{
+}
+""";
+        CompileAndVerify(src2, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90, verify: Verification.FailsPEVerify).VerifyTypeIL("C`1", """
+.class private sequential ansi sealed beforefieldinit C`1<valuetype .ctor (class [System.Runtime]System.ValueType modreq([System.Runtime]System.Runtime.InteropServices.UnmanagedType)) T>
+    extends [System.Runtime]System.ValueType
+{
+    .param type T
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = (
+            01 00 00 00
+        )
+    .pack 0
+    .size 1
+} // end of class C`1
+""");
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_29()
+    {
+        // constraints
+        var src = """
+static class E
+{
+    extension<T>(T) where T : System.ValueType
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,31): error CS0702: Constraint cannot be special class 'ValueType'
+            //     extension<T>(T) where T : System.ValueType
+            Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.ValueType").WithArguments("System.ValueType").WithLocation(3, 31));
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_30()
+    {
+        // constraints
+        var src = """
+static class E
+{
+    extension<T>(T) where T : unmanaged, new()
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,42): error CS8375: The 'new()' constraint cannot be used with the 'unmanaged' constraint
+            //     extension<T>(T) where T : unmanaged, new()
+            Diagnostic(ErrorCode.ERR_NewBoundWithUnmanaged, "new").WithLocation(3, 42));
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<valuetype .ctor (System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType))>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_31()
+    {
+        // constraints
+        var src = """
+static class E
+{
+    extension<T>(T) where T : unmanaged, I
+    {
+    }
+}
+
+interface I { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<valuetype .ctor (I, System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType))>(!0)",
+            extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_32()
+    {
+        // type constraints
+        var src = """
+static class E
+{
+    extension<T>(T) where T : I
+    {
+    }
+}
+
+interface I { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<(I)>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_33()
+    {
+        // type constraints
+        var src = """
+static class E
+{
+    extension<T>(T) where T : I1, I2
+    {
+    }
+}
+
+interface I1 { }
+interface I2 { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<(I1, I2)>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_34()
+    {
+        // type constraints
+        var src = """
+static class E
+{
+    extension<T>(T) where T : I2, I1
+    {
+    }
+}
+
+interface I1 { }
+interface I2 { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<(I1, I2)>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_35()
+    {
+        // type constraints
+        var src = """
+static class E
+{
+    extension<T>(T) where T : C, I1, I2
+    {
+    }
+}
+
+interface I1 { }
+interface I2 { }
+class C { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<(C, I1, I2)>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_36()
+    {
+        // constraints
+        var src = """
+static class E
+{
+    extension<T>(T) where T : struct, I
+    {
+    }
+}
+
+interface I { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<valuetype .ctor (I, System.ValueType)>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_37()
+    {
+        // constraints: allows ref struct
+        var src = """
+static class E
+{
+    extension<T>(T) where T : allows ref struct
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<byreflike>(!0)", extension.ComputeExtensionGroupingRawName());
+
+        // Note: IL should have byreflike flag
+        var src2 = """
+struct C<T> where T : allows ref struct
+{
+}
+""";
+        CompileAndVerify(src2, targetFramework: TargetFramework.Net90, verify: Verification.FailsPEVerify).VerifyTypeIL("C`1", """
+.class private sequential ansi sealed beforefieldinit C`1<T>
+    extends [System.Runtime]System.ValueType
+{
+    .pack 0
+    .size 1
+} // end of class C`1
+""");
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_38()
+    {
+        // constraints
+        var src = """
+static class E
+{
+    extension<T>(T) where T : struct, allows ref struct
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<valuetype byreflike .ctor (System.ValueType)>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_39()
+    {
+        // constraints
+        var src = """
+static class E
+{
+    extension<T>(T) where T : new(), allows ref struct
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<byreflike .ctor>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_40()
+    {
+        // type constraints
+        var src = """
+static class E
+{
+    extension<T, U>(T) where T : U
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<(!1),>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_41()
+    {
+        var src = """
+unsafe static class E
+{
+    extension(delegate*<D, D>[])
+    {
+    }
+}
+
+struct D { }
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method D *(D)[])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_42()
+    {
+        var src = """
+unsafe static class E
+{
+    extension(delegate*<D, D>[])
+    {
+    }
+}
+
+class D { }
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method D *(D)[])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_43()
+    {
+        var src = """
+unsafe static class E
+{
+    extension<T>(delegate*<T, T>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<>(method !0 *(!0)[])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_44()
+    {
+        var src = """
+static class E
+{
+    extension(C<C<int>>)
+    {
+    }
+}
+
+struct C<T> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(C`1<C`1<System.Int32>>)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_45()
+    {
+        var src = """
+static class E
+{
+    extension(C<C<int>>)
+    {
+    }
+}
+
+class C<T> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(C`1<C`1<System.Int32>>)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_46()
+    {
+        var src = """
+static class E
+{
+    extension(ERROR)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+            //     extension(ERROR)
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(3, 15));
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(ERROR)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_47()
+    {
+        // function pointer modifiers
+        var src = """
+unsafe static class E
+{
+    extension(delegate* unmanaged<void>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method unmanaged void *()[])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_48()
+    {
+        // function pointer modifiers
+        var src = """
+unsafe static class E
+{
+    extension(delegate* unmanaged[Cdecl]<void>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method unmanaged cdecl void *()[])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_49()
+    {
+        // function pointer modifiers
+        var src = """
+unsafe static class E
+{
+    extension(delegate* unmanaged[Stdcall]<void>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method unmanaged stdcall void *()[])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_50()
+    {
+        // function pointer modifiers
+        var src = """
+unsafe static class E
+{
+    extension(delegate* unmanaged[Thiscall]<void>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method unmanaged thiscall void *()[])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_51()
+    {
+        // function pointer modifiers
+        var src = """
+unsafe static class E
+{
+    extension(delegate* unmanaged[Fastcall]<void>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method unmanaged fastcall void *()[])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_52()
+    {
+        // function pointer modifiers: 1 non-special calling convention
+        var src = """
+unsafe static class E
+{
+    extension(delegate* unmanaged[SuppressGCTransition]<void>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method unmanaged void modopt(System.Runtime.CompilerServices.CallConvSuppressGCTransition) *()[])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_53()
+    {
+        // function pointer modifiers: 1 non-special calling convention
+        var src = """
+unsafe static class E
+{
+    extension(delegate* unmanaged[Vectorcall]<void>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (3,35): error CS8890: Type 'CallConvVectorcall' is not defined.
+            //     extension(delegate* unmanaged[Vectorcall]<void>[])
+            Diagnostic(ErrorCode.ERR_TypeNotFound, "Vectorcall").WithArguments("CallConvVectorcall").WithLocation(3, 35));
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method unmanaged void modopt(System.Runtime.CompilerServices.CallConvVectorcall) *()[])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_54()
+    {
+        // function pointer modifiers: more than 1 special calling convention
+        var src = """
+unsafe static class E
+{
+    extension(delegate* unmanaged[Stdcall, Thiscall]<void>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method unmanaged void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall) *()[])",
+            extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_55()
+    {
+        // function pointer modifiers: more than 1 special calling convention, reverse order
+        var src = """
+unsafe static class E
+{
+    extension(delegate* unmanaged[Thiscall, Stdcall]<void>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method unmanaged void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall) *()[])",
+            extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_56()
+    {
+        // function pointer modifiers
+        var src = """
+unsafe static class E
+{
+    extension(delegate* unmanaged[Stdcall, SuppressGCTransition]<void>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method unmanaged void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvSuppressGCTransition) *()[])",
+            extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_57()
+    {
+        // function pointer refness: ref
+        var src = """
+unsafe static class E
+{
+    extension(delegate* <ref int, ref long>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method System.Int64& *(System.Int32&)[])", extension.ComputeExtensionGroupingRawName());
+
+        var src2 = """
+unsafe struct C
+{
+    delegate* <ref int, ref long>[] field;
+}
+""";
+        CompileAndVerify(src2, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90, verify: Verification.FailsPEVerify).VerifyTypeIL("C", """
+.class private sequential ansi sealed beforefieldinit C
+    extends [System.Runtime]System.ValueType
+{
+    // Fields
+    .field private method int64& *(int32&)[] 'field'
+} // end of class C
+""");
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_58()
+    {
+        // function pointer refness: ref readonly
+        var src = """
+unsafe static class E
+{
+    extension(delegate* <ref readonly int, ref readonly long>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method System.Int64& modreq(System.Runtime.InteropServices.InAttribute) *(System.Int32& modopt(System.Runtime.CompilerServices.RequiresLocationAttribute))[])",
+            extension.ComputeExtensionGroupingRawName());
+
+        var src2 = """
+unsafe struct C
+{
+    delegate* <ref readonly int, ref readonly long>[] field;
+}
+""";
+        CompileAndVerify(src2, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90, verify: Verification.FailsPEVerify).VerifyTypeIL("C", """
+.class private sequential ansi sealed beforefieldinit C
+    extends [System.Runtime]System.ValueType
+{
+    // Fields
+    .field private method int64& modreq([System.Runtime]System.Runtime.InteropServices.InAttribute) *(int32& modopt([System.Runtime]System.Runtime.CompilerServices.RequiresLocationAttribute))[] 'field'
+} // end of class C
+""");
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_59()
+    {
+        // function pointer refness: in
+        var src = """
+unsafe static class E
+{
+    extension(delegate* <in int, void>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method void *(System.Int32& modreq(System.Runtime.InteropServices.InAttribute))[])",
+            extension.ComputeExtensionGroupingRawName());
+
+        var src2 = """
+unsafe struct C
+{
+    delegate* <in int, void>[] field;
+}
+""";
+        CompileAndVerify(src2, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90, verify: Verification.FailsPEVerify).VerifyTypeIL("C", """
+.class private sequential ansi sealed beforefieldinit C
+    extends [System.Runtime]System.ValueType
+{
+    // Fields
+    .field private method void *(int32& modreq([System.Runtime]System.Runtime.InteropServices.InAttribute))[] 'field'
+} // end of class C
+""");
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_60()
+    {
+        // function pointer refness: out
+        var src = """
+unsafe static class E
+{
+    extension(delegate* <out int, void>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method void *(System.Int32& modreq(System.Runtime.InteropServices.OutAttribute))[])",
+            extension.ComputeExtensionGroupingRawName());
+
+        var src2 = """
+unsafe struct C
+{
+    delegate* <out int, void>[] field;
+}
+""";
+        CompileAndVerify(src2, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90, verify: Verification.FailsPEVerify).VerifyTypeIL("C", """
+.class private sequential ansi sealed beforefieldinit C
+    extends [System.Runtime]System.ValueType
+{
+    // Fields
+    .field private method void *(int32& modreq([System.Runtime]System.Runtime.InteropServices.OutAttribute))[] 'field'
+} // end of class C
+""");
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_61()
+    {
+        // function pointer nullability
+        var src = """
+#nullable enable
+
+unsafe static class E
+{
+    extension(delegate* <object?, object>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method System.Object *(System.Object)[])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_62()
+    {
+        // function pointer: type alias
+        var src = """
+using Obj = System.Object;
+
+unsafe static class E
+{
+    extension(delegate* <Obj, Obj>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method System.Object *(System.Object)[])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_63()
+    {
+        // function pointer modifiers
+        var src = """
+unsafe static class E
+{
+    extension(delegate* unmanaged[Stdcall, SuppressGCTransition]<ref readonly int>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method unmanaged System.Int32& modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvSuppressGCTransition) modreq(System.Runtime.InteropServices.InAttribute) *()[])",
+            extension.ComputeExtensionGroupingRawName());
+
+        var src2 = """
+unsafe struct C
+{
+    delegate* unmanaged[Stdcall, SuppressGCTransition]<ref readonly int>[] field;
+}
+""";
+        CompileAndVerify(src2, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90, verify: Verification.FailsPEVerify).VerifyTypeIL("C", """
+.class private sequential ansi sealed beforefieldinit C
+    extends [System.Runtime]System.ValueType
+{
+    // Fields
+    .field private method unmanaged int32& modreq([System.Runtime]System.Runtime.InteropServices.InAttribute) modopt([System.Runtime]System.Runtime.CompilerServices.CallConvSuppressGCTransition) modopt([System.Runtime]System.Runtime.CompilerServices.CallConvStdcall) *()[] 'field'
+} // end of class C
+""");
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_64()
+    {
+        var src = """
+static class E<T>
+{
+    extension(T)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(T)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5));
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(!T)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_65()
+    {
+        var src = """
+static class E<T0>
+{
+    extension<T>(T0)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension<T>(T0)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5));
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<>(!T0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_66()
+    {
+        var src = """
+static class E<T>
+{
+    extension<U>(U)
+    {
+        extension<V>(V)
+        {
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension<U>(U)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5),
+            // (5,9): error CS9282: This member is not allowed in an extension block
+            //         extension<V>(V)
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "extension").WithLocation(5, 9));
+
+        var nestedExtension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetTypeMembers().Single();
+        AssertEx.Equal("extension<>(!0)", nestedExtension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_67()
+    {
+        var src = """
+unsafe static class E
+{
+    extension(delegate*<scoped ref int, scoped ref int>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (3,25): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+            //     extension(delegate*<scoped ref int, scoped ref int>[])
+            Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(3, 25),
+            // (3,41): error CS8808: 'scoped' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+            //     extension(delegate*<scoped ref int, scoped ref int>[])
+            Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "scoped").WithArguments("scoped").WithLocation(3, 41));
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method System.Int32& *(System.Int32&)[])", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_68()
+    {
+        var src = """
+static class E
+{
+    extension((dynamic, dynamic))
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension(System.ValueTuple`2<System.Object, System.Object>)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_69()
+    {
+        var src = """
+static class E
+{
+    extension(dynamic)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'dynamic'
+            //     extension(dynamic)
+            Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(3, 15));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension(System.Object)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_70()
+    {
+        var src = """
+static class E
+{
+    extension<in T>(T)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+            //     extension<in T>(T)
+            Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(3, 15));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension<>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_71()
+    {
+        var src = """
+static class E
+{
+    extension<out T>(T)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+            //     extension<out T>(T)
+            Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(3, 15));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension<>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_72()
+    {
+        var src = """
+static class E
+{
+    extension<in T>(T t)
+    {
+        public void M() { }
+    }
+    extension<T>(T t)
+    {
+        public void M() { }
+    }
+
+    public static void M2<in T>(this T t) { }
+    public static void M2<T>(this T t) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+            //     extension<in T>(T t)
+            Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(3, 15),
+            // (9,21): error CS0111: Type 'E' already defines a member called 'M' with the same parameter types
+            //         public void M() { }
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "E").WithLocation(9, 21),
+            // (12,27): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+            //     public static void M2<in T>(this T t) { }
+            Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(12, 27),
+            // (13,24): error CS0111: Type 'E' already defines a member called 'M2' with the same parameter types
+            //     public static void M2<T>(this T t) { }
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "E").WithLocation(13, 24));
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_73()
+    {
+        // Function pointer type with type named "void"
+        var src = """
+unsafe static class E
+{
+    extension(delegate*<@void, @void>[])
+    {
+    }
+}
+class @void { }
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method 'void' *('void')[])", extension.ComputeExtensionGroupingRawName());
+
+        var src2 = """
+unsafe struct C
+{
+    delegate*<@void, @void>[] field;
+}
+class @void { }
+""";
+        CompileAndVerify(src2, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90, verify: Verification.FailsPEVerify).VerifyTypeIL("C", """
+.class private sequential ansi sealed beforefieldinit C
+    extends [System.Runtime]System.ValueType
+{
+    // Fields
+    .field private method class 'void' *(class 'void')[] 'field'
+} // end of class C
+""");
     }
 }
 

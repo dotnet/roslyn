@@ -18,22 +18,20 @@ internal abstract class EnumSettingViewModel<T> : IEnumSettingViewModel
     public string ToolTip => ServicesVSResources.Value;
     public string AutomationName => ServicesVSResources.Value;
 
-    private string? _selectedEnumValue;
-
     public string SelectedEnumValue
     {
         get
         {
-            if (_selectedEnumValue is null)
+            if (field is null)
             {
                 var values = EnumValues;
                 var index = GetValueIndex();
-                _selectedEnumValue = values[index];
+                field = values[index];
             }
 
-            return _selectedEnumValue;
+            return field;
         }
-        set => _selectedEnumValue = value;
+        set;
     }
 
     protected EnumSettingViewModel()

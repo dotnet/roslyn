@@ -24,18 +24,24 @@ public abstract class EditingTestBase : CSharpTestBase
     public static readonly string ReloadableAttributeDefSrc =
         "namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttribute : Attribute {} }";
 
-    public static readonly string ReloadableAttributeSrc = $@"
-using System.Runtime.CompilerServices;
-{ReloadableAttributeDefSrc}
-";
+    public static readonly string ReloadableAttributeSrc = $"""
 
-    public static readonly string RestartRequiredOnMetadataUpdateAttributeDefSrc = @"
-namespace System.Runtime.CompilerServices { class RestartRequiredOnMetadataUpdateAttribute : Attribute {} }
-";
+        using System.Runtime.CompilerServices;
+        {ReloadableAttributeDefSrc}
 
-    public static readonly string RestartRequiredOnMetadataUpdateAttributeSrc = $@"
-using System.Runtime.CompilerServices;
-{RestartRequiredOnMetadataUpdateAttributeDefSrc}";
+        """;
+
+    public static readonly string RestartRequiredOnMetadataUpdateAttributeDefSrc = """
+
+        namespace System.Runtime.CompilerServices { class RestartRequiredOnMetadataUpdateAttribute : Attribute {} }
+
+        """;
+
+    public static readonly string RestartRequiredOnMetadataUpdateAttributeSrc = $"""
+
+        using System.Runtime.CompilerServices;
+        {RestartRequiredOnMetadataUpdateAttributeDefSrc}
+        """;
 
     internal enum MethodKind
     {

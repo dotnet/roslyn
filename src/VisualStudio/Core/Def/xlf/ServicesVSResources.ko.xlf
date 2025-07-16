@@ -422,6 +422,11 @@
         <target state="translated">표시 중지를 업데이트하는 동안 오류가 발생했습니다. {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Experimental_feature">
+        <source>Experimental feature</source>
+        <target state="new">Experimental feature</target>
+        <note>This is used by the settings UI to mark experimental features.</note>
+      </trans-unit>
       <trans-unit id="External_sources">
         <source>External Sources</source>
         <target state="translated">외부 원본</target>

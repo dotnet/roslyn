@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions
@@ -19,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Remove
     <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessarySuppressions)>
     <WorkItem("https://github.com/dotnet/roslyn/issues/44177")>
     Public NotInheritable Class RemoveUnnecessaryInlineSuppressionsTests
-        Inherits AbstractUnncessarySuppressionDiagnosticTest
+        Inherits AbstractUnnecessarySuppressionDiagnosticTest
 
         Public Sub New(logger As ITestOutputHelper)
             MyBase.New(logger)

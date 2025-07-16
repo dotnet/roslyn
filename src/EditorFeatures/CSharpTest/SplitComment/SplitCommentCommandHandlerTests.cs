@@ -309,13 +309,15 @@ public sealed class SplitCommentCommandHandlerTests : AbstractSplitCommentComman
     public void TestCommentWithMultipleLeadingSpaces(string commentValue)
     {
         TestHandled(
-@$"public class Program
-{{
-    public static void Main(string[] args) 
-    {{ 
-        //    {commentValue}
-    }}
-}}",
+            $$"""
+            public class Program
+            {
+                public static void Main(string[] args) 
+                { 
+                    //    {{commentValue}}
+                }
+            }
+            """,
 """
 public class Program
 {
@@ -338,13 +340,15 @@ public class Program
     public void TestQuadCommentWithMultipleLeadingSpaces(string commentValue)
     {
         TestHandled(
-@$"public class Program
-{{
-    public static void Main(string[] args) 
-    {{ 
-        ////    {commentValue}
-    }}
-}}",
+            $$"""
+            public class Program
+            {
+                public static void Main(string[] args) 
+                { 
+                    ////    {{commentValue}}
+                }
+            }
+            """,
 """
 public class Program
 {

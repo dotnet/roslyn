@@ -7872,7 +7872,72 @@ class Program
             Assert.Equal(kind, SyntaxFacts.GetOperatorKind(name));
         }
 
-        private static string CompoundAssignmentOperatorName(string op, bool isChecked = false)
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78964")]
+        public void Increment_151_RefSafety([CombinatorialValues("++", "--")] string op)
+        {
+            //      r1 = ++r2;
+            // is equivalent to
+            //      var tmp = r2;
+            //      tmp.op_IncrementAssignment();
+            //      r2 = tmp;
+            //      r1 = tmp;
+            // which is *not* ref safe (scoped tmp cannot be assigned to unscoped r1)
+            var source = $$"""
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public void operator {{op}}() { }
+                }
+                class Program
+                {
+                    static R F1(R r1, scoped R r2)
+                    {
+                        r1 = {{op}}r2;
+                        return r1;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (11,14): error CS8352: Cannot use variable 'scoped R r2' in this context because it may expose referenced variables outside of their declaration scope
+                //         r1 = ++r2;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, $"{op}r2").WithArguments("scoped R r2").WithLocation(11, 14));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78964")]
+        public void Increment_152_RefSafety([CombinatorialValues("++", "--")] string op)
+        {
+            //      F2(out var r1, ++r2); return r1;
+            // is equivalent to
+            //      var tmp = r2;
+            //      tmp.op_IncrementAssignment();
+            //      r2 = tmp;
+            //      F2(out var r1, tmp); return r1;
+            // which is *not* ref safe (r1 is inferred as scoped from tmp but scoped r1 cannot be returned)
+            var source = $$"""
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public void operator {{op}}() { }
+                }
+                class Program
+                {
+                    static R F1(scoped R r2)
+                    {
+                        F2(out var r1, {{op}}r2);
+                        return r1;
+                    }
+                    static void F2(out R r1, R r2) => r1 = r2;
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (12,16): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("r1").WithLocation(12, 16));
+        }
+
+        internal static string CompoundAssignmentOperatorName(string op, bool isChecked = false)
         {
             SyntaxKind kind = CompoundAssignmentOperatorTokenKind(op);
 
@@ -17691,7 +17756,7 @@ public class C1 : C2
             comp.VerifyEmitDiagnostics();
         }
 
-        private static string ToCRefOp(string op)
+        internal static string ToCRefOp(string op)
         {
             return op.Replace("&", "&amp;").Replace("<", "&lt;");
         }
@@ -20231,6 +20296,82 @@ class Program
 
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "+=3+=55nullnull").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_01610_Consumption_RightIsImplicitObjectCreation()
+        {
+            var source = @"
+struct S1
+{
+    public void operator +=(S1 y) {}
+}
+
+struct S2
+{
+    public static S2 operator +(S2 x, S2 y) => x;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        s1 += new();
+
+        var s2 = new S2();
+        s2 += new();
+    } 
+}
+";
+
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
+            comp.VerifyDiagnostics(
+                // (17,9): error CS8310: Operator '+=' cannot be applied to operand 'new()'
+                //         s1 += new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "s1 += new()").WithArguments("+=", "new()").WithLocation(17, 9),
+                // (20,9): error CS8310: Operator '+=' cannot be applied to operand 'new()'
+                //         s2 += new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "s2 += new()").WithArguments("+=", "new()").WithLocation(20, 9)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_01620_Consumption_RightIsDefault()
+        {
+            var source = @"
+struct S1
+{
+    public void operator +=(S1 y) {}
+}
+
+struct S2
+{
+    public static S2 operator +(S2 x, S2 y) => x;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        s1 += default;
+
+        var s2 = new S2();
+        s2 += default;
+    } 
+}
+";
+
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
+            comp.VerifyDiagnostics(
+                // (17,9): error CS8310: Operator '+=' cannot be applied to operand 'default'
+                //         s1 += default;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "s1 += default").WithArguments("+=", "default").WithLocation(17, 9),
+                // (20,9): error CS8310: Operator '+=' cannot be applied to operand 'default'
+                //         s2 += default;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "s2 += default").WithArguments("+=", "default").WithLocation(20, 9)
+                );
         }
     }
 }

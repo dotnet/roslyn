@@ -122,18 +122,14 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
             if (variableDeclaration.Variables is not [{ Initializer.Value: var initializer } variable])
                 return false;
 
-            // Do not suggest var replacement for stackalloc span expressions.
-            // This will change the bound type from a span to a pointer.
-            if (!variableDeclaration.Type.IsKind(SyntaxKind.PointerType))
+            // Do not suggest var replacement for stackalloc span expressions. This will change the bound type from a
+            // span to a pointer.  Note: this only applies to `var v = stackalloc ...;`  If `stackalloc` is anywhere
+            // lower (including `var v = (stackalloc ...);`), then this is will be a span, and it will be ok to change
+            // to use 'var'.
+            if (!variableDeclaration.Type.IsKind(SyntaxKind.PointerType) &&
+                initializer is StackAllocArrayCreationExpressionSyntax)
             {
-                var containsStackAlloc = initializer
-                    .DescendantNodesAndSelf(descendIntoChildren: node => node is not AnonymousFunctionExpressionSyntax)
-                    .Any(node => node.IsKind(SyntaxKind.StackAllocArrayCreationExpression));
-
-                if (containsStackAlloc)
-                {
-                    return false;
-                }
+                return false;
             }
 
             if (AssignmentSupportsStylePreference(
@@ -321,7 +317,7 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
             return declaredType.Equals(initializerType) &&
                 declaredType is
                 {
-                    Name: nameof(Func<int>) or nameof(Action<int>),
+                    Name: nameof(Func<>) or nameof(Action<>),
                     ContainingSymbol: INamespaceSymbol { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
                 };
         }

@@ -13,15 +13,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer :
+internal sealed class CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer() :
     AbstractAddRequiredParenthesesDiagnosticAnalyzer<
-        ExpressionSyntax, ExpressionSyntax, SyntaxKind>
+        ExpressionSyntax, ExpressionSyntax, SyntaxKind>(CSharpExpressionPrecedenceService.Instance)
 {
-    public CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer()
-        : base(CSharpExpressionPrecedenceService.Instance)
-    {
-    }
-
     private static readonly ImmutableArray<SyntaxKind> s_kinds =
     [
         SyntaxKind.AddExpression,
@@ -56,7 +51,7 @@ internal sealed class CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer :
 
     protected override bool IsBinaryLike(ExpressionSyntax node)
         => node is BinaryExpressionSyntax ||
-           node is IsPatternExpressionSyntax isPattern && isPattern.Pattern is ConstantPatternSyntax;
+           node is IsPatternExpressionSyntax { Pattern: ConstantPatternSyntax };
 
     protected override (ExpressionSyntax, SyntaxToken, ExpressionSyntax) GetPartsOfBinaryLike(ExpressionSyntax binaryLike)
     {
@@ -66,8 +61,8 @@ internal sealed class CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer :
             case BinaryExpressionSyntax binaryExpression:
                 return (binaryExpression.Left, binaryExpression.OperatorToken, binaryExpression.Right);
 
-            case IsPatternExpressionSyntax isPatternExpression:
-                return (isPatternExpression.Expression, isPatternExpression.IsKeyword, ((ConstantPatternSyntax)isPatternExpression.Pattern).Expression);
+            case IsPatternExpressionSyntax { Pattern: ConstantPatternSyntax constantPattern } isPatternExpression:
+                return (isPatternExpression.Expression, isPatternExpression.IsKeyword, constantPattern.Expression);
 
             default:
                 throw ExceptionUtilities.UnexpectedValue(binaryLike);
@@ -78,4 +73,7 @@ internal sealed class CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer :
         => binaryLike.Parent is ConstantPatternSyntax
             ? binaryLike.Parent.Parent as ExpressionSyntax
             : binaryLike.Parent as ExpressionSyntax;
+
+    protected override bool IsAsExpression(ExpressionSyntax node)
+        => node.Kind() == SyntaxKind.AsExpression;
 }

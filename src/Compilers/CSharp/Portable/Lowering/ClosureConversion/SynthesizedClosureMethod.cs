@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    originalMethod,
                    blockSyntax,
                    originalMethod.DeclaringSyntaxReferences[0].GetLocation(),
-                   originalMethod is LocalFunctionSymbol
+                   originalMethod is { MethodKind: MethodKind.LocalFunction }
                     ? MakeName(topLevelMethod.Name, originalMethod.Name, topLevelMethodId, closureKind, lambdaId)
                     : MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaId),
                    MakeDeclarationModifiers(closureKind, originalMethod),
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureAttributesExist(compilationState);
 
             // static local functions should be emitted as static.
-            Debug.Assert(!(originalMethod is LocalFunctionSymbol) || !originalMethod.IsStatic || IsStatic);
+            Debug.Assert(originalMethod is not { MethodKind: MethodKind.LocalFunction } || !originalMethod.IsStatic || IsStatic);
         }
 
         private void EnsureAttributesExist(TypeCompilationState compilationState)

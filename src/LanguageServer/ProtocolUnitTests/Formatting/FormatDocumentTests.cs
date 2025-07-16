@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -34,8 +33,9 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
                 }
             }
             """;
-        var expected =
-            """
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
+        await AssertFormatDocumentAsync(testLspServer, documentURI, """
             class A
             {
                 void M()
@@ -43,10 +43,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
                     int i = 1;
                 }
             }
-            """;
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
-        await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
+            """);
     }
 
     [Theory, CombinatorialData]
@@ -61,16 +58,6 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
             {
             }
             """;
-        var expected =
-            """
-            using System;
-            using System.Collections;
-
-            class A
-            {
-            }
-            """;
-
         var options = new InitializationOptions
         {
             OptionUpdater = globalOptions =>
@@ -81,7 +68,14 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
         var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
-        await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
+        await AssertFormatDocumentAsync(testLspServer, documentURI, """
+            using System;
+            using System.Collections;
+
+            class A
+            {
+            }
+            """);
     }
 
     [Theory, CombinatorialData]
@@ -96,16 +90,6 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
             {
             }
             """;
-        var expected =
-            """
-            using System;
-            using System.Collections;
-
-            class A
-            {
-            }
-            """;
-
         var options = new InitializationOptions
         {
             OptionUpdater = globalOptions =>
@@ -116,7 +100,14 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
         var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
-        await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
+        await AssertFormatDocumentAsync(testLspServer, documentURI, """
+            using System;
+            using System.Collections;
+
+            class A
+            {
+            }
+            """);
     }
 
     [Theory, CombinatorialData]
@@ -131,16 +122,6 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
             {
             }
             """;
-        var expected =
-            """
-            using System;
-            using System.Collections;
-
-            class A
-            {
-            }
-            """;
-
         var options = new InitializationOptions
         {
             OptionUpdater = globalOptions =>
@@ -151,7 +132,14 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
         var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
-        await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
+        await AssertFormatDocumentAsync(testLspServer, documentURI, """
+            using System;
+            using System.Collections;
+
+            class A
+            {
+            }
+            """);
     }
 
     [Theory, CombinatorialData]
@@ -166,16 +154,6 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
             {
             }
             """;
-        var expected =
-            """
-            using System;
-            using System.Collections;
-
-            class A
-            {
-            }
-            """;
-
         var options = new InitializationOptions
         {
             OptionUpdater = globalOptions =>
@@ -186,7 +164,14 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
         var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
-        await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
+        await AssertFormatDocumentAsync(testLspServer, documentURI, """
+            using System;
+            using System.Collections;
+
+            class A
+            {
+            }
+            """);
     }
 
     [Theory, CombinatorialData]
@@ -205,20 +190,6 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
                 }
             }
             """;
-        var expected =
-            """
-            using System;
-            using System.Collections;
-
-            class A
-            {
-                void M()
-                {
-                    int i = 1;
-                }
-            }
-            """;
-
         var options = new InitializationOptions
         {
             OptionUpdater = globalOptions =>
@@ -229,7 +200,18 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
         var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
-        await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
+        await AssertFormatDocumentAsync(testLspServer, documentURI, """
+            using System;
+            using System.Collections;
+
+            class A
+            {
+                void M()
+                {
+                    int i = 1;
+                }
+            }
+            """);
     }
 
     [Theory, CombinatorialData]
@@ -244,19 +226,16 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
             {
             }
             """;
-        var expected =
-            """
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
+        await AssertFormatDocumentAsync(testLspServer, documentURI, """
             using System.Collections;
             using System;
 
             class A
             {
             }
-            """;
-
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
-        await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
+            """);
     }
 
     [Theory, CombinatorialData]
@@ -272,8 +251,9 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
                 }
             }
             """;
-        var expected =
-            """
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
+        await AssertFormatDocumentAsync(testLspServer, documentURI, """
             class A
             {
             	void M()
@@ -281,10 +261,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
             		int i = 1;
             	}
             }
-            """;
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
-        await AssertFormatDocumentAsync(testLspServer, documentURI, expected, insertSpaces: false, tabSize: 4);
+            """, insertSpaces: false, tabSize: 4);
     }
 
     [Theory, CombinatorialData]
@@ -300,8 +277,9 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
                 }
             }
             """;
-        var expected =
-            """
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
+        await AssertFormatDocumentAsync(testLspServer, documentURI, """
             class A
             {
               void M()
@@ -309,10 +287,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
                 int i = 1;
               }
             }
-            """;
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
-        await AssertFormatDocumentAsync(testLspServer, documentURI, expected, insertSpaces: true, tabSize: 2);
+            """, insertSpaces: true, tabSize: 2);
     }
 
     private static async Task AssertFormatDocumentAsync(

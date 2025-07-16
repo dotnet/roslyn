@@ -37,9 +37,8 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
                new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Silent));
 
     [Fact]
-    public async Task ExpressionStatement_Suppressed()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExpressionStatement_Suppressed()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -51,13 +50,10 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
                 int M2() => 0;
             }
             """, options: PreferNone);
-    }
 
     [Fact]
-    public async Task ExpressionStatement_PreferDiscard_CSharp6()
-    {
-        // Discard not supported in C# 6.0, so we fallback to unused local variable.
-        await TestInRegularAndScriptAsync(
+    public Task ExpressionStatement_PreferDiscard_CSharp6()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -80,15 +76,13 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
                 int M2() => 0;
             }
             """, options: PreferDiscard,
-parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
-    }
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ExpressionStatement_VariableInitialization(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExpressionStatement_VariableInitialization(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -100,14 +94,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 int M2() => 0;
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "_")]
     [InlineData(nameof(PreferUnusedLocal), "var unused")]
-    public async Task ExpressionStatement_NonConstantPrimitiveTypeValue(string optionName, string fix)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ExpressionStatement_NonConstantPrimitiveTypeValue(string optionName, string fix)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -130,14 +122,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 int M2() => 0;
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "_")]
     [InlineData(nameof(PreferUnusedLocal), "var unused")]
-    public async Task ExpressionStatement_UserDefinedType(string optionName, string fix)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ExpressionStatement_UserDefinedType(string optionName, string fix)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -160,14 +150,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 C M2() => new C();
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ExpressionStatement_ConstantValue(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExpressionStatement_ConstantValue(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -177,14 +165,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ExpressionStatement_SyntaxError(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExpressionStatement_SyntaxError(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -196,14 +182,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 int M2() => 0;
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ExpressionStatement_SemanticError(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExpressionStatement_SemanticError(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -213,14 +197,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33073")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ExpressionStatement_SemanticError_02(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExpressionStatement_SemanticError_02(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -232,14 +214,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 UndefinedType M2() => null;
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33073")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ExpressionStatement_SemanticError_03(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExpressionStatement_SemanticError_03(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Threading.Tasks;
 
@@ -252,14 +232,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33073")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ExpressionStatement_SemanticError_04(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExpressionStatement_SemanticError_04(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -272,14 +250,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ExpressionStatement_VoidReturningMethodCall(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExpressionStatement_VoidReturningMethodCall(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -291,14 +267,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 void M2() { }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData("=")]
     [InlineData("+=")]
-    public async Task ExpressionStatement_AssignmentExpression(string op)
-    {
-        await TestMissingInRegularAndScriptWithAllOptionsAsync(
+    public Task ExpressionStatement_AssignmentExpression(string op)
+        => TestMissingInRegularAndScriptWithAllOptionsAsync(
             $$"""
             class C
             {
@@ -310,16 +284,14 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 int M2() => 0;
             }
             """);
-    }
 
     [Theory]
     [InlineData("x++")]
     [InlineData("x--")]
     [InlineData("++x")]
     [InlineData("--x")]
-    public async Task ExpressionStatement_IncrementOrDecrement(string incrementOrDecrement)
-    {
-        await TestMissingInRegularAndScriptWithAllOptionsAsync(
+    public Task ExpressionStatement_IncrementOrDecrement(string incrementOrDecrement)
+        => TestMissingInRegularAndScriptWithAllOptionsAsync(
             $$"""
             class C
             {
@@ -330,12 +302,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ExpressionStatement_UnusedLocal_NameAlreadyUsed()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ExpressionStatement_UnusedLocal_NameAlreadyUsed()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -360,12 +330,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 int M2() => 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact]
-    public async Task ExpressionStatement_UnusedLocal_NameAlreadyUsed_02()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ExpressionStatement_UnusedLocal_NameAlreadyUsed_02()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -390,12 +358,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 int M2() => 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact]
-    public async Task ExpressionStatement_UnusedLocal_NameAlreadyUsed_03()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ExpressionStatement_UnusedLocal_NameAlreadyUsed_03()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -426,12 +392,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 int M2() => 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact]
-    public async Task ExpressionStatement_UnusedLocal_NameAlreadyUsed_04()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ExpressionStatement_UnusedLocal_NameAlreadyUsed_04()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -468,14 +432,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 int M2() => 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "_", "_", "_")]
     [InlineData(nameof(PreferUnusedLocal), "var unused", "var unused", "var unused3")]
-    public async Task ExpressionStatement_FixAll(string optionName, string fix1, string fix2, string fix3)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ExpressionStatement_FixAll(string optionName, string fix1, string fix2, string fix3)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -514,12 +476,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 int M2() => 0;
             }
             """, optionName);
-    }
 
     [Fact]
-    public async Task ExpressionStatement_Trivia_PreferDiscard_01()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ExpressionStatement_Trivia_PreferDiscard_01()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -546,12 +506,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 int M2() => 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task ExpressionStatement_Trivia_PreferDiscard_02()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ExpressionStatement_Trivia_PreferDiscard_02()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -577,12 +535,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 int M2() => 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task ExpressionStatement_Trivia_PreferUnusedLocal_01()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ExpressionStatement_Trivia_PreferUnusedLocal_01()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -609,12 +565,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 int M2() => 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact]
-    public async Task ExpressionStatement_Trivia_PreferUnusedLocal_02()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ExpressionStatement_Trivia_PreferUnusedLocal_02()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -640,14 +594,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 int M2() => 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32942")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ExpressionBodiedMember_01(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExpressionBodiedMember_01(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -655,14 +607,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 int M2() => 0;
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32942")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ExpressionBodiedMember_02(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExpressionBodiedMember_02(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -674,14 +624,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 int M2() => 0;
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32942")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ExpressionBodiedMember_03(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExpressionBodiedMember_03(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -696,14 +644,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 int M2() => 0;
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/43648")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ExpressionStatement_Dynamic(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExpressionStatement_Dynamic(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -719,5 +665,4 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, optionName);
-    }
 }

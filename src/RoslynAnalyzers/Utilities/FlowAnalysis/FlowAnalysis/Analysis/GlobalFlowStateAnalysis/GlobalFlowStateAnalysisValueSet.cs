@@ -8,7 +8,8 @@ using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 #pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T> - CacheBasedEquatable handles equality
 
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 return GlobalFlowStateAnalysisValueSet.Create(AnalysisValues, ImmutableHashSet.Create(newRoot), newHeight);
             }
 
-            using var parentsBuilder = PooledHashSet<GlobalFlowStateAnalysisValueSet>.GetInstance();
+            using var _ = PooledHashSet<GlobalFlowStateAnalysisValueSet>.GetInstance(out var parentsBuilder);
             foreach (var parent in Parents)
             {
                 parentsBuilder.Add(parent.WithRootParent(newRoot));
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             if (newAnalysisValues.Height == 0)
             {
                 return GlobalFlowStateAnalysisValueSet.Create(
-                    AnalysisValues.AddRange(newAnalysisValues.AnalysisValues), Parents, Height);
+                    ImmutableHashSetExtensions.AddRange(AnalysisValues, newAnalysisValues.AnalysisValues), Parents, Height);
             }
 
             return newAnalysisValues.WithRootParent(this);
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                     return string.Empty;
                 }
 
-                using var parentsBuilder = ArrayBuilder<string>.GetInstance(Parents.Count);
+                using var _ = ArrayBuilder<string>.GetInstance(Parents.Count, out var parentsBuilder);
                 foreach (var parent in Parents)
                 {
                     parentsBuilder.Add(parent.ToString());

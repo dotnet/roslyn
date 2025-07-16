@@ -3850,53 +3850,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var (collectionKind, targetElementType) = getCollectionDetails(node, node.Type);
 
             var resultBuilder = ArrayBuilder<VisitResult>.GetInstance(node.Elements.Length);
-            var elementConversionCompletions = ArrayBuilder<Func<TypeWithAnnotations, TypeWithState>>.GetInstance();
+            var elementConversionCompletions = ArrayBuilder<Func<TypeWithAnnotations /*targetElementType*/, TypeSymbol /*targetCollectionType*/, TypeWithState>>.GetInstance();
             foreach (var element in node.Elements)
             {
-                switch (element)
-                {
-                    case BoundCollectionElementInitializer initializer:
-                        // We don't visit the Add methods
-                        // But we should check conversion to the iteration type
-                        // Tracked by https://github.com/dotnet/roslyn/issues/68786
-                        SetUnknownResultNullability(initializer);
-                        Debug.Assert(node.Placeholder is { });
-                        SetUnknownResultNullability(node.Placeholder);
-                        VisitRvalue(initializer.Arguments[0]);
-                        break;
-                    case BoundCollectionExpressionSpreadElement spread:
-                        Visit(spread);
-                        if (targetElementType.HasType &&
-                            spread.ElementPlaceholder is { } elementPlaceholder &&
-                            spread.IteratorBody is { })
-                        {
-                            var itemResult = spread.EnumeratorInfoOpt == null ? default : _visitResult;
-                            var iteratorBody = ((BoundExpressionStatement)spread.IteratorBody).Expression;
-                            AddPlaceholderReplacement(elementPlaceholder, expression: elementPlaceholder, itemResult);
-                            var completion = VisitOptionalImplicitConversion(iteratorBody, targetElementType,
-                                useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
-                            Debug.Assert(completion is not null);
-                            elementConversionCompletions.Add(completion);
-                            RemovePlaceholderReplacement(elementPlaceholder);
-                        }
-                        break;
-                    default:
-                        var elementExpr = (BoundExpression)element;
-                        if (!targetElementType.HasType)
-                        {
-                            VisitRvalueWithState(elementExpr);
-                        }
-                        else
-                        {
-                            var completion = VisitOptionalImplicitConversion(elementExpr, targetElementType,
-                                useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
-
-                            Debug.Assert(completion is not null);
-                            elementConversionCompletions.Add(completion);
-                        }
-                        break;
-                }
-
+                visitElement(element, node, targetElementType, elementConversionCompletions);
                 resultBuilder.Add(_visitResult);
             }
 
@@ -3921,7 +3878,99 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetResult(node, visitResult, updateAnalyzedNullability: !node.WasTargetTyped, isLvalue: false);
             return null;
 
-            TypeWithState convertCollection(BoundCollectionExpression node, TypeWithAnnotations targetCollectionType, ArrayBuilder<Func<TypeWithAnnotations, TypeWithState>> completions)
+            void visitElement(BoundNode element, BoundCollectionExpression node, TypeWithAnnotations targetElementType, ArrayBuilder<Func<TypeWithAnnotations, TypeSymbol, TypeWithState>> elementConversionCompletions)
+            {
+                switch (element)
+                {
+                    case BoundCollectionElementInitializer initializer:
+                        // The initializer generally represents a call to an Add method.
+                        // We do not analyze the full call or all the arguments.
+                        // We only analyze the single argument that represents the collection-expression element.
+                        SetUnknownResultNullability(initializer);
+                        Debug.Assert(node.Placeholder is { });
+                        SetUnknownResultNullability(node.Placeholder);
+
+                        var argIndex = initializer.AddMethod.IsExtensionMethod ? 1 : 0;
+                        Debug.Assert(initializer.ArgsToParamsOpt.IsDefault);
+                        var addArgument = initializer.Arguments[argIndex];
+                        VisitRvalue(addArgument);
+                        var addArgumentResult = _visitResult;
+
+                        elementConversionCompletions.Add((_, targetCollectionType) =>
+                        {
+                            // Reinfer the addMethod signature and convert the argument to parameter type
+                            var addMethod = initializer.AddMethod;
+                            MethodSymbol reinferredAddMethod;
+                            if (!addMethod.IsExtensionMethod)
+                            {
+                                reinferredAddMethod = (MethodSymbol)AsMemberOfType(targetCollectionType, addMethod);
+                            }
+                            else
+                            {
+                                // https://github.com/dotnet/roslyn/issues/68786: reinfer type arguments of a generic extension Add method
+                                reinferredAddMethod = addMethod;
+                            }
+
+                            var reinferredParameter = reinferredAddMethod.Parameters[argIndex];
+                            var resultType = VisitConversion(
+                                conversionOpt: null,
+                                addArgument,
+                                Conversion.Identity, // as only a nullable reinference is being done we expect an identity conversion
+                                reinferredParameter.TypeWithAnnotations,
+                                addArgumentResult.RValueType,
+                                checkConversion: true,
+                                fromExplicitCast: false,
+                                useLegacyWarnings: false,
+                                parameterOpt: reinferredParameter,
+                                assignmentKind: AssignmentKind.Argument,
+                                reportTopLevelWarnings: true,
+                                reportRemainingWarnings: true,
+                                trackMembers: false);
+                            return resultType;
+                        });
+
+                        break;
+                    case BoundCollectionExpressionSpreadElement spread:
+                        Visit(spread);
+                        if (targetElementType.HasType &&
+                            spread.ElementPlaceholder is { } elementPlaceholder &&
+                            spread.IteratorBody is { })
+                        {
+                            var itemResult = spread.EnumeratorInfoOpt == null ? default : _visitResult;
+                            var iteratorBody = ((BoundExpressionStatement)spread.IteratorBody).Expression;
+
+                            // Consider a collection expression like List<TElem> x = [y, ..z]
+                            // Lowering is comparable to the following:
+                            // List<TElem> __tmp = new(...);
+                            // __tmp.Add(y);
+                            // foreach (var z1 in z)
+                            //     __tmp.Add(z1);
+                            //
+                            // In other words, the spread contains a BoundCollectionElementInitializer which needs to be further deconstructed and 'z1' converted to 'TElem'.
+                            AddPlaceholderReplacement(elementPlaceholder, expression: elementPlaceholder, itemResult);
+                            visitElement(iteratorBody, node, targetElementType, elementConversionCompletions);
+                            RemovePlaceholderReplacement(elementPlaceholder);
+                        }
+                        break;
+                    default:
+                        var elementExpr = (BoundExpression)element;
+                        if (!targetElementType.HasType)
+                        {
+                            VisitRvalueWithState(elementExpr);
+                        }
+                        else
+                        {
+                            var completion = VisitOptionalImplicitConversion(elementExpr, targetElementType,
+                                useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
+
+                            Debug.Assert(completion is not null);
+                            elementConversionCompletions.Add((elementType, _) => completion(elementType));
+                        }
+                        break;
+                }
+            }
+
+            TypeWithState convertCollection(BoundCollectionExpression node, TypeWithAnnotations targetCollectionType, ArrayBuilder<Func<TypeWithAnnotations, TypeSymbol, TypeWithState>> completions)
             {
                 var strippedTargetCollectionType = targetCollectionType.Type.StrippedType();
                 Debug.Assert(TypeSymbol.Equals(strippedTargetCollectionType, node.Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
@@ -3937,7 +3986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var completion in completions)
                 {
-                    _ = completion(targetElementType);
+                    _ = completion(targetElementType, strippedTargetCollectionType);
                 }
                 completions.Free();
 
@@ -3974,6 +4023,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var foundIterationType = _binder.TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, collectionType, out targetElementType);
                         Debug.Assert(foundIterationType);
                     }
+                }
+                else if (collectionKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
+                {
+                    Debug.Assert(!targetElementType.HasType);
+                    _binder.TryGetCollectionIterationType(node.Syntax, collectionType, out targetElementType);
                 }
 
                 return (collectionKind, targetElementType);
@@ -5252,14 +5306,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operatorKind.IsUserDefined() &&
                 method?.ParameterCount == 2)
             {
-                // Update method based on inferred operand type.
-                TypeSymbol methodContainer = method.ContainingType;
                 bool isLifted = operatorKind.IsLifted();
                 TypeWithState leftUnderlyingType = GetNullableUnderlyingTypeIfNecessary(isLifted, leftType);
                 TypeWithState rightUnderlyingType = GetNullableUnderlyingTypeIfNecessary(isLifted, rightType);
-                TypeSymbol asMemberOfType = getTypeIfContainingType(methodContainer, leftUnderlyingType.Type, leftOperand) ??
-                    getTypeIfContainingType(methodContainer, rightUnderlyingType.Type, rightOperand) ?? methodContainer;
-                var reinferredMethod = (MethodSymbol)AsMemberOfType(asMemberOfType, method);
+
+                // Update method based on inferred operand type.
+                MethodSymbol reinferredMethod = ReInferBinaryOperator(binary.Syntax, method, leftOperand, rightOperand, leftUnderlyingType, rightUnderlyingType);
+
                 SetUpdatedSymbol(binary, method, reinferredMethod);
                 method = reinferredMethod;
 
@@ -5313,6 +5366,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             var inferredResult = InferResultNullability(operatorKind, method, returnType, leftType, rightType);
 
             return inferredResult;
+        }
+
+        private MethodSymbol ReInferBinaryOperator(
+            SyntaxNode syntax,
+            MethodSymbol method,
+            BoundExpression leftOperand,
+            BoundExpression rightOperand,
+            TypeWithState leftUnderlyingType,
+            TypeWithState rightUnderlyingType)
+        {
+            TypeSymbol methodContainer = method.ContainingType;
+            MethodSymbol reinferredMethod;
+
+            if (!method.GetIsNewExtensionMember())
+            {
+                TypeSymbol asMemberOfType = getTypeIfContainingType(methodContainer, leftUnderlyingType.Type, leftOperand) ??
+                    getTypeIfContainingType(methodContainer, rightUnderlyingType.Type, rightOperand) ?? methodContainer;
+                reinferredMethod = (MethodSymbol)AsMemberOfType(asMemberOfType, method);
+            }
+            else if (method.ContainingType.Arity != 0)
+            {
+                NamedTypeSymbol extension = method.OriginalDefinition.ContainingType;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+                var inferenceResult = MethodTypeInferrer.Infer(
+                    _binder,
+                    _conversions,
+                    extension.TypeParameters,
+                    extension,
+                    method.OriginalDefinition.ParameterTypesWithAnnotations,
+                    method.OriginalDefinition.ParameterRefKinds,
+                    // https://github.com/dotnet/roslyn/issues/78828: https://github.com/dotnet/roslyn/pull/79103#discussion_r2162657025
+                    //            In analysis of invocations (`VisitCall`/`VisitArguments`), we use `GetArgumentsForMethodTypeInference` to get inputs to `MethodTypeInferrer.Infer`.
+                    //            Do we need the same thing here (it has extra cases to deal with lambda, collection expressions and typeless expressions)?
+                    [new BoundExpressionWithNullability(leftOperand.Syntax, leftOperand, leftUnderlyingType.ToTypeWithAnnotations(compilation).NullableAnnotation, leftUnderlyingType.Type),
+                     new BoundExpressionWithNullability(rightOperand.Syntax, rightOperand, rightUnderlyingType.ToTypeWithAnnotations(compilation).NullableAnnotation, rightUnderlyingType.Type)],
+                    ref discardedUseSiteInfo,
+                    new MethodInferenceExtensions(this),
+                    ordinals: null);
+
+                if (inferenceResult.Success)
+                {
+                    extension = extension.Construct(inferenceResult.InferredTypeArguments);
+                    method = method.OriginalDefinition.AsMember(extension);
+                }
+
+                CheckMethodConstraints(syntax, method);
+                reinferredMethod = method;
+            }
+            else
+            {
+                reinferredMethod = method;
+            }
+
+            return reinferredMethod;
 
             TypeSymbol? getTypeIfContainingType(TypeSymbol baseType, TypeSymbol? derivedType, BoundExpression operand)
             {
@@ -5331,9 +5439,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void VisitBinaryOperatorOperandConversionAndPostConditions(BoundExpression expr, BoundExpression operand, Conversion conversion, ParameterSymbol parameter, TypeWithState operandType, bool isLifted)
+        private TypeWithState VisitBinaryOperatorOperandConversion(
+            BoundExpression expr, BoundExpression operand, Conversion conversion, ParameterSymbol parameter, TypeWithState operandType, bool isLifted,
+            out FlowAnalysisAnnotations parameterAnnotations)
         {
-            var parameterAnnotations = GetParameterAnnotations(parameter);
+            parameterAnnotations = GetParameterAnnotations(parameter);
             var targetTypeWithNullability = ApplyLValueAnnotations(parameter.TypeWithAnnotations, parameterAnnotations);
 
             if (isLifted && targetTypeWithNullability.Type.IsNonNullableValueType())
@@ -5341,7 +5451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 targetTypeWithNullability = TypeWithAnnotations.Create(MakeNullableOf(targetTypeWithNullability));
             }
 
-            var resultType = VisitConversion(
+            return VisitConversion(
                 expr as BoundConversion,
                 operand,
                 conversion,
@@ -5352,6 +5462,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings: false,
                 AssignmentKind.Argument,
                 parameter);
+        }
+
+        private void VisitBinaryOperatorOperandConversionAndPostConditions(BoundExpression expr, BoundExpression operand, Conversion conversion, ParameterSymbol parameter, TypeWithState operandType, bool isLifted)
+        {
+            FlowAnalysisAnnotations parameterAnnotations;
+            TypeWithState resultType = VisitBinaryOperatorOperandConversion(expr, operand, conversion, parameter, operandType, isLifted, out parameterAnnotations);
 
             if (CheckDisallowedNullAssignment(resultType, parameterAnnotations, expr.Syntax, operand))
             {
@@ -6435,44 +6551,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeWithState visitAndCheckReceiver(BoundCall node)
             {
-                TypeWithState receiverType = default;
-
-                // The receiver for new extension methods will be analyzed as an argument
-                if (node.ReceiverOpt is { } receiver && !node.Method.GetIsNewExtensionMember())
-                {
-                    receiverType = VisitRvalueWithState(receiver);
-                    CheckCallReceiver(receiver, receiverType, node.Method);
-                }
-
-                return receiverType;
+                return VisitAndCheckReceiver(node.ReceiverOpt, node.Method);
             }
 
             void reinferMethodAndVisitArguments(BoundCall node, TypeWithState receiverType, VisitResult? firstArgumentResult = null)
             {
-                MethodSymbol? method = node.Method;
-                Debug.Assert(method is not null);
-
-                bool adjustForNewExtension = method.GetIsNewExtensionMember() && !node.HasErrors;
-
-                ImmutableArray<RefKind> refKindsOpt = GetArgumentRefKinds(node.ArgumentRefKindsOpt, adjustForNewExtension, method, node.Arguments.Length);
-
-                if (!receiverType.HasNullType)
-                {
-                    // Update method based on inferred receiver type.
-                    method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
-                }
-
-                ImmutableArray<BoundExpression> arguments = getArguments(node.Arguments, adjustForNewExtension, node.ReceiverOpt);
-                ImmutableArray<ParameterSymbol> parameters = getParameters(method.Parameters, adjustForNewExtension, method);
-                ImmutableArray<int> argsToParamsOpt = GetArgsToParamsOpt(node.ArgsToParamsOpt, adjustForNewExtension);
-
-                ImmutableArray<VisitResult> results;
-                bool returnNotNull;
-                (method, results, returnNotNull) = VisitArguments(node, arguments, refKindsOpt, parameters, argsToParamsOpt, node.DefaultArguments,
-                    node.Expanded, node.InvokedAsExtensionMethod, method, firstArgumentResult: firstArgumentResult);
-
-                Debug.Assert(method is not null);
-                ApplyMemberPostConditions(node.ReceiverOpt, method);
+                (MethodSymbol method, ImmutableArray<VisitResult> results, bool returnNotNull) = ReInferMethodAndVisitArguments(
+                    node,
+                    node.ReceiverOpt,
+                    receiverType,
+                    node.Method,
+                    node.Arguments,
+                    node.ArgumentRefKindsOpt,
+                    node.ArgsToParamsOpt,
+                    node.DefaultArguments,
+                    node.Expanded,
+                    node.InvokedAsExtensionMethod,
+                    suppressAdjustmentForNewExtension: node.HasErrors,
+                    firstArgumentResult);
 
                 LearnFromEqualsMethod(method, node, receiverType, results);
 
@@ -6485,6 +6581,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetResult(node, returnState, method.ReturnTypeWithAnnotations);
                 SetUpdatedSymbol(node, node.Method, method);
             }
+        }
+
+        private TypeWithState VisitAndCheckReceiver(BoundExpression? receiverOpt, MethodSymbol method)
+        {
+            TypeWithState receiverType = default;
+
+            // The receiver for new extension methods will be analyzed as an argument
+            if (receiverOpt is { } receiver && !method.GetIsNewExtensionMember())
+            {
+                receiverType = VisitRvalueWithState(receiver);
+                CheckCallReceiver(receiver, receiverType, method);
+            }
+
+            return receiverType;
+        }
+
+        private (MethodSymbol method, ImmutableArray<VisitResult> results, bool returnNotNull) ReInferMethodAndVisitArguments(
+            BoundExpression node,
+            BoundExpression? receiverOpt,
+            TypeWithState receiverType,
+            MethodSymbol method,
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> refKindsOpt,
+            ImmutableArray<int> argsToParamsOpt,
+            BitVector defaultArguments,
+            bool expanded,
+            bool invokedAsExtensionMethod,
+            bool suppressAdjustmentForNewExtension,
+            VisitResult? firstArgumentResult = null)
+        {
+            bool adjustForNewExtension = method.GetIsNewExtensionMember() && !suppressAdjustmentForNewExtension;
+
+            refKindsOpt = GetArgumentRefKinds(refKindsOpt, adjustForNewExtension, method, arguments.Length);
+
+            if (!receiverType.HasNullType)
+            {
+                // Update method based on inferred receiver type.
+                method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
+            }
+
+            arguments = getArguments(arguments, adjustForNewExtension, receiverOpt);
+            ImmutableArray<ParameterSymbol> parameters = getParameters(method.Parameters, adjustForNewExtension, method);
+            argsToParamsOpt = GetArgsToParamsOpt(argsToParamsOpt, adjustForNewExtension);
+
+            ImmutableArray<VisitResult> results;
+            bool returnNotNull;
+            (var newMethod, results, returnNotNull) = VisitArguments(node, arguments, refKindsOpt, parameters, argsToParamsOpt, defaultArguments,
+                expanded, invokedAsExtensionMethod, method, firstArgumentResult: firstArgumentResult);
+
+            Debug.Assert(newMethod is not null);
+            ApplyMemberPostConditions(receiverOpt, newMethod);
+
+            return (newMethod, results, returnNotNull);
 
             static ImmutableArray<BoundExpression> getArguments(ImmutableArray<BoundExpression> arguments, bool isNewExtension, BoundExpression? receiver)
             {
@@ -6955,7 +7104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (node is BoundPropertyAccess)
+            if (node is BoundPropertyAccess or BoundIncrementOperator or BoundCompoundAssignmentOperator)
             {
                 return true;
             }
@@ -8583,7 +8732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Debug.Assert(false); // If this assert fails, add an appropriate test.
+            Debug.Assert(false);
             return symbol;
 
             bool tryAsMemberOfSingleType(NamedTypeSymbol singleType, [NotNullWhen(true)] out Symbol? result)
@@ -10788,23 +10937,86 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
 
+            if (node.MethodOpt is { } method ?
+                    !method.IsStatic :
+                    (!node.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty && !node.OriginalUserDefinedOperatorsOpt[0].IsStatic))
+            {
+                if (node.MethodOpt is { } instanceMethod)
+                {
+                    int extensionReceiverSlot = -1;
+
+                    if (instanceMethod.GetIsNewExtensionMember())
+                    {
+                        extensionReceiverSlot = MakeSlot(node.Operand) is > 0 and int slot ? slot : GetOrCreatePlaceholderSlot(node.Operand);
+                    }
+
+                    TypeWithState receiverType = VisitAndCheckReceiver(node.Operand, instanceMethod);
+                    (instanceMethod, ImmutableArray<VisitResult> results, bool returnNotNull) = ReInferMethodAndVisitArguments(
+                        node,
+                        node.Operand,
+                        receiverType,
+                        instanceMethod,
+                        arguments: [],
+                        refKindsOpt: default,
+                        argsToParamsOpt: default,
+                        defaultArguments: default,
+                        expanded: false,
+                        invokedAsExtensionMethod: false,
+                        suppressAdjustmentForNewExtension: false);
+
+                    if (node.Type.IsVoidType())
+                    {
+                        SetNotNullResult(node);
+                    }
+                    else if (!instanceMethod.GetIsNewExtensionMember())
+                    {
+                        SetResultType(node, TypeWithState.Create(receiverType.Type, NullableFlowState.NotNull));
+                    }
+                    else if (extensionReceiverSlot > 0)
+                    {
+                        SetResultType(node, TypeWithState.Create(results[0].RValueType.Type, GetState(ref State, extensionReceiverSlot)));
+                    }
+                    else
+                    {
+                        SetResult(node, results[0], updateAnalyzedNullability: true, isLvalue: false);
+                    }
+
+                    SetUpdatedSymbol(node, node.MethodOpt, instanceMethod);
+                }
+                else
+                {
+                    // An error case
+                    var opType = VisitRvalueWithState(node.Operand);
+
+                    if (node.Type.IsVoidType())
+                    {
+                        SetNotNullResult(node);
+                    }
+                    else
+                    {
+                        SetResultType(node, TypeWithState.Create(opType.Type, NullableFlowState.NotNull));
+                    }
+                }
+
+                return null;
+            }
+
             var operandType = VisitRvalueWithState(node.Operand);
             var operandLvalue = LvalueResultType;
             bool setResult = false;
 
             if (this.State.Reachable)
             {
-                if (node.MethodOpt is { } method ?
-                        !method.IsStatic :
-                        (!node.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty && !node.OriginalUserDefinedOperatorsOpt[0].IsStatic))
+                bool isLifted = node.OperatorKind.IsLifted();
+                MethodSymbol? incrementOperator = (node.OperatorKind.IsUserDefined() && node.MethodOpt?.ParameterCount == 1) ? node.MethodOpt : null;
+
+                // Update increment method based on operand type.
+                if (incrementOperator is not null)
                 {
-                    CheckCallReceiver(node.Operand, operandType, node.MethodOpt ?? node.OriginalUserDefinedOperatorsOpt[0]);
-                    SetNotNullResult(node);
-                    return null;
+                    incrementOperator = ReInferUnaryOperator(node.Syntax, incrementOperator, node.Operand, GetNullableUnderlyingTypeIfNecessary(isLifted, operandType));
+                    SetUpdatedSymbol(node, node.MethodOpt!, incrementOperator);
                 }
 
-                // https://github.com/dotnet/roslyn/issues/29961 Update increment method based on operand type.
-                MethodSymbol? incrementOperator = (node.OperatorKind.IsUserDefined() && node.MethodOpt?.ParameterCount == 1) ? node.MethodOpt : null;
                 TypeWithAnnotations targetTypeOfOperandConversion;
                 AssignmentKind assignmentKind = AssignmentKind.Assignment;
                 ParameterSymbol? parameter = null;
@@ -10818,6 +11030,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (incrementOperator is object)
                 {
                     targetTypeOfOperandConversion = incrementOperator.Parameters[0].TypeWithAnnotations;
+
+                    if (isLifted)
+                    {
+                        targetTypeOfOperandConversion = TypeWithAnnotations.Create(MakeNullableOf(targetTypeOfOperandConversion));
+                    }
+
                     assignmentKind = AssignmentKind.Argument;
                     parameter = incrementOperator.Parameters[0];
                 }
@@ -10858,7 +11076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    resultOfIncrementType = incrementOperator.ReturnTypeWithAnnotations.ToTypeWithState();
+                    resultOfIncrementType = GetLiftedReturnTypeIfNecessary(isLifted, incrementOperator.ReturnTypeWithAnnotations, operandType.State);
                 }
 
                 var operandTypeWithAnnotations = operandType.ToTypeWithAnnotations(compilation);
@@ -10895,6 +11113,76 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
+            Debug.Assert(!IsConditionalState);
+
+            if (node.Operator.Method is { } method ?
+                    !method.IsStatic :
+                    (!node.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty && !node.OriginalUserDefinedOperatorsOpt[0].IsStatic))
+            {
+                if (node.Operator.Method is { } instanceMethod)
+                {
+                    int extensionReceiverSlot = -1;
+
+                    if (instanceMethod.GetIsNewExtensionMember())
+                    {
+                        extensionReceiverSlot = MakeSlot(node.Left) is > 0 and int slot ? slot : GetOrCreatePlaceholderSlot(node.Left);
+                    }
+
+                    TypeWithState receiverType = VisitAndCheckReceiver(node.Left, instanceMethod);
+                    (instanceMethod, ImmutableArray<VisitResult> results, bool returnNotNull) = ReInferMethodAndVisitArguments(
+                        node,
+                        node.Left,
+                        receiverType,
+                        instanceMethod,
+                        arguments: [node.Right],
+                        refKindsOpt: default,
+                        argsToParamsOpt: default,
+                        defaultArguments: default,
+                        expanded: false,
+                        invokedAsExtensionMethod: false,
+                        suppressAdjustmentForNewExtension: false);
+
+                    if (node.Type.IsVoidType())
+                    {
+                        SetNotNullResult(node);
+                    }
+                    else if (!instanceMethod.GetIsNewExtensionMember())
+                    {
+                        SetResultType(node, TypeWithState.Create(receiverType.Type, NullableFlowState.NotNull));
+                    }
+                    else if (extensionReceiverSlot > 0)
+                    {
+                        SetResultType(node, TypeWithState.Create(results[0].RValueType.Type, GetState(ref State, extensionReceiverSlot)));
+                    }
+                    else
+                    {
+                        SetResult(node, results[0], updateAnalyzedNullability: true, isLvalue: false);
+                    }
+
+                    SetUpdatedSymbol(node, node.Operator.Method, instanceMethod);
+                }
+                else
+                {
+                    // An error case
+                    Visit(node.Left);
+                    var opType = ResultType;
+                    Unsplit();
+
+                    VisitRvalue(node.Right);
+
+                    if (node.Type.IsVoidType())
+                    {
+                        SetNotNullResult(node);
+                    }
+                    else
+                    {
+                        SetResultType(node, TypeWithState.Create(opType.Type, NullableFlowState.NotNull));
+                    }
+                }
+
+                return null;
+            }
+
             // visit 'x'
             Visit(node.Left);
             Unsplit();
@@ -10907,29 +11195,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // visit 'y'
             var rightTypeWithState = VisitRvalueWithState(rightConversionOperand);
-
-            if (node.Operator.Method is { } method)
-            {
-                if (!method.IsStatic)
-                {
-                    // Update method based on inferred operand type.
-                    var reinferredMethod = (MethodSymbol)AsMemberOfType(leftTypeWithState.Type, method);
-                    SetUpdatedSymbol(node, method, reinferredMethod);
-                    method = reinferredMethod;
-
-                    CheckCallReceiver(node.Left, leftTypeWithState, method);
-                    VisitBinaryOperatorOperandConversionAndPostConditions(node.Right, rightConversionOperand, rightConversion, method.Parameters[0], rightTypeWithState, isLifted: false);
-
-                    SetNotNullResult(node);
-                    return null;
-                }
-            }
-            else if (!node.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty && !node.OriginalUserDefinedOperatorsOpt[0].IsStatic)
-            {
-                // This is an error scenario 
-                SetNotNullResult(node);
-                return null;
-            }
 
             // for an operator like: 'TResult operator op(TLeftParam left, TRightParam right);'
             // and usage like: 'x op= y;'
@@ -11000,17 +11265,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.Operand);
             SetNotNullResult(node);
             return null;
-        }
-
-        private void ReportArgumentWarnings(BoundExpression argument, TypeWithState argumentType, ParameterSymbol parameter)
-        {
-            var paramType = parameter.TypeWithAnnotations;
-            ReportNullableAssignmentIfNecessary(argument, paramType, argumentType, useLegacyWarnings: false, AssignmentKind.Argument, parameterOpt: parameter);
-
-            if (argumentType.Type is { } argType && IsNullabilityMismatch(paramType.Type, argType))
-            {
-                ReportNullabilityMismatchInArgument(argument.Syntax, argType, parameter, paramType.Type, forOutput: false);
-            }
         }
 
         private void ReportNullabilityMismatchInRefArgument(BoundExpression argument, TypeSymbol argumentType, ParameterSymbol parameter, TypeSymbol parameterType)
@@ -11696,7 +11950,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool isLifted = node.OperatorKind.IsLifted();
                         var operandType = GetNullableUnderlyingTypeIfNecessary(isLifted, operandResult);
                         // Update method based on inferred operand type.
-                        method = (MethodSymbol)AsMemberOfType(operandType.Type!.StrippedType(), method);
+                        method = ReInferUnaryOperator(node.Syntax, method, operand, operandType);
+
                         // Analyze operator call properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
                         var parameter = method.Parameters[0];
                         _ = VisitConversion(
@@ -11726,6 +11981,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeWithState adjustForLifting(TypeWithState argumentResult) =>
                 TypeWithState.Create(node.Type, node.OperatorKind.IsLifted() ? argumentResult.State : NullableFlowState.NotNull);
+        }
+
+        /// <summary>
+        /// The <paramref name="operandType"/> must be stripped of Nullable if we are dealing with lifted form of a unary operator.
+        /// </summary>
+        private MethodSymbol ReInferUnaryOperator(SyntaxNode syntax, MethodSymbol method, BoundExpression operand, TypeWithState operandType)
+        {
+            if (!method.GetIsNewExtensionMember())
+            {
+                method = (MethodSymbol)AsMemberOfType(operandType.Type!.StrippedType(), method);
+            }
+            else if (method.ContainingType.Arity != 0)
+            {
+                NamedTypeSymbol extension = method.OriginalDefinition.ContainingType;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+                var inferenceResult = MethodTypeInferrer.Infer(
+                    _binder,
+                    _conversions,
+                    extension.TypeParameters,
+                    extension,
+                    method.OriginalDefinition.ParameterTypesWithAnnotations,
+                    method.OriginalDefinition.ParameterRefKinds,
+                    [new BoundExpressionWithNullability(operand.Syntax, operand, operandType.ToTypeWithAnnotations(compilation).NullableAnnotation, operandType.Type)],
+                    ref discardedUseSiteInfo,
+                    new MethodInferenceExtensions(this),
+                    ordinals: null);
+
+                if (inferenceResult.Success)
+                {
+                    extension = extension.Construct(inferenceResult.InferredTypeArguments);
+                    method = method.OriginalDefinition.AsMember(extension);
+                }
+
+                CheckMethodConstraints(syntax, method);
+            }
+
+            return method;
         }
 
         public override BoundNode? VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
@@ -11766,94 +12059,159 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private TypeWithState InferResultNullability(BoundUserDefinedConditionalLogicalOperator node)
+        protected override void VisitBinaryLogicalOperatorChildren(ArrayBuilder<BoundExpression> stack)
         {
-            if (node.OperatorKind.IsLifted())
+            BoundExpression binary;
+            Debug.Assert(stack.Count > 0);
+
+            binary = stack.Pop();
+
+            BoundExpression? leftOperand = null;
+            Conversion leftConversion = Conversion.Identity;
+
+            switch (binary)
             {
-                // https://github.com/dotnet/roslyn/issues/33879 Conversions: Lifted operator
-                // Should this use the updated flow type and state?  How should it compute nullability?
-                return TypeWithState.Create(node.Type, NullableFlowState.NotNull);
+                case BoundBinaryOperator binOp:
+                    VisitCondition(binOp.Left);
+                    break;
+                case BoundUserDefinedConditionalLogicalOperator udBinOp:
+                    (leftOperand, leftConversion) = RemoveConversion(udBinOp.Left, includeExplicitConversions: false);
+                    Visit(leftOperand);
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(binary.Kind);
             }
 
-            // Update method based on inferred operand types: see https://github.com/dotnet/roslyn/issues/29605.
-            // Analyze operator result properly (honoring [Maybe|NotNull] and [Maybe|NotNullWhen] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
-            if ((object)node.LogicalOperator != null && node.LogicalOperator.ParameterCount == 2)
+            while (true)
             {
-                return GetReturnTypeWithState(node.LogicalOperator);
+                switch (binary)
+                {
+                    case BoundBinaryOperator binOp:
+                        afterLeftChildOfBoundBinaryOperatorHasBeenVisited(binOp);
+                        break;
+                    case BoundUserDefinedConditionalLogicalOperator udBinOp:
+                        Debug.Assert(leftOperand is not null);
+                        afterLeftChildOfBoundUserDefinedConditionalLogicalOperatorHasBeenVisited(udBinOp, leftOperand, leftConversion);
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(binary.Kind);
+                }
+
+                if (stack.Count == 0)
+                {
+                    break;
+                }
+
+                AdjustConditionalState(binary);
+
+                leftOperand = binary;
+                leftConversion = Conversion.Identity;
+
+                binary = stack.Pop();
             }
-            else
+
+            static void getBinaryConditionalOperatorInfo(BinaryOperatorKind kind, out bool isAnd, out bool isBool)
             {
-                return default;
+                BinaryOperatorKind op = kind.Operator();
+                isAnd = op == BinaryOperatorKind.And;
+                isBool = kind.OperandTypes() == BinaryOperatorKind.Bool;
+                Debug.Assert(isAnd || op == BinaryOperatorKind.Or);
+            }
+
+            void afterLeftChildOfBoundBinaryOperatorHasBeenVisited(BoundBinaryOperator node)
+            {
+                Debug.Assert(IsConditionalState);
+                TypeWithState leftType = ResultType;
+
+                getBinaryConditionalOperatorInfo(node.OperatorKind, out bool isAnd, out bool isBool);
+
+                var leftTrue = this.StateWhenTrue;
+                var leftFalse = this.StateWhenFalse;
+                SetState(isAnd ? leftTrue : leftFalse);
+
+                Visit(node.Right);
+                TypeWithState rightType = ResultType;
+                SetResultType(node, InferResultNullability(node.OperatorKind, node.Method, node.Type, leftType, rightType));
+                AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(node.Right, isAnd, isBool, ref leftTrue, ref leftFalse);
+            }
+
+            void afterLeftChildOfBoundUserDefinedConditionalLogicalOperatorHasBeenVisited(BoundUserDefinedConditionalLogicalOperator binary, BoundExpression leftOperand, Conversion leftConversion)
+            {
+                TypeWithState leftType = ResultType;
+
+                Unsplit();
+                Split();
+
+                var leftTrue = this.StateWhenTrue;
+                var leftFalse = this.StateWhenFalse;
+
+                getBinaryConditionalOperatorInfo(binary.OperatorKind, out bool isAnd, out bool isBool);
+                Debug.Assert(!isBool);
+                SetState(isAnd ? leftTrue : leftFalse);
+
+                var (rightOperand, rightConversion) = RemoveConversion(binary.Right, includeExplicitConversions: false);
+
+                VisitRvalue(rightOperand);
+                var rightType = ResultType;
+                Unsplit();
+
+                var rightState = State.Clone();
+
+                // Analyze operator calls properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
+
+                bool isLifted = binary.OperatorKind.IsLifted();
+                TypeWithState leftUnderlyingType = GetNullableUnderlyingTypeIfNecessary(isLifted, leftType);
+                TypeWithState rightUnderlyingType = GetNullableUnderlyingTypeIfNecessary(isLifted, rightType);
+
+                MethodSymbol logicalOperator = binary.LogicalOperator;
+
+                // Update method based on inferred operand type.
+                MethodSymbol reInferredMethod = ReInferBinaryOperator(binary.Syntax, logicalOperator, leftOperand, rightOperand, leftUnderlyingType, rightUnderlyingType);
+
+                SetUpdatedSymbol(binary, logicalOperator, reInferredMethod);
+                logicalOperator = reInferredMethod;
+
+                // Conversion of the left operand is actually done before the split (before the true/false check)
+                var leftState = isAnd ? leftFalse : leftTrue;
+                SetState(leftState);
+
+                var parameters = logicalOperator.Parameters;
+                leftType = VisitBinaryOperatorOperandConversion(binary.Left, leftOperand, leftConversion, parameters[0], leftUnderlyingType, isLifted, out _);
+
+                // True/False call is done before the split, short-circuiting happens based on its result
+                MethodSymbol trueFalseOperator = isAnd ? binary.FalseOperator : binary.TrueOperator;
+
+                // Update operator method based on inferred operand type.
+                var updatedTrueFalseOperator = ReInferUnaryOperator(leftOperand.Syntax, trueFalseOperator, binary.Left, leftType);
+                SetUpdatedSymbol(binary, trueFalseOperator, updatedTrueFalseOperator);
+                trueFalseOperator = updatedTrueFalseOperator;
+
+                var trueFalseParameter = trueFalseOperator.Parameters[0];
+                _ = VisitConversion(
+                    conversionOpt: null,
+                    binary.Left,
+                    BoundNode.GetConversion(binary.TrueFalseOperandConversion, binary.TrueFalseOperandPlaceholder),
+                    trueFalseParameter.TypeWithAnnotations,
+                    leftType,
+                    checkConversion: true,
+                    fromExplicitCast: false,
+                    useLegacyWarnings: false,
+                    assignmentKind: AssignmentKind.Argument,
+                    parameterOpt: trueFalseParameter);
+
+                SetState(rightState);
+
+                rightType = VisitBinaryOperatorOperandConversion(binary.Right, rightOperand, rightConversion, parameters[1], rightUnderlyingType, isLifted, out _);
+
+                SetResultType(binary, InferResultNullability(binary.OperatorKind, logicalOperator, binary.Type, leftType, rightType));
+
+                AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(binary.Right, isAnd, isBool, ref leftTrue, ref leftFalse);
             }
         }
 
         protected override void AfterLeftChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression node, BoundExpression right, bool isAnd, bool isBool, ref LocalState leftTrue, ref LocalState leftFalse)
         {
-            Debug.Assert(!IsConditionalState);
-            TypeWithState leftType = ResultType;
-            // https://github.com/dotnet/roslyn/issues/29605 Update operator methods based on inferred operand types.
-            MethodSymbol? logicalOperator = null;
-            MethodSymbol? trueFalseOperator = null;
-            BoundExpression? left = null;
-
-            switch (node.Kind)
-            {
-                case BoundKind.BinaryOperator:
-                    Debug.Assert(!((BoundBinaryOperator)node).OperatorKind.IsUserDefined());
-                    break;
-                case BoundKind.UserDefinedConditionalLogicalOperator:
-                    var binary = (BoundUserDefinedConditionalLogicalOperator)node;
-                    if (binary.LogicalOperator != null && binary.LogicalOperator.ParameterCount == 2)
-                    {
-                        logicalOperator = binary.LogicalOperator;
-                        left = binary.Left;
-                        trueFalseOperator = isAnd ? binary.FalseOperator : binary.TrueOperator;
-
-                        if ((object)trueFalseOperator != null && trueFalseOperator.ParameterCount != 1)
-                        {
-                            trueFalseOperator = null;
-                        }
-                    }
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node.Kind);
-            }
-
-            Debug.Assert(trueFalseOperator is null || logicalOperator is object);
-            Debug.Assert(logicalOperator is null || left is object);
-
-            // Analyze operator call properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
-            if (trueFalseOperator is object)
-            {
-                ReportArgumentWarnings(left!, leftType, trueFalseOperator.Parameters[0]);
-            }
-
-            if (logicalOperator is object)
-            {
-                ReportArgumentWarnings(left!, leftType, logicalOperator.Parameters[0]);
-            }
-
-            Visit(right);
-            TypeWithState rightType = ResultType;
-
-            SetResultType(node, InferResultNullabilityOfBinaryLogicalOperator(node, leftType, rightType));
-
-            if (logicalOperator is object)
-            {
-                ReportArgumentWarnings(right, rightType, logicalOperator.Parameters[1]);
-            }
-
-            AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(right, isAnd, isBool, ref leftTrue, ref leftFalse);
-        }
-
-        private TypeWithState InferResultNullabilityOfBinaryLogicalOperator(BoundExpression node, TypeWithState leftType, TypeWithState rightType)
-        {
-            return node switch
-            {
-                BoundBinaryOperator binary => InferResultNullability(binary.OperatorKind, binary.Method, binary.Type, leftType, rightType),
-                BoundUserDefinedConditionalLogicalOperator userDefined => InferResultNullability(userDefined),
-                _ => throw ExceptionUtilities.UnexpectedValue(node)
-            };
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)

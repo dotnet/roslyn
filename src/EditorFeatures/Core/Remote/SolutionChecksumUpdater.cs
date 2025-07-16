@@ -3,17 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -24,12 +21,6 @@ namespace Microsoft.CodeAnalysis.Remote;
 internal sealed class SolutionChecksumUpdater
 {
     private readonly Workspace _workspace;
-
-    /// <summary>
-    /// We're not at a layer where we are guaranteed to have an IGlobalOperationNotificationService.  So allow for
-    /// it being null.
-    /// </summary>
-    private readonly IGlobalOperationNotificationService? _globalOperationService;
 
     private readonly IDocumentTrackingService _documentTrackingService;
 
@@ -54,16 +45,12 @@ internal sealed class SolutionChecksumUpdater
     private const string SynchronizeTextChangesStatusSucceededKeyName = nameof(SolutionChecksumUpdater) + "." + SynchronizeTextChangesStatusSucceededMetricName;
     private const string SynchronizeTextChangesStatusFailedKeyName = nameof(SolutionChecksumUpdater) + "." + SynchronizeTextChangesStatusFailedMetricName;
 
-    private bool _isSynchronizeWorkspacePaused;
-
     public SolutionChecksumUpdater(
         Workspace workspace,
         IAsynchronousOperationListenerProvider listenerProvider,
         CancellationToken shutdownToken)
     {
         var listener = listenerProvider.GetListener(FeatureAttribute.SolutionChecksumUpdater);
-
-        _globalOperationService = workspace.Services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
 
         _workspace = workspace;
         _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
@@ -87,12 +74,6 @@ internal sealed class SolutionChecksumUpdater
         _workspaceChangedImmediateDisposer = _workspace.RegisterWorkspaceChangedImmediateHandler(OnWorkspaceChangedImmediate);
         _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
 
-        if (_globalOperationService != null)
-        {
-            _globalOperationService.Started += OnGlobalOperationStarted;
-            _globalOperationService.Stopped += OnGlobalOperationStopped;
-        }
-
         // Enqueue the work to sync the initial data over.
         _synchronizeActiveDocumentQueue.AddWork();
         _synchronizeWorkspaceQueue.AddWork();
@@ -101,53 +82,21 @@ internal sealed class SolutionChecksumUpdater
     public void Shutdown()
     {
         // Try to stop any work that is in progress.
-        PauseSynchronizingPrimaryWorkspace();
+        lock (_gate)
+        {
+            _synchronizeWorkspaceQueue.CancelExistingWork();
+        }
 
         _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
         _workspaceChangedDisposer.Dispose();
         _workspaceChangedImmediateDisposer.Dispose();
-
-        if (_globalOperationService != null)
-        {
-            _globalOperationService.Started -= OnGlobalOperationStarted;
-            _globalOperationService.Stopped -= OnGlobalOperationStopped;
-        }
-    }
-
-    private void OnGlobalOperationStarted(object? sender, EventArgs e)
-        => PauseSynchronizingPrimaryWorkspace();
-
-    private void OnGlobalOperationStopped(object? sender, EventArgs e)
-        => ResumeSynchronizingPrimaryWorkspace();
-
-    private void PauseSynchronizingPrimaryWorkspace()
-    {
-        // An expensive global operation started (like a build).  Pause ourselves and cancel any outstanding work in
-        // progress to synchronize the solution.
-        lock (_gate)
-        {
-            _synchronizeWorkspaceQueue.CancelExistingWork();
-            _isSynchronizeWorkspacePaused = true;
-        }
-    }
-
-    private void ResumeSynchronizingPrimaryWorkspace()
-    {
-        lock (_gate)
-        {
-            _isSynchronizeWorkspacePaused = false;
-            _synchronizeWorkspaceQueue.AddWork();
-        }
     }
 
     private void OnWorkspaceChanged(WorkspaceChangeEventArgs _)
     {
-        // Check if we're currently paused.  If so ignore this notification.  We don't want to any work in response
-        // to whatever the workspace is doing.
         lock (_gate)
         {
-            if (!_isSynchronizeWorkspacePaused)
-                _synchronizeWorkspaceQueue.AddWork();
+            _synchronizeWorkspaceQueue.AddWork();
         }
     }
 

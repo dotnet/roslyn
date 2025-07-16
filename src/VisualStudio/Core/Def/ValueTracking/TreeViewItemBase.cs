@@ -23,19 +23,15 @@ internal class TreeViewItemBase : ViewModelBase
         get => _isExpanded;
         set => SetProperty(ref _isExpanded, value);
     }
-
-    private bool _isSelected = false;
     public bool IsNodeSelected
     {
-        get => _isSelected;
-        set => SetProperty(ref _isSelected, value);
-    }
-
-    private bool _isLoading;
+        get;
+        set => SetProperty(ref field, value);
+    } = false;
     public bool IsLoading
     {
-        get => _isLoading;
-        set => SetProperty(ref _isLoading, value);
+        get;
+        set => SetProperty(ref field, value);
     }
 
     public TreeViewItemBase()

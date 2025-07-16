@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -18,7 +18,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             var builder = PooledHashSet<SanitizerInfo>.GetInstance();
 
-            string[] parseMethods = new string[] { "Parse", "TryParse" };
+            string[] parseMethods = ["Parse", "TryParse"];
 
             builder.AddSanitizerInfo(
                 WellKnownTypeNames.SystemBoolean,

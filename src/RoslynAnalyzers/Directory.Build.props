@@ -8,6 +8,12 @@
 
     <!-- Set 'NoDefaultExcludes' to ensure that we can package .editorconfig files into our analyzer NuGet packages -->
     <NoDefaultExcludes>true</NoDefaultExcludes>
+
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+    <DefineConstants>$(DefineConstants),ROSLYN_4_12_OR_LOWER</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -20,6 +26,12 @@
     <Features>$(Features);flow-analysis</Features>
 
     <DefineConstants Condition="'$(LEGACY_CODE_METRICS_MODE)' == 'true'">$(DefineConstants),LEGACY_CODE_METRICS_MODE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+    <!-- Since SourceBuild uses project references and brings additional nullability annotations, -->
+    <!-- suppressions were added that are unncessary when building against older Roslyn packages. -->
+    <NoWarn>$(NoWarn);IDE0079</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">

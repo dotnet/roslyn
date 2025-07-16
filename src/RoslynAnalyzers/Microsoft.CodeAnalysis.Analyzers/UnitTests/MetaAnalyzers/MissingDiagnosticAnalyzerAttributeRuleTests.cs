@@ -211,9 +211,8 @@ public sealed class MissingDiagnosticAnalyzerAttributeRuleTests
     }
 
     [Fact]
-    public async Task CSharp_NoDiagnosticCasesAsync()
-    {
-        var source = """
+    public Task CSharp_NoDiagnosticCasesAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using System.Collections.Immutable;
             using Microsoft.CodeAnalysis;
@@ -238,14 +237,11 @@ public sealed class MissingDiagnosticAnalyzerAttributeRuleTests
             public abstract class MyAbstractAnalyzerWithoutAttribute : DiagnosticAnalyzer
             {
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task VisualBasic_NoDiagnosticCasesAsync()
-    {
-        var source = """
+    public Task VisualBasic_NoDiagnosticCasesAsync()
+        => VerifyVB.VerifyAnalyzerAsync("""
             Imports System
             Imports System.Collections.Immutable
             Imports Microsoft.CodeAnalysis
@@ -267,7 +263,5 @@ public sealed class MissingDiagnosticAnalyzerAttributeRuleTests
             Public MustInherit Class MyAbstractAnalyzerWithoutAttribute
             	Inherits DiagnosticAnalyzer
             End Class
-            """;
-        await VerifyVB.VerifyAnalyzerAsync(source);
-    }
+            """);
 }

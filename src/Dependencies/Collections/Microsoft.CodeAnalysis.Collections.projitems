@@ -10,6 +10,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Collections</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\FixedSizeArrayBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Segmented\ImmutableSegmentedDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Segmented\ImmutableSegmentedDictionary`2+Builder+KeyCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Segmented\ImmutableSegmentedDictionary`2+Builder+PrivateMarshal.cs" />
@@ -64,6 +65,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Internal\SR.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynEnumerable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynImmutableInterlocked.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)KeyValuePair.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OneOrMany.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TemporaryArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TemporaryArrayExtensions.cs" />
@@ -71,6 +73,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ICollectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IListExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\KeyValuePairExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemoryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.Empty.Collection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.Empty.cs" />

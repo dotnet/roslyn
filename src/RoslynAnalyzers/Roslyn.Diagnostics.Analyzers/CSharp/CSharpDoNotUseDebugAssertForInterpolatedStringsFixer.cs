@@ -14,12 +14,12 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Diagnostics.Analyzers;
 
 namespace Roslyn.Diagnostics.CSharp.Analyzers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpDoNotUseDebugAssertForInterpolatedStringsFixer))]
-    [Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpDoNotUseDebugAssertForInterpolatedStringsFixer)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
     public sealed class CSharpDoNotUseDebugAssertForInterpolatedStringsFixer() : CodeFixProvider
