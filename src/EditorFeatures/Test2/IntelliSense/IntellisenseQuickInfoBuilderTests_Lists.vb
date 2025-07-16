@@ -272,6 +272,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "–"),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 2")))))))
+
+            ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
         End Function
 
         <WpfTheory>
