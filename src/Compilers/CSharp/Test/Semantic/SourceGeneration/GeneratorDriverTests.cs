@@ -1500,7 +1500,7 @@ class C { }
             {
                 var name = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("Attr")
                     .Select((c, _) => c.Identifier.ValueText)
-                    .WithComparer(EqualityComparer<string>.Create((_, _) => throw e));
+                    .WithComparer(new LambdaComparer<string>((_, _) => throw e));
                 ctx.RegisterSourceOutput(name, (spc, n) => spc.AddSource(n, "// generated"));
             });
 
@@ -1997,7 +1997,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var compilationSource = ctx.CompilationProvider.WithComparer(EqualityComparer<Compilation>.Create((_, _) => true, _ => 0));
+                var compilationSource = ctx.CompilationProvider.WithComparer(new LambdaComparer<Compilation>((c1, c2) => true, 0));
                 ctx.RegisterSourceOutput(compilationSource, (spc, c) =>
                 {
                     compilationsCalledFor.Add(c);
@@ -2035,7 +2035,7 @@ class C { }
             {
                 var compilationSource = ctx.CompilationProvider.Combine(ctx.AdditionalTextsProvider.Collect())
                                                 // comparer that ignores the LHS (additional texts)
-                                                .WithComparer(EqualityComparer<(Compilation, ImmutableArray<AdditionalText>)>.Create((c1, c2) => c1.Item1 == c2.Item1, _ => 0))
+                                                .WithComparer(new LambdaComparer<(Compilation, ImmutableArray<AdditionalText>)>((c1, c2) => c1.Item1 == c2.Item1, 0))
                                                 .WithTrackingName("Step")
                                                 .Select((x, ct) => x)
                                                 .WithTrackingName("Step2");

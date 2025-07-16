@@ -66,6 +66,12 @@ public class EnumerableExtensionsTests
         IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
     }
 
+    private class SignlessEqualityComparer : IEqualityComparer<int>
+    {
+        public bool Equals(int x, int y) => Math.Abs(x) == Math.Abs(y);
+        public int GetHashCode(int obj) => throw new NotImplementedException();
+    }
+
     [Fact]
     public void IndexOf()
     {
@@ -79,7 +85,7 @@ public class EnumerableExtensionsTests
     [Fact]
     public void IndexOf_EqualityComparer()
     {
-        var comparer = EqualityComparer<int>.Create((x, y) => Math.Abs(x) == Math.Abs(y));
+        var comparer = new SignlessEqualityComparer();
 
         Assert.Equal(-1, SpecializedCollections.SingletonList(5).IndexOf(-6, comparer));
         Assert.Equal(0, SpecializedCollections.SingletonList(5).IndexOf(-5, comparer));
@@ -153,10 +159,19 @@ public class EnumerableExtensionsTests
         Assert.False(seq.SequenceEqual(new int[] { 1, 2, 6 }, equality));
     }
 
+    public sealed class Comparer<T>(Func<T, T, bool> equals, Func<T, int> hashCode) : IEqualityComparer<T>
+    {
+        private readonly Func<T, T, bool> _equals = equals;
+        private readonly Func<T, int> _hashCode = hashCode;
+
+        public bool Equals(T x, T y) => _equals(x, y);
+        public int GetHashCode(T obj) => _hashCode(obj);
+    }
+
     [Fact]
     public void HasDuplicates()
     {
-        var comparer = EqualityComparer<int>.Create((x, y) => x % 10 == y % 10, x => (x % 10).GetHashCode());
+        var comparer = new Comparer<int>((x, y) => x % 10 == y % 10, x => (x % 10).GetHashCode());
 
         Assert.False(MakeEnumerable<int>().HasDuplicates());
         Assert.False(MakeEnumerable<int>().HasDuplicates(comparer));

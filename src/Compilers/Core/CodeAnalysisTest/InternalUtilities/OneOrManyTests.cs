@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Test.Utilities;
@@ -266,7 +265,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         [Fact]
         public void SequenceEqual_WithComparer()
         {
-            var comparer = EqualityComparer<int>.Create((x, y) => x % 10 == y % 10);
+            var comparer = new TestEqualityComparer<int>((x, y) => x % 10 == y % 10);
             Assert.True(OneOrMany.Create(1).SequenceEqual(new[] { 11 }, comparer));
             Assert.True(OneOrMany.Create(1, 2).SequenceEqual(new[] { 11, 32 }, comparer));
             Assert.False(OneOrMany.Create(1, 2).SequenceEqual(new[] { 0, 1 }, comparer));

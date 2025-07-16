@@ -1513,7 +1513,7 @@ class C
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
-                source = source.WithComparer(EqualityComparer<string>.Create((a, b) => true)).WithTrackingName("Fields");
+                source = source.WithComparer(new LambdaComparer<string>((a, b) => true)).WithTrackingName("Fields");
                 context.RegisterSourceOutput(source, (spc, fieldName) =>
                 {
                 });
@@ -1574,10 +1574,10 @@ class C
                     syntaxCalledFor.Add(((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
                     return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
                 });
-                source = source.WithComparer(EqualityComparer<string>.Create((a, b) => false));
-                source = source.WithComparer(EqualityComparer<string>.Create((a, b) => false));
-                source = source.WithComparer(EqualityComparer<string>.Create((a, b) => false));
-                source = source.WithComparer(EqualityComparer<string>.Create((a, b) => false));
+                source = source.WithComparer(new LambdaComparer<string>((a, b) => false));
+                source = source.WithComparer(new LambdaComparer<string>((a, b) => false));
+                source = source.WithComparer(new LambdaComparer<string>((a, b) => false));
+                source = source.WithComparer(new LambdaComparer<string>((a, b) => false));
                 context.RegisterSourceOutput(source, (spc, fieldName) => { });
             });
 
@@ -1631,7 +1631,7 @@ class C
                     noCompareCalledFor.Add(fieldName);
                 });
 
-                var comparerSource = source.WithComparer(EqualityComparer<string>.Create((a, b) => true));
+                var comparerSource = source.WithComparer(new LambdaComparer<string>((a, b) => true));
                 context.RegisterSourceOutput(comparerSource, (spc, fieldName) =>
                 {
                     compareCalledFor.Add(fieldName);
@@ -1794,7 +1794,7 @@ class C
                     return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
                 }).WithTrackingName("Fields");
 
-                var comparerSource = source.WithComparer(EqualityComparer<string>.Create((a, b) => false));
+                var comparerSource = source.WithComparer(new LambdaComparer<string>((a, b) => false));
 
                 // now join the two sources together
                 var joinedSource = source.Combine(comparerSource.Collect());

@@ -275,12 +275,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
+        private sealed class TextLineEqualityComparer : IEqualityComparer<TextLine>
+        {
+            public bool Equals(TextLine x, TextLine y)
+            {
+                return x.Span == y.Span;
+            }
+
+            public int GetHashCode(TextLine obj)
+            {
+                return obj.Span.GetHashCode();
+            }
+        }
+
         private static void AssertChangedTextLinesHelper(string originalText, params TextChange[] changes)
         {
             var changedText = SourceText.From(originalText).WithChanges(changes);
-            var comparer = EqualityComparer<TextLine>.Create((x, y) => x.Span == y.Span, x => x.Span.GetHashCode());
-
-            Assert.Equal(SourceText.From(changedText.ToString()).Lines, changedText.Lines, comparer);
+            Assert.Equal(SourceText.From(changedText.ToString()).Lines, changedText.Lines, new TextLineEqualityComparer());
         }
 
         [Fact]
