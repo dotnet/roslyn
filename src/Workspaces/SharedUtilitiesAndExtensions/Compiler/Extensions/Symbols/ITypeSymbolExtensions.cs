@@ -646,6 +646,12 @@ internal static partial class ITypeSymbolExtensions
             type = underlyingType;
         }
 
+        if (type.TypeKind != TypeKind.Struct)
+            return false;
+
+        if (type.IsReadOnly)
+            return false;
+
         switch (type.SpecialType)
         {
             case SpecialType.System_Boolean:
@@ -675,14 +681,12 @@ internal static partial class ITypeSymbolExtensions
         }
 
         if (type.IsErrorType())
-        {
             return null;
-        }
 
-        if (type.TypeKind != TypeKind.Struct)
-        {
+        // Special case types that we know for certain are immutable, but which may have not been marked that way
+        // (especially in older frameworks).
+        if (IsWellKnownImmutableValueType(type))
             return false;
-        }
 
         var hasPrivateField = false;
         foreach (var member in type.GetMembers())
@@ -714,6 +718,38 @@ internal static partial class ITypeSymbolExtensions
         }
 
         return false;
+
+        static bool IsWellKnownImmutableValueType(ITypeSymbol type)
+        {
+            // We know that these types are immutable, even if they don't have the IsReadOnly attribute.
+            if (type is not INamedTypeSymbol
+                {
+                    ContainingNamespace:
+                    {
+                        Name: nameof(System),
+                        ContainingNamespace.IsGlobalNamespace: true
+                    }
+                })
+            {
+                return false;
+            }
+
+            if (type.Name
+                    is nameof(DateTime)
+                    or nameof(ArraySegment<>)
+                    or nameof(DateTimeOffset)
+                    or nameof(Guid)
+                    or nameof(Index)
+                    or nameof(Range)
+                    or nameof(ReadOnlyMemory<>)
+                    or nameof(ReadOnlySpan<>)
+                    or nameof(TimeSpan))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 
     public static bool IsDisposable([NotNullWhen(returnValue: true)] this ITypeSymbol? type, [NotNullWhen(returnValue: true)] ITypeSymbol? iDisposableType)

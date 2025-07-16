@@ -215,6 +215,35 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             struct MutableInt { public int Value; }
             """);
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76815")]
+    [InlineData("DateTime")]
+    [InlineData("ArraySegment<int>")]
+    [InlineData("DateTimeOffset")]
+    [InlineData("Guid")]
+    [InlineData("Index")]
+    [InlineData("Range")]
+    [InlineData("ReadOnlyMemory<int>")]
+    [InlineData("ReadOnlySpan<int>")]
+    [InlineData("TimeSpan")]
+    public Task TestWellKnownImmutableValueType1(string typeName)
+        => TestMissingInRegularAndScriptAsync(
+            $$"""
+            using System;
+
+            class Class
+            {
+                [|{{typeName}} i|];
+
+                {{typeName}} P
+                {
+                    get
+                    {
+                        return i;
+                    }
+                }
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28511")]
     public Task TestMutableValueType1()
         => TestMissingInRegularAndScriptAsync(
