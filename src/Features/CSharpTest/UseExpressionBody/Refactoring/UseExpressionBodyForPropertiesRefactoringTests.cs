@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -379,4 +377,27 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             }|]
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
+
+    [Fact]
+    public Task TestCommentAfterPropertyName()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                int Goo // comment
+                {
+                    get 
+                    {
+                        [||]return Bar();
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int Goo => Bar(); // comment
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties_DisabledDiagnostic));
 }
