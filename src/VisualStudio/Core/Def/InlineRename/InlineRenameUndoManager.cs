@@ -15,6 +15,9 @@ using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
@@ -171,7 +174,14 @@ internal sealed class VisualStudioInlineRenameUndoManagerServiceFactory(
                 return;
             }
 
-            ApplyReplacementText(subjectBuffer, bufferUndoState.TextUndoHistory, propagateSpansEditTag, spans, this.currentState.ReplacementText);
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document is null)
+            {
+                return;
+            }
+
+            ApplyReplacementText(subjectBuffer, bufferUndoState.TextUndoHistory, propagateSpansEditTag, spans,
+                GetWithoutAttributeSuffix(currentState.ReplacementText, document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive));
 
             // Here we create the descriptions for the redo list dropdown.
             var undoManager = bufferUndoState.UndoManager;
@@ -229,6 +239,16 @@ internal sealed class VisualStudioInlineRenameUndoManagerServiceFactory(
                     break;
                 }
             }
+        }
+
+        private static string GetWithoutAttributeSuffix(string text, bool isCaseSensitive)
+        {
+            if (!text.TryGetWithoutAttributeSuffix(isCaseSensitive, out var replaceText))
+            {
+                replaceText = text;
+            }
+
+            return replaceText;
         }
     }
 }
