@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
-    Partial Public Class ImplementInterfaceTests
+    Partial Public Class ImplementInterfaceCodeFixTests
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
