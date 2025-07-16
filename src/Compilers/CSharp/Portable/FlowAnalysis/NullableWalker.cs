@@ -368,7 +368,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void SetAnalyzedNullability(BoundExpression? expr, VisitResult result, bool? isLvalue = null)
         {
-            if (expr == null || _disableNullabilityAnalysis) return;
+            if (expr == null
+                // BoundExpressionWithNullability is not produced by the binder but is used within nullability analysis to pass information to internal components.
+                || expr.Kind == BoundKind.ExpressionWithNullability
+                || _disableNullabilityAnalysis)
+            {
+                return;
+            }
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993: This assert is essential for ensuring that we aren't
@@ -3901,7 +3907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Reinfer the addMethod signature and convert the argument to parameter type
                             var addMethod = initializer.AddMethod;
                             MethodSymbol reinferredAddMethod;
-                            if (!addMethod.IsExtensionMethod)
+                            if (!addMethod.IsExtensionMethod && !addMethod.GetIsNewExtensionMember())
                             {
                                 reinferredAddMethod = (MethodSymbol)AsMemberOfType(targetCollectionType, addMethod);
                             }
@@ -4406,7 +4412,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var symbol = objectInitializer.MemberSymbol;
 
-                if (symbol != null)
+                // https://github.com/dotnet/roslyn/issues/78828: use containing type with new extensions
+                if (symbol != null && !symbol.GetIsNewExtensionMember())
                 {
                     Debug.Assert(TypeSymbol.Equals(objectInitializer.Type, GetTypeOrReturnType(symbol), TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                     symbol = AsMemberOfType(containingType, symbol);
@@ -4611,7 +4618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argumentResults = builder.ToImmutableAndFree();
                     }
                 }
-                else
+                else if (!method.GetIsNewExtensionMember())
                 {
                     // Tracked by https://github.com/dotnet/roslyn/issues/78828: Do we need to do anything special for new extensions here?
                     method = (MethodSymbol)AsMemberOfType(containingType, method);
@@ -7098,7 +7105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or BoundForEachStatement
                 or BoundPropertyAccess
                 or BoundIncrementOperator
-                or BoundCompoundAssignmentOperator)
+                or BoundCompoundAssignmentOperator
+                or BoundDagPropertyEvaluation)
             {
                 return true;
             }
@@ -8656,8 +8664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static Symbol AsMemberOfType(TypeSymbol? type, Symbol symbol)
         {
             Debug.Assert((object)symbol != null);
-            // https://github.com/dotnet/roslyn/issues/78828: This method should not be used with new extension members.
-            //Debug.Assert(!symbol.GetIsNewExtensionMember());
+            Debug.Assert(!symbol.GetIsNewExtensionMember(), symbol.ToDisplayString());
 
             var containingType = type as NamedTypeSymbol;
             if (containingType is null || containingType.IsErrorType() || symbol is ErrorMethodSymbol)
@@ -11318,6 +11325,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        private (PropertySymbol updatedProperty, bool returnNotNull) ReInferExtensionPropertyAccess(BoundNode node, PropertySymbol property, BoundExpression receiver)
+        {
+            Debug.Assert(property.GetIsNewExtensionMember());
+            ImmutableArray<BoundExpression> arguments = [receiver];
+
+            var extensionParameter = property.ContainingType.ExtensionParameter;
+            Debug.Assert(extensionParameter is not null);
+            ImmutableArray<ParameterSymbol> parameters = [extensionParameter];
+
+            ImmutableArray<RefKind> refKindsOpt = extensionParameter.RefKind == RefKind.Ref ? [RefKind.Ref] : default;
+
+            // Tracked by https://github.com/dotnet/roslyn/issues/37238 : properties/indexers should account for NotNullIfNotNull
+            var (updatedProperty, _, returnNotNull) = VisitArguments(node, arguments, refKindsOpt, parameters, default, defaultArguments: default,
+                expanded: false, invokedAsExtensionMethod: false, property, firstArgumentResult: null);
+
+            Debug.Assert(updatedProperty is not null);
+            return (updatedProperty, returnNotNull);
+        }
+
         public override BoundNode? VisitPropertyAccess(BoundPropertyAccess node)
         {
             var property = node.PropertySymbol;
@@ -11326,20 +11352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (property.GetIsNewExtensionMember())
             {
                 Debug.Assert(node.ReceiverOpt is not null);
-                ImmutableArray<BoundExpression> arguments = [node.ReceiverOpt];
-
-                var extensionParameter = property.ContainingType.ExtensionParameter;
-                Debug.Assert(extensionParameter is not null);
-                ImmutableArray<ParameterSymbol> parameters = [extensionParameter];
-
-                ImmutableArray<RefKind> refKindsOpt = extensionParameter.RefKind == RefKind.Ref ? [RefKind.Ref] : default;
-
-                // Tracked by https://github.com/dotnet/roslyn/issues/37238 : properties/indexers should account for NotNullIfNotNull
-                bool returnNotNull;
-                (updatedProperty, _, returnNotNull) = VisitArguments(node, arguments, refKindsOpt, parameters, default, defaultArguments: default,
-                    expanded: false, invokedAsExtensionMethod: false, property, firstArgumentResult: null);
-
-                Debug.Assert(updatedProperty is not null);
+                (updatedProperty, _) = ReInferExtensionPropertyAccess(node, property, node.ReceiverOpt);
 
                 TypeWithAnnotations typeWithAnnotations = GetTypeOrReturnTypeWithAnnotations(updatedProperty);
                 FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(updatedProperty);

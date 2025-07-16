@@ -2283,6 +2283,49 @@ class C
     }
 
     [Fact]
+    public void Nullability_PropertyPattern_Reinference_01()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+
+            class Program
+            {
+                void M1(bool b)
+                {
+                    var item = "a";
+                    if (b)
+                    {
+                        item = null;
+                    }
+
+                    var list = M2(item); // List<string?>
+                    if (list is { First: var first })
+                    {
+                        first.ToString(); // 1
+                    }
+                }
+
+                List<T> M2<T>(T item) => [item];
+            }
+
+            static class ListExtensions
+            {
+                extension<T>(List<T> list)
+                {
+                    public T First => list[0];
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (17,13): warning CS8602: Dereference of a possibly null reference.
+            //             first.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "first").WithLocation(17, 13));
+    }
+
+    [Fact]
     public void WellKnownAttribute_Conditional()
     {
         var src = """
