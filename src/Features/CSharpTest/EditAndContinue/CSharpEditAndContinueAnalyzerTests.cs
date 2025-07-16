@@ -368,8 +368,9 @@ public sealed class CSharpEditAndContinueAnalyzerTests
         var result = await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId));
 
         Assert.True(result.HasChanges);
-        Assert.True(result.HasChangesAndErrors);
-        Assert.True(result.HasChangesAndSyntaxErrors);
+        Assert.True(result.AnalysisBlocked);
+        Assert.NotNull(result.SyntaxError);
+        Assert.False(result.HasBlockingRudeEdits);
     }
 
     [Fact]
@@ -393,8 +394,9 @@ public sealed class CSharpEditAndContinueAnalyzerTests
         var result = await AnalyzeDocumentAsync(oldProject, oldDocument);
 
         Assert.False(result.HasChanges);
-        Assert.False(result.HasChangesAndErrors);
-        Assert.False(result.HasChangesAndSyntaxErrors);
+        Assert.False(result.AnalysisBlocked);
+        Assert.Null(result.SyntaxError);
+        Assert.False(result.HasBlockingRudeEdits);
     }
 
     [Fact]
@@ -430,8 +432,9 @@ public sealed class CSharpEditAndContinueAnalyzerTests
         var result = await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId));
 
         Assert.False(result.HasChanges);
-        Assert.False(result.HasChangesAndErrors);
-        Assert.False(result.HasChangesAndSyntaxErrors);
+        Assert.False(result.AnalysisBlocked);
+        Assert.Null(result.SyntaxError);
+        Assert.False(result.HasBlockingRudeEdits);
     }
 
     [Fact]
@@ -462,8 +465,9 @@ public sealed class CSharpEditAndContinueAnalyzerTests
         var result = await AnalyzeDocumentAsync(oldProject, oldDocument);
 
         Assert.False(result.HasChanges);
-        Assert.False(result.HasChangesAndErrors);
-        Assert.False(result.HasChangesAndSyntaxErrors);
+        Assert.False(result.AnalysisBlocked);
+        Assert.False(result.HasBlockingRudeEdits);
+        Assert.Null(result.SyntaxError);
         Assert.True(result.RudeEdits.IsEmpty);
     }
 
@@ -510,8 +514,8 @@ public sealed class CSharpEditAndContinueAnalyzerTests
             var result = await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId));
 
             Assert.True(result.HasChanges);
-            Assert.True(result.HasChangesAndErrors);
-            Assert.False(result.HasChangesAndSyntaxErrors);
+            Assert.True(result.AnalysisBlocked);
+            Assert.False(result.HasBlockingRudeEdits);
             Assert.Equal(RudeEditKind.ExperimentalFeaturesEnabled, result.RudeEdits.Single().Kind);
         }
     }
@@ -540,8 +544,9 @@ public sealed class CSharpEditAndContinueAnalyzerTests
         var result = await AnalyzeDocumentAsync(oldProject, oldDocument);
 
         Assert.False(result.HasChanges);
-        Assert.False(result.HasChangesAndErrors);
-        Assert.False(result.HasChangesAndSyntaxErrors);
+        Assert.False(result.HasBlockingRudeEdits);
+        Assert.False(result.AnalysisBlocked);
+        Assert.Null(result.SyntaxError);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")]
@@ -581,8 +586,9 @@ public sealed class CSharpEditAndContinueAnalyzerTests
         Assert.True(result.HasChanges);
 
         // no declaration errors (error in method body is only reported when emitting):
-        Assert.False(result.HasChangesAndErrors);
-        Assert.False(result.HasChangesAndSyntaxErrors);
+        Assert.False(result.HasBlockingRudeEdits);
+        Assert.False(result.AnalysisBlocked);
+        Assert.Null(result.SyntaxError);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")]
@@ -621,8 +627,8 @@ public sealed class CSharpEditAndContinueAnalyzerTests
 
         // No errors reported: EnC analyzer is resilient against semantic errors.
         // They will be reported by 1) compiler diagnostic analyzer 2) when emitting delta - if still present.
-        Assert.False(result.HasChangesAndErrors);
-        Assert.False(result.HasChangesAndSyntaxErrors);
+        Assert.False(result.AnalysisBlocked);
+        Assert.False(result.HasBlockingRudeEdits);
     }
 
     [Fact]
