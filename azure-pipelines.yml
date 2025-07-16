@@ -410,6 +410,8 @@ stages:
       - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog 
         displayName: Restore
 
+      # We additionally restore during the build because a package we require for publish only restores when we pass `-publish`.
+      # Passing `-publish` during the restore step above fails due to no items needing published.
       - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -build -pack -publish -sign -binaryLogName Build.binlog /p:DotnetPublishUsingPipelines=true /p:ContinuousIntegrationBuildCorrectness=true
         displayName: Build
 
