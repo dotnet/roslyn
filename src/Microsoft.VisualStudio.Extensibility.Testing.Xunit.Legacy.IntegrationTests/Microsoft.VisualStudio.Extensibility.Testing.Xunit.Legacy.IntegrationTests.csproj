@@ -23,7 +23,9 @@
     <PackageReference Include="VSSDK.ComponentModelHost" VersionOverride="12.0.4" />
     <PackageReference Include="VSSDK.Editor" VersionOverride="12.0.4" />
     <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    
+    <!-- Continue to use the older runner in the legacy project so we are keeping this on net46 and testing older versions of the runner -->
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" VersionOverride="2.4.3"/>
   </ItemGroup>
 
   <ItemGroup>
