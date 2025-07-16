@@ -1160,7 +1160,7 @@ Delta: Epsilon: Test E
         /// Test the case where a utility is loaded by multiple analyzers at different versions. Ensure that no matter
         /// what order we load the analyzers we correctly resolve the utility version.
         /// </summary>
-        [Theory]
+        [ConditionalTheory(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79352")]
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_AnalyzerDependency(AnalyzerTestKind kind, bool normalOrder)
         {
