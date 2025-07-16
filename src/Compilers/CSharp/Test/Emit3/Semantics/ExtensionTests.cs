@@ -20946,6 +20946,51 @@ static class E
             .VerifyDiagnostics();
     }
 
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78433"), WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [CombinatorialData]
+    public void InterpolationHandler_ReceiverParameter_ByRef_WithConstantReceiver(bool useMetadataRef)
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, ref int i)
+                {
+                    System.Console.Write(i);
+                    System.Runtime.CompilerServices.Unsafe.AsRef(in i)++;
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension(ref int i)
+                {
+                    public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("i")] InterpolationHandler h)
+                    {
+                        System.Console.Write(i);
+                    }
+                }
+            }
+            """;
+
+        var exeSource = """
+            1.M($"");
+            E.M(3, $"");
+            """;
+
+        var expectedDiagnostic = new DiagnosticDescription[] {
+            // To be filled in when test is unskipped
+        };
+        CreateCompilation([exeSource, src], targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostic);
+
+        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        CreateCompilation(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostic);
+    }
+
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
     [CombinatorialData]
     public void InterpolationHandler_ReceiverParameter_ByIn_WithConstantReceiver(bool useMetadataRef)
