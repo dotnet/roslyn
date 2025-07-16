@@ -175,16 +175,13 @@ internal sealed class VisualStudioInlineRenameUndoManagerServiceFactory(
             }
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document is null)
-            {
-                return;
-            }
+            var isCaseSensitive = document?.GetLanguageService<ISyntaxFactsService>()?.IsCaseSensitive ?? true;
 
             // This is where we apply the replacement text to each inline preview in the buffer.
             // Needs to remove the "Attribute" suffix, since the inline preview does not include the "Attribute" suffix in the replacement span,
             // so that the user does not see the suffix twice.
             ApplyReplacementText(subjectBuffer, bufferUndoState.TextUndoHistory, propagateSpansEditTag, spans,
-                currentState.ReplacementText.GetWithoutAttributeSuffix(document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive) ?? currentState.ReplacementText);
+                currentState.ReplacementText.GetWithoutAttributeSuffix(isCaseSensitive) ?? currentState.ReplacementText);
 
             // Here we create the descriptions for the redo list dropdown.
             var undoManager = bufferUndoState.UndoManager;
