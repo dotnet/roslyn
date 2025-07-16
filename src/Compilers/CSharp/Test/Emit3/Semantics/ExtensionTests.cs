@@ -24196,13 +24196,9 @@ static class E
             // (1,10): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y1'.
             // var (x1, y1) = new C1();
             Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y1").WithArguments("y1").WithLocation(1, 10),
-
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : It looks like the following error is not reported for instance scenario. Noise?
-
             // (1,16): error CS1061: 'C1' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C1' could be found (are you missing a using directive or an assembly reference?)
             // var (x1, y1) = new C1();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C1()").WithArguments("C1", "Deconstruct").WithLocation(1, 16),
-
             // (1,16): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C1', with 2 out parameters and a void return type.
             // var (x1, y1) = new C1();
             Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C1()").WithArguments("C1", "2").WithLocation(1, 16),
@@ -27207,7 +27203,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, """object.Method("")""");
         Assert.Equal("void E.<>E__0.Method<System.String>(System.String t)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(invocation)); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : need to fix the semantic model
+        Assert.Empty(model.GetMemberGroup(invocation)); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : need to fix the semantic model TODO2
     }
 
     [Fact]
@@ -28018,7 +28014,7 @@ public class Program
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "a.Extension");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Assert.Empty(model.GetMemberGroup(memberAccess));
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Assert.Empty(model.GetMemberGroup(memberAccess)); TODO2
     }
 
     [Fact]
