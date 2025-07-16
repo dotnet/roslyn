@@ -214,8 +214,9 @@ public sealed class RemoteEditAndContinueServiceTests
                 ModuleUpdates = updates,
                 Diagnostics = diagnostics,
                 SyntaxError = syntaxError,
-                ProjectsToRebuild = [project.Id],
-                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(project.Id, []),
+                ProjectsToRebuild = [projectId],
+                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(projectId, [projectId]),
+                ProjectsToRedeploy = [projectId]
             };
         };
 
@@ -241,6 +242,10 @@ public sealed class RemoteEditAndContinueServiceTests
         Assert.Equal(instructionId1.Method.Method, activeStatements.Method);
         Assert.Equal(instructionId1.ILOffset, activeStatements.ILOffset);
         Assert.Equal(span1, activeStatements.NewSpan.ToLinePositionSpan());
+
+        AssertEx.SequenceEqual([projectId], results.ProjectsToRebuild);
+        AssertEx.SequenceEqual([KeyValuePair.Create<ProjectId, ImmutableArray<ProjectId>>(projectId, [projectId])], results.ProjectsToRestart);
+        AssertEx.SequenceEqual([projectId], results.ProjectsToRedeploy);
 
         // CommitSolutionUpdate
 

@@ -114,17 +114,22 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         /// Updates to be applied to modules. Empty if there are blocking rude edits.
         /// Only updates to projects that are not included in <see cref="ProjectsToRebuild"/> are listed.
         /// </summary>
-        public ImmutableArray<Update> ProjectUpdates { get; init; }
+        public required ImmutableArray<Update> ProjectUpdates { get; init; }
 
         /// <summary>
         /// Running projects that need to be restarted due to rude edits in order to apply changes.
         /// </summary>
-        public ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> ProjectsToRestart { get; init; }
+        public required ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> ProjectsToRestart { get; init; }
 
         /// <summary>
         /// Projects with changes that need to be rebuilt in order to apply changes.
         /// </summary>
-        public ImmutableArray<ProjectId> ProjectsToRebuild { get; init; }
+        public required ImmutableArray<ProjectId> ProjectsToRebuild { get; init; }
+
+        /// <summary>
+        /// Projects whose dependencies need to be deployed to their output directory, if not already present.
+        /// </summary>
+        public required ImmutableArray<ProjectId> ProjectsToRedeploy { get; init; }
     }
 
     private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
@@ -241,7 +246,8 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
                 update.UpdatedTypes,
                 update.RequiredCapabilities)),
             ProjectsToRestart = results.ProjectsToRestart,
-            ProjectsToRebuild = results.ProjectsToRebuild
+            ProjectsToRebuild = results.ProjectsToRebuild,
+            ProjectsToRedeploy = results.ProjectsToRedeploy,
         };
     }
 
