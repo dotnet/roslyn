@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface;
 
 using static ImplementHelpers;
 
-internal abstract partial class AbstractImplementInterfaceService
+internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarationSyntax>
 {
     private sealed partial class ImplementInterfaceGenerator
     {
