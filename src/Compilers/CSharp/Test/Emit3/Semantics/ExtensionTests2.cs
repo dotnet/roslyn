@@ -2061,7 +2061,7 @@ public static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : should we extend member post-conditions to work with extension members?
+        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : nullability, should we extend member post-conditions to work with extension members?
         DiagnosticDescription[] expected = [
             // (4,5): warning CS8602: Dereference of a possibly null reference.
             //     object.P2.ToString(); // 1
