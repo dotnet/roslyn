@@ -519,6 +519,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             if (ResourceInformation.EmitFormatMethods)
                             {
                                 getStringMethod += $$"""
+
                                     {{memberIndent}}private static string GetResourceString(string resourceKey, string[]? formatterNames)
                                     {{memberIndent}}{
                                     {{memberIndent}}   var value = GetResourceString(resourceKey) ?? "";
