@@ -54,17 +54,34 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms
         public readonly struct Position
         {
             public string Path { get; init; }
-            public LinePositionSpan Span { get; init; }
+            public LinePositionSpanInternal Span { get; init; }
+        }
+    }
 
-            public static implicit operator Position(FileLinePositionSpan fileLinePositionSpan) => new()
-            {
-                Path = fileLinePositionSpan.Path,
-                Span = fileLinePositionSpan.Span,
-            };
+    internal struct LinePositionInternal
+    {
+        public int Line { get; set; }
+        public int Character { get; set; }
+    }
+
+    /// <summary>
+    /// Workaround for inability to deserialize directly to <see cref="LinePositionSpan"/>.
+    /// </summary>
+    internal struct LinePositionSpanInternal
+    {
+        public LinePositionInternal Start { get; set; }
+        public LinePositionInternal End { get; set; }
+
+        public LinePositionSpan ToLinePositionSpan()
+        {
+            return new LinePositionSpan(
+                start: new LinePosition(Start.Line, Start.Character),
+                end: new LinePosition(End.Line, End.Character));
         }
     }
 
     [JsonSerializable(typeof(RunApiInput))]
     [JsonSerializable(typeof(RunApiOutput))]
+    [JsonSerializable(typeof(LinePositionSpanInternal))]
     internal partial class RunFileApiJsonSerializerContext : JsonSerializerContext;
 }
