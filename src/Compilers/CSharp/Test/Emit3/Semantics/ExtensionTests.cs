@@ -13100,6 +13100,36 @@ static class E
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
+    public void Foreach_GetEnumerator_ReceiverNullableWarning()
+    {
+        var src = """
+#nullable enable
+
+foreach (var x in ((C?)null).Id()) // 1
+{
+}
+
+class C
+{
+    public C Id() => this;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public System.Collections.Generic.IEnumerator<int> GetEnumerator() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,20): warning CS8602: Dereference of a possibly null reference.
+            // foreach (var x in ((C?)null).Id()) // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(C?)null").WithLocation(3, 20));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
     public void InstanceMethodInvocation_PatternBased_ForEach_GetEnumerator_Conversion()
     {
         var src = """
