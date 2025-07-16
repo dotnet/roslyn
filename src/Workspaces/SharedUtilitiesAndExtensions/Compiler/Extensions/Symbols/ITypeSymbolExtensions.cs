@@ -674,8 +674,8 @@ internal static partial class ITypeSymbolExtensions
                 break;
         }
 
-        // Special case types that we know for certain are immutable, but which may have not been marked that way
-        // (especially in older frameworks).
+        // Special case certain structs that we know for certain are immutable, but which may have not been marked that
+        // way (especially in older frameworks before we had the `readonly struct` feature).
         if (IsWellKnownImmutableValueType(type))
             return false;
 
