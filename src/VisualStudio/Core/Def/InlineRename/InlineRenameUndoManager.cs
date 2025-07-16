@@ -181,7 +181,7 @@ internal sealed class VisualStudioInlineRenameUndoManagerServiceFactory(
             }
 
             ApplyReplacementText(subjectBuffer, bufferUndoState.TextUndoHistory, propagateSpansEditTag, spans,
-                GetWithoutAttributeSuffix(currentState.ReplacementText, document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive));
+                currentState.ReplacementText.GetWithoutAttributeSuffix(document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive) ?? currentState.ReplacementText);
 
             // Here we create the descriptions for the redo list dropdown.
             var undoManager = bufferUndoState.UndoManager;
@@ -239,16 +239,6 @@ internal sealed class VisualStudioInlineRenameUndoManagerServiceFactory(
                     break;
                 }
             }
-        }
-
-        private static string GetWithoutAttributeSuffix(string text, bool isCaseSensitive)
-        {
-            if (!text.TryGetWithoutAttributeSuffix(isCaseSensitive, out var replaceText))
-            {
-                replaceText = text;
-            }
-
-            return replaceText;
         }
     }
 }
