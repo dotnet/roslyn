@@ -32,8 +32,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.IntegrationTestService.Dev17\Microsoft.VisualStudio.IntegrationTestService.Dev17.csproj" Private="false" PrivateAssets="all" />
 
-    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.17\Microsoft.VisualStudio.VsixInstaller.17.csproj" ReferenceOutputAssembly="False" SkipGetTargetFrameworkProperties="true" PrivateAssets="all" />
-    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.18\Microsoft.VisualStudio.VsixInstaller.18.csproj" ReferenceOutputAssembly="False" SkipGetTargetFrameworkProperties="true" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.17\Microsoft.VisualStudio.VsixInstaller.17.csproj" ReferenceOutputAssembly="False" SkipGetTargetFrameworkProperties="true" PrivateAssets="all">
+      <SetPlatform>Platform=x64</SetPlatform>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.18\Microsoft.VisualStudio.VsixInstaller.18.csproj" ReferenceOutputAssembly="False" SkipGetTargetFrameworkProperties="true" PrivateAssets="all">
+      <SetPlatform>Platform=x64</SetPlatform>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
