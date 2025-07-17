@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenAccess = GetUnderlyingIndexerOrSliceAccess(
                             implicitIndexer,
                             isLeftOfAssignment: !isRhsNestedInitializer,
-                            isRegularAssignmentOrRegularCompoundAssignment: true,
+                            isRegularAssignment: true,
                             cacheAllArgumentsOnly: true,
                             result, temps);
 

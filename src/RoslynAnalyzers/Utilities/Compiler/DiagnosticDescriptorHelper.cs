@@ -36,9 +36,6 @@ namespace Analyzer.Utilities
             Debug.Assert(isEnabledByDefaultInAggressiveMode || ruleLevel == RuleLevel.Disabled || ruleLevel == RuleLevel.CandidateForRemoval);
 
             var (defaultSeverity, enabledByDefault) = GetDefaultSeverityAndEnabledByDefault(ruleLevel);
-
-#pragma warning disable CA1308 // Normalize strings to uppercase - use lower case ID in help link
-            var helpLink = $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/{id.ToLowerInvariant()}";
 #pragma warning restore CA1308 // Normalize strings to uppercase
 
             var customTags = GetDefaultCustomTags(isPortedFxCopRule, isDataflowRule, isEnabledByDefaultInAggressiveMode);
@@ -53,7 +50,7 @@ namespace Analyzer.Utilities
             }
 
 #pragma warning disable RS0030 // The symbol 'DiagnosticDescriptor.DiagnosticDescriptor.#ctor' is banned in this project: Use 'DiagnosticDescriptorHelper.Create' instead
-            return new DiagnosticDescriptor(id, title, messageFormat, category, defaultSeverity, enabledByDefault, description, helpLink, customTags);
+            return new DiagnosticDescriptor(id, title, messageFormat, category, defaultSeverity, enabledByDefault, description, $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/{id.ToLowerInvariant()}", customTags);
 #pragma warning restore RS0030
 
             static (DiagnosticSeverity defaultSeverity, bool enabledByDefault) GetDefaultSeverityAndEnabledByDefault(RuleLevel ruleLevel)

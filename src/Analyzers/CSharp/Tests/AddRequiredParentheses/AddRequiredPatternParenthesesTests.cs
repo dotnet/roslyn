@@ -29,9 +29,8 @@ public sealed partial class AddRequiredPatternParenthesesTests(ITestOutputHelper
         => TestInRegularAndScript1Async(initialMarkup, expected, parameters: new TestParameters(options: options));
 
     [Fact]
-    public async Task TestLogicalPrecedence()
-    {
-        await TestAsync(
+    public Task TestLogicalPrecedence()
+        => TestAsync(
             """
             class C
             {
@@ -50,12 +49,10 @@ public sealed partial class AddRequiredPatternParenthesesTests(ITestOutputHelper
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNoLogicalOnLowerPrecedence()
-    {
-        await TestMissingAsync(
+    public Task TestNoLogicalOnLowerPrecedence()
+        => TestMissingAsync(
             """
             class C
             {
@@ -65,12 +62,10 @@ public sealed partial class AddRequiredPatternParenthesesTests(ITestOutputHelper
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotIfLogicalPrecedenceStaysTheSame()
-    {
-        await TestMissingAsync(
+    public Task TestNotIfLogicalPrecedenceStaysTheSame()
+        => TestMissingAsync(
             """
             class C
             {
@@ -80,12 +75,10 @@ public sealed partial class AddRequiredPatternParenthesesTests(ITestOutputHelper
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotIfLogicalPrecedenceIsNotEnforced()
-    {
-        await TestMissingAsync(
+    public Task TestNotIfLogicalPrecedenceIsNotEnforced()
+        => TestMissingAsync(
             """
             class C
             {
@@ -95,12 +88,10 @@ public sealed partial class AddRequiredPatternParenthesesTests(ITestOutputHelper
                 }
             }
             """, RequireArithmeticBinaryParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts1()
-    {
-        await TestAsync(
+    public Task TestLogicalPrecedenceMultipleEqualPrecedenceParts1()
+        => TestAsync(
             """
             class C
             {
@@ -119,12 +110,10 @@ public sealed partial class AddRequiredPatternParenthesesTests(ITestOutputHelper
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts2()
-    {
-        await TestAsync(
+    public Task TestLogicalPrecedenceMultipleEqualPrecedenceParts2()
+        => TestAsync(
             """
             class C
             {
@@ -143,5 +132,4 @@ public sealed partial class AddRequiredPatternParenthesesTests(ITestOutputHelper
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 }

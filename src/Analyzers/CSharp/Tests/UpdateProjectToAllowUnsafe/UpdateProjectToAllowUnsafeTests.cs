@@ -45,20 +45,17 @@ public sealed class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticPr
     }
 
     [Fact]
-    public async Task OnUnsafeClass()
-    {
-        await TestAllowUnsafeEnabledIfDisabledAsync(
+    public Task OnUnsafeClass()
+        => TestAllowUnsafeEnabledIfDisabledAsync(
             """
             unsafe class [|C|] // The compiler reports this on the name, not the 'unsafe' keyword.
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task OnUnsafeMethod()
-    {
-        await TestAllowUnsafeEnabledIfDisabledAsync(
+    public Task OnUnsafeMethod()
+        => TestAllowUnsafeEnabledIfDisabledAsync(
             """
             class C
             {
@@ -67,12 +64,10 @@ public sealed class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task OnUnsafeLocalFunction()
-    {
-        await TestAllowUnsafeEnabledIfDisabledAsync(
+    public Task OnUnsafeLocalFunction()
+        => TestAllowUnsafeEnabledIfDisabledAsync(
             """
             class C
             {
@@ -84,12 +79,10 @@ public sealed class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task OnUnsafeBlock()
-    {
-        await TestAllowUnsafeEnabledIfDisabledAsync(
+    public Task OnUnsafeBlock()
+        => TestAllowUnsafeEnabledIfDisabledAsync(
             """
             class C
             {
@@ -101,12 +94,10 @@ public sealed class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NotInsideUnsafeBlock()
-    {
-        await TestMissingAsync(
+    public Task NotInsideUnsafeBlock()
+        => TestMissingAsync(
             """
             class C
             {
@@ -119,5 +110,4 @@ public sealed class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 }

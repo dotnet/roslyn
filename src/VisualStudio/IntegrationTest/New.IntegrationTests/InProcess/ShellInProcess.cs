@@ -203,8 +203,6 @@ internal sealed partial class ShellInProcess
         }
 
         public async ValueTask DisposeAsync()
-        {
-            await _fileChangeService.Resume();
-        }
+            => await _fileChangeService.Resume();
     }
 }

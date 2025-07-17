@@ -16,9 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.MetaAnalyzers
         private const string CompilerReferenceVersion = "4.6.0";
 
         [Fact]
-        public async Task FiresOnFileLocalType_CodeFixProvider()
-        {
-            await new VerifyCS.Test
+        public Task FiresOnFileLocalType_CodeFixProvider()
+            => new VerifyCS.Test
             {
                 TestCode = """
                 using System.Collections.Immutable;
@@ -39,12 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.MetaAnalyzers
                     VerifyCS.Diagnostic().WithSpan(5, 12, 5, 16).WithArguments("Type"),
                 }
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task FiresOnFileLocalType_DiagnosticAnalyzer()
-        {
-            await new VerifyCS.Test
+        public Task FiresOnFileLocalType_DiagnosticAnalyzer()
+            => new VerifyCS.Test
             {
                 TestCode = """
                 using System.Collections.Immutable;
@@ -64,12 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.MetaAnalyzers
                     VerifyCS.Diagnostic().WithSpan(4, 12, 4, 16).WithArguments("Type"),
                 }
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task FiresOnFileLocalType_ISourceGenerator()
-        {
-            await new VerifyCS.Test
+        public Task FiresOnFileLocalType_ISourceGenerator()
+            => new VerifyCS.Test
             {
                 TestCode = """
                 using Microsoft.CodeAnalysis;
@@ -87,12 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.MetaAnalyzers
                     VerifyCS.Diagnostic().WithSpan(2, 12, 2, 16).WithArguments("Type"),
                 },
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task FiresOnFileLocalType_IIncrementalGenerator()
-        {
-            await new VerifyCS.Test
+        public Task FiresOnFileLocalType_IIncrementalGenerator()
+            => new VerifyCS.Test
             {
                 TestCode = """
                 using Microsoft.CodeAnalysis;
@@ -109,6 +102,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.MetaAnalyzers
                     VerifyCS.Diagnostic().WithSpan(2, 12, 2, 16).WithArguments("Type"),
                 },
             }.RunAsync();
-        }
     }
 }

@@ -19,9 +19,8 @@ using VerifyCS = CSharpCodeFixVerifier<ConvertToProgramMainDiagnosticAnalyzer, C
 public sealed class ConvertToProgramMainAnalyzerTests
 {
     [Fact]
-    public async Task NotOfferedWhenUserPrefersTopLevelStatements()
-    {
-        await new VerifyCS.Test
+    public Task NotOfferedWhenUserPrefersTopLevelStatements()
+        => new VerifyCS.Test
         {
             TestCode = """
             System.Console.WriteLine(0);
@@ -30,12 +29,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotOfferedWhenUserPrefersProgramMainButNoTopLevelStatements()
-    {
-        await new VerifyCS.Test
+    public Task NotOfferedWhenUserPrefersProgramMainButNoTopLevelStatements()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -49,12 +46,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             LanguageVersion = LanguageVersion.CSharp9,
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task OfferedWhenUserPrefersProgramMainAndTopLevelStatements_Silent()
-    {
-        await new VerifyCS.Test
+    public Task OfferedWhenUserPrefersProgramMainAndTopLevelStatements_Silent()
+        => new VerifyCS.Test
         {
             TestCode = """
             {|IDE0211:
@@ -75,12 +70,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Silent } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestHeader1()
-    {
-        await new VerifyCS.Test
+    public Task TestHeader1()
+        => new VerifyCS.Test
         {
             TestCode = """
             {|IDE0211:// This is a file banner
@@ -103,12 +96,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Silent } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestHeader2()
-    {
-        await new VerifyCS.Test
+    public Task TestHeader2()
+        => new VerifyCS.Test
         {
             TestCode = """
             {|IDE0211:// This is a file banner
@@ -133,12 +124,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Silent } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotOfferedInLibrary()
-    {
-        await new VerifyCS.Test
+    public Task NotOfferedInLibrary()
+        => new VerifyCS.Test
         {
             TestCode = """
             {|CS8805:System.Console.WriteLine(0);|}
@@ -146,12 +135,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             LanguageVersion = LanguageVersion.CSharp9,
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Silent } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotOfferedWhenSuppressed()
-    {
-        await new VerifyCS.Test
+    public Task NotOfferedWhenSuppressed()
+        => new VerifyCS.Test
         {
             TestCode = """
             System.Console.WriteLine(0);
@@ -160,12 +147,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.None } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task OfferedWhenUserPrefersProgramMainAndTopLevelStatements_Suggestion()
-    {
-        await new VerifyCS.Test
+    public Task OfferedWhenUserPrefersProgramMainAndTopLevelStatements_Suggestion()
+        => new VerifyCS.Test
         {
             TestCode = """
             {|IDE0211:System|}.Console.WriteLine(0);
@@ -183,12 +168,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task PreferNoAccessibility()
-    {
-        await new VerifyCS.Test
+    public Task PreferNoAccessibility()
+        => new VerifyCS.Test
         {
             TestCode = """
             {|IDE0211:System|}.Console.WriteLine(0);
@@ -210,12 +193,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithExistingUsings()
-    {
-        await new VerifyCS.Test
+    public Task TestWithExistingUsings()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -237,12 +218,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithNumericReturn()
-    {
-        await new VerifyCS.Test
+    public Task TestWithNumericReturn()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -268,12 +247,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithLocalFunction()
-    {
-        await new VerifyCS.Test
+    public Task TestWithLocalFunction()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -307,12 +284,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithAwait()
-    {
-        await new VerifyCS.Test
+    public Task TestWithAwait()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -335,12 +310,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithAwaitAndNumericReturn()
-    {
-        await new VerifyCS.Test
+    public Task TestWithAwaitAndNumericReturn()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -367,12 +340,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61126")]
-    public async Task TestNormalCommentStaysInsideMainIfTouchingStatement()
-    {
-        await new VerifyCS.Test
+    public Task TestNormalCommentStaysInsideMainIfTouchingStatement()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -396,12 +367,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61126")]
-    public async Task TestNormalCommentMovesIfNotTouching()
-    {
-        await new VerifyCS.Test
+    public Task TestNormalCommentMovesIfNotTouching()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -427,12 +396,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTopLevelStatementExplanationCommentRemoved()
-    {
-        await new VerifyCS.Test
+    public Task TestTopLevelStatementExplanationCommentRemoved()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -455,12 +422,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTopLevelStatementExplanationCommentRemoved2()
-    {
-        await new VerifyCS.Test
+    public Task TestTopLevelStatementExplanationCommentRemoved2()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -484,12 +449,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTopLevelStatementExplanationCommentRemoved3()
-    {
-        await new VerifyCS.Test
+    public Task TestTopLevelStatementExplanationCommentRemoved3()
+        => new VerifyCS.Test
         {
             TestCode = """
             // See https://aka.ms/new-console-template for more information
@@ -509,12 +472,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTopLevelStatementExplanationCommentRemoved4()
-    {
-        await new VerifyCS.Test
+    public Task TestTopLevelStatementExplanationCommentRemoved4()
+        => new VerifyCS.Test
         {
             TestCode = """
             // See https://aka.ms/new-console-template for more information
@@ -533,12 +494,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestPreprocessorDirective1()
-    {
-        await new VerifyCS.Test
+    public Task TestPreprocessorDirective1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -568,12 +527,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestPreprocessorDirective2()
-    {
-        await new VerifyCS.Test
+    public Task TestPreprocessorDirective2()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -607,12 +564,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62943")]
-    public async Task TestHasExistingPart()
-    {
-        await new VerifyCS.Test
+    public Task TestHasExistingPart()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -641,7 +596,6 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/62943")]
     [InlineData("public")]
@@ -649,9 +603,8 @@ public sealed class ConvertToProgramMainAnalyzerTests
     [InlineData("static")]
     [InlineData("abstract")]
     [InlineData("file")]
-    public async Task TestHasExistingPart_KeepsModifiers(string modifier)
-    {
-        await new VerifyCS.Test
+    public Task TestHasExistingPart_KeepsModifiers(string modifier)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             using System;
@@ -680,12 +633,10 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestBeforeExistingClass()
-    {
-        await new VerifyCS.Test
+    public Task TestBeforeExistingClass()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -717,5 +668,4 @@ public sealed class ConvertToProgramMainAnalyzerTests
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
         }.RunAsync();
-    }
 }

@@ -19,9 +19,8 @@ using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertTryCastToDirectCastC
 public sealed class ConvertTryCastToDirectCastTests
 {
     [Fact]
-    public async Task ConvertFromAsToExplicit()
-    {
-        await new VerifyCS.Test
+    public Task ConvertFromAsToExplicit()
+        => new VerifyCS.Test
         {
             TestCode = """
             class Program
@@ -43,12 +42,10 @@ public sealed class ConvertTryCastToDirectCastTests
             """,
             CodeActionValidationMode = CodeActionValidationMode.SemanticStructure
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task ConvertFromAsToExplicit_ValueType()
-    {
-        await new VerifyCS.Test
+    public Task ConvertFromAsToExplicit_ValueType()
+        => new VerifyCS.Test
         {
             TestCode = """
             class Program
@@ -63,12 +60,10 @@ public sealed class ConvertTryCastToDirectCastTests
             OffersEmptyRefactoring = false,
             CodeActionValidationMode = CodeActionValidationMode.Full,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task ConvertFromAsToExplicit_NoTypeSyntaxRightOfAs()
-    {
-        await new VerifyCS.Test
+    public Task ConvertFromAsToExplicit_NoTypeSyntaxRightOfAs()
+        => new VerifyCS.Test
         {
             TestCode = """
             class Program
@@ -83,73 +78,68 @@ public sealed class ConvertTryCastToDirectCastTests
             OffersEmptyRefactoring = false,
             CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("(1 as object) as $$C",
                 "(C)(1 as object)")]
     [InlineData("(1 as$$ object) as C",
                 "((object)1) as C")]
-    public async Task ConvertFromAsToExplicit_Nested(string asExpression, string cast)
-    {
-        await new VerifyCS.Test
+    public Task ConvertFromAsToExplicit_Nested(string asExpression, string cast)
+        => new VerifyCS.Test
         {
-            TestCode = @$"
-class C {{ }}
+            TestCode = $$"""
+            class C { }
 
-class Program
-{{
-    public static void Main()
-    {{
-        var x = {asExpression};
-    }}
-}}
-",
-            FixedCode = @$"
-class C {{ }}
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = {{asExpression}};
+                }
+            }
+            """,
+            FixedCode = $$"""
+            class C { }
 
-class Program
-{{
-    public static void Main()
-    {{
-        var x = {cast};
-    }}
-}}
-",
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = {{cast}};
+                }
+            }
+            """,
             CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("(1 + 1) as $$object",
                 "(object)(1 + 1)")]
     [InlineData("(1 $$+ 1) as object",
                 "(object)(1 + 1)")]
-    public async Task ConvertFromAsToExplicit_OtherBinaryExpressions(string asExpression, string cast)
-    {
-        await new VerifyCS.Test
+    public Task ConvertFromAsToExplicit_OtherBinaryExpressions(string asExpression, string cast)
+        => new VerifyCS.Test
         {
-            TestCode = @$"
-class Program
-{{
-    public static void Main()
-    {{
-        var x = {asExpression};
-    }}
-}}
-",
-            FixedCode = @$"
-class Program
-{{
-    public static void Main()
-    {{
-        var x = {cast};
-    }}
-}}
-",
+            TestCode = $$"""
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = {{asExpression}};
+                }
+            }
+            """,
+            FixedCode = $$"""
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = {{cast}};
+                }
+            }
+            """,
             CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("/* Leading */ 1 as $$object",
@@ -162,36 +152,33 @@ class Program
                 "/* Middle2 */ (object)1")]
     [InlineData("/* Leading */ 1 /* Middle1 */ as /* Middle2 */ $$object /* Trailing */",
                 "/* Leading */ /* Middle2 */ (object)1/* Middle1 */  /* Trailing */")]
-    public async Task ConvertFromAsToExplicit_TriviaHandling(string asExpression, string cast)
-    {
-        await new VerifyCS.Test
+    public Task ConvertFromAsToExplicit_TriviaHandling(string asExpression, string cast)
+        => new VerifyCS.Test
         {
-            TestCode = @$"
-class Program
-{{
-    public static void Main()
-    {{
-        var x = {asExpression};
-    }}
-}}
-",
-            FixedCode = @$"
-class Program
-{{
-    public static void Main()
-    {{
-        var x = {cast};
-    }}
-}}
-",
+            TestCode = $$"""
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = {{asExpression}};
+                }
+            }
+            """,
+            FixedCode = $$"""
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = {{cast}};
+                }
+            }
+            """,
             CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64052")]
-    public async Task ConvertFromAsToExplicit_NullableReferenceType_NullableEnable()
-    {
-        await new VerifyCS.Test
+    public Task ConvertFromAsToExplicit_NullableReferenceType_NullableEnable()
+        => new VerifyCS.Test
         {
             TestCode = """
             #nullable enable
@@ -217,12 +204,10 @@ class Program
             """,
             CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64052")]
-    public async Task ConvertFromAsToExplicit_NullableReferenceType_NullableDisable()
-    {
-        await new VerifyCS.Test
+    public Task ConvertFromAsToExplicit_NullableReferenceType_NullableDisable()
+        => new VerifyCS.Test
         {
             TestCode = """
             #nullable disable
@@ -248,7 +233,6 @@ class Program
             """,
             CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64466")]
     public async Task ConvertFromExplicitToAs_NullableValueType()

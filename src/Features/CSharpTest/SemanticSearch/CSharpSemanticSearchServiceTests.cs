@@ -90,60 +90,48 @@ public sealed class CSharpSemanticSearchServiceTests
     public async Task CompilationQuery()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static IEnumerable<ISymbol> Find(Compilation compilation)
         {
             return compilation.GlobalNamespace.GetMembers("N");
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query, ["namespace N"]);
+        """, ["namespace N"]);
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
     public async Task NamespaceQuery()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static IEnumerable<ISymbol> Find(INamespaceSymbol n)
         {
             return n.GetMembers("C");
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query, ["class C"]);
+        """, ["class C"]);
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
     public async Task NamedTypeQuery()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static IEnumerable<ISymbol> Find(INamedTypeSymbol type)
         {
             return type.GetMembers("F");
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query, ["int C.F"]);
+        """, ["int C.F"]);
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
     public async Task MethodQuery()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static IEnumerable<ISymbol> Find(IMethodSymbol method)
         {
             return [method];
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query,
+        """,
         [
             "C.C()",
             "int C.P.get",
@@ -157,15 +145,12 @@ public sealed class CSharpSemanticSearchServiceTests
     public async Task FieldQuery()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static IEnumerable<ISymbol> Find(IFieldSymbol field)
         {
             return [field];
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query,
+        """,
         [
             "int C.F",
             "readonly int C.P.field",
@@ -176,15 +161,12 @@ public sealed class CSharpSemanticSearchServiceTests
     public async Task PropertyQuery()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static IEnumerable<ISymbol> Find(IPropertySymbol prop)
         {
             return [prop];
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query,
+        """,
         [
             "int C.P { get; }"
         ]);
@@ -194,15 +176,12 @@ public sealed class CSharpSemanticSearchServiceTests
     public async Task EventQuery()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static IEnumerable<ISymbol> Find(IEventSymbol e)
         {
             return [e];
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query,
+        """,
         [
             "event Action C.E"
         ]);
@@ -231,8 +210,7 @@ public sealed class CSharpSemanticSearchServiceTests
                 </Project>
             </Workspace>
         """, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static async IAsyncEnumerable<ISymbol> Find(IMethodSymbol e)
         {
             if (e.Name != "F")
@@ -246,9 +224,7 @@ public sealed class CSharpSemanticSearchServiceTests
                 yield return model.GetEnclosingSymbol(node.SpanStart);
             }
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query,
+        """,
         [
             "void D.R1()",
             "void D.R2()"
@@ -259,15 +235,12 @@ public sealed class CSharpSemanticSearchServiceTests
     public async Task NullReturn()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static IEnumerable<ISymbol> Find(Compilation compilation)
         {
             return null;
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query, expectedItems: []);
+        """, expectedItems: []);
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]

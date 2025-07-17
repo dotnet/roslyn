@@ -6598,7 +6598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private (MethodSymbol method, ImmutableArray<VisitResult> results, bool returnNotNull) ReInferMethodAndVisitArguments(
-            BoundExpression node,
+            BoundNode node,
             BoundExpression? receiverOpt,
             TypeWithState receiverType,
             MethodSymbol method,
@@ -6615,7 +6615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             refKindsOpt = GetArgumentRefKinds(refKindsOpt, adjustForNewExtension, method, arguments.Length);
 
-            if (!receiverType.HasNullType)
+            if (!method.GetIsNewExtensionMember() && !receiverType.HasNullType)
             {
                 // Update method based on inferred receiver type.
                 method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
@@ -7094,17 +7094,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // invocation (such as a synthesized call from a query interpretation).
         private static bool HasImplicitTypeArguments(BoundNode node)
         {
-            if (node is BoundCollectionElementInitializer { AddMethod: { TypeArgumentsWithAnnotations: { IsEmpty: false } } })
-            {
-                return true;
-            }
-
-            if (node is BoundForEachStatement { EnumeratorInfoOpt: { GetEnumeratorInfo: { Method: { TypeArgumentsWithAnnotations: { IsEmpty: false } } } } })
-            {
-                return true;
-            }
-
-            if (node is BoundPropertyAccess or BoundIncrementOperator or BoundCompoundAssignmentOperator)
+            if (node is BoundCollectionElementInitializer
+                or BoundForEachStatement
+                or BoundPropertyAccess
+                or BoundIncrementOperator
+                or BoundCompoundAssignmentOperator)
             {
                 return true;
             }
@@ -8662,6 +8656,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static Symbol AsMemberOfType(TypeSymbol? type, Symbol symbol)
         {
             Debug.Assert((object)symbol != null);
+            // https://github.com/dotnet/roslyn/issues/78828: This method should not be used with new extension members.
+            //Debug.Assert(!symbol.GetIsNewExtensionMember());
 
             var containingType = type as NamedTypeSymbol;
             if (containingType is null || containingType.IsErrorType() || symbol is ErrorMethodSymbol)
@@ -9766,6 +9762,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
+                // In new extension form, the nullable rewriter processes the arguments as if receiver is the first item in the argument list, like the old extension form. This means that all of
+                // our placeholders will be off-by-one, with the extension receiver in the first position.
+                var newExtensionFormOffset = parameterOpt?.ContainingType.IsExtension is true ? 1 : 0;
                 bool addedPlaceholders = false;
                 foreach (var placeholder in handlerData.ArgumentPlaceholders)
                 {
@@ -9778,13 +9777,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // much better error to report than a mismatched argument nullability error.
                         case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
                             break;
+                        case BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver:
+                            Debug.Assert(newExtensionFormOffset == 1);
+                            AddPlaceholderReplacement(placeholder, expression: null, previousArgumentConversionResults[0]);
+                            addedPlaceholders = true;
+                            break;
                         default:
                             if (previousArgumentConversionResults.Count > placeholder.ArgumentIndex)
                             {
                                 // We intentionally do not give a replacement bound node for this placeholder, as we do not propagate any post conditions from the constructor
                                 // to the original location of the node. This is because the nullable walker is not a true evaluation-order walker, and doing so would cause
                                 // us to miss real warnings.
-                                AddPlaceholderReplacement(placeholder, expression: null, previousArgumentConversionResults[placeholder.ArgumentIndex]);
+                                AddPlaceholderReplacement(placeholder, expression: null, previousArgumentConversionResults[placeholder.ArgumentIndex + newExtensionFormOffset]);
                                 addedPlaceholders = true;
                             }
                             break;
@@ -9797,7 +9801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var placeholder in handlerData.ArgumentPlaceholders)
                     {
-                        if (placeholder.ArgumentIndex < previousArgumentConversionResults.Count && placeholder.ArgumentIndex >= 0)
+                        if (placeholder.ArgumentIndex < previousArgumentConversionResults.Count && placeholder.ArgumentIndex is >= 0 or BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver)
                         {
                             RemovePlaceholderReplacement(placeholder);
                         }
@@ -11586,25 +11590,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol? reinferredGetEnumeratorMethod = null;
 
-            if (enumeratorInfoOpt?.GetEnumeratorInfo is { Method: { IsExtensionMethod: true, Parameters: var parameters } } enumeratorMethodInfo) // Tracked by https://github.com/dotnet/roslyn/issues/78828: Test this code path with new extensions
+            if (enumeratorInfoOpt?.GetEnumeratorInfo is { } enumeratorMethodInfo
+                && (enumeratorMethodInfo.Method.IsExtensionMethod || enumeratorMethodInfo.Method.GetIsNewExtensionMember()))
             {
                 // this is case 7
                 // We do not need to do this same analysis for non-extension methods because they do not have generic parameters that
                 // can be inferred from usage like extension methods can. We don't warn about default arguments at the call site, so
                 // there's nothing that can be learned from the non-extension case.
-                var (method, results, _) = VisitArguments(
-                    node,
-                    enumeratorMethodInfo.Arguments,
+                (reinferredGetEnumeratorMethod, var results, _) = ReInferMethodAndVisitArguments(
+                    node: node,
+                    receiverOpt: expr,
+                    receiverType: resultTypeWithState,
+                    method: enumeratorMethodInfo.Method,
+                    arguments: enumeratorMethodInfo.Arguments,
                     refKindsOpt: default,
-                    parameters,
                     argsToParamsOpt: default,
                     defaultArguments: enumeratorMethodInfo.DefaultArguments,
                     expanded: enumeratorMethodInfo.Expanded,
                     invokedAsExtensionMethod: true,
-                    enumeratorMethodInfo.Method);
+                    suppressAdjustmentForNewExtension: false,
+                    firstArgumentResult: _visitResult);
 
                 targetTypeWithAnnotations = results[0].LValueType;
-                reinferredGetEnumeratorMethod = method;
             }
             else if (conversion.IsIdentity ||
                 (conversion.Kind == ConversionKind.ExplicitReference && resultType.SpecialType == SpecialType.System_String))
@@ -11633,12 +11640,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // This is case 8. There was not a successful binding, as a successful binding will _always_ generate one of the
                     // above conversions. Just return, as we want to suppress further errors.
+                    Debug.Assert(node.HasErrors);
                     return;
                 }
             }
             else
             {
                 // This is also case 8.
+                Debug.Assert(node.HasErrors);
                 return;
             }
 
@@ -11653,7 +11662,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings: false,
                 AssignmentKind.Assignment);
 
-            bool reportedDiagnostic = enumeratorInfoOpt?.GetEnumeratorInfo.Method is { IsExtensionMethod: true } // Tracked by https://github.com/dotnet/roslyn/issues/78828: Test this code path with new extensions
+            bool reportedDiagnostic = enumeratorInfoOpt?.GetEnumeratorInfo.Method is { } getEnumeratorMethod
+                    && (getEnumeratorMethod.IsExtensionMethod || getEnumeratorMethod.GetIsNewExtensionMember())
                 ? false
                 : CheckPossibleNullReceiver(expr);
 

@@ -189,18 +189,15 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
                 }
             }
             """;
-        var generated =
-            """
+        await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        await AddGeneratorAsync(new SingleFileTestGenerator("""
             namespace M
             {
                 class B
                 {
                 }
             }
-            """;
-
-        await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
-        await AddGeneratorAsync(new SingleFileTestGenerator(generated), testLspServer.TestWorkspace);
+            """), testLspServer.TestWorkspace);
 
         var project = testLspServer.TestWorkspace.CurrentSolution.Projects.Single();
         var results = await RunGetRelatedDocumentsAsync(

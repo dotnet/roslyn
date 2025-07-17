@@ -19,9 +19,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class JsonStringDetectorTests
 {
     [Fact]
-    public async Task TestStrict()
-    {
-        await new VerifyCS.Test
+    public Task TestStrict()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -44,12 +43,10 @@ public sealed class JsonStringDetectorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNonStrict()
-    {
-        await new VerifyCS.Test
+    public Task TestNonStrict()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -72,12 +69,10 @@ public sealed class JsonStringDetectorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNonStrictRawString()
-    {
-        await new VerifyCS.Test
+    public Task TestNonStrictRawString()
+        => new VerifyCS.Test
         {
             TestCode =
             """"
@@ -101,12 +96,10 @@ public sealed class JsonStringDetectorTests
             """",
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithExistingComment()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithExistingComment()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -118,12 +111,10 @@ public sealed class JsonStringDetectorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOnUnlikelyJson()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnUnlikelyJson()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -135,5 +126,4 @@ public sealed class JsonStringDetectorTests
             }
             """,
         }.RunAsync();
-    }
 }

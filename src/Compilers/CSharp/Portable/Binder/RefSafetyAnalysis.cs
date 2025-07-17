@@ -751,6 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (argIndex)
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
+                    case BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver:
                         Debug.Assert(receiver != null);
                         if (receiver is null)
                         {

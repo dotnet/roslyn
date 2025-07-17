@@ -41,9 +41,8 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task TestDerivedClassWithFieldWithBase()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDerivedClassWithFieldWithBase()
+        => TestInRegularAndScript1Async(
             """
             namespace System { public struct HashCode { } }
 
@@ -83,12 +82,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDerivedClassWithFieldWithNoBase()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDerivedClassWithFieldWithNoBase()
+        => TestInRegularAndScript1Async(
             """
             namespace System { public struct HashCode { } }
 
@@ -127,12 +124,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDerivedClassWithNoFieldWithBase()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDerivedClassWithNoFieldWithBase()
+        => TestInRegularAndScript1Async(
             """
             namespace System { public struct HashCode { } }
 
@@ -171,12 +166,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFieldAndProp()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFieldAndProp()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -212,12 +205,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUnchecked()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUnchecked()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -256,12 +247,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnNonGetHashCode()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnNonGetHashCode()
+        => TestMissingAsync(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -281,12 +270,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithoutReturn()
-    {
-        await TestMissingAsync(
+    public Task TestNotWithoutReturn()
+        => TestMissingAsync(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -305,12 +292,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithoutLocal()
-    {
-        await TestMissingAsync(
+    public Task TestNotWithoutLocal()
+        => TestMissingAsync(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -329,12 +314,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithMultipleLocals()
-    {
-        await TestMissingAsync(
+    public Task TestNotWithMultipleLocals()
+        => TestMissingAsync(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -354,12 +337,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithoutInitializer()
-    {
-        await TestMissingAsync(
+    public Task TestNotWithoutInitializer()
+        => TestMissingAsync(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -379,12 +360,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotReturningAccumulator()
-    {
-        await TestMissingAsync(
+    public Task TestNotReturningAccumulator()
+        => TestMissingAsync(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -404,12 +383,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAcumulatorInitializedToField()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAcumulatorInitializedToField()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -444,12 +421,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAcumulatorInitializedToHashedField()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAcumulatorInitializedToHashedField()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -484,12 +459,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnThisGetHashCode()
-    {
-        await TestMissingAsync(
+    public Task TestMissingOnThisGetHashCode()
+        => TestMissingAsync(
             """
             namespace System { public struct HashCode { } }
 
@@ -511,12 +484,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithNoSystemHashCode()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithNoSystemHashCode()
+        => TestMissingAsync(
             """
             class B
             {
@@ -536,12 +507,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDirectNullCheck1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDirectNullCheck1()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -577,12 +546,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDirectNullCheck2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDirectNullCheck2()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -618,12 +585,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInt64Pattern()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInt64Pattern()
+        => TestInRegularAndScript1Async(
             """
             namespace System { public struct HashCode { } }
 
@@ -652,12 +617,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInt64Pattern2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInt64Pattern2()
+        => TestInRegularAndScript1Async(
             """
             namespace System { public struct HashCode { } }
 
@@ -686,12 +649,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTuple()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTuple()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -724,12 +685,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullable1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNullable1()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -765,12 +724,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullable2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNullable2()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -806,12 +763,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullable3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNullable3()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -847,12 +802,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullable4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNullable4()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -888,12 +841,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullable_Enable_1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNullable_Enable_1()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -933,12 +884,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullable_Enable_2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNullable_Enable_2()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -978,12 +927,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullable_Enable_3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNullable_Enable_3()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -1023,12 +970,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullable_Enable_4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNullable_Enable_4()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -1068,12 +1013,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullable_Disable_1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNullable_Disable_1()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -1113,12 +1056,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullable_Disable_2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNullable_Disable_2()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -1158,12 +1099,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullable_Disable_3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNullable_Disable_3()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -1203,12 +1142,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullable_Disable_4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNullable_Disable_4()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -1248,12 +1185,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnExistingUsageOfSystemHashCode()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnExistingUsageOfSystemHashCode()
+        => TestMissingAsync(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -1270,12 +1205,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnExistingUsageOfSystemHashCode2()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnExistingUsageOfSystemHashCode2()
+        => TestMissingAsync(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -1295,12 +1228,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39916")]
-    public async Task TestManyFields_ImplicitType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestManyFields_ImplicitType()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -1349,12 +1280,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: this.PreferImplicitTypeWithInfo()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39916")]
-    public async Task TestManyFields_ExplicitType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestManyFields_ExplicitType()
+        => TestInRegularAndScript1Async(
             """
             using System.Collections.Generic;
             namespace System { public struct HashCode { } }
@@ -1403,12 +1332,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnSingleReturnedMember()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnSingleReturnedMember()
+        => TestMissingAsync(
             """
             namespace System { public struct HashCode { } }
 
@@ -1422,12 +1349,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnSingleMemberWithInvokedGetHashCode()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnSingleMemberWithInvokedGetHashCode()
+        => TestMissingAsync(
             """
             namespace System { public struct HashCode { } }
 
@@ -1441,12 +1366,10 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnSimpleBaseReturn()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnSimpleBaseReturn()
+        => TestMissingAsync(
             """
             namespace System { public struct HashCode { } }
 
@@ -1460,17 +1383,14 @@ public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74315")]
-    public async Task TestMissingBaseType()
-    {
-        await TestMissingAsync("""
+    public Task TestMissingBaseType()
+        => TestMissingAsync("""
             using System;
 
             namespace System { public struct HashCode { } }
 
             record $$B(int I) : A(I);
             """);
-    }
 }

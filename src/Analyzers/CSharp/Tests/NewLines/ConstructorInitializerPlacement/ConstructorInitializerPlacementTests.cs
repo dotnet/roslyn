@@ -18,9 +18,8 @@ using Verify = CSharpCodeFixVerifier<
 public sealed class ConstructorInitializerPlacementTests
 {
     [Fact]
-    public async Task TestNotWithOptionOff()
-    {
-        await new Verify.Test
+    public Task TestNotWithOptionOff()
+        => new Verify.Test
         {
             TestCode = """
             class C
@@ -33,12 +32,10 @@ public sealed class ConstructorInitializerPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleCase()
-    {
-        await new Verify.Test
+    public Task TestSimpleCase()
+        => new Verify.Test
         {
             TestCode = """
             class C
@@ -60,12 +57,10 @@ public sealed class ConstructorInitializerPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOnSameLine1()
-    {
-        await new Verify.Test
+    public Task TestNotOnSameLine1()
+        => new Verify.Test
         {
             TestCode = """
             class C
@@ -77,12 +72,10 @@ public sealed class ConstructorInitializerPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOnSameLine2()
-    {
-        await new Verify.Test
+    public Task TestNotOnSameLine2()
+        => new Verify.Test
         {
             TestCode = """
             class C
@@ -95,12 +88,10 @@ public sealed class ConstructorInitializerPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithColonTrailingComment()
-    {
-        await new Verify.Test
+    public Task TestNotWithColonTrailingComment()
+        => new Verify.Test
         {
             TestCode = """
             class C
@@ -113,12 +104,10 @@ public sealed class ConstructorInitializerPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithCloseParenTrailingComment1()
-    {
-        await new Verify.Test
+    public Task TestWithCloseParenTrailingComment1()
+        => new Verify.Test
         {
             TestCode = """
             class C
@@ -140,12 +129,10 @@ public sealed class ConstructorInitializerPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithColonLeadingComment1()
-    {
-        await new Verify.Test
+    public Task TestWithColonLeadingComment1()
+        => new Verify.Test
         {
             TestCode = """
             class C
@@ -171,12 +158,10 @@ public sealed class ConstructorInitializerPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithLeadingComment()
-    {
-        await new Verify.Test
+    public Task TestWithLeadingComment()
+        => new Verify.Test
         {
             TestCode = """
             class C
@@ -200,12 +185,10 @@ public sealed class ConstructorInitializerPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithLeadingDirective()
-    {
-        await new Verify.Test
+    public Task TestWithLeadingDirective()
+        => new Verify.Test
         {
             TestCode = """
             class C
@@ -220,5 +203,4 @@ public sealed class ConstructorInitializerPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 }

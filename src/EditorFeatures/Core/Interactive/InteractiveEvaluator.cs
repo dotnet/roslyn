@@ -123,7 +123,7 @@ internal sealed class CSharpInteractiveEvaluator : IResettableInteractiveEvaluat
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            if (_lazyInteractiveWindow != null)
+            if (CurrentWindow != null)
             {
                 throw new NotSupportedException(EditorFeaturesWpfResources.The_CurrentWindow_property_may_only_be_assigned_once);
             }

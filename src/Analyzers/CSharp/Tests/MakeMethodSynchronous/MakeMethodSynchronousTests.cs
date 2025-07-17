@@ -20,9 +20,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class MakeMethodSynchronousTests
 {
     [Fact]
-    public async Task TestTaskReturnType()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestTaskReturnType()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -43,12 +42,10 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTaskOfTReturnType()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestTaskOfTReturnType()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -71,12 +68,10 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSecondModifier()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestSecondModifier()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -97,12 +92,10 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFirstModifier()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestFirstModifier()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -123,12 +116,10 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrailingTrivia()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestTrailingTrivia()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -150,12 +141,10 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRenameMethod()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestRenameMethod()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -176,12 +165,10 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRenameMethod1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestRenameMethod1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -212,7 +199,6 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestParenthesizedLambda()
@@ -397,9 +383,8 @@ public sealed class MakeMethodSynchronousTests
     }
 
     [Fact]
-    public async Task TestFixAll()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestFixAll()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -434,7 +419,6 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
@@ -724,9 +708,8 @@ public sealed class MakeMethodSynchronousTests
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/14133")]
-    public async Task RemoveAsyncInLocalFunction()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveAsyncInLocalFunction()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -753,7 +736,6 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("Task<C>", "C")]
@@ -762,9 +744,8 @@ public sealed class MakeMethodSynchronousTests
     [InlineData("void", "void")]
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/18307")]
-    public async Task RemoveAsyncInLocalFunctionKeepsTrivia(string asyncReturn, string expectedReturn)
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveAsyncInLocalFunctionKeepsTrivia(string asyncReturn, string expectedReturn)
+        => VerifyCS.VerifyCodeFixAsync(
             $$"""
             using System;
             using System.Threading.Tasks;
@@ -798,7 +779,6 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("", "Task<C>", "\r\n    C")]
@@ -811,9 +791,8 @@ public sealed class MakeMethodSynchronousTests
     [InlineData("public", "void", " void")]
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/18307")]
-    public async Task RemoveAsyncKeepsTrivia(string modifiers, string asyncReturn, string expectedReturn)
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveAsyncKeepsTrivia(string modifiers, string asyncReturn, string expectedReturn)
+        => VerifyCS.VerifyCodeFixAsync(
             $$"""
             using System;
             using System.Threading.Tasks;
@@ -840,7 +819,6 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task MethodWithUsingAwait()
@@ -872,9 +850,8 @@ public sealed class MakeMethodSynchronousTests
     }
 
     [Fact]
-    public async Task MethodWithUsingNoAwait()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task MethodWithUsingNoAwait()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -899,7 +876,6 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task MethodWithAwaitForEach()
@@ -925,9 +901,8 @@ public sealed class MakeMethodSynchronousTests
     }
 
     [Fact]
-    public async Task MethodWithForEachNoAwait()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task MethodWithForEachNoAwait()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -950,7 +925,6 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task MethodWithForEachVariableAwait()
@@ -976,9 +950,8 @@ public sealed class MakeMethodSynchronousTests
     }
 
     [Fact]
-    public async Task MethodWithForEachVariableNoAwait()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task MethodWithForEachVariableNoAwait()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -1001,12 +974,10 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIAsyncEnumerableReturnType()
-    {
-        await new VerifyCS.Test
+    public Task TestIAsyncEnumerableReturnType()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
             TestCode = """
@@ -1034,12 +1005,10 @@ public sealed class MakeMethodSynchronousTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestIAsyncEnumeratorReturnTypeOnLocalFunction()
-    {
-        await new VerifyCS.Test
+    public Task TestIAsyncEnumeratorReturnTypeOnLocalFunction()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
             TestCode = """
@@ -1073,5 +1042,4 @@ public sealed class MakeMethodSynchronousTests
             }
             """,
         }.RunAsync();
-    }
 }

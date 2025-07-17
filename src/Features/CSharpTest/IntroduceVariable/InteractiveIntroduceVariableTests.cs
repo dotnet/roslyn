@@ -27,190 +27,190 @@ public class InteractiveIntroduceVariableTests : AbstractCSharpCodeActionTest_No
         => TestAsync(initial, expected, TestOptions.Script, null, index);
 
     [Fact]
-    public async Task TestMethodFix1()
-    {
-        await TestAsync(
-@"void Goo()
-{
-    Bar([|1 + 1|]);
-    Bar(1 + 1);
-}",
-@"void Goo()
-{
-    const int {|Rename:V|} = 1 + 1;
-    Bar(V);
-    Bar(1 + 1);
-}",
+    public Task TestMethodFix1()
+        => TestAsync(
+            """
+            void Goo()
+            {
+                Bar([|1 + 1|]);
+                Bar(1 + 1);
+            }
+            """,
+            """
+            void Goo()
+            {
+                const int {|Rename:V|} = 1 + 1;
+                Bar(V);
+                Bar(1 + 1);
+            }
+            """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestMethodFix2()
-    {
-        await TestAsync(
-@"void Goo()
-{
-    Bar([|1 + 1|]);
-    Bar(1 + 1);
-}",
-@"void Goo()
-{
-    const int {|Rename:V|} = 1 + 1;
-    Bar(V);
-    Bar(V);
-}",
+    public Task TestMethodFix2()
+        => TestAsync(
+            """
+            void Goo()
+            {
+                Bar([|1 + 1|]);
+                Bar(1 + 1);
+            }
+            """,
+            """
+            void Goo()
+            {
+                const int {|Rename:V|} = 1 + 1;
+                Bar(V);
+                Bar(V);
+            }
+            """,
             index: 3);
-    }
 
     [Fact]
-    public async Task TestFieldFix1()
-    {
-        var code =
-@"int i = ([|1 + 1|]) + (1 + 1);";
-
-        var expected =
-@"private const int {|Rename:V|} = 1 + 1;
-int i = V + (1 + 1);";
-
-        await TestAsync(code, expected, index: 0);
-    }
+    public Task TestFieldFix1()
+        => TestAsync(@"int i = ([|1 + 1|]) + (1 + 1);", """
+            private const int {|Rename:V|} = 1 + 1;
+            int i = V + (1 + 1);
+            """, index: 0);
 
     [Fact]
-    public async Task TestFieldFix2()
-    {
-        var code =
-@"int i = ([|1 + 1|]) + (1 + 1);";
-
-        var expected =
-@"private const int {|Rename:V|} = 1 + 1;
-int i = V + V;";
-
-        await TestAsync(code, expected, index: 1);
-    }
+    public Task TestFieldFix2()
+        => TestAsync(@"int i = ([|1 + 1|]) + (1 + 1);", """
+            private const int {|Rename:V|} = 1 + 1;
+            int i = V + V;
+            """, index: 1);
 
     [Fact]
-    public async Task TestParameterFix1()
-    {
-        await TestAsync(
-@"void Bar(int i = [|1 + 1|], int j = 1 + 1)
-{
-}",
-@"private const int {|Rename:V|} = 1 + 1;
+    public Task TestParameterFix1()
+        => TestAsync(
+            """
+            void Bar(int i = [|1 + 1|], int j = 1 + 1)
+            {
+            }
+            """,
+            """
+            private const int {|Rename:V|} = 1 + 1;
 
-void Bar(int i = V, int j = 1 + 1)
-{
-}",
+            void Bar(int i = V, int j = 1 + 1)
+            {
+            }
+            """,
             index: 0);
-    }
 
     [Fact]
-    public async Task TestParameterFix2()
-    {
-        await TestAsync(
-@"void Bar(int i = [|1 + 1|], int j = 1 + 1)
-{
-}",
-@"private const int {|Rename:V|} = 1 + 1;
+    public Task TestParameterFix2()
+        => TestAsync(
+            """
+            void Bar(int i = [|1 + 1|], int j = 1 + 1)
+            {
+            }
+            """,
+            """
+            private const int {|Rename:V|} = 1 + 1;
 
-void Bar(int i = V, int j = V)
-{
-}",
+            void Bar(int i = V, int j = V)
+            {
+            }
+            """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestAttributeFix1()
-    {
-        await TestAsync(
-@"[Goo([|1 + 1|], 1 + 1)]
-void Bar()
-{
-}",
-@"private const int {|Rename:V|} = 1 + 1;
+    public Task TestAttributeFix1()
+        => TestAsync(
+            """
+            [Goo([|1 + 1|], 1 + 1)]
+            void Bar()
+            {
+            }
+            """,
+            """
+            private const int {|Rename:V|} = 1 + 1;
 
-[Goo(V, 1 + 1)]
-void Bar()
-{
-}",
+            [Goo(V, 1 + 1)]
+            void Bar()
+            {
+            }
+            """,
             index: 0);
-    }
 
     [Fact]
-    public async Task TestAttributeFix2()
-    {
-        await TestAsync(
-@"[Goo([|1 + 1|], 1 + 1)]
-void Bar()
-{
-}",
-@"private const int {|Rename:V|} = 1 + 1;
+    public Task TestAttributeFix2()
+        => TestAsync(
+            """
+            [Goo([|1 + 1|], 1 + 1)]
+            void Bar()
+            {
+            }
+            """,
+            """
+            private const int {|Rename:V|} = 1 + 1;
 
-[Goo(V, V)]
-void Bar()
-{
-}",
+            [Goo(V, V)]
+            void Bar()
+            {
+            }
+            """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541287")]
-    public async Task TestBlockFormatting()
-    {
-        await TestAsync(
-@"using System;
- 
-class C
-{
-    public static void Main()
-    {
-        for (int i = 0; i < 10; i++)
-            Console.WriteLine([|i+1|]);
-    }
-}
-",
-@"using System;
- 
-class C
-{
-    public static void Main()
-    {
-        for (int i = 0; i < 10; i++)
-        {
-            int {|Rename:value|} = i + 1;
-            Console.WriteLine(value);
-        }
-    }
-}
-",
-index: 1);
-    }
+    public Task TestBlockFormatting()
+        => TestAsync(
+            """
+            using System;
+
+            class C
+            {
+                public static void Main()
+                {
+                    for (int i = 0; i < 10; i++)
+                        Console.WriteLine([|i+1|]);
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                public static void Main()
+                {
+                    for (int i = 0; i < 10; i++)
+                    {
+                        int {|Rename:value|} = i + 1;
+                        Console.WriteLine(value);
+                    }
+                }
+            }
+            """,
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546465")]
-    public async Task TestPreserveTrivia()
-    {
-        await TestAsync(
-@"class C
-{
-    void M(params string[] args)
-    {
-        M(
-            ""a"",
-            [|""b""|],
-            ""c"");
-    }
-}
-",
-@"class C
-{
-    private const string {|Rename:V|} = ""b"";
+    public Task TestPreserveTrivia()
+        => TestAsync(
+            """
+            class C
+            {
+                void M(params string[] args)
+                {
+                    M(
+                        "a",
+                        [|"b"|],
+                        "c");
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private const string {|Rename:V|} = "b";
 
-    void M(params string[] args)
-    {
-        M(
-            ""a"",
-            V,
-            ""c"");
-    }
-}
-");
-    }
+                void M(params string[] args)
+                {
+                    M(
+                        "a",
+                        V,
+                        "c");
+                }
+            }
+            """);
 }

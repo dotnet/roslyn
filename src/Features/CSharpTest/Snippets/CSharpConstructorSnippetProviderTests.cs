@@ -15,39 +15,32 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
     protected override string SnippetIdentifier => "ctor";
 
     [Fact]
-    public async Task ConstructorSnippetMissingInNamespace()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task ConstructorSnippetMissingInNamespace()
+        => VerifySnippetIsAbsentAsync("""
             namespace Namespace
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task ConstructorSnippetMissingInFileScopedNamespace()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task ConstructorSnippetMissingInFileScopedNamespace()
+        => VerifySnippetIsAbsentAsync("""
             namespace Namespace;
 
             $$
             """);
-    }
 
     [Fact]
-    public async Task ConstructorSnippetMissingInTopLevelContext()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task ConstructorSnippetMissingInTopLevelContext()
+        => VerifySnippetIsAbsentAsync("""
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task InsertConstructorSnippetInClassTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConstructorSnippetInClassTest()
+        => VerifySnippetAsync("""
             class MyClass
             {
                 $$
@@ -61,12 +54,10 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertConstructorSnippetInAbstractClassTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConstructorSnippetInAbstractClassTest()
+        => VerifySnippetAsync("""
             abstract class MyClass
             {
                 $$
@@ -80,12 +71,10 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertConstructorSnippetInAbstractClassTest_AbstractModifierInOtherPartialDeclaration()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConstructorSnippetInAbstractClassTest_AbstractModifierInOtherPartialDeclaration()
+        => VerifySnippetAsync("""
             partial class MyClass
             {
                 $$
@@ -107,12 +96,10 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertConstructorSnippetInNestedAbstractClassTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConstructorSnippetInNestedAbstractClassTest()
+        => VerifySnippetAsync("""
             class MyClass
             {
                 abstract class NestedClass
@@ -132,12 +119,10 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertConstructorSnippetInStructTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConstructorSnippetInStructTest()
+        => VerifySnippetAsync("""
             struct MyStruct
             {
                 $$
@@ -151,12 +136,10 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertConstructorSnippetInRecordTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConstructorSnippetInRecordTest()
+        => VerifySnippetAsync("""
             record MyRecord
             {
                 $$
@@ -170,23 +153,19 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ConstructorSnippetMissingInInterface()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task ConstructorSnippetMissingInInterface()
+        => VerifySnippetIsAbsentAsync("""
             interface MyInterface
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertConstructorSnippetInNestedClassTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConstructorSnippetInNestedClassTest()
+        => VerifySnippetAsync("""
             class MyClass
             {
                 class MyClass1
@@ -206,14 +185,12 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("static")]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertConstructorSnippetAfterValidModifiersTest(string modifiers)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertConstructorSnippetAfterValidModifiersTest(string modifiers)
+        => VerifySnippetAsync($$"""
             class MyClass
             {
                 {{modifiers}} $$
@@ -227,7 +204,6 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("abstract")]
@@ -237,32 +213,27 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
     [InlineData("readonly")]
     [InlineData("new")]
     [InlineData("file")]
-    public async Task ConstructorSnippetMissingAfterInvalidModifierTest(string modifier)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+    public Task ConstructorSnippetMissingAfterInvalidModifierTest(string modifier)
+        => VerifySnippetIsAbsentAsync($$"""
             class MyClass
             {
                 {{modifier}} $$
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task ConstructorSnippetMissingAfterBothAccessibilityModifierAndStaticKeywordTest(string accessibilityModifier)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+    public Task ConstructorSnippetMissingAfterBothAccessibilityModifierAndStaticKeywordTest(string accessibilityModifier)
+        => VerifySnippetIsAbsentAsync($$"""
             class MyClass
             {
                 {{accessibilityModifier}} static $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertConstructorSnippetAfterAccessibilityModifierBeforeOtherMemberTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConstructorSnippetAfterAccessibilityModifierBeforeOtherMemberTest()
+        => VerifySnippetAsync("""
             class C
             {
                 private $$
@@ -278,12 +249,10 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
                 readonly int Value = 3;
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertConstructorSnippetBetweenAccessibilityModifiersBeforeOtherMemberTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConstructorSnippetBetweenAccessibilityModifiersBeforeOtherMemberTest()
+        => VerifySnippetAsync("""
             class C
             {
                 protected $$
@@ -299,12 +268,10 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
                 internal int Value = 3;
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertConstructorSnippetAfterAccessibilityModifierBeforeOtherStaticMemberTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConstructorSnippetAfterAccessibilityModifierBeforeOtherStaticMemberTest()
+        => VerifySnippetAsync("""
             class C
             {
                 internal $$
@@ -320,12 +287,10 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
                 static int Value = 3;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68176")]
-    public async Task InsertCorrectConstructorSnippetInNestedTypeTest_CtorBeforeNestedType()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertCorrectConstructorSnippetInNestedTypeTest_CtorBeforeNestedType()
+        => VerifySnippetAsync("""
             class Outer
             {
                 $$
@@ -345,12 +310,10 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68176")]
-    public async Task InsertCorrectConstructorSnippetInNestedTypeTest_CtorAfterNestedType()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertCorrectConstructorSnippetInNestedTypeTest_CtorAfterNestedType()
+        => VerifySnippetAsync("""
             class Outer
             {
                 class Inner
@@ -370,5 +333,4 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 }

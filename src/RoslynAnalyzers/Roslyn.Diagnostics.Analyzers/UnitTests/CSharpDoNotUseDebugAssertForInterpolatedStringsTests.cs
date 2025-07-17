@@ -37,9 +37,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData(""""
             $"""{0}"""
             """")]
-        public async Task InterpolatedString(string @string)
-        {
-            await new VerifyCS.Test
+        public Task InterpolatedString(string @string)
+            => new VerifyCS.Test
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.DefaultNetFramework,
                 TestCode = $$"""
@@ -71,12 +70,10 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task NoCrashOnUsingStaticedAssert()
-        {
-            await new VerifyCS.Test
+        public Task NoCrashOnUsingStaticedAssert()
+            => new VerifyCS.Test
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.DefaultNetFramework,
                 TestCode = $$"""
@@ -94,7 +91,6 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
-        }
 
         [Theory]
         [InlineData("""
@@ -109,9 +105,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData(""""
             $"""{"0"}"""
             """")]
-        public async Task NoAssertForConstantString(string @string)
-        {
-            await new VerifyCS.Test
+        public Task NoAssertForConstantString(string @string)
+            => new VerifyCS.Test
             {
                 TestCode = $$"""
                 using System.Diagnostics;
@@ -128,6 +123,5 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
-        }
     }
 }

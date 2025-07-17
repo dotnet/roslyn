@@ -17,9 +17,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class FixIncorrectConstraintTests
 {
     [Fact]
-    public async Task TestEnumConstraint()
-    {
-        await new VerifyCS.Test
+    public Task TestEnumConstraint()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C<T> where T : {|CS9010:enum|}
@@ -32,12 +31,10 @@ public sealed class FixIncorrectConstraintTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEnumConstraintWithUsing()
-    {
-        await new VerifyCS.Test
+    public Task TestEnumConstraintWithUsing()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -54,12 +51,10 @@ public sealed class FixIncorrectConstraintTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestDelegateConstraint()
-    {
-        await new VerifyCS.Test
+    public Task TestDelegateConstraint()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C<T> where T : {|CS9011:delegate|}
@@ -72,12 +67,10 @@ public sealed class FixIncorrectConstraintTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestDelegateConstraintWithUsing()
-    {
-        await new VerifyCS.Test
+    public Task TestDelegateConstraintWithUsing()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -94,5 +87,4 @@ public sealed class FixIncorrectConstraintTests
             }
             """,
         }.RunAsync();
-    }
 }
