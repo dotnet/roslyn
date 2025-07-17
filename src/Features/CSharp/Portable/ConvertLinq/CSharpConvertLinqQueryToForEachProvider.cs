@@ -343,9 +343,9 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
                 methodSymbol.Parameters.Length == 0)
             {
                 return TryConvertIfInInvocation(
-                          invocationExpression,
-                          queryExpressionProcessingInfo,
-                          IsList,
+                           invocationExpression,
+                           queryExpressionProcessingInfo,
+                           IsList,
                           (listIdentifier, expression) => ExpressionStatement(InvocationExpression(
                                 MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,

@@ -1087,7 +1087,7 @@ expected: Classifications(Identifier("M2"), Punctuation.OpenParen, Keyword("out"
         => TestInMethodAsync(
             code: @"_ = 1;",
             testHost: testHost,
-expected: Classifications(Identifier("_"), Operators.Equals, Number("1"), Punctuation.Semicolon));
+            expected: Classifications(Identifier("_"), Operators.Equals, Number("1"), Punctuation.Semicolon));
 
     [Theory, CombinatorialData]
     public Task UnderscoreInLambda(TestHost testHost)
