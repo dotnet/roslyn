@@ -1,13 +1,7 @@
 Param (
-    [string]$version = "$env:GITBUILDVERSIONSIMPLE",
     [string]$resultDir = "$env:AGENT_TEMPDIRECTORY",
     [string]$binlog
 )
-
-if (-not $version) {
-    Write-Host "Missing environment variable 'GITBUILDVERSIONSIMPLE'"
-    Exit 1
-}
 
 if (-not $resultDir -or -not (Test-Path $resultDir)) {
     if (-not $env:RUNNER_TEMP -or -not (Test-Path $env:RUNNER_TEMP)) {
@@ -18,22 +12,13 @@ if (-not $resultDir -or -not (Test-Path $resultDir)) {
     $resultDir = $env:RUNNER_TEMP
 }
 
-# Make sure directories referenced by NuGet.Config exist
-if (-not (Test-Path "$PSScriptRoot/../../bin/Packages/Debug/NuGet")) {
-    mkdir -p "$PSScriptRoot/../../bin/Packages/Debug/NuGet"
-}
-
-if (-not (Test-Path "$PSScriptRoot/../../bin/Packages/Release/NuGet")) {
-    mkdir -p "$PSScriptRoot/../../bin/Packages/Release/NuGet"
-}
-
 $CurrentTestResultsDir = "$resultDir\xUnitResults\EqualExceptionLegacy"
 if (-not (Test-Path $CurrentTestResultsDir)) {
     mkdir -p $CurrentTestResultsDir
 }
 
 $env:XUNIT_LOGS = $CurrentTestResultsDir
-dotnet test /bl:$binlog --logger trx --results-directory $CurrentTestResultsDir $PSScriptRoot\EqualExceptionLegacy.csproj "/p:GITBUILDVERSIONSIMPLE=$version"
+dotnet test /bl:$binlog --logger trx --results-directory $CurrentTestResultsDir $PSScriptRoot\EqualExceptionLegacy.csproj
 if ($LASTEXITCODE -ne 1) {
     Write-Host "Expected 'dotnet test' to exit with code 1, but was $LASTEXITCODE"
     Exit 1

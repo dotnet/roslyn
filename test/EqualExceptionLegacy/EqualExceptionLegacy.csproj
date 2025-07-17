@@ -16,9 +16,9 @@
   <ItemGroup>
     <PackageReference Include="EnvDTE" VersionOverride="8.0.2" />
     <PackageReference Include="EnvDTE80" VersionOverride="8.0.3" />
-    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy" VersionOverride="$(GITBUILDVERSIONSIMPLE)-*" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" VersionOverride="12.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.12.0" VersionOverride="12.0.30111" />
+    <PackageReference Include="stdole" VersionOverride="7.0.3303" PrivateAssets="all" />
     <PackageReference Include="xunit" />
 
     <!-- Continue to use the older runner in the legacy project so we are keeping this on net46 and testing older versions of the runner -->
@@ -27,6 +27,10 @@
 
   <ItemGroup>
     <None Remove="$(NuGetPackageRoot)xunit.runner.visualstudio\2.3.1\build\net20\..\_common\xunit.abstractions.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.csproj" />
   </ItemGroup>
 
   <ItemGroup>
