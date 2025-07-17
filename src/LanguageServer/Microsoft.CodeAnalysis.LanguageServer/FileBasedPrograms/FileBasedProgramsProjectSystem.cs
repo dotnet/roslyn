@@ -167,6 +167,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             ProjectFactory: isFileBasedProgram ? _workspaceFactory.HostProjectFactory : _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
             IsMiscellaneousFile: !isFileBasedProgram,
             Preferred: buildHostKind,
-            Actual: buildHostKind);
+            Actual: buildHostKind,
+            HasLoadErrors: content is null);
     }
 }
