@@ -486,6 +486,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitLocalAddress(LocalDefinition local)
         {
+            Debug.Assert(LocalSlotManager != null);
             LocalSlotManager.AddAddressedLocal(local, _optimizations);
 
             if (local.IsReference)
