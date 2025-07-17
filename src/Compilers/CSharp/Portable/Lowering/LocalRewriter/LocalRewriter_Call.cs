@@ -660,6 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var requiresInstanceReceiver = methodOrIndexer.RequiresInstanceReceiver() && methodOrIndexer is not MethodSymbol { MethodKind: MethodKind.Constructor } and not FunctionPointerMethodSymbol;
             Debug.Assert(!requiresInstanceReceiver || rewrittenReceiver != null || _inExpressionLambda);
             Debug.Assert(!forceReceiverCapturing || (requiresInstanceReceiver && rewrittenReceiver != null && storesOpt is object));
+            Debug.Assert(!forceReceiverCapturing || methodOrIndexer is PropertySymbol);
 
             BoundLocal? receiverTemp = null;
             BoundAssignmentOperator? assignmentToTemp = null;
@@ -683,11 +684,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // SPEC VIOLATION: However, for compatibility with Dev12 we will continue treating all generic type parameters, constrained or not,
                     // SPEC VIOLATION: as value types.
 
-                    refKind = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter ? RefKind.Ref : RefKind.None;
+                    refKind = (methodOrIndexer.GetIsNewExtensionMember() ?
+                                   !rewrittenReceiver.Type.IsReferenceType :
+                                   rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter) ?
+                              RefKind.Ref : RefKind.None;
                 }
                 else
                 {
-                    if (rewrittenReceiver.Type.IsReferenceType)
+                    if (rewrittenReceiver.Type.IsReferenceType) // IsNewExtensionMemberAccessWithByValPossiblyStructReceiver
                     {
                         refKind = RefKind.None;
                     }
@@ -778,7 +782,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundAssignmentOperator? extraRefInitialization = null;
 
                 if (receiverTemp.LocalSymbol.IsRef &&
-                    CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp) &&
+                   (methodOrIndexer.GetIsNewExtensionMember() ?
+                     !receiverTemp.Type.IsValueType :
+                     CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp)) &&
                     !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp) &&
                     (forceReceiverCapturing ||
                      !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(rewrittenArguments)))

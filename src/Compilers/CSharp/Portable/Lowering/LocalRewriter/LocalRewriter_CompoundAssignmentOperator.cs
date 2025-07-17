@@ -242,8 +242,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsNewExtensionMemberAccessWithByValPossiblyStructReceiver(BoundExpression transformedLHS)
         {
-            return transformedLHS is BoundPropertyAccess { PropertySymbol: { } property } && property.GetIsNewExtensionMember() &&
-                   property.ContainingType.ExtensionParameter is { RefKind: RefKind.None, Type.IsReferenceType: false };
+            switch (transformedLHS)
+            {
+                case BoundPropertyAccess { PropertySymbol: { } property }:
+                    return checkProperty(property);
+                case BoundIndexerAccess { Indexer: { } indexer }:
+                    return checkProperty(indexer);
+                default:
+                    return false;
+            }
+
+            static bool checkProperty(PropertySymbol property)
+            {
+                return property.GetIsNewExtensionMember() && !property.IsStatic && property.ContainingType.ExtensionParameter is { RefKind: RefKind.None, Type.IsReferenceType: false };
+            }
         }
 
         private BoundExpression? TransformPropertyOrEventReceiver(Symbol propertyOrEvent, BoundExpression? receiverOpt, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
