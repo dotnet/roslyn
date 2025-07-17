@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" VersionOverride="17.0.3177-preview3" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" VersionOverride="17.14.2094" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.SDK" VersionOverride="17.0.0-previews-3-31605-261" PrivateAssets="all" />
     <!--
       A Newtonsoft.Json package reference with insecure defaults is inherited, but not needed by this project.
