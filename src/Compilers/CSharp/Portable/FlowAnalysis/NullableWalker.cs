@@ -9762,6 +9762,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
+                // In new extension form, the nullable rewriter processes the arguments as if receiver is the first item in the argument list, like the old extension form. This means that all of
+                // our placeholders will be off-by-one, with the extension receiver in the first position.
+                var newExtensionFormOffset = parameterOpt?.ContainingType.IsExtension is true ? 1 : 0;
                 bool addedPlaceholders = false;
                 foreach (var placeholder in handlerData.ArgumentPlaceholders)
                 {
@@ -9774,13 +9777,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // much better error to report than a mismatched argument nullability error.
                         case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
                             break;
+                        case BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver:
+                            Debug.Assert(newExtensionFormOffset == 1);
+                            AddPlaceholderReplacement(placeholder, expression: null, previousArgumentConversionResults[0]);
+                            addedPlaceholders = true;
+                            break;
                         default:
                             if (previousArgumentConversionResults.Count > placeholder.ArgumentIndex)
                             {
                                 // We intentionally do not give a replacement bound node for this placeholder, as we do not propagate any post conditions from the constructor
                                 // to the original location of the node. This is because the nullable walker is not a true evaluation-order walker, and doing so would cause
                                 // us to miss real warnings.
-                                AddPlaceholderReplacement(placeholder, expression: null, previousArgumentConversionResults[placeholder.ArgumentIndex]);
+                                AddPlaceholderReplacement(placeholder, expression: null, previousArgumentConversionResults[placeholder.ArgumentIndex + newExtensionFormOffset]);
                                 addedPlaceholders = true;
                             }
                             break;
@@ -9793,7 +9801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var placeholder in handlerData.ArgumentPlaceholders)
                     {
-                        if (placeholder.ArgumentIndex < previousArgumentConversionResults.Count && placeholder.ArgumentIndex >= 0)
+                        if (placeholder.ArgumentIndex < previousArgumentConversionResults.Count && placeholder.ArgumentIndex is >= 0 or BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver)
                         {
                             RemovePlaceholderReplacement(placeholder);
                         }
