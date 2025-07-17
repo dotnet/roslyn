@@ -237,7 +237,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         /// <summary>
         /// Advances the text window if it currently pointing at the <paramref name="c"/> character.  Returns <see
-        /// langword="true"/> if it did advance, <see langword="false"/> otherwise.
+        /// langword="true"/> if it did advance, <see langword="false"/> otherwise.  This <em>can</em> change the
+        /// character window if the <see cref="Position"/> is at the end of the current character window, and
+        /// peeking then needs to read in a new chunk of characters to compare to <paramref name="c"/>.
         /// </summary>
         public bool TryAdvance(char c)
         {
