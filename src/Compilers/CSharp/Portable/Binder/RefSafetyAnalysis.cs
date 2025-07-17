@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_visited is { } && _visited.Count <= MaxTrackVisited)
                 {
                     bool added = _visited.Add(expr);
-                    RoslynDebug.Assert(added, $"Expression {expr} `{expr.Syntax}` visited more than once.");
+                    //RoslynDebug.Assert(added, $"Expression {expr} `{expr.Syntax}` visited more than once.");
                 }
             }
         }

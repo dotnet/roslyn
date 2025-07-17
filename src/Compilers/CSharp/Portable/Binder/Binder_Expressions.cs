@@ -10002,6 +10002,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    foreach (var scope in new ExtensionScopes(this))
+                    {
+                        lookupResult.Clear();
+
+                        scope.Binder.LookupAllExtensionMembersInSingleBinder(
+                            lookupResult, WellKnownMemberNames.Indexer, arity: 0, lookupOptions,
+                            originalBinder: this, useSiteInfo: ref useSiteInfo, classicExtensionUseSiteInfo: ref useSiteInfo);
+
+                        if (lookupResult.IsMultiViable)
+                        {
+                            ArrayBuilder<PropertySymbol> indexerGroup = ArrayBuilder<PropertySymbol>.GetInstance();
+                            foreach (Symbol symbol in lookupResult.Symbols)
+                            {
+                                Debug.Assert(symbol.IsIndexer());
+                                indexerGroup.Add((PropertySymbol)symbol);
+                            }
+
+                            var actualMethodArguments = AnalyzedArguments.GetInstance();
+                            CombineExtensionMethodArguments(expr, analyzedArguments, actualMethodArguments);
+
+                            indexerAccessExpression = BindIndexerOrIndexedPropertyAccess(node, expr, indexerGroup, actualMethodArguments, diagnostics);
+                            indexerGroup.Free();
+
+                            actualMethodArguments.Free();
+                            lookupResult.Free();
+                            return indexerAccessExpression;
+                        }
+                    }
+
                     indexerAccessExpression = BadIndexerExpression(node, expr, analyzedArguments, lookupResult.Error, diagnostics);
                 }
             }
@@ -10241,6 +10270,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Make sure that the result of overload resolution is valid.
                 var gotError = MemberGroupFinalValidationAccessibilityChecks(receiver, property, syntax, diagnostics, invokedAsExtensionMethod: false);
+
+                if (property.GetIsNewExtensionMember())
+                {
+                    // For new extension methods, we performed overload resolution giving the receiver as one of the arguments.
+                    // We now restore the arguments to their original state and update the result accordingly.
+                    analyzedArguments.Arguments.RemoveAt(0);
+
+                    if (analyzedArguments.Names is { Count: > 0 })
+                    {
+                        analyzedArguments.Names.RemoveAt(0);
+                    }
+
+                    if (analyzedArguments.RefKinds is { Count: > 0 })
+                    {
+                        analyzedArguments.RefKinds.RemoveAt(0);
+                    }
+
+                    Debug.Assert(resolutionResult.Result.ConversionForArg(0).Exists);
+                    resolutionResult = resolutionResult.WithResult(resolutionResult.Result.WithoutReceiverArgument());
+                }
 
                 receiver = ReplaceTypeOrValueReceiver(receiver, property.IsStatic, diagnostics);
 
