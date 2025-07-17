@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddMissingImports;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -25,6 +26,12 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
         => new CSharpAddMissingImportsRefactoringProvider();
+
+    private static readonly CodeStyleOption2<AddImportPlacement> InsideNamespaceOption =
+        new(AddImportPlacement.InsideNamespace, NotificationOption2.Error);
+
+    private static readonly CodeStyleOption2<AddImportPlacement> OutsideNamespaceOption =
+        new(AddImportPlacement.InsideNamespace, NotificationOption2.Error);
 
     protected override void InitializeWorkspace(EditorTestWorkspace workspace, TestParameters parameters)
     {
@@ -46,13 +53,16 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
     private Task TestInRegularAndScriptAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
-        bool placeSystemNamespaceFirst, bool separateImportDirectiveGroups)
+        bool placeSystemNamespaceFirst,
+        bool separateImportDirectiveGroups,
+        bool placeInsideNamespace = false)
     {
         var options =
             new OptionsCollection(GetLanguage())
             {
                 { GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst },
                 { GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups },
+                { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, placeInsideNamespace ? InsideNamespaceOption : OutsideNamespaceOption },
             };
         return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options);
     }
@@ -353,4 +363,29 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
                 List<Type> list;
             }
             """, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: true);
+
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54842")]
+    public Task TestWithNamespace(bool placeInsideNamespace)
+        => TestInRegularAndScriptAsync("""
+            namespace N
+            {
+                using System;
+
+                class C
+                {
+                    [|List<Type> list;|]
+                }
+            }
+            """, """
+            namespace N
+            {
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    List<Type> list;
+                }
+            }
+            """, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: true, placeInsideNamespace);
 }
