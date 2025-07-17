@@ -67,26 +67,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Exte
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.VsixInstaller.18", "src\Microsoft.VisualStudio.VsixInstaller.18\Microsoft.VisualStudio.VsixInstaller.18.csproj", "{45749C3E-7511-8C1B-06FF-6330B67C1433}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EqualException", "test\EqualException\EqualException.csproj", "{8E8E834C-968B-4F3C-77AC-22BCFB1EFEE8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EqualExceptionLegacy", "test\EqualExceptionLegacy\EqualExceptionLegacy.csproj", "{B8DB05D9-7707-DB64-DD5A-4246B3BCCD33}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EqualException", "EqualException", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.projitems*{346081a2-a088-4486-94b3-b586bd6fd888}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{4232a7ba-a7b7-4c65-b7a1-17fb5cded299}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{43cc037c-8ebc-424c-ab73-9dd4047924a1}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{45749c3e-7511-8c1b-06ff-6330b67c1433}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems*{56550d99-71d3-44fe-804c-944d82d639f6}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems*{5a516b07-7b9c-4ce1-9ddc-e59800919d64}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems*{629938e1-1c2c-4f01-8038-90a34a940ac8}*SharedItemsImports = 13
-		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{6a12cff7-2499-4671-8ebe-ec3f2ff2adf0}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{75edeb61-db9d-4f12-b922-ecef8081cef1}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{784cb5c8-6258-499d-8efb-7a601a6f7e46}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared.projitems*{8bda92b2-e2e0-4607-94f6-444f56ad0582}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.projitems*{9b5759ad-4eff-4e2d-921b-d617bb8cfa22}*SharedItemsImports = 13
-		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{b3bed6cb-abfe-4bb8-8af7-901ff0c6f027}*SharedItemsImports = 13
-		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared.projitems*{c4c38eae-b6b1-4ee5-9f01-03b4d9249bbd}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.projitems*{ce32d863-e8c3-461f-80c7-32d0b0853217}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared.projitems*{d7647395-129b-4f45-8c78-10e6f92fc8ad}*SharedItemsImports = 13
-		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{da8322bc-e135-41bb-838a-d87551092e1a}*SharedItemsImports = 5
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -152,6 +139,14 @@ Global
 		{45749C3E-7511-8C1B-06FF-6330B67C1433}.Debug|Any CPU.Build.0 = Debug|x64
 		{45749C3E-7511-8C1B-06FF-6330B67C1433}.Release|Any CPU.ActiveCfg = Release|x64
 		{45749C3E-7511-8C1B-06FF-6330B67C1433}.Release|Any CPU.Build.0 = Release|x64
+		{8E8E834C-968B-4F3C-77AC-22BCFB1EFEE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E8E834C-968B-4F3C-77AC-22BCFB1EFEE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E8E834C-968B-4F3C-77AC-22BCFB1EFEE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E8E834C-968B-4F3C-77AC-22BCFB1EFEE8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8DB05D9-7707-DB64-DD5A-4246B3BCCD33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8DB05D9-7707-DB64-DD5A-4246B3BCCD33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8DB05D9-7707-DB64-DD5A-4246B3BCCD33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8DB05D9-7707-DB64-DD5A-4246B3BCCD33}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -176,8 +171,29 @@ Global
 		{25E61E07-E449-4ABB-A197-BD5C8EE3347F} = {D2869BF7-27E8-42B9-BF23-8790C0CE08C2}
 		{DA9797F0-F158-42AB-BE2B-922588756941} = {D2869BF7-27E8-42B9-BF23-8790C0CE08C2}
 		{45749C3E-7511-8C1B-06FF-6330B67C1433} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
+		{8E8E834C-968B-4F3C-77AC-22BCFB1EFEE8} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{B8DB05D9-7707-DB64-DD5A-4246B3BCCD33} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BEAADCC8-C5EB-46B6-8AA8-0242304BE240}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.projitems*{346081a2-a088-4486-94b3-b586bd6fd888}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{4232a7ba-a7b7-4c65-b7a1-17fb5cded299}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{43cc037c-8ebc-424c-ab73-9dd4047924a1}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{45749c3e-7511-8c1b-06ff-6330b67c1433}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems*{56550d99-71d3-44fe-804c-944d82d639f6}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems*{5a516b07-7b9c-4ce1-9ddc-e59800919d64}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems*{629938e1-1c2c-4f01-8038-90a34a940ac8}*SharedItemsImports = 13
+		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{6a12cff7-2499-4671-8ebe-ec3f2ff2adf0}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{75edeb61-db9d-4f12-b922-ecef8081cef1}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{784cb5c8-6258-499d-8efb-7a601a6f7e46}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared.projitems*{8bda92b2-e2e0-4607-94f6-444f56ad0582}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.projitems*{9b5759ad-4eff-4e2d-921b-d617bb8cfa22}*SharedItemsImports = 13
+		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{b3bed6cb-abfe-4bb8-8af7-901ff0c6f027}*SharedItemsImports = 13
+		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared.projitems*{c4c38eae-b6b1-4ee5-9f01-03b4d9249bbd}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.projitems*{ce32d863-e8c3-461f-80c7-32d0b0853217}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared.projitems*{d7647395-129b-4f45-8c78-10e6f92fc8ad}*SharedItemsImports = 13
+		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{da8322bc-e135-41bb-838a-d87551092e1a}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

@@ -274,7 +274,7 @@ namespace Xunit.Harness
                     using (var messageFilter = new MessageFilter())
                     using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(GetVersion(visualStudioInstanceKey.Version), visualStudioInstanceKey.RootSuffix, environmentVariables, GetExtensionFiles(testCases), ImmutableHashSet.Create<string>()).ConfigureAwait(true))
                     {
-                        using (var runner = visualStudioContext.Instance.TestInvoker.CreateTestAssemblyRunner(new IpcTestAssembly(TestAssembly), testCases.ToArray(), new IpcMessageSink(DiagnosticMessageSink, knownTestCasesByUniqueId, finalAttempt, new HashSet<string>(), cancellationTokenSource.Token), executionMessageSinkFilter, ExecutionOptions))
+                        using (var runner = visualStudioContext.Instance.TestInvoker.CreateTestAssemblyRunner(new IpcTestAssembly(TestAssembly), testCases.ToArray(), new IpcMessageSink(DiagnosticMessageSink, knownTestCasesByUniqueId, finalAttempt, new HashSet<string>(), cancellationTokenSource.Token), executionMessageSinkFilter, new IpcTestFrameworkExecutionOptions(ExecutionOptions)))
                         {
                             marshalledObjects.Add(runner);
 
@@ -518,6 +518,26 @@ namespace Xunit.Harness
             public void Serialize(IXunitSerializationInfo info)
             {
                 _testAssembly.Serialize(info);
+            }
+        }
+
+        private class IpcTestFrameworkExecutionOptions : LongLivedMarshalByRefObject, ITestFrameworkExecutionOptions
+        {
+            private readonly ITestFrameworkExecutionOptions _executionOptions;
+
+            public IpcTestFrameworkExecutionOptions(ITestFrameworkExecutionOptions executionOptions)
+            {
+                _executionOptions = executionOptions;
+            }
+
+            public TValue GetValue<TValue>(string name)
+            {
+                return _executionOptions.GetValue<TValue>(name);
+            }
+
+            public void SetValue<TValue>(string name, TValue value)
+            {
+                _executionOptions.SetValue(name, value);
             }
         }
 
