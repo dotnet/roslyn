@@ -185,7 +185,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <paramref name="span"/> is entirely within bounds of the current character window (see <see
         /// cref="SpanIsWithinWindow(TextSpan)"/>).  Otherwise, returns <see langword="false"/>.  Used to allow
         /// fast path access to a sequence of characters in the common case where they are in the window, while
-        /// falling back if they are not.
+        /// falling back if they are not. Note: this does not mutate the window in any way, it just reads from
+        /// a segment of the character window if that is available, return <c>default</c> for <paramref name="textSpan"/>
+        /// if not.
         /// </summary>
         public readonly bool TryGetTextIfWithinWindow(TextSpan span, out ReadOnlySpan<char> textSpan)
         {
