@@ -6832,6 +6832,59 @@ new TestParameters(Options.Script));
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75570")]
+    public Task GenericMethodArgsWithNullabilityDifference1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            #nullable enable
+
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Linq;
+
+            class C1 { }
+
+            class C2 { }
+
+            class D
+            {
+                public static C2[] ConvertAll(IEnumerable<C1> values)
+                {
+                    return values.[|Select<C1, C2>|](Convert).ToArray();
+                }
+
+                [return: NotNullIfNotNull(nameof(value))]
+                private static C2? Convert(C1? value) => value is null ? null : new C2();
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45484")]
+    public Task GenericMethodArgsWithNullabilityDifference2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            #nullable enable
+                        
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+
+            class C
+            {
+                bool M(IEnumerable<string> s, [NotNullWhen(true)] out string? result)
+                {
+                    return s.[|TryFirst<string>|](x => x.Length % 2 == 0, out result);
+                }
+            }
+
+            static class Extensions
+            {
+                public static bool TryFirst<T>(this IEnumerable<T> source, Func<T, bool> predicate, [MaybeNullWhen(false)] out T value)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+
     private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
         => await TestInRegularAndScript1Async(code, expected, index, new TestParameters(options: PreferIntrinsicTypeEverywhere));
 
