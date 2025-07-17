@@ -26955,8 +26955,41 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : expression trees
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (6,76): error CS8075: An extension Add method is not supported for a collection initializer in an expression lambda.
+            //     System.Linq.Expressions.Expression<System.Func<C>> e = () => new C() { 42 };
+            Diagnostic(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, "42").WithLocation(6, 76)
+            );
+
+        src = """
+using System.Collections;
+using System.Collections.Generic;
+
+try
+{
+    System.Linq.Expressions.Expression<System.Func<C>> e = () => new C() { 42 };
+    System.Console.Write(e);
+}
+catch (System.ArgumentException ae)
+{
+    System.Console.Write(ae.Message);
+}
+
+class C : IEnumerable<int>, IEnumerable
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(string notApplicable) => throw null;
+}
+
+static class E
+{
+    public static void Add(this object o, int i) { System.Console.Write("add"); }
+}
+""";
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (6,76): error CS8075: An extension Add method is not supported for a collection initializer in an expression lambda.
             //     System.Linq.Expressions.Expression<System.Func<C>> e = () => new C() { 42 };
