@@ -2287,7 +2287,7 @@ new TestParameters(Options.Script));
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40633")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
@@ -4346,7 +4346,7 @@ index: 1);
                 }
             }
             """,
-options: PreferIntrinsicTypeInMemberAccess);
+            options: PreferIntrinsicTypeInMemberAccess);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
     public Task TestIntrinsicTypesInsideCref_NonDefault_5()
@@ -4382,7 +4382,7 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """,
-options: PreferIntrinsicTypeInMemberAccess);
+            options: PreferIntrinsicTypeInMemberAccess);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
     public Task TestIntrinsicTypesInsideCref_NonDefault_6_PreferDeclaration()
@@ -4989,16 +4989,20 @@ options: PreferIntrinsicTypeInMemberAccess);
     [InlineData("UInt64")]
     public Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace(string typeName)
         => TestInRegularAndScriptAsync(
-$@"using System;
-namespace N
-{{
-    using My{typeName} = [|global::System.{typeName}|];
-}}",
-$@"using System;
-namespace N
-{{
-    using My{typeName} = {typeName};
-}}");
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = [|global::System.{{typeName}}|];
+            }
+            """,
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = {{typeName}};
+            }
+            """);
 
     [Theory]
     [InlineData("Int8")]
@@ -5007,16 +5011,20 @@ namespace N
     [InlineData("Float64")]
     public Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace_UnboundName(string typeName)
         => TestInRegularAndScriptAsync(
-$@"using System;
-namespace N
-{{
-    using My{typeName} = [|global::System.{typeName}|];
-}}",
-$@"using System;
-namespace N
-{{
-    using My{typeName} = System.{typeName};
-}}");
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = [|global::System.{{typeName}}|];
+            }
+            """,
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = System.{{typeName}};
+            }
+            """);
 
     [Fact]
     public Task TestGlobalAliasSimplifiesInUsingStaticDirectiveInNamespace()
@@ -5354,11 +5362,13 @@ namespace N
     [InlineData("Float64")]
     public Task TestDoesNotSimplifyUsingAliasDirectiveToPrimitiveType(string typeName)
         => TestMissingAsync(
-$@"using System;
-namespace N
-{{
-    using My{typeName} = [|{typeName}|];
-}}");
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = [|{{typeName}}|];
+            }
+            """);
 
     [Theory]
     [InlineData("Boolean")]
@@ -5372,16 +5382,20 @@ namespace N
     [InlineData("UInt64")]
     public Task TestSimplifyUsingAliasDirectiveToQualifiedBuiltInType(string typeName)
         => TestInRegularAndScript1Async(
-$@"using System;
-namespace N
-{{
-    using My{typeName} = [|System.{typeName}|];
-}}",
-$@"using System;
-namespace N
-{{
-    using My{typeName} = {typeName};
-}}");
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = [|System.{{typeName}}|];
+            }
+            """,
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = {{typeName}};
+            }
+            """);
 
     [Theory]
     [InlineData("Int8")]
@@ -5390,11 +5404,13 @@ namespace N
     [InlineData("Float64")]
     public Task TestDoesNotSimplifyUsingAliasWithUnboundTypes(string typeName)
         => TestMissingInRegularAndScriptAsync(
-$@"using System;
-namespace N
-{{
-    using My{typeName} = [|System.{typeName}|];
-}}");
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = [|System.{{typeName}}|];
+            }
+            """);
 
     [Fact]
     public Task SimplifyMemberAccessOffOfObjectKeyword()
@@ -6215,16 +6231,20 @@ namespace N
     [InlineData("UInt64")]
     public Task TestDoesNotSimplifyUsingAliasDirectiveToBuiltInType(string typeName)
         => TestInRegularAndScript1Async(
-$@"using System;
-namespace N
-{{
-    using My{typeName} = [|System.{typeName}|];
-}}",
-$@"using System;
-namespace N
-{{
-    using My{typeName} = {typeName};
-}}");
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = [|System.{{typeName}}|];
+            }
+            """,
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = {{typeName}};
+            }
+            """);
 
     [Fact]
     public Task TestDoNotSimplifyIfItWouldIntroduceAmbiguity()

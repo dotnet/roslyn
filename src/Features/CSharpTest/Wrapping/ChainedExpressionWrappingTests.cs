@@ -243,7 +243,7 @@ public sealed class ChainedExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """,
-GetIndentionColumn(35),
+            GetIndentionColumn(35),
 """
 class C {
     void Bar() {
@@ -296,7 +296,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(40),
+            GetIndentionColumn(40),
 """
 class C {
     void Bar() {
@@ -348,7 +348,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(60),
+            GetIndentionColumn(60),
 """
 class C {
     void Bar() {

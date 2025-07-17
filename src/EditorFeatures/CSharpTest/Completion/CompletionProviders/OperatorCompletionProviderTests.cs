@@ -119,21 +119,21 @@ public sealed class OperatorCompletionProviderTests : AbstractCSharpCompletionPr
         var verifyAction = isOffered
             ? new Func<string, Task>(markup => VerifyItemExistsAsync(markup, "+", inlineDescription: "x + y"))
             : new Func<string, Task>(markup => VerifyNoItemsExistAsync(markup));
-        await verifyAction(@$"
-public class C
-{{
-    public static C operator +(C a, C b) => default;
-}}
+        await verifyAction($$"""
+            public class C
+            {
+                public static C operator +(C a, C b) => default;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        {expression}
-    }}
-}}
-");
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    {{expression}}
+                }
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -329,16 +329,16 @@ public class Program
     [InlineData("System.Guid", 2)]
     public async Task OperatorSuggestionForSpecialTypes(string specialType, int numberOfSuggestions)
     {
-        var completionItems = await GetCompletionItemsAsync(@$"
-public class Program
-{{
-    public static void Main()
-    {{
-        {specialType} i = default({specialType});
-        i.$$
-    }}
-}}
-", SourceCodeKind.Regular);
+        var completionItems = await GetCompletionItemsAsync($$"""
+            public class Program
+            {
+                public static void Main()
+                {
+                    {{specialType}} i = default({{specialType}});
+                    i.$$
+                }
+            }
+            """, SourceCodeKind.Regular);
         Assert.Equal(
             numberOfSuggestions,
             completionItems.Count(c => c.GetProperty(UnnamedSymbolCompletionProvider.KindName) == UnnamedSymbolCompletionProvider.OperatorKindName));
@@ -366,121 +366,121 @@ public class Program
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     [MemberData(nameof(BinaryOperators))]
     public Task OperatorBinaryIsCompleted(string binaryOperator)
-        => VerifyCustomCommitProviderAsync($@"
-public class C
-{{
-    public static C operator {binaryOperator}(C a, C b) => default;
-}}
+        => VerifyCustomCommitProviderAsync($$"""
+            public class C
+            {
+                public static C operator {{binaryOperator}}(C a, C b) => default;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        c.$$
-    }}
-}}
-", binaryOperator, @$"
-public class C
-{{
-    public static C operator {binaryOperator}(C a, C b) => default;
-}}
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.$$
+                }
+            }
+            """, binaryOperator, $$"""
+            public class C
+            {
+                public static C operator {{binaryOperator}}(C a, C b) => default;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        c {binaryOperator} $$
-    }}
-}}
-");
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c {{binaryOperator}} $$
+                }
+            }
+            """);
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     [MemberData(nameof(PostfixOperators))]
     public Task OperatorPostfixIsCompleted(string postfixOperator)
-        => VerifyCustomCommitProviderAsync($@"
-public class C
-{{
-    public static C operator {postfixOperator}(C _) => default;
-}}
+        => VerifyCustomCommitProviderAsync($$"""
+            public class C
+            {
+                public static C operator {{postfixOperator}}(C _) => default;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        c.$$
-    }}
-}}
-", postfixOperator, @$"
-public class C
-{{
-    public static C operator {postfixOperator}(C _) => default;
-}}
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.$$
+                }
+            }
+            """, postfixOperator, $$"""
+            public class C
+            {
+                public static C operator {{postfixOperator}}(C _) => default;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        c{postfixOperator} $$
-    }}
-}}
-");
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c{{postfixOperator}} $$
+                }
+            }
+            """);
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     [MemberData(nameof(PrefixOperators))]
     public Task OperatorPrefixIsCompleted(string prefixOperator)
-        => VerifyCustomCommitProviderAsync($@"
-public class C
-{{
-    public static C operator {prefixOperator}(C _) => default;
-}}
+        => VerifyCustomCommitProviderAsync($$"""
+            public class C
+            {
+                public static C operator {{prefixOperator}}(C _) => default;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        c.$$
-    }}
-}}
-", prefixOperator, @$"
-public class C
-{{
-    public static C operator {prefixOperator}(C _) => default;
-}}
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.$$
+                }
+            }
+            """, prefixOperator, $$"""
+            public class C
+            {
+                public static C operator {{prefixOperator}}(C _) => default;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        {prefixOperator}c$$
-    }}
-}}
-");
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    {{prefixOperator}}c$$
+                }
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     public async Task OperatorDuplicateOperatorsAreListedBoth()
     {
-        var items = await GetCompletionItemsAsync($@"
-public class C
-{{
-    public static C operator +(C a, C b) => default;
-    public static C operator +(C _) => default;
-}}
+        var items = await GetCompletionItemsAsync($$"""
+            public class C
+            {
+                public static C operator +(C a, C b) => default;
+                public static C operator +(C _) => default;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        c.$$
-    }}
-}}
-", SourceCodeKind.Regular);
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.$$
+                }
+            }
+            """, SourceCodeKind.Regular);
         Assert.Collection(items,
             i =>
             {
@@ -496,37 +496,37 @@ public class Program
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     public Task OperatorDuplicateOperatorsAreCompleted()
-        => VerifyCustomCommitProviderAsync($@"
-public class C
-{{
-    public static C operator +(C a, C b) => default;
-    public static C operator +(C _) => default;
-}}
+        => VerifyCustomCommitProviderAsync($$"""
+            public class C
+            {
+                public static C operator +(C a, C b) => default;
+                public static C operator +(C _) => default;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        c.$$
-    }}
-}}
-", "+", @$"
-public class C
-{{
-    public static C operator +(C a, C b) => default;
-    public static C operator +(C _) => default;
-}}
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.$$
+                }
+            }
+            """, "+", $$"""
+            public class C
+            {
+                public static C operator +(C a, C b) => default;
+                public static C operator +(C _) => default;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        c + $$
-    }}
-}}
-");
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c + $$
+                }
+            }
+            """);
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     [InlineData("c.$$",
@@ -572,39 +572,39 @@ public class Program
     [InlineData("c.CProp[0].CProp?.$$",
                 "c.CProp[0].CProp + $$")]
     public Task OperatorInfixOfferingsAndCompletions(string expression, string completion)
-        => VerifyCustomCommitProviderAsync($@"
-public class C
-{{
-    public static C operator +(C a, C b) => default;
-    public C CProp {{ get; }}
-    public C this[int _] => default;
-}}
+        => VerifyCustomCommitProviderAsync($$"""
+            public class C
+            {
+                public static C operator +(C a, C b) => default;
+                public C CProp { get; }
+                public C this[int _] => default;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        {expression}
-    }}
-}}
-", "+", @$"
-public class C
-{{
-    public static C operator +(C a, C b) => default;
-    public C CProp {{ get; }}
-    public C this[int _] => default;
-}}
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    {{expression}}
+                }
+            }
+            """, "+", $$"""
+            public class C
+            {
+                public static C operator +(C a, C b) => default;
+                public C CProp { get; }
+                public C this[int _] => default;
+            }
 
-public class Program
-{{
-    public static void Main()
-    {{
-        var c = new C();
-        {completion}
-    }}
-}}
-");
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    {{completion}}
+                }
+            }
+            """);
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     [MemberData(nameof(UnaryOperators))]

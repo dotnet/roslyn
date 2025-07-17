@@ -51,10 +51,12 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
     [InlineData("private protected")]
     public Task NonPrivateField(string accessibility)
         => TestMissingInRegularAndScriptAsync(
-$@"class MyClass
-{{
-    {accessibility} int[| _goo |];
-}}");
+            $$"""
+            class MyClass
+            {
+                {{accessibility}} int[| _goo |];
+            }
+            """);
 
     [Fact]
     public Task FieldIsEvent()
@@ -218,17 +220,21 @@ $@"class MyClass
     [InlineData("\r\n\r\n")]
     public Task MultipleFieldsAssignedInline_LeadingCommentAndWhitespace(string leadingTrvia)
         => TestInRegularAndScript1Async(
-$@"class MyClass
-{{
-    //Comment{leadingTrvia}
-    private int _goo = 0, [|_bar|] = 0;
-}}",
-$@"class MyClass
-{{
-    //Comment{leadingTrvia}
-    private int _goo = 0;
-    private readonly int _bar = 0;
-}}");
+            $$"""
+            class MyClass
+            {
+                //Comment{{leadingTrvia}}
+                private int _goo = 0, [|_bar|] = 0;
+            }
+            """,
+            $$"""
+            class MyClass
+            {
+                //Comment{{leadingTrvia}}
+                private int _goo = 0;
+                private readonly int _bar = 0;
+            }
+            """);
 
     [Fact]
     public Task FieldAssignedInCtor()

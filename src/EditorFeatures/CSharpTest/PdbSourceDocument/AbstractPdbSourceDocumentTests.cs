@@ -211,14 +211,17 @@ public abstract class AbstractPdbSourceDocumentTests
         Encoding? fallbackEncoding = null)
     {
         var preprocessorSymbolsAttribute = preprocessorSymbols?.Length > 0
-            ? $"PreprocessorSymbols=\"{string.Join(";", preprocessorSymbols)}\""
+            ? $"""
+            PreprocessorSymbols="{string.Join(";", preprocessorSymbols)}"
+            """
             : "";
 
-        var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"" {preprocessorSymbolsAttribute}>
-    </Project>
-</Workspace>", composition: GetTestComposition());
+        var workspace = EditorTestWorkspace.Create($"""
+            <Workspace>
+                <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true" {preprocessorSymbolsAttribute}>
+                </Project>
+            </Workspace>
+            """, composition: GetTestComposition());
 
         var project = workspace.CurrentSolution.Projects.First();
 

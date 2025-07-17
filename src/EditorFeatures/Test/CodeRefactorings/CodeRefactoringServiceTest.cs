@@ -38,9 +38,9 @@ public sealed class CodeRefactoringServiceTest
     [Fact]
     public async Task TestProjectRefactoringAsync()
     {
-        var code = @"
-    a
-";
+        var code = """
+            a
+            """;
 
         using var workspace = TestWorkspace.CreateCSharp(code, composition: FeaturesTestCompositions.Features);
         var refactoringService = workspace.GetService<ICodeRefactoringService>();
@@ -76,12 +76,13 @@ public sealed class CodeRefactoringServiceTest
     {
         var composition = FeaturesTestCompositions.Features.AddParts(typeof(TypeScriptCodeRefactoringProvider));
 
-        using var workspace = TestWorkspace.Create(@"
-<Workspace>
-    <Project Language=""TypeScript"">
-        <Document FilePath=""Test"">abc</Document>
-    </Project>
-</Workspace>", composition: composition);
+        using var workspace = TestWorkspace.Create("""
+            <Workspace>
+                <Project Language="TypeScript">
+                    <Document FilePath="Test">abc</Document>
+                </Project>
+            </Workspace>
+            """, composition: composition);
 
         var refactoringService = workspace.GetService<ICodeRefactoringService>();
 

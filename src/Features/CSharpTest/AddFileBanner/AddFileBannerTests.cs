@@ -255,33 +255,34 @@ public sealed partial class AddFileBannerTests : AbstractCSharpCodeActionTest_No
     [InlineData("file_header_template = unset", 1)]
     [InlineData("file_header_template = defined file header", 0)]
     public Task TestMissingWhenHandledByAnalyzer(string fileHeaderTemplate, int expectedActionCount)
-        => TestActionCountAsync($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""/0/Test0.cs"">[||]using System;
+        => TestActionCountAsync($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">[||]using System;
 
-class Program1
-{{
-    static void Main()
-    {{
-    }}
-}}
-        </Document>
-        <Document FilePath=""/0/Test1.cs"">/// This is the banner
-/// It goes over multiple lines
+            class Program1
+            {
+                static void Main()
+                {
+                }
+            }
+                    </Document>
+                    <Document FilePath="/0/Test1.cs">/// This is the banner
+            /// It goes over multiple lines
 
-class Program2
-{{
-}}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""/.editorconfig"">
-root = true
+            class Program2
+            {
+            }
+                    </Document>
+                    <AnalyzerConfigDocument FilePath="/.editorconfig">
+            root = true
 
-[*]
-{fileHeaderTemplate}
-        </AnalyzerConfigDocument>
-    </Project>
-</Workspace>", expectedActionCount);
+            [*]
+            {{fileHeaderTemplate}}
+                    </AnalyzerConfigDocument>
+                </Project>
+            </Workspace>
+            """, expectedActionCount);
 
     [Fact]
     public Task TestMissingIfOtherFileDoesNotHaveBanner()

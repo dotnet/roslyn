@@ -1962,7 +1962,7 @@ MethodOverload(Base)
 
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/79350")>
         Public Sub Retarget_Events()
             'The test involves compilation with/without retargeting and ensuring same behavior at runtime
             'same diagnostics (or lack off) as compile time

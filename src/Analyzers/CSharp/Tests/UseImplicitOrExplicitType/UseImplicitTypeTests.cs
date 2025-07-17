@@ -1937,7 +1937,7 @@ options: ImplicitTypeWhereApparent());
                 }
             }
             """,
-new TestParameters(options: ImplicitTypeEverywhere()));
+            new TestParameters(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14052")]
     public Task DoNotOfferOnForEachConversionIfItChangesSemantics()
@@ -1972,7 +1972,7 @@ new TestParameters(options: ImplicitTypeEverywhere()));
                 }
             }
             """,
-new TestParameters(options: ImplicitTypeEverywhere()));
+            new TestParameters(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14052")]
     public Task OfferOnForEachConversionIfItDoesNotChangesSemantics()
@@ -2063,7 +2063,7 @@ new TestParameters(options: ImplicitTypeEverywhere()));
                 }
             }
             """,
-options: ImplicitTypeEverywhere());
+            options: ImplicitTypeEverywhere());
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
     public Task DoNotSuggestVarOnDeclarationExpressionSyntaxWithIntrinsicType()
@@ -2097,9 +2097,11 @@ options: ImplicitTypeEverywhere());
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
-    public Task DoNotSuggestVarOnStackAllocExpressions_SpanType_NestedConditional()
-        => TestMissingInRegularAndScriptAsync("""
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79337")]
+    public Task DoSuggestVarOnStackAllocExpressions_SpanType_NestedConditional()
+        => TestInRegularAndScript1Async("""
             using System;
             namespace System
             {
@@ -2115,11 +2117,29 @@ options: ImplicitTypeEverywhere());
                     [|Span<int>|] x = choice ? stackalloc int [10] : stackalloc int [100];
                 }
             }
+            """, """
+            using System;
+            namespace System
+            {
+                public readonly ref struct Span<T> 
+                {
+                    unsafe public Span(void* pointer, int length) { }
+                }
+            }
+            class C
+            {
+                static void M(bool choice)
+                {
+                    var x = choice ? stackalloc int [10] : stackalloc int [100];
+                }
+            }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
-    public Task DoNotSuggestVarOnStackAllocExpressions_SpanType_NestedCast()
-        => TestMissingInRegularAndScriptAsync("""
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79337")]
+    public Task DoSuggestVarOnStackAllocExpressions_SpanType_NestedCast()
+        => TestInRegularAndScript1Async("""
             using System;
             namespace System
             {
@@ -2133,6 +2153,22 @@ options: ImplicitTypeEverywhere());
                 static void M()
                 {
                     [|Span<int>|] x = (Span<int>)stackalloc int [100];
+                }
+            }
+            """, """
+            using System;
+            namespace System
+            {
+                public readonly ref struct Span<T> 
+                {
+                    unsafe public Span(void* pointer, int length) { }
+                }
+            }
+            class C
+            {
+                static void M()
+                {
+                    var x = (Span<int>)stackalloc int [100];
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
@@ -2746,7 +2782,7 @@ options: ImplicitTypeEverywhere());
                     new Dictionary<int, List<(int, int)>>();
             }
             """,
-options: ImplicitTypeEverywhere());
+            options: ImplicitTypeEverywhere());
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44507")]
     public Task DoNotSuggestVarInAmbiguousSwitchExpression()
@@ -2850,7 +2886,7 @@ options: ImplicitTypeEverywhere());
                 string? NullableString() => null;
             }
             """,
-options: ImplicitTypeEverywhere());
+            options: ImplicitTypeEverywhere());
 
     [Fact]
     public Task SuggestForNullable2()
@@ -2883,7 +2919,7 @@ options: ImplicitTypeEverywhere());
                 string NonNullString() => string.Empty;
             }
             """,
-options: ImplicitTypeEverywhere());
+            options: ImplicitTypeEverywhere());
 
     [Fact]
     public Task SuggestForNullable3()
@@ -2916,7 +2952,7 @@ options: ImplicitTypeEverywhere());
                 string NonNullString() => string.Empty;
             }
             """,
-options: ImplicitTypeEverywhere());
+            options: ImplicitTypeEverywhere());
 
     [Fact]
     public Task SuggestForNullableOut1()
@@ -2965,7 +3001,7 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """,
-options: ImplicitTypeEverywhere());
+            options: ImplicitTypeEverywhere());
 
     [Fact]
     public Task SuggestForNullableOut2()
@@ -3014,7 +3050,7 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """,
-options: ImplicitTypeEverywhere());
+            options: ImplicitTypeEverywhere());
 
     [Fact]
     public Task SuggestForNullableOut3()
@@ -3063,7 +3099,7 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """,
-options: ImplicitTypeEverywhere());
+            options: ImplicitTypeEverywhere());
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41780")]
     public Task SuggestOnRefType1()

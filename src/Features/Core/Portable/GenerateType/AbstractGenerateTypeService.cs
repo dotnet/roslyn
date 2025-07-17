@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -100,7 +101,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         State state,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
+        using var result = TemporaryArray<CodeAction>.Empty;
 
         var generateNewTypeInDialog = false;
         if (state.NamespaceToGenerateInOpt != null)

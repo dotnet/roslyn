@@ -548,8 +548,10 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
         await TestServices.SolutionExplorer.AddFileAsync(project2, "Class2.cs", @"", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project2, "Class2.cs", HangMitigatingCancellationToken);
 
-        await TestServices.Editor.SetTextAsync(@"
-public class Class2 { static void Main(string [] args) { } }", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            public class Class2 { static void Main(string [] args) { } }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.OpenFileAsync(project1, "Class1.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("Class2", charsOffset: 0, HangMitigatingCancellationToken);
@@ -569,8 +571,10 @@ public class Class2 { static void Main(string [] args) { } }", HangMitigatingCan
             """, HangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.OpenFileAsync(project2, "y.cs", HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextEqualsAsync(@"
-public class y { static void Main(string [] args) { } }$$", cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.TextEqualsAsync("""
+
+            public class y { static void Main(string [] args) { } }$$
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -580,8 +584,10 @@ public class y { static void Main(string [] args) { } }$$", cancellationToken: H
 
         await TestServices.Input.SendWithoutActivateAsync((VirtualKeyCode.VK_Z, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextEqualsAsync(@"
-public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.TextEqualsAsync("""
+
+            public class Class2 { static void Main(string [] args) { } }$$
+            """, HangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync("""

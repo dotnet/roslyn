@@ -304,7 +304,7 @@ public sealed class GenerateDefaultConstructorsTests
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestRefactoring1()
@@ -352,7 +352,7 @@ index: 1);
                 }
             }
             """,
-index: 2);
+            index: 2);
 
     [Fact]
     public Task TestFixAll1()
@@ -408,7 +408,7 @@ index: 2);
                 }
             }
             """,
-index: 3);
+            index: 3);
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     public Task Tuple()
@@ -1111,7 +1111,7 @@ index: 3);
                 }
             }
             """,
-index: 2);
+            index: 2);
 
     [Fact]
     public Task TestFixAll_WithTuples()
@@ -1170,7 +1170,7 @@ index: 2);
                 }
             }
             """,
-index: 2);
+            index: 2);
 
     [Fact]
     public Task TestMissing1()
@@ -1298,7 +1298,7 @@ index: 2);
                 }
             }
             """,
-index: 4);
+            index: 4);
 
     [Fact]
     public Task TestException2()
@@ -1348,7 +1348,7 @@ index: 4);
                 }
             }
             """,
-index: 3);
+            index: 3);
 
     [Fact]
     public Task TestException3()
@@ -1457,7 +1457,7 @@ index: 3);
                 }
             }
             """,
-index: 2);
+            index: 2);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19953")]
     public Task TestNotOnEnum()

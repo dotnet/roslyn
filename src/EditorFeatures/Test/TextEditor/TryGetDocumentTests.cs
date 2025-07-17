@@ -19,8 +19,10 @@ public sealed class TryGetDocumentTests
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624315")]
     public void MultipleTextChangesTest()
     {
-        var code = @"class C
-";
+        var code = """
+            class C
+
+            """;
         using var workspace = EditorTestWorkspace.CreateCSharp(code);
         var hostDocument = workspace.Documents.First();
         var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentId(hostDocument));
@@ -36,8 +38,10 @@ public sealed class TryGetDocumentTests
         var newDocument = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault();
         Assert.NotNull(newDocument);
         var newSourceText = newDocument.GetTextAsync().Result;
-        Assert.Equal(@"class C
-{ }", newSourceText.ToString());
+        Assert.Equal("""
+            class C
+            { }
+            """, newSourceText.ToString());
 
         Assert.True(container == newSourceText.Container);
     }

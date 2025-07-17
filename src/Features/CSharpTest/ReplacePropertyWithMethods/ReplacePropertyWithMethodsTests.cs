@@ -1816,7 +1816,7 @@ class C
 #endif
 }
 """,
-options: PreferExpressionBodiedMethods);
+            options: PreferExpressionBodiedMethods);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
     public Task TestWithDirectives3()
@@ -1869,7 +1869,7 @@ options: PreferExpressionBodiedMethods);
             #endif
             }
             """,
-options: PreferExpressionBodiedMethods);
+            options: PreferExpressionBodiedMethods);
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")]
     public Task TestExplicitInterfaceImplementation()

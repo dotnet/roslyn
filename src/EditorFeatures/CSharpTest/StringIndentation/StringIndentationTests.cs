@@ -70,223 +70,253 @@ public sealed class StringIndentationTests
     [InlineData("")]
     [InlineData("u8")]
     public Task TestLiteralError1(string suffix)
-        => TestAsync($@"class C
-{{
-    void M()
-    {{
-        // not enough lines in literal
-        var v = """"""
-                """"""{suffix};
-    }}
-}}");
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    // not enough lines in literal
+                    var v = """
+                            """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
     public Task TestLiteralError2(string suffix)
-        => TestAsync($@"class C
-{{
-    void M()
-    {{
-        // invalid literal
-        var v = """"""
-            text too early
-                """"""{suffix};
-    }}
-}}");
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    // invalid literal
+                    var v = """
+                        text too early
+                            """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
     public Task TestZeroColumn1(string suffix)
-        => TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-goo
-""""""{suffix};
-    }}
-}}");
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+            goo
+            """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
     public Task TestZeroColumn2(string suffix)
-        => TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-    goo
-""""""{suffix};
-    }}
-}}");
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+                goo
+            """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
     public Task TestOneColumn1(string suffix)
-        => TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-|goo
- """"""{suffix};
-    }}
-}}");
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+            |goo
+             """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
     public Task TestOneColumn2(string suffix)
-        => TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-|   goo
- """"""{suffix};
-    }}
-}}");
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+            |   goo
+             """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
     public Task TestCase1(string suffix)
-        => TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-               |goo
-                """"""{suffix};
-    }}
-}}");
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+                           |goo
+                            """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
     public Task TestCase2(string suffix)
-        => TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-               |goo
-               |bar
-                """"""{suffix};
-    }}
-}}");
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+                           |goo
+                           |bar
+                            """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
     public Task TestCase3(string suffix)
-        => TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-               |goo
-               |bar
-               |baz
-                """"""{suffix};
-    }}
-}}");
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+                           |goo
+                           |bar
+                           |baz
+                            """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
     public Task TestCase4(string suffix)
-        => TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-               |goo
-               |
-               |baz
-                """"""{suffix};
-    }}
-}}");
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+                           |goo
+                           |
+                           |baz
+                            """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
     public Task TestCase5(string suffix)
-        => TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-           |    goo
-           |
-           |    baz
-            """"""{suffix};
-    }}
-}}");
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+                       |    goo
+                       |
+                       |    baz
+                        """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
     public Task TestCase6(string suffix)
-        => TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v =
-            $""""""
-           |goo
-            """"""{suffix};
-    }}
-}}");
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v =
+                        $"""
+                       |goo
+                        """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
     public Task TestCase7(string suffix)
-        => TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v =
-            $""""""
-            |goo
-             """"""{suffix};
-    }}
-}}");
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v =
+                        $"""
+                        |goo
+                         """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
     public Task TestCase8(string suffix)
-        => TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v =
-            $""""""""
-            |goo
-             """"""""{suffix};
-    }}
-}}");
+        => TestAsync($$"""""
+            class C
+            {
+                void M()
+                {
+                    var v =
+                        $""""
+                        |goo
+                         """"{{suffix}};
+                }
+            }
+            """"");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
     public Task TestCase9(string suffix)
-        => TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v =
-             """"""""
-            |goo
-             """"""""{suffix};
-    }}
-}}");
+        => TestAsync($$"""""
+            class C
+            {
+                void M()
+                {
+                    var v =
+                         """"
+                        |goo
+                         """"{{suffix}};
+                }
+            }
+            """"");
 
     [Fact]
     public Task TestCase10()

@@ -20,37 +20,39 @@ public sealed partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     {
         var folders = new[] { "A", "B" };
         var (folder, filePath) = CreateDocumentFilePath(folders);
-        await TestMissingInRegularAndScriptAsync($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace NS
-{{    
-    class [||]Class1
-    {{
-    }}
-}}
-        </Document>
-    </Project>
-</Workspace>");
+        await TestMissingInRegularAndScriptAsync($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            namespace NS
+            {    
+                class [||]Class1
+                {
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
     }
     [Fact]
     public async Task NoAction_NotOnNamespaceDeclaration_FileScopedNamespace()
     {
         var folders = new[] { "A", "B" };
         var (folder, filePath) = CreateDocumentFilePath(folders);
-        await TestMissingInRegularAndScriptAsync($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace NS;
+        await TestMissingInRegularAndScriptAsync($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            namespace NS;
 
-class [||]Class1
-{{
-}}
-        </Document>
-    </Project>
-</Workspace>");
+            class [||]Class1
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
     }
 
     [Fact]
@@ -58,20 +60,21 @@ class [||]Class1
     {
         var folders = new[] { "A" };
         var (folder, filePath) = CreateDocumentFilePath(folders);
-        await TestMissingInRegularAndScriptAsync($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace="""" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}"">    
-class Class1
-{{
-}}
+        await TestMissingInRegularAndScriptAsync($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}">    
+            class Class1
+            {
+            }
 
-class [||]Class2
-{{
-}}
-        </Document>
-    </Project>
-</Workspace>");
+            class [||]Class2
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
     }
 
     [Fact]
@@ -79,26 +82,27 @@ class [||]Class2
     {
         var folders = new[] { "A", "B" };
         var (folder, filePath) = CreateDocumentFilePath(folders);
-        await TestMissingInRegularAndScriptAsync($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]NS1
-{{   
-    class Class1
-    {{
-    }}
-}}
+        await TestMissingInRegularAndScriptAsync($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            namespace [||]NS1
+            {   
+                class Class1
+                {
+                }
+            }
 
-namespace NS2
-{{    
-    class Class1
-    {{
-    }}
-}}
-        </Document>
-    </Project>
-</Workspace>");
+            namespace NS2
+            {    
+                class Class1
+                {
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
     }
 
     [Fact]
@@ -106,23 +110,24 @@ namespace NS2
     {
         var folders = new[] { "A", "B" };
         var (folder, filePath) = CreateDocumentFilePath(folders);
-        await TestMissingInRegularAndScriptAsync($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]NS1
-{{   
-    class Class1
-    {{
-    }}
-}} 
+        await TestMissingInRegularAndScriptAsync($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            namespace [||]NS1
+            {   
+                class Class1
+                {
+                }
+            } 
 
-class Class2
-{{
-}}
-        </Document>
-    </Project>
-</Workspace>");
+            class Class2
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
     }
 
     [Fact]
@@ -130,23 +135,24 @@ class Class2
     {
         var folders = new[] { "A", "B" };
         var (folder, filePath) = CreateDocumentFilePath(folders);
-        await TestMissingInRegularAndScriptAsync($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-class [||]Class1
-{{
-}}
+        await TestMissingInRegularAndScriptAsync($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            class [||]Class1
+            {
+            }
 
-namespace NS1
-{{   
-    class Class2
-    {{
-    }}
-}} 
-        </Document>
-    </Project>
-</Workspace>");
+            namespace NS1
+            {   
+                class Class2
+                {
+                }
+            } 
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
     }
 
     [Fact]
@@ -154,22 +160,23 @@ namespace NS1
     {
         var folders = new[] { "A", "B" };
         var (folder, filePath) = CreateDocumentFilePath(folders);
-        await TestMissingInRegularAndScriptAsync($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]NS1
-{{   
-    namespace NS2
-    {{
-        class Class1
-        {{
-        }}
-    }}
-}}
-        </Document>
-    </Project>
-</Workspace>");
+        await TestMissingInRegularAndScriptAsync($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            namespace [||]NS1
+            {   
+                namespace NS2
+                {
+                    class Class1
+                    {
+                    }
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
     }
 
     [Fact]
@@ -177,19 +184,20 @@ namespace [||]NS1
     {
         var folders = new[] { "A", "B" };
         var (folder, filePath) = CreateDocumentFilePath(folders);
-        await TestMissingInRegularAndScriptAsync($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace="""" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]
-{{
-    class Class1
-    {{
-    }}
-}}
-        </Document>
-    </Project>
-</Workspace>");
+        await TestMissingInRegularAndScriptAsync($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            namespace [||]
+            {
+                class Class1
+                {
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
     }
 
     [Fact]
@@ -197,16 +205,17 @@ namespace [||]
     {
         var folders = Array.Empty<string>();
         var (folder, filePath) = CreateDocumentFilePath(folders);
-        await TestMissingInRegularAndScriptAsync($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""""  CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}"">    
-class [||]Class1
-{{
-}}
-        </Document>
-    </Project>
-</Workspace>");
+        await TestMissingInRegularAndScriptAsync($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace=""  CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}">    
+            class [||]Class1
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
     }
 
     [Fact]
@@ -214,19 +223,20 @@ class [||]Class1
     {
         var folders = new[] { "A", "B", "C" };
         var (folder, filePath) = CreateDocumentFilePath(folders);
-        await TestMissingInRegularAndScriptAsync($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""""  CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}"">    
-namespace [||]A.B.C
-{{  
-    class Class1
-    {{
-    }}
-}}
-        </Document>
-    </Project>
-</Workspace>");
+        await TestMissingInRegularAndScriptAsync($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace=""  CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}">    
+            namespace [||]A.B.C
+            {  
+                class Class1
+                {
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
     }
 
     [Fact]
@@ -234,38 +244,40 @@ namespace [||]A.B.C
     {
         var folders = new[] { "B", "C" };
         var (folder, filePath) = CreateDocumentFilePath(folders);
-        await TestMissingInRegularAndScriptAsync($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""A"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]A.B.C
-{{    
-    class Class1
-    {{
-    }}
-}}  
-        </Document>
-    </Project>
-</Workspace>");
+        await TestMissingInRegularAndScriptAsync($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="A" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            namespace [||]A.B.C
+            {    
+                class Class1
+                {
+                }
+            }  
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
     }
 
     [Fact]
     public async Task NoAction_FileNotRooted()
     {
         var filePath = PathUtilities.CombineAbsoluteAndRelativePaths(PathUtilities.GetPathRoot(ProjectFilePath), "Foo.cs");
-        await TestMissingInRegularAndScriptAsync($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
-        <Document FilePath=""{filePath}""> 
-namespace [||]NS
-{{    
-    class Class1
-    {{
-    }}
-}}
-        </Document>
-    </Project>
-</Workspace>");
+        await TestMissingInRegularAndScriptAsync($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" CommonReferences="true">
+                    <Document FilePath="{{filePath}}"> 
+            namespace [||]NS
+            {    
+                class Class1
+                {
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
     }
 
     [Fact]
@@ -273,14 +285,15 @@ namespace [||]NS
     {
         var folders = new[] { "A" };
         var (folder, filePath) = CreateDocumentFilePath(folders);
-        await TestMissingInRegularAndScriptAsync($@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-using System;   
-[||]
-        </Document>
-    </Project>
-</Workspace>");
+        await TestMissingInRegularAndScriptAsync($"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{ProjectFilePath}" CommonReferences="true">
+                    <Document Folders="{folder}" FilePath="{filePath}"> 
+            using System;   
+            [||]
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
     }
 }

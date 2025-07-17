@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -17,25 +16,21 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 
-public abstract class AbstractAddUsingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+public abstract class AbstractAddUsingTests(ITestOutputHelper? logger = null)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest(logger)
 {
-    protected AbstractAddUsingTests(ITestOutputHelper logger = null)
-        : base(logger)
-    {
-    }
-
-    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+    internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpAddImportCodeFixProvider());
 
     private protected OptionsCollection SeparateGroups => Option(GenerationOptions.SeparateImportDirectiveGroups, true);
 
     internal Task TestAsync(
-        string initialMarkup,
-        string expectedMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
         TestHost testHost,
         int index = 0,
         CodeActionPriority? priority = null,
-        OptionsCollection options = null)
+        OptionsCollection? options = null)
         => TestInRegularAndScript1Async(
             initialMarkup,
             expectedMarkup,

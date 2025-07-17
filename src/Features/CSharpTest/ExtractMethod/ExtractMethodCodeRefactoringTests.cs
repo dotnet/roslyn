@@ -4719,25 +4719,27 @@ class Program
     [InlineData("record")]
     [InlineData("record class")]
     public Task TestInRecord(string record)
-        => TestInRegularAndScript1Async($@"
-{record} Program
-{{
-    int field;
+        => TestInRegularAndScript1Async($$"""
+            {{record}} Program
+            {
+                int field;
 
-    public int this[int i] => [|this.field|];
-}}",
-$@"
-{record} Program
-{{
-    int field;
+                public int this[int i] => [|this.field|];
+            }
+            """,
+            $$"""
+            {{record}} Program
+            {
+                int field;
 
-    public int this[int i] => {{|Rename:GetField|}}();
+                public int this[int i] => {|Rename:GetField|}();
 
-    private int GetField()
-    {{
-        return this.field;
-    }}
-}}");
+                private int GetField()
+                {
+                    return this.field;
+                }
+            }
+            """);
 
     [Fact]
     public Task TestInRecordStruct()

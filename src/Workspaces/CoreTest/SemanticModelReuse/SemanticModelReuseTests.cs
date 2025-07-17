@@ -275,12 +275,13 @@ public sealed class SemanticModelReuseTests
     [Fact]
     public async Task NullBodyReturnsNormalSemanticModel2_VisualBasic()
     {
-        var source = @"
-class C
-    sub M()
-        return
-    end sub
-end class";
+        var source = """
+            class C
+                sub M()
+                    return
+                end sub
+            end class
+            """;
         var document = CreateDocument(source, LanguageNames.VisualBasic);
 
         // Even if we've primed things with a real location, getting a semantic model for null should return a
@@ -294,12 +295,13 @@ end class";
     [Fact]
     public async Task SameSyntaxTreeReturnsNonSpeculativeModel_VisualBasic()
     {
-        var source = @"
-class C
-    sub M()
-        return
-    end sub
-end class";
+        var source = """
+            class C
+                sub M()
+                    return
+                end sub
+            end class
+            """;
         var document = CreateDocument(source, LanguageNames.VisualBasic);
 
         // First call will prime the cache to point at the real semantic model.  The next call will also use the
@@ -320,24 +322,26 @@ end class";
     [Fact]
     public async Task InBodyEditShouldProduceCachedModel_VisualBasic()
     {
-        var source = @"
-class C
-    sub M()
-        return
-    end sub
-end class";
+        var source = """
+            class C
+                sub M()
+                    return
+                end sub
+            end class
+            """;
         var document1 = CreateDocument(source, LanguageNames.VisualBasic);
 
         // First call will prime the cache to point at the real semantic model.
         var model1 = await document1.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
         Assert.False(model1.IsSpeculativeSemanticModel);
 
-        var document2 = document1.WithText(SourceText.From(@"
-class C
-    sub M()
-        return nothing
-    end sub
-end class"));
+        var document2 = document1.WithText(SourceText.From("""
+            class C
+                sub M()
+                    return nothing
+                end sub
+            end class
+            """));
 
         // This should be able to get a speculative model using the original model we primed the cache with.
         var model2 = await document2.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
@@ -347,36 +351,39 @@ end class"));
     [Fact]
     public async Task OutOfBodyEditShouldProduceFreshModel_VisualBasic()
     {
-        var source1 = @"
-class C
-    sub M()
-        return
-    end sub
-end class";
+        var source1 = """
+            class C
+                sub M()
+                    return
+                end sub
+            end class
+            """;
         var document1 = CreateDocument(source1, LanguageNames.VisualBasic);
 
         // First call will prime the cache to point at the real semantic model.
         var model1 = await document1.ReuseExistingSpeculativeModelAsync(source1.IndexOf("return"), CancellationToken.None);
         Assert.False(model1.IsSpeculativeSemanticModel);
 
-        var source2 = @"
-class C
-    function M() as long
-        return
-    end function
-end class";
+        var source2 = """
+            class C
+                function M() as long
+                    return
+                end function
+            end class
+            """;
         var document2 = document1.WithText(SourceText.From(source2));
 
         // We changed the return type, so we can't reuse the previous model.
         var model2 = await document2.ReuseExistingSpeculativeModelAsync(source2.IndexOf("return"), CancellationToken.None);
         Assert.False(model2.IsSpeculativeSemanticModel);
 
-        var document3 = document2.WithText(SourceText.From(@"
-class C
-    function M() as long
-        return 0
-    end function
-end class"));
+        var document3 = document2.WithText(SourceText.From("""
+            class C
+                function M() as long
+                    return 0
+                end function
+            end class
+            """));
 
         // We are now again only editing a method body so we should be able to get a speculative model.
         var model3 = await document3.ReuseExistingSpeculativeModelAsync(source2.IndexOf("return"), CancellationToken.None);
@@ -386,35 +393,38 @@ end class"));
     [Fact]
     public async Task MultipleBodyEditsShouldProduceFreshModel_VisualBasic()
     {
-        var source = @"
-class C
-    sub M()
-        return
-    end sub
-end class";
+        var source = """
+            class C
+                sub M()
+                    return
+                end sub
+            end class
+            """;
         var document1 = CreateDocument(source, LanguageNames.VisualBasic);
 
         // First call will prime the cache to point at the real semantic model.
         var model1 = await document1.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
         Assert.False(model1.IsSpeculativeSemanticModel);
 
-        var document2 = document1.WithText(SourceText.From(@"
-class C
-    sub M()
-        return 0
-    end sub
-end class"));
+        var document2 = document1.WithText(SourceText.From("""
+            class C
+                sub M()
+                    return 0
+                end sub
+            end class
+            """));
 
         // This should be able to get a speculative model using the original model we primed the cache with.
         var model2 = await document2.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
         Assert.True(model2.IsSpeculativeSemanticModel);
 
-        var document3 = document1.WithText(SourceText.From(@"
-class C
-    sub M()
-        return 1
-    end sub
-end class"));
+        var document3 = document1.WithText(SourceText.From("""
+            class C
+                sub M()
+                    return 1
+                end sub
+            end class
+            """));
 
         // This should be able to get a speculative model using the original model we primed the cache with.
         var model3 = await document3.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
@@ -424,41 +434,44 @@ end class"));
     [Fact]
     public async Task MultipleBodyEditsShouldProduceFreshModel_Accessor_Property_VisualBasic()
     {
-        var source = @"
-class C
-    readonly property M as integer
-        get
-            return 0
-        end get
-    end property
-end class";
+        var source = """
+            class C
+                readonly property M as integer
+                    get
+                        return 0
+                    end get
+                end property
+            end class
+            """;
         var document1 = CreateDocument(source, LanguageNames.VisualBasic);
 
         // First call will prime the cache to point at the real semantic model.
         var model1 = await document1.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
         Assert.False(model1.IsSpeculativeSemanticModel);
 
-        var document2 = document1.WithText(SourceText.From(@"
-class C
-    readonly property M as integer
-        get
-            return 1
-        end get
-    end property
-end class"));
+        var document2 = document1.WithText(SourceText.From("""
+            class C
+                readonly property M as integer
+                    get
+                        return 1
+                    end get
+                end property
+            end class
+            """));
 
         // This should be able to get a speculative model using the original model we primed the cache with.
         var model2 = await document2.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
         Assert.True(model2.IsSpeculativeSemanticModel);
 
-        var document3 = document1.WithText(SourceText.From(@"
-class C
-    readonly property M as integer
-        get
-            return 2
-        end get
-    end property
-end class"));
+        var document3 = document1.WithText(SourceText.From("""
+            class C
+                readonly property M as integer
+                    get
+                        return 2
+                    end get
+                end property
+            end class
+            """));
 
         // This should be able to get a speculative model using the original model we primed the cache with.
         var model3 = await document3.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
@@ -468,41 +481,44 @@ end class"));
     [Fact]
     public async Task MultipleBodyEditsShouldProduceFreshModel_Accessor_Event_VisualBasic()
     {
-        var source = @"
-class C
-    public custom event E as System.Action
-        addhandler(value as System.Action)
-            return 0
-        end addhandler
-    end event
-end class";
+        var source = """
+            class C
+                public custom event E as System.Action
+                    addhandler(value as System.Action)
+                        return 0
+                    end addhandler
+                end event
+            end class
+            """;
         var document1 = CreateDocument(source, LanguageNames.VisualBasic);
 
         // First call will prime the cache to point at the real semantic model.
         var model1 = await document1.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
         Assert.False(model1.IsSpeculativeSemanticModel);
 
-        var document2 = document1.WithText(SourceText.From(@"
-class C
-    public custom event E as System.Action
-        addhandler(value as System.Action)
-            return 1
-        end addhandler
-    end event
-end class"));
+        var document2 = document1.WithText(SourceText.From("""
+            class C
+                public custom event E as System.Action
+                    addhandler(value as System.Action)
+                        return 1
+                    end addhandler
+                end event
+            end class
+            """));
 
         // This should be able to get a speculative model using the original model we primed the cache with.
         var model2 = await document2.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
         Assert.True(model2.IsSpeculativeSemanticModel);
 
-        var document3 = document1.WithText(SourceText.From(@"
-class C
-    public custom event E as System.Action
-        addhandler(value as System.Action)
-            return 2
-        end addhandler
-    end event
-end class"));
+        var document3 = document1.WithText(SourceText.From("""
+            class C
+                public custom event E as System.Action
+                    addhandler(value as System.Action)
+                        return 2
+                    end addhandler
+                end event
+            end class
+            """));
 
         // This should be able to get a speculative model using the original model we primed the cache with.
         var model3 = await document3.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
@@ -513,24 +529,26 @@ end class"));
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
     public async Task TestOutOfBoundsInSyntaxContext1_VisualBasic()
     {
-        var source = @"
-class C
-    sub M()
-        return
-    end sub
-end class";
+        var source = """
+            class C
+                sub M()
+                    return
+                end sub
+            end class
+            """;
         var document1 = CreateDocument(source, LanguageNames.VisualBasic);
 
         // First call will prime the cache to point at the real semantic model.
         var model1 = await document1.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
         Assert.False(model1.IsSpeculativeSemanticModel);
 
-        var document2 = document1.WithText(SourceText.From(@"
-class C
-    sub M()
-        return nothing
-    end sub
-end class"));
+        var document2 = document1.WithText(SourceText.From("""
+            class C
+                sub M()
+                    return nothing
+                end sub
+            end class
+            """));
 
         // This should be able to get a speculative model using the original model we primed the cache with.
         var model2 = await document2.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
@@ -544,25 +562,27 @@ end class"));
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
     public async Task TestOutOfBoundsInSyntaxContext2_VisualBasic()
     {
-        var source = @"
-class C
-    sub M()
-        return
-    end sub
-end class";
+        var source = """
+            class C
+                sub M()
+                    return
+                end sub
+            end class
+            """;
         var document1 = CreateDocument(source, LanguageNames.VisualBasic);
 
         // First call will prime the cache to point at the real semantic model.
         var model1 = await document1.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
         Assert.False(model1.IsSpeculativeSemanticModel);
 
-        var document2 = document1.WithText(SourceText.From(@"
-class C
-class C
-                                    sub M()
-        return nothing
-    end sub
-end class"));
+        var document2 = document1.WithText(SourceText.From("""
+            class C
+            class C
+                                                sub M()
+                    return nothing
+                end sub
+            end class
+            """));
 
         // Because the change in trivia shifted the method definition, we are not able to get a speculative model based on previous model
         var model2 = await document2.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);

@@ -36,7 +36,9 @@ public sealed class DefinitionItemFactoryTests
         => string.Join(" | ", e.ToString().Split(',').Select(s => $"{typeof(TEnum).Name}.{s.Trim()}"));
 
     private static string Inspect(string? str)
-        => (str == null) ? "null" : $"\"{str.Replace(@"\", @"\\").Replace("\"", "\\\"")}\"";
+        => (str == null) ? "null" : $"""
+        "{str.Replace(@"\", @"\\").Replace("\"", "\\\"")}"
+        """;
 
     private static string InspectValueAsExpression(string? value, IReadOnlyDictionary<string, string> expressionMap)
         => value != null && expressionMap.TryGetValue(value, out var syntax) ? syntax : Inspect(value);

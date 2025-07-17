@@ -1065,52 +1065,60 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
     public Task TestYieldReturnInMethod([CombinatorialValues("IEnumerable", "IEnumerator", "InvalidGenericType")] string returnTypeName, TestMode mode)
-        => TestAsync($@"using System.Collections.Generic;
+        => TestAsync($$"""
+            using System.Collections.Generic;
 
-class C
-{{
-    {returnTypeName}<int> M()
-    {{
-        yield return [|abc|]
-    }}
-}}", "global::System.Int32", mode);
+            class C
+            {
+                {{returnTypeName}}<int> M()
+                {
+                    yield return [|abc|]
+                }
+            }
+            """, "global::System.Int32", mode);
 
     [Theory, CombinatorialData]
     public Task TestYieldReturnInMethodNullableReference([CombinatorialValues("IEnumerable", "IEnumerator", "InvalidGenericType")] string returnTypeName, TestMode mode)
-        => TestAsync($@"#nullable enable
-using System.Collections.Generic;
+        => TestAsync($$"""
+            #nullable enable
+            using System.Collections.Generic;
 
-class C
-{{
-    {returnTypeName}<string?> M()
-    {{
-        yield return [|abc|]
-    }}
-}}", "global::System.String?", mode);
+            class C
+            {
+                {{returnTypeName}}<string?> M()
+                {
+                    yield return [|abc|]
+                }
+            }
+            """, "global::System.String?", mode);
 
     [Theory, CombinatorialData]
     public Task TestYieldReturnInAsyncMethod([CombinatorialValues("IAsyncEnumerable", "IAsyncEnumerator", "InvalidGenericType")] string returnTypeName, TestMode mode)
-        => TestAsync($@"namespace System.Collections.Generic
-{{
-    interface {returnTypeName}<T> {{ }}
-    class C
-    {{
-        async {returnTypeName}<int> M()
-        {{
-            yield return [|abc|]
-        }}
-    }}
-}}", "global::System.Int32", mode);
+        => TestAsync($$"""
+            namespace System.Collections.Generic
+            {
+                interface {{returnTypeName}}<T> { }
+                class C
+                {
+                    async {{returnTypeName}}<int> M()
+                    {
+                        yield return [|abc|]
+                    }
+                }
+            }
+            """, "global::System.Int32", mode);
 
     [Theory, CombinatorialData]
     public Task TestYieldReturnInvalidTypeInMethod([CombinatorialValues("int[]", "InvalidNonGenericType", "InvalidGenericType<int, int>")] string returnType, TestMode mode)
-        => TestAsync($@"class C
-{{
-    {returnType} M()
-    {{
-        yield return [|abc|]
-    }}
-}}", "global::System.Object", mode);
+        => TestAsync($$"""
+            class C
+            {
+                {{returnType}} M()
+                {
+                    yield return [|abc|]
+                }
+            }
+            """, "global::System.Object", mode);
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/30235")]
@@ -2728,21 +2736,21 @@ class C
         var expectedType = shouldInferColor
             ? "global::C.Color"
             : "global::System.Object";
-        await TestAsync(@$"
-class C
-{{
-    public enum Color
-    {{
-        Red,
-        Green,
-    }}
+        await TestAsync($$"""
+            class C
+            {
+                public enum Color
+                {
+                    Red,
+                    Green,
+                }
 
-    public void M(Color c)
-    {{
-        var isRed = c is {isPattern}[||];
-    }}
-}}
-", expectedType, TestMode.Position);
+                public void M(Color c)
+                {
+                    var isRed = c is {{isPattern}}[||];
+                }
+            }
+            """, expectedType, TestMode.Position);
     }
 
     [Theory]
@@ -2755,23 +2763,23 @@ class C
     [InlineData("not ")]
     [InlineData("not Re")]
     public Task TestEnumInPatterns_Is_PropertyPattern(string partialWritten)
-        => TestAsync(@$"
-public enum Color
-{{
-    Red,
-    Green,
-}}
+        => TestAsync($$"""
+            public enum Color
+            {
+                Red,
+                Green,
+            }
 
-class C
-{{
-    public Color Color {{ get; }}
+            class C
+            {
+                public Color Color { get; }
 
-    public void M()
-    {{
-        var isRed = this is {{ Color: {partialWritten}[||]
-    }}
-}}
-", "global::Color", TestMode.Position);
+                public void M()
+                {
+                    var isRed = this is { Color: {{partialWritten}}[||]
+                }
+            }
+            """, "global::Color", TestMode.Position);
 
     [Fact]
     public Task TestEnumInPatterns_SwitchStatement_PropertyPattern()

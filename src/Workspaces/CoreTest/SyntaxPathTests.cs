@@ -129,19 +129,21 @@ public sealed class SyntaxPathTests
     public void TestMethodBodyChange()
     {
         var text =
-@"namespace N {
-    class C {
-      void M1() {
-        int i1;
-      }
-      void M2() {
-        int i2;
-      }
-      void M3() {
-        int i3;
-      }
-    }
-  }";
+            """
+            namespace N {
+                class C {
+                  void M1() {
+                    int i1;
+                  }
+                  void M2() {
+                    int i2;
+                  }
+                  void M3() {
+                    int i3;
+                  }
+                }
+              }
+            """;
 
         var tree = SyntaxFactory.ParseSyntaxTree(text);
         var namespaceDecl = (NamespaceDeclarationSyntax)(tree.GetRoot() as CompilationUnitSyntax).Members[0];
@@ -174,12 +176,14 @@ public sealed class SyntaxPathTests
     public void TestAddBase()
     {
         var text =
-@"namespace N {
-    class C {
-    }
-    class D {
-    }
-  }";
+            """
+            namespace N {
+                class C {
+                }
+                class D {
+                }
+              }
+            """;
 
         var tree = SyntaxFactory.ParseSyntaxTree(text);
         var namespaceDecl = (NamespaceDeclarationSyntax)(tree.GetRoot() as CompilationUnitSyntax).Members[0];
@@ -203,16 +207,18 @@ public sealed class SyntaxPathTests
     public void TestAddFieldBefore()
     {
         var text =
-@"namespace N {
-    class C {
-      void M1() {
-        int i1;
-      }
-      bool M2() {
-        int i2;
-      }
-    }
-  }";
+            """
+            namespace N {
+                class C {
+                  void M1() {
+                    int i1;
+                  }
+                  bool M2() {
+                    int i2;
+                  }
+                }
+              }
+            """;
 
         var tree = SyntaxFactory.ParseSyntaxTree(text);
         var namespaceDecl = (NamespaceDeclarationSyntax)((CompilationUnitSyntax)tree.GetRoot()).Members[0];
@@ -239,12 +245,14 @@ public sealed class SyntaxPathTests
     public void TestChangeType()
     {
         var text =
-@"namespace N {
-    class C {
-    }
-    class D {
-    }
-  }";
+            """
+            namespace N {
+                class C {
+                }
+                class D {
+                }
+              }
+            """;
 
         var tree = SyntaxFactory.ParseSyntaxTree(text);
         var namespaceDecl = (NamespaceDeclarationSyntax)((CompilationUnitSyntax)tree.GetRoot()).Members[0];
@@ -266,13 +274,15 @@ public sealed class SyntaxPathTests
     public void TestChangeType1()
     {
         var text =
-@"namespace N {
-    class C {
-      void Goo();
-    }
-    class D {
-    }
-  }";
+            """
+            namespace N {
+                class C {
+                  void Goo();
+                }
+                class D {
+                }
+              }
+            """;
 
         var tree = SyntaxFactory.ParseSyntaxTree(text);
         var namespaceDecl = (NamespaceDeclarationSyntax)((CompilationUnitSyntax)tree.GetRoot()).Members[0];
@@ -297,12 +307,14 @@ public sealed class SyntaxPathTests
     public void TestWhitespace1()
     {
         var text =
-@"namespace N {
-    class C {
-    }
-    class D {
-    }
-  }";
+            """
+            namespace N {
+                class C {
+                }
+                class D {
+                }
+              }
+            """;
         var text2 = text.Replace(" ", "  ");
 
         var tree = SyntaxFactory.ParseSyntaxTree(text);
@@ -327,12 +339,14 @@ public sealed class SyntaxPathTests
     public void TestComment()
     {
         var text =
-@"namespace N {
-    class C {
-    }
-    struct D {
-    }
-  }";
+            """
+            namespace N {
+                class C {
+                }
+                struct D {
+                }
+              }
+            """;
 
         var tree = SyntaxFactory.ParseSyntaxTree(text);
         var namespaceDecl = (NamespaceDeclarationSyntax)((CompilationUnitSyntax)tree.GetRoot()).Members[0];
@@ -356,12 +370,14 @@ public sealed class SyntaxPathTests
     public void TestPP1()
     {
         var text =
-@"namespace N {
-    class C {
-    }
-    struct D {
-    }
-  }";
+            """
+            namespace N {
+                class C {
+                }
+                struct D {
+                }
+              }
+            """;
         var tree = SyntaxFactory.ParseSyntaxTree(text);
         var namespaceDecl = (NamespaceDeclarationSyntax)((CompilationUnitSyntax)tree.GetRoot()).Members[0];
         var class1 = (TypeDeclarationSyntax)namespaceDecl.Members[0];
@@ -370,14 +386,16 @@ public sealed class SyntaxPathTests
         var path1 = new SyntaxPath(class1);
         var path2 = new SyntaxPath(class2);
 
-        tree = WithReplace(tree, 0, text.Length, @"namespace N {
-#if true
-    class C {
-    }
-    struct D {
-    }
-#endif
-  }");
+        tree = WithReplace(tree, 0, text.Length, """
+            namespace N {
+            #if true
+                class C {
+                }
+                struct D {
+                }
+            #endif
+              }
+            """);
         Assert.True(path1.TryResolve(tree, CancellationToken.None, out SyntaxNode n1));
         Assert.True(path2.TryResolve(tree, CancellationToken.None, out SyntaxNode n2));
 

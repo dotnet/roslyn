@@ -319,14 +319,16 @@ public abstract class NativeIntegerKeywordRecommenderTests : RecommenderTests
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/53585")]
     [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithoutAsync))]
     public Task TestAfterKeywordIndicatingLocalFunctionWithoutAsync(string keyword)
-        => VerifyKeywordAsync(AddInsideMethod($@"
-{keyword} $$"));
+        => VerifyKeywordAsync(AddInsideMethod($"""
+            {keyword} $$
+            """));
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
     [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithAsync))]
     public Task TestNotAfterKeywordIndicatingLocalFunctionWithAsync(string keyword)
-        => VerifyAbsenceAsync(AddInsideMethod($@"
-{keyword} $$"));
+        => VerifyAbsenceAsync(AddInsideMethod($"""
+            {keyword} $$
+            """));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49743")]
     public Task TestNotInPreprocessorDirective()
@@ -495,6 +497,6 @@ public abstract class NativeIntegerKeywordRecommenderTests : RecommenderTests
                     }
                 }
                 """,
-                CSharpNextParseOptions,
-                CSharpNextScriptParseOptions);
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
 }

@@ -35,14 +35,18 @@ public class BasicGoToImplementation : AbstractEditorTest
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileImplementation.vb", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "FileImplementation.vb", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"Class Implementation
-  Implements IGoo
-End Class", HangMitigatingCancellationToken);
+            """
+            Class Implementation
+              Implements IGoo
+            End Class
+            """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileInterface.vb", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "FileInterface.vb", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"Interface IGoo 
-End Interface", HangMitigatingCancellationToken);
+            """
+            Interface IGoo 
+            End Interface
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("Interface IGoo", charsOffset: 0, HangMitigatingCancellationToken);
         await TestServices.Editor.GoToImplementationAsync(HangMitigatingCancellationToken);
 

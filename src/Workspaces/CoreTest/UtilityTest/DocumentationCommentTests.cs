@@ -25,14 +25,16 @@ public sealed class DocumentationCommentTests
     public void ParseFullTag()
     {
         var comment = DocumentationComment.FromXmlFragment(
-            @"<summary>Hello, world!</summary>
-                  <returns>42.</returns>
-                  <value>43.</value>
-                  <example>goo.Bar();</example>
-                  <param name=""goo"">A goo.</param>
-                  <typeparam name=""T"">A type.</typeparam>
-                  <exception cref=""System.Exception"">An exception</exception>
-                  <remarks>A remark</remarks>");
+            """
+            <summary>Hello, world!</summary>
+                              <returns>42.</returns>
+                              <value>43.</value>
+                              <example>goo.Bar();</example>
+                              <param name="goo">A goo.</param>
+                              <typeparam name="T">A type.</typeparam>
+                              <exception cref="System.Exception">An exception</exception>
+                              <remarks>A remark</remarks>
+            """);
 
         Assert.Equal("Hello, world!", comment.SummaryText);
         Assert.Equal("42.", comment.ReturnsText);
@@ -51,14 +53,16 @@ public sealed class DocumentationCommentTests
     public void ParseFullTagEmptyValues()
     {
         var comment = DocumentationComment.FromXmlFragment(
-            @"<summary></summary>
-                  <returns></returns>
-                  <value></value>
-                  <example></example>
-                  <param name=""goo""></param>
-                  <typeparam name=""T""></typeparam>
-                  <exception cref=""System.Exception""></exception>
-                  <remarks></remarks>");
+            """
+            <summary></summary>
+                              <returns></returns>
+                              <value></value>
+                              <example></example>
+                              <param name="goo"></param>
+                              <typeparam name="T"></typeparam>
+                              <exception cref="System.Exception"></exception>
+                              <remarks></remarks>
+            """);
 
         Assert.Equal(string.Empty, comment.SummaryText);
         Assert.Equal(string.Empty, comment.ReturnsText);
@@ -85,10 +89,12 @@ public sealed class DocumentationCommentTests
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522741")]
     public void ParseTagWithMultiLineComments()
     {
-        var comment = DocumentationComment.FromXmlFragment(@"<summary>
-Summary 1
-Summary 2
-</summary>");
+        var comment = DocumentationComment.FromXmlFragment("""
+            <summary>
+            Summary 1
+            Summary 2
+            </summary>
+            """);
 
         Assert.Equal("Summary 1 Summary 2", comment.SummaryText);
     }
@@ -106,9 +112,11 @@ Summary 2
     public void PreserveParameterNameOrdering()
     {
         var comment = DocumentationComment.FromXmlFragment(
-@"<param name=""z"">Z</param>
-<param name=""a"">A</param>
-<param name=""b"">B</param>");
+            """
+            <param name="z">Z</param>
+            <param name="a">A</param>
+            <param name="b">B</param>
+            """);
 
         Assert.Equal("z", comment.ParameterNames[0]);
         Assert.Equal("a", comment.ParameterNames[1]);
@@ -119,9 +127,11 @@ Summary 2
     public void PreserveTypeParameterNameOrdering()
     {
         var comment = DocumentationComment.FromXmlFragment(
-@"<typeparam name=""z"">Z</typeparam>
-<typeparam name=""a"">A</typeparam>
-<typeparam name=""b"">B</typeparam>");
+            """
+            <typeparam name="z">Z</typeparam>
+            <typeparam name="a">A</typeparam>
+            <typeparam name="b">B</typeparam>
+            """);
 
         Assert.Equal("z", comment.TypeParameterNames[0]);
         Assert.Equal("a", comment.TypeParameterNames[1]);
@@ -132,9 +142,11 @@ Summary 2
     public void PreserveExceptionTypeOrdering()
     {
         var comment = DocumentationComment.FromXmlFragment(
-@"<exception cref=""z"">Z</exception>
-<exception cref=""a"">A</exception>
-<exception cref=""b"">B</exception>");
+            """
+            <exception cref="z">Z</exception>
+            <exception cref="a">A</exception>
+            <exception cref="b">B</exception>
+            """);
 
         Assert.Equal("z", comment.ExceptionTypes[0]);
         Assert.Equal("a", comment.ExceptionTypes[1]);
@@ -145,9 +157,11 @@ Summary 2
     public void UnknownTag()
     {
         var comment = DocumentationComment.FromXmlFragment(
-@"<summary>This is a summary.</summary>
-<RandomTag>This is another summary.</RandomTag>
-<param name=""a"">The param named 'a'</param>");
+            """
+            <summary>This is a summary.</summary>
+            <RandomTag>This is another summary.</RandomTag>
+            <param name="a">The param named 'a'</param>
+            """);
 
         Assert.Equal("This is a summary.", comment.SummaryText);
         Assert.Equal("a", comment.ParameterNames[0]);
@@ -158,9 +172,11 @@ Summary 2
     public void TextOutsideTag()
     {
         var comment = DocumentationComment.FromXmlFragment(
-@"<summary>This is a summary.</summary>
-This is random top-level text.
-<param name=""a"">The param named 'a'</param>");
+            """
+            <summary>This is a summary.</summary>
+            This is random top-level text.
+            <param name="a">The param named 'a'</param>
+            """);
 
         Assert.Equal("This is a summary.", comment.SummaryText);
         Assert.Equal("a", comment.ParameterNames[0]);
@@ -171,11 +187,13 @@ This is random top-level text.
     public void SingleTopLevelTag()
     {
         var comment = DocumentationComment.FromXmlFragment(
-@"<member>
-<summary>This is a summary.</summary>
-This is random top-level text.
-<param name=""a"">The param named 'a'</param>
-</member>");
+            """
+            <member>
+            <summary>This is a summary.</summary>
+            This is random top-level text.
+            <param name="a">The param named 'a'</param>
+            </member>
+            """);
 
         Assert.Equal("This is a summary.", comment.SummaryText);
         Assert.Equal("a", comment.ParameterNames[0]);
@@ -186,8 +204,10 @@ This is random top-level text.
     public void MultipleParamsWithSameName()
     {
         var comment = DocumentationComment.FromXmlFragment(
-@"<param name=""a"">This comment should be retained.</param>
-<param name=""a"">This comment should not be retained.</param>");
+            """
+            <param name="a">This comment should be retained.</param>
+            <param name="a">This comment should not be retained.</param>
+            """);
 
         Assert.Equal(1, comment.ParameterNames.Length);
         Assert.Equal("a", comment.ParameterNames[0]);
@@ -198,8 +218,10 @@ This is random top-level text.
     public void MultipleTypeParamsWithSameName()
     {
         var comment = DocumentationComment.FromXmlFragment(
-@"<typeparam name=""a"">This comment should be retained.</typeparam>
-<typeparam name=""a"">This comment should not be retained.</typeparam>");
+            """
+            <typeparam name="a">This comment should be retained.</typeparam>
+            <typeparam name="a">This comment should not be retained.</typeparam>
+            """);
 
         Assert.Equal(1, comment.TypeParameterNames.Length);
         Assert.Equal("a", comment.TypeParameterNames[0]);
@@ -210,10 +232,12 @@ This is random top-level text.
     public void MultipleExceptionsWithSameName()
     {
         var comment = DocumentationComment.FromXmlFragment(
-@"<exception cref=""A"">First A description</exception>
-<exception cref=""B"">First B description</exception>
-<exception cref=""A"">Second A description</exception>
-<exception cref=""B"">Second B description</exception>");
+            """
+            <exception cref="A">First A description</exception>
+            <exception cref="B">First B description</exception>
+            <exception cref="A">Second A description</exception>
+            <exception cref="B">Second B description</exception>
+            """);
 
         Assert.Equal(2, comment.ExceptionTypes.Length);
         Assert.Equal("A", comment.ExceptionTypes[0]);
@@ -258,36 +282,42 @@ This is random top-level text.
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/18901")]
     public void TrimEachLine()
     {
-        var multiLineText = @"
-
-
-
-Hello
-     World     .        
-+
-.......
+        var multiLineText = """
 
 
 
 
-123
+            Hello
+                 World     .        
+            +
+            .......
 
-                                           1";
 
-        var fullXml = $@"<summary>{multiLineText}</summary>
-                  <returns>{multiLineText}</returns>
-                  <value>{multiLineText}</value>
-                  <example>{multiLineText}</example>
-                  <param name=""goo"">{multiLineText}</param>
-                  <typeparam name=""T"">{multiLineText}</typeparam>
-                  <remarks>{multiLineText}</remarks>";
 
-        var expected = @"Hello
-     World     .
-+
-.......
-123
-                                           1";
+
+            123
+
+                                                       1
+            """;
+
+        var fullXml = $"""
+            <summary>{multiLineText}</summary>
+                              <returns>{multiLineText}</returns>
+                              <value>{multiLineText}</value>
+                              <example>{multiLineText}</example>
+                              <param name="goo">{multiLineText}</param>
+                              <typeparam name="T">{multiLineText}</typeparam>
+                              <remarks>{multiLineText}</remarks>
+            """;
+
+        var expected = """
+            Hello
+                 World     .
+            +
+            .......
+            123
+                                                       1
+            """;
 
         var comment = DocumentationComment.FromXmlFragment(fullXml);
 
@@ -303,38 +333,44 @@ Hello
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/18901")]
     public void TrimEachLineCommonOffset()
     {
-        var multiLineText = @"
-
-
-
-  Hello
-    World     .        
-  +
-  .......
-         
+        var multiLineText = """
 
 
 
 
-    123
+              Hello
+                World     .        
+              +
+              .......
+                     
 
-                                           1";
 
-        var fullXml = $@"<summary>{multiLineText}</summary>
-                  <returns>{multiLineText}</returns>
-                  <value>{multiLineText}</value>
-                  <example>{multiLineText}</example>
-                  <param name=""goo"">{multiLineText}</param>
-                  <typeparam name=""T"">{multiLineText}</typeparam>
-                  <remarks>{multiLineText}</remarks>";
 
-        var expected = @"Hello
-  World     .
-+
-.......
 
-  123
-                                         1";
+                123
+
+                                                       1
+            """;
+
+        var fullXml = $"""
+            <summary>{multiLineText}</summary>
+                              <returns>{multiLineText}</returns>
+                              <value>{multiLineText}</value>
+                              <example>{multiLineText}</example>
+                              <param name="goo">{multiLineText}</param>
+                              <typeparam name="T">{multiLineText}</typeparam>
+                              <remarks>{multiLineText}</remarks>
+            """;
+
+        var expected = """
+            Hello
+              World     .
+            +
+            .......
+
+              123
+                                                     1
+            """;
 
         var comment = DocumentationComment.FromXmlFragment(fullXml);
 

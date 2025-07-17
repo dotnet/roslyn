@@ -23,12 +23,12 @@ public sealed class ConvertToProgramMainRefactoringTests
     public Task TestNotOnFileWithNoGlobalStatements()
         => new VerifyCS.Test
         {
-            TestCode = @"
-$$
-class C
-{
-}
-",
+            TestCode = """
+            $$
+            class C
+            {
+            }
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             ExpectedDiagnostics =
@@ -42,9 +42,9 @@ class C
     public Task TestNotOnEmptyFile()
         => new VerifyCS.Test
         {
-            TestCode = @"
-$$
-",
+            TestCode = """
+            $$
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             ExpectedDiagnostics =
@@ -58,17 +58,18 @@ $$
     public Task TestConvertToProgramMainWithDefaultTopLevelStatementPreference()
         => new VerifyCS.Test
         {
-            TestCode = @"
-$$System.Console.WriteLine(0);
-",
-            FixedCode = @"
-internal class Program
-{
-    private static void Main(string[] args)
-    {
-        System.Console.WriteLine(0);
-    }
-}",
+            TestCode = """
+            $$System.Console.WriteLine(0);
+            """,
+            FixedCode = """
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    System.Console.WriteLine(0);
+                }
+            }
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
         }.RunAsync();
@@ -77,9 +78,9 @@ internal class Program
     public Task TestNotOfferedInLibrary()
         => new VerifyCS.Test
         {
-            TestCode = @"
-$${|CS8805:System.Console.WriteLine(0);|}
-",
+            TestCode = """
+            $${|CS8805:System.Console.WriteLine(0);|}
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
 
@@ -87,17 +88,18 @@ $${|CS8805:System.Console.WriteLine(0);|}
     public Task TestConvertToProgramMainWithTopLevelStatementPreferenceSuggestion()
         => new VerifyCS.Test
         {
-            TestCode = @"
-$$System.Console.WriteLine(0);
-",
-            FixedCode = @"
-internal class Program
-{
-    private static void Main(string[] args)
-    {
-        System.Console.WriteLine(0);
-    }
-}",
+            TestCode = """
+            $$System.Console.WriteLine(0);
+            """,
+            FixedCode = """
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    System.Console.WriteLine(0);
+                }
+            }
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options =
@@ -110,9 +112,9 @@ internal class Program
     public Task TestNoConvertToProgramMainWithProgramMainPreferenceSuggestion()
         => new VerifyCS.Test
         {
-            TestCode = @"
-$$System.Console.WriteLine(0);
-",
+            TestCode = """
+            $$System.Console.WriteLine(0);
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options =
@@ -125,9 +127,9 @@ $$System.Console.WriteLine(0);
     public Task TestNoConvertToProgramMainWithProgramMainPreferenceSilent()
         => new VerifyCS.Test
         {
-            TestCode = @"
-$$System.Console.WriteLine(0);
-",
+            TestCode = """
+            $$System.Console.WriteLine(0);
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options =
@@ -140,17 +142,18 @@ $$System.Console.WriteLine(0);
     public Task TestConvertToProgramMainWithProgramMainPreferenceSuppress()
         => new VerifyCS.Test
         {
-            TestCode = @"
-$$System.Console.WriteLine(0);
-",
-            FixedCode = @"
-internal class Program
-{
-    private static void Main(string[] args)
-    {
-        System.Console.WriteLine(0);
-    }
-}",
+            TestCode = """
+            $$System.Console.WriteLine(0);
+            """,
+            FixedCode = """
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    System.Console.WriteLine(0);
+                }
+            }
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options =

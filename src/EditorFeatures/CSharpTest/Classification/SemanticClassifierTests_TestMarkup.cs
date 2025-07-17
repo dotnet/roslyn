@@ -419,7 +419,9 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             TestCode(" "),
             Operators.Equals,
             TestCode(" "),
-            String(@"""\r\n"""),
+            String("""
+                "\r\n"
+                """),
             Punctuation.Semicolon,
             Punctuation.CloseCurly);
 

@@ -39,39 +39,47 @@ public sealed class DocCommentFormattingTests
     [Fact]
     public void ExampleAndCodeTags()
     {
-        TestFormat(@"This method changes the point's location by the given x- and y-offsets.
-            <example>For example:
-            <code>
-            Point p = new Point(3,5);
-            p.Translate(-1,3);
-            </code>
-            results in <c>p</c>'s having the value (2,8).
-            </example>", "This method changes the point's location by the given x- and y-offsets. For example:\r\n\r\n            Point p = new Point(3,5);\r\n            p.Translate(-1,3);\r\n            \r\n\r\nresults in p's having the value (2,8).");
+        TestFormat("""
+            This method changes the point's location by the given x- and y-offsets.
+                        <example>For example:
+                        <code>
+                        Point p = new Point(3,5);
+                        p.Translate(-1,3);
+                        </code>
+                        results in <c>p</c>'s having the value (2,8).
+                        </example>
+            """, "This method changes the point's location by the given x- and y-offsets. For example:\r\n\r\n            Point p = new Point(3,5);\r\n            p.Translate(-1,3);\r\n            \r\n\r\nresults in p's having the value (2,8).");
     }
 
     [Fact]
     public void ListTag()
     {
-        TestFormat(@"Here is an example of a bulleted list:
-        <list type=""bullet"">
-        <item>
-        <description>Item 1.</description>
-        </item>
-        <item>
-        <description>Item 2.</description>
-        </item>
-        </list>", "Here is an example of a bulleted list:\r\n\r\n• Item 1.\r\n• Item 2.");
+        TestFormat("""
+            Here is an example of a bulleted list:
+                    <list type="bullet">
+                    <item>
+                    <description>Item 1.</description>
+                    </item>
+                    <item>
+                    <description>Item 2.</description>
+                    </item>
+                    </list>
+            """, "Here is an example of a bulleted list:\r\n\r\n• Item 1.\r\n• Item 2.");
     }
 
     [Fact]
     public void ParaTag()
     {
-        TestFormat(@"This is the entry point of the Point class testing program.
-        <para>This program tests each method and operator, and
-        is intended to be run after any non-trivial maintenance has
-        been performed on the Point class.</para>", @"This is the entry point of the Point class testing program.
+        TestFormat("""
+            This is the entry point of the Point class testing program.
+                    <para>This program tests each method and operator, and
+                    is intended to be run after any non-trivial maintenance has
+                    been performed on the Point class.</para>
+            """, """
+            This is the entry point of the Point class testing program.
 
-This program tests each method and operator, and is intended to be run after any non-trivial maintenance has been performed on the Point class.");
+            This program tests each method and operator, and is intended to be run after any non-trivial maintenance has been performed on the Point class.
+            """);
     }
 
     [Fact]
@@ -101,8 +109,10 @@ This program tests each method and operator, and is intended to be run after any
     [Fact]
     public void TestParamRefTag()
     {
-        TestFormat(@"This constructor initializes the new Point to 
-(<paramref name=""xor""/>,<paramref name=""yor""/>).", "This constructor initializes the new Point to (xor,yor).");
+        TestFormat("""
+            This constructor initializes the new Point to 
+            (<paramref name="xor"/>,<paramref name="yor"/>).
+            """, "This constructor initializes the new Point to (xor,yor).");
     }
 
     [Fact]
@@ -120,10 +130,10 @@ This program tests each method and operator, and is intended to be run after any
     [Fact]
     public void Whitespace2()
     {
-        TestFormat(@"
-This has extra
-whitespace.
-", "This has extra whitespace.");
+        TestFormat("""
+            This has extra
+            whitespace.
+            """, "This has extra whitespace.");
     }
 
     [Fact]
@@ -135,53 +145,61 @@ whitespace.
     [Fact]
     public void Paragraphs1()
     {
-        TestFormat(@"
-<para>This is part of a paragraph.</para>
-", "This is part of a paragraph.");
+        TestFormat("""
+            <para>This is part of a paragraph.</para>
+            """, "This is part of a paragraph.");
     }
 
     [Fact]
     public void Paragraphs2()
     {
-        TestFormat(@"
-<para>This is part of a paragraph.</para>
-<para>This is also part of a paragraph.</para>
-", @"This is part of a paragraph.
+        TestFormat("""
+            <para>This is part of a paragraph.</para>
+            <para>This is also part of a paragraph.</para>
+            """, """
+            This is part of a paragraph.
 
-This is also part of a paragraph.");
+            This is also part of a paragraph.
+            """);
     }
 
     [Fact]
     public void Paragraphs3()
     {
-        TestFormat(@"
-This is a summary.
-<para>This is part of a paragraph.</para>
-", @"This is a summary.
+        TestFormat("""
+            This is a summary.
+            <para>This is part of a paragraph.</para>
+            """, """
+            This is a summary.
 
-This is part of a paragraph.");
+            This is part of a paragraph.
+            """);
     }
 
     [Fact]
     public void Paragraphs4()
     {
-        TestFormat(@"
-<para>This is part of a paragraph.</para> This is part of the summary, too.
-", @"This is part of a paragraph.
+        TestFormat("""
+            <para>This is part of a paragraph.</para> This is part of the summary, too.
+            """, """
+            This is part of a paragraph.
 
-This is part of the summary, too.");
+            This is part of the summary, too.
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32838")]
     public void Paragraphs5()
     {
-        TestFormat(@"
-<para>This is part of a<br/>paragraph.</para>
-<para>This is also part of a paragraph.</para>
-", @"This is part of a
-paragraph.
+        TestFormat("""
+            <para>This is part of a<br/>paragraph.</para>
+            <para>This is also part of a paragraph.</para>
+            """, """
+            This is part of a
+            paragraph.
 
-This is also part of a paragraph.");
+            This is also part of a paragraph.
+            """);
     }
 
     [Theory]
@@ -190,14 +208,16 @@ This is also part of a paragraph.");
     [WorkItem("https://github.com/dotnet/roslyn/issues/32838")]
     public void Paragraphs6(string lineBreak)
     {
-        TestFormat($@"
-<para>This is part of a{lineBreak}paragraph.</para>
-<para>This is also part of a paragraph.</para>
-", @"This is part of a
+        TestFormat($"""
+            <para>This is part of a{lineBreak}paragraph.</para>
+            <para>This is also part of a paragraph.</para>
+            """, """
+            This is part of a
 
-paragraph.
+            paragraph.
 
-This is also part of a paragraph.");
+            This is also part of a paragraph.
+            """);
     }
 
     [Fact]

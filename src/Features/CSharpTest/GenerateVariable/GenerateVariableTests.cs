@@ -132,7 +132,7 @@ public sealed class GenerateVariableTests(ITestOutputHelper logger)
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestTestSimpleLowercaseIdentifier3()
@@ -157,7 +157,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact]
     public Task TestSimpleUppercaseIdentifier1()
@@ -206,7 +206,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestSimpleUppercaseIdentifier3()
@@ -231,7 +231,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact]
     public Task TestSimpleRead1()
@@ -329,7 +329,7 @@ index: PropertyIndex);
                 }
             }
             """,
-[string.Format(CodeFixesResources.Generate_field_0, "goo"), string.Format(CodeFixesResources.Generate_property_0, "goo"), string.Format(CodeFixesResources.Generate_local_0, "goo"), string.Format(CodeFixesResources.Generate_parameter_0, "goo")]);
+            [string.Format(CodeFixesResources.Generate_field_0, "goo"), string.Format(CodeFixesResources.Generate_property_0, "goo"), string.Format(CodeFixesResources.Generate_local_0, "goo"), string.Format(CodeFixesResources.Generate_parameter_0, "goo")]);
 
     [Fact]
     public Task TestSimpleWriteInOverrideCount()
@@ -348,7 +348,7 @@ index: PropertyIndex);
                 }
             }
             """,
-[string.Format(CodeFixesResources.Generate_field_0, "goo"), string.Format(CodeFixesResources.Generate_property_0, "goo"), string.Format(CodeFixesResources.Generate_local_0, "goo"), string.Format(CodeFixesResources.Generate_parameter_0, "goo"), string.Format(CodeFixesResources.Generate_parameter_0_and_overrides_implementations, "goo")]);
+            [string.Format(CodeFixesResources.Generate_field_0, "goo"), string.Format(CodeFixesResources.Generate_property_0, "goo"), string.Format(CodeFixesResources.Generate_local_0, "goo"), string.Format(CodeFixesResources.Generate_parameter_0, "goo"), string.Format(CodeFixesResources.Generate_parameter_0_and_overrides_implementations, "goo")]);
 
     [Fact]
     public Task TestSimpleWrite1()
@@ -397,7 +397,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestGenerateFieldInRef()
@@ -511,7 +511,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-[string.Format(CodeFixesResources.Generate_field_0, "goo"), string.Format(CodeFixesResources.Generate_local_0, "goo"), string.Format(CodeFixesResources.Generate_parameter_0, "goo")]);
+            [string.Format(CodeFixesResources.Generate_field_0, "goo"), string.Format(CodeFixesResources.Generate_local_0, "goo"), string.Format(CodeFixesResources.Generate_parameter_0, "goo")]);
 
     [Fact]
     public Task TestInOut1()
@@ -584,7 +584,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestGenerateInStaticMember3()
@@ -609,7 +609,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact]
     public Task TestGenerateOffInstance1()
@@ -658,7 +658,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestGenerateOffInstance3()
@@ -683,7 +683,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact]
     public Task TestGenerateOffWrittenInstance1()
@@ -732,7 +732,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestGenerateOffStatic1()
@@ -781,7 +781,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestGenerateOffStatic3()
@@ -806,7 +806,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact]
     public Task TestGenerateOffWrittenStatic1()
@@ -855,7 +855,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestGenerateInstanceIntoSibling1()
@@ -996,7 +996,7 @@ index: ReadonlyFieldIndex);
             {
             }
             """,
-count: 2);
+            count: 2);
 
     [Fact]
     public Task TestGenerateIntoInterface1()
@@ -1093,7 +1093,7 @@ count: 2);
             {
             }
             """,
-count: 1);
+            count: 1);
 
     [Fact]
     public Task TestGenerateWriteIntoInterface1()
@@ -2161,7 +2161,7 @@ count: 1);
 
             C.i ++ ;
             """,
-parseOptions: Options.Script);
+            parseOptions: Options.Script);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539558")]
     public Task BugFix5565()
@@ -2227,7 +2227,7 @@ parseOptions: Options.Script);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539665")]
     public Task BugFix5697()
@@ -2269,7 +2269,7 @@ index: PropertyIndex);
                 }
             }
             """,
-[string.Format(CodeFixesResources.Generate_field_0, "p"), string.Format(CodeFixesResources.Generate_property_0, "p"), string.Format(CodeFixesResources.Generate_local_0, "p"), string.Format(CodeFixesResources.Generate_parameter_0, "p")]);
+            [string.Format(CodeFixesResources.Generate_field_0, "p"), string.Format(CodeFixesResources.Generate_property_0, "p"), string.Format(CodeFixesResources.Generate_local_0, "p"), string.Format(CodeFixesResources.Generate_parameter_0, "p")]);
 
         await TestInRegularAndScriptAsync(
             """
@@ -2391,7 +2391,7 @@ index: PropertyIndex);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539986")]
     public Task TestReferenceTypeParameter1()
@@ -2553,7 +2553,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541549")]
     public Task TestDelegateInvoke()
@@ -2774,7 +2774,7 @@ parseOptions: null);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
     public Task AddBlankLineBetweenMembers1()
@@ -2799,7 +2799,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
     public Task AddBlankLineBetweenMembers2()
@@ -2824,7 +2824,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: 0);
+            index: 0);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
     public Task DoNotAddBlankLineBetweenFields()
@@ -2854,7 +2854,7 @@ index: 0);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
     public Task DoNotAddBlankLineBetweenAutoProperties()
@@ -2884,7 +2884,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: 0);
+            index: 0);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539665")]
     public Task TestIntoEmptyClass()
@@ -3008,7 +3008,7 @@ class C
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility1_InternalPrivate()
@@ -3041,7 +3041,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility2_InternalProtected()
@@ -3074,7 +3074,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility3_InternalInternal()
@@ -3107,7 +3107,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility4_InternalProtectedInternal()
@@ -3140,7 +3140,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility5_InternalPublic()
@@ -3173,7 +3173,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility6_PublicInternal()
@@ -3206,7 +3206,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility7_PublicProtectedInternal()
@@ -3239,7 +3239,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility8_PublicProtected()
@@ -3272,7 +3272,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility9_PublicPrivate()
@@ -3305,7 +3305,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility10_PrivatePrivate()
@@ -3344,7 +3344,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility11_PrivateProtected()
@@ -3383,7 +3383,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility12_PrivateProtectedInternal()
@@ -3422,7 +3422,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility13_PrivateInternal()
@@ -3461,7 +3461,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility14_ProtectedPrivate()
@@ -3500,7 +3500,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility15_ProtectedInternal()
@@ -3539,7 +3539,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility16_ProtectedInternalProtected()
@@ -3578,7 +3578,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility17_ProtectedInternalInternal()
@@ -3617,7 +3617,7 @@ parseOptions: null);
                 }
             }
             """,
-parseOptions: null);
+            parseOptions: null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543153")]
     public Task TestAnonymousObjectInitializer1()
@@ -3644,7 +3644,7 @@ parseOptions: null);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543124")]
     public Task TestNoGenerationIntoAnonymousType()
@@ -3904,7 +3904,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestFieldOnObjectInitializer1()
@@ -3936,7 +3936,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestFieldOnObjectInitializer2()
@@ -3969,7 +3969,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestOnlyPropertyAndFieldOfferedForObjectInitializer()
@@ -3987,7 +3987,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-2);
+            2);
 
     [Fact]
     public Task TestGenerateLocalInObjectInitializerValue()
@@ -4019,7 +4019,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: LocalIndex);
+            index: LocalIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544319")]
     public Task TestNotOnIncompleteMember1()
@@ -4212,7 +4212,7 @@ index: LocalIndex);
                 }
             }
             """,
-index: LocalIndex);
+            index: LocalIndex);
 
     [Fact]
     public Task TestLocalTopLevelNullability()
@@ -4248,7 +4248,7 @@ index: LocalIndex);
                 }
             }
             """,
-index: LocalIndex);
+            index: LocalIndex);
 
     [Fact]
     public Task TestLocalNestedNullability()
@@ -4284,7 +4284,7 @@ index: LocalIndex);
                 }
             }
             """,
-index: LocalIndex);
+            index: LocalIndex);
 
     [Fact]
     public Task TestOutLocal1()
@@ -4316,7 +4316,7 @@ index: LocalIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")]
     public Task TestLocalBeforeComment()
@@ -4348,7 +4348,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")]
     public Task TestLocalAfterComment()
@@ -4382,7 +4382,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestGenerateIntoVisiblePortion()
@@ -4510,7 +4510,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: 3, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
+            index: 3, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545217")]
     public Task TestGenerateLocalNameSimplification()
@@ -4550,7 +4550,7 @@ index: 3, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
                 }
             }
             """,
-index: LocalIndex);
+            index: LocalIndex);
 
     [Fact]
     public Task TestParenthesizedExpression()
@@ -4868,7 +4868,7 @@ index: LocalIndex);
                 }
             }
             """,
-index: PropertyIndex, options: ImplicitTypingEverywhere());
+            index: PropertyIndex, options: ImplicitTypingEverywhere());
 
     [Fact]
     public Task TestFuncAssignment()
@@ -4891,7 +4891,7 @@ index: PropertyIndex, options: ImplicitTypingEverywhere());
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545273")]
     public Task TestGenerateFromAssign1NotAsVar()
@@ -4914,7 +4914,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545273")]
     public Task TestGenerateFromAssign2()
@@ -4937,7 +4937,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545269")]
     public Task TestGenerateInVenus1()
@@ -5060,7 +5060,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: LocalIndex);
+            index: LocalIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863346")]
     public Task TestGenerateInGenericMethod_Local()
@@ -5100,7 +5100,7 @@ index: LocalIndex);
                 }
             }
             """,
-index: LocalIndex);
+            index: LocalIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863346")]
     public Task TestGenerateInGenericMethod_Property()
@@ -5421,7 +5421,7 @@ index: LocalIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
     public Task TestUnsafeReadOnlyField2()
@@ -5446,7 +5446,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
     public Task TestUnsafeReadOnlyFieldInUnsafeClass()
@@ -5471,7 +5471,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
     public Task TestUnsafeReadOnlyFieldInNestedClass()
@@ -5502,7 +5502,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
     public Task TestUnsafeReadOnlyFieldInNestedClass2()
@@ -5533,7 +5533,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
     public Task TestUnsafeProperty()
@@ -5558,7 +5558,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
     public Task TestUnsafeProperty2()
@@ -5583,7 +5583,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
     public Task TestUnsafePropertyInUnsafeClass()
@@ -5608,7 +5608,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
     public Task TestUnsafePropertyInNestedClass()
@@ -5639,7 +5639,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
     public Task TestUnsafePropertyInNestedClass2()
@@ -5670,7 +5670,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
     public Task TestInsideNameOfProperty()
@@ -5719,7 +5719,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
     public Task TestInsideNameOfReadonlyField()
@@ -5744,7 +5744,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
     public Task TestInsideNameOfLocal()
@@ -5768,7 +5768,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: LocalIndex);
+            index: LocalIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
     public Task TestInsideNameOfProperty2()
@@ -5817,7 +5817,7 @@ index: LocalIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
     public Task TestInsideNameOfReadonlyField2()
@@ -5842,7 +5842,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
     public Task TestInsideNameOfLocal2()
@@ -5866,7 +5866,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: LocalIndex);
+            index: LocalIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
     public Task TestInsideNameOfProperty3()
@@ -5915,7 +5915,7 @@ index: LocalIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
     public Task TestInsideNameOfReadonlyField3()
@@ -5940,7 +5940,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
     public Task TestInsideNameOfLocal3()
@@ -5964,7 +5964,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: LocalIndex);
+            index: LocalIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
     public Task TestInsideNameOfMissing()
@@ -6031,7 +6031,7 @@ index: LocalIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
     public Task TestInsideNameOfField4()
@@ -6080,7 +6080,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
     public Task TestInsideNameOfLocal4()
@@ -6104,7 +6104,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: LocalIndex);
+            index: LocalIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
     public Task TestInsideNameOfProperty5()
@@ -6139,7 +6139,7 @@ index: LocalIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
     public Task TestInsideNameOfField5()
@@ -6208,7 +6208,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
     public Task TestInsideNameOfLocal5()
@@ -6242,7 +6242,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: LocalIndex);
+            index: LocalIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public Task TestConditionalAccessProperty()
@@ -6291,7 +6291,7 @@ index: LocalIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public Task TestConditionalAccessReadonlyField()
@@ -6316,7 +6316,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public Task TestConditionalAccessVarProperty()
@@ -6365,7 +6365,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public Task TestConditionalAccessVarReadOnlyField()
@@ -6390,7 +6390,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public Task TestConditionalAccessNullableProperty()
@@ -6439,7 +6439,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public Task TestConditionalAccessNullableReadonlyField()
@@ -6464,7 +6464,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public Task TestGeneratePropertyInConditionalAccessExpression()
@@ -6640,7 +6640,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public Task TestGenerateFieldInConditionalAccessExpression2()
@@ -6676,7 +6676,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public Task TestGenerateFieldInConditionalAccessExpression3()
@@ -6712,7 +6712,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public Task TestGenerateFieldInConditionalAccessExpression4()
@@ -6748,7 +6748,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public Task TestGenerateReadonlyFieldInConditionalAccessExpression()
@@ -6784,7 +6784,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public Task TestGenerateReadonlyFieldInConditionalAccessExpression2()
@@ -6820,7 +6820,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public Task TestGenerateReadonlyFieldInConditionalAccessExpression3()
@@ -6856,7 +6856,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public Task TestGenerateReadonlyFieldInConditionalAccessExpression4()
@@ -6892,7 +6892,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact]
     public Task TestGenerateFieldInPropertyInitializers()
@@ -6949,7 +6949,7 @@ index: PropertyIndex);
                 public int MyProperty { get; } = y;
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestGeneratePropertyInPropertyInitializers()
@@ -6977,7 +6977,7 @@ index: ReadonlyFieldIndex);
                 public int MyProperty { get; } = y;
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact]
     public Task TestGenerateFieldInExpressionBodiedProperty()
@@ -7014,7 +7014,7 @@ index: PropertyIndex);
                 public int Y => y;
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestGeneratePropertyInExpressionBodiedProperty()
@@ -7033,7 +7033,7 @@ index: ReadonlyFieldIndex);
                 public int y { get; private set; }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact]
     public Task TestGenerateFieldInExpressionBodiedOperator()
@@ -7070,7 +7070,7 @@ index: PropertyIndex);
                 public static C operator --(C p) => x;
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestGeneratePropertyInExpressionBodiedOperator()
@@ -7089,7 +7089,7 @@ index: ReadonlyFieldIndex);
                 public static C operator --(C p) => x;
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact]
     public Task TestGenerateFieldInExpressionBodiedMethod()
@@ -7126,7 +7126,7 @@ index: PropertyIndex);
                 public static C GetValue(C p) => x;
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestGeneratePropertyInExpressionBodiedMethod()
@@ -7145,7 +7145,7 @@ index: ReadonlyFieldIndex);
                 public static C GetValue(C p) => x;
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27647")]
     public Task TestGeneratePropertyInExpressionBodiedAsyncTaskOfTMethod()
@@ -7164,7 +7164,7 @@ index: PropertyIndex);
                 public static async System.Threading.Tasks.Task<C> GetValue(C p) => x;
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact]
     public Task TestGenerateFieldInDictionaryInitializer()
@@ -7277,7 +7277,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestGenerateFieldInDictionaryInitializer3()
@@ -7306,7 +7306,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestGenerateReadOnlyFieldInDictionaryInitializer2()
@@ -7335,7 +7335,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestGeneratePropertyInDictionaryInitializer2()
@@ -7364,7 +7364,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact]
     public Task TestGenerateReadOnlyFieldInDictionaryInitializer3()
@@ -7393,7 +7393,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact]
     public Task TestGeneratePropertyInDictionaryInitializer3()
@@ -7422,7 +7422,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact]
     public Task TestGenerateLocalInDictionaryInitializer()
@@ -7450,7 +7450,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: LocalIndex);
+            index: LocalIndex);
 
     [Fact]
     public Task TestGenerateLocalInDictionaryInitializer2()
@@ -7478,7 +7478,7 @@ index: LocalIndex);
                 }
             }
             """,
-index: LocalIndex);
+            index: LocalIndex);
 
     [Fact]
     public Task TestGenerateLocalInDictionaryInitializer3()
@@ -7506,7 +7506,7 @@ index: LocalIndex);
                 }
             }
             """,
-index: LocalIndex);
+            index: LocalIndex);
 
     [Fact]
     public Task TestGenerateVariableFromLambda()
@@ -7571,7 +7571,7 @@ index: LocalIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact]
     public Task TestGenerateVariableFromLambda3()
@@ -7603,7 +7603,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8010")]
     public Task TestGenerationFromStaticProperty_Field()
@@ -7672,7 +7672,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8010")]
     public Task TestGenerationFromStaticProperty_Property()
@@ -7707,7 +7707,7 @@ index: ReadonlyFieldIndex);
                 public static int goo { get; private set; }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8010")]
     public Task TestGenerationFromStaticProperty_Local()
@@ -7741,7 +7741,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: LocalIndex);
+            index: LocalIndex);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8358")]
     public Task TestSameNameAsInstanceVariableInContainingType()
@@ -8505,7 +8505,7 @@ index: LocalIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
     public Task TestGeneratePropertyInExpressionBodiedGetter()
@@ -8529,7 +8529,7 @@ index: ReadonlyFieldIndex);
                 public int prop { get; private set; }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
     public Task TestGenerateFieldInExpressionBodiedSetterInferredFromType()
@@ -8602,7 +8602,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
     public Task TestGeneratePropertyInExpressionBodiedLocalFunction()
@@ -8627,7 +8627,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27647")]
     public Task TestGeneratePropertyInExpressionBodiedAsyncTaskOfTLocalFunction()
@@ -8652,7 +8652,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
     public Task TestGenerateFieldInExpressionBodiedLocalFunctionInferredFromType()
@@ -8737,7 +8737,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: ReadonlyFieldIndex);
+            index: ReadonlyFieldIndex);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
     public Task TestGeneratePropertyInBlockBodiedLocalFunction()
@@ -8768,7 +8768,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact]
     public Task TestGeneratePropertyInBlockBodiedAsyncTaskOfTLocalFunction()
@@ -8799,7 +8799,7 @@ index: PropertyIndex);
                 }
             }
             """,
-index: PropertyIndex);
+            index: PropertyIndex);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
     public Task TestGenerateFieldInBlockBodiedLocalFunctionInferredFromType()
@@ -10019,22 +10019,26 @@ class Class
     [InlineData("dynamic")]
     public Task TestContextualKeywordsThatDoNotProbablyStartSyntacticConstructs_ReturnStatement(string keyword)
         => TestInRegularAndScriptAsync(
-$@"class C
-{{
-    int M()
-    {{
-        [|return {keyword}|];
-    }}
-}}",
-$@"class C
-{{
-    private int {keyword};
+            $$"""
+            class C
+            {
+                int M()
+                {
+                    [|return {{keyword}}|];
+                }
+            }
+            """,
+            $$"""
+            class C
+            {
+                private int {{keyword}};
 
-    int M()
-    {{
-        return {keyword};
-    }}
-}}");
+                int M()
+                {
+                    return {{keyword}};
+                }
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27646")]
     [InlineData("from")]
@@ -10044,13 +10048,15 @@ $@"class C
     [InlineData("var")]
     public Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs_ReturnStatement(string keyword)
         => TestMissingInRegularAndScriptAsync(
-$@"class C
-{{
-    int M()
-    {{
-        [|return {keyword}|];
-    }}
-}}");
+            $$"""
+            class C
+            {
+                int M()
+                {
+                    [|return {{keyword}}|];
+                }
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27646")]
     [InlineData("from")]
@@ -10060,13 +10066,15 @@ $@"class C
     [InlineData("var")]
     public Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs_OnTheirOwn(string keyword)
         => TestMissingInRegularAndScriptAsync(
-$@"class C
-{{
-    int M()
-    {{
-        [|{keyword}|]
-    }}
-}}");
+            $$"""
+            class C
+            {
+                int M()
+                {
+                    [|{{keyword}}|]
+                }
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27646")]
     [InlineData("from")]
@@ -10076,12 +10084,14 @@ $@"class C
     [InlineData("var")]
     public Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs_Local(string keyword)
         => TestMissingInRegularAndScriptAsync(
-$@"class Program
-{{
-    void Main()
-    {{
-        var x = [|{keyword}|];
-    }}");
+            $$"""
+            class Program
+            {
+                void Main()
+                {
+                    var x = [|{{keyword}}|];
+                }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60842")]
     public Task TestGenerateParameterBeforeCancellationToken_OneParameter()

@@ -366,12 +366,13 @@ public sealed class KeywordCompletionProviderTests : AbstractCSharpCompletionPro
     {
 
         var markup =
-$@"{declarationType} C {{
-    int X {{
-        $$
-    }}
-}}
-";
+            $$"""
+            {{declarationType}} C {
+                int X {
+                    $$
+                }
+            }
+            """;
         if (present)
         {
             await VerifyItemExistsAsync(markup, "readonly");
@@ -391,12 +392,13 @@ $@"{declarationType} C {{
     {
 
         var markup =
-$@"{declarationType} C {{
-    int X {{
-        $$ get;
-    }}
-}}
-";
+            $$"""
+            {{declarationType}} C {
+                int X {
+                    $$ get;
+                }
+            }
+            """;
         if (present)
         {
             await VerifyItemExistsAsync(markup, "readonly");
@@ -416,12 +418,13 @@ $@"{declarationType} C {{
     {
 
         var markup =
-$@"{declarationType} C {{
-    int this[int i] {{
-        $$
-    }}
-}}
-";
+            $$"""
+            {{declarationType}} C {
+                int this[int i] {
+                    $$
+                }
+            }
+            """;
         if (present)
         {
             await VerifyItemExistsAsync(markup, "readonly");
@@ -441,12 +444,13 @@ $@"{declarationType} C {{
     {
 
         var markup =
-$@"{declarationType} C {{
-    event System.Action E {{
-        $$
-    }}
-}}
-";
+            $$"""
+            {{declarationType}} C {
+                event System.Action E {
+                    $$
+                }
+            }
+            """;
         if (present)
         {
             await VerifyItemExistsAsync(markup, "readonly");
@@ -488,14 +492,15 @@ $@"{declarationType} C {{
     {
 
         var markup =
-$@"
-class C
-{{
-    void M()
-    {{
-        var data = (n$$) {(hasNewline ? Environment.NewLine : string.Empty)} M();
-    }}
-}}";
+            $$"""
+            class C
+            {
+                void M()
+                {
+                    var data = (n$$) {{(hasNewline ? Environment.NewLine : string.Empty)}} M();
+                }
+            }
+            """;
 
         if (hasNewline)
         {
@@ -529,11 +534,13 @@ class C
     {
 
         var markup =
-$@"class C
-{{
-    bool Prop => (t$$)  {(hasExpression ? "n" : string.Empty)}
-    private int n;
-}}";
+            $$"""
+            class C
+            {
+                bool Prop => (t$$)  {{(hasExpression ? "n" : string.Empty)}}
+                private int n;
+            }
+            """;
         if (hasExpression)
         {
             await VerifyItemIsAbsentAsync(markup, "new");

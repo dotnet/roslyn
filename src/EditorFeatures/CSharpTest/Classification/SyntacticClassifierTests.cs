@@ -1678,9 +1678,13 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             XmlDoc.Name("see"),
             XmlDoc.AttributeName("langword"),
             XmlDoc.Delimiter("="),
-            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.AttributeQuotes("""
+                "
+                """),
             isControlKeyword ? ControlKeyword(langword) : Keyword(langword),
-            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.AttributeQuotes("""
+                "
+                """),
             XmlDoc.Delimiter("/>"),
             XmlDoc.Delimiter("///"),
             XmlDoc.Text(" "),
@@ -1714,9 +1718,13 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             XmlDoc.Name("see"),
             XmlDoc.AttributeName("langword"),
             XmlDoc.Delimiter("="),
-            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.AttributeQuotes("""
+                "
+                """),
             XmlDoc.AttributeValue("MyWord"),
-            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.AttributeQuotes("""
+                "
+                """),
             XmlDoc.Delimiter("/>"),
             XmlDoc.Delimiter("///"),
             XmlDoc.Text(" "),
