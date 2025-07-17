@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<LocalSymbol>? temps = null;
                 ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                     ref rewrittenReceiver,
-                    captureReceiverMode: ReceiverCaptureMode.Default,
+                    forceReceiverCapturing: false,
                     arguments,
                     indexer,
                     argsToParamsOpt,
@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
                     ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                         ref receiver,
-                        captureReceiverMode: ReceiverCaptureMode.Default,
+                        forceReceiverCapturing: false,
                         indexerAccess.Arguments,
                         indexerAccess.Indexer,
                         indexerAccess.ArgsToParamsOpt,
