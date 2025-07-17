@@ -1852,6 +1852,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool prependedDefaultValueTypeConstructorInitializer,
             out MethodBodySemanticModel.InitialState forSemanticModel)
         {
+            if ((bool)(object)true)
+            {
+                Debug.Assert(false, "Testing");
+            }
+
             originalBodyNested = false;
             prependedDefaultValueTypeConstructorInitializer = false;
             importChain = null;
