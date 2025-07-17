@@ -7,6 +7,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -19,7 +20,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AutomaticCompletion;
 
@@ -31,54 +31,68 @@ internal partial class BraceCompletionSessionProvider
     // fortunately, editor provides another extension point where we have more control over brace completion but we do not
     // want to re-implement logics base session provider already provides. so I ported editor's default session and 
     // modified it little bit so that we can use it as base class.
-    private class BraceCompletionSession : IBraceCompletionSession
+    private sealed class BraceCompletionSession(
+        BraceCompletionSessionProvider provider,
+        ITextView textView,
+        ITextBuffer subjectBuffer,
+        SnapshotPoint openingPoint,
+        char openingBrace,
+        char closingBrace,
+        ITextUndoHistory undoHistory,
+        IBraceCompletionService service,
+        bool responsiveCompletion) : IBraceCompletionSession
     {
-        public char OpeningBrace { get; }
-        public char ClosingBrace { get; }
+        private readonly BraceCompletionSessionProvider _provider = provider;
+
+        private readonly IEditorOperations _editorOperations = provider._editorOperationsFactoryService.GetEditorOperations(textView);
+        private readonly IBraceCompletionService _service = service;
+        private readonly ITextUndoHistory _undoHistory = undoHistory;
+        private readonly bool _responsiveCompletion = responsiveCompletion;
+
+        private IThreadingContext ThreadingContext => _provider._threadingContext;
+        private EditorOptionsService EditorOptionsService => _provider._editorOptionsService;
+
+        public char OpeningBrace { get; } = openingBrace;
+        public char ClosingBrace { get; } = closingBrace;
+
         public ITrackingPoint OpeningPoint { get; private set; }
-        public ITrackingPoint ClosingPoint { get; private set; }
-        public ITextBuffer SubjectBuffer { get; }
-        public ITextView TextView { get; }
+        public ITrackingPoint ClosingPoint { get; private set; } = subjectBuffer.CurrentSnapshot.CreateTrackingPoint(openingPoint.Position, PointTrackingMode.Positive);
 
-        private readonly ITextUndoHistory _undoHistory;
-        private readonly IEditorOperations _editorOperations;
-        private readonly EditorOptionsService _editorOptionsService;
-        private readonly IBraceCompletionService _service;
-        private readonly IThreadingContext _threadingContext;
-
-        public BraceCompletionSession(
-            ITextView textView, ITextBuffer subjectBuffer,
-            SnapshotPoint openingPoint, char openingBrace, char closingBrace, ITextUndoHistory undoHistory,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            EditorOptionsService editorOptionsService, IBraceCompletionService service, IThreadingContext threadingContext)
-        {
-            TextView = textView;
-            SubjectBuffer = subjectBuffer;
-            OpeningBrace = openingBrace;
-            ClosingBrace = closingBrace;
-            ClosingPoint = SubjectBuffer.CurrentSnapshot.CreateTrackingPoint(openingPoint.Position, PointTrackingMode.Positive);
-            _undoHistory = undoHistory;
-            _editorOperations = editorOperationsFactoryService.GetEditorOperations(textView);
-            _editorOptionsService = editorOptionsService;
-            _service = service;
-            _threadingContext = threadingContext;
-        }
+        public ITextBuffer SubjectBuffer { get; } = subjectBuffer;
+        public ITextView TextView { get; } = textView;
 
         #region IBraceCompletionSession Methods
 
+        /// <summary>
+        /// Create a fresh cancellation token for a particular step of brace matching we want to perform.  We create
+        /// fresh instances as brace-completion is a long running operation, that interacts with the user as they are
+        /// typing.  As such, the overall time is unbounded in length (as the user may just pause and think for a
+        /// while).  So we don't want to cap the *overall* time that brace completion is active, just the time
+        /// particular operations take so that the user does not experience UI delays.
+        /// </summary>
+        private CancellationToken GetFreshCancellationToken()
+            => GetCancellationToken(_responsiveCompletion);
+
         public void Start()
         {
-            _threadingContext.ThrowIfNotOnUIThread();
-            // Brace completion is not cancellable.
-            if (!this.TryStart(CancellationToken.None))
+            ThreadingContext.ThrowIfNotOnUIThread();
+
+            try
+            {
+                var success = ThreadingContext.JoinableTaskFactory.Run(() => TryStartAsync(GetFreshCancellationToken()));
+                if (!success)
+                    EndSession();
+            }
+            catch (OperationCanceledException)
             {
                 EndSession();
             }
         }
 
-        private bool TryStart(CancellationToken cancellationToken)
+        private async Task<bool> TryStartAsync(CancellationToken cancellationToken)
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            ThreadingContext.ThrowIfNotOnUIThread();
+            cancellationToken.ThrowIfCancellationRequested();
             var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
             if (closingSnapshotPoint.Position < 1)
@@ -101,18 +115,15 @@ internal partial class BraceCompletionSessionProvider
 
             var document = SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
-            {
                 return false;
-            }
 
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
             var context = GetBraceCompletionContext(parsedDocument, document.Project.GetFallbackAnalyzerOptions());
 
             // Note: completes synchronously unless Semantic Model is needed to determine the result:
-            if (!_service.HasBraceCompletionAsync(context, document, cancellationToken).WaitAndGetResult(cancellationToken))
-            {
+            var hasBraceCompletions = await _service.HasBraceCompletionAsync(context, document, cancellationToken).ConfigureAwait(true);
+            if (!hasBraceCompletions)
                 return false;
-            }
 
             var braceResult = _service.GetBraceCompletion(context);
 
@@ -126,7 +137,7 @@ internal partial class BraceCompletionSessionProvider
 
             if (TryGetBraceCompletionContext(out var contextAfterStart, cancellationToken))
             {
-                var indentationOptions = SubjectBuffer.GetIndentationOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), contextAfterStart.Document.LanguageServices, explicitFormat: false);
+                var indentationOptions = SubjectBuffer.GetIndentationOptions(EditorOptionsService, document.Project.GetFallbackAnalyzerOptions(), contextAfterStart.Document.LanguageServices, explicitFormat: false);
                 var changesAfterStart = _service.GetTextChangesAfterCompletion(contextAfterStart, indentationOptions, cancellationToken);
                 if (changesAfterStart != null)
                 {
@@ -140,7 +151,7 @@ internal partial class BraceCompletionSessionProvider
 
         public void PreBackspace(out bool handledCommand)
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            ThreadingContext.ThrowIfNotOnUIThread();
             handledCommand = false;
 
             var caretPos = this.GetCaretPosition();
@@ -180,15 +191,25 @@ internal partial class BraceCompletionSessionProvider
 
         public void PreOverType(out bool handledCommand)
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            handledCommand = false;
+            try
+            {
+                PreOverTypeWorker(out handledCommand, GetFreshCancellationToken());
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        public void PreOverTypeWorker(out bool handledCommand, CancellationToken cancellationToken)
+        {
+            ThreadingContext.ThrowIfNotOnUIThread();
             handledCommand = false;
             if (ClosingPoint == null)
             {
                 return;
             }
 
-            // Brace completion is not cancellable.
-            var cancellationToken = CancellationToken.None;
             var snapshot = this.SubjectBuffer.CurrentSnapshot;
 
             var closingSnapshotPoint = ClosingPoint.GetPoint(snapshot);
@@ -248,7 +269,7 @@ internal partial class BraceCompletionSessionProvider
 
         public void PreTab(out bool handledCommand)
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            ThreadingContext.ThrowIfNotOnUIThread();
             handledCommand = false;
 
             if (!HasForwardTyping)
@@ -272,20 +293,31 @@ internal partial class BraceCompletionSessionProvider
 
         public void PostReturn()
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            try
+            {
+                PostReturnWorker(GetFreshCancellationToken());
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        private void PostReturnWorker(CancellationToken cancellationToken)
+        {
+            ThreadingContext.ThrowIfNotOnUIThread();
             if (this.GetCaretPosition().HasValue)
             {
                 var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
                 if (closingSnapshotPoint.Position > 0 && HasNoForwardTyping(this.GetCaretPosition().Value, closingSnapshotPoint.Subtract(1)))
                 {
-                    if (!TryGetBraceCompletionContext(out var context, CancellationToken.None))
+                    if (!TryGetBraceCompletionContext(out var context, cancellationToken))
                     {
                         return;
                     }
 
-                    var indentationOptions = SubjectBuffer.GetIndentationOptions(_editorOptionsService, context.FallbackOptions, context.Document.LanguageServices, explicitFormat: false);
-                    var changesAfterReturn = _service.GetTextChangeAfterReturn(context, indentationOptions, CancellationToken.None);
+                    var indentationOptions = SubjectBuffer.GetIndentationOptions(EditorOptionsService, context.FallbackOptions, context.Document.LanguageServices, explicitFormat: false);
+                    var changesAfterReturn = _service.GetTextChangeAfterReturn(context, indentationOptions, cancellationToken);
                     if (changesAfterReturn != null)
                     {
                         using var caretPreservingTransaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Brace_Completion, _undoHistory, _editorOperations);
@@ -329,7 +361,7 @@ internal partial class BraceCompletionSessionProvider
         {
             get
             {
-                _threadingContext.ThrowIfNotOnUIThread();
+                ThreadingContext.ThrowIfNotOnUIThread();
                 var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
                 if (closingSnapshotPoint.Position > 0)
@@ -374,7 +406,7 @@ internal partial class BraceCompletionSessionProvider
 
         private void MoveCaretToClosingPoint()
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            ThreadingContext.ThrowIfNotOnUIThread();
             var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
             // find the position just after the closing brace in the view's text buffer
@@ -404,7 +436,7 @@ internal partial class BraceCompletionSessionProvider
 
         private BraceCompletionContext GetBraceCompletionContext(ParsedDocument document, StructuredAnalyzerConfigOptions fallbackOptions)
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            ThreadingContext.ThrowIfNotOnUIThread();
             var snapshot = SubjectBuffer.CurrentSnapshot;
 
             var closingSnapshotPoint = ClosingPoint.GetPosition(snapshot);
@@ -417,7 +449,7 @@ internal partial class BraceCompletionSessionProvider
 
         private void ApplyBraceCompletionResult(BraceCompletionResult result)
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            ThreadingContext.ThrowIfNotOnUIThread();
             using var edit = SubjectBuffer.CreateEdit();
             foreach (var change in result.TextChanges)
             {

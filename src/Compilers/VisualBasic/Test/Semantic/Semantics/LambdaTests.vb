@@ -4,6 +4,8 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -2447,5 +2449,97 @@ BC30661: Field or property 'Name' is not found.
             )
         End Sub
 
+        <Fact()>
+        Public Sub CompilerLoweringPreserveAttribute_01()
+            Dim source1 = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+<CompilerLoweringPreserve>
+<AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter)>
+Public Class Preserve1Attribute
+    Inherits Attribute
+End Class
+
+<CompilerLoweringPreserve>
+<AttributeUsage(AttributeTargets.Parameter)>
+Public Class Preserve2Attribute
+    Inherits Attribute
+End Class
+
+<AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter)>
+Public Class Preserve3Attribute
+    Inherits Attribute
+End Class
+"
+            Dim source2 = "
+Class Test1
+    Function M2(<Preserve1,Preserve2,Preserve3> x As Integer) As System.Func(Of Integer)
+        Return Function() x
+    End Function
+End Class
+"
+
+            Dim validate = Sub(m As ModuleSymbol)
+                               AssertEx.SequenceEqual(
+                                   {"Preserve1Attribute"},
+                                   m.GlobalNamespace.GetMember("Test1._Closure$__1-0.$VB$Local_x").GetAttributes().Select(Function(a) a.ToString()))
+                           End Sub
+
+            Dim comp1 = CreateCompilation(
+                {source1, source2, CompilerLoweringPreserveAttributeDefinition},
+                options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            CompileAndVerify(comp1, symbolValidator:=validate).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub IteratorLambda()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Imports System.Collections.Generic
+
+Class C
+    Sub M()
+        Dim lambda = Iterator Function() As IEnumerable(Of Integer)
+                         Yield 1
+                     End Function
+    End Sub
+End Class
+    </file>
+</compilation>).VerifyDiagnostics()
+
+            Dim syntaxTree = compilation.SyntaxTrees.Single()
+            Dim semanticModel = compilation.GetSemanticModel(syntaxTree)
+            Dim lambdaSyntax = syntaxTree.GetRoot().DescendantNodes().OfType(Of LambdaExpressionSyntax)().Single()
+            Dim lambdaSymbolInfo = semanticModel.GetSymbolInfo(lambdaSyntax)
+            Dim lambdaMethod As IMethodSymbol = Assert.IsAssignableFrom(Of IMethodSymbol)(lambdaSymbolInfo.Symbol)
+            Assert.True(lambdaMethod.IsIterator)
+        End Sub
+
+        <Fact>
+        Public Sub NotIteratorLambda()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Imports System.Collections.Generic
+
+Class C
+    Sub M()
+        Dim lambda = Function() As IEnumerable(Of Integer)
+                         Return Nothing
+                     End Function
+    End Sub
+End Class
+    </file>
+</compilation>).VerifyDiagnostics()
+
+            Dim syntaxTree = compilation.SyntaxTrees.Single()
+            Dim semanticModel = compilation.GetSemanticModel(syntaxTree)
+            Dim lambdaSyntax = syntaxTree.GetRoot().DescendantNodes().OfType(Of LambdaExpressionSyntax)().Single()
+            Dim lambdaSymbolInfo = semanticModel.GetSymbolInfo(lambdaSyntax)
+            Dim lambdaMethod As IMethodSymbol = Assert.IsAssignableFrom(Of IMethodSymbol)(lambdaSymbolInfo.Symbol)
+            Assert.False(lambdaMethod.IsIterator)
+        End Sub
     End Class
 End Namespace

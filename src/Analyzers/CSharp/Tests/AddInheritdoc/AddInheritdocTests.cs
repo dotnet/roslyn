@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritdoc;
@@ -16,26 +17,22 @@ using VerifyCS = CSharpCodeFixVerifier<
     AddInheritdocCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritdoc)]
-public class AddInheritdocTests
+public sealed class AddInheritdocTests
 {
-    private static async Task TestAsync(string initialMarkup, string expectedMarkup)
-    {
-        var test = new VerifyCS.Test
+    private static Task TestAsync(string initialMarkup, string expectedMarkup)
+        => new VerifyCS.Test
         {
             TestCode = initialMarkup,
             FixedCode = expectedMarkup,
             CodeActionValidationMode = CodeActionValidationMode.Full,
-        };
-        await test.RunAsync();
-    }
+        }.RunAsync();
 
-    private static async Task TestMissingAsync(string initialMarkup)
-        => await VerifyCS.VerifyCodeFixAsync(initialMarkup, initialMarkup);
+    private static Task TestMissingAsync(string initialMarkup)
+        => VerifyCS.VerifyCodeFixAsync(initialMarkup, initialMarkup);
 
     [Fact]
-    public async Task AddMissingInheritdocOnOverridenMethod()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocOnOverriddenMethod()
+        => TestAsync(
             """
             /// Some doc.
             public class BaseClass
@@ -63,15 +60,13 @@ public class AddInheritdocTests
                 public override void M() { }
             }
             """);
-    }
 
     [Theory]
     [InlineData("public void {|CS1591:OtherMethod|}() { }")]
     [InlineData("public void {|CS1591:M|}() { }")]
     [InlineData("public new void {|CS1591:M|}() { }")]
-    public async Task DoNotOfferOnNotOverridenMethod(string methodDefintion)
-    {
-        await TestMissingAsync(
+    public Task DoNotOfferOnNotOverriddenMethod(string methodDefinition)
+        => TestMissingAsync(
         $$"""
         /// Some doc.
         public class BaseClass
@@ -82,15 +77,13 @@ public class AddInheritdocTests
         /// Some doc.
         public class Derived: BaseClass
         {
-            {{methodDefintion}}
+            {{methodDefinition}}
         }
         """);
-    }
 
     [Fact]
-    public async Task AddMissingInheritdocOnImplicitInterfaceMethod()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocOnImplicitInterfaceMethod()
+        => TestAsync(
             """
             /// Some doc.
             public interface IInterface
@@ -118,12 +111,10 @@ public class AddInheritdocTests
                 public void M() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotOfferOnExplicitInterfaceMethod()
-    {
-        await TestMissingAsync(
+    public Task DoNotOfferOnExplicitInterfaceMethod()
+        => TestMissingAsync(
             """
             /// Some doc.
             public interface IInterface
@@ -137,11 +128,9 @@ public class AddInheritdocTests
                 void IInterface.M() { }
             }
             """);
-    }
     [Fact]
-    public async Task AddMissingInheritdocOnOverridenProperty()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocOnOverriddenProperty()
+        => TestAsync(
             """
             /// Some doc.
             public class BaseClass
@@ -169,12 +158,10 @@ public class AddInheritdocTests
                 public override string P { get; set; }
             }
             """);
-    }
 
     [Fact]
-    public async Task AddMissingInheritdocOnImplicitInterfaceProperty()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocOnImplicitInterfaceProperty()
+        => TestAsync(
             """
             /// Some doc.
             public interface IInterface
@@ -202,12 +189,10 @@ public class AddInheritdocTests
                 public string P { get; }
             }
             """);
-    }
 
     [Fact]
-    public async Task AddMissingInheritdocOnImplicitInterfaceEvent()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocOnImplicitInterfaceEvent()
+        => TestAsync(
             """
             /// Some doc.
             public interface IInterface
@@ -239,12 +224,10 @@ public class AddInheritdocTests
                 void OnSomething() => SomeEvent?.Invoke();
             }
             """);
-    }
 
     [Fact]
-    public async Task AddMissingInheritdocTriviaTest_1()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocTriviaTest_1()
+        => TestAsync(
             """
             /// Some doc.
             public class BaseClass
@@ -269,17 +252,15 @@ public class AddInheritdocTests
             /// Some doc.
             public class Derived: BaseClass
             {
-                /// <inheritdoc/>
                 // Comment
+                /// <inheritdoc/>
                 public override void M() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task AddMissingInheritdocTriviaTest_2()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocTriviaTest_2()
+        => TestAsync(
             """
             /// Some doc.
             public class BaseClass
@@ -304,17 +285,15 @@ public class AddInheritdocTests
             /// Some doc.
             public class Derived: BaseClass
             {
-                               /// <inheritdoc/>
                                // Comment 1
-              /* Comment 2 */  public /* Comment 3 */ override void M /* Comment 4 */ ()  /* Comment 5 */ { } /* Comment 6 */
+              /* Comment 2 */  /// <inheritdoc/>
+              public /* Comment 3 */ override void M /* Comment 4 */ ()  /* Comment 5 */ { } /* Comment 6 */
             }
             """);
-    }
 
     [Fact]
-    public async Task AddMissingInheritdocMethodWithAttribute()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocMethodWithAttribute()
+        => TestAsync(
             """
             /// Some doc.
             [System.AttributeUsage(System.AttributeTargets.Method)]
@@ -356,12 +335,10 @@ public class AddInheritdocTests
                 public override void M() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task AddMissingInheritdocFixAll()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocFixAll()
+        => TestAsync(
             """
             /// Some doc.
             public class BaseClass
@@ -396,5 +373,63 @@ public class AddInheritdocTests
                 public override string P { get; }
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61562")]
+    public Task TestOverrideBelowMember()
+        => TestAsync(
+            """
+            using System;
+
+            /// <summary>
+            /// Hello C1
+            /// </summary>
+            public abstract class Class1
+            {
+                /// <summary>
+                /// Hello C1.DoStuff
+                /// </summary>
+                public abstract void DoStuff();
+            }
+
+            /// <summary>
+            /// Hello C2
+            /// </summary>
+            public class Class2 : Class1
+            {
+                private const int Number = 1;
+
+                public override void {|CS1591:DoStuff|}()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """,
+            """
+            using System;
+
+            /// <summary>
+            /// Hello C1
+            /// </summary>
+            public abstract class Class1
+            {
+                /// <summary>
+                /// Hello C1.DoStuff
+                /// </summary>
+                public abstract void DoStuff();
+            }
+            
+            /// <summary>
+            /// Hello C2
+            /// </summary>
+            public class Class2 : Class1
+            {
+                private const int Number = 1;
+            
+                /// <inheritdoc/>
+                public override void {|CS1591:DoStuff|}()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
 }

@@ -80,19 +80,27 @@ internal abstract class AbstractConvertConcatenationToInterpolatedStringRefactor
             return;
 
         var isVerbatimStringLiteral = false;
+
         if (stringLiterals.Length > 0)
         {
-
             // Make sure that all the string tokens we're concatenating are the same type
             // of string literal.  i.e. if we have an expression like: @" "" " + " \r\n "
             // then we don't merge this.  We don't want to be munging different types of
             // escape sequences in these strings, so we only support combining the string
             // tokens if they're all the same type.
             var firstStringToken = stringLiterals[0].GetFirstToken();
+
             isVerbatimStringLiteral = syntaxFacts.IsVerbatimStringLiteral(firstStringToken);
-            for (int i = 1, n = stringLiterals.Length; i < n; i++)
+
+            foreach (var literal in stringLiterals)
             {
-                if (isVerbatimStringLiteral != syntaxFacts.IsVerbatimStringLiteral(stringLiterals[i].GetFirstToken()))
+                var firstToken = literal.GetFirstToken();
+                if (isVerbatimStringLiteral != syntaxFacts.IsVerbatimStringLiteral(firstToken))
+                    return;
+
+                // Not currently supported with raw string literals due to the complexity of merging them and forming
+                // the final interpolated raw string.
+                if (syntaxFacts.IsRawStringLiteral(firstToken))
                     return;
             }
         }
@@ -117,7 +125,10 @@ internal abstract class AbstractConvertConcatenationToInterpolatedStringRefactor
     }
 
     protected async Task<SyntaxNode> CreateInterpolatedStringAsync(
-        Document document, bool isVerbatimStringLiteral, ImmutableArray<SyntaxNode> pieces, CancellationToken cancellationToken)
+        Document document,
+        bool isVerbatimStringLiteral,
+        ImmutableArray<SyntaxNode> pieces,
+        CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var supportsInterpolatedStringHandler = this.SupportsInterpolatedStringHandler(semanticModel.Compilation);
@@ -133,6 +144,7 @@ internal abstract class AbstractConvertConcatenationToInterpolatedStringRefactor
 
         using var _ = ArrayBuilder<SyntaxNode>.GetInstance(pieces.Length, out var content);
         var previousContentWasStringLiteralExpression = false;
+
         foreach (var piece in pieces)
         {
             var isCharacterLiteral = syntaxFacts.IsCharacterLiteralExpression(piece);

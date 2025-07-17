@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
 [Export(typeof(IDefaultColumnGroup))]
 [Name(nameof(CodeStyleCategoryGroupingSet))]    // Required, name of the default group
 [GroupColumns(Category)] // Required, the names of the columns in the grouping
-internal class CodeStyleCategoryGroupingSet : IDefaultColumnGroup
+internal sealed class CodeStyleCategoryGroupingSet : IDefaultColumnGroup
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -26,7 +26,7 @@ internal class CodeStyleCategoryGroupingSet : IDefaultColumnGroup
 
 [Export(typeof(ITableColumnDefinition))]
 [Name(Category)]
-internal class CodeStyleCategoryColumnDefinition : TableColumnDefinitionBase
+internal sealed class CodeStyleCategoryColumnDefinition : TableColumnDefinitionBase
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -3,10 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Partial Public MustInherit Class AbstractCodeElementTests(Of TCodeElement As Class)
@@ -1097,7 +1095,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     Dim parameters = GetParameters(codeElement)
                     Assert.NotNull(parameters)
 
-                    Assert.Equal(parameters.Count(), expectedParameterNames.Count())
+                    Assert.Equal(parameters.Count(), expectedParameterNames.Length)
                     If (expectedParameterNames.Any()) Then
                         TestAllParameterNamesByIndex(parameters, expectedParameterNames)
                         TestAllParameterNamesByName(parameters, expectedParameterNames)
@@ -1106,13 +1104,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Sub
 
         Private Shared Sub TestAllParameterNamesByName(parameters As EnvDTE.CodeElements, expectedParameterNames() As String)
-            For index = 0 To expectedParameterNames.Count() - 1
+            For index = 0 To expectedParameterNames.Length - 1
                 Assert.NotNull(parameters.Item(expectedParameterNames(index)))
             Next
         End Sub
 
         Private Shared Sub TestAllParameterNamesByIndex(parameters As EnvDTE.CodeElements, expectedParameterNames() As String)
-            For index = 0 To expectedParameterNames.Count() - 1
+            For index = 0 To expectedParameterNames.Length - 1
                 ' index + 1 for Item because Parameters are not zero indexed
                 Assert.Equal(expectedParameterNames(index), parameters.Item(index + 1).Name)
             Next

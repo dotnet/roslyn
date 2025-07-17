@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -81,21 +80,12 @@ internal static class SourceTextExtensions
 
     private static void AppendNamingStylePreferencesToEditorConfig(IEnumerable<NamingRule> namingRules, StringBuilder editorconfig, string? language = null)
     {
-        var symbolSpecifications = namingRules.Select(x => x.SymbolSpecification).ToImmutableArray();
-        var namingStyles = namingRules.Select(x => x.NamingStyle).ToImmutableArray();
-        var serializedNamingRules = namingRules.Select(x => new SerializableNamingRule()
-        {
-            EnforcementLevel = x.EnforcementLevel,
-            NamingStyleID = x.NamingStyle.ID,
-            SymbolSpecificationID = x.SymbolSpecification.ID
-        }).ToImmutableArray();
-
         language ??= LanguageNames.CSharp;
 
         NamingStylePreferencesEditorConfigSerializer.AppendNamingStylePreferencesToEditorConfig(
-            symbolSpecifications,
-            namingStyles,
-            serializedNamingRules,
+            [.. namingRules.Select(static x => x.SymbolSpecification)],
+            [.. namingRules.Select(static x => x.NamingStyle)],
+            [.. namingRules],
             language,
             editorconfig);
     }
@@ -117,7 +107,7 @@ internal static class SourceTextExtensions
             => csharp.Rules.NamingRules.Except(common, NamingRuleComparerIgnoreGUIDs.Instance);
     }
 
-    private class NamingRuleComparerIgnoreGUIDs : IEqualityComparer<NamingRule>
+    private sealed class NamingRuleComparerIgnoreGUIDs : IEqualityComparer<NamingRule>
     {
         private static readonly Lazy<NamingRuleComparerIgnoreGUIDs> s_lazyInstance = new(() => new NamingRuleComparerIgnoreGUIDs());
 
@@ -138,7 +128,7 @@ internal static class SourceTextExtensions
             return Hash.Combine(enforcementLevelHashCode, Hash.Combine(namingStyleHashCode, symbolSpecificationHashCode));
         }
 
-        private class NamingStyleComparerIgnoreGUIDs : IEqualityComparer<NamingStyle>
+        private sealed class NamingStyleComparerIgnoreGUIDs : IEqualityComparer<NamingStyle>
         {
             private static readonly Lazy<NamingStyleComparerIgnoreGUIDs> s_lazyInstance = new(() => new NamingStyleComparerIgnoreGUIDs());
 
@@ -163,7 +153,7 @@ internal static class SourceTextExtensions
             }
         }
 
-        private class SymbolSpecificationComparerIgnoreGUIDs : IEqualityComparer<SymbolSpecification>
+        private sealed class SymbolSpecificationComparerIgnoreGUIDs : IEqualityComparer<SymbolSpecification>
         {
             private static readonly Lazy<SymbolSpecificationComparerIgnoreGUIDs> s_lazyInstance = new(() => new SymbolSpecificationComparerIgnoreGUIDs());
 

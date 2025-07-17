@@ -496,11 +496,20 @@
     <Field Name="Operators" Type="TupleBinaryOperatorInfo.Multiple"/>
   </Node>
 
-  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true">
+  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true" HasValidate="true">
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="LogicalOperator" Type="MethodSymbol"/>
     <Field Name="TrueOperator" Type="MethodSymbol"/>
     <Field Name="FalseOperator" Type="MethodSymbol"/>
+
+    <!-- Used as an operand to bind TrueFalseOperandConversion -->
+    <Field Name="TrueFalseOperandPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!--
+    Could be a BoundConversion or, in some cases of an identity conversion, the OperandPlaceholder, or null for no conversion case
+    If the node survives lowering, this property in it must be null.
+    -->
+    <Field Name="TrueFalseOperandConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+
     <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this operator's method was chosen.
@@ -509,7 +518,7 @@
     <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
-  <Node Name="BoundCompoundAssignmentOperator" Base="BoundExpression">
+  <Node Name="BoundCompoundAssignmentOperator" Base="BoundExpression" SkipInNullabilityRewriter="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
@@ -730,7 +739,7 @@
   
   <!-- Represents the raw metadata RowId value for a method definition.
        Used by dynamic instrumentation to index into tables or arrays of per-method information. -->
-  <Node Name="BoundMethodDefIndex" Base="BoundExpression">
+  <Node Name="BoundMethodDefIndex" Base="BoundExpression" HasValidate="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Method" Type="MethodSymbol"/>
@@ -902,10 +911,6 @@
          Conversion is represented by a single BoundConversion.
          -->
     <Field Name="ConversionGroupOpt" Type="ConversionGroup?"/>
-    <!--The set of method symbols from which this conversion's method was chosen.
-        Only kept in the tree if the conversion was an error and overload resolution
-        was unable to choose a best method.-->
-    <Field Name="OriginalUserDefinedConversionsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
   <!--
@@ -1037,7 +1042,7 @@
   -->
   <Node Name="BoundBlock" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="LocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
+    <Field Name="LocalFunctions" Type="ImmutableArray&lt;MethodSymbol&gt;"/>
     <Field Name="HasUnsafeModifier" Type="bool" Null="NotApplicable"/>
     
     <!-- Optional block-level instrumentation info -->
@@ -1121,7 +1126,8 @@
     void Foo() { }
   -->
   <Node Name="BoundLocalFunctionStatement" Base="BoundStatement">
-    <Field Name="Symbol" Type="LocalFunctionSymbol"/>
+    <!-- Must be a LocalFunctionSymbol until the node reaches LocalRewriter -->
+    <Field Name="Symbol" Type="MethodSymbol"/>
     <Field Name="BlockBody" Type="BoundBlock?"/>
     <Field Name="ExpressionBody" Type="BoundBlock?"/>
   </Node>
@@ -1165,11 +1171,11 @@
   </Node>
 
   <Node Name="BoundBreakStatement" Base="BoundStatement">
-    <Field Name="Label" Type="GeneratedLabelSymbol" />
+    <Field Name="Label" Type="LabelSymbol" />
   </Node>
 
   <Node Name="BoundContinueStatement" Base="BoundStatement">
-    <Field Name="Label" Type="GeneratedLabelSymbol" />
+    <Field Name="Label" Type="LabelSymbol" />
   </Node>
 
   <Node Name="BoundSwitchStatement" Base="BoundStatement">
@@ -1177,11 +1183,11 @@
 
     <!-- Locals declared immediately within the switch block. -->
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
+    <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;MethodSymbol&gt;"/>
     <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchSection&gt;"/>
     <Field Name="ReachabilityDecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="DefaultLabel" Type="BoundSwitchLabel?"/>
-    <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
+    <Field Name="BreakLabel" Type="LabelSymbol"/>
   </Node>
 
   <!-- Part of a lowered integral switch statement. This evaluates Value, and then branches
@@ -1219,8 +1225,8 @@
   </Node>
 
   <AbstractNode Name="BoundLoopStatement" Base="BoundStatement">
-    <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
-    <Field Name="ContinueLabel" Type="GeneratedLabelSymbol"/>
+    <Field Name="BreakLabel" Type="LabelSymbol"/>
+    <Field Name="ContinueLabel" Type="LabelSymbol"/>
   </AbstractNode>
 
   <AbstractNode Name="BoundConditionalLoopStatement" Base="BoundLoopStatement">
@@ -2016,6 +2022,9 @@
     <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </AbstractNode>
 
+  <!-- Initializers of this are BoundAssignmentOperators whose Left is
+    BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember
+    or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess. -->
   <Node Name="BoundObjectInitializerExpression" Base="BoundObjectInitializerExpressionBase">
   </Node>
   
@@ -2284,8 +2293,9 @@
 
   <Node Name="BoundLambda" Base="BoundExpression">
     <Field Name="UnboundLambda" Type="UnboundLambda" Null="disallow" SkipInVisitor="true"/>
+    <!-- Must be a LambdaSymbol until the node reaches LocalRewriter -->
     <!-- LambdaSymbol may differ from Binder.MemberSymbol after rewriting. -->
-    <Field Name="Symbol" Type="LambdaSymbol" Null="disallow"/>
+    <Field Name="Symbol" Type="MethodSymbol" Null="disallow"/>
     <Field Name="Type" Type="TypeSymbol?" Override="true"/>
     <Field Name="Body" Type="BoundBlock"/>
     <Field Name="Diagnostics" Type="ReadOnlyBindingDiagnostic&lt;AssemblySymbol&gt;"/>
@@ -2386,12 +2396,14 @@
     <Field Name="NarrowedType" Type="TypeSymbol" Null="disallow"/>
   </AbstractNode>
 
-  <Node Name="BoundConstantPattern" Base="BoundPattern">
+  <!-- NarrowedType is either the InputType, or the Value.Type -->
+  <Node Name="BoundConstantPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Value" Type="BoundExpression"/>
     <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundDiscardPattern" Base="BoundPattern">
+  <!-- NarrowedType is always the InputType -->
+  <Node Name="BoundDiscardPattern" Base="BoundPattern" HasValidate="true">
   </Node>
 
   <AbstractNode Name="BoundObjectPattern" Base="BoundPattern">
@@ -2408,12 +2420,14 @@
     <Field Name="VariableAccess" Type="BoundExpression?"/>
   </AbstractNode>
 
-  <Node Name="BoundDeclarationPattern" Base="BoundObjectPattern">
+  <!-- NarrowedType is the DeclaredType if given, or an InputType -->
+  <Node Name="BoundDeclarationPattern" Base="BoundObjectPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="disallow"/>
     <Field Name="IsVar" Type="bool"/>
   </Node>
 
-  <Node Name="BoundRecursivePattern" Base="BoundObjectPattern">
+  <!-- NarrowedType is the DeclaredType if given, or an InputType, or its underlying type when the InputType is a Nullable of T -->
+  <Node Name="BoundRecursivePattern" Base="BoundObjectPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression?"/>
     <Field Name="DeconstructMethod" Type="MethodSymbol?"/>
     <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="allow"/>
@@ -2421,6 +2435,7 @@
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
 
+  <!-- NarrowedType is always an InputType, or its underlying type when the InputType is a Nullable of T -->
   <Node Name="BoundListPattern" Base="BoundObjectPattern" HasValidate="true">
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
     <Field Name="HasSlice" Type="bool"/>
@@ -2439,6 +2454,7 @@
     <Field Name="ArgumentPlaceholder" Type="BoundListPatternIndexPlaceholder?" SkipInVisitor="true"/>
   </Node>
 
+  <!-- NarrowedType is always the InputType -->
   <Node Name="BoundSlicePattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Pattern" Type="BoundPattern?"/>
 
@@ -2455,7 +2471,8 @@
     <Field Name="ArgumentPlaceholder" Type="BoundSlicePatternRangePlaceholder?" SkipInVisitor="true"/>
   </Node>
 
-  <Node Name="BoundITuplePattern" Base="BoundPattern">
+  <!-- Narrowed type is always System.Runtime.CompilerServices.ITuple -->
+  <Node Name="BoundITuplePattern" Base="BoundPattern" HasValidate="true">
     <Field Name="GetLengthMethod" Type="MethodSymbol" Null="disallow"/>
     <Field Name="GetItemMethod" Type="MethodSymbol" Null="disallow"/>
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="disallow"/>
@@ -2479,22 +2496,37 @@
     <Field Name="Type" Type="TypeSymbol"/>
   </Node>
 
-  <Node Name="BoundTypePattern" Base="BoundPattern">
+  <!-- NarrowedType is always the DeclaredType -->
+  <Node Name="BoundTypePattern" Base="BoundPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression"/>
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
 
-  <Node Name="BoundBinaryPattern" Base="BoundPattern">
+  <!-- 
+       For Disjunction
+           NarrowedType is the least specific NarrowedType type across all leafs of constituent disjunctions, or
+                        the InputType if one cannot be determined
+           Left.InputType is the InputType 
+           Right.InputType is the InputType 
+       
+       For Conjunction
+           NarrowedType is the Right.NarrowedType
+           Left.InputType is the InputType 
+           Right.InputType is the Left.NarrowedType 
+  -->
+  <Node Name="BoundBinaryPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Disjunction" Type="bool"/>
     <Field Name="Left" Type="BoundPattern"/>
     <Field Name="Right" Type="BoundPattern"/>
   </Node>
 
-  <Node Name="BoundNegatedPattern" Base="BoundPattern">
+  <!-- NarrowedType is always the InputType -->
+  <Node Name="BoundNegatedPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Negated" Type="BoundPattern"/>
   </Node>
 
-  <Node Name="BoundRelationalPattern" Base="BoundPattern">
+  <!-- NarrowedType is either the InputType, or the Value.Type -->
+  <Node Name="BoundRelationalPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Relation" Type="BinaryOperatorKind"/>
     <Field Name="Value" Type="BoundExpression"/>
     <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>

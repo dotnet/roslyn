@@ -24,1306 +24,1383 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
     [InlineData("a |[||]| b")]
     [InlineData("a ||[||] b")]
     [InlineData("a [||||] b")]
-    public async Task SplitOnOrOperatorSpans(string condition)
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (" + condition + @")
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else if (b)
-        {
-        }
-    }
-}");
-    }
+    public Task SplitOnOrOperatorSpans(string condition)
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (
+            """ + condition + """
+            )
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                    }
+                    else if (b)
+                    {
+                    }
+                }
+            }
+            """);
 
     [Theory]
     [InlineData("a [|||]| b")]
     [InlineData("a[| |||] b")]
     [InlineData("a[||] || b")]
-    public async Task NotSplitOnOrOperatorSpans(string condition)
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (" + condition + @")
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task NotSplitOnIfKeyword()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        [||]if (a || b)
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task NotSplitOnAndOperator()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]&& b)
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task NotSplitOnBitwiseOrOperator()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]| b)
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task NotSplitOnOrOperatorOutsideIfStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        var v = a [||]|| b;
-    }
-}");
-    }
-
-    [Fact]
-    public async Task NotSplitOnOrOperatorInIfStatementBody()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-            a [||]|| b;
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithChainedOrExpression1()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a [||]|| b || c || d)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a)
-        {
-        }
-        else if (b || c || d)
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithChainedOrExpression2()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a || b [||]|| c || d)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a || b)
-        {
-        }
-        else if (c || d)
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithChainedOrExpression3()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a || b || c [||]|| d)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a || b || c)
-        {
-        }
-        else if (d)
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task NotSplitInsideParentheses1()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if ((a [||]|| b) || c || d)
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task NotSplitInsideParentheses2()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a || b || (c [||]|| d))
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task NotSplitInsideParentheses3()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if ((a || b [||]|| c || d))
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithOtherExpressionInsideParentheses1()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a [||]|| (b || c) || d)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a)
-        {
-        }
-        else if ((b || c) || d)
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithOtherExpressionInsideParentheses2()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a || (b || c) [||]|| d)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a || (b || c))
-        {
-        }
-        else if (d)
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithMixedAndExpression1()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if (a [||]|| b && c)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if (a)
-        {
-        }
-        else if (b && c)
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithMixedAndExpression2()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if (a && b [||]|| c)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if (a && b)
-        {
-        }
-        else if (c)
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task NotSplitWithMixedConditionalExpression1()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if (a [||]|| b ? c : c)
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task NotSplitWithMixedConditionalExpression2()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if (a ? b : b [||]|| c)
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithMixedConditionalExpressionInsideParentheses1()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if (a [||]|| (b ? c : c))
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if (a)
-        {
-        }
-        else if ((b ? c : c))
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithMixedConditionalExpressionInsideParentheses2()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if ((a ? b : b) [||]|| c)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if ((a ? b : b))
-        {
-        }
-        else if (c)
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithStatementInsideBlock()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-        {
-            System.Console.WriteLine(a || b);
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            System.Console.WriteLine(a || b);
-        }
-        else if (b)
-        {
-            System.Console.WriteLine(a || b);
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithStatementWithoutBlock()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-            System.Console.WriteLine(a || b);
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            System.Console.WriteLine(a || b);
-        else if (b)
-            System.Console.WriteLine(a || b);
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithNestedIfStatement()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-            if (true) { }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            if (true) { }
-        }
-        else if (b)
-            if (true) { }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithNestedIfStatementInWhileLoop()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-            while (a)
-                if (true)
-                    using (null) { }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            while (a)
-                if (true)
-                    using (null) { }
-        }
-        else if (b)
-            while (a)
-                if (true)
-                    using (null) { }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithNestedIfStatementInsideBlockInWhileLoop()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-            while (a)
+    public Task NotSplitOnOrOperatorSpans(string condition)
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
             {
-                if (true)
-                    using (null) { }
-            }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            while (a)
-            {
-                if (true)
-                    using (null) { }
-            }
-        else if (b)
-            while (a)
-            {
-                if (true)
-                    using (null) { }
-            }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithNestedIfStatementInsideBlock()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-        {
-            if (true) { }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            if (true) { }
-        }
-        else if (b)
-        {
-            if (true) { }
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithMissingStatement()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-else if (b)
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithElseStatementInsideBlock()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-            System.Console.WriteLine();
-        else
-        {
-            System.Console.WriteLine(a || b);
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            System.Console.WriteLine();
-        else if (b)
-            System.Console.WriteLine();
-        else
-        {
-            System.Console.WriteLine(a || b);
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithElseStatementWithoutBlock()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-            System.Console.WriteLine();
-        else
-            System.Console.WriteLine(a || b);
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            System.Console.WriteLine();
-        else if (b)
-            System.Console.WriteLine();
-        else
-            System.Console.WriteLine(a || b);
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithElseNestedIfStatement()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-            System.Console.WriteLine();
-        else if (true) { }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            System.Console.WriteLine();
-        else if (b)
-            System.Console.WriteLine();
-        else if (true) { }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithElseIfElse()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-            System.Console.WriteLine();
-        else if (a)
-            System.Console.WriteLine(a);
-        else
-            System.Console.WriteLine(b);
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            System.Console.WriteLine();
-        else if (b)
-            System.Console.WriteLine();
-        else if (a)
-            System.Console.WriteLine(a);
-        else
-            System.Console.WriteLine(b);
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitAsPartOfElseIfElse()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-            System.Console.WriteLine();
-        else if (a [||]|| b)
-            System.Console.WriteLine(a);
-        else
-            System.Console.WriteLine(b);
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-            System.Console.WriteLine();
-        else if (a)
-            System.Console.WriteLine(a);
-        else if (b)
-            System.Console.WriteLine(a);
-        else
-            System.Console.WriteLine(b);
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithMissingElseStatement()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-            System.Console.WriteLine();
-        else
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            System.Console.WriteLine();
-        else if (b)
-            System.Console.WriteLine();
-        else
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitWithPreservedSingleLineFormatting()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b) System.Console.WriteLine();
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a) System.Console.WriteLine();
-        else if (b) System.Console.WriteLine();
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitIntoSeparateStatementsIfControlFlowQuits1()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-            return;
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            return;
-        if (b)
-            return;
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitIntoSeparateStatementsIfControlFlowQuits2()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-            throw new System.Exception();
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            throw new System.Exception();
-        if (b)
-            throw new System.Exception();
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitIntoSeparateStatementsIfControlFlowQuits3()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (true)
-        {
-            if (a [||]|| b)
-                continue;
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (true)
-        {
-            if (a)
-                continue;
-            if (b)
-                continue;
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitIntoSeparateStatementsIfControlFlowQuits4()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (true)
-        {
-            if (a [||]|| b)
-            {
-                if (a)
-                    continue;
-                else
-                    break;
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (true)
-        {
-            if (a)
-            {
-                if (a)
-                    continue;
-                else
-                    break;
-            }
-
-            if (b)
-            {
-                if (a)
-                    continue;
-                else
-                    break;
-            }
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitIntoSeparateStatementsIfControlFlowQuits5()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (true)
-        {
-            if (a [||]|| b)
-                switch (a)
+                void M(bool a, bool b)
                 {
-                    default:
-                        continue;
+                    if (
+            """ + condition + """
+            )
+                    {
+                    }
                 }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (true)
-        {
-            if (a)
-                switch (a)
-                {
-                    default:
-                        continue;
-                }
-
-            if (b)
-                switch (a)
-                {
-                    default:
-                        continue;
-                }
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitIntoSeparateStatementsIfControlFlowQuitsInSwitchSection()
-    {
-        // Switch sections are interesting in that they are blocks of statements that aren't BlockSyntax.
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        switch (a)
-        {
-            case true:
-                if (a [||]|| b)
-                    break;
-                break;
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        switch (a)
-        {
-            case true:
-                if (a)
-                    break;
-                if (b)
-                    break;
-                break;
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitIntoSeparateStatementsIfControlFlowQuitsWithNestedIfStatement()
-    {
-        // No need to create a block if we're not adding an else clause.
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-            if (true)
-                return;
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            if (true)
-                return;
-        if (b)
-            if (true)
-                return;
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitIntoSeparateStatementsIfControlFlowQuitsWithPreservedSingleLineFormatting()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b) return;
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a) return;
-        if (b) return;
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitNotIntoSeparateStatementsIfControlFlowContinues1()
-    {
-        // Even though there are no statements inside, we still can't split this into separate statements
-        // because it would change the semantics from short-circuiting to always evaluating the second condition,
-        // breaking code like 'if (a == null || a.InstanceMethod())'.
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else if (b)
-        {
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitNotIntoSeparateStatementsIfControlFlowContinues2()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-        {
-            if (a)
-                return;
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            if (a)
-                return;
-        }
-        else if (b)
-        {
-            if (a)
-                return;
-        }
-    }
-}");
-    }
-
-    [Fact]
-    public async Task SplitNotIntoSeparateStatementsIfControlFlowContinues3()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-            while (a)
-            {
-                break;
             }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            while (a)
-            {
-                break;
-            }
-        else if (b)
-            while (a)
-            {
-                break;
-            }
-    }
-}");
-    }
+            """);
 
     [Fact]
-    public async Task SplitNotIntoSeparateStatementsIfControlFlowContinues4()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (true)
-        {
-            if (a [||]|| b)
-                switch (a)
+    public Task NotSplitOnIfKeyword()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
                 {
-                    default:
-                        break;
+                    [||]if (a || b)
+                    {
+                    }
                 }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (true)
-        {
-            if (a)
-                switch (a)
+            }
+            """);
+
+    [Fact]
+    public Task NotSplitOnAndOperator()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
                 {
-                    default:
-                        break;
+                    if (a [||]&& b)
+                    {
+                    }
                 }
+            }
+            """);
+
+    [Fact]
+    public Task NotSplitOnBitwiseOrOperator()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]| b)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotSplitOnOrOperatorOutsideIfStatement()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    var v = a [||]|| b;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotSplitOnOrOperatorInIfStatementBody()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                        a [||]|| b;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithChainedOrExpression1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a [||]|| b || c || d)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a)
+                    {
+                    }
+                    else if (b || c || d)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithChainedOrExpression2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a || b [||]|| c || d)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a || b)
+                    {
+                    }
+                    else if (c || d)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithChainedOrExpression3()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a || b || c [||]|| d)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a || b || c)
+                    {
+                    }
+                    else if (d)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotSplitInsideParentheses1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if ((a [||]|| b) || c || d)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotSplitInsideParentheses2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a || b || (c [||]|| d))
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotSplitInsideParentheses3()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if ((a || b [||]|| c || d))
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithOtherExpressionInsideParentheses1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a [||]|| (b || c) || d)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a)
+                    {
+                    }
+                    else if ((b || c) || d)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithOtherExpressionInsideParentheses2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a || (b || c) [||]|| d)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a || (b || c))
+                    {
+                    }
+                    else if (d)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithMixedAndExpression1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c)
+                {
+                    if (a [||]|| b && c)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c)
+                {
+                    if (a)
+                    {
+                    }
+                    else if (b && c)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithMixedAndExpression2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c)
+                {
+                    if (a && b [||]|| c)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c)
+                {
+                    if (a && b)
+                    {
+                    }
+                    else if (c)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotSplitWithMixedConditionalExpression1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c)
+                {
+                    if (a [||]|| b ? c : c)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotSplitWithMixedConditionalExpression2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c)
+                {
+                    if (a ? b : b [||]|| c)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithMixedConditionalExpressionInsideParentheses1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c)
+                {
+                    if (a [||]|| (b ? c : c))
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c)
+                {
+                    if (a)
+                    {
+                    }
+                    else if ((b ? c : c))
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithMixedConditionalExpressionInsideParentheses2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c)
+                {
+                    if ((a ? b : b) [||]|| c)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c)
+                {
+                    if ((a ? b : b))
+                    {
+                    }
+                    else if (c)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithStatementInsideBlock()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                    {
+                        System.Console.WriteLine(a || b);
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        System.Console.WriteLine(a || b);
+                    }
+                    else if (b)
+                    {
+                        System.Console.WriteLine(a || b);
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithStatementWithoutBlock()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                        System.Console.WriteLine(a || b);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        System.Console.WriteLine(a || b);
+                    else if (b)
+                        System.Console.WriteLine(a || b);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithNestedIfStatement()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                        if (true) { }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        if (true) { }
+                    }
+                    else if (b)
+                        if (true) { }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithNestedIfStatementInWhileLoop()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                        while (a)
+                            if (true)
+                                using (null) { }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        while (a)
+                            if (true)
+                                using (null) { }
+                    }
+                    else if (b)
+                        while (a)
+                            if (true)
+                                using (null) { }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithNestedIfStatementInsideBlockInWhileLoop()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                        while (a)
+                        {
+                            if (true)
+                                using (null) { }
+                        }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        while (a)
+                        {
+                            if (true)
+                                using (null) { }
+                        }
+                    else if (b)
+                        while (a)
+                        {
+                            if (true)
+                                using (null) { }
+                        }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithNestedIfStatementInsideBlock()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                    {
+                        if (true) { }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        if (true) { }
+                    }
+                    else if (b)
+                    {
+                        if (true) { }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithMissingStatement()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
             else if (b)
-                switch (a)
-                {
-                    default:
-                        break;
                 }
-        }
-    }
-}");
-    }
+            }
+            """);
 
     [Fact]
-    public async Task SplitNotIntoSeparateStatementsWithElseIfControlFlowQuits()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-            return;
-        else
-            return;
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            return;
-        else if (b)
-            return;
-        else
-            return;
-    }
-}");
-    }
+    public Task SplitWithElseStatementInsideBlock()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                        System.Console.WriteLine();
+                    else
+                    {
+                        System.Console.WriteLine(a || b);
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        System.Console.WriteLine();
+                    else if (b)
+                        System.Console.WriteLine();
+                    else
+                    {
+                        System.Console.WriteLine(a || b);
+                    }
+                }
+            }
+            """);
 
     [Fact]
-    public async Task SplitIntoSeparateStatementsAsEmbeddedStatementIfControlFlowQuits()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (a)
-            if (a [||]|| b)
-                return;
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (a)
-        {
-            if (a)
-                return;
-            if (b)
-                return;
-        }
-    }
-}");
-    }
+    public Task SplitWithElseStatementWithoutBlock()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                        System.Console.WriteLine();
+                    else
+                        System.Console.WriteLine(a || b);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        System.Console.WriteLine();
+                    else if (b)
+                        System.Console.WriteLine();
+                    else
+                        System.Console.WriteLine(a || b);
+                }
+            }
+            """);
 
     [Fact]
-    public async Task SplitNotIntoSeparateStatementsAsElseIfIfControlFlowQuits()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            return;
-        else if (a [||]|| b)
-            return;
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            return;
-        else if (a)
-            return;
-        else if (b)
-            return;
-    }
-}");
-    }
+    public Task SplitWithElseNestedIfStatement()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                        System.Console.WriteLine();
+                    else if (true) { }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        System.Console.WriteLine();
+                    else if (b)
+                        System.Console.WriteLine();
+                    else if (true) { }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithElseIfElse()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                        System.Console.WriteLine();
+                    else if (a)
+                        System.Console.WriteLine(a);
+                    else
+                        System.Console.WriteLine(b);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        System.Console.WriteLine();
+                    else if (b)
+                        System.Console.WriteLine();
+                    else if (a)
+                        System.Console.WriteLine(a);
+                    else
+                        System.Console.WriteLine(b);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitAsPartOfElseIfElse()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                        System.Console.WriteLine();
+                    else if (a [||]|| b)
+                        System.Console.WriteLine(a);
+                    else
+                        System.Console.WriteLine(b);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                        System.Console.WriteLine();
+                    else if (a)
+                        System.Console.WriteLine(a);
+                    else if (b)
+                        System.Console.WriteLine(a);
+                    else
+                        System.Console.WriteLine(b);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithMissingElseStatement()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                        System.Console.WriteLine();
+                    else
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        System.Console.WriteLine();
+                    else if (b)
+                        System.Console.WriteLine();
+                    else
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitWithPreservedSingleLineFormatting()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b) System.Console.WriteLine();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a) System.Console.WriteLine();
+                    else if (b) System.Console.WriteLine();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitIntoSeparateStatementsIfControlFlowQuits1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                        return;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        return;
+                    if (b)
+                        return;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitIntoSeparateStatementsIfControlFlowQuits2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                        throw new System.Exception();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        throw new System.Exception();
+                    if (b)
+                        throw new System.Exception();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitIntoSeparateStatementsIfControlFlowQuits3()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (true)
+                    {
+                        if (a [||]|| b)
+                            continue;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (true)
+                    {
+                        if (a)
+                            continue;
+                        if (b)
+                            continue;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitIntoSeparateStatementsIfControlFlowQuits4()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (true)
+                    {
+                        if (a [||]|| b)
+                        {
+                            if (a)
+                                continue;
+                            else
+                                break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (true)
+                    {
+                        if (a)
+                        {
+                            if (a)
+                                continue;
+                            else
+                                break;
+                        }
+
+                        if (b)
+                        {
+                            if (a)
+                                continue;
+                            else
+                                break;
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitIntoSeparateStatementsIfControlFlowQuits5()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (true)
+                    {
+                        if (a [||]|| b)
+                            switch (a)
+                            {
+                                default:
+                                    continue;
+                            }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (true)
+                    {
+                        if (a)
+                            switch (a)
+                            {
+                                default:
+                                    continue;
+                            }
+
+                        if (b)
+                            switch (a)
+                            {
+                                default:
+                                    continue;
+                            }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitIntoSeparateStatementsIfControlFlowQuitsInSwitchSection()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    switch (a)
+                    {
+                        case true:
+                            if (a [||]|| b)
+                                break;
+                            break;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    switch (a)
+                    {
+                        case true:
+                            if (a)
+                                break;
+                            if (b)
+                                break;
+                            break;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitIntoSeparateStatementsIfControlFlowQuitsWithNestedIfStatement()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                        if (true)
+                            return;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        if (true)
+                            return;
+                    if (b)
+                        if (true)
+                            return;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitIntoSeparateStatementsIfControlFlowQuitsWithPreservedSingleLineFormatting()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b) return;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a) return;
+                    if (b) return;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitNotIntoSeparateStatementsIfControlFlowContinues1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                    }
+                    else if (b)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitNotIntoSeparateStatementsIfControlFlowContinues2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                    {
+                        if (a)
+                            return;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        if (a)
+                            return;
+                    }
+                    else if (b)
+                    {
+                        if (a)
+                            return;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitNotIntoSeparateStatementsIfControlFlowContinues3()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                        while (a)
+                        {
+                            break;
+                        }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        while (a)
+                        {
+                            break;
+                        }
+                    else if (b)
+                        while (a)
+                        {
+                            break;
+                        }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitNotIntoSeparateStatementsIfControlFlowContinues4()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (true)
+                    {
+                        if (a [||]|| b)
+                            switch (a)
+                            {
+                                default:
+                                    break;
+                            }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (true)
+                    {
+                        if (a)
+                            switch (a)
+                            {
+                                default:
+                                    break;
+                            }
+                        else if (b)
+                            switch (a)
+                            {
+                                default:
+                                    break;
+                            }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitNotIntoSeparateStatementsWithElseIfControlFlowQuits()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a [||]|| b)
+                        return;
+                    else
+                        return;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        return;
+                    else if (b)
+                        return;
+                    else
+                        return;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitIntoSeparateStatementsAsEmbeddedStatementIfControlFlowQuits()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (a)
+                        if (a [||]|| b)
+                            return;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (a)
+                    {
+                        if (a)
+                            return;
+                        if (b)
+                            return;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SplitNotIntoSeparateStatementsAsElseIfIfControlFlowQuits()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        return;
+                    else if (a [||]|| b)
+                        return;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        return;
+                    else if (a)
+                        return;
+                    else if (b)
+                        return;
+                }
+            }
+            """);
 }

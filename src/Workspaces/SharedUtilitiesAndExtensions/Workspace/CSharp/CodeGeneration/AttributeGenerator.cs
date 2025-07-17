@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
@@ -63,38 +62,60 @@ internal static class AttributeGenerator
         if (IsCompilerInternalAttribute(attribute))
             return null;
 
-        if (!info.Context.MergeAttributes)
-        {
-            var reusableSyntax = GetReuseableSyntaxNodeForAttribute<AttributeSyntax>(attribute, info);
-            if (reusableSyntax != null)
-            {
-                return reusableSyntax;
-            }
-        }
+        var reusableSyntax = GetReuseableSyntaxNodeForAttribute<AttributeSyntax>(attribute);
+        if (info.Context.ReuseSyntax && reusableSyntax != null)
+            return reusableSyntax;
 
         if (attribute.AttributeClass == null)
             return null;
 
-        var attributeArguments = GenerateAttributeArgumentList(info.Generator, attribute);
+        var attributeArguments = GenerateAttributeArgumentList(
+            attribute, reusableSyntax);
         return attribute.AttributeClass.GenerateTypeSyntax() is NameSyntax nameSyntax
             ? Attribute(nameSyntax, attributeArguments)
             : null;
     }
 
-    private static AttributeArgumentListSyntax? GenerateAttributeArgumentList(SyntaxGenerator generator, AttributeData attribute)
+    private static AttributeArgumentListSyntax? GenerateAttributeArgumentList(
+        AttributeData attribute, AttributeSyntax? existingSyntax)
     {
         if (attribute.ConstructorArguments.Length == 0 && attribute.NamedArguments.Length == 0)
             return null;
 
-        var arguments = new List<AttributeArgumentSyntax>();
-        arguments.AddRange(attribute.ConstructorArguments.Select(c =>
-            AttributeArgument(ExpressionGenerator.GenerateExpression(generator, c))));
+        using var _ = ArrayBuilder<AttributeArgumentSyntax>.GetInstance(out var arguments);
 
-        arguments.AddRange(attribute.NamedArguments.Select(kvp =>
-            AttributeArgument(
-                NameEquals(IdentifierName(kvp.Key)), null,
-                ExpressionGenerator.GenerateExpression(generator, kvp.Value))));
+        foreach (var argument in attribute.ConstructorArguments)
+            arguments.Add(AttributeArgument(GenerateAttributeSyntax(argument)));
 
-        return AttributeArgumentList([.. arguments]);
+        foreach (var argument in attribute.NamedArguments)
+        {
+            arguments.Add(AttributeArgument(
+                NameEquals(IdentifierName(argument.Key)),
+                nameColon: null,
+                GenerateAttributeSyntax(argument.Value)));
+        }
+
+        return AttributeArgumentList(SeparatedList(arguments));
+
+        ExpressionSyntax GenerateAttributeSyntax(TypedConstant constant)
+        {
+            // In the case of a string constant with value "x", see if the originating syntax was a `nameof(x)`
+            // expression and attempt to preserve that.
+            if (existingSyntax?.ArgumentList != null && constant.Kind is not TypedConstantKind.Array && constant.Value is string stringValue)
+            {
+                foreach (var existingArgument in existingSyntax.ArgumentList.Arguments)
+                {
+                    if (existingArgument.Expression is InvocationExpressionSyntax { ArgumentList.Arguments: [{ Expression: var nameofArgument }] } invocation &&
+                        invocation.IsNameOfInvocation())
+                    {
+                        var inferredName = nameofArgument.TryGetInferredMemberName();
+                        if (inferredName == stringValue)
+                            return existingArgument.Expression.WithoutTrivia();
+                    }
+                }
+            }
+
+            return ExpressionGenerator.GenerateExpression(constant);
+        }
     }
 }

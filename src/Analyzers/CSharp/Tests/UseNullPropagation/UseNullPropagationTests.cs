@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseNullPropagation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -18,11 +20,14 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseNullPropagationCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
-public partial class UseNullPropagationTests
+public sealed partial class UseNullPropagationTests
 {
-    private static async Task TestInRegularAndScript1Async(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
-    {
-        await new VerifyCS.Test
+    private static Task TestInRegularAndScript1Async(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
+        OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary,
+        LanguageVersion languageVersion = LanguageVersion.CSharp9)
+        => new VerifyCS.Test
         {
             TestCode = testCode,
             FixedCode = fixedCode,
@@ -30,28 +35,25 @@ public partial class UseNullPropagationTests
             // by just rewriting `x.Y` into `x?.Y`.  That is not correct.  the RHS of the `?` should `.Y()` not
             // `.Y`.
             CodeActionValidationMode = CodeActionValidationMode.None,
-            LanguageVersion = LanguageVersion.CSharp9,
+            LanguageVersion = languageVersion,
             TestState =
             {
                 OutputKind = outputKind,
             },
         }.RunAsync();
-    }
 
-    private static async Task TestMissingInRegularAndScriptAsync(string testCode, LanguageVersion languageVersion = LanguageVersion.CSharp9)
-    {
-        await new VerifyCS.Test
+    private static Task TestMissingInRegularAndScriptAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
+        LanguageVersion languageVersion = LanguageVersion.CSharp9)
+        => new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             LanguageVersion = languageVersion,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestLeft_Equals()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLeft_Equals()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -74,12 +76,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLeft_Equals_IfStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLeft_Equals_IfStatement()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -103,12 +103,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatement_WithBlock()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestIfStatement_WithBlock()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -134,12 +132,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatement_NotWithElse()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestIfStatement_NotWithElse()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -155,12 +151,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatement_NotWithMultipleStatements()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestIfStatement_NotWithMultipleStatements()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -176,12 +170,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLeft_Equals_IfStatement_TopLevel()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLeft_Equals_IfStatement_TopLevel()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -195,12 +187,10 @@ public partial class UseNullPropagationTests
             object o = null;
             o?.ToString();
             """, OutputKind.ConsoleApplication);
-    }
 
     [Fact]
-    public async Task TestLeft_IsNull()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLeft_IsNull()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -223,12 +213,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLeft_IsNotNull()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLeft_IsNotNull()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -251,12 +239,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLeft_IsNotNull_IfStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLeft_IsNotNull_IfStatement()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -280,12 +266,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnCSharp5()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnCSharp5()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -297,12 +281,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """, LanguageVersion.CSharp5);
-    }
 
     [Fact]
-    public async Task TestMissingOnCSharp5_IfStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnCSharp5_IfStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -315,12 +297,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """, LanguageVersion.CSharp5);
-    }
 
     [Fact]
-    public async Task TestRight_Equals()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRight_Equals()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -343,12 +323,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRight_Equals_IfStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRight_Equals_IfStatement()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -372,12 +350,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLeft_NotEquals()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLeft_NotEquals()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -400,12 +376,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithNullableType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableType()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -426,12 +400,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithNullableType_IfStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableType_IfStatement()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -453,12 +425,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithNullableTypeAndObjectCast()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndObjectCast()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -479,12 +449,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithNullableTypeAndObjectCast_IfStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndObjectCast_IfStatement()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -506,12 +474,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRight_NotEquals()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRight_NotEquals()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -534,12 +500,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIndexer()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestIndexer()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -562,12 +526,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIndexer_IfStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestIndexer_IfStatement()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -591,12 +553,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestConditionalAccess()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestConditionalAccess()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -619,12 +579,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestConditionalAccess_IfStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestConditionalAccess_IfStatement()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -648,12 +606,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMemberAccess()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMemberAccess()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -676,12 +632,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMemberAccess_IfStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMemberAccess_IfStatement()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -705,12 +659,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnSimpleMatch()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnSimpleMatch()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -722,12 +674,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnSimpleMatch_IfStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnSimpleMatch_IfStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -740,12 +690,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParenthesizedCondition()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestParenthesizedCondition()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -768,12 +716,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll1()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -798,12 +744,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll2()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -826,12 +770,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15505")]
-    public async Task TestOtherValueIsNotNull1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestOtherValueIsNotNull1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -843,12 +785,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15505")]
-    public async Task TestOtherValueIsNotNull2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestOtherValueIsNotNull2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -860,12 +800,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16287")]
-    public async Task TestMethodGroup()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMethodGroup()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -879,12 +817,10 @@ public partial class UseNullPropagationTests
             }
             class C { public void M(string s) { } }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17623")]
-    public async Task TestInExpressionTree()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestInExpressionTree()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Linq.Expressions;
@@ -901,13 +837,11 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17623")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/33992")]
-    public async Task TestInExpressionTree2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestInExpressionTree2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Linq;
 
@@ -920,13 +854,11 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17623")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/33992")]
-    public async Task TestInExpressionTree3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestInExpressionTree3()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Linq;
 
@@ -940,13 +872,11 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17623")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/33992")]
-    public async Task TestInExpressionTree4()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestInExpressionTree4()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Linq;
 
@@ -960,12 +890,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19774")]
-    public async Task TestNullableMemberAccess()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNullableMemberAccess()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -989,12 +917,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19774")]
-    public async Task TestNullableMemberAccess_IfStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNullableMemberAccess_IfStatement()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -1019,12 +945,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19774")]
-    public async Task TestNullableElementAccess()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNullableElementAccess()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -1058,12 +982,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndIsNull()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndIsNull()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1084,12 +1006,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndIsNotNull()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndIsNotNull()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1110,12 +1030,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndIsNotNull_IfStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndIsNotNull_IfStatement()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1137,12 +1055,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndIsType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithNullableTypeAndIsType()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1153,12 +1069,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndIsType_IfStatement1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithNullableTypeAndIsType_IfStatement1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1170,12 +1084,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndIsType_IfStatement2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithNullableTypeAndIsType_IfStatement2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1187,12 +1099,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndIsType_IfStatement3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithNullableTypeAndIsType_IfStatement3()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1204,12 +1114,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestIsOtherConstant()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestIsOtherConstant()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1219,12 +1127,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndReferenceEquals1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndReferenceEquals1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1245,12 +1151,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndReferenceEquals1_IfStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndReferenceEquals1_IfStatement()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1272,12 +1176,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndReferenceEquals2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndReferenceEquals2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1298,12 +1200,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndReferenceEquals2_IfStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndReferenceEquals2_IfStatement()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1325,12 +1225,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndReferenceEqualsOtherValue1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithNullableTypeAndReferenceEqualsOtherValue1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1341,12 +1239,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndReferenceEqualsOtherValue1_IfStatement1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithNullableTypeAndReferenceEqualsOtherValue1_IfStatement1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1358,12 +1254,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndReferenceEqualsOtherValue1_IfStatement2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithNullableTypeAndReferenceEqualsOtherValue1_IfStatement2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1375,12 +1269,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndReferenceEqualsOtherValue2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithNullableTypeAndReferenceEqualsOtherValue2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1391,12 +1283,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndReferenceEqualsWithObject1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndReferenceEqualsWithObject1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1417,12 +1307,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndReferenceEqualsWithObject1_IfStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndReferenceEqualsWithObject1_IfStatement()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1444,12 +1332,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndReferenceEqualsWithObject2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndReferenceEqualsWithObject2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1470,12 +1356,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndReferenceEqualsWithObject2_IfStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndReferenceEqualsWithObject2_IfStatement()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1497,12 +1381,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndReferenceEqualsOtherValueWithObject1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithNullableTypeAndReferenceEqualsOtherValueWithObject1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1513,12 +1395,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndReferenceEqualsOtherValueWithObject2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithNullableTypeAndReferenceEqualsOtherValueWithObject2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1529,12 +1409,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndNotIsNull()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndNotIsNull()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1555,12 +1433,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndNotIsNotNull()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndNotIsNotNull()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1581,12 +1457,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndNotIsType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithNullableTypeAndNotIsType()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1597,12 +1471,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndNotIsOtherConstant()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithNullableTypeAndNotIsOtherConstant()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1612,12 +1484,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndLogicalNotReferenceEquals1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndLogicalNotReferenceEquals1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1638,12 +1508,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndLogicalNotReferenceEquals2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndLogicalNotReferenceEquals2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1664,12 +1532,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValue1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValue1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1680,12 +1546,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValue2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValue2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1696,12 +1560,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsWithObject1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndLogicalNotReferenceEqualsWithObject1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1722,12 +1584,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsWithObject2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableTypeAndLogicalNotReferenceEqualsWithObject2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1748,12 +1608,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValueWithObject1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValueWithObject1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1764,12 +1622,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValueWithObject2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValueWithObject2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1780,12 +1636,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestEqualsWithLogicalNot()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestEqualsWithLogicalNot()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1806,12 +1660,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestEqualsWithLogicalNot_IfStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestEqualsWithLogicalNot_IfStatement()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1833,12 +1685,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestNotEqualsWithLogicalNot()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNotEqualsWithLogicalNot()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1859,12 +1709,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestEqualsOtherValueWithLogicalNot()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestEqualsOtherValueWithLogicalNot()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1875,12 +1723,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
-    public async Task TestNotEqualsOtherValueWithLogicalNot()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotEqualsOtherValueWithLogicalNot()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1891,12 +1737,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49517")]
-    public async Task TestParenthesizedExpression()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestParenthesizedExpression()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -1919,12 +1763,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49517")]
-    public async Task TestReversedParenthesizedExpression()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestReversedParenthesizedExpression()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -1947,12 +1789,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74273")]
-    public async Task TestParenthesizedPropertyAccess()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestParenthesizedPropertyAccess()
+        => TestInRegularAndScript1Async("""
             using System;
             
             class C
@@ -1967,12 +1807,10 @@ public partial class UseNullPropagationTests
                 int? Length(Array array) => (array?.Length);
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74273")]
-    public async Task TestReversedParenthesizedPropertyAccess()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestReversedParenthesizedPropertyAccess()
+        => TestInRegularAndScript1Async("""
             using System;
             
             class C
@@ -1987,12 +1825,10 @@ public partial class UseNullPropagationTests
                 int? Length(Array array) => (array?.Length);
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49517")]
-    public async Task TestParenthesizedNull()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestParenthesizedNull()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -2015,12 +1851,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49517")]
-    public async Task TestReversedParenthesizedNull()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestReversedParenthesizedNull()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -2043,12 +1877,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatement_Trivia1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestIfStatement_Trivia1()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -2074,12 +1906,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatement_Trivia2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestIfStatement_Trivia2()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -2107,12 +1937,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatement_Trivia3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestIfStatement_Trivia3()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -2142,12 +1970,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatement_Trivia4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestIfStatement_Trivia4()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -2177,12 +2003,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatement_Trivia5()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestIfStatement_Trivia5()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -2212,12 +2036,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnPointer_IfStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotOnPointer_IfStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2230,12 +2052,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63557")]
-    public async Task TestNotWithColorColorStaticCase()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithColorColorStaticCase()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2258,12 +2078,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63557")]
-    public async Task TestWithColorColorInstanceCase()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithColorColorInstanceCase()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -2305,12 +2123,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53860")]
-    public async Task TestWithMethodGroupReference()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithMethodGroupReference()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -2320,12 +2136,10 @@ public partial class UseNullPropagationTests
                 Action<int> M(List<int> p) => p is null ? null : p.Add;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66036")]
-    public async Task TestElseIfStatement1()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestElseIfStatement1()
+        => TestInRegularAndScript1Async("""
             class C
             {
                 void M(string s)
@@ -2354,12 +2168,44 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66036")]
-    public async Task TestElseIfStatement2()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestElseIfStatement_NullAssignment1()
+        => TestInRegularAndScript1Async("""
+            class C
+            {
+                void M(string s)
+                {
+                    if (true)
+                    {
+                    }
+                    else [|if|] (s != null)
+                    {
+                        s.ToString();
+                        s = null;
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M(string s)
+                {
+                    if (true)
+                    {
+                    }
+                    else
+                    {
+                        s?.ToString();
+                        s = null;
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66036")]
+    public Task TestElseIfStatement2()
+        => TestInRegularAndScript1Async("""
             class C
             {
                 void M(string s)
@@ -2384,12 +2230,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66036")]
-    public async Task TestElseIfStatement_Trivia()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestElseIfStatement_Trivia()
+        => TestInRegularAndScript1Async("""
             class C
             {
                 void M(string s)
@@ -2420,12 +2264,10 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66036")]
-    public async Task TestElseIfStatement_KeepBracePlacementStyle()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestElseIfStatement_KeepBracePlacementStyle()
+        => TestInRegularAndScript1Async("""
             class C
             {
                 void M(string s)
@@ -2452,5 +2294,374 @@ public partial class UseNullPropagationTests
                 }
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66141")]
+    public Task TestOnValueOffOfNullableValueType1()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                void M(byte? o)
+                {
+                    object v = [|o == null ? null : o.Value|];
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                void M(byte? o)
+                {
+                    object v = o;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66141")]
+    public Task TestOnValueOffOfNullableValueType2()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                void M(byte? o)
+                {
+                    object v = [|o != null ? o.Value : null|];
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                void M(byte? o)
+                {
+                    object v = o;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNullConditionalAssignment1()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                int x;
+
+                void M(C c)
+                {
+                    [|if|] (c != null)
+                        c.x = 1;
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                int x;
+
+                void M(C c)
+                {
+                    c?.x = 1;
+                }
+            }
+            """,
+            languageVersion: LanguageVersionExtensions.CSharpNext);
+
+    [Fact]
+    public Task TestNullConditionalAssignment2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int x;
+
+                void M(C c)
+                {
+                    if (c != null)
+                        c.x = 1;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNullAssignmentAfterOperation1()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                int x;
+
+                void M(C c)
+                {
+                    [|if|] (c != null)
+                    {
+                        c.x = 1;
+                        c = null;
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                int x;
+
+                void M(C c)
+                {
+                    c?.x = 1;
+                    c = null;
+                }
+            }
+            """,
+            languageVersion: LanguageVersionExtensions.CSharpNext);
+
+    [Fact]
+    public Task TestNullAssignmentAfterOperation2()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                int x;
+
+                void M(C c)
+                {
+                    [|if|] (c != null)
+                    {
+                        c.x = 1;
+                        // Leading comment.
+                        c = null;
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                int x;
+
+                void M(C c)
+                {
+                    c?.x = 1;
+                    // Leading comment.
+                    c = null;
+                }
+            }
+            """,
+            languageVersion: LanguageVersionExtensions.CSharpNext);
+
+    [Fact]
+    public Task TestNotNullAssignmentAfterOperation1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int x;
+
+                void M(C c)
+                {
+                    if (c != null)
+                    {
+                        c.x = 1;
+                        return;
+                    }
+                }
+            }
+            """,
+            languageVersion: LanguageVersionExtensions.CSharpNext);
+
+    [Fact]
+    public Task TestNotNullAssignmentAfterOperation2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int x;
+
+                void M(C c)
+                {
+                    if (c != null)
+                    {
+                        c.x = 1;
+                        c = new();
+                    }
+                }
+            }
+            """,
+            languageVersion: LanguageVersionExtensions.CSharpNext);
+
+    [Fact]
+    public Task TestNotNullAssignmentAfterOperation3()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int x;
+
+                void M(C c, C d)
+                {
+                    if (c != null)
+                    {
+                        c.x = 1;
+                        d = null;
+                    }
+                }
+            }
+            """,
+            languageVersion: LanguageVersionExtensions.CSharpNext);
+
+    [Fact]
+    public Task TestNotNullAssignmentAfterOperation4()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                C c;
+
+                void M(C c)
+                {
+                    if (c != null)
+                    {
+                        c.c = null;
+                        c.c = null;
+                    }
+                }
+            }
+            """,
+            languageVersion: LanguageVersionExtensions.CSharpNext);
+
+    [Fact]
+    public Task TestNullAssignmentAfterOperation_TopLevel1()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+            
+            C c = null;
+            [|if|] (c != null)
+            {
+                c.x = 1;
+                c = null;
+            }
+
+            class C
+            {
+                public int x;
+            }
+            """,
+            """
+            using System;
+            
+            C c = null;
+
+            c?.x = 1;
+            c = null;
+
+            class C
+            {
+                public int x;
+            }
+            """,
+            OutputKind.ConsoleApplication,
+            LanguageVersionExtensions.CSharpNext);
+
+    [Fact]
+    public Task TestNullAssignmentAfterOperation_TopLevel2()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+            
+            C c = null;
+            [|if|] (c != null)
+            {
+                c.x = 1;
+                // Comment
+                c = null;
+            }
+
+            class C
+            {
+                public int x;
+            }
+            """,
+            """
+            using System;
+            
+            C c = null;
+
+            c?.x = 1;
+            // Comment
+            c = null;
+
+            class C
+            {
+                public int x;
+            }
+            """,
+            OutputKind.ConsoleApplication,
+            LanguageVersionExtensions.CSharpNext);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79338")]
+    public Task TestNestedNullPropagation_DifferentForms()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+            
+            class C
+            {
+                string S;
+
+                void M(C c)
+                {
+                    [|if|] (c != null)
+                        c.X([|c == null ? null : c.S|]);
+                }
+
+                void X(string s) { }
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                string S;
+            
+                void M(C c)
+                {
+                    c?.X(c?.S);
+                }
+            
+                void X(string s) { }
+            }
+            """,
+            languageVersion: LanguageVersionExtensions.CSharpNext);
 }

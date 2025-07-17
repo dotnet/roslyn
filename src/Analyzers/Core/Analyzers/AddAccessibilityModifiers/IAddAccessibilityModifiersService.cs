@@ -5,14 +5,14 @@
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers;
+namespace Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers;
 
-internal static partial class AddAccessibilityModifiersConstants
+internal static partial class AddOrRemoveAccessibilityModifiersConstants
 {
     public const string ModifiersAdded = nameof(ModifiersAdded);
 }
 
-internal interface IAddAccessibilityModifiers
+internal interface IAddOrRemoveAccessibilityModifiers
 {
     bool ShouldUpdateAccessibilityModifier(
         IAccessibilityFacts accessibilityFacts,

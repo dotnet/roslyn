@@ -2,18 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -25,15 +26,19 @@ using static SyntaxFactory;
 
 internal sealed partial class CSharpIntroduceVariableService
 {
-    protected override async Task<Document> IntroduceLocalAsync(
+    protected override Document IntroduceLocal(
         SemanticDocument document,
+        CodeCleanupOptions options,
         ExpressionSyntax expression,
         bool allOccurrences,
         bool isConstant,
         CancellationToken cancellationToken)
     {
-        var containerToGenerateInto = expression.Ancestors().FirstOrDefault(s =>
-            s is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax);
+        var globalStatement = expression.GetAncestor<GlobalStatementSyntax>();
+
+        var containerToGenerateInto = globalStatement != null
+            ? (CompilationUnitSyntax)globalStatement.GetRequiredParent()
+            : expression.Ancestors().FirstOrDefault(s => s is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax);
 
         var newLocalNameToken = GenerateUniqueLocalName(
             document, expression, isConstant, containerToGenerateInto, cancellationToken);
@@ -43,34 +48,46 @@ internal sealed partial class CSharpIntroduceVariableService
             ? TokenList(ConstKeyword)
             : default;
 
+        var updatedExpression = expression.WithoutTrivia();
+        var simplifierOptions = (CSharpSimplifierOptions)options.SimplifierOptions;
+
+        // If the implicit-object-creation is preferred and "var" is not preferred under any circumstance, then we use
+        // the implicit creation form when it it available.
+        if (simplifierOptions.ImplicitObjectCreationWhenTypeIsApparent.Value &&
+            simplifierOptions.GetUseVarPreference() == UseVarPreference.None &&
+            updatedExpression is ObjectCreationExpressionSyntax objectCreationExpression &&
+            document.Root.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9)
+        {
+            var (newKeyword, argumentList) = objectCreationExpression.ArgumentList is null
+                ? (objectCreationExpression.NewKeyword.WithoutTrailingTrivia(), ArgumentList().WithoutLeadingTrivia().WithTrailingTrivia(objectCreationExpression.NewKeyword.TrailingTrivia))
+                : (objectCreationExpression.NewKeyword, objectCreationExpression.ArgumentList);
+            updatedExpression = ImplicitObjectCreationExpression(
+                newKeyword, argumentList, objectCreationExpression.Initializer);
+        }
+
         var declarationStatement = LocalDeclarationStatement(
             modifiers,
             VariableDeclaration(
                 GetTypeSyntax(document, expression, cancellationToken),
                 [VariableDeclarator(
                     newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
-                    null,
-                    EqualsValueClause(expression.WithoutTrivia()))]));
-
-        // If we're inserting into a multi-line parent, then add a newline after the local-var
-        // we're adding.  That way we don't end up having it and the starting statement be on
-        // the same line (which will cause indentation to be computed incorrectly).
-        var text = await document.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!text.AreOnSameLine(containerToGenerateInto.GetFirstToken(), containerToGenerateInto.GetLastToken()))
-        {
-            declarationStatement = declarationStatement.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed);
-        }
+                    argumentList: null,
+                    EqualsValueClause(updatedExpression))]));
 
         switch (containerToGenerateInto)
         {
+            case CompilationUnitSyntax compilationUnit:
+                return IntroduceLocalDeclarationIntoCompilationUnit(
+                    document, compilationUnit, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken);
+
             case BlockSyntax block:
-                return await IntroduceLocalDeclarationIntoBlockAsync(
-                    document, block, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken).ConfigureAwait(false);
+                return IntroduceLocalDeclarationIntoBlock(
+                    document, block, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken);
 
             case ArrowExpressionClauseSyntax arrowExpression:
                 // this will be null for expression-bodied properties & indexer (not for individual getters & setters, those do have a symbol),
                 // both of which are a shorthand for the getter and always return a value
-                var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.Parent, cancellationToken) as IMethodSymbol;
+                var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.GetRequiredParent(), cancellationToken) as IMethodSymbol;
                 var createReturnStatement = true;
 
                 if (method is not null)
@@ -109,13 +126,12 @@ internal sealed partial class CSharpIntroduceVariableService
             declarationStatement, isEntireLambdaBodySelected, rewrittenBody, shouldIncludeReturnStatement);
 
         // Add an elastic newline so that the formatter will place this new lambda body across multiple lines.
-        newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed))
-                         .WithAdditionalAnnotations(Formatter.Annotation);
+        newBody = newBody
+            .WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed))
+            .WithAdditionalAnnotations(Formatter.Annotation);
 
-        var newLambda = oldLambda.WithBody(newBody);
-
-        var newRoot = document.Root.ReplaceNode(oldLambda, newLambda);
-        return document.Document.WithSyntaxRoot(newRoot);
+        return document.Document.WithSyntaxRoot(
+            document.Root.ReplaceNode(oldLambda, oldLambda.WithBody(newBody)));
     }
 
     private static bool ShouldIncludeReturnStatement(
@@ -210,10 +226,7 @@ internal sealed partial class CSharpIntroduceVariableService
     }
 
     private static TypeSyntax GetTypeSyntax(SemanticDocument document, ExpressionSyntax expression, CancellationToken cancellationToken)
-    {
-        var typeSymbol = GetTypeSymbol(document, expression, cancellationToken);
-        return typeSymbol.GenerateTypeSyntax();
-    }
+        => GetTypeSymbol(document, expression, cancellationToken).GenerateTypeSyntax();
 
     private Document RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
         SemanticDocument document,
@@ -226,64 +239,122 @@ internal sealed partial class CSharpIntroduceVariableService
         CancellationToken cancellationToken)
     {
         var oldBody = arrowExpression;
-        var oldParentingNode = oldBody.Parent;
+        var oldParentingNode = oldBody.GetRequiredParent();
         var leadingTrivia = oldBody.GetLeadingTrivia()
                                    .AddRange(oldBody.ArrowToken.TrailingTrivia);
 
         var newExpression = Rewrite(document, expression, newLocalName, document, oldBody.Expression, allOccurrences, cancellationToken);
 
-        var convertedStatement = createReturnStatement
-            ? ReturnStatement(newExpression)
-            : (StatementSyntax)ExpressionStatement(newExpression);
-
-        var newBody = Block(declarationStatement, convertedStatement)
-                                   .WithLeadingTrivia(leadingTrivia)
-                                   .WithTrailingTrivia(oldBody.GetTrailingTrivia());
+        var newBody = Block(
+            declarationStatement,
+            createReturnStatement
+                ? ReturnStatement(newExpression)
+                : ExpressionStatement(newExpression))
+            .WithLeadingTrivia(leadingTrivia)
+            .WithTrailingTrivia(oldBody.GetTrailingTrivia());
 
         // Add an elastic newline so that the formatter will place this new block across multiple lines.
-        newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed))
-                         .WithAdditionalAnnotations(Formatter.Annotation);
+        newBody = newBody
+            .WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed))
+            .WithAdditionalAnnotations(Formatter.Annotation);
 
-        var newRoot = document.Root.ReplaceNode(oldParentingNode, WithBlockBody(oldParentingNode, newBody));
+        var newRoot = document.Root.ReplaceNode(oldParentingNode, WithBlockBody(oldParentingNode, newBody).WithTriviaFrom(oldParentingNode));
         return document.Document.WithSyntaxRoot(newRoot);
     }
 
     private static SyntaxNode WithBlockBody(SyntaxNode node, BlockSyntax body)
-    {
-        switch (node)
+        => node switch
         {
-            case BasePropertyDeclarationSyntax baseProperty:
-                var accessorList = AccessorList(
-                    [AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, body)]);
-                return baseProperty
-                    .TryWithExpressionBody(null)
-                    .WithAccessorList(accessorList)
-                    .TryWithSemicolonToken(Token(SyntaxKind.None))
-                    .WithTriviaFrom(baseProperty);
-            case AccessorDeclarationSyntax accessor:
-                return accessor
-                    .WithExpressionBody(null)
-                    .WithBody(body)
-                    .WithSemicolonToken(Token(SyntaxKind.None))
-                    .WithTriviaFrom(accessor);
-            case BaseMethodDeclarationSyntax baseMethod:
-                return baseMethod
-                    .WithExpressionBody(null)
-                    .WithBody(body)
-                    .WithSemicolonToken(Token(SyntaxKind.None))
-                    .WithTriviaFrom(baseMethod);
-            case LocalFunctionStatementSyntax localFunction:
-                return localFunction
-                    .WithExpressionBody(null)
-                    .WithBody(body)
-                    .WithSemicolonToken(Token(SyntaxKind.None))
-                    .WithTriviaFrom(localFunction);
-            default:
-                throw ExceptionUtilities.UnexpectedValue(node);
+            BasePropertyDeclarationSyntax baseProperty => baseProperty
+                .TryWithExpressionBody(null)
+                .WithAccessorList(AccessorList([AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, body)]))
+                .TryWithSemicolonToken(Token(SyntaxKind.None)),
+            AccessorDeclarationSyntax accessor => accessor
+                .WithExpressionBody(null)
+                .WithBody(body)
+                .WithSemicolonToken(Token(SyntaxKind.None)),
+            BaseMethodDeclarationSyntax baseMethod => baseMethod
+                .WithExpressionBody(null)
+                .WithBody(body)
+                .WithSemicolonToken(Token(SyntaxKind.None)),
+            LocalFunctionStatementSyntax localFunction => localFunction
+                .WithExpressionBody(null)
+                .WithBody(body)
+                .WithSemicolonToken(Token(SyntaxKind.None)),
+            _ => throw ExceptionUtilities.UnexpectedValue(node),
+        };
+
+    private Document IntroduceLocalDeclarationIntoCompilationUnit(
+        SemanticDocument document,
+        CompilationUnitSyntax compilationUnit,
+        ExpressionSyntax expression,
+        NameSyntax newLocalName,
+        LocalDeclarationStatementSyntax declarationStatement,
+        bool allOccurrences,
+        CancellationToken cancellationToken)
+    {
+        declarationStatement = declarationStatement.WithAdditionalAnnotations(Formatter.Annotation);
+
+        SyntaxNode scope = compilationUnit;
+
+        // If we're within a non-static local function, our scope for the new local declaration is expanded to include
+        // the enclosing member.
+        var localFunction = expression.GetAncestor<LocalFunctionStatementSyntax>();
+        if (localFunction is { Body: not null } && localFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
+            scope = localFunction.Body;
+
+        var matches = FindMatches(
+            document, expression, document,
+            scope is ICompilationUnitSyntax
+                ? scope.ChildNodes().OfType<GlobalStatementSyntax>()
+                : [scope],
+            allOccurrences, cancellationToken);
+        Debug.Assert(matches.Contains(expression));
+
+        var firstAffectedExpression = matches.OrderBy(m => m.SpanStart).First();
+
+        var editor = new SyntaxEditor(compilationUnit, document.Project.Solution.Services);
+
+        // Parenthesize the variable, and go and replace anything we find with it. NOTE: we do not want elastic trivia
+        // as we want to just replace the existing code as is, while preserving the trivia there.  We do not want to
+        // update it.
+        var replacement = editor.Generator.AddParentheses(newLocalName, includeElasticTrivia: false);
+        foreach (var match in matches)
+            editor.ReplaceNode(match, replacement);
+
+        if (scope is BlockSyntax block)
+        {
+            var firstAffectedStatement = block.Statements.Single(s => firstAffectedExpression.GetAncestorOrThis<StatementSyntax>()!.Contains(s));
+            var firstAffectedStatementIndex = block.Statements.IndexOf(firstAffectedStatement);
+            editor.ReplaceNode(
+                block,
+                (current, generator) =>
+                {
+                    var currentBlock = (BlockSyntax)current;
+                    return currentBlock.WithStatements(
+                        currentBlock.Statements.Insert(firstAffectedStatementIndex, declarationStatement));
+                });
         }
+        else
+        {
+            var firstAffectedGlobalStatement = compilationUnit.Members.OfType<GlobalStatementSyntax>().Single(s => firstAffectedExpression.GetAncestorOrThis<GlobalStatementSyntax>()!.Contains(s));
+            var firstAffectedGlobalStatementIndex = compilationUnit.Members.IndexOf(firstAffectedGlobalStatement);
+            editor.ReplaceNode(
+                compilationUnit,
+                (current, generator) =>
+                {
+                    var currentCompilationUnit = (CompilationUnitSyntax)current;
+                    return currentCompilationUnit.WithMembers(
+                        currentCompilationUnit.Members.Insert(firstAffectedGlobalStatementIndex, GlobalStatement(declarationStatement)));
+                });
+        }
+
+        return document.Document.WithSyntaxRoot(editor.GetChangedRoot());
     }
 
-    private async Task<Document> IntroduceLocalDeclarationIntoBlockAsync(
+#nullable disable
+
+    private Document IntroduceLocalDeclarationIntoBlock(
         SemanticDocument document,
         BlockSyntax block,
         ExpressionSyntax expression,
@@ -303,14 +374,8 @@ internal sealed partial class CSharpIntroduceVariableService
             scope = block.GetAncestor<MemberDeclarationSyntax>();
         }
 
-        var matches = FindMatches(document, expression, document, scope, allOccurrences, cancellationToken);
+        var matches = FindMatches(document, expression, document, [scope], allOccurrences, cancellationToken);
         Debug.Assert(matches.Contains(expression));
-
-        (document, matches) = await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(false);
-
-        // Our original expression should have been one of the matches, which were tracked as part
-        // of complexification, so we can retrieve the latest version of the expression here.
-        expression = document.Root.GetCurrentNode(expression);
 
         var root = document.Root;
         ISet<StatementSyntax> allAffectedStatements = new HashSet<StatementSyntax>(matches.SelectMany(expr => GetApplicableStatementAncestors(expr)));
@@ -332,9 +397,9 @@ internal sealed partial class CSharpIntroduceVariableService
                     Block(root.GetCurrentNode(statement)).WithAdditionalAnnotations(Formatter.Annotation));
 
                 expression = root.GetCurrentNode(expression);
-                allAffectedStatements = allAffectedStatements.Select(root.GetCurrentNode).ToSet();
-
                 statement = root.GetCurrentNode(statement);
+
+                allAffectedStatements = allAffectedStatements.Select(root.GetCurrentNode).ToSet();
             }
 
             innermostCommonBlock = statement.Parent;
@@ -356,18 +421,16 @@ internal sealed partial class CSharpIntroduceVariableService
         return document.Document.WithSyntaxRoot(newRoot);
     }
 
+#nullable restore
+
     private static IEnumerable<StatementSyntax> GetApplicableStatementAncestors(ExpressionSyntax expr)
     {
         foreach (var statement in expr.GetAncestorsOrThis<StatementSyntax>())
         {
             // When determining where to put a local, we don't want to put it between the `else`
             // and `if` of a compound if-statement.
-
-            if (statement.Kind() == SyntaxKind.IfStatement &&
-                statement.IsParentKind(SyntaxKind.ElseClause))
-            {
+            if (statement is IfStatementSyntax { Parent: ElseClauseSyntax })
                 continue;
-            }
 
             yield return statement;
         }
@@ -393,10 +456,11 @@ internal sealed partial class CSharpIntroduceVariableService
         var localFunctionIdentifiers = localFunctions.Select(node => ((LocalFunctionStatementSyntax)node).Identifier.ValueText);
 
         // Find all calls to the applicable local functions within the scope.
-        var localFunctionCalls = innermostCommonBlock.DescendantNodes().Where(node => node is InvocationExpressionSyntax invocationExpression &&
-                                                                              invocationExpression.Expression.GetRightmostName() != null &&
-                                                                              !invocationExpression.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) &&
-                                                                              localFunctionIdentifiers.Contains(invocationExpression.Expression.GetRightmostName().Identifier.ValueText));
+        var localFunctionCalls = innermostCommonBlock.DescendantNodes().Where(
+            node => node is InvocationExpressionSyntax invocationExpression &&
+            invocationExpression.Expression.GetRightmostName() is { } rightmostName &&
+            !invocationExpression.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) &&
+            localFunctionIdentifiers.Contains(rightmostName.Identifier.ValueText));
 
         if (localFunctionCalls.IsEmpty())
         {
@@ -422,24 +486,45 @@ internal sealed partial class CSharpIntroduceVariableService
         if (nextStatement == null)
             return oldStatements.Insert(statementIndex, newStatement);
 
-        // Grab all the trivia before the line the next statement is on and move it to the new node.
-
-        var nextStatementLeading = nextStatement.GetLeadingTrivia();
-        var precedingEndOfLine = nextStatementLeading.LastOrDefault(t => t.Kind() == SyntaxKind.EndOfLineTrivia);
-        if (precedingEndOfLine == default)
+        var priorToken = nextStatement.GetFirstToken().GetPreviousToken();
+        if (!priorToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia) &&
+            !nextStatement.GetLastToken().TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
         {
+            // A single statement that is on the same line as the construct that owns it.  In this case, just place the
+            // new statement in front of it.
             return oldStatements.ReplaceRange(
-                nextStatement, [newStatement, nextStatement]);
+                nextStatement,
+                [newStatement.WithoutLeadingTrivia().WithTrailingTrivia(Space), nextStatement]);
         }
 
-        var endOfLineIndex = nextStatementLeading.IndexOf(precedingEndOfLine) + 1;
+        // Grab all the trivia before the line the next statement is on and move it to the new node.
+
+        // If the next statement is on its own line, then move it's leading trivia (up through the new line) to the new
+        // statement (keeping the trivia after that with the next statement).
+        var nextStatementLeading = nextStatement.GetLeadingTrivia();
+        var precedingEndOfLine = nextStatementLeading.LastOrDefault(t => t.Kind() == SyntaxKind.EndOfLineTrivia);
+        if (precedingEndOfLine != default)
+        {
+            return oldStatements.ReplaceRange(
+                nextStatement,
+                [
+                    newStatement.WithLeadingTrivia(nextStatementLeading).WithTrailingTrivia(precedingEndOfLine),
+                    nextStatement.WithLeadingTrivia(nextStatementLeading.Skip(nextStatementLeading.IndexOf(precedingEndOfLine) + 1)),
+                ]);
+        }
+
+        // Otherwise, the next statement has no leading new-line.  Try to figure out how to place the new statement.
+
+        // Attempt to indent by the same amount as the next statement.
+        if (nextStatementLeading is [(kind: SyntaxKind.WhitespaceTrivia) indentation])
+            newStatement = newStatement.WithLeadingTrivia(indentation);
+
+        // Attempt to use the same end of line as the next statement.  Fall back to an elastic newline if not present.
+        newStatement = newStatement.WithTrailingTrivia(
+            nextStatement.GetTrailingTrivia() is [.., (kind: SyntaxKind.EndOfLineTrivia) endOfLine] ? endOfLine : ElasticCarriageReturnLineFeed);
 
         return oldStatements.ReplaceRange(
-            nextStatement,
-            [
-                newStatement.WithLeadingTrivia(nextStatementLeading.Take(endOfLineIndex)),
-                nextStatement.WithLeadingTrivia(nextStatementLeading.Skip(endOfLineIndex)),
-            ]);
+            nextStatement, [newStatement, nextStatement]);
     }
 
     private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax or SwitchSectionSyntax;

@@ -19,7 +19,8 @@ using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
-public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
+
+public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
     : AbstractPullDiagnosticTestsBase(testOutputHelper)
 {
     [Theory, CombinatorialData]
@@ -35,7 +36,7 @@ public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
 
         await OpenDocumentAsync(testLspServer, document);
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
-        Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics.Single().Code);
+        Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics!.Single().Code);
         Assert.Equal(1, testProvider.DiagnosticsRequestedCount);
 
         // Make a change that modifies the versions we use to cache.
@@ -65,7 +66,7 @@ public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
 
         await OpenDocumentAsync(testLspServer, document);
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
-        Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics.Single().Code);
+        Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics!.Single().Code);
         Assert.Equal(1, testProvider.DiagnosticsRequestedCount);
 
         // Make a global version change
@@ -96,7 +97,7 @@ public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
 
         await OpenDocumentAsync(testLspServer, document);
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
-        Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics.Single().Code);
+        Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics!.Single().Code);
         Assert.Equal(1, testProvider.DiagnosticsRequestedCount);
 
         // Make another request without modifying anything and assert we did not re-calculate anything.
@@ -113,7 +114,7 @@ public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
 
     protected override TestComposition Composition => base.Composition.AddParts(typeof(TestDiagnosticSourceProvider));
 
-    private class TestDiagnosticSource(Document document, TestDiagnosticSourceProvider provider) : AbstractDocumentDiagnosticSource<Document>(document)
+    private sealed class TestDiagnosticSource(Document document, TestDiagnosticSourceProvider provider) : AbstractDocumentDiagnosticSource<Document>(document)
     {
         public const string Id = "Id";
 
@@ -134,7 +135,7 @@ public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
     [Export(typeof(IDiagnosticSourceProvider)), Shared, PartNotDiscoverable]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private class TestDiagnosticSourceProvider() : IDiagnosticSourceProvider
+    private sealed class TestDiagnosticSourceProvider() : IDiagnosticSourceProvider
     {
         public bool IsDocument => true;
 

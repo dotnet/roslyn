@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../CompilerExtensionsResources.resx">
     <body>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="translated">Bu seçenek için bir dil adı belirtilemiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="translated">Bu seçenek için bir dil adı belirtilmelidir.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Absolute_path_expected">
         <source>Absolute path expected.</source>
         <target state="translated">Mutlak yok bekleniyor.</target>
@@ -50,6 +60,11 @@
       <trans-unit id="Field_preferences">
         <source>Field preferences</source>
         <target state="translated">Alan tercihleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_and_spacing">
+        <source>Indentation and spacing</source>
+        <target state="translated">Girinti ve aralığı</target>
         <note />
       </trans-unit>
       <trans-unit id="Instantiated_parts_threw_exceptions_from_IDisposable_Dispose">
@@ -177,6 +192,11 @@
         <target state="translated">Statik Metot</target>
         <note>{locked: static}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
       </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="translated">Akış okuma ve arama işlemlerini desteklemelidir.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Struct">
         <source>Struct</source>
         <target state="new">Struct</target>
@@ -231,6 +251,11 @@
         <source>Types</source>
         <target state="translated">Türler</target>
         <note>{locked:types} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
+        <source>Value too large to be represented as a 30 bit unsigned integer.</source>
+        <target state="translated">Değer, 30 bit işaretsiz tamsayı olarak temsil edilemeyecek kadar büyük.</target>
+        <note />
       </trans-unit>
       <trans-unit id="this_dot_and_Me_dot_preferences">
         <source>this. and Me. preferences</source>

@@ -6,7 +6,9 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell;
@@ -14,17 +16,23 @@ using Microsoft.VisualStudio.Shell;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
 [ExportWorkspaceService(typeof(IHierarchyItemToProjectIdMap), ServiceLayer.Host), Shared]
-internal class HierarchyItemToProjectIdMap : IHierarchyItemToProjectIdMap
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class HierarchyItemToProjectIdMap(VisualStudioWorkspaceImpl workspace) : IHierarchyItemToProjectIdMap
 {
-    private readonly VisualStudioWorkspaceImpl _workspace;
+    private readonly VisualStudioWorkspaceImpl _workspace = workspace;
 
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public HierarchyItemToProjectIdMap(VisualStudioWorkspaceImpl workspace)
-        => _workspace = workspace;
+    public bool TryGetProject(IVsHierarchyItem? hierarchyItem, string? targetFrameworkMoniker, [NotNullWhen(true)] out Project? project)
+        => TryGetProject(_workspace.CurrentSolution, hierarchyItem, targetFrameworkMoniker, out project);
 
-    public bool TryGetProjectId(IVsHierarchyItem hierarchyItem, string? targetFrameworkMoniker, [NotNullWhen(true)] out ProjectId? projectId)
+    private bool TryGetProject(
+        Solution solution, IVsHierarchyItem? hierarchyItem, string? targetFrameworkMoniker, [NotNullWhen(true)] out Project? project)
     {
+        project = null;
+
+        if (hierarchyItem is null)
+            return false;
+
         // A project node is represented in two different hierarchies: the solution's IVsHierarchy (where it is a leaf node)
         // and the project's own IVsHierarchy (where it is the root node). The IVsHierarchyItem joins them together for the
         // purpose of creating the tree displayed in Solution Explorer. The project's hierarchy is what is passed from the
@@ -32,44 +40,45 @@ internal class HierarchyItemToProjectIdMap : IHierarchyItemToProjectIdMap
         // the "nested" hierarchy from the IVsHierarchyItem.
         var nestedHierarchy = hierarchyItem.HierarchyIdentity.NestedHierarchy;
 
+        using var candidateProjects = TemporaryArray<Project>.Empty;
+
         // First filter the projects by matching up properties on the input hierarchy against properties on each
         // project's hierarchy.
-        var candidateProjects = _workspace.CurrentSolution.Projects
-            .Where(p =>
+        foreach (var currentId in solution.ProjectIds)
+        {
+            var hierarchy = _workspace.GetHierarchy(currentId);
+            if (hierarchy == nestedHierarchy)
             {
+                var currentProject = solution.GetProject(currentId);
+
                 // We're about to access various properties of the IVsHierarchy associated with the project.
                 // The properties supported and the interpretation of their values varies from one project system
                 // to another. This code is designed with C# and VB in mind, so we need to filter out everything
                 // else.
-                if (p.Language is not LanguageNames.CSharp
-                    and not LanguageNames.VisualBasic)
-                {
-                    return false;
-                }
-
-                var hierarchy = _workspace.GetHierarchy(p.Id);
-
-                return hierarchy == nestedHierarchy;
-            })
-            .ToArray();
+                if (currentProject?.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)
+                    candidateProjects.Add(currentProject);
+            }
+        }
 
         // If we only have one candidate then no further checks are required.
-        if (candidateProjects.Length == 1)
+        if (candidateProjects.Count == 1)
         {
-            projectId = candidateProjects[0].Id;
-            return true;
+            project = candidateProjects[0];
+            return project != null;
         }
 
         // For CPS projects, we may have a string we extracted from a $TFM-prefixed capability; compare that to the string we're given
         // from CPS to see if this matches.
         if (targetFrameworkMoniker != null)
         {
-            var matchingProject = candidateProjects.FirstOrDefault(p => _workspace.TryGetDependencyNodeTargetIdentifier(p.Id) == targetFrameworkMoniker);
+            var matchingProject = candidateProjects.FirstOrDefault(
+                static (project, tuple) => tuple._workspace.TryGetDependencyNodeTargetIdentifier(project.Id) == tuple.targetFrameworkMoniker,
+                (_workspace, targetFrameworkMoniker));
 
             if (matchingProject != null)
             {
-                projectId = matchingProject.Id;
-                return true;
+                project = matchingProject;
+                return project != null;
             }
         }
 
@@ -81,12 +90,11 @@ internal class HierarchyItemToProjectIdMap : IHierarchyItemToProjectIdMap
         {
             if (!candidateProject.DocumentIds.Any(id => ContainedDocument.TryGetContainedDocument(id) != null))
             {
-                projectId = candidateProject.Id;
-                return true;
+                project = candidateProject;
+                return project != null;
             }
         }
 
-        projectId = null;
         return false;
     }
 }

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -12,10 +11,14 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
 {
     public enum ResultKind
     {
-        // like s.Substring(expr, s.Length - expr) or s.Substring(expr).  'expr' has to match on both sides.
+        /// <summary>
+        /// like s.Substring(expr, s.Length - expr) or s.Substring(expr).  'expr' has to match on both sides.
+        /// </summary>
         Computed,
 
-        // like s.Substring(constant1, s.Length - constant2).  the constants don't have to match.
+        /// <summary>
+        /// like s.Substring(constant1, s.Length - constant2).  the constants don't have to match.
+        /// </summary>
         Constant,
     }
 
@@ -33,6 +36,10 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
         public readonly InvocationExpressionSyntax Invocation = invocation;
         public readonly IMethodSymbol SliceLikeMethod = sliceLikeMethod;
         public readonly MemberInfo MemberInfo = memberInfo;
+
+        /// <summary>
+        /// Represents the starting operation of the range we are creating.
+        /// </summary>
         public readonly IOperation Op1 = op1;
 
         /// <summary>

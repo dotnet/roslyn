@@ -31,7 +31,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     {
         private readonly Guid _languageId;
         private readonly TLanguageService _languageService;
-        private readonly IThreadingContext _threadingContext;
         private readonly ILanguageDebugInfoService? _languageDebugInfo;
         private readonly IBreakpointResolutionService? _breakpointService;
         private readonly IProximityExpressionsService? _proximityExpressionsService;
@@ -41,7 +40,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             Guid languageId,
             TLanguageService languageService,
             HostLanguageServices languageServiceProvider,
-            IThreadingContext threadingContext,
             IUIThreadOperationExecutor uiThreadOperationExecutor)
         {
             Contract.ThrowIfNull(languageService);
@@ -49,12 +47,13 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
             _languageId = languageId;
             _languageService = languageService;
-            _threadingContext = threadingContext;
             _languageDebugInfo = languageServiceProvider.GetService<ILanguageDebugInfoService>();
             _breakpointService = languageServiceProvider.GetService<IBreakpointResolutionService>();
             _proximityExpressionsService = languageServiceProvider.GetService<IProximityExpressionsService>();
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
         }
+
+        private IThreadingContext ThreadingContext => _languageService.ThreadingContext;
 
         public int GetLanguageID(IVsTextBuffer pBuffer, int iLine, int iCol, out Guid pguidLanguageID)
         {
@@ -71,161 +70,146 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         public int GetNameOfLocation(IVsTextBuffer pBuffer, int iLine, int iCol, out string? pbstrName, out int piLineOffset)
         {
-            using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetNameOfLocation, CancellationToken.None))
+            (pbstrName, piLineOffset) = GetNameOfLocationWorker();
+
+            // Note(DustinCa): Docs say that GetNameOfLocation should return S_FALSE if a name could not be found.
+            // Also, that's what the old native code does, so we should do it here.
+            return pbstrName != null ? VSConstants.S_OK : VSConstants.S_FALSE;
+
+            (string name, int lineOffset) GetNameOfLocationWorker()
             {
-                string? name = null;
-                var lineOffset = 0;
-
-                if (_languageDebugInfo != null)
+                return this.ThreadingContext.JoinableTaskFactory.Run(async () =>
                 {
-                    _uiThreadOperationExecutor.Execute(
-                        title: ServicesVSResources.Debugger,
-                        defaultDescription: ServicesVSResources.Determining_breakpoint_location,
-                        allowCancellation: true,
-                        showProgress: false,
-                        action: waitContext =>
-                        {
-                            var cancellationToken = waitContext.UserCancellationToken;
-                            var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
-                            if (textBuffer != null)
-                            {
-                                var nullablePoint = textBuffer.CurrentSnapshot.TryGetPoint(iLine, iCol);
-                                if (nullablePoint.HasValue)
-                                {
-                                    var point = nullablePoint.Value;
-                                    var document = point.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-                                    if (document != null)
-                                    {
-                                        // NOTE(cyrusn): We have to wait here because the debuggers' 
-                                        // GetNameOfLocation is a blocking call.  In the future, it 
-                                        // would be nice if they could make it async.
-                                        _threadingContext.JoinableTaskFactory.Run(async () =>
-                                        {
-                                            var debugLocationInfo = await _languageDebugInfo.GetLocationInfoAsync(document, point, cancellationToken).ConfigureAwait(false);
-
-                                            if (!debugLocationInfo.IsDefault)
-                                            {
-                                                name = debugLocationInfo.Name;
-                                                lineOffset = debugLocationInfo.LineOffset;
-                                            }
-                                        });
-                                    }
-                                }
-                            }
-                        });
-
-                    if (name != null)
+                    using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetNameOfLocation, CancellationToken.None))
                     {
-                        pbstrName = name;
-                        piLineOffset = lineOffset;
-                        return VSConstants.S_OK;
-                    }
-                }
+                        if (_languageDebugInfo == null)
+                            return default;
 
-                // Note(DustinCa): Docs say that GetNameOfLocation should return S_FALSE if a name could not be found.
-                // Also, that's what the old native code does, so we should do it here.
-                pbstrName = null;
-                piLineOffset = 0;
-                return VSConstants.S_FALSE;
+                        using var waitContext = _uiThreadOperationExecutor.BeginExecute(
+                            title: ServicesVSResources.Debugger,
+                            defaultDescription: ServicesVSResources.Determining_breakpoint_location,
+                            allowCancellation: true,
+                            showProgress: false);
+
+                        var cancellationToken = waitContext.UserCancellationToken;
+                        var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+                        if (textBuffer == null)
+                            return default;
+
+                        var nullablePoint = textBuffer.CurrentSnapshot.TryGetPoint(iLine, iCol);
+                        if (!nullablePoint.HasValue)
+                            return default;
+
+                        var point = nullablePoint.Value;
+                        var document = point.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                        if (document == null)
+                            return default;
+
+                        // NOTE(cyrusn): We have to wait here because the debuggers' 
+                        // GetNameOfLocation is a blocking call.  In the future, it 
+                        // would be nice if they could make it async.
+                        var debugLocationInfo = await _languageDebugInfo.GetLocationInfoAsync(document, point, cancellationToken).ConfigureAwait(true);
+
+                        if (debugLocationInfo.IsDefault)
+                            return default;
+
+                        return (debugLocationInfo.Name, debugLocationInfo.LineOffset);
+                    }
+                });
             }
         }
 
         public int GetProximityExpressions(IVsTextBuffer pBuffer, int iLine, int iCol, int cLines, out IVsEnumBSTR? ppEnum)
         {
-            // NOTE(cyrusn): cLines is ignored.  This is to match existing dev10 behavior.
-            using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetProximityExpressions, CancellationToken.None))
+            ppEnum = this.ThreadingContext.JoinableTaskFactory.Run(async () =>
             {
-                VsEnumBSTR? enumBSTR = null;
-
-                if (_proximityExpressionsService != null)
+                // NOTE(cyrusn): cLines is ignored.  This is to match existing dev10 behavior.
+                using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetProximityExpressions, CancellationToken.None))
                 {
-                    _uiThreadOperationExecutor.Execute(
+                    using var context = _uiThreadOperationExecutor.BeginExecute(
                         title: ServicesVSResources.Debugger,
                         defaultDescription: ServicesVSResources.Determining_autos,
                         allowCancellation: true,
-                        showProgress: false,
-                        action: context =>
-                    {
-                        var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+                        showProgress: false);
 
-                        if (textBuffer != null)
-                        {
-                            var snapshot = textBuffer.CurrentSnapshot;
-                            var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
-                            if (nullablePoint.HasValue)
-                            {
-                                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                                if (document != null)
-                                {
-                                    var point = nullablePoint.Value;
-                                    var proximityExpressions = _proximityExpressionsService.GetProximityExpressionsAsync(document, point.Position, context.UserCancellationToken).WaitAndGetResult(context.UserCancellationToken);
+                    if (_proximityExpressionsService == null)
+                        return null;
 
-                                    if (proximityExpressions != null)
-                                    {
-                                        enumBSTR = new VsEnumBSTR(proximityExpressions);
-                                    }
-                                }
-                            }
-                        }
-                    });
+                    var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+                    if (textBuffer == null)
+                        return null;
+
+                    var snapshot = textBuffer.CurrentSnapshot;
+                    var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
+                    if (!nullablePoint.HasValue)
+                        return null;
+
+                    var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    if (document == null)
+                        return null;
+
+                    var point = nullablePoint.Value;
+                    var proximityExpressions = await _proximityExpressionsService.GetProximityExpressionsAsync(
+                        document, point.Position, context.UserCancellationToken).ConfigureAwait(true);
+
+                    if (proximityExpressions == null)
+                        return null;
+
+                    return new VsEnumBSTR(proximityExpressions);
                 }
+            });
 
-                ppEnum = enumBSTR;
-                return ppEnum != null ? VSConstants.S_OK : VSConstants.E_FAIL;
-            }
+            return ppEnum != null ? VSConstants.S_OK : VSConstants.E_FAIL;
         }
 
         public int IsMappedLocation(IVsTextBuffer pBuffer, int iLine, int iCol)
             => VSConstants.E_NOTIMPL;
 
-        public int ResolveName(string pszName, uint dwFlags, out IVsEnumDebugName? ppNames)
+        public int ResolveName(string? pszName, uint dwFlags, out IVsEnumDebugName? ppNames)
         {
-            using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_ResolveName, CancellationToken.None))
+            // In VS, this method frequently get's called with an empty string to test if the language service
+            // supports this method (some language services, like F#, implement IVsLanguageDebugInfo but don't
+            // implement this method).  In that scenario, there's no sense doing work, so we'll just return
+            // S_FALSE (as the old VB language service did).
+            if (pszName is null or "")
             {
-                // In VS, this method frequently get's called with an empty string to test if the language service
-                // supports this method (some language services, like F#, implement IVsLanguageDebugInfo but don't
-                // implement this method).  In that scenario, there's no sense doing work, so we'll just return
-                // S_FALSE (as the old VB language service did).
-                if (string.IsNullOrEmpty(pszName))
+                ppNames = null;
+                return VSConstants.S_FALSE;
+            }
+
+            ppNames = this.ThreadingContext.JoinableTaskFactory.Run(async () =>
+            {
+                using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_ResolveName, CancellationToken.None))
                 {
-                    ppNames = null;
-                    return VSConstants.S_FALSE;
+                    using var waitContext = _uiThreadOperationExecutor.BeginExecute(
+                        title: ServicesVSResources.Debugger,
+                        defaultDescription: ServicesVSResources.Resolving_breakpoint_location,
+                        allowCancellation: true,
+                        showProgress: false);
+
+                    var cancellationToken = waitContext.UserCancellationToken;
+                    if (dwFlags == (uint)RESOLVENAMEFLAGS.RNF_BREAKPOINT)
+                    {
+                        var solution = _languageService.Workspace.CurrentSolution;
+
+                        // NOTE(cyrusn): We have to wait here because the debuggers' ResolveName
+                        // call is synchronous.  In the future it would be nice to make it async.
+                        if (_breakpointService != null)
+                        {
+                            var breakpoints = await _breakpointService.ResolveBreakpointsAsync(
+                                solution, pszName, cancellationToken).ConfigureAwait(false);
+                            var debugNames = await breakpoints.SelectAsArrayAsync(
+                                bp => CreateDebugNameAsync(bp, cancellationToken)).ConfigureAwait(true);
+
+                            return new VsEnumDebugName(debugNames);
+                        }
+                    }
                 }
 
-                VsEnumDebugName? enumName = null;
-                _uiThreadOperationExecutor.Execute(
-                    title: ServicesVSResources.Debugger,
-                    defaultDescription: ServicesVSResources.Resolving_breakpoint_location,
-                    allowCancellation: true,
-                    showProgress: false,
-                    action: waitContext =>
-                {
-                    _threadingContext.JoinableTaskFactory.Run(async () =>
-                    {
-                        var cancellationToken = waitContext.UserCancellationToken;
-                        if (dwFlags == (uint)RESOLVENAMEFLAGS.RNF_BREAKPOINT)
-                        {
-                            var solution = _languageService.Workspace.CurrentSolution;
+                return null;
+            });
 
-                            // NOTE(cyrusn): We have to wait here because the debuggers' ResolveName
-                            // call is synchronous.  In the future it would be nice to make it async.
-                            if (_breakpointService != null)
-                            {
-                                var breakpoints = await _breakpointService.ResolveBreakpointsAsync(
-                                    solution, pszName, cancellationToken).ConfigureAwait(false);
-                                var debugNames = await breakpoints.SelectAsArrayAsync(
-                                    bp => CreateDebugNameAsync(bp, cancellationToken)).ConfigureAwait(false);
-
-                                enumName = new VsEnumDebugName(debugNames);
-                            }
-                        }
-                    });
-                });
-
-                ppNames = enumName;
-                return ppNames != null ? VSConstants.S_OK : VSConstants.E_NOTIMPL;
-            }
+            return ppNames != null ? VSConstants.S_OK : VSConstants.E_NOTIMPL;
         }
 
         private async ValueTask<IVsDebugName> CreateDebugNameAsync(
@@ -238,33 +222,32 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             // If we're inside an Venus code nugget, we need to map the span to the surface buffer.
             // Otherwise, we'll just use the original span.
             var mappedSpan = await span.MapSpanFromSecondaryBufferToPrimaryBufferAsync(
-                _threadingContext, document.Id, cancellationToken).ConfigureAwait(false);
+                this.ThreadingContext, document.Id, cancellationToken).ConfigureAwait(true);
             if (mappedSpan != null)
                 span = mappedSpan.Value;
 
-            return new VsDebugName(breakpoint.LocationNameOpt, filePath, span);
+            return new VsDebugName(breakpoint.LocationNameOpt, filePath!, span);
         }
 
         public int ValidateBreakpointLocation(IVsTextBuffer pBuffer, int iLine, int iCol, VsTextSpan[] pCodeSpan)
         {
-            using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_ValidateBreakpointLocation, CancellationToken.None))
+            return this.ThreadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var result = VSConstants.E_NOTIMPL;
-                _uiThreadOperationExecutor.Execute(
-                    title: ServicesVSResources.Debugger,
-                    defaultDescription: ServicesVSResources.Validating_breakpoint_location,
-                    allowCancellation: true,
-                    showProgress: false,
-                    action: waitContext =>
+                using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_ValidateBreakpointLocation, CancellationToken.None))
                 {
-                    result = ValidateBreakpointLocationWorker(pBuffer, iLine, iCol, pCodeSpan, waitContext.UserCancellationToken);
-                });
+                    using var waitContext = _uiThreadOperationExecutor.BeginExecute(
+                        title: ServicesVSResources.Debugger,
+                        defaultDescription: ServicesVSResources.Validating_breakpoint_location,
+                        allowCancellation: true,
+                        showProgress: false);
 
-                return result;
-            }
+                    return await ValidateBreakpointLocationAsync(
+                        pBuffer, iLine, iCol, pCodeSpan, waitContext.UserCancellationToken).ConfigureAwait(true);
+                }
+            });
         }
 
-        private int ValidateBreakpointLocationWorker(
+        private async Task<int> ValidateBreakpointLocationAsync(
             IVsTextBuffer pBuffer,
             int iLine,
             int iCol,
@@ -272,9 +255,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             CancellationToken cancellationToken)
         {
             if (_breakpointService == null)
-            {
                 return VSConstants.E_FAIL;
-            }
 
             var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
             if (textBuffer != null)
@@ -336,7 +317,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                     // NOTE(cyrusn): we need to wait here because ValidateBreakpointLocation is
                     // synchronous.  In the future, it would be nice for the debugger to provide
                     // an async entry point for this.
-                    var breakpoint = _breakpointService.ResolveBreakpointAsync(document, new TextSpan(point.Position, length), cancellationToken).WaitAndGetResult(cancellationToken);
+                    var breakpoint = await _breakpointService.ResolveBreakpointAsync(
+                        document, new TextSpan(point.Position, length), cancellationToken).ConfigureAwait(true);
                     if (breakpoint == null)
                     {
                         // There should *not* be a breakpoint here.  E_FAIL to let the debugger know
@@ -357,9 +339,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
                     // There should be a breakpoint at the location passed back.
                     if (pCodeSpan != null && pCodeSpan.Length > 0)
-                    {
                         pCodeSpan[0] = breakpoint.TextSpan.ToSnapshotSpan(snapshot).ToVsTextSpan();
-                    }
 
                     return VSConstants.S_OK;
                 }

@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
 internal readonly struct VSTypeScriptDebugDataTipInfoWrapper(TextSpan span, string text)
 {
-    internal readonly DebugDataTipInfo UnderlyingObject = new DebugDataTipInfo(span, text);
+    internal readonly DebugDataTipInfo UnderlyingObject = new(span, text);
 
     public readonly TextSpan Span => UnderlyingObject.Span;
-    public readonly string Text => UnderlyingObject.Text;
+    public readonly string Text => UnderlyingObject.Text!;
     public bool IsDefault => UnderlyingObject.IsDefault;
 }

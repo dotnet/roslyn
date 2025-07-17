@@ -9,19 +9,19 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
-public class AsynchronousOperationListenerTests
+public sealed class AsynchronousOperationListenerTests
 {
     /// <summary>
     /// A delay which is not expected to be reached in practice.
     /// </summary>
     private static readonly TimeSpan s_unexpectedDelay = TimeSpan.FromSeconds(60);
 
-    private class SleepHelper : IDisposable
+    private sealed class SleepHelper : IDisposable
     {
         private readonly CancellationTokenSource _tokenSource;
         private readonly List<Task> _tasks = [];

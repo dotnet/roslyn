@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         protected AbstractTypeParameterChecker(ImmutableArray<ITypeParameterSymbol> acceptableTypeParameters)
         {
-            _acceptableTypeParameters = new HashSet<ITypeParameterSymbol>(acceptableTypeParameters);
+            _acceptableTypeParameters = [.. acceptableTypeParameters];
         }
 
         public abstract IParameterSymbol GetThisParameter(IMethodSymbol method);

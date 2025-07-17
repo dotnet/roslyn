@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.EditorConfig;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using RoslynEnumerableExtensions = Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions.EnumerableExtensions;
 
@@ -19,10 +20,14 @@ internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSe
 {
     private readonly IDiagnosticAnalyzerService _analyzerService;
 
-    public AnalyzerSettingsProvider(string fileName, AnalyzerSettingsUpdater settingsUpdater, Workspace workspace, IDiagnosticAnalyzerService analyzerService)
-        : base(fileName, settingsUpdater, workspace, analyzerService.GlobalOptions)
+    public AnalyzerSettingsProvider(
+        string fileName,
+        AnalyzerSettingsUpdater settingsUpdater,
+        Workspace workspace,
+        IGlobalOptionService optionService)
+        : base(fileName, settingsUpdater, workspace, optionService)
     {
-        _analyzerService = analyzerService;
+        _analyzerService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         Update();
     }
 
@@ -66,7 +71,7 @@ internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSe
         }
     }
 
-    private class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
+    private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
     {
         public static readonly DiagnosticAnalyzerComparer Instance = new();
 

@@ -10,12 +10,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 
-internal class ModelComputation<TModel> where TModel : class
+internal sealed class ModelComputation<TModel> where TModel : class
 {
     #region Fields that can be accessed from either thread
 
@@ -32,16 +34,6 @@ internal class ModelComputation<TModel> where TModel : class
     #region Fields that can only be accessed from the foreground thread
 
     private readonly IController<TModel> _controller;
-    private readonly TaskScheduler __taskScheduler;
-
-    private TaskScheduler _taskScheduler
-    {
-        get
-        {
-            ThreadingContext.ThrowIfNotOnUIThread();
-            return __taskScheduler;
-        }
-    }
 
     private readonly CancellationTokenSource _stopTokenSource;
 
@@ -57,12 +49,10 @@ internal class ModelComputation<TModel> where TModel : class
 
     public ModelComputation(
         IThreadingContext threadingContext,
-        IController<TModel> controller,
-        TaskScheduler computationTaskScheduler)
+        IController<TModel> controller)
     {
         ThreadingContext = threadingContext;
         _controller = controller;
-        __taskScheduler = computationTaskScheduler;
 
         _stopTokenSource = new CancellationTokenSource();
         _stopCancellationToken = _stopTokenSource.Token;
@@ -92,23 +82,10 @@ internal class ModelComputation<TModel> where TModel : class
         }
     }
 
-    public TModel WaitForController()
-    {
-        ThreadingContext.ThrowIfNotOnUIThread();
+    public Task WaitForModelComputation_ForTestingPurposesOnlyAsync()
+        => ModelTask;
 
-        var model = ModelTask.WaitAndGetResult(CancellationToken.None);
-        if (!_notifyControllerTask.IsCompleted)
-        {
-            OnModelUpdated(model, updateController: true);
-
-            // Reset lastTask so controller.OnModelUpdated is only called once
-            _lastTask = Task.FromResult(model);
-        }
-
-        return model;
-    }
-
-    public virtual void Stop()
+    public void Stop()
     {
         ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -117,13 +94,6 @@ internal class ModelComputation<TModel> where TModel : class
 
         // reset task so that it doesn't hold onto things like WpfTextView
         _notifyControllerTask = _lastTask = SpecializedTasks.Null<TModel>();
-    }
-
-    public void ChainTaskAndNotifyControllerWhenFinished(
-            Func<TModel, TModel> transformModel,
-            bool updateController = true)
-    {
-        ChainTaskAndNotifyControllerWhenFinished((m, c) => Task.FromResult(transformModel(m)), updateController);
     }
 
     public void ChainTaskAndNotifyControllerWhenFinished(
@@ -140,9 +110,8 @@ internal class ModelComputation<TModel> where TModel : class
         var asyncToken = _controller.BeginAsyncOperation();
 
         // Create the task that will actually run the transformation step.
-        var nextTask = _lastTask.SafeContinueWithFromAsync(
-            t => transformModelAsync(t.Result, _stopCancellationToken),
-            _stopCancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, _taskScheduler);
+        var nextTask = TransformModelAsync(_lastTask);// transformModelAsync(_lastTask, _stopCancellationToken);
+        nextTask.ReportNonFatalErrorAsync();
 
         // The next task is now the last task in the chain.
         _lastTask = nextTask;
@@ -174,6 +143,25 @@ internal class ModelComputation<TModel> where TModel : class
         // When we've notified the controller of our result, we consider the async operation
         // to be completed.
         _notifyControllerTask.CompletesAsyncOperation(asyncToken);
+
+        async Task<TModel> TransformModelAsync(Task<TModel> lastTask)
+        {
+            // Ensure we're on the BG before doing any model transformation work.
+            await TaskScheduler.Default;
+
+            try
+            {
+                var model = await lastTask.ConfigureAwait(false);
+                return await transformModelAsync(model, _stopCancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                // Also, ensure we yield during exception stack unwinding so that we don't end up with an enormously
+                // long chain of tasks unwinding.  That can otherwise cause a stack overflow if this chain gets too long.
+                await Task.Yield().ConfigureAwait(false);
+                throw;
+            }
+        }
     }
 
     private void OnModelUpdated(TModel result, bool updateController)

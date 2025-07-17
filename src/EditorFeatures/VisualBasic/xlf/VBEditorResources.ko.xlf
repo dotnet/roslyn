@@ -32,21 +32,6 @@
         <target state="translated">문서 서식을 지정하는 중...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_new_line">
-        <source>Insert new line</source>
-        <target state="translated">새 줄 삽입</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting_pasted_text">
-        <source>Formatting pasted text...</source>
-        <target state="translated">붙여넣은 텍스트의 서식을 지정하는 중...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Paste">
-        <source>Paste</source>
-        <target state="translated">붙여넣기</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_on_Save">
         <source>Format on Save</source>
         <target state="translated">저장 시 서식 지정</target>

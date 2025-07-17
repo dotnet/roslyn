@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -488,7 +489,7 @@ internal abstract partial class AbstractSymbolDisplayService
                 !symbol.IsAnonymousDelegateType())
             {
                 var allTypeParameters = symbol.GetAllTypeParameters();
-                var allTypeArguments = symbol.GetAllTypeArguments().ToList();
+                var allTypeArguments = symbol.GetAllTypeArguments();
 
                 AddTypeParameterMapPart(allTypeParameters, allTypeArguments);
             }
@@ -503,10 +504,10 @@ internal abstract partial class AbstractSymbolDisplayService
 
         private static bool TypeArgumentsAndParametersAreSame(INamedTypeSymbol symbol)
         {
-            var typeArguments = symbol.GetAllTypeArguments().ToList();
-            var typeParameters = symbol.GetAllTypeParameters().ToList();
+            var typeArguments = symbol.GetAllTypeArguments();
+            var typeParameters = symbol.GetAllTypeParameters();
 
-            for (var i = 0; i < typeArguments.Count; i++)
+            for (var i = 0; i < typeArguments.Length; i++)
             {
                 var typeArgument = typeArguments[i];
                 var typeParameter = typeParameters[i];
@@ -727,7 +728,7 @@ internal abstract partial class AbstractSymbolDisplayService
 
         protected void AddTypeParameterMapPart(
             ImmutableArray<ITypeParameterSymbol> typeParameters,
-            List<ITypeSymbol> typeArguments)
+            ImmutableArray<ITypeSymbol> typeArguments)
         {
             using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
 

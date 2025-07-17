@@ -14,12 +14,17 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature;
 
 [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-public partial class ChangeSignatureTests : AbstractChangeSignatureTests
+public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
 {
     [Fact]
     public async Task AddParameter_Delegates_ImplicitInvokeCalls()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+            new AddedParameterOrExistingIndex(1)
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             delegate void MyDelegate($$int x, string y, bool z);
 
             class C
@@ -30,13 +35,8 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     d1(1, "Two", true);
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-            new AddedParameterOrExistingIndex(1)
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature,
+            expectedUpdatedInvocationDocumentCode: """
             delegate void MyDelegate(bool z, int newIntegerParameter, string y);
 
             class C
@@ -47,15 +47,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     d1(true, 12345, "Two");
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature,
-            expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 0);
+            """, expectedSelectedIndex: 0);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_ExplicitInvokeCalls()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+            new AddedParameterOrExistingIndex(1)
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             delegate void MyDelegate(int x, string $$y, bool z);
 
             class C
@@ -66,13 +69,8 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     d1.Invoke(1, "Two", true);
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-            new AddedParameterOrExistingIndex(1)
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature,
+            expectedUpdatedInvocationDocumentCode: """
             delegate void MyDelegate(bool z, int newIntegerParameter, string y);
 
             class C
@@ -83,15 +81,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     d1.Invoke(true, 12345, "Two");
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature,
-            expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 1);
+            """, expectedSelectedIndex: 1);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_BeginInvokeCalls()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+            new AddedParameterOrExistingIndex(1)
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             delegate void MyDelegate(int x, string y, bool z$$);
 
             class C
@@ -102,13 +103,8 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     d1.BeginInvoke(1, "Two", true, null, null);
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-            new AddedParameterOrExistingIndex(1)
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature,
+            expectedUpdatedInvocationDocumentCode: """
             delegate void MyDelegate(bool z, int newIntegerParameter, string y);
 
             class C
@@ -119,15 +115,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     d1.BeginInvoke(true, 12345, "Two", null, null);
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature,
-            expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 2);
+            """, expectedSelectedIndex: 2);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_AnonymousMethods()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+            new AddedParameterOrExistingIndex(1)
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             delegate void $$MyDelegate(int x, string y, bool z);
 
             class C
@@ -139,13 +138,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     d1 = delegate { };
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-            new AddedParameterOrExistingIndex(1)
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             delegate void MyDelegate(bool z, int newIntegerParameter, string y);
 
             class C
@@ -157,14 +150,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     d1 = delegate { };
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_Lambdas()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+            new AddedParameterOrExistingIndex(1)
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             delegate void $$MyDelegate(int x, string y, bool z);
 
             class C
@@ -175,13 +172,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     d1 = (r, s, t) => { var x = s.Length + (t ? 0 : 1); };
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-            new AddedParameterOrExistingIndex(1)
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             delegate void MyDelegate(bool z, int newIntegerParameter, string y);
 
             class C
@@ -192,14 +183,16 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     d1 = (t, newIntegerParameter, s) => { var x = s.Length + (t ? 0 : 1); };
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_Lambdas_RemovingOnlyParameterIntroducesParentheses()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             delegate void $$MyDelegate(int x);
 
             class C
@@ -212,11 +205,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     d1 = r => { System.Console.WriteLine("Test"); };
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             delegate void MyDelegate(int newIntegerParameter);
 
             class C
@@ -229,14 +218,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     d1 = (int newIntegerParameter) => { System.Console.WriteLine("Test"); };
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_CascadeThroughMethodGroups_AssignedToVariable()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+            new AddedParameterOrExistingIndex(1)
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             delegate void $$MyDelegate(int x, string y, bool z);
 
             class C
@@ -252,13 +245,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 void Goo(int a, string b, bool c) { }
                 void Goo(int a, object b, bool c) { }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-            new AddedParameterOrExistingIndex(1)
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             delegate void MyDelegate(bool z, int newIntegerParameter, string y);
 
             class C
@@ -274,14 +261,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 void Goo(bool c, int newIntegerParameter, string b) { }
                 void Goo(int a, object b, bool c) { }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_CascadeThroughMethodGroups_DelegateConstructor()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+            new AddedParameterOrExistingIndex(1)
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             delegate void $$MyDelegate(int x, string y, bool z);
 
             class C
@@ -296,13 +287,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 void Goo(int a, string b, bool c) { }
                 void Goo(int a, object b, bool c) { }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-            new AddedParameterOrExistingIndex(1)
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             delegate void MyDelegate(bool z, int newIntegerParameter, string y);
 
             class C
@@ -317,14 +302,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 void Goo(bool c, int newIntegerParameter, string b) { }
                 void Goo(int a, object b, bool c) { }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_CascadeThroughMethodGroups_PassedAsArgument()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+            new AddedParameterOrExistingIndex(1)
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             delegate void $$MyDelegate(int x, string y, bool z);
 
             class C
@@ -341,13 +330,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 void Goo(int a, string b, bool c) { }
                 void Goo(int a, object b, bool c) { }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-            new AddedParameterOrExistingIndex(1)
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             delegate void MyDelegate(bool z, int newIntegerParameter, string y);
 
             class C
@@ -364,14 +347,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 void Goo(bool c, int newIntegerParameter, string b) { }
                 void Goo(int a, object b, bool c) { }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_CascadeThroughMethodGroups_ReturnValue()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+            new AddedParameterOrExistingIndex(1)
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             delegate void $$MyDelegate(int x, string y, bool z);
 
             class C
@@ -390,13 +377,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 void Goo(int a, string b, bool c) { }
                 void Goo(int a, object b, bool c) { }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-            new AddedParameterOrExistingIndex(1)
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             delegate void MyDelegate(bool z, int newIntegerParameter, string y);
 
             class C
@@ -415,14 +396,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 void Goo(bool c, int newIntegerParameter, string b) { }
                 void Goo(int a, object b, bool c) { }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_CascadeThroughMethodGroups_YieldReturnValue()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+            new AddedParameterOrExistingIndex(1)
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             using System.Collections.Generic;
 
             delegate void $$MyDelegate(int x, string y, bool z);
@@ -442,13 +427,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 void Goo(int a, string b, bool c) { }
                 void Goo(int a, object b, bool c) { }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-            new AddedParameterOrExistingIndex(1)
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             using System.Collections.Generic;
 
             delegate void MyDelegate(bool z, int newIntegerParameter, string y);
@@ -468,14 +447,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 void Goo(bool c, int newIntegerParameter, string b) { }
                 void Goo(int a, object b, bool c) { }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_ReferencingLambdas_MethodArgument()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+            new AddedParameterOrExistingIndex(1)
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             delegate void $$MyDelegate(int x, string y, bool z);
 
             class C
@@ -487,13 +470,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 void Target(MyDelegate d) { }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-            new AddedParameterOrExistingIndex(1)
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             delegate void MyDelegate(bool z, int newIntegerParameter, string y);
 
             class C
@@ -505,14 +482,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 void Target(MyDelegate d) { }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_ReferencingLambdas_YieldReturn()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+            new AddedParameterOrExistingIndex(1)
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             using System.Collections.Generic;
 
             delegate void $$MyDelegate(int x, string y, bool z);
@@ -523,13 +504,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     yield return (g, h, i) => { var x = h.Length + (i ? 0 : 1); };
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-            new AddedParameterOrExistingIndex(1)
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             using System.Collections.Generic;
 
             delegate void MyDelegate(bool z, int newIntegerParameter, string y);
@@ -540,14 +515,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     yield return (i, newIntegerParameter, h) => { var x = h.Length + (i ? 0 : 1); };
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_Recursive()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+            new AddedParameterOrExistingIndex(1)
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             delegate RecursiveDelegate $$RecursiveDelegate(int x, string y, bool z);
 
             class C
@@ -558,13 +537,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     rd(1, "Two", true)(1, "Two", true)(1, "Two", true)(1, "Two", true)(1, "Two", true);
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-            new AddedParameterOrExistingIndex(1)
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             delegate RecursiveDelegate RecursiveDelegate(bool z, int newIntegerParameter, string y);
 
             class C
@@ -575,14 +548,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     rd(true, 12345, "Two")(true, 12345, "Two")(true, 12345, "Two")(true, 12345, "Two")(true, 12345, "Two");
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_DocComments()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+            new AddedParameterOrExistingIndex(1)
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             /// <summary>
             /// This is <see cref="MyDelegate"/>, which has these methods:
             ///     <see cref="MyDelegate.MyDelegate(object, IntPtr)"/>
@@ -608,13 +585,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 /// <param name="c"></param>
                 void Goo(int a, string b, bool c) { }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-            new AddedParameterOrExistingIndex(1)
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             /// <summary>
             /// This is <see cref="MyDelegate"/>, which has these methods:
             ///     <see cref="MyDelegate.MyDelegate(object, IntPtr)"/>
@@ -640,14 +611,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 /// <param name="b"></param>
                 void Goo(bool c, int newIntegerParameter, string b) { }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_CascadeThroughEventAdd()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+            new AddedParameterOrExistingIndex(1)
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             delegate void $$MyDelegate(int x, string y, bool z);
 
             class Program
@@ -660,13 +635,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 event MyDelegate MyEvent;
                 void Program_MyEvent(int a, string b, bool c) { }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-            new AddedParameterOrExistingIndex(1)
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             delegate void MyDelegate(bool z, int newIntegerParameter, string y);
 
             class Program
@@ -679,14 +648,16 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 event MyDelegate MyEvent;
                 void Program_MyEvent(bool c, int newIntegerParameter, string b) { }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_Generics1()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class DP16a
             {
                 public delegate void D<T>($$T t);
@@ -704,11 +675,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     E2 -= new D<int>(M3);
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             public class DP16a
             {
                 public delegate void D<T>(int newIntegerParameter);
@@ -726,14 +693,16 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     E2 -= new D<int>(M3);
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_Generics2()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class D17<T>
             {
                 public delegate void $$D(T t);
@@ -743,11 +712,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 void Test() { var x = new D17<string>.D(M17); }
                 internal void M17(string s) { }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             public class D17<T>
             {
                 public delegate void D(int newIntegerParameter);
@@ -757,14 +722,16 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 void Test() { var x = new D17<string>.D(M17); }
                 internal void M17(int newIntegerParameter) { }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_GenericParams()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class DA
             {
                 void M(params int[] i) { }
@@ -786,11 +753,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     D d = new D(M1);
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             class DA
             {
                 void M(int newIntegerParameter) { }
@@ -812,14 +775,16 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     D d = new D(M1);
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameter_Delegates_Generic_RemoveArgumentAtReference()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int")
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class CD<T>
             {
                 public delegate void D(T t);
@@ -831,11 +796,8 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     var dele = new CD<int>.$$D((int x) => { });
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int")
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature,
+            expectedUpdatedInvocationDocumentCode: """
             public class CD<T>
             {
                 public delegate void D(int newIntegerParameter);
@@ -847,15 +809,16 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     var dele = new CD<int>.D((int newIntegerParameter) => { });
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature,
-            expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 0);
+            """, expectedSelectedIndex: 0);
     }
 
     [Fact]
     public async Task AddParameter_Delegate_Generics_RemoveStaticArgument()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int")
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C2<T>
             {
                 public delegate void D(T t);
@@ -872,11 +835,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     $$d(D2.Instance);
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int")
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             public class C2<T>
             {
                 public delegate void D(int newIntegerParameter);
@@ -893,14 +852,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     d(12345);
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 
     [Fact]
     public async Task TestAddParameter_Delegates_Relaxation_ParameterlessFunctionToFunction()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
+            new AddedParameterOrExistingIndex(1)
+        };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C0
             {
                 delegate int $$MyFunc(int x, string y, bool z);
@@ -918,13 +881,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     }
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
-            new AddedParameterOrExistingIndex(1)
-        };
-        var expectedUpdatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             class C0
             {
                 delegate int MyFunc(bool z, int newIntegerParameter, string y);
@@ -942,7 +899,6 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     }
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            """);
     }
 }

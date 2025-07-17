@@ -4,24 +4,19 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SemanticModelReuse;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.CodeStyle;
 
 #if DEBUG
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 #endif
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
@@ -44,7 +39,7 @@ internal static partial class DocumentExtensions
         return semanticModel ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
     }
 
-#if !CODE_STYLE
+#if WORKSPACE
 
     public static async ValueTask<SemanticModel> GetRequiredNullableDisabledSemanticModelAsync(this Document document, CancellationToken cancellationToken)
     {
@@ -68,7 +63,7 @@ internal static partial class DocumentExtensions
         return syntaxTree ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
     }
 
-#if !CODE_STYLE
+#if WORKSPACE
     public static SyntaxTree GetRequiredSyntaxTreeSynchronously(this Document document, CancellationToken cancellationToken)
     {
         var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
@@ -85,7 +80,7 @@ internal static partial class DocumentExtensions
         return root ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
     }
 
-#if !CODE_STYLE
+#if WORKSPACE
     public static SyntaxNode GetRequiredSyntaxRootSynchronously(this Document document, CancellationToken cancellationToken)
     {
         var root = document.GetSyntaxRootSynchronously(cancellationToken);
@@ -199,7 +194,7 @@ internal static partial class DocumentExtensions
     }
 #endif
 
-#if !CODE_STYLE
+#if WORKSPACE
     public static bool IsGeneratedCode(this Document document, CancellationToken cancellationToken)
     {
         var generatedCodeRecognitionService = document.GetLanguageService<IGeneratedCodeRecognitionService>();
@@ -224,7 +219,7 @@ internal static partial class DocumentExtensions
         }
     }
 
-#if CODE_STYLE
+#if !WORKSPACE
     public static async ValueTask<IOptionsReader> GetHostAnalyzerConfigOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);

@@ -159,8 +159,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Sub
         End Class
 
-        <ExportWorkspaceService(GetType(ISnippetExpansionClientFactory), ServiceLayer.Test)>
-        <[Shared]>
+        <ExportWorkspaceService(GetType(ISnippetExpansionClientFactory), ServiceLayer.Test), [Shared]>
         <PartNotDiscoverable>
         Friend Class MockSnippetExpansionClientFactory
             Inherits SnippetExpansionClientFactory
@@ -211,36 +210,35 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Function
         End Class
 
-        <ExportLanguageService(GetType(ISnippetExpansionLanguageHelper), LanguageNames.CSharp, ServiceLayer.Test)>
-        <[Shared]>
+        <ExportLanguageService(GetType(ISnippetExpansionLanguageHelper), LanguageNames.CSharp, ServiceLayer.Test), [Shared]>
         <PartNotDiscoverable>
         Friend NotInheritable Class MockCSharpSnippetLanguageHelper
             Inherits MockSnippetLanguageHelper
 
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Public Sub New()
-                MyBase.New(Guids.CSharpLanguageServiceId)
+            Public Sub New(threadingContext As IThreadingContext)
+                MyBase.New(threadingContext, Guids.CSharpLanguageServiceId)
             End Sub
         End Class
 
-        <ExportLanguageService(GetType(ISnippetExpansionLanguageHelper), LanguageNames.VisualBasic, ServiceLayer.Test)>
-        <[Shared]>
+        <ExportLanguageService(GetType(ISnippetExpansionLanguageHelper), LanguageNames.VisualBasic, ServiceLayer.Test), [Shared]>
         <PartNotDiscoverable>
         Friend NotInheritable Class MockVisualBasicSnippetLanguageHelper
             Inherits MockSnippetLanguageHelper
 
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Public Sub New()
-                MyBase.New(Guids.VisualBasicDebuggerLanguageId)
+            Public Sub New(threadingContext As IThreadingContext)
+                MyBase.New(threadingContext, Guids.VisualBasicDebuggerLanguageId)
             End Sub
         End Class
 
         Friend MustInherit Class MockSnippetLanguageHelper
             Inherits AbstractSnippetExpansionLanguageHelper
 
-            Protected Sub New(languageServiceGuid As Guid)
+            Protected Sub New(threadingContext As IThreadingContext, languageServiceGuid As Guid)
+                MyBase.New(threadingContext)
                 Me.LanguageServiceGuid = languageServiceGuid
             End Sub
 
@@ -252,8 +250,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 End Get
             End Property
 
-            Public Overrides Function AddImports(document As Document, addImportOptions As AddImportPlacementOptions, formattingOptions As SyntaxFormattingOptions, position As Integer, snippetNode As XElement, cancellationToken As CancellationToken) As Document
-                Return document
+            Public Overrides Function AddImportsAsync(document As Document, addImportOptions As AddImportPlacementOptions, formattingOptions As SyntaxFormattingOptions, position As Integer, snippetNode As XElement, cancellationToken As CancellationToken) As Task(Of Document)
+                Return Task.FromResult(document)
             End Function
 
             Public Overrides Function InsertEmptyCommentAndGetEndPositionTrackingSpan(expansionSession As IVsExpansionSession, textView As ITextView, subjectBuffer As ITextBuffer) As ITrackingSpan

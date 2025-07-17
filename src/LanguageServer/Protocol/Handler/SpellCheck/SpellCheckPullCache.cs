@@ -16,7 +16,7 @@ internal record struct SpellCheckState(ISpellCheckSpanService Service, Document 
 /// Simplified version of <see cref="VersionedPullCache{TCheapVersion, TExpensiveVersion, TState, TComputedData}"/> that only uses a 
 /// single cheap key to check results against.
 /// </summary>
-internal sealed class SpellCheckPullCache(string uniqueKey) : VersionedPullCache<(Checksum parseOptionsChecksum, Checksum textChecksum)?, object?, SpellCheckState, SpellCheckSpan>(uniqueKey)
+internal sealed class SpellCheckPullCache(string uniqueKey) : VersionedPullCache<(Checksum parseOptionsChecksum, Checksum textChecksum)?, object?, SpellCheckState, ImmutableArray<SpellCheckSpan>>(uniqueKey)
 {
     public override async Task<(Checksum parseOptionsChecksum, Checksum textChecksum)?> ComputeCheapVersionAsync(SpellCheckState state, CancellationToken cancellationToken)
     {
@@ -29,7 +29,7 @@ internal sealed class SpellCheckPullCache(string uniqueKey) : VersionedPullCache
         return (parseOptionsChecksum, textChecksum);
     }
 
-    public override Checksum ComputeChecksum(ImmutableArray<SpellCheckSpan> data)
+    public override Checksum ComputeChecksum(ImmutableArray<SpellCheckSpan> data, string language)
     {
         var checksums = data.SelectAsArray(s => Checksum.Create(s, SerializeSpellCheckSpan)).Sort();
         return Checksum.Create(checksums);

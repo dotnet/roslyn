@@ -68,6 +68,7 @@ Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_3 = 1503 -> Mic
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_5 = 1505 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic16 = 1600 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic16_9 = 1609 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic17_13 = 1713 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic9 = 9 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion

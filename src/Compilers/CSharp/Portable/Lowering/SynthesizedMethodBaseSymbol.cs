@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -70,22 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             // TODO: move more functionality into here, making these symbols more lazy
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            // do not generate attributes for members of compiler-generated types:
-            if (ContainingType.IsImplicitlyDeclared)
-            {
-                return;
-            }
-
-            var compilation = this.DeclaringCompilation;
-
-            AddSynthesizedAttribute(ref attributes,
-                compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
         }
 
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters

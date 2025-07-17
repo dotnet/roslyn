@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
-internal class LinkedEditsTracker
+internal sealed class LinkedEditsTracker
 {
     private static readonly object s_propagateSpansEditTag = new();
 
@@ -30,7 +30,7 @@ internal class LinkedEditsTracker
     }
 
     public IList<SnapshotSpan> GetActiveSpansForSnapshot(ITextSnapshot snapshot)
-        => _trackingSpans.Select(ts => ts.GetSpan(snapshot)).ToList();
+        => [.. _trackingSpans.Select(ts => ts.GetSpan(snapshot))];
 
     public void AddSpans(IEnumerable<ITrackingSpan> spans)
     {

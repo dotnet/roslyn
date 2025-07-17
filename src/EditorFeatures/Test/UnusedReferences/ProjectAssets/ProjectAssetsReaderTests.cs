@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences.ProjectAssets;
 
 [Trait(Traits.Feature, Traits.Features.Packaging)]
-public partial class ProjectAssetsReaderTests
+public sealed partial class ProjectAssetsReaderTests
 {
     private const string TargetFramework = ".NETCoreApp,Version=v3.1";
     private const int Version3 = 3;
@@ -66,9 +66,9 @@ public partial class ProjectAssetsReaderTests
 
     private static ReferenceInfo ProjectReference(string projectPath, params ReferenceInfo[] dependencies) => ProjectReference(projectPath, false, dependencies);
     private static ReferenceInfo ProjectReference(string projectPath, bool treatAsUsed, params ReferenceInfo[] dependencies)
-        => new(ReferenceType.Project, projectPath, treatAsUsed, ImmutableArray.Create(Path.ChangeExtension(projectPath, "dll")), dependencies.ToImmutableArray());
+        => new(ReferenceType.Project, projectPath, treatAsUsed, [Path.ChangeExtension(projectPath, "dll")], [.. dependencies]);
 
     private static ReferenceInfo PackageReference(string assemblyPath, params ReferenceInfo[] dependencies) => PackageReference(assemblyPath, false, dependencies);
     private static ReferenceInfo PackageReference(string assemblyPath, bool treatAsUsed, params ReferenceInfo[] dependencies)
-        => new(ReferenceType.Package, Path.GetFileNameWithoutExtension(assemblyPath), treatAsUsed, ImmutableArray.Create(assemblyPath), dependencies.ToImmutableArray());
+        => new(ReferenceType.Package, Path.GetFileNameWithoutExtension(assemblyPath), treatAsUsed, [assemblyPath], [.. dependencies]);
 }

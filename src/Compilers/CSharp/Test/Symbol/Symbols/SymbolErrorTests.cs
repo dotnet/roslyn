@@ -8702,6 +8702,59 @@ class C
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test").WithArguments("object", "0"));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79195")]
+        public void CS0518ERR_PredefinedTypeAmbiguous()
+        {
+            string code = """
+                var range = 1..2;
+                """;
+
+            CreateCompilation(code, targetFramework: TargetFramework.NetStandard20).VerifyDiagnostics(
+                // (1,13): error CS0518: Predefined type 'System.Range' is not defined or imported
+                // var range = 1..2;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1..2").WithArguments("System.Range").WithLocation(1, 13),
+                // (1,13): error CS0518: Predefined type 'System.Index' is not defined or imported
+                // var range = 1..2;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1").WithArguments("System.Index").WithLocation(1, 13),
+                // (1,16): error CS0518: Predefined type 'System.Index' is not defined or imported
+                // var range = 1..2;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "2").WithArguments("System.Index").WithLocation(1, 16));
+
+            CreateCompilation(code, [createReference("Ref0")], targetFramework: TargetFramework.NetStandard20).VerifyDiagnostics();
+
+            CreateCompilation(code, [createReference("Ref1"), createReference("Ref2")], targetFramework: TargetFramework.NetStandard20).VerifyDiagnostics(
+                // (1,13): error CS8356: Predefined type 'System.Range' is declared in multiple referenced assemblies: 'Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // var range = 1..2;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "1..2").WithArguments("System.Range", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 13),
+                // (1,13): error CS8356: Predefined type 'System.Index' is declared in multiple referenced assemblies: 'Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // var range = 1..2;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "1").WithArguments("System.Index", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 13),
+                // (1,16): error CS8356: Predefined type 'System.Index' is declared in multiple referenced assemblies: 'Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // var range = 1..2;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "2").WithArguments("System.Index", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 16));
+
+            static MetadataReference createReference(string name)
+            {
+                string code = """
+                    namespace System;
+                    public struct Index
+                    {
+                        public int GetOffset(int length) => 0;
+                        public static implicit operator Index(int value) => default;
+                    }
+                    public struct Range
+                    {
+                        public Range(Index start, Index end) { }
+                        public Index Start => default;
+                        public Index End => default;
+                    }
+                    """;
+                return CreateCompilation(code, assemblyName: name)
+                    .VerifyDiagnostics()
+                    .EmitToPortableExecutableReference();
+            }
+        }
+
         //[Fact(Skip = "Bad test case")]
         //public void CS0520ERR_PredefinedTypeBadType()
         //{
@@ -10662,7 +10715,7 @@ Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("x.ii.
             comp.VerifyDiagnostics(
 // (75): error CS0558: User-defined operator 'x.ii.iii.implicit operator int(x.ii.iii)' must be declared static and public
 //          static implicit operator int(iii aa)   // CS0558, add public
-Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "int").WithArguments("x.ii.iii.implicit operator int(x.ii.iii)")
+Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "int").WithArguments("x.ii.iii.implicit operator int(x.ii.iii)")
                 );
         }
 
@@ -10812,7 +10865,7 @@ interface IA
             comp.VerifyDiagnostics(
                 // (4,17): error CS0558: User-defined operator 'IA.operator +(int, int)' must be declared static and public
                 //    int operator +(int aa, int bb);   // CS0567
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "+").WithArguments("IA.operator +(int, int)").WithLocation(4, 17),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "+").WithArguments("IA.operator +(int, int)").WithLocation(4, 17),
                 // (4,17): error CS0501: 'IA.operator +(int, int)' must declare a body because it is not marked abstract, extern, or partial
                 //    int operator +(int aa, int bb);   // CS0567
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("IA.operator +(int, int)").WithLocation(4, 17),
@@ -11298,9 +11351,9 @@ public class C
 }
 ";
             CreateCompilation(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (6,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (6,6): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport"),
-                // (9,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (9,6): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport"));
         }
 
@@ -14052,7 +14105,7 @@ public partial class C : Base
                 // (27,34): error CS0507: 'C.PartI()': cannot change access modifiers when overriding 'protected' inherited member 'Base.PartI()'
                 //     sealed override partial void PartI();
                 Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "PartI").WithArguments("C.PartI()", "protected", "Base.PartI()").WithLocation(27, 34),
-                // (28,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (28,6): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 //     [System.Runtime.InteropServices.DllImport("none")]
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "System.Runtime.InteropServices.DllImport").WithLocation(28, 6));
         }
@@ -14953,9 +15006,9 @@ class B
 }";
             var compilation = CreateEmptyCompilation(source, new[] { Net40.References.mscorlib });
             compilation.VerifyDiagnostics(
-                // (3,27): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                // (3,27): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 27),
-                // (4,27): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                // (4,27): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(4, 27),
                 // (4,42): error CS1100: Method 'M2' has a parameter modifier 'this' which is not on the first parameter
                 Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("M2").WithLocation(4, 42),
@@ -22136,30 +22189,27 @@ using System.Runtime.CompilerServices;
                 }
                 """
             }).VerifyDiagnostics(
-                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // 2.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial public PartialPublicCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // 0.cs(3,13): error CS0751: A partial member must be declared within a partial type
+                //     partial PartialCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "PartialCtor").WithLocation(3, 13),
+                // 0.cs(3,13): error CS9276: Partial member 'PartialCtor.PartialCtor()' must have a definition part.
+                //     partial PartialCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "PartialCtor").WithArguments("PartialCtor.PartialCtor()").WithLocation(3, 13),
+                // 2.cs(3,20): error CS0751: A partial member must be declared within a partial type
                 //     partial public PartialPublicCtor() { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-                // (3,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
-                //     partial PartialCtor() { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 5),
-                // (3,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "PartialPublicCtor").WithLocation(3, 20),
+                // 1.cs(3,20): error CS0751: A partial member must be declared within a partial type
                 //     public partial PublicPartialCtor() { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 12),
-                // (3,13): error CS0542: 'PartialCtor': member names cannot be the same as their enclosing type
-                //     partial PartialCtor() { }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "PartialCtor").WithArguments("PartialCtor").WithLocation(3, 13),
-                // (3,13): error CS0161: 'PartialCtor.PartialCtor()': not all code paths return a value
-                //     partial PartialCtor() { }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "PartialCtor").WithArguments("PartialCtor.PartialCtor()").WithLocation(3, 13),
-                // (3,20): error CS0542: 'PublicPartialCtor': member names cannot be the same as their enclosing type
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "PublicPartialCtor").WithLocation(3, 20),
+                // 1.cs(3,20): error CS9276: Partial member 'PublicPartialCtor.PublicPartialCtor()' must have a definition part.
                 //     public partial PublicPartialCtor() { }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "PublicPartialCtor").WithArguments("PublicPartialCtor").WithLocation(3, 20),
-                // (3,20): error CS0161: 'PublicPartialCtor.PublicPartialCtor()': not all code paths return a value
-                //     public partial PublicPartialCtor() { }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "PublicPartialCtor").WithArguments("PublicPartialCtor.PublicPartialCtor()").WithLocation(3, 20));
+                Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "PublicPartialCtor").WithArguments("PublicPartialCtor.PublicPartialCtor()").WithLocation(3, 20),
+                // 2.cs(3,20): error CS9276: Partial member 'PartialPublicCtor.PartialPublicCtor()' must have a definition part.
+                //     partial public PartialPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "PartialPublicCtor").WithArguments("PartialPublicCtor.PartialPublicCtor()").WithLocation(3, 20));
         }
 
         [Fact]
@@ -22216,75 +22266,63 @@ using System.Runtime.CompilerServices;
                 }
                 """,
             }).VerifyDiagnostics(
-                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     partial static PartialStaticCtor() { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     partial static PartialStaticCtor() { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     partial public static PartialPublicStaticCtor() { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     partial public static PartialPublicStaticCtor() { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // 6.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static public PartialStaticPublicCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // 6.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static public PartialStaticPublicCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-                // (3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // 0.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     partial static PartialStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // 0.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     partial static PartialStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // 7.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     partial public static PartialPublicStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // 7.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     partial public static PartialPublicStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // 3.cs(3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     public partial static PublicPartialStaticCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
-                // (3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // 3.cs(3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     public partial static PublicPartialStaticCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
-                // (3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     static partial public StaticPartialPublicCtor() { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
-                // (3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     static partial public StaticPartialPublicCtor() { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
-                // (3,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                // 1.cs(3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     static partial StaticPartialCtor() { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 12),
-                // (3,19): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
+                // 5.cs(3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     static partial public StaticPartialPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
+                // 5.cs(3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     static partial public StaticPartialPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
+                // 2.cs(3,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     public static partial PublicStaticPartialCtor() { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 19),
-                // (3,19): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 19),
+                // 4.cs(3,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     static public partial StaticPublicPartialCtor() { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 19),
-                // (3,20): error CS0542: 'StaticPartialCtor': member names cannot be the same as their enclosing type
-                //     static partial StaticPartialCtor() { }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "StaticPartialCtor").WithArguments("StaticPartialCtor").WithLocation(3, 20),
-                // (3,20): error CS0161: 'StaticPartialCtor.StaticPartialCtor()': not all code paths return a value
-                //     static partial StaticPartialCtor() { }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "StaticPartialCtor").WithArguments("StaticPartialCtor.StaticPartialCtor()").WithLocation(3, 20),
-                // (3,27): error CS0515: 'PartialPublicStaticCtor.PartialPublicStaticCtor()': access modifiers are not allowed on static constructors
-                //     partial public static PartialPublicStaticCtor() { }
-                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "PartialPublicStaticCtor").WithArguments("PartialPublicStaticCtor.PartialPublicStaticCtor()").WithLocation(3, 27),
-                // (3,27): error CS0515: 'PublicPartialStaticCtor.PublicPartialStaticCtor()': access modifiers are not allowed on static constructors
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 19),
+                // 3.cs(3,27): error CS0515: 'PublicPartialStaticCtor.PublicPartialStaticCtor()': access modifiers are not allowed on static constructors
                 //     public partial static PublicPartialStaticCtor() { }
                 Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "PublicPartialStaticCtor").WithArguments("PublicPartialStaticCtor.PublicPartialStaticCtor()").WithLocation(3, 27),
-                // (3,27): error CS0515: 'StaticPartialPublicCtor.StaticPartialPublicCtor()': access modifiers are not allowed on static constructors
-                //     static partial public StaticPartialPublicCtor() { }
-                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "StaticPartialPublicCtor").WithArguments("StaticPartialPublicCtor.StaticPartialPublicCtor()").WithLocation(3, 27),
-                // (3,27): error CS0515: 'PartialStaticPublicCtor.PartialStaticPublicCtor()': access modifiers are not allowed on static constructors
+                // 6.cs(3,27): error CS0515: 'PartialStaticPublicCtor.PartialStaticPublicCtor()': access modifiers are not allowed on static constructors
                 //     partial static public PartialStaticPublicCtor() { }
                 Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "PartialStaticPublicCtor").WithArguments("PartialStaticPublicCtor.PartialStaticPublicCtor()").WithLocation(3, 27),
-                // (3,27): error CS0542: 'StaticPublicPartialCtor': member names cannot be the same as their enclosing type
-                //     static public partial StaticPublicPartialCtor() { }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "StaticPublicPartialCtor").WithArguments("StaticPublicPartialCtor").WithLocation(3, 27),
-                // (3,27): error CS0542: 'PublicStaticPartialCtor': member names cannot be the same as their enclosing type
+                // 2.cs(3,27): error CS0515: 'PublicStaticPartialCtor.PublicStaticPartialCtor()': access modifiers are not allowed on static constructors
                 //     public static partial PublicStaticPartialCtor() { }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "PublicStaticPartialCtor").WithArguments("PublicStaticPartialCtor").WithLocation(3, 27),
-                // (3,27): error CS0161: 'StaticPublicPartialCtor.StaticPublicPartialCtor()': not all code paths return a value
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "PublicStaticPartialCtor").WithArguments("PublicStaticPartialCtor.PublicStaticPartialCtor()").WithLocation(3, 27),
+                // 4.cs(3,27): error CS0515: 'StaticPublicPartialCtor.StaticPublicPartialCtor()': access modifiers are not allowed on static constructors
                 //     static public partial StaticPublicPartialCtor() { }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "StaticPublicPartialCtor").WithArguments("StaticPublicPartialCtor.StaticPublicPartialCtor()").WithLocation(3, 27),
-                // (3,27): error CS0161: 'PublicStaticPartialCtor.PublicStaticPartialCtor()': not all code paths return a value
-                //     public static partial PublicStaticPartialCtor() { }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "PublicStaticPartialCtor").WithArguments("PublicStaticPartialCtor.PublicStaticPartialCtor()").WithLocation(3, 27));
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "StaticPublicPartialCtor").WithArguments("StaticPublicPartialCtor.StaticPublicPartialCtor()").WithLocation(3, 27),
+                // 7.cs(3,27): error CS0515: 'PartialPublicStaticCtor.PartialPublicStaticCtor()': access modifiers are not allowed on static constructors
+                //     partial public static PartialPublicStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "PartialPublicStaticCtor").WithArguments("PartialPublicStaticCtor.PartialPublicStaticCtor()").WithLocation(3, 27),
+                // 5.cs(3,27): error CS0515: 'StaticPartialPublicCtor.StaticPartialPublicCtor()': access modifiers are not allowed on static constructors
+                //     static partial public StaticPartialPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "StaticPartialPublicCtor").WithArguments("StaticPartialPublicCtor.StaticPartialPublicCtor()").WithLocation(3, 27));
         }
     }
 }

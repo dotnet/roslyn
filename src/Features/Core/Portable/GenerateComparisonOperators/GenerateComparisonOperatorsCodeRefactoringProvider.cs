@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateComparisonOperators;
 
@@ -63,8 +62,7 @@ internal sealed class GenerateComparisonOperatorsCodeRefactoringProvider : CodeR
         if (comparableType == null)
             return;
 
-        var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) as INamedTypeSymbol;
-        if (containingType == null)
+        if (semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is not INamedTypeSymbol containingType)
             return;
 
         using var _1 = ArrayBuilder<INamedTypeSymbol>.GetInstance(out var missingComparableTypes);
@@ -121,7 +119,7 @@ internal sealed class GenerateComparisonOperatorsCodeRefactoringProvider : CodeR
 
     private static IMethodSymbol? TryGetCompareMethodImpl(INamedTypeSymbol containingType, ITypeSymbol comparableType)
     {
-        foreach (var member in comparableType.GetMembers(nameof(IComparable<int>.CompareTo)))
+        foreach (var member in comparableType.GetMembers(nameof(IComparable<>.CompareTo)))
         {
             if (member is IMethodSymbol method)
                 return (IMethodSymbol?)containingType.FindImplementationForInterfaceMember(method);

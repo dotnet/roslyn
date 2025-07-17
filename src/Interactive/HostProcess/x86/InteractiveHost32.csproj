@@ -9,6 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

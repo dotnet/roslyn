@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateType;
@@ -409,7 +408,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var root = await generateTypeOptionsResult.ExistingDocument.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
             var folders = generateTypeOptionsResult.ExistingDocument.Folders;
 
-            var namespaceContainersAndUsings = GetNamespaceContainersAndAddUsingsOrImport(isDialog, new List<string>(folders), generateTypeOptionsResult.AreFoldersValidIdentifiers, generateTypeOptionsResult.Project, triggeringProject);
+            var namespaceContainersAndUsings = GetNamespaceContainersAndAddUsingsOrImport(isDialog, [.. folders], generateTypeOptionsResult.AreFoldersValidIdentifiers, generateTypeOptionsResult.Project, triggeringProject);
 
             var containers = namespaceContainersAndUsings.containers;
             var includeUsingsOrImports = namespaceContainersAndUsings.usingOrImport;

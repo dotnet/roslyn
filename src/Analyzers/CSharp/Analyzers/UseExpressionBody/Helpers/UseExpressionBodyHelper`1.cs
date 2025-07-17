@@ -153,10 +153,15 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
         [NotNullWhen(true)] out ArrowExpressionClauseSyntax? arrowExpression,
         out SyntaxToken semicolonToken)
     {
+        arrowExpression = null;
+        semicolonToken = default;
+
+        // If we have `X Prop { ... } = ...;` we can't convert this as expr-bodied properties can't have initializers.
+        if (declaration is PropertyDeclarationSyntax { Initializer: not null })
+            return false;
+
         if (TryConvertToExpressionBodyWorker(declaration, conversionPreference, cancellationToken, out arrowExpression, out semicolonToken))
-        {
             return true;
-        }
 
         var getAccessor = GetSingleGetAccessor(declaration.AccessorList);
         if (getAccessor?.ExpressionBody != null &&
@@ -237,20 +242,46 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
                                                .Concat(declaration.GetTrailingTrivia());
             semicolonToken = semicolonToken.WithTrailingTrivia(trailingTrivia);
 
-            return WithSemicolonToken(
-                       WithExpressionBody(
-                           WithBody(declaration, body: null),
-                           expressionBody),
-                       semicolonToken);
+            var updateDeclaration = WithSemicolonToken(
+                WithExpressionBody(
+                    WithBody(declaration, body: null),
+                    expressionBody),
+                semicolonToken);
+
+            return TransferTrailingCommentsToAfterExpressionBody(updateDeclaration);
         }
         else
         {
             return WithSemicolonToken(
-                       WithExpressionBody(
-                           WithGenerateBody(semanticModel, declaration),
-                           expressionBody: null),
-                       default);
+                WithExpressionBody(
+                    WithGenerateBody(semanticModel, declaration),
+                    expressionBody: null),
+                default);
         }
+    }
+
+    private TDeclaration TransferTrailingCommentsToAfterExpressionBody(TDeclaration declaration)
+    {
+        var expressionBody = GetExpressionBody(declaration);
+
+        // Don't need to transfer if we don't have an expression body, or it already has leading trivia (like comments).
+        // Those will already be formatted and placed properly.   We only want to transfer comments that were conceptually
+        // at the end of the property/method/etc. header before and should stay that way after becoming single line.
+        if (expressionBody == null)
+            return declaration;
+
+        if (expressionBody.GetLeadingTrivia().Any(t => t.IsRegularComment()))
+            return declaration;
+
+        var previousToken = expressionBody.GetFirstToken().GetPreviousToken();
+        var trailingTrivia = previousToken.TrailingTrivia;
+        var lastComment = trailingTrivia.LastOrDefault(t => t.IsRegularComment());
+        if (lastComment == default)
+            return declaration;
+
+        return declaration
+            .ReplaceToken(previousToken, previousToken.WithTrailingTrivia(Space))
+            .WithTrailingTrivia(trailingTrivia.Take(trailingTrivia.IndexOf(lastComment) + 1).Concat(declaration.GetTrailingTrivia()));
     }
 
     protected abstract BlockSyntax? GetBody(TDeclaration declaration);

@@ -5,15 +5,11 @@
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Composition
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
@@ -81,7 +77,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
             Throw New NotImplementedException()
         End Sub
 
-        Friend Overrides Function GetBrowseObject(symbolListItem As SymbolListItem) As Object
+        Friend Overrides Function GetBrowseObjectAsync(symbolListItem As SymbolListItem, cancellationToken As CancellationToken) As Task(Of Object)
             Throw New NotImplementedException()
         End Function
 

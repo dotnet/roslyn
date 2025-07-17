@@ -22,7 +22,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Simplification;
 
-internal abstract class AbstractSimplificationService<TCompilationUnitSyntax, TExpressionSyntax, TStatementSyntax, TCrefSyntax> : ISimplificationService
+internal abstract class AbstractSimplificationService<
+        TCompilationUnitSyntax,
+        TExpressionSyntax,
+        TStatementSyntax,
+        TCrefSyntax>(ImmutableArray<AbstractReducer> reducers) : ISimplificationService
     where TCompilationUnitSyntax : SyntaxNode
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
@@ -31,10 +35,7 @@ internal abstract class AbstractSimplificationService<TCompilationUnitSyntax, TE
     protected static readonly Func<SyntaxNode, bool> s_containsAnnotations = n => n.ContainsAnnotations;
     protected static readonly Func<SyntaxNodeOrToken, bool> s_hasSimplifierAnnotation = n => n.HasAnnotation(Simplifier.Annotation);
 
-    private readonly ImmutableArray<AbstractReducer> _reducers;
-
-    protected AbstractSimplificationService(ImmutableArray<AbstractReducer> reducers)
-        => _reducers = reducers;
+    private readonly ImmutableArray<AbstractReducer> _reducers = reducers;
 
     protected abstract ImmutableArray<NodeOrTokenToReduce> GetNodesAndTokensToReduce(SyntaxNode root, Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans);
     protected abstract SemanticModel GetSpeculativeSemanticModel(ref SyntaxNode nodeToSpeculate, SemanticModel originalSemanticModel, SyntaxNode originalNode);
@@ -63,35 +64,22 @@ internal abstract class AbstractSimplificationService<TCompilationUnitSyntax, TE
 
             // we have no span
             if (!spanList.Any())
-            {
                 return document;
-            }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            // Chaining of the Speculative SemanticModel (i.e. Generating a speculative SemanticModel from an existing Speculative SemanticModel) is not supported
-            // Hence make sure we always start working off of the actual SemanticModel instead of a speculative SemanticModel.
+            // Chaining of the Speculative SemanticModel (i.e. Generating a speculative SemanticModel from an existing
+            // Speculative SemanticModel) is not supported Hence make sure we always start working off of the actual
+            // SemanticModel instead of a speculative SemanticModel.
             Debug.Assert(!semanticModel.IsSpeculativeSemanticModel);
 
-            var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            reducers = reducers.IsDefault ? _reducers : reducers;
+            // Take out any reducers that don't even apply with the current
+            // set of users options. i.e. no point running 'reduce to var'
+            // if the user doesn't have the 'var' preference set.
+            reducers = reducers.WhereAsArray(r => r.IsApplicable(options));
 
-#if DEBUG
-            var originalDocHasErrors = await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
-#endif
-
-            var reduced = await this.ReduceCoreAsync(document, spanList, options, reducers, cancellationToken).ConfigureAwait(false);
-
-            if (reduced != document)
-            {
-#if DEBUG
-                if (!originalDocHasErrors)
-                {
-                    await reduced.VerifyNoErrorsAsync("Error introduced by Simplification Service", cancellationToken).ConfigureAwait(false);
-                }
-#endif
-            }
-
-            return reduced;
+            return await this.ReduceCoreAsync(document, spanList, options, reducers, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -124,16 +112,6 @@ internal abstract class AbstractSimplificationService<TCompilationUnitSyntax, TE
 
         if (nodesAndTokensToReduce.Any())
         {
-            if (reducers.IsDefault)
-            {
-                reducers = _reducers;
-            }
-
-            // Take out any reducers that don't even apply with the current
-            // set of users options. i.e. no point running 'reduce to var'
-            // if the user doesn't have the 'var' preference set.
-            reducers = reducers.WhereAsArray(r => r.IsApplicable(options));
-
             var reducedNodesMap = new ConcurrentDictionary<SyntaxNode, SyntaxNode>();
             var reducedTokensMap = new ConcurrentDictionary<SyntaxToken, SyntaxToken>();
 
@@ -142,7 +120,7 @@ internal abstract class AbstractSimplificationService<TCompilationUnitSyntax, TE
             // Note that this method doesn't update the original syntax tree.
             await this.ReduceAsync(document, root, nodesAndTokensToReduce, reducers, options, reducedNodesMap, reducedTokensMap, cancellationToken).ConfigureAwait(false);
 
-            if (reducedNodesMap.Any() || reducedTokensMap.Any())
+            if (!reducedNodesMap.IsEmpty || !reducedTokensMap.IsEmpty)
             {
                 // Update the syntax tree with reduced nodes/tokens.
                 root = root.ReplaceSyntax(
@@ -218,7 +196,7 @@ internal abstract class AbstractSimplificationService<TCompilationUnitSyntax, TE
                 cancellationToken.ThrowIfCancellationRequested();
 
                 using var rewriter = reducer.GetOrCreateRewriter();
-                rewriter.Initialize(document.Project.ParseOptions, options, cancellationToken);
+                rewriter.Initialize(document.Project.ParseOptions!, options, cancellationToken);
 
                 do
                 {

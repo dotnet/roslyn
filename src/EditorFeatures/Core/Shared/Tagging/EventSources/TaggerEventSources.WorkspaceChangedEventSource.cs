@@ -4,6 +4,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -11,9 +12,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 internal partial class TaggerEventSources
 {
-    private class WorkspaceChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
+    private sealed class WorkspaceChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
     {
         private readonly AsyncBatchingWorkQueue _asyncDelay;
+        private WorkspaceEventRegistration? _workspaceChangedDisposer;
 
         public WorkspaceChangedEventSource(
             ITextBuffer subjectBuffer,
@@ -35,17 +37,19 @@ internal partial class TaggerEventSources
 
         protected override void ConnectToWorkspace(Workspace workspace)
         {
-            workspace.WorkspaceChanged += OnWorkspaceChanged;
+            _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
             this.RaiseChanged();
         }
 
         protected override void DisconnectFromWorkspace(Workspace workspace)
         {
-            workspace.WorkspaceChanged -= OnWorkspaceChanged;
+            _workspaceChangedDisposer?.Dispose();
+            _workspaceChangedDisposer = null;
+
             this.RaiseChanged();
         }
 
-        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs eventArgs)
+        private void OnWorkspaceChanged(WorkspaceChangeEventArgs eventArgs)
             => _asyncDelay.AddWork();
     }
 }

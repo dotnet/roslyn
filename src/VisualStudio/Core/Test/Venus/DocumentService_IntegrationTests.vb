@@ -10,12 +10,12 @@ Imports System.Windows.Controls
 Imports System.Windows.Media
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.FindUsages
+Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.Extensions
@@ -31,7 +31,6 @@ Imports Microsoft.VisualStudio.Shell.TableControl
 Imports Microsoft.VisualStudio.Shell.TableManager
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Test.Utilities
-Imports Microsoft.CodeAnalysis.Editor.Host
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
@@ -41,7 +40,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
         Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures
 
         <WpfFact>
-        Public Async Function TestFindUsageIntegration() As System.Threading.Tasks.Task
+        Public Async Function TestFindUsageIntegration() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -87,8 +86,9 @@ class {|Definition:C1|}
                 Dim definitionSpan = definitionDocument.AnnotatedSpans("Definition").Single()
                 Dim referenceSpan = definitionDocument.SelectedSpans.First()
                 Dim expected = {
-                    (definitionDocument.Name, definitionText.Lines.GetLinePositionSpan(definitionSpan).Start, definitionText.Lines.GetLineFromPosition(definitionSpan.Start).ToString().Trim()),
-                    (definitionDocument.Name, definitionText.Lines.GetLinePositionSpan(referenceSpan).Start, definitionText.Lines.GetLineFromPosition(referenceSpan.Start).ToString().Trim())}
+                    (definitionDocument.FilePath, definitionText.Lines.GetLinePositionSpan(definitionSpan).Start, definitionText.Lines.GetLineFromPosition(definitionSpan.Start).ToString().Trim()),
+                    (definitionDocument.FilePath, definitionText.Lines.GetLinePositionSpan(referenceSpan).Start, definitionText.Lines.GetLineFromPosition(referenceSpan.Start).ToString().Trim())
+                }
 
                 Dim factory = TestFindAllReferencesService.Instance.LastWindow.MyTableManager.LastSink.LastFactory
                 Dim snapshot = factory.GetCurrentSnapshot()
@@ -115,7 +115,7 @@ class {|Definition:C1|}
         End Function
 
         <WpfFact>
-        Public Async Function TestCodeLensIntegration() As System.Threading.Tasks.Task
+        Public Async Function TestCodeLensIntegration() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -152,7 +152,9 @@ class {|Definition:C1|}
                 Dim definitionText = Await workspace.CurrentSolution.GetDocument(definitionDocument.Id).GetTextAsync()
 
                 Dim referenceSpan = definitionDocument.SelectedSpans.First()
-                Dim expected = {(definitionDocument.Name, definitionText.Lines.GetLinePositionSpan(referenceSpan).Start, definitionText.Lines.GetLineFromPosition(referenceSpan.Start).ToString())}
+                Dim expected = {
+                    (definitionDocument.FilePath, definitionText.Lines.GetLinePositionSpan(referenceSpan).Start, definitionText.Lines.GetLineFromPosition(referenceSpan.Start).ToString())
+                }
 
                 Dim actual = New List(Of (String, LinePosition, String))
 
@@ -168,7 +170,7 @@ class {|Definition:C1|}
         <InlineData(True)>
         <InlineData(False)>
         <WpfTheory>
-        Public Async Function TestDocumentOperationCanApplyChange(ignoreUnchangeableDocuments As Boolean) As System.Threading.Tasks.Task
+        Public Async Function TestDocumentOperationCanApplyChange(ignoreUnchangeableDocuments As Boolean) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -208,7 +210,7 @@ class C { }
         End Function
 
         <WpfFact>
-        Public Async Function TestDocumentOperationCanApplySupportDiagnostics() As System.Threading.Tasks.Task
+        Public Async Function TestDocumentOperationCanApplySupportDiagnostics() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -229,18 +231,15 @@ class { }
                 ' confirm there are errors
                 Assert.True(model.GetDiagnostics().Any())
 
-                Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
+                Dim diagnosticService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
 
                 ' confirm diagnostic support is off for the document
                 Assert.False(document.SupportsDiagnostics())
 
-                ' register the workspace to the service
-                diagnosticService.CreateIncrementalAnalyzer(workspace)
-
                 ' confirm that IDE doesn't report the diagnostics
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
-                    workspace.CurrentSolution, projectId:=Nothing, documentId:=document.Id, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
-                    includeSuppressedDiagnostics:=False, includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
+                    document.Project, documentId:=document.Id, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
+                    includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
                 Assert.False(diagnostics.Any())
             End Using
         End Function

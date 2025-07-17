@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InferredMemberName;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseInferredMemberName)]
-public class UseInferredMemberNameTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class UseInferredMemberNameTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public UseInferredMemberNameTests(ITestOutputHelper logger)
       : base(logger)
@@ -30,9 +30,8 @@ public class UseInferredMemberNameTests : AbstractCSharpDiagnosticProviderBasedU
         CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
 
     [Fact]
-    public async Task TestInferredTupleName()
-    {
-        await TestAsync(
+    public Task TestInferredTupleName()
+        => TestAsync(
             """
             class C
             {
@@ -53,12 +52,10 @@ public class UseInferredMemberNameTests : AbstractCSharpDiagnosticProviderBasedU
                 }
             }
             """, parseOptions: s_parseOptions);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24480")]
-    public async Task TestInferredTupleName_WithAmbiguity()
-    {
-        await TestMissingAsync(
+    public Task TestInferredTupleName_WithAmbiguity()
+        => TestMissingAsync(
             """
             class C
             {
@@ -69,12 +66,10 @@ public class UseInferredMemberNameTests : AbstractCSharpDiagnosticProviderBasedU
                 }
             }
             """, parameters: new TestParameters(parseOptions: s_parseOptions));
-    }
 
     [Fact]
-    public async Task TestInferredTupleNameAfterCommaWithCSharp6()
-    {
-        await TestActionCountAsync(
+    public Task TestInferredTupleNameAfterCommaWithCSharp6()
+        => TestActionCountAsync(
             """
             class C
             {
@@ -85,12 +80,10 @@ public class UseInferredMemberNameTests : AbstractCSharpDiagnosticProviderBasedU
                 }
             }
             """, count: 0, parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
-    }
 
     [Fact]
-    public async Task TestInferredTupleNameAfterCommaWithCSharp7()
-    {
-        await TestActionCountAsync(
+    public Task TestInferredTupleNameAfterCommaWithCSharp7()
+        => TestActionCountAsync(
             """
             class C
             {
@@ -101,12 +94,10 @@ public class UseInferredMemberNameTests : AbstractCSharpDiagnosticProviderBasedU
                 }
             }
             """, count: 0, parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7)));
-    }
 
     [Fact]
-    public async Task TestFixAllInferredTupleNameWithTrivia()
-    {
-        await TestAsync(
+    public Task TestFixAllInferredTupleNameWithTrivia()
+        => TestAsync(
             """
             class C
             {
@@ -129,12 +120,10 @@ public class UseInferredMemberNameTests : AbstractCSharpDiagnosticProviderBasedU
                 }
             }
             """, parseOptions: s_parseOptions);
-    }
 
     [Fact]
-    public async Task TestInferredAnonymousTypeMemberName()
-    {
-        await TestAsync(
+    public Task TestInferredAnonymousTypeMemberName()
+        => TestAsync(
             """
             class C
             {
@@ -155,12 +144,10 @@ public class UseInferredMemberNameTests : AbstractCSharpDiagnosticProviderBasedU
                 }
             }
             """, parseOptions: s_parseOptions);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24480")]
-    public async Task TestInferredAnonymousTypeMemberName_WithAmbiguity()
-    {
-        await TestMissingAsync(
+    public Task TestInferredAnonymousTypeMemberName_WithAmbiguity()
+        => TestMissingAsync(
             """
             class C
             {
@@ -171,12 +158,10 @@ public class UseInferredMemberNameTests : AbstractCSharpDiagnosticProviderBasedU
                 }
             }
             """, parameters: new TestParameters(parseOptions: s_parseOptions));
-    }
 
     [Fact]
-    public async Task TestFixAllInferredAnonymousTypeMemberNameWithTrivia()
-    {
-        await TestAsync(
+    public Task TestFixAllInferredAnonymousTypeMemberNameWithTrivia()
+        => TestAsync(
             """
             class C
             {
@@ -199,5 +184,4 @@ public class UseInferredMemberNameTests : AbstractCSharpDiagnosticProviderBasedU
                 }
             }
             """, parseOptions: s_parseOptions);
-    }
 }

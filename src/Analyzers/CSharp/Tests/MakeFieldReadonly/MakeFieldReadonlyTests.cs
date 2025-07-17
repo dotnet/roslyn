@@ -19,14 +19,26 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-public class MakeFieldReadonlyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    private static readonly ParseOptions s_strictFeatureFlag = CSharpParseOptions.Default.WithFeatures([KeyValuePairUtil.Create("strict", "true")]);
+    private static readonly ParseOptions s_strictFeatureFlag = CSharpParseOptions.Default.WithFeatures([KeyValuePair.Create("strict", "true")]);
 
-    public MakeFieldReadonlyTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
+    private const string s_inlineArrayAttribute = """
+        namespace System.Runtime.CompilerServices
+        {
+            [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false)]
+            public sealed class InlineArrayAttribute : Attribute
+            {
+                public InlineArrayAttribute (int length)
+                {
+                    Length = length;
+                }
+            
+                public int Length { get; }
+            }
+        }
+        """;
 
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpMakeFieldReadonlyDiagnosticAnalyzer(), new CSharpMakeFieldReadonlyCodeFixProvider());
@@ -37,55 +49,48 @@ public class MakeFieldReadonlyTests : AbstractCSharpDiagnosticProviderBasedUserD
     [InlineData("protected")]
     [InlineData("protected internal")]
     [InlineData("private protected")]
-    public async Task NonPrivateField(string accessibility)
-    {
-        await TestMissingInRegularAndScriptAsync(
-$@"class MyClass
-{{
-    {accessibility} int[| _goo |];
-}}");
-    }
+    public Task NonPrivateField(string accessibility)
+        => TestMissingInRegularAndScriptAsync(
+            $$"""
+            class MyClass
+            {
+                {{accessibility}} int[| _goo |];
+            }
+            """);
 
     [Fact]
-    public async Task FieldIsEvent()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldIsEvent()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
                 private event System.EventHandler [|Goo|];
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldIsReadonly()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldIsReadonly()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
                 private readonly int [|_goo|];
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldIsConst()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldIsConst()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
                 private const int [|_goo|];
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldNotAssigned()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FieldNotAssigned()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -98,12 +103,10 @@ $@"class MyClass
                 private readonly int _goo;
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldNotAssigned_Struct()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FieldNotAssigned_Struct()
+        => TestInRegularAndScript1Async(
             """
             struct MyStruct
             {
@@ -116,12 +119,10 @@ $@"class MyClass
                 private readonly int _goo;
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldAssignedInline()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FieldAssignedInline()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -134,12 +135,10 @@ $@"class MyClass
                 private readonly int _goo = 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task MultipleFieldsAssignedInline_AllCanBeReadonly()
-    {
-        await TestInRegularAndScript1Async(
+    public Task MultipleFieldsAssignedInline_AllCanBeReadonly()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -153,12 +152,10 @@ $@"class MyClass
                 private int _bar = 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task ThreeFieldsAssignedInline_AllCanBeReadonly_SeparatesAllAndKeepsThemInOrder()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ThreeFieldsAssignedInline_AllCanBeReadonly_SeparatesAllAndKeepsThemInOrder()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -173,12 +170,10 @@ $@"class MyClass
                 private int _fizz = 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task MultipleFieldsAssignedInline_OneIsAssignedInMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task MultipleFieldsAssignedInline_OneIsAssignedInMethod()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -201,12 +196,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task MultipleFieldsAssignedInline_NoInitializer()
-    {
-        await TestInRegularAndScript1Async(
+    public Task MultipleFieldsAssignedInline_NoInitializer()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -220,32 +213,32 @@ $@"class MyClass
                 private int _bar = 0;
             }
             """);
-    }
 
     [Theory]
     [InlineData("")]
     [InlineData("\r\n")]
     [InlineData("\r\n\r\n")]
-    public async Task MultipleFieldsAssignedInline_LeadingCommentAndWhitespace(string leadingTrvia)
-    {
-        await TestInRegularAndScript1Async(
-$@"class MyClass
-{{
-    //Comment{leadingTrvia}
-    private int _goo = 0, [|_bar|] = 0;
-}}",
-$@"class MyClass
-{{
-    //Comment{leadingTrvia}
-    private int _goo = 0;
-    private readonly int _bar = 0;
-}}");
-    }
+    public Task MultipleFieldsAssignedInline_LeadingCommentAndWhitespace(string leadingTrvia)
+        => TestInRegularAndScript1Async(
+            $$"""
+            class MyClass
+            {
+                //Comment{{leadingTrvia}}
+                private int _goo = 0, [|_bar|] = 0;
+            }
+            """,
+            $$"""
+            class MyClass
+            {
+                //Comment{{leadingTrvia}}
+                private int _goo = 0;
+                private readonly int _bar = 0;
+            }
+            """);
 
     [Fact]
-    public async Task FieldAssignedInCtor()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FieldAssignedInCtor()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -266,12 +259,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldAssignedInSimpleLambdaInCtor()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldAssignedInSimpleLambdaInCtor()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class MyClass
             {
@@ -284,12 +275,10 @@ $@"class MyClass
                 public Action<int> E;
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldAssignedInLambdaInCtor()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldAssignedInLambdaInCtor()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class MyClass
             {
@@ -302,12 +291,10 @@ $@"class MyClass
                 public event EventHandler E;
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldAssignedInLambdaWithBlockInCtor()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldAssignedInLambdaWithBlockInCtor()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class MyClass
             {
@@ -320,12 +307,10 @@ $@"class MyClass
                 public event EventHandler E;
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldAssignedInAnonymousFunctionInCtor()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldAssignedInAnonymousFunctionInCtor()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class MyClass
             {
@@ -338,12 +323,10 @@ $@"class MyClass
                 public Action<int> E;
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldAssignedInLocalFunctionExpressionBodyInCtor()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldAssignedInLocalFunctionExpressionBodyInCtor()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class MyClass
             {
@@ -354,12 +337,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldAssignedInLocalFunctionBlockBodyInCtor()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldAssignedInLocalFunctionBlockBodyInCtor()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class MyClass
             {
@@ -370,12 +351,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldAssignedInCtor_DifferentInstance()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldAssignedInCtor_DifferentInstance()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -387,12 +366,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldAssignedInCtor_DifferentInstance_ObjectInitializer()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldAssignedInCtor_DifferentInstance_ObjectInitializer()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -403,12 +380,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldAssignedInCtor_QualifiedWithThis()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FieldAssignedInCtor_QualifiedWithThis()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -429,12 +404,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldReturnedInProperty()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FieldReturnedInProperty()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -455,12 +428,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29746")]
-    public async Task FieldReturnedInMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FieldReturnedInMethod()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -483,12 +454,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29746")]
-    public async Task FieldReadInMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FieldReadInMethod()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -511,12 +480,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldAssignedInProperty()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldAssignedInProperty()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -528,12 +495,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldAssignedInMethod()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldAssignedInMethod()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -544,12 +509,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldAssignedInNestedTypeConstructor()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldAssignedInNestedTypeConstructor()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -564,12 +527,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldAssignedInNestedTypeMethod()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldAssignedInNestedTypeMethod()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -584,12 +545,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldInNestedTypeAssignedInConstructor()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FieldInNestedTypeAssignedInConstructor()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -618,12 +577,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task VariableAssignedToFieldInMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task VariableAssignedToFieldInMethod()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -644,12 +601,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldAssignedInMethodWithCompoundOperator()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldAssignedInMethodWithCompoundOperator()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -660,12 +615,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldUsedWithPostfixIncrement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldUsedWithPostfixIncrement()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -676,12 +629,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldUsedWithPrefixDecrement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldUsedWithPrefixDecrement()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -692,12 +643,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NotAssignedInPartialClass1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task NotAssignedInPartialClass1()
+        => TestInRegularAndScript1Async(
             """
             partial class MyClass
             {
@@ -710,12 +659,10 @@ $@"class MyClass
                 private readonly int _goo;
             }
             """);
-    }
 
     [Fact]
-    public async Task NotAssignedInPartialClass2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task NotAssignedInPartialClass2()
+        => TestInRegularAndScript1Async(
             """
             partial class MyClass
             {
@@ -734,12 +681,10 @@ $@"class MyClass
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task NotAssignedInPartialClass3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task NotAssignedInPartialClass3()
+        => TestInRegularAndScript1Async(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -776,12 +721,10 @@ $@"class MyClass
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
-    public async Task AssignedInPartialClass1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInPartialClass1()
+        => TestMissingInRegularAndScriptAsync(
             """
             partial class MyClass
             {
@@ -793,12 +736,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AssignedInPartialClass2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInPartialClass2()
+        => TestMissingInRegularAndScriptAsync(
             """
             partial class MyClass
             {
@@ -812,12 +753,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AssignedInPartialClass3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInPartialClass3()
+        => TestMissingInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -837,12 +776,10 @@ $@"class MyClass
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
-    public async Task PassedAsParameter()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PassedAsParameter()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -869,12 +806,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PassedAsOutParameter()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task PassedAsOutParameter()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -885,12 +820,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PassedAsRefParameter()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task PassedAsRefParameter()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -904,12 +837,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
-    public async Task ReturnedByRef1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ReturnedByRef1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -920,12 +851,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
-    public async Task ReturnedByRef2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ReturnedByRef2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -934,12 +863,10 @@ $@"class MyClass
                     => ref _goo;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
-    public async Task ReturnedByRef3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ReturnedByRef3()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -951,7 +878,6 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
     public async Task ReturnedByRef4()
@@ -1010,9 +936,8 @@ $@"class MyClass
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
-    public async Task ReturnedByRef6()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ReturnedByRef6()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1028,12 +953,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
-    public async Task ReturnedByRef7()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ReturnedByRef7()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1048,12 +971,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
-    public async Task ReturnedByRef8()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ReturnedByRef8()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1068,12 +989,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
-    public async Task ReturnedByRefReadonly1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ReturnedByRefReadonly1()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -1094,12 +1013,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
-    public async Task ReturnedByRefReadonly2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ReturnedByRefReadonly2()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -1116,12 +1033,10 @@ $@"class MyClass
                     => ref _goo;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
-    public async Task ReturnedByRefReadonly3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ReturnedByRefReadonly3()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -1144,7 +1059,6 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
     public async Task ReturnedByRefReadonly4()
@@ -1243,9 +1157,8 @@ $@"class MyClass
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
-    public async Task ReturnedByRefReadonly6()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ReturnedByRefReadonly6()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -1276,12 +1189,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
-    public async Task ReturnedByRefReadonly7()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ReturnedByRefReadonly7()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -1310,12 +1221,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
-    public async Task ReturnedByRefReadonly8()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ReturnedByRefReadonly8()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -1344,12 +1253,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
-    public async Task ConditionOfRefConditional1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ConditionOfRefConditional1()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -1372,12 +1279,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
-    public async Task ConditionOfRefConditional2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ConditionOfRefConditional2()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -1396,12 +1301,10 @@ $@"class MyClass
                     => ref (_a ? ref _b : ref _b);
             }
             """);
-    }
 
     [Fact]
-    public async Task PassedAsOutParameterInCtor()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PassedAsOutParameterInCtor()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -1422,12 +1325,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PassedAsRefParameterInCtor()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PassedAsRefParameterInCtor()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -1454,12 +1355,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task StaticFieldAssignedInStaticCtor()
-    {
-        await TestInRegularAndScript1Async(
+    public Task StaticFieldAssignedInStaticCtor()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -1480,12 +1379,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task StaticFieldAssignedInNonStaticCtor()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task StaticFieldAssignedInNonStaticCtor()
+        => TestMissingInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1496,12 +1393,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldTypeIsMutableStruct()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldTypeIsMutableStruct()
+        => TestMissingInRegularAndScriptAsync(
             """
             struct MyStruct
             {
@@ -1512,12 +1407,10 @@ $@"class MyClass
                 private MyStruct [|_goo|];
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldTypeIsCustomImmutableStruct()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FieldTypeIsCustomImmutableStruct()
+        => TestInRegularAndScript1Async(
             """
             struct MyStruct
             {
@@ -1542,12 +1435,10 @@ $@"class MyClass
                 private readonly MyStruct _goo;
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAll()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAll()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -1570,12 +1461,10 @@ $@"class MyClass
                 void Method() { _z = 1; }
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAll2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAll2()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -1618,12 +1507,10 @@ $@"class MyClass
 
               partial struct MyClass { }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26262")]
-    public async Task FieldAssignedInCtor_InParens()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FieldAssignedInCtor_InParens()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -1644,12 +1531,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26262")]
-    public async Task FieldAssignedInCtor_QualifiedWithThis_InParens()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FieldAssignedInCtor_QualifiedWithThis_InParens()
+        => TestInRegularAndScript1Async(
             """
             class MyClass
             {
@@ -1670,12 +1555,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26264")]
-    public async Task FieldAssignedInMethod_InDeconstruction()
-    {
-        await TestMissingAsync(
+    public Task FieldAssignedInMethod_InDeconstruction()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1688,12 +1571,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26264")]
-    public async Task FieldAssignedInMethod_InDeconstruction_InParens()
-    {
-        await TestMissingAsync(
+    public Task FieldAssignedInMethod_InDeconstruction_InParens()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1706,12 +1587,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26264")]
-    public async Task FieldAssignedInMethod_InDeconstruction_WithThis_InParens()
-    {
-        await TestMissingAsync(
+    public Task FieldAssignedInMethod_InDeconstruction_WithThis_InParens()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1724,12 +1603,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26264")]
-    public async Task FieldUsedInTupleExpressionOnRight()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FieldUsedInTupleExpressionOnRight()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1754,12 +1631,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26264")]
-    public async Task FieldInTypeWithGeneratedCode()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FieldInTypeWithGeneratedCode()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1786,24 +1661,20 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26364")]
-    public async Task FieldIsFixed()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FieldIsFixed()
+        => TestMissingInRegularAndScriptAsync(
             """
             unsafe struct S
             {
                 [|private fixed byte b[8];|]
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38995")]
-    public async Task FieldAssignedToLocalRef()
-    {
-        await TestMissingAsync(
+    public Task FieldAssignedToLocalRef()
+        => TestMissingAsync(
             """
             class Program
             {
@@ -1816,12 +1687,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FieldAssignedToLocalReadOnlyRef()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FieldAssignedToLocalReadOnlyRef()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -1844,12 +1713,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26213")]
-    public async Task TestFieldAccessesOnLeftOfDot()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFieldAccessesOnLeftOfDot()
+        => TestInRegularAndScript1Async(
             """
             interface IFaceServiceClient
             {
@@ -1882,12 +1749,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42759")]
-    public async Task TestVolatileField1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestVolatileField1()
+        => TestInRegularAndScript1Async(
             """
             class TestClass
             {
@@ -1900,12 +1765,10 @@ $@"class MyClass
                 private readonly object first; 
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42759")]
-    public async Task TestVolatileField2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestVolatileField2()
+        => TestInRegularAndScript1Async(
             """
             class TestClass
             {
@@ -1919,12 +1782,10 @@ $@"class MyClass
                 private volatile object second;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42759")]
-    public async Task TestVolatileField3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestVolatileField3()
+        => TestInRegularAndScript1Async(
             """
             class TestClass
             {
@@ -1938,12 +1799,10 @@ $@"class MyClass
                 private readonly object second;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46785")]
-    public async Task UsedAsRef_NoDiagnostic()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UsedAsRef_NoDiagnostic()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class C
             {
@@ -1956,12 +1815,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57983")]
-    public async Task UsedAsRef_NoDiagnostic_02()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UsedAsRef_NoDiagnostic_02()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Runtime.CompilerServices;
 
@@ -1977,12 +1834,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42760")]
-    public async Task WithThreadStaticAttribute_NoDiagnostic()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task WithThreadStaticAttribute_NoDiagnostic()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1992,16 +1847,14 @@ $@"class MyClass
                 private static object [|t_obj|];
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50925")]
-    public async Task Test_MemberUsedInGeneratedCode()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task Test_MemberUsedInGeneratedCode()
+        => TestMissingInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
-                    <Document FilePath = "z:\\File1.cs">
+                    <Document FilePath = "File1.cs">
             public sealed partial class Test
             {
                 private int [|_value|];
@@ -2010,7 +1863,7 @@ $@"class MyClass
                     => _ = new Test { Value = 1 };
             }
                     </Document>
-                    <Document FilePath = "z:\\File2.g.cs">
+                    <Document FilePath = "File2.g.cs">
             using System.CodeDom.Compiler;
 
             [GeneratedCode(null, null)]
@@ -2026,12 +1879,10 @@ $@"class MyClass
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")]
-    public async Task ShouldNotWarnForDataMemberFieldsInDataContractClasses()
-    {
-        await TestMissingAsync(
+    public Task ShouldNotWarnForDataMemberFieldsInDataContractClasses()
+        => TestMissingAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferencesNet45="true">
@@ -2046,12 +1897,10 @@ $@"class MyClass
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")]
-    public async Task ShouldWarnForDataMemberFieldsInNonDataContractClasses()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ShouldWarnForDataMemberFieldsInNonDataContractClasses()
+        => TestInRegularAndScript1Async(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferencesNet45="true">
@@ -2078,12 +1927,10 @@ $@"class MyClass
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")]
-    public async Task ShouldWarnForPrivateNonDataMemberFieldsInDataContractClasses()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ShouldWarnForPrivateNonDataMemberFieldsInDataContractClasses()
+        => TestInRegularAndScript1Async(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferencesNet45="true">
@@ -2116,12 +1963,10 @@ $@"class MyClass
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")]
-    public async Task ShouldNotWarnForPublicImplicitDataMemberFieldsInDataContractClasses()
-    {
-        await TestMissingAsync(
+    public Task ShouldNotWarnForPublicImplicitDataMemberFieldsInDataContractClasses()
+        => TestMissingAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferencesNet45="true">
@@ -2135,12 +1980,10 @@ $@"class MyClass
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59577")]
-    public async Task TestInStruct()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInStruct()
+        => TestInRegularAndScript1Async(
             """
             struct MyClass
             {
@@ -2153,12 +1996,10 @@ $@"class MyClass
                 private readonly int _goo;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59577")]
-    public async Task MissingForMemberInStructThatOverwritesThis()
-    {
-        await TestMissingAsync(
+    public Task MissingForMemberInStructThatOverwritesThis()
+        => TestMissingAsync(
             """
             struct MyClass
             {
@@ -2170,12 +2011,10 @@ $@"class MyClass
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38468")]
-    public async Task PreserveLeadingTrivia1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PreserveLeadingTrivia1()
+        => TestInRegularAndScript1Async(
             """
             public class C
             {
@@ -2192,12 +2031,10 @@ $@"class MyClass
                 readonly int y;
             }
             """);
-    }
 
     [Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")]
-    public async Task StrictFeatureFlagAssignment1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task StrictFeatureFlagAssignment1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -2226,12 +2063,10 @@ $@"class MyClass
                 }
             }
             """, parseOptions: s_strictFeatureFlag);
-    }
 
     [Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")]
-    public async Task StrictFeatureFlagAssignment2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task StrictFeatureFlagAssignment2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -2246,12 +2081,10 @@ $@"class MyClass
                 }
             }
             """, new TestParameters(parseOptions: s_strictFeatureFlag));
-    }
 
     [Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")]
-    public async Task StrictFeatureFlagAssignment3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task StrictFeatureFlagAssignment3()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -2266,5 +2099,165 @@ $@"class MyClass
                 }
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69143")]
+    public Task DoNotAddReadonlyToInlineArrayInstanceMember()
+        => TestMissingInRegularAndScriptAsync($$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            {{s_inlineArrayAttribute}}
+
+            [InlineArray(4)]
+            struct S
+            {
+                private int [|i|];
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75995")]
+    public Task AddReadonlyToInlineArrayStaticMember1()
+        => TestInRegularAndScriptAsync($$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            {{s_inlineArrayAttribute}}
+
+            [InlineArray(4)]
+            struct S
+            {
+                private static int [|j|];
+            }
+            """, $$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            {{s_inlineArrayAttribute}}
+
+            [InlineArray(4)]
+            struct S
+            {
+                private static readonly int j;
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47198")]
+    public Task TestIndexedAndAssignedField_StructType()
+        => TestMissingAsync(
+            """
+            class GreenNode { }
+
+            struct SyntaxListBuilder<TNode>
+            {
+                public GreenNode this[int index]
+                {
+                    get => default;
+                    set { }
+                }
+            }
+
+            class SkippedTriviaBuilder
+                private SyntaxListBuilder<GreenNode> [|_triviaListBuilder|];
+
+                public AddSkippedTrivia(GreenNode trivia)
+                {
+                    _triviaListBuilder[0] = trivia;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47198")]
+    public Task TestIndexedAndAssignedField_ClassType()
+        => TestInRegularAndScript1Async(
+            """
+            class GreenNode { }
+
+            class SyntaxListBuilder<TNode>
+            {
+                public GreenNode this[int index]
+                {
+                    get => default;
+                    set { }
+                }
+            }
+
+            class SkippedTriviaBuilder
+            {
+                private SyntaxListBuilder<GreenNode> [|_triviaListBuilder|];
+
+                public AddSkippedTrivia(GreenNode trivia)
+                {
+                    _triviaListBuilder[0] = trivia;
+                }
+            }
+            """,
+            """
+            class GreenNode { }
+
+            class SyntaxListBuilder<TNode>
+            {
+                public GreenNode this[int index]
+                {
+                    get => default;
+                    set { }
+                }
+            }
+
+            class SkippedTriviaBuilder
+            {
+                private readonly SyntaxListBuilder<GreenNode> _triviaListBuilder;
+
+                public AddSkippedTrivia(GreenNode trivia)
+                {
+                    _triviaListBuilder[0] = trivia;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49290")]
+    public Task TestPropertyMutatedField_StructType()
+        => TestMissingAsync(
+            """
+            interface I
+            {
+                int P { get; set; }
+            }
+
+            class C<T> where T : struct, I
+            {
+                private T [|_x|];
+
+                public void Foo() => _x.P = 42;
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49290")]
+    public Task TestPropertyMutatedField_ClassType()
+        => TestInRegularAndScript1Async(
+            """
+            interface I
+            {
+                int P { get; set; }
+            }
+
+            class C<T> where T : class, I
+            {
+                private T [|_x|];
+
+                public void Foo() => _x.P = 42;
+            }
+            """,
+            """
+            interface I
+            {
+                int P { get; set; }
+            }
+            
+            class C<T> where T : class, I
+            {
+                private readonly T _x;
+            
+                public void Foo() => _x.P = 42;
+            }
+            """);
 }

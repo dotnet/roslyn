@@ -31,7 +31,7 @@ internal static class SymbolDependentsBuilder
             }, cancellationToken));
     }
 
-    private class SymbolWalker : OperationWalker
+    private sealed class SymbolWalker : OperationWalker
     {
         private readonly ImmutableHashSet<ISymbol> _membersInType;
         private readonly Project _project;
@@ -48,7 +48,7 @@ internal static class SymbolDependentsBuilder
         {
             _project = project;
             _declarationService = project.Services.GetRequiredService<ISymbolDeclarationService>();
-            _membersInType = membersInType.ToImmutableHashSet();
+            _membersInType = [.. membersInType];
             _member = member;
             _cancellationToken = cancellationToken;
         }
@@ -63,7 +63,7 @@ internal static class SymbolDependentsBuilder
                 Visit(compilation.GetSemanticModel(syntax.SyntaxTree).GetOperation(syntax, _cancellationToken));
             }
 
-            return _dependents.ToImmutableArray();
+            return [.. _dependents];
         }
 
         public override void Visit(IOperation operation)

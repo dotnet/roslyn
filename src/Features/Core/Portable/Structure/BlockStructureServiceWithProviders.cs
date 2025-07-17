@@ -21,7 +21,7 @@ internal abstract class BlockStructureServiceWithProviders : BlockStructureServi
     protected BlockStructureServiceWithProviders(SolutionServices services)
     {
         _services = services;
-        _providers = GetBuiltInProviders().Concat(GetImportedProviders());
+        _providers = [.. GetBuiltInProviders(), .. GetImportedProviders()];
     }
 
     /// <summary>
@@ -40,7 +40,7 @@ internal abstract class BlockStructureServiceWithProviders : BlockStructureServi
                                    .Where(lz => lz.Metadata.Language == language)
                                    .Select(lz => lz.Value);
 
-        return providers.ToImmutableArray();
+        return [.. providers];
     }
 
     public override async Task<BlockStructure> GetBlockStructureAsync(

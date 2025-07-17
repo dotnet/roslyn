@@ -4,8 +4,8 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -29,20 +29,19 @@ internal static partial class TaskExtensions
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
     public static Task CompletesTrackingOperation(this Task task, IDisposable token)
     {
-        if (token == null || token == EmptyAsyncToken.Instance)
+        if (token is IAsyncToken { IsNull: true })
         {
             return task;
         }
 
         return CompletesTrackingOperationSlow(task, token);
 
-        static Task CompletesTrackingOperationSlow(Task task, IDisposable token)
+        static async Task CompletesTrackingOperationSlow(Task task, IDisposable token)
         {
-            return task.SafeContinueWith(
-                t => token.Dispose(),
-                CancellationToken.None,
-                TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
+            using (token)
+            {
+                await task.NoThrowAwaitableInternal(captureContext: false);
+            }
         }
     }
 }

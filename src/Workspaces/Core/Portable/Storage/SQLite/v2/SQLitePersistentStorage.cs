@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2;
@@ -173,11 +174,11 @@ internal sealed partial class SQLitePersistentStorage : AbstractPersistentStorag
     }
 
     public static KeyValueLogMessage GetLogMessage(SqlException exception)
-        => KeyValueLogMessage.Create(d =>
+        => KeyValueLogMessage.Create(static (d, exception) =>
         {
             d["Result"] = exception.Result.ToString();
             d["Message"] = exception.Message;
-        });
+        }, exception);
 
     private void Initialize()
     {

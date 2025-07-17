@@ -165,7 +165,7 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public Task SetCommandLineArgumentsAsync(IReadOnlyList<string> arguments, CancellationToken cancellationToken)
     {
-        _project.SetOptions(arguments.ToImmutableArray());
+        _project.SetOptions([.. arguments]);
         return Task.CompletedTask;
     }
 
@@ -188,7 +188,7 @@ internal sealed class WorkspaceProject : IWorkspaceProject
         return new WorkspaceProjectBatch(disposableBatchScope);
     }
 
-    private class WorkspaceProjectBatch : IWorkspaceProjectBatch
+    private sealed class WorkspaceProjectBatch : IWorkspaceProjectBatch
     {
         private IAsyncDisposable? _batch;
 

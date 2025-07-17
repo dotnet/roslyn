@@ -625,6 +625,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
 
         System_Linq_Enumerable__ToList,
+        System_Linq_Enumerable__ToArray,
 
         System_Linq_Expressions_Expression__ArrayIndex_Expression_Expression,
         System_Linq_Expressions_Expression__ArrayIndex_Expression_Expressions,
@@ -713,6 +714,9 @@ namespace Microsoft.CodeAnalysis
         System_Linq_Expressions_Expression__GreaterThanOrEqual_MethodInfo,
         System_Linq_Expressions_Expression__Default,
         System_Linq_Expressions_Expression__Power_MethodInfo,
+
+        System_Text_Encoding__get_UTF8,
+        System_Text_Encoding__GetString,
 
         Count,
 

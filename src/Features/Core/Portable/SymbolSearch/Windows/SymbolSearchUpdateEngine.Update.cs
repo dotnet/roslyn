@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -18,6 +16,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 using static System.FormattableString;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch;
@@ -233,7 +232,7 @@ internal sealed partial class SymbolSearchUpdateEngine
 
         private async Task<(bool succeeded, TimeSpan delay)> DownloadFullDatabaseWorkerAsync(FileInfo databaseFileInfo, CancellationToken cancellationToken)
         {
-            // Will hit https://az700632.vo.msecnd.net/pub/RoslynNuGetSearch/Elfie_V1/Latest.xml. Providing this
+            // Will hit https://aka.ms/vssettings/pub/RoslynNuGetSearch/Elfie_V1/Latest.xml. Providing this
             // link in the source to make it easy for maintainers to hit the endpoint to see if it succeeds and that
             // the data and http headers are what are expected.
             var serverPath = Invariant($"Elfie_V{AddReferenceDatabaseTextFileFormatVersion}/Latest.xml");
@@ -267,13 +266,14 @@ internal sealed partial class SymbolSearchUpdateEngine
                 return (succeeded: false, failureDelay);
             }
 
-            var bytes = contentBytes;
+            var bytes = contentBytes!;
+            AddReferenceDatabase database;
 
             // Make a database out of that and set it to our in memory database that we'll be 
             // searching.
             try
             {
-                CreateAndSetInMemoryDatabase(bytes);
+                database = CreateAndSetInMemoryDatabase(bytes, isBinary: false);
             }
             catch (Exception e) when (_service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
             {
@@ -288,18 +288,55 @@ internal sealed partial class SymbolSearchUpdateEngine
 
             // Write the file out to disk so we'll have it the next time we launch VS.  Do this
             // after we set the in-memory instance so we at least have something to search while
-            // we're waiting to write.
-            await WriteDatabaseFileAsync(databaseFileInfo, bytes, cancellationToken).ConfigureAwait(false);
+            // we're waiting to write. It's ok if either of these writes don't succeed. If the txt
+            // file fails to persist, a subsequent VS session will redownload the index and again try
+            // to persist. If the binary file fails to persist, a subsequent VS session will just load
+            // the index from the txt file and again try to persist the binary file.
+            await WriteDatabaseTextFileAsync(databaseFileInfo, bytes, cancellationToken).ConfigureAwait(false);
+            await WriteDatabaseBinaryFileAsync(database, databaseFileInfo, cancellationToken).ConfigureAwait(false);
 
             var delay = _service._delayService.UpdateSucceededDelay;
             LogInfo($"Processing full database element completed. Update again in {delay}");
             return (succeeded: true, delay);
         }
 
-        private async Task WriteDatabaseFileAsync(FileInfo databaseFileInfo, byte[] bytes, CancellationToken cancellationToken)
+        private async Task WriteDatabaseTextFileAsync(FileInfo databaseFileInfo, byte[] bytes, CancellationToken cancellationToken)
         {
             LogInfo("Writing database file");
 
+            await WriteDatabaseFileAsync(databaseFileInfo, new ArraySegment<byte>(bytes), cancellationToken).ConfigureAwait(false);
+
+            LogInfo("Writing database file completed");
+        }
+
+        private async Task WriteDatabaseBinaryFileAsync(AddReferenceDatabase database, FileInfo databaseFileInfo, CancellationToken cancellationToken)
+        {
+            using var memoryStream = new MemoryStream();
+            using var writer = new BinaryWriter(memoryStream);
+
+            LogInfo("Writing database binary file");
+
+            database.WriteBinary(writer);
+            writer.Flush();
+
+            // Obtain the underlying array from the memory stream. If for some reason this isn't available,
+            // fall back to reading the stream into a new byte array.
+            if (!memoryStream.TryGetBuffer(out var arraySegmentBuffer))
+            {
+                memoryStream.Position = 0;
+
+                // Read the buffer directly from the memory stream.
+                arraySegmentBuffer = new ArraySegment<byte>(memoryStream.ReadAllBytes());
+            }
+
+            var databaseBinaryFileInfo = GetBinaryFileInfo(databaseFileInfo);
+            await WriteDatabaseFileAsync(databaseBinaryFileInfo, arraySegmentBuffer, cancellationToken).ConfigureAwait(false);
+
+            LogInfo("Writing database binary file completed");
+        }
+
+        private async Task WriteDatabaseFileAsync(FileInfo databaseFileInfo, ArraySegment<byte> bytes, CancellationToken cancellationToken)
+        {
             await RepeatIOAsync(
                 cancellationToken =>
                 {
@@ -343,17 +380,19 @@ internal sealed partial class SymbolSearchUpdateEngine
                         IOUtilities.PerformIO(() => _service._ioService.Delete(new FileInfo(tempFilePath)));
                     }
                 }, cancellationToken).ConfigureAwait(false);
-
-            LogInfo("Writing database file completed");
         }
+
+        private static FileInfo GetBinaryFileInfo(FileInfo databaseFileInfo)
+            => new FileInfo(Path.ChangeExtension(databaseFileInfo.FullName, ".bin"));
 
         private async Task<TimeSpan> PatchLocalDatabaseAsync(FileInfo databaseFileInfo, CancellationToken cancellationToken)
         {
             LogInfo("Patching local database");
 
             LogInfo("Reading in local database");
-            // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
-            var databaseBytes = _service._ioService.ReadAllBytes(databaseFileInfo.FullName);
+
+            var (databaseBytes, isBinary) = GetDatabaseBytes(databaseFileInfo);
+
             LogInfo($"Reading in local database completed. databaseBytes.Length={databaseBytes.Length}");
 
             // Make a database instance out of those bytes and set is as the current in memory database
@@ -363,7 +402,7 @@ internal sealed partial class SymbolSearchUpdateEngine
             AddReferenceDatabase database;
             try
             {
-                database = CreateAndSetInMemoryDatabase(databaseBytes);
+                database = CreateAndSetInMemoryDatabase(databaseBytes, isBinary);
             }
             catch (Exception e) when (_service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
             {
@@ -373,7 +412,7 @@ internal sealed partial class SymbolSearchUpdateEngine
 
             // Now attempt to download and apply patch file.
             //
-            // Will hit https://az700632.vo.msecnd.net/pub/RoslynNuGetSearch/Elfie_V1/{db_version}_Patch.xml.
+            // Will hit https://aka.ms/vssettings/pub/RoslynNuGetSearch/Elfie_V1/{db_version}_Patch.xml.
             // Providing this link in the source to make it easy for maintainers to hit the endpoint to see if it
             // succeeds and that the data and http headers are what are expected.
             var serverPath = Invariant($"Elfie_V{AddReferenceDatabaseTextFileFormatVersion}/{database.DatabaseVersion}_Patch.xml");
@@ -381,12 +420,34 @@ internal sealed partial class SymbolSearchUpdateEngine
             LogInfo("Downloading and processing patch file: " + serverPath);
 
             var element = await DownloadFileAsync(serverPath, cancellationToken).ConfigureAwait(false);
-            var delayUntilUpdate = await ProcessPatchXElementAsync(databaseFileInfo, element, databaseBytes, cancellationToken).ConfigureAwait(false);
+            var delayUntilUpdate = await ProcessPatchXElementAsync(
+                databaseFileInfo,
+                element,
+                // We pass a delegate to get the database bytes so that we can avoid reading the bytes when we don't need them due to no patch to apply.
+                getDatabaseBytes: () => isBinary ? _service._ioService.ReadAllBytes(databaseFileInfo.FullName) : databaseBytes,
+                cancellationToken).ConfigureAwait(false);
 
             LogInfo("Downloading and processing patch file completed");
             LogInfo("Patching local database completed");
 
             return delayUntilUpdate;
+
+            (byte[] dataBytes, bool isBinary) GetDatabaseBytes(FileInfo databaseFileInfo)
+            {
+                var databaseBinaryFileInfo = GetBinaryFileInfo(databaseFileInfo);
+
+                try
+                {
+                    // First attempt to read from the binary file. If that fails, fall back to the text file.
+                    return (_service._ioService.ReadAllBytes(databaseBinaryFileInfo.FullName), isBinary: true);
+                }
+                catch (Exception e) when (IOUtilities.IsNormalIOException(e))
+                {
+                }
+
+                // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
+                return (_service._ioService.ReadAllBytes(databaseFileInfo.FullName), isBinary: false);
+            }
         }
 
         /// <summary>
@@ -395,20 +456,20 @@ internal sealed partial class SymbolSearchUpdateEngine
         /// indicates that our data is corrupt), the exception will bubble up and must be appropriately
         /// dealt with by the caller.
         /// </summary>
-        private AddReferenceDatabase CreateAndSetInMemoryDatabase(byte[] bytes)
+        private AddReferenceDatabase CreateAndSetInMemoryDatabase(byte[] bytes, bool isBinary)
         {
-            var database = CreateDatabaseFromBytes(bytes);
+            var database = CreateDatabaseFromBytes(bytes, isBinary);
             _service._sourceToDatabase[_source] = new AddReferenceDatabaseWrapper(database);
             return database;
         }
 
         private async Task<TimeSpan> ProcessPatchXElementAsync(
-            FileInfo databaseFileInfo, XElement patchElement, byte[] databaseBytes, CancellationToken cancellationToken)
+            FileInfo databaseFileInfo, XElement patchElement, Func<byte[]> getDatabaseBytes, CancellationToken cancellationToken)
         {
             try
             {
                 LogInfo("Processing patch element");
-                var delayUntilUpdate = await TryProcessPatchXElementAsync(databaseFileInfo, patchElement, databaseBytes, cancellationToken).ConfigureAwait(false);
+                var delayUntilUpdate = await TryProcessPatchXElementAsync(databaseFileInfo, patchElement, getDatabaseBytes, cancellationToken).ConfigureAwait(false);
                 if (delayUntilUpdate != null)
                 {
                     LogInfo($"Processing patch element completed. Update again in {delayUntilUpdate.Value}");
@@ -427,13 +488,19 @@ internal sealed partial class SymbolSearchUpdateEngine
         }
 
         private async Task<TimeSpan?> TryProcessPatchXElementAsync(
-            FileInfo databaseFileInfo, XElement patchElement, byte[] databaseBytes, CancellationToken cancellationToken)
+            FileInfo databaseFileInfo, XElement patchElement, Func<byte[]> getDatabaseBytes, CancellationToken cancellationToken)
         {
             ParsePatchElement(patchElement, out var upToDate, out var tooOld, out var patchBytes);
+            AddReferenceDatabase database;
 
             if (upToDate)
             {
                 LogInfo("Local version is up to date");
+
+                var databaseBinaryFileInfo = GetBinaryFileInfo(databaseFileInfo);
+                if (!_service._ioService.Exists(databaseBinaryFileInfo))
+                    await WriteDatabaseBinaryFileAsync(_service._sourceToDatabase[_source].Database, databaseFileInfo, cancellationToken).ConfigureAwait(false);
+
                 return _service._delayService.UpdateSucceededDelay;
             }
 
@@ -443,7 +510,8 @@ internal sealed partial class SymbolSearchUpdateEngine
                 return null;
             }
 
-            LogInfo($"Got patch. databaseBytes.Length={databaseBytes.Length} patchBytes.Length={patchBytes.Length}.");
+            var databaseBytes = getDatabaseBytes();
+            LogInfo($"Got patch. databaseBytes.Length={databaseBytes.Length} patchBytes.Length={patchBytes!.Length}.");
 
             // We have patch data.  Apply it to our current database bytes to produce the new
             // database.
@@ -451,14 +519,20 @@ internal sealed partial class SymbolSearchUpdateEngine
             var finalBytes = _service._patchService.ApplyPatch(databaseBytes, patchBytes);
             LogInfo($"Applying patch completed. finalBytes.Length={finalBytes.Length}");
 
-            CreateAndSetInMemoryDatabase(finalBytes);
+            // finalBytes is generated from the current database and the patch, not from the binary file.
+            database = CreateAndSetInMemoryDatabase(finalBytes, isBinary: false);
 
-            await WriteDatabaseFileAsync(databaseFileInfo, finalBytes, cancellationToken).ConfigureAwait(false);
+            // Attempt to persist the txt and binary forms of the index. It's ok if either of these writes
+            // don't succeed. If the txt file fails to persist, a subsequent VS session will redownload the
+            // index and again try to persist. If the binary file fails to persist, a subsequent VS session
+            // will just load the index from the txt file and again try to persist the binary file.
+            await WriteDatabaseTextFileAsync(databaseFileInfo, finalBytes, cancellationToken).ConfigureAwait(false);
+            await WriteDatabaseBinaryFileAsync(database, databaseFileInfo, cancellationToken).ConfigureAwait(false);
 
             return _service._delayService.UpdateSucceededDelay;
         }
 
-        private static void ParsePatchElement(XElement patchElement, out bool upToDate, out bool tooOld, out byte[] patchBytes)
+        private static void ParsePatchElement(XElement patchElement, out bool upToDate, out bool tooOld, out byte[]? patchBytes)
         {
             patchBytes = null;
 
@@ -486,10 +560,10 @@ internal sealed partial class SymbolSearchUpdateEngine
             }
         }
 
-        private AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
+        private AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes, bool isBinary)
         {
             LogInfo("Creating database from bytes");
-            var result = _service._databaseFactoryService.CreateDatabaseFromBytes(bytes);
+            var result = _service._databaseFactoryService.CreateDatabaseFromBytes(bytes, isBinary);
             LogInfo("Creating database from bytes completed");
             return result;
         }
@@ -534,7 +608,7 @@ internal sealed partial class SymbolSearchUpdateEngine
         }
 
         /// <summary>Returns 'null' if download is not available and caller should keep polling.</summary>
-        private async Task<(XElement element, TimeSpan delay)> TryDownloadFileAsync(IFileDownloader fileDownloader, CancellationToken cancellationToken)
+        private async Task<(XElement? element, TimeSpan delay)> TryDownloadFileAsync(IFileDownloader fileDownloader, CancellationToken cancellationToken)
         {
             LogInfo("Read file from client");
 
@@ -609,7 +683,7 @@ internal sealed partial class SymbolSearchUpdateEngine
             }
         }
 
-        private async Task<(bool succeeded, byte[] contentBytes)> TryParseDatabaseElementAsync(XElement element, CancellationToken cancellationToken)
+        private async Task<(bool succeeded, byte[]? contentBytes)> TryParseDatabaseElementAsync(XElement element, CancellationToken cancellationToken)
         {
             LogInfo("Parsing database element");
             var contentsAttribute = element.Attribute(ContentAttributeName);

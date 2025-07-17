@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (!isSpecified && errorCode == (int)ErrorCode.WRN_Experimental)
+            if (!isSpecified && errorCode is (int)ErrorCode.WRN_Experimental or (int)ErrorCode.WRN_ExperimentalWithMessage)
             {
                 // Special handling for [Experimental] warning (treat as error severity by default)
                 Debug.Assert(isEnabledByDefault);

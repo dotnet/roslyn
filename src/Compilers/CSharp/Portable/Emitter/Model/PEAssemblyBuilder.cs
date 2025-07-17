@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// <summary>This is a cache of a subset of <seealso cref="_lazyFiles"/>. We don't include manifest resources in ref assemblies</summary>
         private ImmutableArray<Cci.IFileReference> _lazyFilesWithoutManifestResources;
 
-        private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
+        private NamedTypeSymbol _lazyEmbeddedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyRequiresLocationAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyParamCollectionAttribute;
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </remarks>
         private readonly string _metadataName;
 #nullable enable
-        public PEAssemblyBuilderBase(
+        protected PEAssemblyBuilderBase(
             SourceAssemblySymbol sourceAssembly,
             EmitOptions emitOptions,
             OutputKind outputKind,
@@ -94,7 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             CreateEmbeddedAttributesIfNeeded(diagnostics);
 
-            builder.AddIfNotNull(_lazyEmbeddedAttribute);
+            if (_lazyEmbeddedAttribute is SynthesizedEmbeddedAttributeSymbol)
+            {
+                builder.Add(_lazyEmbeddedAttribute);
+            }
+
             builder.AddIfNotNull(_lazyIsReadOnlyAttribute);
             builder.AddIfNotNull(_lazyRequiresLocationAttribute);
             builder.AddIfNotNull(_lazyParamCollectionAttribute);
@@ -387,7 +392,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 ref _lazyEmbeddedAttribute,
                 diagnostics,
                 AttributeDescription.CodeAnalysisEmbeddedAttribute,
-                createParameterlessEmbeddedAttributeSymbol);
+                createParameterlessEmbeddedAttributeSymbol,
+                allowUserDefinedAttribute: true);
 
             if ((needsAttributes & EmbeddableAttributes.IsReadOnlyAttribute) != 0)
             {
@@ -544,16 +550,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
                     GetSpecialType(SpecialType.System_Int32, diagnostics));
 
+#nullable enable
         private void CreateAttributeIfNeeded<T>(
             ref T symbol,
             BindingDiagnosticBag diagnostics,
             AttributeDescription description,
-            Func<string, NamespaceSymbol, BindingDiagnosticBag, T> factory)
-            where T : SynthesizedEmbeddedAttributeSymbolBase
+            Func<string, NamespaceSymbol, BindingDiagnosticBag, T> factory,
+            bool allowUserDefinedAttribute = false)
+            where T : NamedTypeSymbol
         {
+            Debug.Assert(!allowUserDefinedAttribute || typeof(T) == typeof(NamedTypeSymbol));
             if (symbol is null)
             {
-                AddDiagnosticsForExistingAttribute(description, diagnostics);
+                var userDefinedAttribute = getExistingType(description);
+
+                if (userDefinedAttribute is not null)
+                {
+                    if (allowUserDefinedAttribute)
+                    {
+                        symbol = (T)userDefinedAttribute;
+                        return;
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.GetFirstLocation(), description.FullName);
+                    }
+                }
 
                 var containingNamespace = GetOrSynthesizeNamespace(description.Namespace);
 
@@ -567,23 +589,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 AddSynthesizedDefinition(containingNamespace, symbol);
             }
-        }
 
-#nullable enable
-
-        private void AddDiagnosticsForExistingAttribute(AttributeDescription description, BindingDiagnosticBag diagnostics)
-        {
-            var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
-            var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
-            Debug.Assert(userDefinedAttribute is null || (object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
-            Debug.Assert(userDefinedAttribute?.IsErrorType() != true);
-
-            if (userDefinedAttribute is not null)
+            NamedTypeSymbol? getExistingType(AttributeDescription description)
             {
-                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.GetFirstLocation(), description.FullName);
+                var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
+                var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
+                Debug.Assert(userDefinedAttribute is null || (object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+                Debug.Assert(userDefinedAttribute?.IsErrorType() != true);
+
+                return userDefinedAttribute;
             }
         }
-
 #nullable disable
 
         protected NamespaceSymbol GetOrSynthesizeNamespace(string namespaceFullName)
@@ -638,6 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     {
         public override EmitBaseline? PreviousGeneration => null;
         public override SymbolChanges? EncSymbolChanges => null;
+        public override bool FieldRvaSupported => true;
 
         public override INamedTypeSymbolInternal? TryGetOrCreateSynthesizedHotReloadExceptionType()
             => null;

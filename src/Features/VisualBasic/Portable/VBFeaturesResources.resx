@@ -132,9 +132,6 @@
   <data name="Insert_the_missing_0" xml:space="preserve">
     <value>Insert the missing '{0}'.</value>
   </data>
-  <data name="Conflict_s_detected" xml:space="preserve">
-    <value>Conflict(s) detected.</value>
-  </data>
   <data name="Invert_If" xml:space="preserve">
     <value>Invert If</value>
   </data>
@@ -213,21 +210,9 @@
   <data name="Fix_Incorrect_Function_Return_Type" xml:space="preserve">
     <value>Fix Incorrect Function Return Type</value>
   </data>
-  <data name="Simplify_name_0" xml:space="preserve">
-    <value>Simplify name '{0}'</value>
-  </data>
-  <data name="Simplify_member_access_0" xml:space="preserve">
-    <value>Simplify member access '{0}'</value>
-  </data>
   <data name="Remove_Me_qualification" xml:space="preserve">
     <value>Remove 'Me' qualification</value>
     <comment>{Locked="Me"} "Me" is a VB keyword and should not be localized.</comment>
-  </data>
-  <data name="can_t_determine_valid_range_of_statements_to_extract_out" xml:space="preserve">
-    <value>can't determine valid range of statements to extract out</value>
-  </data>
-  <data name="Not_all_code_paths_return" xml:space="preserve">
-    <value>Not all code paths return</value>
   </data>
   <data name="contains_invalid_selection" xml:space="preserve">
     <value>contains invalid selection</value>
@@ -261,9 +246,6 @@
   </data>
   <data name="Selection_doesn_t_contain_any_valid_node" xml:space="preserve">
     <value>Selection doesn't contain any valid node</value>
-  </data>
-  <data name="no_valid_statement_range_to_extract_out" xml:space="preserve">
-    <value>no valid statement range to extract out</value>
   </data>
   <data name="Deprecated" xml:space="preserve">
     <value>Deprecated</value>
@@ -1107,23 +1089,11 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll" xml:space="preserve">
     <value>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</value>
   </data>
-  <data name="Properties" xml:space="preserve">
-    <value>Properties</value>
-  </data>
-  <data name="namespace_name" xml:space="preserve">
-    <value>&lt;namespace name&gt;</value>
-  </data>
   <data name="Type_a_name_here_to_declare_a_namespace" xml:space="preserve">
     <value>Type a name here to declare a namespace.</value>
   </data>
   <data name="Type_a_name_here_to_declare_a_partial_class" xml:space="preserve">
     <value>Type a name here to declare a partial class.</value>
-  </data>
-  <data name="class_name" xml:space="preserve">
-    <value>&lt;class name&gt;</value>
-  </data>
-  <data name="interface_name" xml:space="preserve">
-    <value>&lt;interface name&gt;</value>
   </data>
   <data name="module_name" xml:space="preserve">
     <value>&lt;module name&gt;</value>

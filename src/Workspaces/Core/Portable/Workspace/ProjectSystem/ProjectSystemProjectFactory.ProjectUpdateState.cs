@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
@@ -118,8 +118,14 @@ internal sealed partial class ProjectSystemProjectFactory
         public ProjectUpdateState WithIncrementalMetadataReferenceRemoved(PortableExecutableReference reference)
             => this with { RemovedMetadataReferences = RemovedMetadataReferences.Add(reference) };
 
+        public ProjectUpdateState WithIncrementalMetadataReferencesRemoved(ArrayBuilder<PortableExecutableReference> references)
+            => this with { RemovedMetadataReferences = RemovedMetadataReferences.AddRange(references) };
+
         public ProjectUpdateState WithIncrementalMetadataReferenceAdded(PortableExecutableReference reference)
             => this with { AddedMetadataReferences = AddedMetadataReferences.Add(reference) };
+
+        public ProjectUpdateState WithIncrementalMetadataReferencesAdded(ArrayBuilder<PortableExecutableReference> references)
+            => this with { AddedMetadataReferences = AddedMetadataReferences.AddRange(references) };
 
         public ProjectUpdateState WithIncrementalAnalyzerReferenceRemoved(string reference)
             => this with { RemovedAnalyzerReferences = RemovedAnalyzerReferences.Add(reference) };

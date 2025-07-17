@@ -8,10 +8,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup;
 
@@ -60,7 +60,7 @@ internal static class CodeCleaner
     public static async Task<Document> CleanupAsync(Document document, SyntaxAnnotation annotation, CodeCleanupOptions options, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        return await CleanupAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(n => n.Span).ToImmutableArray(), options, providers, cancellationToken: cancellationToken).ConfigureAwait(false);
+        return await CleanupAsync(document, [.. root.GetAnnotatedNodesAndTokens(annotation).Select(n => n.Span)], options, providers, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

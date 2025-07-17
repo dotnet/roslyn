@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="tr" original="../BannedApiAnalyzerResources.resx">
+    <body>
+      <trans-unit id="DuplicateBannedSymbolDescription">
+        <source>The list of banned symbols contains a duplicate.</source>
+        <target state="translated">Yasaklanan semboller listesi yinelenen bir öğe içeriyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateBannedSymbolMessage">
+        <source>The symbol '{0}' is listed multiple times in the list of banned APIs</source>
+        <target state="translated">'{0}' sembolü yasaklanan API'ler listesinde birden çok kez listelenmiş</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateBannedSymbolTitle">
+        <source>The list of banned symbols contains a duplicate</source>
+        <target state="translated">Yasaklanan semboller listesi yinelenen bir öğe içeriyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RestrictedInternalsVisibleToDescription">
+        <source>RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</source>
+        <target state="translated">RestrictedInternalsVisibleToAttribute, iç simgelere erişimi belirtilen ad alanlarındakilerle sınırlayan kısıtlanmış bir InternalsVisibleToAttribute sürümünü etkinleştirir. Başvuru yapan her derleme yalnızca başvurulan derlemenin izin verdiği kısıtlanmış ad alanlarında tanımlı iç simgelere erişebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RestrictedInternalsVisibleToMessage">
+        <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'.</source>
+        <target state="translated">'{0}' iç sembolüne dışarıdan erişime izin verilmez. '{1}' bütünleştirilmiş kodunda yalnızca şu ad alanlarında tanımlanan iç sembollere erişime izin verilir: '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RestrictedInternalsVisibleToTitle">
+        <source>External access to internal symbols outside the restricted namespace(s) is prohibited</source>
+        <target state="translated">İç simgelere kısıtlı ad alanları dışından erişime izin verilmez</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedDescription">
+        <source>The symbol has been marked as banned in this project, and an alternate should be used instead.</source>
+        <target state="translated">Sembol bu projede yasaklanan olarak işaretlendiğinden bunun yerine başka bir sembol kullanılması gerekiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedMessage">
+        <source>The symbol '{0}' is banned in this project{1}</source>
+        <target state="translated">'{0}' sembolü bu {1} projesinde yasaklı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedTitle">
+        <source>Do not use banned APIs</source>
+        <target state="translated">Yasaklanmış API'leri kullanmayın</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

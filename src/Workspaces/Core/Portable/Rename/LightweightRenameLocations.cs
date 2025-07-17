@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
@@ -115,8 +114,8 @@ internal sealed partial class LightweightRenameLocations
             renameLocations.ReferencedSymbols.SelectAsArray(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)));
     }
 
-    public Task<ConflictResolution> ResolveConflictsAsync(ISymbol symbol, string replacementText, ImmutableArray<SymbolKey> nonConflictSymbolKeys, CancellationToken cancellationToken)
-        => ConflictResolver.ResolveLightweightConflictsAsync(symbol, this, replacementText, nonConflictSymbolKeys, cancellationToken);
+    public Task<ConflictResolution> ResolveConflictsAsync(ISymbol symbol, string replacementText, CancellationToken cancellationToken)
+        => ConflictResolver.ResolveLightweightConflictsAsync(symbol, this, replacementText, cancellationToken);
 
     public LightweightRenameLocations Filter(Func<DocumentId, TextSpan, bool> filter)
         => new(

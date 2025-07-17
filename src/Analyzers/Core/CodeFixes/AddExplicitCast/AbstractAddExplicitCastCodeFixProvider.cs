@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -82,7 +83,7 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
 
         if (potentialConversionTypes.Length == 1)
         {
-            RegisterCodeFix(context, CodeFixesResources.Add_explicit_cast, nameof(CodeFixesResources.Add_explicit_cast));
+            RegisterCodeFix(context, AnalyzersResources.Add_explicit_cast, nameof(AnalyzersResources.Add_explicit_cast));
         }
         else if (potentialConversionTypes.Length > 1)
         {
@@ -108,7 +109,7 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
             }
 
             context.RegisterCodeFix(
-                CodeAction.Create(CodeFixesResources.Add_explicit_cast, actions.ToImmutableAndClear(), isInlinable: false),
+                CodeAction.Create(AnalyzersResources.Add_explicit_cast, actions.ToImmutableAndClear(), isInlinable: false),
                 context.Diagnostics);
         }
     }

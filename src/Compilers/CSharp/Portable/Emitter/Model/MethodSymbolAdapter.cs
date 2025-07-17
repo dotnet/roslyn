@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
 
-                return AdaptedMethodSymbol.IsExternal;
+                return !AdaptedMethodSymbol.ContainingType.IsExtension && AdaptedMethodSymbol.IsExternal;
             }
         }
 
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return AdaptedMethodSymbol.GetDllImportData() != null;
+                return !AdaptedMethodSymbol.ContainingType.IsExtension && AdaptedMethodSymbol.GetDllImportData() != null;
             }
         }
 #nullable disable
@@ -431,14 +431,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return AdaptedMethodSymbol.GetDllImportData();
+                return AdaptedMethodSymbol.ContainingType.IsExtension ? null : AdaptedMethodSymbol.GetDllImportData();
             }
         }
 
         System.Reflection.MethodImplAttributes Cci.IMethodDefinition.GetImplementationAttributes(EmitContext context)
         {
             CheckDefinitionInvariant();
-            return AdaptedMethodSymbol.ImplementationAttributes;
+            return AdaptedMethodSymbol.ContainingType.IsExtension ? default : AdaptedMethodSymbol.ImplementationAttributes;
         }
 
         bool Cci.IMethodDefinition.IsRuntimeSpecial
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckDefinitionInvariant();
 
             ImmutableArray<CSharpAttributeData> userDefined = AdaptedMethodSymbol.GetReturnTypeAttributes();
-            ArrayBuilder<SynthesizedAttributeData> synthesized = null;
+            ArrayBuilder<CSharpAttributeData> synthesized = null;
             AdaptedMethodSymbol.AddSynthesizedReturnTypeAttributes((PEModuleBuilder)context.Module, ref synthesized);
 
             // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 

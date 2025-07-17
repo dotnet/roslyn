@@ -1,0 +1,52 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <IsPackable>true</IsPackable>
+    <IsShippingPackage>true</IsShippingPackage>
+    <PackageDescription>Analyzer utilities for various analyses, including Dataflow analysis based on ControlFlowGraph API in Microsoft.CodeAnalysis.</PackageDescription>
+    <PackageReleaseNotes>Analyzer utilities for various analyses, including Dataflow analysis based on ControlFlowGraph API in Microsoft.CodeAnalysis.</PackageReleaseNotes>
+    <PackageTags>Roslyn Analyzer Utilities CodeAnalysis Dataflow ControlFlowGraph FlowAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>
+
+    <ExcludeCodeMetricsUtilities>true</ExcludeCodeMetricsUtilities>
+    <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
+    <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
+
+    <!-- RS0026: Avoid public API overloads with differences in optional parameters -->
+    <NoWarn>$(NoWarn);RS0026</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Threading.Channels" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
+  </ItemGroup>
+  <Choose>
+    <When Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Analyzer.Utilities.UnitTests" />
+  </ItemGroup>
+  <Import Project="..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
+  <Import Project="..\Utilities\FlowAnalysis\FlowAnalysis.Utilities.projitems" Label="Shared" />
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+
+  <Import Project="..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
+  <Import Project="..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+  <Import Project="..\..\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems" Label="Shared" />
+  <Import Project="..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
+
+  <Import Project="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.projitems" Label="Shared"/>
+  <Import Project="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems" Label="Shared" />
+</Project>

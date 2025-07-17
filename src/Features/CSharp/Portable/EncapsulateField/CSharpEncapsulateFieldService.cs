@@ -144,10 +144,9 @@ internal sealed class CSharpEncapsulateFieldService() : AbstractEncapsulateField
             declarators = declarations.SelectMany(d => d.Variables.Where(v => v.Span.IntersectsWith(span)));
         }
 
-        return declarators.Select(d => semanticModel.GetDeclaredSymbol(d, cancellationToken) as IFieldSymbol)
+        return [.. declarators.Select(d => semanticModel.GetDeclaredSymbol(d, cancellationToken) as IFieldSymbol)
                           .WhereNotNull()
-                          .Where(f => f.Name.Length != 0)
-                          .ToImmutableArray();
+                          .Where(f => f.Name.Length != 0)];
     }
 
     private bool CanEncapsulate(FieldDeclarationSyntax field)

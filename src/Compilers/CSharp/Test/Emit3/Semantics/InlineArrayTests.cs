@@ -23485,5 +23485,26 @@ struct ThreeStringBuffer {
                     """);
             }
         }
+
+        [Fact]
+        public void NullConditionalAssignment_01()
+        {
+            var src = @"
+class Program
+{
+    static void Test(Buffer4<int> x)
+    {
+        x[0] = 1;
+        Buffer4<int>? nx = x;
+        nx?[2] = 3; // 1
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (8,12): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         nx?[2] = 3; // 1
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[2]").WithLocation(8, 12));
+        }
     }
 }

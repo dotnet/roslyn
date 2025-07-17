@@ -8,18 +8,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
-using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal static class DiagnosticAnalyzerExtensions
 {
     public static bool IsWorkspaceDiagnosticAnalyzer(this DiagnosticAnalyzer analyzer)
-        => analyzer is DocumentDiagnosticAnalyzer
-        || analyzer is ProjectDiagnosticAnalyzer
-        || analyzer == FileContentLoadAnalyzer.Instance
-        || analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance;
+        => analyzer is DocumentDiagnosticAnalyzer;
 
     public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
         => analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();

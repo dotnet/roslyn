@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor;
 
@@ -14,8 +12,8 @@ internal sealed class NavigationBarProjectItem(
     Workspace workspace,
     DocumentId documentId,
     string language) : NavigationBarItem(textVersion: null, text, glyph,
-               spans: ImmutableArray<TextSpan>.Empty,
-               childItems: ImmutableArray<NavigationBarItem>.Empty,
+               spans: [],
+               childItems: [],
                indent: 0, bolded: false, grayed: false), IEquatable<NavigationBarProjectItem>
 {
     public Workspace Workspace { get; } = workspace;

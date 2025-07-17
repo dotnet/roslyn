@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.Threading;
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
 
 [TestService]
-internal partial class FindReferencesWindowInProcess
+internal sealed partial class FindReferencesWindowInProcess
 {
     // Guid of the FindRefs window.  Defined here:
     // https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/env/ErrorList/Pkg/Guids.cs&version=GBmain&line=24
@@ -56,7 +56,7 @@ internal partial class FindReferencesWindowInProcess
         var forcedUpdateResult = await tableControl.ForceUpdateAsync().WithCancellation(cancellationToken);
 
         // Extract the basic text of the results.
-        return forcedUpdateResult.AllEntries.Cast<ITableEntryHandle2>().ToImmutableArray();
+        return [.. forcedUpdateResult.AllEntries.Cast<ITableEntryHandle2>()];
     }
 
     public async Task NavigateToAsync(ITableEntryHandle2 referenceInGeneratedFile, bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
@@ -82,7 +82,7 @@ internal partial class FindReferencesWindowInProcess
 
         // Dig through to get the Find References control.
         var toolWindowType = toolWindow.GetType();
-        var toolWindowControlField = toolWindowType.GetField("Control");
+        var toolWindowControlField = toolWindowType.GetField("_control") ?? toolWindowType.GetField("Control");
         var toolWindowControl = toolWindowControlField.GetValue(toolWindow);
 
         // Dig further to get the results table (as opposed to the toolbar).

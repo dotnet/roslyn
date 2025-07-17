@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeParameterSymbol MakeSymbol(int ordinal, IList<TypeParameterBuilder> builders, BindingDiagnosticBag diagnostics)
         {
             var syntaxNode = (TypeParameterSyntax)_syntaxRef.GetSyntax();
-            var result = new SourceTypeParameterSymbol(
+            var result = new SourceTypeTypeParameterSymbol(
                 _owner,
                 syntaxNode.Identifier.ValueText,
                 ordinal,

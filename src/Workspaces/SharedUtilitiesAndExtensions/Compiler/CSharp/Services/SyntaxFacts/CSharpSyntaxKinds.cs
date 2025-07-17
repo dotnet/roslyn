@@ -39,6 +39,8 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int RegionDirectiveTrivia => (int)SyntaxKind.RegionDirectiveTrivia;
     public int EndRegionDirectiveTrivia => (int)SyntaxKind.EndRegionDirectiveTrivia;
     public int? ShebangDirectiveTrivia => (int)SyntaxKind.ShebangDirectiveTrivia;
+    public int DefineDirectiveTrivia => (int)SyntaxKind.DefineDirectiveTrivia;
+    public int? UndefDirectiveTrivia => (int)SyntaxKind.UndefDirectiveTrivia;
 
     public int CloseBraceToken => (int)SyntaxKind.CloseBraceToken;
     public int? CloseBracketToken => (int)SyntaxKind.CloseBracketToken;
@@ -68,9 +70,11 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int FalseKeyword => (int)SyntaxKind.FalseKeyword;
     public int IfKeyword => (int)SyntaxKind.IfKeyword;
     public int NewKeyword => (int)SyntaxKind.NewKeyword;
+    public int PartialKeyword => (int)SyntaxKind.PartialKeyword;
     public int TrueKeyword => (int)SyntaxKind.TrueKeyword;
     public int UsingKeyword => (int)SyntaxKind.UsingKeyword;
 
+    public int? AliasQualifiedName => (int)SyntaxKind.AliasQualifiedName;
     public int GenericName => (int)SyntaxKind.GenericName;
     public int IdentifierName => (int)SyntaxKind.IdentifierName;
     public int QualifiedName => (int)SyntaxKind.QualifiedName;
@@ -94,6 +98,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int CollectionInitializerExpression => (int)SyntaxKind.CollectionInitializerExpression;
     public int ConditionalAccessExpression => (int)SyntaxKind.ConditionalAccessExpression;
     public int ConditionalExpression => (int)SyntaxKind.ConditionalExpression;
+    public int? FieldExpression => (int)SyntaxKind.FieldExpression;
     public int? ImplicitArrayCreationExpression => (int)SyntaxKind.ImplicitArrayCreationExpression;
     public int? ImplicitObjectCreationExpression => (int)SyntaxKind.ImplicitObjectCreationExpression;
     public int? IndexExpression => (int)SyntaxKind.IndexExpression;
@@ -111,12 +116,15 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int? RefExpression => (int)SyntaxKind.RefExpression;
     public int ReferenceEqualsExpression => (int)SyntaxKind.EqualsExpression;
     public int ReferenceNotEqualsExpression => (int)SyntaxKind.NotEqualsExpression;
+    public int SimpleAssignmentExpression => (int)SyntaxKind.SimpleAssignmentExpression;
     public int SimpleMemberAccessExpression => (int)SyntaxKind.SimpleMemberAccessExpression;
+    public int? SizeOfExpression => (int)SyntaxKind.SizeOfExpression;
     public int? SuppressNullableWarningExpression => (int)SyntaxKind.SuppressNullableWarningExpression;
     public int TernaryConditionalExpression => (int)SyntaxKind.ConditionalExpression;
     public int ThisExpression => (int)SyntaxKind.ThisExpression;
     public int? ThrowExpression => (int)SyntaxKind.ThrowExpression;
     public int TupleExpression => (int)SyntaxKind.TupleExpression;
+    public int TypeOfExpression => (int)SyntaxKind.TypeOfExpression;
 
     public int? AndPattern => (int)SyntaxKind.AndPattern;
     public int? ConstantPattern => (int)SyntaxKind.ConstantPattern;
@@ -173,4 +181,5 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int InterpolatedStringExpression => (int)SyntaxKind.InterpolatedStringExpression;
     public int InterpolatedStringText => (int)SyntaxKind.InterpolatedStringText;
     public int? IndexerMemberCref => (int)SyntaxKind.IndexerMemberCref;
+    public int? PrimaryConstructorBaseType => (int)SyntaxKind.PrimaryConstructorBaseType;
 }

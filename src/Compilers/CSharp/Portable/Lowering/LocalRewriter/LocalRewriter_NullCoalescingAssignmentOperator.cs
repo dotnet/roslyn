@@ -39,7 +39,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // See CodeGenNullCoalescingAssignmentTests.CoalescingAssignment_DynamicRuntimeCastFailure, which will fail if
                 // isCompoundAssignment is set to true. It will fail to throw a runtime binder cast exception.
                 Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.LeftOperand.Type, TypeCompareKind.AllIgnoreOptions));
-                BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, used: true, isChecked: false, isCompoundAssignment: false);
+                BoundExpression assignment;
+
+                if (IsNewExtensionMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
+                {
+                    // We need to create a tree that ensures that receiver of 'set' is evaluated after the right hand side value
+                    BoundLocal rightResult = _factory.StoreToTemp(loweredRight, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
+                    assignment = MakeAssignmentOperator(syntax, transformedLHS, rightResult, used: true, isChecked: false, isCompoundAssignment: false);
+                    Debug.Assert(assignment.Type is { });
+                    assignment = new BoundSequence(syntax, [rightResult.LocalSymbol], [assignmentToTemp], assignment, assignment.Type);
+                }
+                else
+                {
+                    assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, used: true, isChecked: false, isCompoundAssignment: false);
+                }
 
                 // lhsRead ?? (transformedLHS = loweredRight)
                 var leftPlaceholder = new BoundValuePlaceholder(lhsRead.Syntax, lhsRead.Type);

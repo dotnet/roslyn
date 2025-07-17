@@ -440,11 +440,6 @@ Ad önerilerini göster;
         <target state="translated">Kod parçacıklarını hiçbir zaman dahil etme</target>
         <note />
       </trans-unit>
-      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>Only add new line on enter after end of fully typed word</source>
-        <target state="translated">Yalnızca tam olarak yazılmış bir kelimeden sonra Enter'a basıldığında yeni satır ekle</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

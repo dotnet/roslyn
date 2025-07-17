@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(TupleNameCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(XmlDocCommentCompletionProvider))]
 [Shared]
-internal class TupleNameCompletionProvider : LSPCompletionProvider
+internal sealed class TupleNameCompletionProvider : LSPCompletionProvider
 {
     private const string ColonString = ":";
 
@@ -106,7 +106,7 @@ internal class TupleNameCompletionProvider : LSPCompletionProvider
             context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
               displayText: field.Name,
               displayTextSuffix: ColonString,
-              symbols: ImmutableArray.Create(field),
+              symbols: [field],
               rules: CompletionItemRules.Default,
               contextPosition: spanStart,
               filterText: field.Name));

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -851,6 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Struct:
                     case TypeKind.Interface:
                     case TypeKind.Delegate:
+                    case TypeKind.Extension:
 
                         if (current.IsAnonymousType)
                         {
@@ -1278,7 +1280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool ContainsFunctionPointer(this TypeSymbol type) =>
             type.VisitType((TypeSymbol t, object? _, bool _) => t.IsFunctionPointer(), null) is object;
 
-        internal static bool ContainsPointer(this TypeSymbol type) =>
+        internal static bool ContainsPointerOrFunctionPointer(this TypeSymbol type) =>
             type.VisitType((TypeSymbol t, object? _, bool _) => t.TypeKind is TypeKind.Pointer or TypeKind.FunctionPointer, null) is object;
 
         /// <summary>
@@ -1715,22 +1717,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static TypeParameterSymbol? FindEnclosingTypeParameter(this NamedTypeSymbol type, string name)
         {
-            var allTypeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
-            type.GetAllTypeParameters(allTypeParameters);
-
-            TypeParameterSymbol? result = null;
-
-            foreach (TypeParameterSymbol tpEnclosing in allTypeParameters)
+            do
             {
-                if (name == tpEnclosing.Name)
+                foreach (TypeParameterSymbol tpEnclosing in type.TypeParameters)
                 {
-                    result = tpEnclosing;
-                    break;
+                    if (name == tpEnclosing.Name)
+                    {
+                        return tpEnclosing;
+                    }
                 }
-            }
 
-            allTypeParameters.Free();
-            return result;
+                type = type.ContainingType;
+            }
+            while (type is not null);
+
+            return null;
         }
 
         /// <summary>
@@ -2135,6 +2136,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return typeSymbol is NamedTypeSymbol { Name: WellKnownMemberNames.LockTypeName, Arity: 0, ContainingType: null } &&
                 typeSymbol.IsContainedInNamespace(nameof(System), nameof(System.Threading));
+        }
+
+        internal static bool IsMicrosoftCodeAnalysisEmbeddedAttribute(this TypeSymbol typeSymbol)
+        {
+            return typeSymbol is NamedTypeSymbol
+            {
+                Name: "EmbeddedAttribute",
+                Arity: 0,
+                ContainingType: null,
+            }
+            && typeSymbol.IsContainedInNamespace("Microsoft", "CodeAnalysis");
         }
 
         private static bool IsWellKnownInteropServicesTopLevelType(this TypeSymbol typeSymbol, string name)

@@ -5,9 +5,11 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertPrimaryToRegularConstructor;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertPrimaryToRegularConstructor;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertPrimaryToRegular
 using VerifyCS = CSharpCodeRefactoringVerifier<ConvertPrimaryToRegularConstructorCodeRefactoringProvider>;
 
 [UseExportProvider]
-public class ConvertPrimaryToRegularConstructorTests
+public sealed class ConvertPrimaryToRegularConstructorTests
 {
     private const string FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig = """
         [*.cs]
@@ -29,9 +31,8 @@ public class ConvertPrimaryToRegularConstructorTests
         """;
 
     [Fact]
-    public async Task TestInCSharp12()
-    {
-        await new VerifyCS.Test
+    public Task TestInCSharp12()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i)|]
@@ -48,12 +49,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithRecord()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithRecord()
+        => new VerifyCS.Test
         {
             TestCode = """
                 record class [|C(int i)|]
@@ -68,12 +67,10 @@ public class ConvertPrimaryToRegularConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestStruct()
-    {
-        await new VerifyCS.Test
+    public Task TestStruct()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct [|C(int i)|]
@@ -90,12 +87,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithThisChainedConstructor()
-    {
-        await new VerifyCS.Test
+    public Task TestWithThisChainedConstructor()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i)|]
@@ -119,12 +114,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithBaseChainedConstructor1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithBaseChainedConstructor1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class B(int i)
@@ -156,12 +149,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithBaseChainedConstructor2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithBaseChainedConstructor2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class B(int i)
@@ -193,12 +184,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithBaseChainedConstructor3()
-    {
-        await new VerifyCS.Test
+    public Task TestWithBaseChainedConstructor3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class B(int i, int j)
@@ -232,12 +221,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithBaseChainedConstructor4()
-    {
-        await new VerifyCS.Test
+    public Task TestWithBaseChainedConstructor4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class B(int i, int j)
@@ -271,12 +258,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithBaseChainedConstructor5()
-    {
-        await new VerifyCS.Test
+    public Task TestWithBaseChainedConstructor5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class B(int i, int j)
@@ -312,12 +297,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithReferenceOnlyInExistingSameNamedField()
-    {
-        await new VerifyCS.Test
+    public Task TestWithReferenceOnlyInExistingSameNamedField()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i)|]
@@ -338,12 +321,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithReferenceOnlyInPropertyInitializer1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithReferenceOnlyInPropertyInitializer1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i)|]
@@ -364,12 +345,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithReferenceInDifferentNamedField()
-    {
-        await new VerifyCS.Test
+    public Task TestWithReferenceInDifferentNamedField()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int j)|]
@@ -390,12 +369,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithComplexFieldInitializer1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithComplexFieldInitializer1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i)|]
@@ -416,12 +393,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithComplexFieldInitializer2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithComplexFieldInitializer2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i)|]
@@ -442,12 +417,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithComplexFieldInitializer3()
-    {
-        await new VerifyCS.Test
+    public Task TestWithComplexFieldInitializer3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i)|]
@@ -471,12 +444,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersWithFieldInitializers1()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersWithFieldInitializers1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i, int j)|]
@@ -500,12 +471,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersWithFieldInitializers2()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersWithFieldInitializers2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i, int j)|]
@@ -527,12 +496,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithParametersReferencedOutsideOfConstructor()
-    {
-        await new VerifyCS.Test
+    public Task TestWithParametersReferencedOutsideOfConstructor()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i, int j)|]
@@ -563,12 +530,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithParametersReferencedOutsideOfConstructor_Mutation1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithParametersReferencedOutsideOfConstructor_Mutation1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i, int j)|]
@@ -599,12 +564,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithoutParametersReferencedOutsideOfConstructor()
-    {
-        await new VerifyCS.Test
+    public Task TestWithoutParametersReferencedOutsideOfConstructor()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i, int j)|]
@@ -621,12 +584,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestAssignmentToPropertyOfDifferentType()
-    {
-        await new VerifyCS.Test
+    public Task TestAssignmentToPropertyOfDifferentType()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i, int j)|]
@@ -647,12 +608,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestAssignedToFieldUsedInNestedType()
-    {
-        await new VerifyCS.Test
+    public Task TestAssignedToFieldUsedInNestedType()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -699,12 +658,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithNotMutatedReferencesOutsideOfConstructor1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithNotMutatedReferencesOutsideOfConstructor1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -737,12 +694,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEscapedParameterNames()
-    {
-        await new VerifyCS.Test
+    public Task TestEscapedParameterNames()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -775,12 +730,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithNotMutatedReferencesOutsideOfConstructor2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithNotMutatedReferencesOutsideOfConstructor2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -815,12 +768,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithNotMutatedReferencesOutsideOfConstructor3()
-    {
-        await new VerifyCS.Test
+    public Task TestWithNotMutatedReferencesOutsideOfConstructor3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -857,12 +808,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGenerateUnderscoreName1()
-    {
-        await new VerifyCS.Test
+    public Task TestGenerateUnderscoreName1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -900,12 +849,10 @@ public class ConvertPrimaryToRegularConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
             EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGenerateUnderscoreName2()
-    {
-        await new VerifyCS.Test
+    public Task TestGenerateUnderscoreName2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -943,12 +890,10 @@ public class ConvertPrimaryToRegularConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
             EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestComplexFieldInitializer()
-    {
-        await new VerifyCS.Test
+    public Task TestComplexFieldInitializer()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i)|]
@@ -973,12 +918,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs1()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1009,12 +952,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs2()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1049,12 +990,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs3()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 ///<summary>Doc comment on single line</summary>
@@ -1079,12 +1018,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs4()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1127,12 +1064,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs5()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1171,12 +1106,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs6()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs6()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1211,12 +1144,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs7()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs7()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1259,12 +1190,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs9()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs9()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1308,12 +1237,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs10()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs10()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1355,12 +1282,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs11()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs11()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1391,12 +1316,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs13()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs13()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1423,12 +1346,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs14()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs14()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1455,12 +1376,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs15()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs15()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1487,12 +1406,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs16()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs16()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1523,12 +1440,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs17()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs17()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1555,12 +1470,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs18()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs18()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1591,12 +1504,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs19()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs19()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1633,12 +1544,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs20()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs20()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1671,12 +1580,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs21()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs21()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1709,12 +1616,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveParamDocs22()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveParamDocs22()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1751,12 +1656,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes1()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorAttributes1()
+        => new VerifyCS.Test
         {
             TestCode = """
                using System;
@@ -1778,12 +1681,10 @@ public class ConvertPrimaryToRegularConstructorTests
                """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes1A()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorAttributes1A()
+        => new VerifyCS.Test
         {
             TestCode = """
                using System;
@@ -1806,12 +1707,10 @@ public class ConvertPrimaryToRegularConstructorTests
                """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes2()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorAttributes2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1840,12 +1739,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes2A()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorAttributes2A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1876,12 +1773,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes3()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorAttributes3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1913,12 +1808,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes3A()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorAttributes3A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1952,12 +1845,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes4()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorAttributes4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1984,12 +1875,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes4A()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorAttributes4A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2019,12 +1908,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersMove1()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersMove1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2047,12 +1934,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersMove1A()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersMove1A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2081,12 +1966,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersMove2()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersMove2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2111,12 +1994,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersMove2A()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersMove2A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2147,12 +2028,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersMove3()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersMove3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2175,12 +2054,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersMove3A()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersMove3A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2209,12 +2086,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersMove4()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersMove4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2239,12 +2114,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersMove4A()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersMove4A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2275,12 +2148,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReferenceToNestedType1()
-    {
-        await new VerifyCS.Test
+    public Task TestReferenceToNestedType1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(C.D d)|]
@@ -2304,12 +2175,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReferenceToNestedType2()
-    {
-        await new VerifyCS.Test
+    public Task TestReferenceToNestedType2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -2337,12 +2206,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReferenceToNestedType3()
-    {
-        await new VerifyCS.Test
+    public Task TestReferenceToNestedType3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(C.D d)|]
@@ -2366,12 +2233,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReferenceToNestedType4()
-    {
-        await new VerifyCS.Test
+    public Task TestReferenceToNestedType4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -2399,12 +2264,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInParameter1()
-    {
-        await new VerifyCS.Test
+    public Task TestInParameter1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(in int i)|]
@@ -2425,12 +2288,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInParameter2_Unused()
-    {
-        await new VerifyCS.Test
+    public Task TestInParameter2_Unused()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(in int i)|]
@@ -2447,12 +2308,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithRegionDirective1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithRegionDirective1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i)|]
@@ -2467,24 +2326,21 @@ public class ConvertPrimaryToRegularConstructorTests
             FixedCode = """
                 class C
                 {
-                    public C(int i)
-                    {
-                    }
 
                     #region constructors
 
                     #endregion
-
+                    public C(int i)
+                    {
+                    }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithRegionDirective2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithRegionDirective2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i)|]
@@ -2519,12 +2375,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSeeTag1()
-    {
-        await new VerifyCS.Test
+    public Task TestSeeTag1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 /// <summary>
@@ -2551,12 +2405,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSeeTag2()
-    {
-        await new VerifyCS.Test
+    public Task TestSeeTag2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 /// <summary>
@@ -2591,12 +2443,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSeeTag3()
-    {
-        await new VerifyCS.Test
+    public Task TestSeeTag3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 /// <summary>
@@ -2632,12 +2482,10 @@ public class ConvertPrimaryToRegularConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
             EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReferenceToConstantInParameterInitializer1()
-    {
-        await new VerifyCS.Test
+    public Task TestReferenceToConstantInParameterInitializer1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i = C.Default)|]
@@ -2660,12 +2508,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReferenceToConstantInParameterInitializer2()
-    {
-        await new VerifyCS.Test
+    public Task TestReferenceToConstantInParameterInitializer2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C(int i = C.Default)|]
@@ -2688,12 +2534,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReferenceToConstantInParameterInitializer3()
-    {
-        await new VerifyCS.Test
+    public Task TestReferenceToConstantInParameterInitializer3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class [|C<T>(int i = C<T>.Default)|]
@@ -2716,5 +2560,585 @@ public class ConvertPrimaryToRegularConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72340")]
+    public Task TestClassWithoutBody()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class [|Class1()|];
+                """,
+            FixedCode = """
+                class Class1
+                {
+                    public Class1()
+                    {
+                    }
+                }
+
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOnExtension()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                static class Class1
+                {
+                    [|extension(string s)|]
+                    {
+                        public void Goo() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76981")]
+    public Task TestConvertWithReferencesToParameter1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    internal class [|Goo(int bar)|]
+                    {
+                        public int Bar { get; private set; } = bar;
+
+                        public void Baz()
+                        {
+                            Bar = bar;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    internal class Goo
+                    {
+                        private readonly int bar;
+
+                        public Goo(int bar)
+                        {
+                            this.bar = bar;
+                            Bar = bar;
+                        }
+
+                        public int Bar { get; private set; }
+
+                        public void Baz()
+                        {
+                            Bar = bar;
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public Task TestOnPartialType_NotUsed()
+        => new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                    }
+                    """, """
+                    partial class C
+                    {
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        public C(int i)
+                        {
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public Task TestOnPartialType_UsedInSamePartialPart()
+        => new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                        public int I { get; } = i;
+                    }
+                    """, """
+                    partial class C
+                    {
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        public int I { get; }
+
+                        public C(int i)
+                        {
+                            I = i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public Task TestOnPartialType_UsedInOtherPartialPart()
+        => new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                    }
+                    """, """
+                    partial class C
+                    {
+                        public int I { get; } = i;
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        public C(int i)
+                        {
+                            I = i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        public int I { get; }
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public Task TestOnPartialType_UsedInAllPartialParts()
+        => new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                        public int I1 { get; } = i + 1;
+                    }
+                    """, """
+                    partial class C
+                    {
+                        public int I2 { get; } = i + 2;
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        public int I1 { get; }
+
+                        public C(int i)
+                        {
+                            I1 = i + 1;
+                            I2 = i + 2;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        public int I2 { get; }
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public Task TestOnPartialType_CapturedInSamePartialPart_SameFieldName()
+        => new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        private readonly int i;
+
+                        public C(int i)
+                        {
+                            this.i = i;
+                        }
+
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public Task TestOnPartialType_CapturedInSamePartialPart_UnderscoreFieldName()
+        => new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        private readonly int _i;
+
+                        public C(int i)
+                        {
+                            _i = i;
+                        }
+
+                        int M()
+                        {
+                            return _i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public Task TestOnPartialType_CapturedInOtherPartialPart_SameFieldName()
+        => new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                    }
+                    """, """
+                    partial class C
+                    {
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        private readonly int i;
+
+                        public C(int i)
+                        {
+                            this.i = i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public Task TestOnPartialType_CapturedInOtherPartialPart_UnderscoreFieldName()
+        => new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                    }
+                    """, """
+                    partial class C
+                    {
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        private readonly int _i;
+
+                        public C(int i)
+                        {
+                            _i = i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        int M()
+                        {
+                            return _i;
+                        }
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public Task TestOnPartialType_CapturedInAllPartialParts_SameFieldName()
+        => new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        int N()
+                        {
+                            return i;
+                        }
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        private readonly int i;
+
+                        public C(int i)
+                        {
+                            this.i = i;
+                        }
+
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        int N()
+                        {
+                            return i;
+                        }
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public Task TestOnPartialType_CapturedInAllPartialParts_UnderscoreFieldName()
+        => new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        int N()
+                        {
+                            return i;
+                        }
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        private readonly int _i;
+
+                        public C(int i)
+                        {
+                            _i = i;
+                        }
+
+                        int M()
+                        {
+                            return _i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        int N()
+                        {
+                            return _i;
+                        }
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig,
+        }.RunAsync();
 }

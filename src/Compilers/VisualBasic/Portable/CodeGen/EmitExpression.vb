@@ -248,16 +248,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             Debug.Assert(conditional.WhenNullOpt IsNot Nothing OrElse Not used)
 
-            If conditional.ReceiverOrCondition.Type.IsBooleanType() Then
-                ' This is a trivial case 
-                Debug.Assert(Not conditional.CaptureReceiver)
-                Debug.Assert(conditional.PlaceholderId = 0)
+            Dim receiverTemp As LocalDefinition = Nothing
+
+            Dim receiver As BoundExpression = conditional.Receiver
+            Dim receiverType As TypeSymbol = receiver.Type
+
+            If receiverType.IsNullableType() Then
+
+                If conditional.CaptureReceiver Then
+                    EmitExpression(receiver, used:=True)
+                    receiverTemp = AllocateTemp(receiverType, receiver.Syntax)
+                    _builder.EmitLocalStore(receiverTemp)
+                    _builder.EmitLocalAddress(receiverTemp)
+                Else
+                    receiverTemp = EmitAddress(receiver, addressKind:=AddressKind.Immutable)
+                End If
 
                 Dim doneLabel = New Object()
 
                 Dim consequenceLabel = New Object()
 
-                EmitCondBranch(conditional.ReceiverOrCondition, consequenceLabel, sense:=True)
+                Dim hasValue = DirectCast(Me._module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue), MethodSymbol)
+                Debug.Assert(hasValue IsNot Nothing)
+
+                _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=0)
+                EmitSymbolToken(hasValue.AsMember(DirectCast(receiverType, NamedTypeSymbol)), conditional.Syntax)
+
+                _builder.EmitBranch(ILOpCode.Brtrue, consequenceLabel)
 
                 If conditional.WhenNullOpt IsNot Nothing Then
                     EmitExpression(conditional.WhenNullOpt, used)
@@ -272,13 +289,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 End If
 
                 _builder.MarkLabel(consequenceLabel)
+
+                If receiverTemp Is Nothing Then
+                    receiverTemp = EmitAddress(receiver, addressKind:=AddressKind.Immutable)
+                    Debug.Assert(receiverTemp Is Nothing)
+                Else
+                    _builder.EmitLocalAddress(receiverTemp)
+                End If
+
                 EmitExpression(conditional.WhenNotNull, used)
 
                 _builder.MarkLabel(doneLabel)
             Else
-                Debug.Assert(Not conditional.ReceiverOrCondition.Type.IsValueType)
+                Debug.Assert(Not receiverType.IsValueType)
 
-                Dim receiverTemp As LocalDefinition = Nothing
                 Dim temp As LocalDefinition = Nothing
 
                 ' labels
@@ -287,9 +311,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 ' we need a copy if we deal with nonlocal value (to capture the value)
                 ' Or if we have a ref-constrained T (to do box just once)
-                Dim receiver As BoundExpression = conditional.ReceiverOrCondition
-                Dim receiverType As TypeSymbol = receiver.Type
-
                 Debug.Assert(Not (Not receiverType.IsReferenceType AndAlso
                                    Not receiverType.IsValueType AndAlso
                                    Not DirectCast(receiverType, TypeParameterSymbol).HasInterfaceConstraint) OrElse ' This could be a nullable value type, which must be copied in order to not mutate the original value
@@ -392,10 +413,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 If temp IsNot Nothing Then
                     FreeTemp(temp)
                 End If
+            End If
 
-                If receiverTemp IsNot Nothing Then
-                    FreeTemp(receiverTemp)
-                End If
+            If receiverTemp IsNot Nothing Then
+                FreeTemp(receiverTemp)
             End If
         End Sub
 
@@ -628,7 +649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         End If
                 End Select
             Else
-                _builder.EmitArrayElementLoad(_module.Translate(DirectCast(arrayAccess.Expression.Type, ArrayTypeSymbol)), arrayAccess.Expression.Syntax, _diagnostics)
+                _builder.EmitArrayElementLoad(_module.Translate(DirectCast(arrayAccess.Expression.Type, ArrayTypeSymbol)), arrayAccess.Expression.Syntax)
             End If
 
             EmitPopIfUnused(used)
@@ -1609,7 +1630,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.EmitOpCode(ILOpCode.Newarr)
                 EmitSymbolToken(arrayType.ElementType, expression.Syntax)
             Else
-                _builder.EmitArrayCreation(_module.Translate(arrayType), expression.Syntax, _diagnostics)
+                _builder.EmitArrayCreation(_module.Translate(arrayType), expression.Syntax)
             End If
 
             If expression.InitializerOpt IsNot Nothing Then
@@ -1713,7 +1734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 If ((type IsNot Nothing) AndAlso (type.TypeKind = TypeKind.TypeParameter) AndAlso constantValue.IsNull) Then
                     EmitInitObj(type, used, syntaxNode)
                 Else
-                    _builder.EmitConstantValue(constantValue)
+                    _builder.EmitConstantValue(constantValue, syntaxNode)
                 End If
             End If
         End Sub
@@ -2086,7 +2107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             If arrayType.IsSZArray Then
                 EmitVectorElementStore(arrayType, syntaxNode)
             Else
-                _builder.EmitArrayElementStore(_module.Translate(arrayType), syntaxNode, _diagnostics)
+                _builder.EmitArrayElementStore(_module.Translate(arrayType), syntaxNode)
             End If
         End Sub
 
@@ -2334,7 +2355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitModuleVersionIdToken(node As BoundModuleVersionId)
-            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics)
+            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax)
         End Sub
 
         Private Sub EmitModuleVersionIdStringLoad(node As BoundModuleVersionIdString)
@@ -2353,7 +2374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitInstrumentationPayloadRootToken(node As BoundInstrumentationPayloadRoot)
-            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics)
+            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax)
         End Sub
 
         Private Sub EmitSourceDocumentIndex(node As BoundSourceDocumentIndex)

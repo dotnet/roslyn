@@ -53,7 +53,7 @@ internal sealed class VSTypeScriptDefinitionItem
         : DefinitionItem(
             tags,
             displayParts,
-            ImmutableArray<TaggedText>.Empty,
+            [],
             sourceSpans: default,
             metadataLocations: [],
             classifiedSpans: default,

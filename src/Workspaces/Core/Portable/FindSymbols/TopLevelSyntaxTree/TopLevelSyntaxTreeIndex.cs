@@ -27,7 +27,7 @@ internal sealed partial class TopLevelSyntaxTreeIndex : AbstractSyntaxIndex<TopL
         _declarationInfo = declarationInfo;
         _extensionMethodInfo = extensionMethodInfo;
 
-        _declaredSymbolInfoSet = new(() => new(this.DeclaredSymbolInfos));
+        _declaredSymbolInfoSet = new(() => [.. this.DeclaredSymbolInfos]);
     }
 
     public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos => _declarationInfo.DeclaredSymbolInfos;

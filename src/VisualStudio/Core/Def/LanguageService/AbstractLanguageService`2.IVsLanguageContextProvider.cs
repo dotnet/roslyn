@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 
@@ -18,45 +15,41 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 {
     public int UpdateLanguageContext(uint dwHint, IVsTextLines pBuffer, Microsoft.VisualStudio.TextManager.Interop.TextSpan[] ptsSelection, object pUC)
     {
-        var textBuffer = EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
-        var context = (IVsUserContext)pUC;
-
-        if (textBuffer == null || context == null)
+        return this.ThreadingContext.JoinableTaskFactory.Run(async () =>
         {
-            return VSConstants.E_UNEXPECTED;
-        }
+            var textBuffer = EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+            var context = (IVsUserContext)pUC;
 
-        var document = textBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-        if (document == null)
-        {
-            return VSConstants.E_FAIL;
-        }
+            if (textBuffer == null || context == null)
+                return VSConstants.E_UNEXPECTED;
 
-        var start = textBuffer.CurrentSnapshot.GetLineFromLineNumber(ptsSelection[0].iStartLine).Start + ptsSelection[0].iStartIndex;
-        var end = textBuffer.CurrentSnapshot.GetLineFromLineNumber(ptsSelection[0].iEndLine).Start + ptsSelection[0].iEndIndex;
-        var span = Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(start, end);
+            var document = textBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+                return VSConstants.E_FAIL;
 
-        var helpService = document.GetLanguageService<IHelpContextService>();
-        if (helpService == null)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            var start = textBuffer.CurrentSnapshot.GetLineFromLineNumber(ptsSelection[0].iStartLine).Start + ptsSelection[0].iStartIndex;
+            var end = textBuffer.CurrentSnapshot.GetLineFromLineNumber(ptsSelection[0].iEndLine).Start + ptsSelection[0].iEndIndex;
+            var span = Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(start, end);
 
-        // VS help is not cancellable.
-        var cancellationToken = CancellationToken.None;
-        var helpTerm = helpService.GetHelpTermAsync(document, span, cancellationToken).WaitAndGetResult(cancellationToken);
+            var helpService = document.GetLanguageService<IHelpContextService>();
+            if (helpService == null)
+                return VSConstants.E_NOTIMPL;
 
-        if (string.IsNullOrWhiteSpace(helpTerm))
-        {
-            return VSConstants.S_FALSE;
-        }
+            // VS help is not cancellable.
+            var cancellationToken = CancellationToken.None;
+            var helpTerm = await helpService.GetHelpTermAsync(
+                document, span, cancellationToken).ConfigureAwait(true);
 
-        context.RemoveAttribute("keyword", null);
-        context.AddAttribute(VSUSERCONTEXTATTRIBUTEUSAGE.VSUC_Usage_Filter, "devlang", helpService.Language);
-        context.AddAttribute(VSUSERCONTEXTATTRIBUTEUSAGE.VSUC_Usage_Filter, "product", helpService.Product);
-        context.AddAttribute(VSUSERCONTEXTATTRIBUTEUSAGE.VSUC_Usage_Filter, "product", "VS");
-        context.AddAttribute(VSUSERCONTEXTATTRIBUTEUSAGE.VSUC_Usage_LookupF1_CaseSensitive, "keyword", helpTerm);
+            if (string.IsNullOrWhiteSpace(helpTerm))
+                return VSConstants.S_FALSE;
 
-        return VSConstants.S_OK;
+            context.RemoveAttribute("keyword", null);
+            context.AddAttribute(VSUSERCONTEXTATTRIBUTEUSAGE.VSUC_Usage_Filter, "devlang", helpService.Language);
+            context.AddAttribute(VSUSERCONTEXTATTRIBUTEUSAGE.VSUC_Usage_Filter, "product", helpService.Product);
+            context.AddAttribute(VSUSERCONTEXTATTRIBUTEUSAGE.VSUC_Usage_Filter, "product", "VS");
+            context.AddAttribute(VSUSERCONTEXTATTRIBUTEUSAGE.VSUC_Usage_LookupF1_CaseSensitive, "keyword", helpTerm);
+
+            return VSConstants.S_OK;
+        });
     }
 }

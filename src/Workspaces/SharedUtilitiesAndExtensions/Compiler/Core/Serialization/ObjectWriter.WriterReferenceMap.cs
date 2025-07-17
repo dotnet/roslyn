@@ -42,6 +42,12 @@ internal sealed partial class ObjectWriter
             }
         }
 
+        public void Reset()
+        {
+            _valueToIdMap.Clear();
+            _nextId = 0;
+        }
+
         public bool TryGetReferenceId(string value, out int referenceId)
             => _valueToIdMap.TryGetValue(value, out referenceId);
 

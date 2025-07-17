@@ -11,163 +11,95 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TaskList;
 
 [UseExportProvider]
-public class CSharpTaskListTests : AbstractTaskListTests
+public sealed class CSharpTaskListTests : AbstractTaskListTests
 {
     protected override EditorTestWorkspace CreateWorkspace(string codeWithMarker, TestComposition composition)
         => EditorTestWorkspace.CreateCSharp(codeWithMarker, composition: composition);
 
     [Theory, CombinatorialData]
-    public async Task SingleLineTodoComment_Colon(TestHost host)
-    {
-        var code = @"// [|TODO:test|]";
-
-        await TestAsync(code, host);
-    }
+    public Task SingleLineTodoComment_Colon(TestHost host)
+        => TestAsync(@"// [|TODO:test|]", host);
 
     [Theory, CombinatorialData]
-    public async Task SingleLineTodoComment_Space(TestHost host)
-    {
-        var code = @"// [|TODO test|]";
-
-        await TestAsync(code, host);
-    }
+    public Task SingleLineTodoComment_Space(TestHost host)
+        => TestAsync(@"// [|TODO test|]", host);
 
     [Theory, CombinatorialData]
-    public async Task SingleLineTodoComment_Underscore(TestHost host)
-    {
-        var code = @"// TODO_test";
-
-        await TestAsync(code, host);
-    }
+    public Task SingleLineTodoComment_Underscore(TestHost host)
+        => TestAsync(@"// TODO_test", host);
 
     [Theory, CombinatorialData]
-    public async Task SingleLineTodoComment_Number(TestHost host)
-    {
-        var code = @"// TODO1 test";
-
-        await TestAsync(code, host);
-    }
+    public Task SingleLineTodoComment_Number(TestHost host)
+        => TestAsync(@"// TODO1 test", host);
 
     [Theory, CombinatorialData]
-    public async Task SingleLineTodoComment_Quote(TestHost host)
-    {
-        var code = """
+    public Task SingleLineTodoComment_Quote(TestHost host)
+        => TestAsync("""
             // "TODO test"
-            """;
-
-        await TestAsync(code, host);
-    }
+            """, host);
 
     [Theory, CombinatorialData]
-    public async Task SingleLineTodoComment_Middle(TestHost host)
-    {
-        var code = @"// Hello TODO test";
-
-        await TestAsync(code, host);
-    }
+    public Task SingleLineTodoComment_Middle(TestHost host)
+        => TestAsync(@"// Hello TODO test", host);
 
     [Theory, CombinatorialData]
-    public async Task SingleLineTodoComment_Document(TestHost host)
-    {
-        var code = @"///    [|TODO test|]";
-
-        await TestAsync(code, host);
-    }
+    public Task SingleLineTodoComment_Document(TestHost host)
+        => TestAsync(@"///    [|TODO test|]", host);
 
     [Theory, CombinatorialData]
-    public async Task SingleLineTodoComment_Preprocessor1(TestHost host)
-    {
-        var code = @"#if DEBUG // [|TODO test|]";
-
-        await TestAsync(code, host);
-    }
+    public Task SingleLineTodoComment_Preprocessor1(TestHost host)
+        => TestAsync(@"#if DEBUG // [|TODO test|]", host);
 
     [Theory, CombinatorialData]
-    public async Task SingleLineTodoComment_Preprocessor2(TestHost host)
-    {
-        var code = @"#if DEBUG ///    [|TODO test|]";
-
-        await TestAsync(code, host);
-    }
+    public Task SingleLineTodoComment_Preprocessor2(TestHost host)
+        => TestAsync(@"#if DEBUG ///    [|TODO test|]", host);
 
     [Theory, CombinatorialData]
-    public async Task SingleLineTodoComment_Region(TestHost host)
-    {
-        var code = @"#region // TODO test";
-
-        await TestAsync(code, host);
-    }
+    public Task SingleLineTodoComment_Region(TestHost host)
+        => TestAsync(@"#region // TODO test", host);
 
     [Theory, CombinatorialData]
-    public async Task SingleLineTodoComment_EndRegion(TestHost host)
-    {
-        var code = @"#endregion // [|TODO test|]";
-
-        await TestAsync(code, host);
-    }
+    public Task SingleLineTodoComment_EndRegion(TestHost host)
+        => TestAsync(@"#endregion // [|TODO test|]", host);
 
     [Theory, CombinatorialData]
-    public async Task SingleLineTodoComment_TrailingSpan(TestHost host)
-    {
-        var code = @"// [|TODO test                        |]";
-
-        await TestAsync(code, host);
-    }
+    public Task SingleLineTodoComment_TrailingSpan(TestHost host)
+        => TestAsync(@"// [|TODO test                        |]", host);
 
     [Theory, CombinatorialData]
-    public async Task MultilineTodoComment_Singleline(TestHost host)
-    {
-        var code = @"/* [|TODO: hello    |]*/";
-
-        await TestAsync(code, host);
-    }
+    public Task MultilineTodoComment_Singleline(TestHost host)
+        => TestAsync(@"/* [|TODO: hello    |]*/", host);
 
     [Theory, CombinatorialData]
-    public async Task MultilineTodoComment_Singleline_Document(TestHost host)
-    {
-        var code = @"/** [|TODO: hello    |]*/";
-
-        await TestAsync(code, host);
-    }
+    public Task MultilineTodoComment_Singleline_Document(TestHost host)
+        => TestAsync(@"/** [|TODO: hello    |]*/", host);
 
     [Theory, CombinatorialData]
-    public async Task MultilineTodoComment_Multiline(TestHost host)
-    {
-        var code = """
+    public Task MultilineTodoComment_Multiline(TestHost host)
+        => TestAsync("""
             /* [|TODO: hello    |]
                     [|TODO: hello    |]
             [|TODO: hello    |]
                 * [|TODO: hello    |]
                 [|TODO: hello    |]*/
-            """;
-
-        await TestAsync(code, host);
-    }
+            """, host);
 
     [Theory, CombinatorialData]
-    public async Task MultilineTodoComment_Multiline_DocComment(TestHost host)
-    {
-        var code = """
+    public Task MultilineTodoComment_Multiline_DocComment(TestHost host)
+        => TestAsync("""
             /** [|TODO: hello    |]
                     [|TODO: hello    |]
             [|TODO: hello    |]
                 * [|TODO: hello    |]
                 [|TODO: hello    |]*/
-            """;
-
-        await TestAsync(code, host);
-    }
+            """, host);
 
     [Theory, CombinatorialData]
-    public async Task SinglelineDocumentComment_Multiline(TestHost host)
-    {
-        var code = """
+    public Task SinglelineDocumentComment_Multiline(TestHost host)
+        => TestAsync("""
             /// <summary>
             /// [|TODO : test       |]
             /// </summary>
             ///         [|UNDONE: test2             |]
-            """;
-
-        await TestAsync(code, host);
-    }
+            """, host);
 }

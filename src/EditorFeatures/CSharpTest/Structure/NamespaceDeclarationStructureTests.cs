@@ -12,30 +12,25 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<NamespaceDeclarationSyntax>
+public sealed class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<NamespaceDeclarationSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new NamespaceDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestNamespace()
-    {
-        var code = """
+    public Task TestNamespace()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$namespace N{|textspan:
                     {
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestNamespaceWithLeadingComments()
-    {
-        var code = """
+    public Task TestNamespaceWithLeadingComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span1:// Goo
@@ -44,17 +39,13 @@ public class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNodeStruct
                     {
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestNamespaceWithNestedUsings()
-    {
-        var code = """
+    public Task TestNamespaceWithNestedUsings()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint1:$$namespace N{|textspan1:
@@ -63,17 +54,13 @@ public class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNodeStruct
                         using System.Linq;|}|}
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestNamespaceWithNestedUsingsWithLeadingComments()
-    {
-        var code = """
+    public Task TestNamespaceWithNestedUsingsWithLeadingComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint1:$$namespace N{|textspan1:
@@ -84,18 +71,14 @@ public class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNodeStruct
                         using System.Linq;|}|}
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("span2", "// Goo ...", autoCollapse: true),
             Region("textspan3", "hint3", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestNamespaceWithNestedComments()
-    {
-        var code = """
+    public Task TestNamespaceWithNestedComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint1:$$namespace N{|textspan1:
@@ -104,10 +87,7 @@ public class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNodeStruct
                         // Bar|}
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("span2", "// Goo ...", autoCollapse: true));
-    }
 }

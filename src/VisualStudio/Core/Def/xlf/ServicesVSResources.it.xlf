@@ -72,6 +72,11 @@
         <target state="translated">Sempre</target>
         <note />
       </trans-unit>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>_Always add new line on enter</source>
+        <target state="translated">_Aggiungi sempre una nuova riga dopo INVIO</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">Sempre per chiarezza</target>
@@ -80,11 +85,6 @@
       <trans-unit id="Always_use_default_symbol_servers_for_navigation">
         <source>Always use default symbol servers for navigation</source>
         <target state="translated">Usa sempre i server di simboli predefiniti per lo spostamento</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Analyze_source_generated_files">
-        <source>Analyze source generated files</source>
-        <target state="translated">Analizza i file generati dall’origine</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_Defaults">
@@ -131,11 +131,6 @@
         <source>Automatically open Stack Trace Explorer on focus</source>
         <target state="translated">Aprire automaticamente Stack Trace Explorer sullo stato attivo</target>
         <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
-      </trans-unit>
-      <trans-unit id="Automatically_reload_updated_analyzers_and_generators">
-        <source>Automatically reload updated analyzers and generators (requires restart)</source>
-        <target state="new">Automatically reload updated analyzers and generators (requires restart)</target>
-        <note />
       </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
@@ -185,11 +180,6 @@
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">Calcolo dei dipendenti...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Call_Hierarchy">
-        <source>Call Hierarchy</source>
-        <target state="translated">Gerarchia di chiamata</target>
         <note />
       </trans-unit>
       <trans-unit id="Call_site_value">
@@ -242,19 +232,9 @@
         <target state="translated">Esecuzione di Code Analysis completata per '{0}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_analysis_completed_for_Solution">
-        <source>Code analysis completed for Solution.</source>
-        <target state="translated">Esecuzione di Code Analysis completata per la soluzione.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Code_analysis_terminated_before_completion_for_0">
         <source>Code analysis terminated before completion for '{0}'.</source>
         <target state="translated">L'esecuzione di Code Analysis è stata terminata prima del completamento per '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_analysis_terminated_before_completion_for_Solution">
-        <source>Code analysis terminated before completion for Solution.</source>
-        <target state="translated">L'esecuzione di Code Analysis è stata terminata prima del completamento per la soluzione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
@@ -322,26 +302,6 @@
         <target state="translated">Parametro corrente</target>
         <note />
       </trans-unit>
-      <trans-unit id="Default_Current_Document">
-        <source>Default (Current Document)</source>
-        <target state="translated">Impostazione predefinita (Documento corrente)</target>
-        <note>This text is a menu command</note>
-      </trans-unit>
-      <trans-unit id="Default_Entire_Solution">
-        <source>Default (Entire Solution)</source>
-        <target state="translated">Impostazione predefinita (Intera soluzione)</target>
-        <note>This text is a menu command</note>
-      </trans-unit>
-      <trans-unit id="Default_None">
-        <source>Default (None)</source>
-        <target state="translated">Predefinito (Nessuno)</target>
-        <note>This text is a menu command</note>
-      </trans-unit>
-      <trans-unit id="Default_Open_Documents">
-        <source>Default (Open Documents)</source>
-        <target state="translated">Impostazione predefinita (Documenti aperti)</target>
-        <note>This text is a menu command</note>
-      </trans-unit>
       <trans-unit id="Derived_types">
         <source>Derived types</source>
         <target state="translated">Tipi derivati</target>
@@ -357,9 +317,9 @@
         <target state="translated">Visualizza tutti i suggerimenti quando si preme ALT+F1</target>
         <note />
       </trans-unit>
-      <trans-unit id="Display_diagnostics_inline_experimental">
-        <source>Display diagnostics inline (experimental)</source>
-        <target state="translated">Visualizza diagnostica inline (sperimentale)</target>
+      <trans-unit id="Display_diagnostics_inline">
+        <source>Display diagnostics inline</source>
+        <target state="new">Display diagnostics inline</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -392,19 +352,14 @@
         <target state="translated">Combinazione colori editor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page">
-        <source>Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</source>
-        <target state="translated">Le opzioni della combinazione colori dell'editor sono disponibili solo quando si usa un tema colori fornito con Visual Studio. È possibile configurare il tema colore nella pagina Ambiente &gt; Opzioni generali.</target>
+      <trans-unit id="Editor_Help">
+        <source>Editor Help</source>
+        <target state="translated">Guida Editor</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">L'elemento non è valido.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_document_outline_experimental_requires_restart">
-        <source>Enable document outline (experimental, requires restart)</source>
-        <target state="translated">Abilita struttura documento (sperimentale, richiede il riavvio)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
@@ -432,6 +387,16 @@
         <target state="translated">Immettere un valore per il sito di chiamata o scegliere un tipo di inserimento valori diverso</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_key_behavior">
+        <source>Enter key behavior</source>
+        <target state="translated">Comportamento del tasto INVIO</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_key_behavior_colon">
+        <source>Enter key behavior:</source>
+        <target state="translated">Comportamento del tasto INVIO:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Entire_repository">
         <source>Entire repository</source>
         <target state="translated">Intero repository</target>
@@ -447,15 +412,20 @@
         <target state="translated">Intera soluzione e origini esterne</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error">
-        <source>Error</source>
-        <target state="translated">Errore</target>
+      <trans-unit id="Error_encountered_updating_0">
+        <source>Error encountered updating '{0}'</source>
+        <target state="new">Error encountered updating '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
         <target state="translated">Errore durante l'aggiornamento delle eliminazioni: {0}</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Experimental_feature">
+        <source>Experimental feature</source>
+        <target state="new">Experimental feature</target>
+        <note>This is used by the settings UI to mark experimental features.</note>
       </trans-unit>
       <trans-unit id="External_sources">
         <source>External Sources</source>
@@ -472,14 +442,14 @@
         <target state="translated">Estrai Record di base</target>
         <note>{Locked="Record"} "Record" is a language construct for C# and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Fade_out_unused_members">
+        <source>Fade out unused members</source>
+        <target state="translated">Applica dissolvenza a direttive non usate</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">Fine</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_text_pasted_into_string_literals_experimental">
-        <source>Fix text pasted into string literals (experimental)</source>
-        <target state="translated">Correggi il testo incollato in valori letterali stringa (sperimentale)</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_analyzer_warnings_and_errors">
@@ -495,6 +465,11 @@
       <trans-unit id="Fix_analyzer_warnings_and_errors_set_in_EditorConfig">
         <source>Fix analyzer warnings and errors set in EditorConfig</source>
         <target state="translated">Correggi tutti gli avvisi e gli errori dell'analizzatore impostati in EditorConfig</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_text_pasted_into_string_literals">
+        <source>Fix text pasted into string literals</source>
+        <target state="new">Fix text pasted into string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
@@ -522,14 +497,44 @@
         <target state="translated">Vai alla definizione</target>
         <note />
       </trans-unit>
+      <trans-unit id="Highlight_matching_portions_of_completion_list_items">
+        <source>Highlight matching portions of completion list items</source>
+        <target state="translated">Evidenzia le parti corrispondenti di voci dell'elenco di completamento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_references_to_symbol_under_cursor">
+        <source>_Highlight references to symbol under cursor</source>
+        <target state="translated">_Evidenzia riferimenti a simbolo sotto il cursore</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="translated">Evidenzia i componenti correlati sotto il cursore</target>
         <note />
       </trans-unit>
+      <trans-unit id="Highlight_related_keywords_under_cursor">
+        <source>Highlight related _keywords under cursor</source>
+        <target state="translated">Evidenzia _parole chiave correlate sotto il cursore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlighting">
+        <source>Highlighting</source>
+        <target state="translated">Evidenziazione</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Id">
         <source>Id</source>
         <target state="translated">ID</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore">
+        <source>Ignore</source>
+        <target state="new">Ignore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore_including_future_errors">
+        <source>Ignore (including future errors)</source>
+        <target state="new">Ignore (including future errors)</target>
         <note />
       </trans-unit>
       <trans-unit id="Implemented_interfaces">
@@ -582,9 +587,9 @@
         <target state="translated">Interfacce ereditate</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Hints">
-        <source>Inline Hints</source>
-        <target state="translated">Suggerimenti inline</target>
+      <trans-unit id="Insert_Snippet">
+        <source>Insert Snippet</source>
+        <target state="translated">Inserisci frammento</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -625,6 +630,11 @@
       <trans-unit id="Kind">
         <source>Kind</source>
         <target state="translated">Tipo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Large">
+        <source>Large</source>
+        <target state="translated">Grande</target>
         <note />
       </trans-unit>
       <trans-unit id="Loaded_items">
@@ -857,11 +867,6 @@
         <target state="translated">Regole di denominazione</target>
         <note />
       </trans-unit>
-      <trans-unit id="Navigate_asynchronously_exerimental">
-        <source>Navigate asynchronously (experimental)</source>
-        <target state="translated">Naviga in modo asincrono (sperimentale)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Navigate_to_0">
         <source>Navigate to '{0}'</source>
         <target state="translated">Passa a '{0}'</target>
@@ -882,9 +887,19 @@
         <target state="translated">Mai</target>
         <note />
       </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>_Never add new line on enter</source>
+        <target state="translated">_Non aggiungere mai una nuova riga dopo INVIO</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Mai se non necessario</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">Non includere mai i frammenti</target>
         <note />
       </trans-unit>
       <trans-unit id="New_Type_Name_colon">
@@ -917,11 +932,6 @@
         <target state="translated">Metodi non pubblici</target>
         <note />
       </trans-unit>
-      <trans-unit id="None">
-        <source>None</source>
-        <target state="translated">Nessuno</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Not_applicable">
         <source>Not applicable</source>
         <target state="translated">Non applicabile</target>
@@ -937,6 +947,11 @@
         <target state="translated">Ometti (solo per parametri facoltativi)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">Aggiungi una nuova riga dopo INVIO solo alla fine della parola digitata</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Open_documents">
         <source>Open documents</source>
         <target state="translated">Documenti aperti</target>
@@ -945,6 +960,11 @@
       <trans-unit id="Operator_placement_when_wrapping">
         <source>Operator placement when wrapping</source>
         <target state="translated">Posizionamento dell'operatore durante il ritorno a capo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Optimize_for_solution_size">
+        <source>Optimize for solution size</source>
+        <target state="translated">Ottimizza in base alle dimensioni della soluzione</target>
         <note />
       </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
@@ -1022,15 +1042,15 @@
         <target state="translated">Preferenze per parentesi:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Paste">
-        <source>Paste</source>
-        <target state="translated">Incolla</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
         <source>Paste a stack trace to view and navigate it's values.</source>
         <target state="translated">Incollare un'analisi dello stack per visualizzare e spostarsi tra i valori.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
+      </trans-unit>
+      <trans-unit id="Performance">
+        <source>Performance</source>
+        <target state="translated">Prestazioni</target>
+        <note />
       </trans-unit>
       <trans-unit id="Please_enter_a_type_name">
         <source>Please enter a type name</source>
@@ -1137,6 +1157,11 @@
         <target state="translated">Preferisci lo scambio di tuple</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_unbound_generic_type_in_nameof">
+        <source>Prefer unbound generic type in 'nameof'</source>
+        <target state="translated">Preferisci il tipo generico non associato in 'nameof'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Projects">
         <source>Projects</source>
         <target state="translated">Progetti</target>
@@ -1152,14 +1177,14 @@
         <target state="translated">Azioni rapide</target>
         <note />
       </trans-unit>
-      <trans-unit id="Refactoring_Only">
-        <source>Refactoring Only</source>
-        <target state="translated">Refactoring Only</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reference">
         <source>Reference</source>
         <target state="translated">Riferimento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regular">
+        <source>Regular</source>
+        <target state="translated">Normale</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -1175,21 +1200,6 @@
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
         <target state="translated">Rimuovi istruzioni using non necessarie</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename">
-        <source>Rename</source>
-        <target state="translated">Rinomina</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename {0} to {1}</source>
-        <target state="translated">Rinomina {0} in {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_asynchronously_experimental">
-        <source>Rename asynchronously (experimental)</source>
-        <target state="translated">Rinomina in modo asincrono (sperimentale)</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
@@ -1252,19 +1262,9 @@
         <target state="translated">Eseguire l'analisi del codice in background per:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
-        <source>Run code analysis in separate process (requires restart)</source>
-        <target state="translated">Esegui analisi codice in un processo separato (richiede il riavvio)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
         <source>Running code analysis for '{0}'...</source>
         <target state="translated">Esecuzione di Code Analysis per '{0}'...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Running_code_analysis_for_Solution">
-        <source>Running code analysis for Solution...</source>
-        <target state="translated">Esecuzione di Code Analysis per la soluzione...</target>
         <note />
       </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
@@ -1337,29 +1337,44 @@
         <target state="translated">Risultati della ricerca semantica</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
-        <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
-        <target state="translated">Mostra il comando "Rimuovi riferimenti inutilizzati" in Esplora soluzioni (sperimentale)</target>
+      <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer">
+        <source>Show "Remove Unused References" command in Solution Explorer</source>
+        <target state="translated">Mostra il comando "Rimuovi riferimenti inutilizzati" in Esplora soluzioni</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Show_UI_as_dashboard_in_top_right">
-        <source>Show UI as a dashboard in top right</source>
-        <target state="translated">Mostra l'interfaccia utente come dashboard in alto a destra</target>
-        <note>"UI" is an acronym for "User Interface"</note>
-      </trans-unit>
-      <trans-unit id="Show_UI_inline">
-        <source>Show UI Inline</source>
-        <target state="translated">Mostra interfaccia utente inline</target>
-        <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
         <source>Show compiler errors and warnings for:</source>
         <target state="translated">Mostra errori e avvisi del compilatore per:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_completion_item__filters">
+        <source>Show completion item _filters</source>
+        <target state="translated">Mostra i _filtri per le voci di completamento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_item_filters">
+        <source>Show completion item filters</source>
+        <target state="translated">Mostra i filtri per le voci di completamento</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">Mostra l'elenco di completamento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list_after_a_character_is__deleted">
+        <source>Show completion list after a character is _deleted</source>
+        <target state="translated">Mostra _elenco di completamento dopo l'eliminazione di un carattere</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
+        <source>Show completion list after a character is deleted</source>
+        <target state="translated">Mostra elenco di completamento dopo l'eliminazione di un carattere</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list_after_a_character_is_typed">
+        <source>Show completion list after a character is typed</source>
+        <target state="translated">Mostra elenco di completamento dopo la digitazione di un carattere</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
@@ -1407,14 +1422,39 @@
         <target state="translated">Mostra il margine di ereditarietà</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces</source>
+        <target state="translated">Mostra elementi da spazi dei nomi non importati</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_preview_for_rename_tracking">
+        <source>Show preview for rename _tracking</source>
+        <target state="translated">Mostra anteprima per verifica _ridenominazione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_procedure_line_separators">
+        <source>_Show procedure line separators</source>
+        <target state="translated">_Mostra separatori di riga routine</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_remarks_in_Quick_Info">
+        <source>Show remarks in Quick Info</source>
+        <target state="translated">Mostra i commenti in Informazioni rapide</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
         <source>Skip analyzers for implicitly triggered builds</source>
         <target state="translated">Ignora gli analizzatori per compilazioni attivate in modo implicito</target>
         <note />
       </trans-unit>
-      <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
-        <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
-        <target state="translated">Alcuni colori della combinazione colori sono sostituiti dalle modifiche apportate nella pagina di opzioni Ambiente &gt; Tipi di carattere e colori. Scegliere `Usa impostazioni predefinite` nella pagina Tipi di carattere e colori per ripristinare tutte le personalizzazioni.</target>
+      <trans-unit id="Small">
+        <source>Small</source>
+        <target state="translated">Piccola</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Snippets_behavior">
+        <source>Snippets behavior</source>
+        <target state="translated">Comportamento dei frammenti</target>
         <note />
       </trans-unit>
       <trans-unit id="Source_Generators">
@@ -1445,11 +1485,6 @@
       <trans-unit id="Strike_out_obsolete_symbols">
         <source>Strike out obsolete symbols</source>
         <target state="translated">Barrare i simboli obsoleti</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggestion">
-        <source>Suggestion</source>
-        <target state="translated">Suggerimento</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
@@ -1488,6 +1523,11 @@
         <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
+        <source>Tab twice to insert arguments</source>
+        <target state="translated">Premi due volte TAB per inserire gli argomenti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Tab_twice_to_insert_arguments_experimental">
         <source>Tab twice to insert arguments (experimental)</source>
         <target state="translated">Premi due volte TAB per inserire gli argomenti (sperimentale)</target>
         <note />
@@ -1562,6 +1602,11 @@
         <target state="translated">Sottolinea variabili riassegnate</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="translated">Variabile locale inutilizzata</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>
         <target state="translated">Il valore inutilizzato viene assegnato in modo esplicito a una variabile locale inutilizzata</target>
@@ -1617,11 +1662,6 @@
         <target state="translated">Il valore assegnato qui non viene mai usato</target>
         <note />
       </trans-unit>
-      <trans-unit id="Value_colon">
-        <source>Value:</source>
-        <target state="translated">Valore:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
         <source>Value returned by invocation is implicitly ignored</source>
         <target state="translated">Il valore restituito dalla chiamata viene ignorato in modo implicito</target>
@@ -1645,11 +1685,6 @@
       <trans-unit id="Visual_Studio_Settings">
         <source>Visual Studio Settings</source>
         <target state="translated">Impostazioni di Visual Studio</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning">
-        <source>Warning</source>
-        <target state="translated">Avviso</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_duplicate_parameter_name">
@@ -1681,11 +1716,6 @@
         <source>When types loosely match</source>
         <target state="translated">Quando i tipi corrispondono liberamente</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Where_should_the_rename_UI_be_shown">
-        <source>Where should the rename UI be shown?</source>
-        <target state="translated">Dove deve essere visualizzata l'interfaccia utente di ridenominazione?</target>
-        <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Whitespace">
         <source>Whitespace</source>
@@ -1747,31 +1777,6 @@
         <target state="translated">Anteprima non disponibile</target>
         <note />
       </trans-unit>
-      <trans-unit id="Overrides_">
-        <source>Overrides</source>
-        <target state="translated">Esegue l'override</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Overridden_By">
-        <source>Overridden By</source>
-        <target state="translated">Sottoposto a override da</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inherits_">
-        <source>Inherits</source>
-        <target state="translated">Eredita</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implements_">
-        <source>Implements</source>
-        <target state="translated">Implementa</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implemented_By">
-        <source>Implemented By</source>
-        <target state="translated">Implementato da</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Invalid_access">
         <source>Invalid access.</source>
         <target state="translated">L'accesso non è valido.</target>
@@ -1815,6 +1820,21 @@
       <trans-unit id="_0_will_be_changed_to_public">
         <source>'{0}' will be changed to public.</source>
         <target state="translated">'{0}' verrà modificato in pubblico.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_Highlight_matching_portions_of_completion_list_items">
+        <source>_Highlight matching portions of completion list items</source>
+        <target state="translated">_Evidenzia le parti corrispondenti di voci dell'elenco di completamento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>_Only add new line on enter after end of fully typed word</source>
+        <target state="translated">Aggi_ungi una nuova riga dopo INVIO alla fine della parola digitata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_Show_completion_list_after_a_character_is_typed">
+        <source>_Show completion list after a character is typed</source>
+        <target state="translated">Mo_stra elenco di completamento dopo la digitazione di un carattere</target>
         <note />
       </trans-unit>
       <trans-unit id="at_the_end_of_the_line_of_code">
@@ -1897,39 +1917,14 @@
         <target state="translated">Assembly </target>
         <note />
       </trans-unit>
-      <trans-unit id="Exceptions_colon">
-        <source>Exceptions:</source>
-        <target state="translated">Eccezioni:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Member_of_0">
         <source>Member of {0}</source>
         <target state="translated">Membro di {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parameters_colon1">
-        <source>Parameters:</source>
-        <target state="translated">Parametri:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Project">
         <source>Project </source>
         <target state="translated">Progetto </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remarks_colon">
-        <source>Remarks:</source>
-        <target state="translated">Commenti:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Returns_colon">
-        <source>Returns:</source>
-        <target state="translated">Valori restituiti:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Summary_colon">
-        <source>Summary:</source>
-        <target state="translated">Riepilogo:</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_Parameters_colon">
@@ -1994,29 +1989,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
 Usare l'elenco a discesa per visualizzare e passare ad altri progetti a cui questo file potrebbe appartenere.</target>
         <note />
       </trans-unit>
-      <trans-unit id="AnalyzerChangedOnDisk">
-        <source>AnalyzerChangedOnDisk</source>
-        <target state="translated">AnalyzerChangedOnDisk</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted">
-        <source>The analyzer assembly '{0}' has changed. Diagnostics may be incorrect until Visual Studio is restarted.</source>
-        <target state="translated">L'assembly '{0}' dell'analizzatore è stato modificato. È possibile che la diagnostica non sia corretta fino al riavvio di Visual Studio.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cancel">
-        <source>Cancel</source>
-        <target state="translated">Annulla</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deselect_All">
         <source>_Deselect All</source>
         <target state="translated">_Deseleziona tutto</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Interface">
-        <source>Extract Interface</source>
-        <target state="translated">Estrai interfaccia</target>
         <note />
       </trans-unit>
       <trans-unit id="Generated_name_colon">
@@ -2057,11 +2032,6 @@ Usare l'elenco a discesa per visualizzare e passare ad altri progetti a cui ques
       <trans-unit id="Add_to_existing_file">
         <source>Add to _existing file</source>
         <target state="translated">Aggiungi a file _esistente</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Change_Signature">
-        <source>Change Signature</source>
-        <target state="translated">Cambia firma</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_new_file">
@@ -2199,21 +2169,6 @@ Usare l'elenco a discesa per visualizzare e passare ad altri progetti a cui ques
         <target state="translated">1 riferimento</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_encountered_an_error_and_has_been_disabled">
-        <source>'{0}' encountered an error and has been disabled.</source>
-        <target state="translated">'{0}' ha rilevato un errore ed è stato disabilitato.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable">
-        <source>Enable</source>
-        <target state="translated">Abilita</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_and_ignore_future_errors">
-        <source>Enable and ignore future errors</source>
-        <target state="translated">Abilita e ignora gli errori futuri</target>
-        <note />
-      </trans-unit>
       <trans-unit id="No_Changes">
         <source>No Changes</source>
         <target state="translated">Nessuna modifica</target>
@@ -2227,11 +2182,6 @@ Usare l'elenco a discesa per visualizzare e passare ad altri progetti a cui ques
       <trans-unit id="Determining_current_block">
         <source>Determining current block.</source>
         <target state="translated">È in corso la determinazione del blocco corrente.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IntelliSense">
-        <source>IntelliSense</source>
-        <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingAnalyzerReference">
@@ -2284,11 +2234,6 @@ Usare l'elenco a discesa per visualizzare e passare ad altri progetti a cui ques
         <target state="translated">Sincronizzazione con {0}...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Studio_has_suspended_some_advanced_features_to_improve_performance">
-        <source>Visual Studio has suspended some advanced features to improve performance.</source>
-        <target state="translated">Per migliorare le prestazioni, Visual Studio ha sospeso alcune funzionalità avanzate.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Installing_0">
         <source>Installing '{0}'</source>
         <target state="translated">Installazione di '{0}'</target>
@@ -2307,16 +2252,6 @@ Usare l'elenco a discesa per visualizzare e passare ad altri progetti a cui ques
       <trans-unit id="Unknown2">
         <source>&lt;Unknown&gt;</source>
         <target state="translated">&lt;Sconosciuto&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No">
-        <source>No</source>
-        <target state="translated">No</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Yes">
-        <source>Yes</source>
-        <target state="translated">Sì</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Style">
@@ -2492,11 +2427,6 @@ Informazioni aggiuntive: {1}</target>
         <target state="translated">Ripristina {0}</target>
         <note>{0} is a parameter description</note>
       </trans-unit>
-      <trans-unit id="Re_enable">
-        <source>Re-enable</source>
-        <target state="translated">Abilita di nuovo</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Learn_more">
         <source>Learn more</source>
         <target state="translated">Altre informazioni</target>
@@ -2555,11 +2485,6 @@ Informazioni aggiuntive: {1}</target>
       <trans-unit id="Block_Structure_Guides">
         <source>Block Structure Guides</source>
         <target state="translated">Guide per strutture a blocchi</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Outlining">
-        <source>Outlining</source>
-        <target state="translated">Struttura</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_guides_for_code_level_constructs">

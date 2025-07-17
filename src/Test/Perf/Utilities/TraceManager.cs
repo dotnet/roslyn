@@ -6,13 +6,13 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.IO;
+using System.Linq;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
 namespace Roslyn.Test.Performance.Utilities
 {
-    public class TraceManagerFactory
+    public static class TraceManagerFactory
     {
         public static ITraceManager GetBestTraceManager()
         {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -26,11 +24,11 @@ namespace Microsoft.CodeAnalysis.LanguageService;
 /// </summary>
 internal interface ITypeInferenceService : ILanguageService
 {
-    ImmutableArray<ITypeSymbol> InferTypes(SemanticModel semanticModel, SyntaxNode expression, string nameOpt, CancellationToken cancellationToken);
-    ImmutableArray<ITypeSymbol> InferTypes(SemanticModel semanticModel, int position, string nameOpt, CancellationToken cancellationToken);
+    ImmutableArray<ITypeSymbol> InferTypes(SemanticModel semanticModel, SyntaxNode expression, string? nameOpt, CancellationToken cancellationToken);
+    ImmutableArray<ITypeSymbol> InferTypes(SemanticModel semanticModel, int position, string? nameOpt, CancellationToken cancellationToken);
 
-    ImmutableArray<TypeInferenceInfo> GetTypeInferenceInfo(SemanticModel semanticModel, int position, string nameOpt, CancellationToken cancellationToken);
-    ImmutableArray<TypeInferenceInfo> GetTypeInferenceInfo(SemanticModel semanticModel, SyntaxNode expression, string nameOpt, CancellationToken cancellationToken);
+    ImmutableArray<TypeInferenceInfo> GetTypeInferenceInfo(SemanticModel semanticModel, int position, string? nameOpt, CancellationToken cancellationToken);
+    ImmutableArray<TypeInferenceInfo> GetTypeInferenceInfo(SemanticModel semanticModel, SyntaxNode expression, string? nameOpt, CancellationToken cancellationToken);
 }
 
 internal readonly record struct TypeInferenceInfo(ITypeSymbol InferredType, bool IsParams)

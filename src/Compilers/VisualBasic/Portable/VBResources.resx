@@ -5459,6 +5459,9 @@
   <data name="ERR_TooManyUserStrings" xml:space="preserve">
     <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string or XML literals.</value>
   </data>
+  <data name="ERR_TooManyUserStrings_RestartRequired" xml:space="preserve">
+    <value>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</value>
+  </data>
   <data name="ERR_PeWritingFailure" xml:space="preserve">
     <value>An error occurred while writing the output file: {0}</value>
   </data>
@@ -5543,6 +5546,12 @@
   <data name="WRN_Experimental_Title" xml:space="preserve">
     <value>Type is for evaluation purposes only and is subject to change or removal in future updates.</value>
   </data>
+  <data name="WRN_ExperimentalWithMessage" xml:space="preserve">
+    <value>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'.</value>
+  </data>
+  <data name="WRN_ExperimentalWithMessage_Title" xml:space="preserve">
+    <value>Type is for evaluation purposes only and is subject to change or removal in future updates.</value>
+  </data>
   <data name="ERR_InvalidDebugInfo" xml:space="preserve">
     <value>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</value>
   </data>
@@ -5621,10 +5630,10 @@
     <value>The loaded assembly references .NET Framework, which is not supported.</value>
   </data>
   <data name="WRN_AnalyzerReferencesNewerCompiler" xml:space="preserve">
-    <value>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
+    <value>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
   </data>
   <data name="WRN_AnalyzerReferencesNewerCompiler_Title" xml:space="preserve">
-    <value>The analyzer assembly references a newer version of the compiler than the currently running version.</value>
+    <value>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</value>
   </data>
   <data name="FEATURE_InitOnlySettersUsage" xml:space="preserve">
     <value>assigning to or passing 'ByRef' properties with init-only setters</value>
@@ -5715,5 +5724,17 @@
   </data>
   <data name="ERR_TypeReserved" xml:space="preserve">
     <value>The type name '{0}' is reserved to be used by the compiler.</value>
+  </data>
+  <data name="ERR_CannotApplyOverloadResolutionPriorityToOverride" xml:space="preserve">
+    <value>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</value>
+  </data>
+  <data name="ERR_CannotApplyOverloadResolutionPriorityToMember" xml:space="preserve">
+    <value>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</value>
+  </data>
+  <data name="FEATURE_OverloadResolutionPriority" xml:space="preserve">
+    <value>overload resolution priority</value>
+  </data>
+  <data name="ERR_EmbeddedAttributeMustFollowPattern" xml:space="preserve">
+    <value>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type</value>
   </data>
 </root>

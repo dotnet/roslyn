@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -112,25 +113,26 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var initialReferences);
+        using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var tempReferences);
 
-        // First find all references to this type, either with it's actual name, or through potential
-        // global alises to it.
+        // First find all references to this type, using it's actual .Net name.
         AddReferencesToTypeOrGlobalAliasToIt(
-            namedType, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken);
+            namedType, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, tempReferences, cancellationToken);
 
-        // The items in initialReferences need to be both reported and used later to calculate additional results.
-        foreach (var location in initialReferences)
+        // Next, if this named type is a predefined type (like int/long), also search for it with the C# name,
+        // not the .Net one.
+        AddPredefinedTypeReferences(namedType, state, tempReferences, cancellationToken);
+
+        // The items in tempReferences need to be both reported and used later to calculate additional results.
+        foreach (var location in tempReferences)
             processResult(location, processResultData);
 
-        // This named type may end up being locally aliased as well.  If so, now find all the references
-        // to the local alias.
+        // This named type may end up being locally aliased as well.  If so, now find all the references to the local
+        // alias. Note: the local alias may be like `using X = System.Int32` or it could be `using X = int`.  Because
+        // we searched for both forms above, we'll find all references to the local aliases to either form here.
 
         FindLocalAliasReferences(
-            initialReferences, state, processResult, processResultData, cancellationToken);
-
-        FindPredefinedTypeReferences(
-            namedType, state, processResult, processResultData, cancellationToken);
+            tempReferences, state, processResult, processResultData, cancellationToken);
 
         FindReferencesInDocumentInsideGlobalSuppressions(
             namedType, state, processResult, processResultData, cancellationToken);
@@ -203,11 +205,10 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
             namedType, name, state, processResult, processResultData, cancellationToken);
     }
 
-    private static void FindPredefinedTypeReferences<TData>(
+    private static void AddPredefinedTypeReferences(
         INamedTypeSymbol symbol,
         FindReferencesDocumentState state,
-        Action<FinderLocation, TData> processResult,
-        TData processResultData,
+        ArrayBuilder<FinderLocation> tempReferences,
         CancellationToken cancellationToken)
     {
         var predefinedType = symbol.SpecialType.ToPredefinedType();
@@ -220,7 +221,8 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
                 static (token, tuple) => IsPotentialReference(tuple.predefinedType, tuple.state.SyntaxFacts, token),
                 (state, predefinedType));
 
-        FindReferencesInTokens(symbol, state, tokens, processResult, processResultData, cancellationToken);
+        FindReferencesInTokens(
+            symbol, state, tokens, StandardCallbacks<FinderLocation>.AddToArrayBuilder, tempReferences, cancellationToken);
     }
 
     private static void FindAttributeReferences<TData>(

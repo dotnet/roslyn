@@ -5,16 +5,18 @@
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Operations
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     <ExportLanguageService(GetType(SyntaxGeneratorInternal), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicSyntaxGeneratorInternal
+    Friend NotInheritable Class VisualBasicSyntaxGeneratorInternal
         Inherits SyntaxGeneratorInternal
 
         Public Shared ReadOnly Instance As New VisualBasicSyntaxGeneratorInternal()
@@ -515,5 +517,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
 #End Region
+
+        Public Overrides Function BitwiseOrExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.OrExpression(Parenthesize(left), Parenthesize(right))
+        End Function
+
+        Public Overrides Function CastExpression(type As SyntaxNode, expression As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.DirectCastExpression(DirectCast(expression, ExpressionSyntax), DirectCast(type, TypeSyntax)).WithAdditionalAnnotations(Simplifier.Annotation)
+        End Function
+
+        Public Overrides Function DefaultExpression(type As ITypeSymbol) As SyntaxNode
+            Return SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))
+        End Function
+
+        Public Overrides Function DefaultExpression(type As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))
+        End Function
+
+        Public Overrides Function IdentifierName(identifier As String) As SyntaxNode
+            Return identifier.ToIdentifierName()
+        End Function
+
+        Public Overrides Function MemberAccessExpressionWorker(expression As SyntaxNode, simpleName As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.SimpleMemberAccessExpression(
+                If(expression IsNot Nothing, ParenthesizeLeft(expression), Nothing),
+                SyntaxFactory.Token(SyntaxKind.DotToken),
+                DirectCast(simpleName, SimpleNameSyntax))
+        End Function
+
+        ' parenthesize the left-side of a dot or target of an invocation if not unnecessary
+        Public Shared Function ParenthesizeLeft(expression As SyntaxNode) As ExpressionSyntax
+            Dim expressionSyntax = DirectCast(expression, ExpressionSyntax)
+            If TypeOf expressionSyntax Is TypeSyntax _
+               OrElse expressionSyntax.IsMeMyBaseOrMyClass() _
+               OrElse expressionSyntax.IsKind(SyntaxKind.ParenthesizedExpression) _
+               OrElse expressionSyntax.IsKind(SyntaxKind.InvocationExpression) _
+               OrElse expressionSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
+                Return expressionSyntax
+            Else
+                Return expressionSyntax.Parenthesize()
+            End If
+        End Function
+
+        Public Overrides Function TypeExpression(typeSymbol As ITypeSymbol, refKind As RefKind) As SyntaxNode
+            ' VB doesn't support explicit ref-kinds for types.
+            Return typeSymbol.GenerateTypeSyntax()
+        End Function
+
+        Public Overrides Function ConvertExpression(type As SyntaxNode, expression As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.CTypeExpression(DirectCast(expression, ExpressionSyntax), DirectCast(type, TypeSyntax)).WithAdditionalAnnotations(Simplifier.Annotation)
+        End Function
     End Class
 End Namespace

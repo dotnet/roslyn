@@ -6,17 +6,16 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Test.Utilities.FindUsages
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.PreprocessorDirectives
 Imports Roslyn.Utilities
 Imports Xunit.Abstractions
 
@@ -258,9 +257,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                         Dim project = document.Project
                         result = result.Concat(
-                            Await SymbolFinder.TestAccessor.FindReferencesAsync(
+                            Await SymbolFinder.FindReferencesAsync(
                                 symbol, project.Solution,
-                                progress:=Nothing, documents:=scope, options, CancellationToken.None))
+                                progress:=DirectCast(Nothing, IFindReferencesProgress),
+                                documents:=scope, options, CancellationToken.None))
                     End If
 
                     Dim actualDefinitions =

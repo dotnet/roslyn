@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
@@ -16,862 +14,1087 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion;
 
 [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-public class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
+public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
 {
     [WpfFact]
     public void Creation()
     {
-        Test(@"
-$$", "$$");
+        Test("""
+
+            $$
+            """, "$$");
     }
 
     [WpfFact]
     public void Usings()
     {
-        Test(@"using System;
-$$", @"using System$$");
+        Test("""
+            using System;
+            $$
+            """, @"using System$$");
     }
 
     [WpfFact]
     public void Namespace()
     {
-        Test(@"namespace {}
-$$", @"namespace {$$}");
+        Test("""
+            namespace {}
+            $$
+            """, @"namespace {$$}");
     }
 
     [WpfFact]
     public void Class()
     {
-        Test(@"class {}
-$$", "class {$$}");
+        Test("""
+            class {}
+            $$
+            """, "class {$$}");
     }
 
     [WpfFact]
     public void Method()
     {
-        Test(@"class C
-{
-    void Method() {$$}
-}", @"class C
-{
-    void Method() {$$}
-}", assertNextHandlerInvoked: true);
+        Test("""
+            class C
+            {
+                void Method() {$$}
+            }
+            """, """
+            class C
+            {
+                void Method() {$$}
+            }
+            """, assertNextHandlerInvoked: true);
     }
 
     [WpfFact]
     public void Field()
     {
-        Test(@"class C
-{
-    private readonly int i = 3;
-    $$
-}", @"class C
-{
-    pri$$vate re$$adonly i$$nt i = 3$$
-}");
+        Test("""
+            class C
+            {
+                private readonly int i = 3;
+                $$
+            }
+            """, """
+            class C
+            {
+                pri$$vate re$$adonly i$$nt i = 3$$
+            }
+            """);
     }
 
     [WpfFact]
     public void EventField()
     {
-        Test(@"class C
-{
-    event System.EventHandler e = null;
-    $$
-}", @"class C
-{
-    e$$vent System.Even$$tHandler e$$ = null$$
-}");
+        Test("""
+            class C
+            {
+                event System.EventHandler e = null;
+                $$
+            }
+            """, """
+            class C
+            {
+                e$$vent System.Even$$tHandler e$$ = null$$
+            }
+            """);
     }
 
     [WpfFact]
     public void Field2()
     {
-        Test(@"class C
-{
-    private readonly int i;
-    $$
-}", @"class C
-{
-    private readonly int i$$
-}");
+        Test("""
+            class C
+            {
+                private readonly int i;
+                $$
+            }
+            """, """
+            class C
+            {
+                private readonly int i$$
+            }
+            """);
     }
 
     [WpfFact]
     public void EventField2()
     {
-        Test(@"class C
-{
-    event System.EventHandler e
-    {
-        $$
-    }
-}", @"class C
-{
-    eve$$nt System.E$$ventHandler e$$
-}");
+        Test("""
+            class C
+            {
+                event System.EventHandler e
+                {
+                    $$
+                }
+            }
+            """, """
+            class C
+            {
+                eve$$nt System.E$$ventHandler e$$
+            }
+            """);
     }
 
     [WpfFact]
     public void Field3()
     {
-        Test(@"class C
-{
-    private readonly int
-        $$
-}", @"class C
-{
-    private readonly int$$
-}");
+        Test("""
+            class C
+            {
+                private readonly int
+                    $$
+            }
+            """, """
+            class C
+            {
+                private readonly int$$
+            }
+            """);
     }
 
     [WpfFact]
     public void EventField3()
     {
-        Test(@"class C
-{
-    event System.EventHandler
-        $$
-}", @"class C
-{
-    event System.EventHandler$$
-}");
+        Test("""
+            class C
+            {
+                event System.EventHandler
+                    $$
+            }
+            """, """
+            class C
+            {
+                event System.EventHandler$$
+            }
+            """);
     }
 
     [WpfFact]
-    public void EmbededStatement()
+    public void EmbeddedStatement()
     {
-        Test(@"class C
-{
-    void Method()
-    {
-        if (true)
-        {
-            $$
-        }
-    }
-}", @"class C
-{
-    void Method()
-    {
-        if (true) $$
-    }
-}");
-    }
-
-    [WpfFact]
-    public void EmbededStatement1()
-    {
-        Test(@"class C
-{
-    void Method()
-    {
-        if (true) 
-            Console.WriteLine()
-                $$
-    }
-}", @"class C
-{
-    void Method()
-    {
-        if (true) 
-            Console.WriteLine()$$
-    }
-}");
+        Test("""
+            class C
+            {
+                void Method()
+                {
+                    if (true)
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void Method()
+                {
+                    if (true) $$
+                }
+            }
+            """);
     }
 
     [WpfFact]
-    public void EmbededStatement2()
+    public void EmbeddedStatement1()
     {
-        Test(@"class C
-{
-    void Method()
-    {
-        if (true)
-            Console.WriteLine();
-        $$
+        Test("""
+            class C
+            {
+                void Method()
+                {
+                    if (true) 
+                        Console.WriteLine()
+                            $$
+                }
+            }
+            """, """
+            class C
+            {
+                void Method()
+                {
+                    if (true) 
+                        Console.WriteLine()$$
+                }
+            }
+            """);
     }
-}", @"class C
-{
-    void Method()
+
+    [WpfFact]
+    public void EmbeddedStatement2()
     {
-        if (true) 
-            Console.WriteLine($$)
-    }
-}");
+        Test("""
+            class C
+            {
+                void Method()
+                {
+                    if (true)
+                        Console.WriteLine();
+                    $$
+                }
+            }
+            """, """
+            class C
+            {
+                void Method()
+                {
+                    if (true) 
+                        Console.WriteLine($$)
+                }
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57323")]
-    public void EmbededStatementFollowedByStatement()
+    public void EmbeddedStatementFollowedByStatement()
     {
-        Test(@"class C
-{
-    void Method()
-    {
-        if (true)
-        {
-        }
-        if (true)
-        {
-            $$
-        }
-        if (true)
-        {
-        }
-    }
-}", @"class C
-{
-    void Method()
-    {
-        if (true)
-        {
-        }
-        if (true$$)
-        if (true)
-        {
-        }
-    }
-}");
+        Test("""
+            class C
+            {
+                void Method()
+                {
+                    if (true)
+                    {
+                    }
+                    if (true)
+                    {
+                        $$
+                    }
+                    if (true)
+                    {
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void Method()
+                {
+                    if (true)
+                    {
+                    }
+                    if (true$$)
+                    if (true)
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void Statement()
     {
-        Test(@"class C
-{
-    void Method()
-    {
-        int i;
-        $$
-    }
-}", @"class C
-{
-    void Method()
-    {
-        int i$$
-    }
-}");
+        Test("""
+            class C
+            {
+                void Method()
+                {
+                    int i;
+                    $$
+                }
+            }
+            """, """
+            class C
+            {
+                void Method()
+                {
+                    int i$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void Statement1()
     {
-        Test(@"class C
-{
-    void Method()
-    {
-        int
-            $$
-    }
-}", @"class C
-{
-    void Method()
-    {
-        int$$
-    }
-}");
+        Test("""
+            class C
+            {
+                void Method()
+                {
+                    int
+                        $$
+                }
+            }
+            """, """
+            class C
+            {
+                void Method()
+                {
+                    int$$
+                }
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedMethod()
     {
-        Test(@"class T
-{
-    int M() => 1 + 2;
-    $$
-}", @"class T
-{
-    int M() => 1 + 2$$
-}");
+        Test("""
+            class T
+            {
+                int M() => 1 + 2;
+                $$
+            }
+            """, """
+            class T
+            {
+                int M() => 1 + 2$$
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedOperator()
     {
-        Test(@"class Complex
-{
-    int real; int imaginary;
-    public static Complex operator +(Complex a, Complex b) => a.Add(b.real + 1);
-    $$
-    private Complex Add(int b) => null;
-}", @"class Complex
-{
-    int real; int imaginary;
-    public static Complex operator +(Complex a, Complex b) => a.Add(b.real + 1)$$
-    private Complex Add(int b) => null;
-}");
+        Test("""
+            class Complex
+            {
+                int real; int imaginary;
+                public static Complex operator +(Complex a, Complex b) => a.Add(b.real + 1);
+                $$
+                private Complex Add(int b) => null;
+            }
+            """, """
+            class Complex
+            {
+                int real; int imaginary;
+                public static Complex operator +(Complex a, Complex b) => a.Add(b.real + 1)$$
+                private Complex Add(int b) => null;
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedConversionOperator()
     {
-        Test(@"using System;
-public struct DBBool
-{
-    public static readonly DBBool dbFalse = new DBBool(-1);
-    int value;
+        Test("""
+            using System;
+            public struct DBBool
+            {
+                public static readonly DBBool dbFalse = new DBBool(-1);
+                int value;
 
-    DBBool(int value)
-    {
-        this.value = value;
-    }
+                DBBool(int value)
+                {
+                    this.value = value;
+                }
 
-    public static implicit operator DBBool(bool x) => x ? new DBBool(1) : dbFalse;
-    $$
-}", @"using System;
-public struct DBBool
-{
-    public static readonly DBBool dbFalse = new DBBool(-1);
-    int value;
+                public static implicit operator DBBool(bool x) => x ? new DBBool(1) : dbFalse;
+                $$
+            }
+            """, """
+            using System;
+            public struct DBBool
+            {
+                public static readonly DBBool dbFalse = new DBBool(-1);
+                int value;
 
-    DBBool(int value)
-    {
-        this.value = value;
-    }
+                DBBool(int value)
+                {
+                    this.value = value;
+                }
 
-    public static implicit operator DBBool(bool x) => x ? new DBBool(1) : dbFalse$$
-}");
+                public static implicit operator DBBool(bool x) => x ? new DBBool(1) : dbFalse$$
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedProperty()
     {
-        Test(@"class T
-{
-    int P1 => 1 + 2;
-    $$
-}", @"class T
-{
-    int P1 => 1 + 2$$
-}");
+        Test("""
+            class T
+            {
+                int P1 => 1 + 2;
+                $$
+            }
+            """, """
+            class T
+            {
+                int P1 => 1 + 2$$
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedIndexer()
     {
-        Test(@"using System;
-class SampleCollection<T>
-{
-    private T[] arr = new T[100];
-    public T this[int i] => i > 0 ? arr[i + 1] : arr[i + 2];
-    $$
-}", @"using System;
-class SampleCollection<T>
-{
-    private T[] arr = new T[100];
-    public T this[int i] => i > 0 ? arr[i + 1] : arr[i + 2]$$
-}");
+        Test("""
+            using System;
+            class SampleCollection<T>
+            {
+                private T[] arr = new T[100];
+                public T this[int i] => i > 0 ? arr[i + 1] : arr[i + 2];
+                $$
+            }
+            """, """
+            using System;
+            class SampleCollection<T>
+            {
+                private T[] arr = new T[100];
+                public T this[int i] => i > 0 ? arr[i + 1] : arr[i + 2]$$
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
     {
-        Test(@"using System;
-class TestClass
-{
-    Func<int, int> Y() => delegate (int x)
-    {
-        return 9;
-    };
-    $$
-}", @"using System;
-class TestClass
-{
-    Func<int, int> Y() => delegate (int x)
-    {
-        return 9;
-    }$$
-}");
+        Test("""
+            using System;
+            class TestClass
+            {
+                Func<int, int> Y() => delegate (int x)
+                {
+                    return 9;
+                };
+                $$
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                Func<int, int> Y() => delegate (int x)
+                {
+                    return 9;
+                }$$
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
     {
-        Test(@"using System;
-class TestClass
-{
-    Func<int, int> Y() => delegate (int x) { return 9; };
-    $$
-}", @"using System;
-class TestClass
-{
-    Func<int, int> Y() => delegate (int x) { return 9; }$$
-}");
+        Test("""
+            using System;
+            class TestClass
+            {
+                Func<int, int> Y() => delegate (int x) { return 9; };
+                $$
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                Func<int, int> Y() => delegate (int x) { return 9; }$$
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
     {
-        Test(@"using System;
-class TestClass
-{
-    Func<int, int> Y() => f =>
-    {
-        return f * 9;
-    };
-    $$
-}", @"using System;
-class TestClass
-{
-    Func<int, int> Y() => f =>
-    {
-        return f * 9;
-    }$$
-}");
+        Test("""
+            using System;
+            class TestClass
+            {
+                Func<int, int> Y() => f =>
+                {
+                    return f * 9;
+                };
+                $$
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                Func<int, int> Y() => f =>
+                {
+                    return f * 9;
+                }$$
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedMethodWithExpressionBodiedSimpleLambdaExpression()
     {
-        Test(@"using System;
-class TestClass
-{
-    Func<int, int> Y() => f => f * 9;
-    $$
-}", @"using System;
-class TestClass
-{
-    Func<int, int> Y() => f => f * 9$$
-}");
+        Test("""
+            using System;
+            class TestClass
+            {
+                Func<int, int> Y() => f => f * 9;
+                $$
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                Func<int, int> Y() => f => f * 9$$
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
     {
-        Test(@"using System;
-class TestClass
-{
-    public int Prop => Method1(delegate ()
-    {
-        return 8;
-    });
-    $$
+        Test("""
+            using System;
+            class TestClass
+            {
+                public int Prop => Method1(delegate ()
+                {
+                    return 8;
+                });
+                $$
 
-    private int Method1(Func<int> p) => null;
-}", @"using System;
-class TestClass
-{
-    public int Prop => Method1(delegate()
-    {
-        return 8;
-    })$$
+                private int Method1(Func<int> p) => null;
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                public int Prop => Method1(delegate()
+                {
+                    return 8;
+                })$$
 
-    private int Method1(Func<int> p) => null;
-}");
+                private int Method1(Func<int> p) => null;
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void Format_SimpleExpressionBodiedMember()
     {
-        Test(@"class T
-{
-    int M() => 1 + 2;
-    $$
-}", @"class T
-{
-         int   M()   =>    1       +     2$$
-}");
+        Test("""
+            class T
+            {
+                int M() => 1 + 2;
+                $$
+            }
+            """, """
+            class T
+            {
+                     int   M()   =>    1       +     2$$
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void Format_ExpressionBodiedMemberWithSingleLineBlock()
     {
-        Test(@"using System;
-class TestClass
-{
-    Func<int, int> Y() => delegate (int x) { return 9; };
-    $$
-}", @"using System;
-class TestClass
-{
-                Func<int, int>  Y ()   =>   delegate(int x) { return     9  ; }$$
-}");
+        Test("""
+            using System;
+            class TestClass
+            {
+                Func<int, int> Y() => delegate (int x) { return 9; };
+                $$
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                            Func<int, int>  Y ()   =>   delegate(int x) { return     9  ; }$$
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void Format_ExpressionBodiedMemberWithMultiLineBlock()
     {
-        Test(@"using System;
-class TestClass
-{
-    Func<int, int> Y() => delegate (int x)
-    {
-        return 9;
-    };
-    $$
-}", @"using System;
-class TestClass
-{
-    Func<int, int> Y() => delegate(int x)
-    {
-        return 9;
-        }$$
-}");
+        Test("""
+            using System;
+            class TestClass
+            {
+                Func<int, int> Y() => delegate (int x)
+                {
+                    return 9;
+                };
+                $$
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                Func<int, int> Y() => delegate(int x)
+                {
+                    return 9;
+                    }$$
+            }
+            """);
     }
 
     [WpfFact]
     public void Format_Statement()
     {
-        Test(@"class C
-{
-    void Method()
-    {
-        int i = 1;
-        $$
-    }
-}", @"class C
-{
-    void Method()
-    {
-                    int         i           =           1               $$
-    }
-}");
+        Test("""
+            class C
+            {
+                void Method()
+                {
+                    int i = 1;
+                    $$
+                }
+            }
+            """, """
+            class C
+            {
+                void Method()
+                {
+                                int         i           =           1               $$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void Format_Using()
     {
-        Test(@"using System.Linq;
-$$", @"         using           System          .                   Linq            $$");
+        Test("""
+            using System.Linq;
+            $$
+            """, @"         using           System          .                   Linq            $$");
     }
 
     [WpfFact]
     public void Format_Using2()
     {
-        Test(@"using
-    System.Linq;
-$$", @"         using           
-             System          .                   Linq            $$");
+        Test("""
+            using
+                System.Linq;
+            $$
+            """, """
+            using           
+                System          .                   Linq            $$
+            """);
     }
 
     [WpfFact]
     public void Format_Field()
     {
-        Test(@"class C
-{
-    int i = 1;
-    $$
-}", @"class C
-{
-            int         i           =               1           $$
-}");
+        Test("""
+            class C
+            {
+                int i = 1;
+                $$
+            }
+            """, """
+            class C
+            {
+                        int         i           =               1           $$
+            }
+            """);
     }
 
     [WpfFact]
     public void Statement_Trivia()
     {
-        Test(@"class C
-{
-    void goo()
-    {
-        goo(); //comment
-        $$
-    }
-}", @"class C
-{
-    void goo()
-    {
-        goo()$$ //comment
-    }
-}");
+        Test("""
+            class C
+            {
+                void goo()
+                {
+                    goo(); //comment
+                    $$
+                }
+            }
+            """, """
+            class C
+            {
+                void goo()
+                {
+                    goo()$$ //comment
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TrailingText_Negative()
     {
-        Test(@"class C
-{
-    event System.EventHandler e = null  int i = 2;
-    $$
-}", @"class C
-{
-    event System.EventHandler e = null$$  int i = 2;  
-}");
+        Test("""
+            class C
+            {
+                event System.EventHandler e = null  int i = 2;
+                $$
+            }
+            """, """
+            class C
+            {
+                event System.EventHandler e = null$$  int i = 2;  
+            }
+            """);
     }
 
     [WpfFact]
     public void CompletionSetUp()
     {
-        Test(@"class Program
-{
-    object goo(object o)
-    {
-        return goo();
-        $$
-    }
-}", @"class Program
-{
-    object goo(object o)
-    {
-        return goo($$)
-    }
-}", completionActive: true);
+        Test("""
+            class Program
+            {
+                object goo(object o)
+                {
+                    return goo();
+                    $$
+                }
+            }
+            """, """
+            class Program
+            {
+                object goo(object o)
+                {
+                    return goo($$)
+                }
+            }
+            """, completionActive: true);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530352")]
-    public void EmbededStatement3()
+    public void EmbeddedStatement3()
     {
-        Test(@"class Program
-{
-    void Method()
-    {
-        foreach (var x in y)
-        {
-            $$
-        }
+        Test("""
+            class Program
+            {
+                void Method()
+                {
+                    foreach (var x in y)
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            class Program
+            {
+                void Method()
+                {
+                    foreach (var x in y$$)
+                }
+            }
+            """);
     }
-}", @"class Program
-{
-    void Method()
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66102")]
+    public void EmbeddedStatement4()
     {
-        foreach (var x in y$$)
-    }
-}");
+        Test("""
+            class Program
+            {
+                void Method()
+                {
+                    foreach (var (x, y) in z)
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            class Program
+            {
+                void Method()
+                {
+                    foreach (var (x, y) in z$$)
+                }
+            }
+            """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530716")]
     public void DoNotAssertOnMultilineToken()
     {
-        Test(@"interface I
-{
-    void M(string s = @""""""
-$$
-}", @"interface I
-{
-    void M(string s = @""""""$$
-}");
+        Test(""""
+            interface I
+            {
+                void M(string s = @"""
+            $$
+            }
+            """", """"
+            interface I
+            {
+                void M(string s = @"""$$
+            }
+            """");
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530718")]
     public void AutomaticLineFormat()
     {
-        Test(@"class C
-{
-    public string P { set; get; }
-    $$
-}", @"class C
-{
-    public string P {set;get;$$}
-}");
+        Test("""
+            class C
+            {
+                public string P { set; get; }
+                $$
+            }
+            """, """
+            class C
+            {
+                public string P {set;get;$$}
+            }
+            """);
     }
 
     [WpfFact]
     public void NotAfterExisitingSemicolon()
     {
-        Test(@"class TestClass
-{
-    private int i;
-    $$
-}", @"class TestClass
-{
-    private int i;$$
-}");
+        Test("""
+            class TestClass
+            {
+                private int i;
+                $$
+            }
+            """, """
+            class TestClass
+            {
+                private int i;$$
+            }
+            """);
     }
 
     [WpfFact]
     public void NotAfterCloseBraceInMethod()
     {
-        Test(@"class TestClass
-{
-    void Test() { }
-    $$
-}", @"class TestClass
-{
-    void Test() { }$$
-}");
+        Test("""
+            class TestClass
+            {
+                void Test() { }
+                $$
+            }
+            """, """
+            class TestClass
+            {
+                void Test() { }$$
+            }
+            """);
     }
 
     [WpfFact]
     public void NotAfterCloseBraceInStatement()
     {
-        Test(@"class TestClass
-{
-    void Test()
-    {
-        if (true) { }
-        $$
-    }
-}", @"class TestClass
-{
-    void Test()
-    {
-        if (true) { }$$
-    }
-}");
+        Test("""
+            class TestClass
+            {
+                void Test()
+                {
+                    if (true) { }
+                    $$
+                }
+            }
+            """, """
+            class TestClass
+            {
+                void Test()
+                {
+                    if (true) { }$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void NotAfterAutoPropertyAccessor()
     {
-        Test(@"class TestClass
-{
-    public int A { get; set }
-    $$
-}", @"class TestClass
-{
-    public int A { get; set$$ }
-}");
+        Test("""
+            class TestClass
+            {
+                public int A { get; set }
+                $$
+            }
+            """, """
+            class TestClass
+            {
+                public int A { get; set$$ }
+            }
+            """);
     }
 
     [WpfFact]
     public void NotAfterAutoPropertyDeclaration()
     {
-        Test(@"class TestClass
-{
-    public int A { get; set; }
-    $$
-}", @"class TestClass
-{
-    public int A { get; set; }$$
-}");
+        Test("""
+            class TestClass
+            {
+                public int A { get; set; }
+                $$
+            }
+            """, """
+            class TestClass
+            {
+                public int A { get; set; }$$
+            }
+            """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
     public void DelegatedInEmptyBlock()
     {
-        Test(@"class TestClass
-{
-    void Method()
-    {
-        try { $$}
-    }
-}", @"class TestClass
-{
-    void Method()
-    {
-        try { $$}
-    }
-}", assertNextHandlerInvoked: true);
+        Test("""
+            class TestClass
+            {
+                void Method()
+                {
+                    try { $$}
+                }
+            }
+            """, """
+            class TestClass
+            {
+                void Method()
+                {
+                    try { $$}
+                }
+            }
+            """, assertNextHandlerInvoked: true);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
     public void DelegatedInEmptyBlock2()
     {
-        Test(@"class TestClass
-{
-    void Method()
-    {
-        if (true) { $$}
-    }
-}", @"class TestClass
-{
-    void Method()
-    {
-        if (true) { $$}
-    }
-}", assertNextHandlerInvoked: true);
+        Test("""
+            class TestClass
+            {
+                void Method()
+                {
+                    if (true) { $$}
+                }
+            }
+            """, """
+            class TestClass
+            {
+                void Method()
+                {
+                    if (true) { $$}
+                }
+            }
+            """, assertNextHandlerInvoked: true);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
     public void NotDelegatedOutsideEmptyBlock()
     {
-        Test(@"class TestClass
-{
-    void Method()
-    {
-        try { }
-        $$
-    }
-}", @"class TestClass
-{
-    void Method()
-    {
-        try { }$$
-    }
-}");
+        Test("""
+            class TestClass
+            {
+                void Method()
+                {
+                    try { }
+                    $$
+                }
+            }
+            """, """
+            class TestClass
+            {
+                void Method()
+                {
+                    try { }$$
+                }
+            }
+            """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
     public void NotDelegatedAfterOpenBraceAndMissingCloseBrace()
     {
-        Test(@"class TestClass
-{
-    void Method()
-    {
-        try {
-            $$
-    }
-}", @"class TestClass
-{
-    void Method()
-    {
-        try {$$
-    }
-}");
+        Test("""
+            class TestClass
+            {
+                void Method()
+                {
+                    try {
+                        $$
+                }
+            }
+            """, """
+            class TestClass
+            {
+                void Method()
+                {
+                    try {$$
+                }
+            }
+            """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
     public void NotDelegatedInNonEmptyBlock()
     {
-        Test(@"class TestClass
-{
-    void Method()
-    {
-        try { x }
-        $$
-    }
-}", @"class TestClass
-{
-    void Method()
-    {
-        try { x$$ }
-    }
-}");
+        Test("""
+            class TestClass
+            {
+                void Method()
+                {
+                    try { x }
+                    $$
+                }
+            }
+            """, """
+            class TestClass
+            {
+                void Method()
+                {
+                    try { x$$ }
+                }
+            }
+            """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
     public void NotDelegatedAfterOpenBraceInAnonymousObjectCreationExpression()
     {
-        Test(@"class TestClass
-{
-    void Method()
-    {
-        var pet = new { };
-        $$
-    }
-}", @"class TestClass
-{
-    void Method()
-    {
-        var pet = new { $$}
-    }
-}");
+        Test("""
+            class TestClass
+            {
+                void Method()
+                {
+                    var pet = new { };
+                    $$
+                }
+            }
+            """, """
+            class TestClass
+            {
+                void Method()
+                {
+                    var pet = new { $$}
+                }
+            }
+            """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
     public void NotDelegatedAfterOpenBraceObjectCreationExpression()
     {
-        Test(@"class TestClass
-{
-    void Method()
-    {
-        var pet = new List<int>();
-        $$
-    }
-}", @"class TestClass
-{
-    void Method()
-    {
-        var pet = new List<int> { $$}
-    }
-}");
+        Test("""
+            class TestClass
+            {
+                void Method()
+                {
+                    var pet = new List<int>();
+                    $$
+                }
+            }
+            """, """
+            class TestClass
+            {
+                void Method()
+                {
+                    var pet = new List<int> { $$}
+                }
+            }
+            """);
     }
 
     [WpfFact]
-    public void TestMulitpleNamespace()
+    public void TestMultipleNamespace()
     {
-        Test($@"
-namespace Bar2
-{{
-    $$
-}}
-namespace Bar
-{{
-}}", $@"
-namespace B$$ar2$$
-namespace Bar
-{{
-}}");
+        Test($$"""
+            namespace Bar2
+            {
+                $$
+            }
+            namespace Bar
+            {
+            }
+            """, $$"""
+            namespace B$$ar2$$
+            namespace Bar
+            {
+            }
+            """);
     }
 
     [WpfTheory]
@@ -883,12 +1106,14 @@ namespace Bar
     [InlineData("interface")]
     public void TestEmptyBaseTypeDeclarationAndNamespace(string typeKeyword)
     {
-        Test($@"
-public {typeKeyword} Bar
-{{
-    $$
-}}", $@"
-pu$$blic {typeKeyword} $$Bar$$");
+        Test($$"""
+            public {{typeKeyword}} Bar
+            {
+                $$
+            }
+            """, $"""
+            pu$$blic {typeKeyword} $$Bar$$
+            """);
     }
 
     [WpfTheory]
@@ -899,55 +1124,61 @@ pu$$blic {typeKeyword} $$Bar$$");
     [InlineData("interface")]
     public void TestMultipleBaseTypeDeclaration(string typeKeyword)
     {
-        Test($@"
-public {typeKeyword} Bar2
-{{
-    $$
-}}
+        Test($$"""
+            public {{typeKeyword}} Bar2
+            {
+                $$
+            }
 
-public {typeKeyword} Bar
-{{
-}}", $@"
-pub$$lic {typeKeyword} B$$ar2$$
-public {typeKeyword} Bar
-{{
-}}");
+            public {{typeKeyword}} Bar
+            {
+            }
+            """, $$"""
+            pub$$lic {{typeKeyword}} B$$ar2$$
+            public {{typeKeyword}} Bar
+            {
+            }
+            """);
     }
 
     [WpfFact]
     public void TestNestedTypeDeclaration()
     {
-        Test(@"
-public class Bar1
-{
-    public class Bar2
-    {
-        $$
-    }
-}",
-@"
-public class Bar1
-{
-    pu$$blic cla$$ss B$$ar2$$
-}");
+        Test("""
+            public class Bar1
+            {
+                public class Bar2
+                {
+                    $$
+                }
+            }
+            """,
+            """
+            public class Bar1
+            {
+                pu$$blic cla$$ss B$$ar2$$
+            }
+            """);
     }
 
     [WpfFact]
     public void TestNestedNamespace()
     {
-        Test(@"
-namespace Bar1
-{
-    namespace Bar2
-    {
-        $$
-    }
-}",
-@"
-namespace Bar1
-{
-    namespa$$ce $$B$$ar2$$
-}");
+        Test("""
+            namespace Bar1
+            {
+                namespace Bar2
+                {
+                    $$
+                }
+            }
+            """,
+            """
+            namespace Bar1
+            {
+                namespa$$ce $$B$$ar2$$
+            }
+            """);
     }
 
     [WpfTheory]
@@ -959,10 +1190,12 @@ namespace Bar1
     [InlineData("interface")]
     public void TestBaseTypeDeclarationAndNamespaceWithOpenBrace(string typeKeyword)
     {
-        Test($@"
-public {typeKeyword} Bar {{
-    $$", $@"
-pub$$lic {typeKeyword} B$$ar {{$$");
+        Test($$"""
+            public {{typeKeyword}} Bar {
+                $$
+            """, $$"""
+            pub$$lic {{typeKeyword}} B$$ar {$$
+            """);
     }
 
     [WpfTheory]
@@ -974,992 +1207,1036 @@ pub$$lic {typeKeyword} B$$ar {{$$");
     [InlineData("interface")]
     public void TestValidTypeDeclarationAndNamespace(string typeKeyword)
     {
-        Test($@"public {typeKeyword} Bar {{}}
-$$",
+        Test($$"""
+            public {{typeKeyword}} Bar {}
+            $$
+            """,
             $@"public {typeKeyword}$$ Ba$$r {{}}$$");
     }
 
     [WpfFact]
     public void TestMethod()
     {
-        Test(@"
-public class Bar
-{
-    void Main()
-    {
-        $$
-    }
-}", @"
-public class Bar
-{
-    v$$oid Ma$$in($$)$$
-}");
+        Test("""
+            public class Bar
+            {
+                void Main()
+                {
+                    $$
+                }
+            }
+            """, """
+            public class Bar
+            {
+                v$$oid Ma$$in($$)$$
+            }
+            """);
     }
 
     [WpfFact]
     public void TestConstructor()
     {
-        Test(@"
-public class Bar
-{
-    void Bar()
-    {
-        $$
-    }
-}", @"
-public class Bar
-{
-    v$$oid Ba$$r($$)$$
-}");
+        Test("""
+            public class Bar
+            {
+                void Bar()
+                {
+                    $$
+                }
+            }
+            """, """
+            public class Bar
+            {
+                v$$oid Ba$$r($$)$$
+            }
+            """);
     }
 
     [WpfFact]
     public void TestValidMethodInInterface()
     {
-        Test(@"
-public interface Bar
-{
-    void Main();
-    $$
-}", @"
-public interface Bar
-{
-    v$$oid Mai$$n($$)$$;
-}");
+        Test("""
+            public interface Bar
+            {
+                void Main();
+                $$
+            }
+            """, """
+            public interface Bar
+            {
+                v$$oid Mai$$n($$)$$;
+            }
+            """);
     }
 
     [WpfFact]
     public void TestMissingSemicolonMethodInInterface()
     {
-        Test(@"
-public interface Bar
-{
-    void Main()
-        $$
-}", @"
-public interface Bar
-{
-    v$$oid Mai$$n($$)$$
-}");
+        Test("""
+            public interface Bar
+            {
+                void Main()
+                    $$
+            }
+            """, """
+            public interface Bar
+            {
+                v$$oid Mai$$n($$)$$
+            }
+            """);
     }
 
     [WpfFact]
     public void TestValidLocalFunction()
     {
-        Test(@"
-public class Bar
-{
-    void Main()
-    {
-        void Local()
-            $$
-        {
-        }
-    }
-}", @"
-public class Bar
-{
-    void Main()
-    {
-        v$$oid Loc$$al($$)$$
-        {
-        }
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                void Main()
+                {
+                    void Local()
+                        $$
+                    {
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                void Main()
+                {
+                    v$$oid Loc$$al($$)$$
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestLocalFunction()
     {
-        Test(@"
-public class Bar
-{
-    void Main()
-    {
-        void Local()
-        {
-            $$
-        }
-    }
-}", @"
-public class Bar
-{
-    void Main()
-    {
-        v$$oid Loca$$l($$)$$
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                void Main()
+                {
+                    void Local()
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                void Main()
+                {
+                    v$$oid Loca$$l($$)$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestIndexerAsLastElementInClass()
     {
-        Test(@"
-public class Bar
-{
-    public int this[int i]
-    {
-        $$
-    }
-}", @"
-public class Bar
-{
-    p$$ublic in$$t thi$$s[in$$t i]$$
-}");
+        Test("""
+            public class Bar
+            {
+                public int this[int i]
+                {
+                    $$
+                }
+            }
+            """, """
+            public class Bar
+            {
+                p$$ublic in$$t thi$$s[in$$t i]$$
+            }
+            """);
     }
 
     [WpfFact]
     public void TestIndexerNotAsLastElementInClass()
     {
-        Test(@"
-public class Bar
-{
-    public int this[int i]
-    {
-        $$
-    }
-    void Main() {}
-}", @"
-public class Bar
-{
-    p$$ublic in$$t thi$$s[in$$t i]$$
-    void Main() {}
-}");
+        Test("""
+            public class Bar
+            {
+                public int this[int i]
+                {
+                    $$
+                }
+                void Main() {}
+            }
+            """, """
+            public class Bar
+            {
+                p$$ublic in$$t thi$$s[in$$t i]$$
+                void Main() {}
+            }
+            """);
     }
 
     [WpfFact]
     public void TestValidIndexer()
     {
-        Test(@"
-public class Bar
-{
-    public int this[int i]
-        $$
-    {
-    }
-}", @"
-public class Bar
-{
-    p$$ublic i$$nt thi$$s[in$$t i]$$
-    {
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public int this[int i]
+                    $$
+                {
+                }
+            }
+            """, """
+            public class Bar
+            {
+                p$$ublic i$$nt thi$$s[in$$t i]$$
+                {
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestGetAccessorOfProperty()
     {
-        var initialMarkup = @"
-public class Bar
-{
-    public int P
-    {
-        ge$$t$$
-    }
-}";
-
-        var firstResult = @"
-public class Bar
-{
-    public int P
-    {
-        get
-        {
-            $$
-        }
-    }
-}";
-        var secondResult = @"
-public class Bar
-{
-    public int P
-    {
-        get;
-        $$
-    }
-}";
-        Test(firstResult, initialMarkup);
-        Test(secondResult, firstResult);
+        var firstResult = """
+            public class Bar
+            {
+                public int P
+                {
+                    get
+                    {
+                        $$
+                    }
+                }
+            }
+            """;
+        Test(firstResult, """
+            public class Bar
+            {
+                public int P
+                {
+                    ge$$t$$
+                }
+            }
+            """);
+        Test("""
+            public class Bar
+            {
+                public int P
+                {
+                    get;
+                    $$
+                }
+            }
+            """, firstResult);
     }
 
     [WpfFact]
     public void TestSetAccessorOfProperty()
     {
-        var initialMarkup = @"
-public class Bar
-{
-    public int P
-    {
-        set$$
-    }
-}";
-        var firstResult = @"
-public class Bar
-{
-    public int P
-    {
-        set
-        {
-            $$
-        }
-    }
-}";
-        var secondResult = @"
-public class Bar
-{
-    public int P
-    {
-        set;
-        $$
-    }
-}";
-        Test(firstResult, initialMarkup);
-        Test(secondResult, firstResult);
+        var firstResult = """
+            public class Bar
+            {
+                public int P
+                {
+                    set
+                    {
+                        $$
+                    }
+                }
+            }
+            """;
+        Test(firstResult, """
+            public class Bar
+            {
+                public int P
+                {
+                    set$$
+                }
+            }
+            """);
+        Test("""
+            public class Bar
+            {
+                public int P
+                {
+                    set;
+                    $$
+                }
+            }
+            """, firstResult);
     }
 
     [WpfFact]
     public void TestGetAccessorOfIndexer()
     {
-        Test(@"
-public class Bar
-{
-    public int this[int i]
-    {
-        get
-        {
-            $$
-        }
-    }
-}", @"
-public class Bar
-{
-    public int this[int i]
-    {
-        ge$$t$$
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public int this[int i]
+                {
+                    get
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public int this[int i]
+                {
+                    ge$$t$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestValidGetAccessorOfIndexer()
     {
-        Test(@"
-public class Bar
-{
-    public int this[int i]
-    {
-        get
-        {
+        Test("""
+            public class Bar
+            {
+                public int this[int i]
+                {
+                    get
+                    {
 
-            $$
-        }
-    }
-}", @"
-public class Bar
-{
-    public int this[int i]
-    {
-        get
-        {
-            $$
-        }
-    }
-}");
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public int this[int i]
+                {
+                    get
+                    {
+                        $$
+                    }
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestNonEmptyGetAccessor()
     {
-        Test(@"
-public Class Bar
-{
-    public int P
-    {
-        get
-        {
-            if (true)
-            $$
+        Test("""
+            public Class Bar
             {
-                return 1;
+                public int P
+                {
+                    get
+                    {
+                        if (true)
+                        $$
+                        {
+                            return 1;
+                        }
+                    }
+                }   
             }
-        }
-    }   
-}",
-            @"
-public Class Bar
-{
-    public int P
-    {
-        get
-        {
-            i$$f ($$true$$)$$
+            """,
+            """
+            public Class Bar
             {
-                return 1;
+                public int P
+                {
+                    get
+                    {
+                        i$$f ($$true$$)$$
+                        {
+                            return 1;
+                        }
+                    }
+                }   
             }
-        }
-    }   
-}");
+            """);
     }
 
     [WpfFact]
     public void TestNonEmptySetAccessor()
     {
-        Test(@"
-public Class Bar
-{
-    public int P
-    {
-        get;
-        set
-        {
-            if (true)
-            $$
+        Test("""
+            public Class Bar
             {
+                public int P
+                {
+                    get;
+                    set
+                    {
+                        if (true)
+                        $$
+                        {
+                        }
+                    }
+                }   
             }
-        }
-    }   
-}",
-            @"
-public Class Bar
-{
-    public int P
-    {
-        get;
-        set
-        {
-            i$$f (t$$rue)$$
+            """,
+            """
+            public Class Bar
             {
+                public int P
+                {
+                    get;
+                    set
+                    {
+                        i$$f (t$$rue)$$
+                        {
+                        }
+                    }
+                }   
             }
-        }
-    }   
-}");
+            """);
     }
 
     [WpfFact]
     public void TestSetAccessorOfIndexer()
     {
-        Test(@"
-public class Bar
-{
-    public int this[int i]
-    {
-        get;
-        set
-        {
-            $$
-        }
-    }
-}", @"
-public class Bar
-{
-    public int this[int i]
-    {
-        get;
-        se$$t$$
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public int this[int i]
+                {
+                    get;
+                    set
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public int this[int i]
+                {
+                    get;
+                    se$$t$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestValidSetAccessorOfIndexer()
     {
-        Test(@"
-public class Bar
-{
-    public int this[int i]
-    {
-        get;
-        set
-        {
+        Test("""
+            public class Bar
+            {
+                public int this[int i]
+                {
+                    get;
+                    set
+                    {
 
-            $$
-        }
-    }
-}", @"
-public class Bar
-{
-    public int this[int i]
-    {
-        get;
-        set
-        {
-            $$
-        }
-    }
-}");
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public int this[int i]
+                {
+                    get;
+                    set
+                    {
+                        $$
+                    }
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestAddAccessorInEventDeclaration()
     {
-        Test(@"
-using System;
-public class Bar
-{
-    public event EventHandler e
-    {
-        add
-        {
-            $$
-        }
-        remove
-    }
-}", @"
-using System;
-public class Bar
-{
-    public event EventHandler e
-    {
-        ad$$d$$
-        remove
-    }
-}");
+        Test("""
+            using System;
+            public class Bar
+            {
+                public event EventHandler e
+                {
+                    add
+                    {
+                        $$
+                    }
+                    remove
+                }
+            }
+            """, """
+            using System;
+            public class Bar
+            {
+                public event EventHandler e
+                {
+                    ad$$d$$
+                    remove
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestValidAddAccessorInEventDeclaration()
     {
-        Test(@"
-using System;
-public class Bar
-{
-    public event EventHandler e
-    {
-        add
-        {
+        Test("""
+            using System;
+            public class Bar
+            {
+                public event EventHandler e
+                {
+                    add
+                    {
 
-            $$
-        }
-        remove { }
-    }
-}", @"
-using System;
-public class Bar
-{
-    public event EventHandler e
-    {
-        add
-        {
-            $$
-        }
-        remove { }
-    }
-}");
+                        $$
+                    }
+                    remove { }
+                }
+            }
+            """, """
+            using System;
+            public class Bar
+            {
+                public event EventHandler e
+                {
+                    add
+                    {
+                        $$
+                    }
+                    remove { }
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestRemoveAccessor()
     {
-        Test(@"
-using System;
-public class Bar
-{
-    public event EventHandler e
-    {
-        add
-        remove
-        {
-            $$
-        }
-    }
-}", @"
-using System;
-public class Bar
-{
-    public event EventHandler e
-    {
-        add
-        remo$$ve$$
-    }
-}");
+        Test("""
+            using System;
+            public class Bar
+            {
+                public event EventHandler e
+                {
+                    add
+                    remove
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            using System;
+            public class Bar
+            {
+                public event EventHandler e
+                {
+                    add
+                    remo$$ve$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestValidRemoveAccessor()
     {
-        Test(@"
-using System;
-public class Bar
-{
-    public event EventHandler e
-    {
-        add { }
-        remove
-        {
+        Test("""
+            using System;
+            public class Bar
+            {
+                public event EventHandler e
+                {
+                    add { }
+                    remove
+                    {
 
-            $$
-        }
-    }
-}", @"
-using System;
-public class Bar
-{
-    public event EventHandler e
-    {
-        add { }
-        remove
-        {
-            $$
-        }
-    }
-}");
+                        $$
+                    }
+                }
+            }
+            """, """
+            using System;
+            public class Bar
+            {
+                public event EventHandler e
+                {
+                    add { }
+                    remove
+                    {
+                        $$
+                    }
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestField()
     {
-        var initialMarkup = @"
-public class Bar
-{
-    p$$ublic i$$nt i$$ii$$
-}";
-        var firstResult = @"
-public class Bar
-{
-    public int iii
-    {
-        $$
-    }
-}";
-        var secondResult = @"
-public class Bar
-{
-    public int iii;
-    $$
-}";
-
-        Test(firstResult, initialMarkup);
-        Test(secondResult, firstResult);
+        var firstResult = """
+            public class Bar
+            {
+                public int iii
+                {
+                    $$
+                }
+            }
+            """;
+        Test(firstResult, """
+            public class Bar
+            {
+                p$$ublic i$$nt i$$ii$$
+            }
+            """);
+        Test("""
+            public class Bar
+            {
+                public int iii;
+                $$
+            }
+            """, firstResult);
     }
 
     [WpfFact]
     public void TestReadonlyField()
     {
-        Test(@"
-public class Bar
-{
-    public readonly int iii;
-    $$
-}", @"
-public class Bar
-{
-    p$$ublic reado$$nly i$$nt i$$ii$$
-}");
+        Test("""
+            public class Bar
+            {
+                public readonly int iii;
+                $$
+            }
+            """, """
+            public class Bar
+            {
+                p$$ublic reado$$nly i$$nt i$$ii$$
+            }
+            """);
     }
 
     [WpfFact]
     public void TestNonEmptyProperty()
     {
-        Test(@"
-public class Bar
-{
-    public int Foo
-    {
-        get { }
-        $$
-    }
-}", @"
-public class Bar
-{
-    public int Foo
-    {
-        $$get$$ { }$$
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public int Foo
+                {
+                    get { }
+                    $$
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public int Foo
+                {
+                    $$get$$ { }$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
-    public void TestMulitpleFields()
+    public void TestMultipleFields()
     {
-        Test(@"
-public class Bar
-{
-    public int apple, banana;
-    $$
-}", @"
-public class Bar
-{
-    p$$ublic i$$nt ap$$ple$$, ba$$nana;$$
-}");
+        Test("""
+            public class Bar
+            {
+                public int apple, banana;
+                $$
+            }
+            """, """
+            public class Bar
+            {
+                p$$ublic i$$nt ap$$ple$$, ba$$nana;$$
+            }
+            """);
     }
 
     [WpfFact]
     public void TestMultipleEvents()
     {
-        Test(@"
-using System;
-public class Bar
-{
-    public event EventHandler apple, banana;
-    $$
-}", @"
-using System;
-public class Bar
-{
-    p$$ublic event EventHandler ap$$ple$$, ba$$nana$$;$$
-}");
+        Test("""
+            using System;
+            public class Bar
+            {
+                public event EventHandler apple, banana;
+                $$
+            }
+            """, """
+            using System;
+            public class Bar
+            {
+                p$$ublic event EventHandler ap$$ple$$, ba$$nana$$;$$
+            }
+            """);
     }
 
     [WpfFact]
     public void TestEvent()
     {
-        var initialMarkup = @"
-using System;
-public class Bar
-{
-    pu$$blic e$$vent EventHand$$ler c$$c$$
-}";
-        var firstResult = @"
-using System;
-public class Bar
-{
-    public event EventHandler cc
-    {
-        $$
-    }
-}";
-        var secondResult = @"
-using System;
-public class Bar
-{
-    public event EventHandler cc;
-    $$
-}";
-        Test(firstResult, initialMarkup);
-        Test(secondResult, firstResult);
+        var firstResult = """
+            using System;
+            public class Bar
+            {
+                public event EventHandler cc
+                {
+                    $$
+                }
+            }
+            """;
+        Test(firstResult, """
+            using System;
+            public class Bar
+            {
+                pu$$blic e$$vent EventHand$$ler c$$c$$
+            }
+            """);
+        Test("""
+            using System;
+            public class Bar
+            {
+                public event EventHandler cc;
+                $$
+            }
+            """, firstResult);
     }
 
     [WpfFact]
     public void TestNonEmptyEvent()
     {
-        Test(@"
-using System;
-public class Bar
-{
-    public event EventHandler Foo
-    {
-        add { }
-        $$
-    }
-}", @"
-using System;
-public class Bar
-{
-    public event EventHandler Foo
-    {
-        $$add$$ {$$ }$$
-    }
-}");
+        Test("""
+            using System;
+            public class Bar
+            {
+                public event EventHandler Foo
+                {
+                    add { }
+                    $$
+                }
+            }
+            """, """
+            using System;
+            public class Bar
+            {
+                public event EventHandler Foo
+                {
+                    $$add$$ {$$ }$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestObjectCreationExpressionWithParenthesis()
     {
-        var initialMarkup = @"
-public class Bar
-{
-    public void M()
-    {
-        var f = n$$ew F$$oo($$)$$
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}";
-
-        var firstResult = @"
-public class Bar
-{
-    public void M()
-    {
-        var f = new Foo()
-        {
-            $$
-        };
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}";
-
-        var secondResult = @"
-public class Bar
-{
-    public void M()
-    {
-        var f = new Foo();
-        $$
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}";
-
-        Test(firstResult, initialMarkup);
-        Test(secondResult, firstResult);
+        var firstResult = """
+            public class Bar
+            {
+                public void M()
+                {
+                    var f = new Foo()
+                    {
+                        $$
+                    };
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """;
+        Test(firstResult, """
+            public class Bar
+            {
+                public void M()
+                {
+                    var f = n$$ew F$$oo($$)$$
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """);
+        Test("""
+            public class Bar
+            {
+                public void M()
+                {
+                    var f = new Foo();
+                    $$
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """, firstResult);
     }
 
     [WpfFact]
     public void TestObjectCreationExpressionWithNoParenthesis()
     {
-        var initialMarkUp = @"
-public class Bar
-{
-    public void M()
-    {
-        var f = n$$ew F$$oo$$
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}";
-
-        var firstResult = @"
-public class Bar
-{
-    public void M()
-    {
-        var f = new Foo()
-        {
-            $$
-        };
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}";
-
-        var secondResult = @"
-public class Bar
-{
-    public void M()
-    {
-        var f = new Foo();
-        $$
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}";
-
-        Test(firstResult, initialMarkUp);
-        Test(secondResult, firstResult);
+        var firstResult = """
+            public class Bar
+            {
+                public void M()
+                {
+                    var f = new Foo()
+                    {
+                        $$
+                    };
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """;
+        Test(firstResult, """
+            public class Bar
+            {
+                public void M()
+                {
+                    var f = n$$ew F$$oo$$
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """);
+        Test("""
+            public class Bar
+            {
+                public void M()
+                {
+                    var f = new Foo();
+                    $$
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """, firstResult);
     }
 
     [WpfFact]
     public void TestObjectCreationExpressionWithCorrectSemicolon()
     {
-        var initialMarkUp = @"
-public class Bar
-{
-    public void M()
-    {
-        var f = n$$ew F$$oo$$;
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}";
-
-        var firstResult = @"
-public class Bar
-{
-    public void M()
-    {
-        var f = new Foo()
-        {
-            $$
-        };
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}";
-
-        var secondResult = @"
-public class Bar
-{
-    public void M()
-    {
-        var f = new Foo();
-        $$
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}";
-
-        Test(firstResult, initialMarkUp);
-        Test(secondResult, firstResult);
+        var firstResult = """
+            public class Bar
+            {
+                public void M()
+                {
+                    var f = new Foo()
+                    {
+                        $$
+                    };
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """;
+        Test(firstResult, """
+            public class Bar
+            {
+                public void M()
+                {
+                    var f = n$$ew F$$oo$$;
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """);
+        Test("""
+            public class Bar
+            {
+                public void M()
+                {
+                    var f = new Foo();
+                    $$
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """, firstResult);
     }
 
     [WpfFact]
     public void TestObjectCreationExpressionUsedAsExpression()
     {
-        var initialMarkUp = @"
-public class Bar
-{
-    public void M()
-    {
-        N(ne$$w Fo$$o$$);
-    }
+        var firstResult = """
+            public class Bar
+            {
+                public void M()
+                {
+                    N(new Foo()
+                    {
+                        $$
+                    });
+                }
 
-    private void N(Foo f)
-    {
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}";
+                private void N(Foo f)
+                {
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """;
+        Test(firstResult, """
+            public class Bar
+            {
+                public void M()
+                {
+                    N(ne$$w Fo$$o$$);
+                }
 
-        var firstResult = @"
-public class Bar
-{
-    public void M()
-    {
-        N(new Foo()
-        {
-            $$
-        });
-    }
+                private void N(Foo f)
+                {
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """);
+        Test("""
+            public class Bar
+            {
+                public void M()
+                {
+                    N(new Foo());
+                    $$
+                }
 
-    private void N(Foo f)
-    {
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}";
-
-        var secondResult = @"
-public class Bar
-{
-    public void M()
-    {
-        N(new Foo());
-        $$
-    }
-
-    private void N(Foo f)
-    {
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}";
-
-        Test(firstResult, initialMarkUp);
-        Test(secondResult, firstResult);
+                private void N(Foo f)
+                {
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """, firstResult);
     }
 
     [WpfFact]
     public void TestObjectCreationExpressionInUsingStatement()
     {
-        var initialMarkup = @"
-public class Bar
-{
-    public void M()
-    {
-        using(var a = n$$ew F$$oo($$)$$)
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}";
-
-        var firstResult = @"
-public class Bar
-{
-    public void M()
-    {
-        using(var a = new Foo()
-        {
-            $$
-        })
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}";
-
-        var secondResult = @"
-public class Bar
-{
-    public void M()
-    {
-        using(var a = new Foo())
-            $$
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}";
-
-        Test(firstResult, initialMarkup);
-        Test(secondResult, firstResult);
+        var firstResult = """
+            public class Bar
+            {
+                public void M()
+                {
+                    using(var a = new Foo()
+                    {
+                        $$
+                    })
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """;
+        Test(firstResult, """
+            public class Bar
+            {
+                public void M()
+                {
+                    using(var a = n$$ew F$$oo($$)$$)
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """);
+        Test("""
+            public class Bar
+            {
+                public void M()
+                {
+                    using(var a = new Foo())
+                        $$
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """, firstResult);
     }
 
     [WpfFact]
     public void TestObjectCreationExpressionWithNonEmptyInitializer()
     {
         Test(
-            @"
-public class Bar
-{
-    public void M()
-    {
-        var a = new Foo() { HH = 1, PP = 2 };
-        $$
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}",
-            @"
-public class Bar
-{
-    public void M()
-    {
-        var a = n$$ew Fo$$o($$) {$$ HH = 1$$, PP = 2 $$};
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}");
+            """
+            public class Bar
+            {
+                public void M()
+                {
+                    var a = new Foo() { HH = 1, PP = 2 };
+                    $$
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """,
+            """
+            public class Bar
+            {
+                public void M()
+                {
+                    var a = n$$ew Fo$$o($$) {$$ HH = 1$$, PP = 2 $$};
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """);
 
     }
 
@@ -2074,779 +2351,833 @@ public class Foo
     [WpfFact]
     public void TestIfStatementWithInnerStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Main(bool x)
-    {
-        if (x)
-        {
-            $$
-        }
-        var z = 1;
-    }
-}", @"
-public class Bar
-{
-    public void Main(bool x)
-    {
-        i$$f$$ ($$x)$$
-        var z = 1;
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Main(bool x)
+                {
+                    if (x)
+                    {
+                        $$
+                    }
+                    var z = 1;
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Main(bool x)
+                {
+                    i$$f$$ ($$x)$$
+                    var z = 1;
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestIfStatementWithFollowingElseClause()
     {
-        Test(@"
-public class Bar
-{
-    public void Main(bool x)
-    {
-        if (x)
-        {
-            $$
-            var z = 1;
-        }
-        else if (!x)
-    }
-}", @"
-public class Bar
-{
-    public void Main(bool x)
-    {
-        i$$f$$ ($$x)$$
-        var z = 1;
-        else if (!x)
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Main(bool x)
+                {
+                    if (x)
+                    {
+                        $$
+                        var z = 1;
+                    }
+                    else if (!x)
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Main(bool x)
+                {
+                    i$$f$$ ($$x)$$
+                    var z = 1;
+                    else if (!x)
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestIfStatementWithoutStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Main(bool x)
-    {
-        if (x)
-        {
-            $$
-        }
-    }
-}", @"
-public class Bar
-{
-    public void Main(bool x)
-    {
-        i$$f$$ ($$x)$$
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Main(bool x)
+                {
+                    if (x)
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Main(bool x)
+                {
+                    i$$f$$ ($$x)$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestNestIfStatementWithInnerStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Main(int x)
-    {
-        if (x == 1)
-            if (x == 2)
-                if (x == 3)
-                    if (x == 4)
-                    {
-                        $$
-                        var a = 1000;
-                    }
-    }
-}", @"
-public class Bar
-{
-    public void Main(int x)
-    {
-        if (x == 1)
-            if (x == 2)
-                if (x == 3)
-                    i$$f ($$x =$$= 4)$$
-                        var a = 1000;
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Main(int x)
+                {
+                    if (x == 1)
+                        if (x == 2)
+                            if (x == 3)
+                                if (x == 4)
+                                {
+                                    $$
+                                    var a = 1000;
+                                }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Main(int x)
+                {
+                    if (x == 1)
+                        if (x == 2)
+                            if (x == 3)
+                                i$$f ($$x =$$= 4)$$
+                                    var a = 1000;
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestNestIfStatementWithoutInnerStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Main(int x)
-    {
-        if (x == 1)
-            if (x == 2)
-                if (x == 3)
-                    if (x == 4)
-                    {
-                        $$
-                    }
-    }
-}", @"
-public class Bar
-{
-    public void Main(int x)
-    {
-        if (x == 1)
-            if (x == 2)
-                if (x == 3)
-                    i$$f ($$x =$$= 4)$$
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Main(int x)
+                {
+                    if (x == 1)
+                        if (x == 2)
+                            if (x == 3)
+                                if (x == 4)
+                                {
+                                    $$
+                                }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Main(int x)
+                {
+                    if (x == 1)
+                        if (x == 2)
+                            if (x == 3)
+                                i$$f ($$x =$$= 4)$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestNestedElseIfStatementWithInnerStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Fo(int i)
-    {
-        if (i == 1)
-        {
-        }
-        else if (i == 2)
-            if (i == 3)
+        Test("""
+            public class Bar
             {
-                $$
-                var i = 10;
+                public void Fo(int i)
+                {
+                    if (i == 1)
+                    {
+                    }
+                    else if (i == 2)
+                        if (i == 3)
+                        {
+                            $$
+                            var i = 10;
+                        }
+                        else
+                        {
+                        }
+                }
             }
-            else
+            """, """
+            public class Bar
             {
+                public void Fo(int i)
+                {
+                    if (i == 1)
+                    {
+                    }
+                    else if (i == 2)
+                        i$$f (i$$ == 3)$$
+                            var i = 10;
+                        else
+                        {
+                        }
+                }
             }
-    }
-}", @"
-public class Bar
-{
-    public void Fo(int i)
-    {
-        if (i == 1)
-        {
-        }
-        else if (i == 2)
-            i$$f (i$$ == 3)$$
-                var i = 10;
-            else
-            {
-            }
-    }
-}");
+            """);
     }
 
     [WpfFact]
     public void TestNestIfElseStatementWithBlockWithInnerStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Main(int x)
-    {
-        if (x == 1)
-            if (x == 2)
-                if (x == 3)
+        Test("""
+            public class Bar
+            {
+                public void Main(int x)
                 {
-                    if (x == 4)
-                    {
-                        $$
-                    }
-                    var i = 10;
+                    if (x == 1)
+                        if (x == 2)
+                            if (x == 3)
+                            {
+                                if (x == 4)
+                                {
+                                    $$
+                                }
+                                var i = 10;
+                            }
+                            else
+                            {
+                            }
                 }
-                else
+            }
+            """, """
+            public class Bar
+            {
+                public void Main(int x)
                 {
+                    if (x == 1)
+                        if (x == 2)
+                            if (x == 3)
+                            {
+                                i$$f ($$x =$$= 4)$$
+                                var i = 10;
+                            }
+                            else
+                            {
+                            }
                 }
-    }
-}", @"
-public class Bar
-{
-    public void Main(int x)
-    {
-        if (x == 1)
-            if (x == 2)
-                if (x == 3)
-                {
-                    i$$f ($$x =$$= 4)$$
-                    var i = 10;
-                }
-                else
-                {
-                }
-    }
-}");
+            }
+            """);
     }
 
     [WpfFact]
     public void TestEmptyDoStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Main()
-    {
-        do
-        {
-            $$
-        }
-    }
-}", @"
-public class Bar
-{
-    public void Main()
-    {
-        d$$o$$
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Main()
+                {
+                    do
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Main()
+                {
+                    d$$o$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestDoStatementWithInnerStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Main()
-    {
-        do
-        {
-            $$
-        }
-        var c = 10;
-    }
-}", @"
-public class Bar
-{
-    public void Main()
-    {
-        d$$o$$
-        var c = 10;
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Main()
+                {
+                    do
+                    {
+                        $$
+                    }
+                    var c = 10;
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Main()
+                {
+                    d$$o$$
+                    var c = 10;
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestDoStatementWithWhileClause()
     {
-        Test(@"
-public class Bar
-{
-    public void Main()
-    {
-        do
-        {
-            $$
-            var c = 10;
-        }
-        while (true);
-    }
-}", @"
-public class Bar
-{
-    public void Main()
-    {
-        d$$o$$
-        var c = 10;
-        while (true);
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Main()
+                {
+                    do
+                    {
+                        $$
+                        var c = 10;
+                    }
+                    while (true);
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Main()
+                {
+                    d$$o$$
+                    var c = 10;
+                    while (true);
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestSingleElseStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Fo()
-    {
-        if (true)
-        {
-        }
-        else
-        {
-            $$
-        }
-    }
-}", @"
-public class Bar
-{
-    public void Fo()
-    {
-        if (true)
-        {
-        }
-        e$$lse$$
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Fo()
+                {
+                    if (true)
+                    {
+                    }
+                    else
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Fo()
+                {
+                    if (true)
+                    {
+                    }
+                    e$$lse$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestElseStatementWithInnerStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Fo()
-    {
-        if (true)
-        {
-        }
-        else
-        {
-            $$
-        }
-        var c = 10;
-    }
-}", @"
-public class Bar
-{
-    public void Fo()
-    {
-        if (true)
-        {
-        }
-        e$$lse$$
-        var c = 10;
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Fo()
+                {
+                    if (true)
+                    {
+                    }
+                    else
+                    {
+                        $$
+                    }
+                    var c = 10;
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Fo()
+                {
+                    if (true)
+                    {
+                    }
+                    e$$lse$$
+                    var c = 10;
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestElseIfStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Fo()
-    {
-        if (true)
-        {
-        }
-        else if (false)
-        {
-            $$
-        }
-    }
-}", @"
-public class Bar
-{
-    public void Fo()
-    {
-        if (true)
-        {
-        }
-        e$$lse i$$f ($$false)$$
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Fo()
+                {
+                    if (true)
+                    {
+                    }
+                    else if (false)
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Fo()
+                {
+                    if (true)
+                    {
+                    }
+                    e$$lse i$$f ($$false)$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestElseIfInTheMiddleWithInnerStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Fo()
-    {
-        if (true)
-        {
-        }
-        else if (false)
-        {
-            $$
-            var i = 10;
-        }
-        else
-        {
-        }
-    }
-}", @"
-public class Bar
-{
-    public void Fo()
-    {
-        if (true)
-        {
-        }
-        e$$lse i$$f ($$false)$$
-        var i = 10;
-        else
-        {
-        }
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Fo()
+                {
+                    if (true)
+                    {
+                    }
+                    else if (false)
+                    {
+                        $$
+                        var i = 10;
+                    }
+                    else
+                    {
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Fo()
+                {
+                    if (true)
+                    {
+                    }
+                    e$$lse i$$f ($$false)$$
+                    var i = 10;
+                    else
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestElseClauseInNestedIfStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Fo(int i)
-    {
-        if (i == 1)
-        {
-            if (i == 2)
-                var i = 10;
-            else
+        Test("""
+            public class Bar
             {
-                $$
+                public void Fo(int i)
+                {
+                    if (i == 1)
+                    {
+                        if (i == 2)
+                            var i = 10;
+                        else
+                        {
+                            $$
+                        }
+                        var c = 100;
+                    }
+                }
             }
-            var c = 100;
-        }
-    }
-}", @"
-public class Bar
-{
-    public void Fo(int i)
-    {
-        if (i == 1)
-        {
-            if (i == 2)
-                var i = 10;
-            el$$se
-            var c = 100;
-        }
-    }
-}");
+            """, """
+            public class Bar
+            {
+                public void Fo(int i)
+                {
+                    if (i == 1)
+                    {
+                        if (i == 2)
+                            var i = 10;
+                        el$$se
+                        var c = 100;
+                    }
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestForStatementWithoutStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Fo()
-    {
-        for (int i; i < 10; i++)
-        {
-            $$
-        }
-    }
-}", @"
-public class Bar
-{
-    public void Fo()
-    {
-        f$$or (i$$nt i; i < 10;$$ i++)$$
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Fo()
+                {
+                    for (int i; i < 10; i++)
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Fo()
+                {
+                    f$$or (i$$nt i; i < 10;$$ i++)$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestForStatementWithInnerStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Fo()
-    {
-        for (int i; i < 10; i++)
-        {
-            $$
-        }
-        var c = 10;
-    }
-}", @"
-public class Bar
-{
-    public void Fo()
-    {
-        f$$or (i$$nt i; i < 10;$$ i++)$$
-        var c = 10;
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Fo()
+                {
+                    for (int i; i < 10; i++)
+                    {
+                        $$
+                    }
+                    var c = 10;
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Fo()
+                {
+                    f$$or (i$$nt i; i < 10;$$ i++)$$
+                    var c = 10;
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestForEachStatementWithoutInnerStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Fo()
-    {
-        foreach (var x in """")
-        {
-            $$
-        }
-        var c = 10;
-    }
-}", @"
-public class Bar
-{
-    public void Fo()
-    {
-        forea$$ch (var x $$in """")$$
-        var c = 10;
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Fo()
+                {
+                    foreach (var x in "")
+                    {
+                        $$
+                    }
+                    var c = 10;
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Fo()
+                {
+                    forea$$ch (var x $$in "")$$
+                    var c = 10;
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestLockStatementWithoutInnerStatement()
     {
-        Test(@"
-public class Bar
-{
-    object o = new object();
-    public void Fo()
-    {
-        lock (o)
-        {
-            $$
-        }
-    }
-}", @"
-public class Bar
-{
-    object o = new object();
-    public void Fo()
-    {
-        l$$ock$$(o)$$
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                object o = new object();
+                public void Fo()
+                {
+                    lock (o)
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                object o = new object();
+                public void Fo()
+                {
+                    l$$ock$$(o)$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestLockStatementWithInnerStatement()
     {
-        Test(@"
-public class Bar
-{
-    object o = new object();
-    public void Fo()
-    {
-        lock (o)
-        {
-            $$
-        }
-        var i = 10;
-    }
-}", @"
-public class Bar
-{
-    object o = new object();
-    public void Fo()
-    {
-        l$$ock$$(o)$$
-        var i = 10;
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                object o = new object();
+                public void Fo()
+                {
+                    lock (o)
+                    {
+                        $$
+                    }
+                    var i = 10;
+                }
+            }
+            """, """
+            public class Bar
+            {
+                object o = new object();
+                public void Fo()
+                {
+                    l$$ock$$(o)$$
+                    var i = 10;
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestUsingStatementWithoutInnerStatement()
     {
-        Test(@"
-using System;
-public class Bar
-{
-    public void Fo()
-    {
-        using (var d = new D())
-        {
-            $$
-        }
-    }
-}
-public class D : IDisposable
-{
-    public void Dispose()
-    {}
-}", @"
-using System;
-public class Bar
-{
-    public void Fo()
-    {
-        usi$$ng (va$$r d = new D())$$
-    }
-}
-public class D : IDisposable
-{
-    public void Dispose()
-    {}
-}");
+        Test("""
+            using System;
+            public class Bar
+            {
+                public void Fo()
+                {
+                    using (var d = new D())
+                    {
+                        $$
+                    }
+                }
+            }
+            public class D : IDisposable
+            {
+                public void Dispose()
+                {}
+            }
+            """, """
+            using System;
+            public class Bar
+            {
+                public void Fo()
+                {
+                    usi$$ng (va$$r d = new D())$$
+                }
+            }
+            public class D : IDisposable
+            {
+                public void Dispose()
+                {}
+            }
+            """);
     }
 
     [WpfFact]
     public void TestUsingStatementWithInnerStatement()
     {
-        Test(@"
-using System;
-public class Bar
-{
-    public void Fo()
-    {
-        using (var d = new D())
-        {
-            $$
-        }
-        var c = 10;
-    }
-}
-public class D : IDisposable
-{
-    public void Dispose()
-    {}
-}", @"
-using System;
-public class Bar
-{
-    public void Fo()
-    {
-        usi$$ng (va$$r d = new D())$$
-        var c = 10;
-    }
-}
-public class D : IDisposable
-{
-    public void Dispose()
-    {}
-}");
+        Test("""
+            using System;
+            public class Bar
+            {
+                public void Fo()
+                {
+                    using (var d = new D())
+                    {
+                        $$
+                    }
+                    var c = 10;
+                }
+            }
+            public class D : IDisposable
+            {
+                public void Dispose()
+                {}
+            }
+            """, """
+            using System;
+            public class Bar
+            {
+                public void Fo()
+                {
+                    usi$$ng (va$$r d = new D())$$
+                    var c = 10;
+                }
+            }
+            public class D : IDisposable
+            {
+                public void Dispose()
+                {}
+            }
+            """);
     }
 
     [WpfFact]
     public void TestUsingInLocalDeclarationStatement()
     {
-        Test(@"
-using System;
-public class Bar
-{
-    public void Fo()
-    {
-        using var d = new D();
-        $$
-    }
-}
-public class D : IDisposable
-{
-    public void Dispose()
-    {}
-}", @"
-using System;
-public class Bar
-{
-    public void Fo()
-    {
-        usi$$ng v$$ar$$ d = new D()
-    }
-}
-public class D : IDisposable
-{
-    public void Dispose()
-    {}
-}");
+        Test("""
+            using System;
+            public class Bar
+            {
+                public void Fo()
+                {
+                    using var d = new D();
+                    $$
+                }
+            }
+            public class D : IDisposable
+            {
+                public void Dispose()
+                {}
+            }
+            """, """
+            using System;
+            public class Bar
+            {
+                public void Fo()
+                {
+                    usi$$ng v$$ar$$ d = new D()
+                }
+            }
+            public class D : IDisposable
+            {
+                public void Dispose()
+                {}
+            }
+            """);
     }
 
     [WpfFact]
     public void TestWhileStatementWithoutInnerStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Fo()
-    {
-        while (true)
-        {
-            $$
-        }
-    }
-}", @"
-public class Bar
-{
-    public void Fo()
-    {
-        wh$$ile (tr$$ue)$$
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Fo()
+                {
+                    while (true)
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Fo()
+                {
+                    wh$$ile (tr$$ue)$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestWhileStatementWithInnerStatement()
     {
-        Test(@"
-public class Bar
-{
-    public void Fo()
-    {
-        while (true)
-        {
-            $$
-        }
-        var c = 10;
-    }
-}", @"
-public class Bar
-{
-    public void Fo()
-    {
-        wh$$ile (tr$$ue)$$
-        var c = 10;
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Fo()
+                {
+                    while (true)
+                    {
+                        $$
+                    }
+                    var c = 10;
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Fo()
+                {
+                    wh$$ile (tr$$ue)$$
+                    var c = 10;
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestSwitchExpression1()
     {
-        Test(@"
-public class Bar
-{
-    public void Goo(int c)
-    {
-        var d = c switch
-        {
-            $$
-        }
-    }
-}",
-            @"
-public class Bar
-{
-    public void Goo(int c)
-    {
-        var d = c swi$$tch$$
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Goo(int c)
+                {
+                    var d = c switch
+                    {
+                        $$
+                    }
+                }
+            }
+            """,
+            """
+            public class Bar
+            {
+                public void Goo(int c)
+                {
+                    var d = c swi$$tch$$
+                }
+            }
+            """);
 
     }
 
     [WpfFact]
     public void TestSwitchExpression2()
     {
-        Test(@"
-public class Bar
-{
-    public void Goo(int c)
-    {
-        var d = (c + 1) switch
-        {
-            $$
-        }
-    }
-}",
-            @"
-public class Bar
-{
-    public void Goo(int c)
-    {
-        var d = (c + 1) swi$$tch$$
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Goo(int c)
+                {
+                    var d = (c + 1) switch
+                    {
+                        $$
+                    }
+                }
+            }
+            """,
+            """
+            public class Bar
+            {
+                public void Goo(int c)
+                {
+                    var d = (c + 1) swi$$tch$$
+                }
+            }
+            """);
 
     }
 
@@ -2856,363 +3187,389 @@ public class Bar
         // This test is to make sure {} will be added to the switch statement,
         // but our formatter now can't format the case when the CloseParenthesis token is missing.
         // If any future formatter improvement can handle this case, this test can be modified safely
-        Test(@"
-public class bar
-{
-    public void TT()
-    {
-        switch (
-{
-            $$
-        }
-    }
-}", @"
-public class bar
-{
-    public void TT()
-    {
-        swi$$tch ($$
-    }
-}");
+        Test("""
+            public class bar
+            {
+                public void TT()
+                {
+                    switch (
+            {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class bar
+            {
+                public void TT()
+                {
+                    swi$$tch ($$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestSwitchStatement()
     {
-        Test(@"
-public class bar
-{
-    public void TT()
-    {
-        int i = 10;
-        switch (i)
-        {
-            $$
-        }
-    }
-}", @"
-public class bar
-{
-    public void TT()
-    {
-        int i = 10;
-        switc$$h ($$i)$$
-    }
-}");
+        Test("""
+            public class bar
+            {
+                public void TT()
+                {
+                    int i = 10;
+                    switch (i)
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class bar
+            {
+                public void TT()
+                {
+                    int i = 10;
+                    switc$$h ($$i)$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestValidSwitchStatement()
     {
-        Test(@"
-public class bar
-{
-    public void TT()
-    {
-        int i = 10;
-        switch (i)
-            $$
-        {
-        }
-    }
-}", @"
-public class bar
-{
-    public void TT()
-    {
-        int i = 10;
-        switc$$h ($$i)$$
-        {
-        }
-    }
-}");
+        Test("""
+            public class bar
+            {
+                public void TT()
+                {
+                    int i = 10;
+                    switch (i)
+                        $$
+                    {
+                    }
+                }
+            }
+            """, """
+            public class bar
+            {
+                public void TT()
+                {
+                    int i = 10;
+                    switc$$h ($$i)$$
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestValidTryStatement()
     {
-        Test(@"
-public class bar
-{
-    public void TT()
-    {
-        try
-            $$
-        {
-        }
-    }
-}", @"
-public class bar
-{
-    public void TT()
-    {
-        tr$$y$$
-        {
-        }
-    }
-}");
+        Test("""
+            public class bar
+            {
+                public void TT()
+                {
+                    try
+                        $$
+                    {
+                    }
+                }
+            }
+            """, """
+            public class bar
+            {
+                public void TT()
+                {
+                    tr$$y$$
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestTryStatement()
     {
-        Test(@"
-public class bar
-{
-    public void TT()
-    {
-        try
-        {
-            $$
-        }
-    }
-}", @"
-public class bar
-{
-    public void TT()
-    {
-        tr$$y$$
-    }
-}");
+        Test("""
+            public class bar
+            {
+                public void TT()
+                {
+                    try
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class bar
+            {
+                public void TT()
+                {
+                    tr$$y$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestValidCatchClause()
     {
-        Test(@"
-public class Bar
-{
-    public void TT()
-    {
-        try
-        {
-        }
-        catch (System.Exception)
-        $$
-        {
-        }
-    }
-}", @"
-public class Bar
-{
-    public void TT()
-    {
-        try
-        {
-        }
-        cat$$ch (Syste$$m.Exception)$$
-        {
-        }
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void TT()
+                {
+                    try
+                    {
+                    }
+                    catch (System.Exception)
+                    $$
+                    {
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void TT()
+                {
+                    try
+                    {
+                    }
+                    cat$$ch (Syste$$m.Exception)$$
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestCatchClauseWithException()
     {
-        Test(@"
-public class Bar
-{
-    public void TT()
-    {
-        try
-        {
-        }
-        catch (System.Exception)
-        {
-            $$
-        }
-    }
-}", @"
-public class Bar
-{
-    public void TT()
-    {
-        try
-        {
-        }
-        cat$$ch (Syste$$m.Exception)$$
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void TT()
+                {
+                    try
+                    {
+                    }
+                    catch (System.Exception)
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void TT()
+                {
+                    try
+                    {
+                    }
+                    cat$$ch (Syste$$m.Exception)$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestSingleCatchClause()
     {
-        Test(@"
-public class bar
-{
-    public void TT()
-    {
-        try
-        {
-        }
-        catch
-        {
-            $$
-        }
-    }
-}", @"
-public class bar
-{
-    public void TT()
-    {
-        try
-        {
-        }
-        cat$$ch$$
-    }
-}");
+        Test("""
+            public class bar
+            {
+                public void TT()
+                {
+                    try
+                    {
+                    }
+                    catch
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class bar
+            {
+                public void TT()
+                {
+                    try
+                    {
+                    }
+                    cat$$ch$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestCatchClauseWithWhenClause()
     {
-        Test(@"
-public class bar
-{
-    public void TT()
-    {
-        try
-        {
-        }
-        catch (Exception) when (true)
-        {
-            $$
-        }
-    }
-}", @"
-public class bar
-{
-    public void TT()
-    {
-        try
-        {
-        }
-        c$$atch (Ex$$ception) whe$$n (tru$$e)$$
-    }
-}");
-    }
-
-    [WpfFact]
-    public void TestFinallyCaluse()
-    {
-        Test(@"
-public class Bar
-{
-    public void Bar2()
-    {
-        try
-        {
-        }
-        catch (System.Exception)
-        {
-        }
-        finally
-        {
-            $$
-        }
-    }
-}", @"
-public class Bar
-{
-    public void Bar2()
-    {
-        try
-        {
-        }
-        catch (System.Exception)
-        {
-        }
-        fin$$ally$$
-    }
-}");
+        Test("""
+            public class bar
+            {
+                public void TT()
+                {
+                    try
+                    {
+                    }
+                    catch (Exception) when (true)
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class bar
+            {
+                public void TT()
+                {
+                    try
+                    {
+                    }
+                    c$$atch (Ex$$ception) whe$$n (tru$$e)$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
-    public void TestValidFinallyCaluse()
+    public void TestFinallyClause()
     {
-        Test(@"
-public class Bar
-{
-    public void Bar2()
-    {
-        try
-        {
-        }
-        catch (System.Exception)
-        {
-        }
-        finally
-        $$
-        {
-        }
+        Test("""
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    try
+                    {
+                    }
+                    catch (System.Exception)
+                    {
+                    }
+                    finally
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    try
+                    {
+                    }
+                    catch (System.Exception)
+                    {
+                    }
+                    fin$$ally$$
+                }
+            }
+            """);
     }
-}", @"
-public class Bar
-{
-    public void Bar2()
+
+    [WpfFact]
+    public void TestValidFinallyClause()
     {
-        try
-        {
-        }
-        catch (System.Exception)
-        {
-        }
-        fin$$ally$$
-        {
-        }
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    try
+                    {
+                    }
+                    catch (System.Exception)
+                    {
+                    }
+                    finally
+                    $$
+                    {
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    try
+                    {
+                    }
+                    catch (System.Exception)
+                    {
+                    }
+                    fin$$ally$$
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestObjectCreationExpressionWithMissingType()
     {
-        Test(@"
-public class Bar
-{
-    public void Bar2()
-    {
-        Bar b = new()
-        {
-            $$
-        };
-    }
-}",
-@"
-public class Bar
-{
-    public void Bar2()
-    {
-        Bar b = new$$
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    Bar b = new()
+                    {
+                        $$
+                    };
+                }
+            }
+            """,
+            """
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    Bar b = new$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestRemoveInitializerForImplicitObjectCreationExpression()
     {
-        Test(@"
-public class Bar
-{
-    public void Bar2()
-    {
-        Bar b = new();
-        $$
-    }
-}",
-@"
-public class Bar
-{
-    public void Bar2()
-    {
-        Bar b = new()
-        {
-            $$
-        };
-    }
-}");
+        Test("""
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    Bar b = new();
+                    $$
+                }
+            }
+            """,
+            """
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    Bar b = new()
+                    {
+                        $$
+                    };
+                }
+            }
+            """);
     }
 
     [WpfTheory]
@@ -3220,25 +3577,27 @@ public class Bar
     [InlineData("unchecked")]
     public void TestCheckedStatement(string keywordToken)
     {
-        Test($@"
-public class Bar
-{{
-    public void Bar2()
-    {{
-        {keywordToken}
-        {{
-            $$
-        }}
-    }}
-}}",
-$@"
-public class Bar
-{{
-    public void Bar2()
-    {{
-        {keywordToken}$$
-    }}
-}}");
+        Test($$"""
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    {{keywordToken}}
+                    {
+                        $$
+                    }
+                }
+            }
+            """,
+            $$"""
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    {{keywordToken}}$$
+                }
+            }
+            """);
     }
 
     [WpfTheory]
@@ -3246,79 +3605,85 @@ public class Bar
     [InlineData("unchecked")]
     public void TextCheckedExpression(string keywordToken)
     {
-        Test($@"
-public class Bar
-{{
-    public void Bar2()
-    {{
-        var i = {keywordToken}(1 + 1);
-        $$
-    }}
-}}",
-$@"
-public class Bar
-{{
-    public void Bar2()
-    {{
-        var i = {keywordToken}$$(1 +$$ 1)$$
-    }}
-}}");
+        Test($$"""
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    var i = {{keywordToken}}(1 + 1);
+                    $$
+                }
+            }
+            """,
+            $$"""
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    var i = {{keywordToken}}$$(1 +$$ 1)$$
+                }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestConvertFieldToPropertyWithAttributeAndComment()
     {
-        Test(@"
-public class Bar
-{
-    public int Property
-    {
-        $$
-    }
+        Test("""
+            public class Bar
+            {
+                public int Property
+                {
+                    $$
+                }
 
-    /// <summary>
-    /// </summary>
-    [SomeAttri]
-    public void Method() { }
-}",
-@"
-public class Bar
-{
-    public int Property$$
+                /// <summary>
+                /// </summary>
+                [SomeAttri]
+                public void Method() { }
+            }
+            """,
+            """
+            public class Bar
+            {
+                public int Property$$
 
-    /// <summary>
-    /// </summary>
-    [SomeAttri]
-    public void Method() { }
-}");
+                /// <summary>
+                /// </summary>
+                [SomeAttri]
+                public void Method() { }
+            }
+            """);
     }
 
     [WpfFact]
     public void TestConvertEventFieldToPropertyWithAttributeAndComment()
     {
-        Test(@"
-public class Bar
-{
-    public event EventHandler MyEvent
-    {
-        $$
-    }
+        Test("""
+            public class Bar
+            {
+                public event EventHandler MyEvent
+                {
+                    $$
+                }
 
-    /// <summary>
-    /// </summary>
-    [SomeAttri]
-    public void Method() { }
-}",
-@"
-public class Bar
-{
-    public event EventHandler MyEvent$$
+                /// <summary>
+                /// </summary>
+                [SomeAttri]
+                public void Method() { }
+            }
+            """,
+            """
+            public class Bar
+            {
+                public event EventHandler MyEvent$$
 
-    /// <summary>
-    /// </summary>
-    [SomeAttri]
-    public void Method() { }
-}");
+                /// <summary>
+                /// </summary>
+                [SomeAttri]
+                public void Method() { }
+            }
+            """);
     }
 
     protected override string Language => LanguageNames.CSharp;

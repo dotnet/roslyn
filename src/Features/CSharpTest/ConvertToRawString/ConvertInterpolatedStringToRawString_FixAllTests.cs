@@ -13,15 +13,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRawString)]
 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new ConvertStringToRawStringCodeRefactoringProvider();
 
     [Fact]
-    public async Task FixAllInDocument_SingleLine()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument_SingleLine()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -106,12 +105,10 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task FixAllInDocument_MultiLine()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument_MultiLine()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -214,12 +211,10 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
             }
         }
         """");
-    }
 
     [Fact]
-    public async Task FixAllInDocument_MultiLineWithoutLeadingWhitespace()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument_MultiLineWithoutLeadingWhitespace()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -270,10 +265,7 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
                 var singleLine1 = $"a";
                 var singleLine2 = @$"goo""bar";
 
-                var multiLine1 = $"""
-                    goo
-                    bar
-                    """;
+                var multiLine1 = $"goo\r\nbar";
                 var multiLine2 = $"""
                     goo
                     bar
@@ -296,10 +288,7 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
                 var singleLine1 = $"a";
                 var singleLine2 = @$"goo""bar";
 
-                var multiLine1 = $"""
-                    goo
-                    bar
-                    """;
+                var multiLine1 = $"goo\r\nbar";
                 var multiLine2 = $"""
                     goo
                     bar
@@ -318,12 +307,10 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
             }
         }
         """", index: 1);
-    }
 
     [Fact]
-    public async Task FixAllInProject()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInProject()
+        => TestInRegularAndScriptAsync(
         """
         <Workspace>
             <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -400,12 +387,10 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
             </Project>
         </Workspace>
         """");
-    }
 
     [Fact]
-    public async Task FixAllInSolution()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInSolution()
+        => TestInRegularAndScriptAsync(
         """
         <Workspace>
             <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -482,12 +467,10 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
             </Project>
         </Workspace>
         """");
-    }
 
     [Fact]
-    public async Task FixAllInContainingMember()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInContainingMember()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -538,12 +521,10 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
             }
         }
         """");
-    }
 
     [Fact]
-    public async Task FixAllInContainingType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInContainingType()
+        => TestInRegularAndScriptAsync(
         """
         partial class C
         {
@@ -612,12 +593,10 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
             }
         }
         """");
-    }
 
     [Fact]
-    public async Task FixAllInContainingType_AcrossFiles()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInContainingType_AcrossFiles()
+        => TestInRegularAndScriptAsync(
         """
         <Workspace>
             <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -724,12 +703,10 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
             </Project>
         </Workspace>
         """");
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllCommonRoslynTestPattern1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -765,12 +742,10 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
             }
             """",
             new TestParameters(treatPositionIndicatorsAsCode: true));
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern1_B()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllCommonRoslynTestPattern1_B()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -804,12 +779,10 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
             }
             """",
             new TestParameters(treatPositionIndicatorsAsCode: true));
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllCommonRoslynTestPattern2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -847,12 +820,10 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
             }
             """", index: 1,
             new TestParameters(treatPositionIndicatorsAsCode: true));
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern2_B()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllCommonRoslynTestPattern2_B()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -888,12 +859,10 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
             }
             """", index: 1,
             new TestParameters(treatPositionIndicatorsAsCode: true));
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllCommonRoslynTestPattern3()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -933,12 +902,10 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
             }
             """", index: 1,
             new TestParameters(treatPositionIndicatorsAsCode: true));
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern3_B()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllCommonRoslynTestPattern3_B()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -976,12 +943,10 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
             }
             """", index: 1,
             new TestParameters(treatPositionIndicatorsAsCode: true));
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllCommonRoslynTestPattern4()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1023,12 +988,10 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
             }
             """", index: 1,
             new TestParameters(treatPositionIndicatorsAsCode: true));
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern5()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllCommonRoslynTestPattern5()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1068,12 +1031,10 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
             }
             """", index: 1,
             new TestParameters(treatPositionIndicatorsAsCode: true));
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern6()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllCommonRoslynTestPattern6()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1113,5 +1074,4 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
             }
             """", index: 1,
             new TestParameters(treatPositionIndicatorsAsCode: true));
-    }
 }

@@ -58,7 +58,7 @@ internal abstract class AbstractConvertLinqQueryToForEachProvider<TQueryExpressi
     internal sealed class DocumentUpdateInfo(TStatement source, IEnumerable<TStatement> destinations)
     {
         public readonly TStatement Source = source;
-        public readonly ImmutableArray<TStatement> Destinations = ImmutableArray.CreateRange(destinations);
+        public readonly ImmutableArray<TStatement> Destinations = [.. destinations];
 
         public DocumentUpdateInfo(TStatement source, TStatement destination) : this(source, [destination])
         {

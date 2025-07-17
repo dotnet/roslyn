@@ -172,17 +172,72 @@ internal static class CompletionUtilities
         return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
     }
 
-    public static int GetTargetCaretPositionForMethod(MethodDeclarationSyntax methodDeclaration)
+    public static SyntaxNode GetTargetCaretPositionForMethod(BaseMethodDeclarationSyntax methodDeclaration)
     {
-        if (methodDeclaration.Body == null)
+        if (methodDeclaration.Body is null)
         {
-            return methodDeclaration.GetLocation().SourceSpan.End;
+            return methodDeclaration;
         }
         else
         {
             // move to the end of the last statement in the method
             var lastStatement = methodDeclaration.Body.Statements.Last();
-            return lastStatement.GetLocation().SourceSpan.End;
+            return lastStatement;
+        }
+    }
+
+    public static TextSpan GetTargetSelectionSpanForMethod(BaseMethodDeclarationSyntax methodDeclaration)
+    {
+        if (methodDeclaration.ExpressionBody is not null)
+        {
+            // select the expression span
+            return methodDeclaration.ExpressionBody.Expression.Span;
+        }
+        else if (methodDeclaration.Body is not null)
+        {
+            // select the last statement in the method
+            return methodDeclaration.Body.Statements.Last().Span;
+        }
+        else
+        {
+            return methodDeclaration.Span;
+        }
+    }
+
+    public static TextSpan GetTargetSelectionSpanForInsertedMember(SyntaxNode caretTarget)
+    {
+        switch (caretTarget)
+        {
+            case EventFieldDeclarationSyntax:
+                // Inserted Event declarations are a single line, so move caret to the end of the line.
+                return new TextSpan(caretTarget.Span.End, 0);
+
+            case BaseMethodDeclarationSyntax methodDeclaration:
+                return GetTargetSelectionSpanForMethod(methodDeclaration);
+
+            case BasePropertyDeclarationSyntax propertyDeclaration:
+                {
+                    if (propertyDeclaration.AccessorList is { Accessors: [var firstAccessor, ..] })
+                    {
+                        // select the last statement of the first accessor
+                        var firstAccessorStatement = (SyntaxNode)firstAccessor.Body?.Statements.LastOrDefault() ??
+                            firstAccessor.ExpressionBody!.Expression;
+                        return firstAccessorStatement.Span;
+                    }
+                    else if (propertyDeclaration is PropertyDeclarationSyntax propertyDeclarationSyntax && propertyDeclarationSyntax.ExpressionBody.Expression is ExpressionSyntax expression)
+                    {
+                        // expression-bodied property: select the expression
+                        return expression.Span;
+                    }
+                    else
+                    {
+                        // property: no accessors; move caret to the end of the declaration
+                        return new TextSpan(propertyDeclaration.Span.End, 0);
+                    }
+                }
+
+            default:
+                throw ExceptionUtilities.Unreachable();
         }
     }
 }

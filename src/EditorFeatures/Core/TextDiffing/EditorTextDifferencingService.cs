@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing;
 [ExportWorkspaceService(typeof(IDocumentTextDifferencingService), ServiceLayer.Host), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class EditorTextDifferencingService(ITextDifferencingSelectorService differenceSelectorService) : IDocumentTextDifferencingService
+internal sealed class EditorTextDifferencingService(ITextDifferencingSelectorService differenceSelectorService) : IDocumentTextDifferencingService
 {
     private readonly ITextDifferencingSelectorService _differenceSelectorService = differenceSelectorService;
 
@@ -39,10 +39,10 @@ internal class EditorTextDifferencingService(ITextDifferencingSelectorService di
 
         var diffResult = diffService.DiffSourceTexts(oldText, newText, differenceOptions);
 
-        return diffResult.Differences.Select(d =>
+        return [.. diffResult.Differences.Select(d =>
             new TextChange(
                 diffResult.LeftDecomposition.GetSpanInOriginal(d.Left).ToTextSpan(),
-                newText.GetSubText(diffResult.RightDecomposition.GetSpanInOriginal(d.Right).ToTextSpan()).ToString())).ToImmutableArray();
+                newText.GetSubText(diffResult.RightDecomposition.GetSpanInOriginal(d.Right).ToTextSpan()).ToString()))];
     }
 
     private static StringDifferenceOptions GetDifferenceOptions(TextDifferenceTypes differenceTypes)

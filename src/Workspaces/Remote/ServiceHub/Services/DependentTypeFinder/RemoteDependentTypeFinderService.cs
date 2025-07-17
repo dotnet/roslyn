@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -39,7 +37,7 @@ internal sealed class RemoteDependentTypeFinderService : BrokeredServiceBase, IR
             var symbol = await typeAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
 
             if (symbol is not INamedTypeSymbol namedType)
-                return ImmutableArray<SerializableSymbolAndProjectId>.Empty;
+                return [];
 
             var projects = projectIdsOpt.IsDefault ? null : projectIdsOpt.Select(id => solution.GetRequiredProject(id)).ToImmutableHashSet();
 

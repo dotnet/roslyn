@@ -13,7 +13,7 @@ using static SyntaxFactory;
 
 internal partial class ITypeSymbolExtensions
 {
-    private class ExpressionSyntaxGeneratorVisitor : SymbolVisitor<ExpressionSyntax>
+    private sealed class ExpressionSyntaxGeneratorVisitor : SymbolVisitor<ExpressionSyntax>
     {
         private static readonly ExpressionSyntaxGeneratorVisitor NameOnlyInstance = new(nameOnly: true);
         private static readonly ExpressionSyntaxGeneratorVisitor NotNameOnlyInstance = new(nameOnly: false);

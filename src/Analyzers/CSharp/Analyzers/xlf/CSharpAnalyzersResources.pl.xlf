@@ -82,6 +82,11 @@
         <target state="translated">Osadzone instrukcje muszą znajdować się w osobnym wierszu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_with_Copilot">
+        <source>Implement with Copilot</source>
+        <target state="new">Implement with Copilot</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="translated">Indeksowanie można uprościć</target>
@@ -95,6 +100,11 @@
       <trans-unit id="Lambda_expression_can_be_removed">
         <source>Lambda expression can be removed</source>
         <target state="translated">Wyrażenie lambda można usunąć</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Lambda_expression_can_be_simplified">
+        <source>Lambda expression can be simplified</source>
+        <target state="new">Lambda expression can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_anonymous_function_static">
@@ -352,6 +362,11 @@
         <target state="translated">Użyj niejawnego typu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_implicitly_typed_lambda">
+        <source>Use implicitly typed lambda</source>
+        <target state="new">Use implicitly typed lambda</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_index_operator">
         <source>Use index operator</source>
         <target state="translated">Użyj operatora indeksu</target>
@@ -420,6 +435,11 @@
       <trans-unit id="Use_tuple_to_swap_values">
         <source>Use tuple to swap values</source>
         <target state="translated">Użyj krotki do zamiany wartości</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_unbound_generic_type">
+        <source>Use unbound generic type</source>
+        <target state="translated">Użyj niepowiązanego typu ogólnego</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">

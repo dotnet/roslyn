@@ -4,12 +4,10 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -218,6 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => throw ExceptionUtilities.Unreachable();
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         internal override bool HasUnscopedRefAttribute => false;
 
         internal override bool UseUpdatedEscapeRules => false;
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return false;
         }
 
-        internal override int? TryGetOverloadResolutionPriority() => null;
+        internal override int TryGetOverloadResolutionPriority() => 0;
 
 #if DEBUG
         protected override MethodSymbolAdapter CreateCciAdapter()

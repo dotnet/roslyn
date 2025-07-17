@@ -9,7 +9,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -23,13 +22,13 @@ using static SyntaxFactory;
 internal static class ExpressionGenerator
 {
     public static ExpressionSyntax GenerateExpression(
-        SyntaxGenerator generator, TypedConstant typedConstant)
+        TypedConstant typedConstant)
     {
         switch (typedConstant.Kind)
         {
             case TypedConstantKind.Primitive:
             case TypedConstantKind.Enum:
-                return GenerateExpression(generator, typedConstant.Type, typedConstant.Value, canUseFieldReference: true);
+                return GenerateExpression(typedConstant.Type, typedConstant.Value, canUseFieldReference: true);
 
             case TypedConstantKind.Type:
                 return typedConstant.Value is ITypeSymbol typeSymbol
@@ -41,7 +40,7 @@ internal static class ExpressionGenerator
                     ? GenerateNullLiteral()
                     : ImplicitArrayCreationExpression(
                         InitializerExpression(SyntaxKind.ArrayInitializerExpression,
-                            [.. typedConstant.Values.Select(v => GenerateExpression(generator, v))]));
+                            [.. typedConstant.Values.Select(v => GenerateExpression(v))]));
 
             default:
                 return GenerateNullLiteral();
@@ -52,7 +51,6 @@ internal static class ExpressionGenerator
         => LiteralExpression(SyntaxKind.NullLiteralExpression);
 
     internal static ExpressionSyntax GenerateExpression(
-        SyntaxGenerator generator,
         ITypeSymbol? type,
         object? value,
         bool canUseFieldReference)
@@ -60,21 +58,21 @@ internal static class ExpressionGenerator
         if (type != null && value != null)
         {
             if (type is INamedTypeSymbol { TypeKind: TypeKind.Enum } enumType)
-                return (ExpressionSyntax)CSharpFlagsEnumGenerator.Instance.CreateEnumConstantValue(generator, enumType, value);
+                return (ExpressionSyntax)CSharpFlagsEnumGenerator.Instance.CreateEnumConstantValue(enumType, value);
 
             if (type.IsNullable(out var underlyingType))
             {
                 // If the type of the argument is T?, then the type of the supplied default value can either be T 
                 // (e.g. int? x = 5) or it can be T? (e.g. SomeStruct? x = null). The below statement handles the case
                 // where the type of the supplied default value is T.
-                return GenerateExpression(generator, underlyingType, value, canUseFieldReference);
+                return GenerateExpression(underlyingType, value, canUseFieldReference);
             }
         }
 
-        return GenerateNonEnumValueExpression(generator, type, value, canUseFieldReference);
+        return GenerateNonEnumValueExpression(type, value, canUseFieldReference);
     }
 
-    internal static ExpressionSyntax GenerateNonEnumValueExpression(SyntaxGenerator generator, ITypeSymbol? type, object? value, bool canUseFieldReference)
+    internal static ExpressionSyntax GenerateNonEnumValueExpression(ITypeSymbol? type, object? value, bool canUseFieldReference)
         => value switch
         {
             bool val => GenerateBooleanLiteralExpression(val),
@@ -93,7 +91,7 @@ internal static class ExpressionGenerator
             decimal val => GenerateLiteralExpression(type, val, LiteralSpecialValues.DecimalSpecialValues, formatString: null, canUseFieldReference, Literal, x => x < 0, x => -x, integerMinValueString: null),
             _ => type == null || type.IsReferenceType || type is IPointerTypeSymbol || type.IsNullable()
                 ? GenerateNullLiteral()
-                : (ExpressionSyntax)generator.DefaultExpression(type),
+                : (ExpressionSyntax)CSharpSyntaxGeneratorInternal.Instance.DefaultExpression(type),
         };
 
     private static ExpressionSyntax GenerateBooleanLiteralExpression(bool val)
@@ -298,23 +296,17 @@ internal static class ExpressionGenerator
         return null;
     }
 
-    private static ExpressionSyntax GenerateMemberAccess(params string[] names)
+    private static ExpressionSyntax GenerateMemberAccess(params ReadOnlySpan<string> names)
     {
         ExpressionSyntax result = IdentifierName(GlobalKeyword);
         for (var i = 0; i < names.Length; i++)
         {
             var name = IdentifierName(names[i]);
-            if (i == 0)
-            {
-                result = AliasQualifiedName((IdentifierNameSyntax)result, name);
-            }
-            else
-            {
-                result = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, result, name);
-            }
+            result = i == 0
+                ? AliasQualifiedName((IdentifierNameSyntax)result, name)
+                : MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, result, name);
         }
 
-        result = result.WithAdditionalAnnotations(Simplifier.Annotation);
-        return result;
+        return result.WithAdditionalAnnotations(Simplifier.Annotation);
     }
 }

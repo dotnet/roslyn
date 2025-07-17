@@ -9,7 +9,6 @@ extern alias DSR;
 using System;
 using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
@@ -72,7 +71,7 @@ namespace Roslyn.Test.PdbUtilities
 
         public static ISymUnmanagedReader5 CreateReader(ImmutableArray<byte> pdbImage, ImmutableArray<byte> peImageOpt = default(ImmutableArray<byte>))
         {
-            return CreateReader(new MemoryStream(pdbImage.ToArray()), (peImageOpt.IsDefault) ? null : new PEReader(peImageOpt));
+            return CreateReader(new MemoryStream([.. pdbImage]), (peImageOpt.IsDefault) ? null : new PEReader(peImageOpt));
         }
 
         public static ISymUnmanagedReader5 CreateReader(Stream pdbStream, Stream peStreamOpt = null)

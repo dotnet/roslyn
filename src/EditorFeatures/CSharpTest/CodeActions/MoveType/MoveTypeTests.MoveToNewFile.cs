@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14,1710 +11,1555 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-public partial class MoveTypeTests : CSharpMoveTypeTestsBase
+public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
 {
     [WpfFact]
-    public async Task TestMissing_OnMatchingFileName()
-    {
-        var code =
-@"[||]class test1 { }";
-
-        await TestMissingInRegularAndScriptAsync(code);
-    }
+    public Task TestMissing_OnMatchingFileName()
+        => TestMissingInRegularAndScriptAsync(@"[||]class test1 { }");
 
     [WpfFact]
-    public async Task TestMissing_Nested_OnMatchingFileName_Simple()
-    {
-        var code =
-@"class outer
-{ 
-    [||]class test1 { }
-}";
-
-        await TestMissingInRegularAndScriptAsync(code);
-    }
+    public Task TestMissing_Nested_OnMatchingFileName_Simple()
+        => TestMissingInRegularAndScriptAsync("""
+            class outer
+            { 
+                [||]class test1 { }
+            }
+            """);
 
     [WpfFact]
-    public async Task TestMatchingFileName_CaseSensitive()
-    {
-        var code =
-@"[||]class Test1 { }";
-
-        await TestActionCountAsync(code, count: 2);
-    }
+    public Task TestMatchingFileName_CaseSensitive()
+        => TestActionCountAsync(@"[||]class Test1 { }", count: 2);
 
     [WpfFact]
-    public async Task TestForSpans1()
-    {
-        var code =
-@"[|clas|]s Class1 { }
- class Class2 { }";
-
-        await TestActionCountAsync(code, count: 3);
-    }
+    public Task TestForSpans1()
+        => TestActionCountAsync("""
+            [|clas|]s Class1 { }
+             class Class2 { }
+            """, count: 3);
 
     [WpfFact]
-    public async Task TestForSpans2()
-    {
-        var code =
-@"[||]class Class1 { }
- class Class2 { }";
-        var codeAfterMove = @"class Class2 { }";
+    public Task TestForSpans2()
+        => TestMoveTypeToNewFileAsync("""
+            [||]class Class1 { }
+             class Class2 { }
+            """, @"class Class2 { }", "Class1.cs", """
+            class Class1 { }
 
-        var expectedDocumentName = "Class1.cs";
-        var destinationDocumentText = @"class Class1 { }
-";
-
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/14008")]
-    public async Task TestMoveToNewFileWithFolders()
-    {
-        var code =
-@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document Folders=""A\B""> 
-[||]class Class1 { }
-class Class2 { }
-        </Document>
-    </Project>
-</Workspace>";
-        var codeAfterMove = @"class Class2 { }
-        ";
+    public Task TestMoveToNewFileWithFolders()
+        => TestMoveTypeToNewFileAsync(
+            """
 
-        var expectedDocumentName = "Class1.cs";
-        var destinationDocumentText = @"class Class1 { }
-        ";
-
-        await TestMoveTypeToNewFileAsync(
-            code, codeAfterMove, expectedDocumentName,
-            destinationDocumentText, destinationDocumentContainers: ImmutableArray.Create("A", "B"));
-    }
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document Folders="A\B"> 
+            [||]class Class1 { }
+            class Class2 { }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, """
+            class Class2 { }
+                    
+            """, "Class1.cs",
+            """
+            class Class1 { }
+                    
+            """, destinationDocumentContainers: ["A", "B"]);
 
     [WpfFact]
-    public async Task TestForSpans3()
-    {
-        var code =
-@"[|class Class1|] { }
-class Class2 { }";
-
-        await TestActionCountAsync(code, count: 3);
-    }
+    public Task TestForSpans3()
+        => TestActionCountAsync("""
+            [|class Class1|] { }
+            class Class2 { }
+            """, count: 3);
 
     [WpfFact]
-    public async Task TestForSpans4()
-    {
-        var code =
-@"class Class1[||] { }
-class Class2 { }";
-        var codeAfterMove = @"class Class2 { }";
+    public Task TestForSpans4()
+        => TestMoveTypeToNewFileAsync("""
+            class Class1[||] { }
+            class Class2 { }
+            """, @"class Class2 { }", "Class1.cs", """
+            class Class1 { }
 
-        var expectedDocumentName = "Class1.cs";
-        var destinationDocumentText = @"class Class1 { }
-";
-
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """);
 
     [WpfFact]
-    public async Task MoveTypeWithNoContainerNamespace()
-    {
-        var code =
-@"[||]class Class1 { }
-class Class2 { }";
-        var codeAfterMove = @"class Class2 { }";
+    public Task MoveTypeWithNoContainerNamespace()
+        => TestMoveTypeToNewFileAsync("""
+            [||]class Class1 { }
+            class Class2 { }
+            """, @"class Class2 { }", "Class1.cs", """
+            class Class1 { }
 
-        var expectedDocumentName = "Class1.cs";
-        var destinationDocumentText = @"class Class1 { }
-";
-
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """);
 
     [WpfFact]
-    public async Task MoveTypeWithWithUsingsAndNoContainerNamespace()
-    {
-        var code =
-@"// Banner Text
-using System;
+    public Task MoveTypeWithWithUsingsAndNoContainerNamespace()
+        => TestMoveTypeToNewFileAsync("""
+            // Banner Text
+            using System;
 
-[||]class Class1 { }
-class Class2 { }";
+            [||]class Class1 { }
+            class Class2 { }
+            """, """
+            // Banner Text
+            using System;
+            class Class2 { }
+            """, "Class1.cs", """
+            // Banner Text
+            class Class1 { }
 
-        var codeAfterMove =
-@"// Banner Text
-using System;
-class Class2 { }";
-
-        var expectedDocumentName = "Class1.cs";
-        var destinationDocumentText =
-@"// Banner Text
-class Class1 { }
-";
-
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """);
 
     [WpfFact]
-    public async Task MoveTypeWithWithMembers()
-    {
-        var code =
-@"// Banner Text
-using System;
+    public Task MoveTypeWithWithMembers()
+        => TestMoveTypeToNewFileAsync("""
+            // Banner Text
+            using System;
 
-[||]class Class1 
-{ 
-    void Print(int x)
-    {
-        Console.WriteLine(x);
-    }
-}
-class Class2 { }";
+            [||]class Class1 
+            { 
+                void Print(int x)
+                {
+                    Console.WriteLine(x);
+                }
+            }
+            class Class2 { }
+            """, """
+            // Banner Text
+            class Class2 { }
+            """, "Class1.cs", """
+            // Banner Text
+            using System;
 
-        var codeAfterMove =
-@"// Banner Text
-class Class2 { }";
+            class Class1 
+            { 
+                void Print(int x)
+                {
+                    Console.WriteLine(x);
+                }
+            }
 
-        var expectedDocumentName = "Class1.cs";
-        var destinationDocumentText =
-@"// Banner Text
-using System;
-
-class Class1 
-{ 
-    void Print(int x)
-    {
-        Console.WriteLine(x);
-    }
-}
-";
-
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """);
 
     [WpfFact]
-    public async Task MoveTypeWithWithMembers2()
-    {
-        var code =
-@"// Banner Text
-using System;
+    public Task MoveTypeWithWithMembers2()
+        => TestMoveTypeToNewFileAsync("""
+            // Banner Text
+            using System;
 
-[||]class Class1 
-{ 
-    void Print(int x)
-    {
-        Console.WriteLine(x);
-    }
-}
+            [||]class Class1 
+            { 
+                void Print(int x)
+                {
+                    Console.WriteLine(x);
+                }
+            }
 
-class Class2
-{ 
-    void Print(int x)
-    {
-        Console.WriteLine(x);
-    }
-}";
+            class Class2
+            { 
+                void Print(int x)
+                {
+                    Console.WriteLine(x);
+                }
+            }
+            """, """
+            // Banner Text
+            using System;
 
-        var codeAfterMove =
-@"// Banner Text
-using System;
+            class Class2
+            { 
+                void Print(int x)
+                {
+                    Console.WriteLine(x);
+                }
+            }
+            """, "Class1.cs", """
+            // Banner Text
+            using System;
 
-class Class2
-{ 
-    void Print(int x)
-    {
-        Console.WriteLine(x);
-    }
-}";
+            class Class1 
+            { 
+                void Print(int x)
+                {
+                    Console.WriteLine(x);
+                }
+            }
 
-        var expectedDocumentName = "Class1.cs";
-        var destinationDocumentText =
-@"// Banner Text
-using System;
-
-class Class1 
-{ 
-    void Print(int x)
-    {
-        Console.WriteLine(x);
-    }
-}
-";
-
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """);
 
     [WpfFact]
-    public async Task MoveAnInterface()
-    {
-        var code =
-@"[||]interface IMoveType { }
-class Class2 { }";
-        var codeAfterMove = @"class Class2 { }";
+    public Task MoveAnInterface()
+        => TestMoveTypeToNewFileAsync("""
+            [||]interface IMoveType { }
+            class Class2 { }
+            """, @"class Class2 { }", "IMoveType.cs", """
+            interface IMoveType { }
 
-        var expectedDocumentName = "IMoveType.cs";
-        var destinationDocumentText = @"interface IMoveType { }
-";
-
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """);
 
     [WpfFact]
-    public async Task MoveAStruct()
-    {
-        var code =
-@"[||]struct MyStruct { }
-class Class2 { }";
-        var codeAfterMove = @"class Class2 { }";
+    public Task MoveAStruct()
+        => TestMoveTypeToNewFileAsync("""
+            [||]struct MyStruct { }
+            class Class2 { }
+            """, @"class Class2 { }", "MyStruct.cs", """
+            struct MyStruct { }
 
-        var expectedDocumentName = "MyStruct.cs";
-        var destinationDocumentText = @"struct MyStruct { }
-";
-
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """);
 
     [WpfFact]
-    public async Task MoveAnEnum()
-    {
-        var code =
-@"[||]enum MyEnum { }
-class Class2 { }";
-        var codeAfterMove = @"class Class2 { }";
+    public Task MoveAnEnum()
+        => TestMoveTypeToNewFileAsync("""
+            [||]enum MyEnum { }
+            class Class2 { }
+            """, @"class Class2 { }", "MyEnum.cs", """
+            enum MyEnum { }
 
-        var expectedDocumentName = "MyEnum.cs";
-        var destinationDocumentText = @"enum MyEnum { }
-";
-
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """);
 
     [WpfFact]
-    public async Task MoveTypeWithWithContainerNamespace()
-    {
-        var code =
-@"namespace N1
-{
-    [||]class Class1 { }
-        class Class2 { }
-}";
-
-        var codeAfterMove =
-@"namespace N1
-{
-    class Class2 { }
-}";
-
-        var expectedDocumentName = "Class1.cs";
-
-        var destinationDocumentText =
-@"namespace N1
-{
-    class Class1 { }
-}";
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+    public Task MoveTypeWithWithContainerNamespace()
+        => TestMoveTypeToNewFileAsync("""
+            namespace N1
+            {
+                [||]class Class1 { }
+                class Class2 { }
+            }
+            """, """
+            namespace N1
+            {
+                class Class2 { }
+            }
+            """, "Class1.cs", """
+            namespace N1
+            {
+                class Class1 { }
+            }
+            """);
 
     [WpfFact]
-    public async Task MoveTypeWithWithFileScopedNamespace()
-    {
-        var code =
-@"namespace N1;
+    public Task MoveTypeWithWithFileScopedNamespace()
+        => TestMoveTypeToNewFileAsync("""
+            namespace N1;
 
-[||]class Class1 { }
-class Class2 { }
-";
+            [||]class Class1 { }
+            class Class2 { }
 
-        var codeAfterMove =
-@"namespace N1;
-class Class2 { }
-";
+            """, """
+            namespace N1;
+            class Class2 { }
 
-        var expectedDocumentName = "Class1.cs";
+            """, "Class1.cs", """
+            namespace N1;
 
-        var destinationDocumentText =
-@"namespace N1;
+            class Class1 { }
 
-class Class1 { }
-";
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """);
 
     [WpfFact]
-    public async Task MoveNestedTypeToNewFile_Simple()
-    {
-        var code =
-@"namespace N1
-{
-    class Class1 
-    {
-        [||]class Class2 { }
-    }
-    
-}";
-
-        var codeAfterMove =
-@"namespace N1
-{
-    partial class Class1 
-    {
-    }
-    
-}";
-
-        var expectedDocumentName = "Class2.cs";
-
-        var destinationDocumentText =
-@"namespace N1
-{
-    partial class Class1 
-    {
-        class Class2 { }
-    }
-    
-}";
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+    public Task MoveNestedTypeToNewFile_Simple()
+        => TestMoveTypeToNewFileAsync("""
+            namespace N1
+            {
+                class Class1 
+                {
+                    [||]class Class2 { }
+                }
+                
+            }
+            """, """
+            namespace N1
+            {
+                partial class Class1 
+                {
+                }
+                
+            }
+            """, "Class2.cs", """
+            namespace N1
+            {
+                partial class Class1 
+                {
+                    class Class2 { }
+                }
+                
+            }
+            """);
 
     [WpfFact]
-    public async Task MoveNestedTypePreserveModifiers()
-    {
-        var code =
-@"namespace N1
-{
-    abstract class Class1 
-    {
-        [||]class Class2 { }
-    }
-    
-}";
-
-        var codeAfterMove =
-@"namespace N1
-{
-    abstract partial class Class1 
-    {
-    }
-    
-}";
-
-        var expectedDocumentName = "Class2.cs";
-
-        var destinationDocumentText =
-@"namespace N1
-{
-    abstract partial class Class1 
-    {
-        class Class2 { }
-    }
-    
-}";
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+    public Task MoveNestedTypePreserveModifiers()
+        => TestMoveTypeToNewFileAsync("""
+            namespace N1
+            {
+                abstract class Class1 
+                {
+                    [||]class Class2 { }
+                }
+                
+            }
+            """, """
+            namespace N1
+            {
+                abstract partial class Class1 
+                {
+                }
+                
+            }
+            """, "Class2.cs", """
+            namespace N1
+            {
+                abstract partial class Class1 
+                {
+                    class Class2 { }
+                }
+                
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/14004")]
-    public async Task MoveNestedTypeToNewFile_Attributes1()
-    {
-        var code =
-@"namespace N1
-{
-    [Outer]
-    class Class1 
-    {
-        [Inner]
-        [||]class Class2 { }
-    }
-    
-}";
-
-        var codeAfterMove =
-@"namespace N1
-{
-    [Outer]
-    partial class Class1 
-    {
-    }
-    
-}";
-
-        var expectedDocumentName = "Class2.cs";
-
-        var destinationDocumentText =
-@"namespace N1
-{
-    partial class Class1 
-    {
-        [Inner]
-        class Class2 { }
-    }
-    
-}";
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+    public Task MoveNestedTypeToNewFile_Attributes1()
+        => TestMoveTypeToNewFileAsync("""
+            namespace N1
+            {
+                [Outer]
+                class Class1 
+                {
+                    [Inner]
+                    [||]class Class2 { }
+                }
+                
+            }
+            """, """
+            namespace N1
+            {
+                [Outer]
+                partial class Class1 
+                {
+                }
+                
+            }
+            """, "Class2.cs", """
+            namespace N1
+            {
+                partial class Class1 
+                {
+                    [Inner]
+                    class Class2 { }
+                }
+                
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/14484")]
-    public async Task MoveNestedTypeToNewFile_Comments1()
-    {
-        var code =
-@"namespace N1
-{
-    /// Outer doc comment.
-    class Class1
-    {
-        /// Inner doc comment
-        [||]class Class2
-        {
-        }
-    }
-}";
-
-        var codeAfterMove =
-@"namespace N1
-{
-    /// Outer doc comment.
-    partial class Class1
-    {
-    }
-}";
-
-        var expectedDocumentName = "Class2.cs";
-
-        var destinationDocumentText =
-@"namespace N1
-{
-    partial class Class1
-    {
-        /// Inner doc comment
-        class Class2
-        {
-        }
-    }
-}";
-        await TestMoveTypeToNewFileAsync(
-            code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+    public Task MoveNestedTypeToNewFile_Comments1()
+        => TestMoveTypeToNewFileAsync(
+            """
+            namespace N1
+            {
+                /// Outer doc comment.
+                class Class1
+                {
+                    /// Inner doc comment
+                    [||]class Class2
+                    {
+                    }
+                }
+            }
+            """, """
+            namespace N1
+            {
+                /// Outer doc comment.
+                partial class Class1
+                {
+                }
+            }
+            """, "Class2.cs", """
+            namespace N1
+            {
+                partial class Class1
+                {
+                    /// Inner doc comment
+                    class Class2
+                    {
+                    }
+                }
+            }
+            """);
 
     [WpfFact]
-    public async Task MoveNestedTypeToNewFile_Simple_DottedName()
-    {
-        var code =
-@"namespace N1
-{
-    class Class1 
-    {
-        [||]class Class2 { }
-    }
-    
-}";
-
-        var codeAfterMove =
-@"namespace N1
-{
-    partial class Class1 
-    {
-    }
-    
-}";
-
-        var expectedDocumentName = "Class1.Class2.cs";
-
-        var destinationDocumentText =
-@"namespace N1
-{
-    partial class Class1 
-    {
-        class Class2 { }
-    }
-    
-}";
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText, index: 1);
-    }
+    public Task MoveNestedTypeToNewFile_Simple_DottedName()
+        => TestMoveTypeToNewFileAsync("""
+            namespace N1
+            {
+                class Class1 
+                {
+                    [||]class Class2 { }
+                }
+                
+            }
+            """, """
+            namespace N1
+            {
+                partial class Class1 
+                {
+                }
+                
+            }
+            """, "Class1.Class2.cs", """
+            namespace N1
+            {
+                partial class Class1 
+                {
+                    class Class2 { }
+                }
+                
+            }
+            """, index: 1);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/72632")]
-    public async Task MoveNestedTypeToNewFile_Simple_DottedName_WithPrimaryConstructor()
-    {
-        var code =
-@"internal class Outer()
-{
-    private class Inner[||]
-    {
-    }
-}";
-
-        var codeAfterMove =
-@"internal partial class Outer()
-{
-}";
-
-        var expectedDocumentName = "Outer.Inner.cs";
-
-        var destinationDocumentText =
-@"internal partial class Outer
-{
-    private class Inner
-    {
-    }
-}";
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText, index: 1);
-    }
+    public Task MoveNestedTypeToNewFile_Simple_DottedName_WithPrimaryConstructor()
+        => TestMoveTypeToNewFileAsync("""
+            internal class Outer()
+            {
+                private class Inner[||]
+                {
+                }
+            }
+            """, """
+            internal partial class Outer()
+            {
+            }
+            """, "Outer.Inner.cs", """
+            internal partial class Outer
+            {
+                private class Inner
+                {
+                }
+            }
+            """, index: 1);
 
     [WpfFact]
-    public async Task MoveNestedTypeToNewFile_ParentHasOtherMembers()
-    {
-        var code =
-@"namespace N1
-{
-    class Class1 
-    {
-        private int _field1;
+    public Task MoveNestedTypeToNewFile_ParentHasOtherMembers()
+        => TestMoveTypeToNewFileAsync("""
+            namespace N1
+            {
+                class Class1 
+                {
+                    private int _field1;
 
-        [||]class Class2 { }
+                    [||]class Class2 { }
 
-        public void Method1() { }
-    }
-    
-}";
+                    public void Method1() { }
+                }
+                
+            }
+            """, """
+            namespace N1
+            {
+                partial class Class1 
+                {
+                    private int _field1;
 
-        var codeAfterMove =
-@"namespace N1
-{
-    partial class Class1 
-    {
-        private int _field1;
-
-        public void Method1() { }
-    }
-    
-}";
-
-        var expectedDocumentName = "Class2.cs";
-
-        var destinationDocumentText =
-@"namespace N1
-{
-    partial class Class1 
-    {
-        class Class2 { }
-    }
-    
-}";
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+                    public void Method1() { }
+                }
+                
+            }
+            """, "Class2.cs", """
+            namespace N1
+            {
+                partial class Class1 
+                {
+                    class Class2 { }
+                }
+                
+            }
+            """);
 
     [WpfFact]
-    public async Task MoveNestedTypeToNewFile_HasOtherTopLevelMembers()
-    {
-        var code =
-@"namespace N1
-{
-    class Class1 
-    {
-        private int _field1;
+    public Task MoveNestedTypeToNewFile_HasOtherTopLevelMembers()
+        => TestMoveTypeToNewFileAsync("""
+            namespace N1
+            {
+                class Class1 
+                {
+                    private int _field1;
 
-        [||]class Class2 { }
+                    [||]class Class2 { }
 
-        public void Method1() { }
-    }
+                    public void Method1() { }
+                }
 
-    internal class Class3 
-    {
-        private void Method1() { }
-    }
-}";
+                internal class Class3 
+                {
+                    private void Method1() { }
+                }
+            }
+            """, """
+            namespace N1
+            {
+                partial class Class1 
+                {
+                    private int _field1;
 
-        var codeAfterMove =
-@"namespace N1
-{
-    partial class Class1 
-    {
-        private int _field1;
+                    public void Method1() { }
+                }
 
-        public void Method1() { }
-    }
-
-    internal class Class3 
-    {
-        private void Method1() { }
-    }
-}";
-
-        var expectedDocumentName = "Class2.cs";
-
-        var destinationDocumentText =
-@"namespace N1
-{
-    partial class Class1 
-    {
-        class Class2 { }
-    }
-}";
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+                internal class Class3 
+                {
+                    private void Method1() { }
+                }
+            }
+            """, "Class2.cs", """
+            namespace N1
+            {
+                partial class Class1 
+                {
+                    class Class2 { }
+                }
+            }
+            """);
 
     [WpfFact]
-    public async Task MoveNestedTypeToNewFile_HasMembers()
-    {
-        var code =
-@"namespace N1
-{
-    class Class1 
-    {
-        private int _field1;
+    public Task MoveNestedTypeToNewFile_HasMembers()
+        => TestMoveTypeToNewFileAsync("""
+            namespace N1
+            {
+                class Class1 
+                {
+                    private int _field1;
 
-        [||]class Class2 
-        {
-            private string _field1;
-            public void InnerMethod() { }
-        }
+                    [||]class Class2 
+                    {
+                        private string _field1;
+                        public void InnerMethod() { }
+                    }
 
-        public void Method1() { }
-    }
-}";
+                    public void Method1() { }
+                }
+            }
+            """, """
+            namespace N1
+            {
+                partial class Class1 
+                {
+                    private int _field1;
 
-        var codeAfterMove =
-@"namespace N1
-{
-    partial class Class1 
-    {
-        private int _field1;
-
-        public void Method1() { }
-    }
-}";
-
-        var expectedDocumentName = "Class2.cs";
-
-        var destinationDocumentText =
-@"namespace N1
-{
-    partial class Class1 
-    {
-        class Class2 
-        {
-            private string _field1;
-            public void InnerMethod() { }
-        }
-    }
-}";
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+                    public void Method1() { }
+                }
+            }
+            """, "Class2.cs", """
+            namespace N1
+            {
+                partial class Class1 
+                {
+                    class Class2 
+                    {
+                        private string _field1;
+                        public void InnerMethod() { }
+                    }
+                }
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/13969")]
-    public async Task MoveTypeInFileWithComplexHierarchy()
-    {
-        var code =
-@"namespace OuterN1.N1
-{
-    namespace InnerN2.N2
-    {
-        class OuterClass1
-        {
-            class InnerClass2
+    public Task MoveTypeInFileWithComplexHierarchy()
+        => TestMoveTypeToNewFileAsync("""
+            namespace OuterN1.N1
             {
-            }
-        }
-    }
-
-    namespace InnerN3.N3
-    {
-        class OuterClass2
-        {
-            [||]class InnerClass2 
-            {
-                class InnerClass3
+                namespace InnerN2.N2
                 {
+                    class OuterClass1
+                    {
+                        class InnerClass2
+                        {
+                        }
+                    }
+                }
+
+                namespace InnerN3.N3
+                {
+                    class OuterClass2
+                    {
+                        [||]class InnerClass2 
+                        {
+                            class InnerClass3
+                            {
+                            }
+                        }
+
+                        class InnerClass4
+                        {
+                        }
+                    }
+
+                    class OuterClass3
+                    {
+                    }
                 }
             }
 
-            class InnerClass4
+            namespace OuterN2.N2
             {
-            }
-        }
-
-        class OuterClass3
-        {
-        }
-    }
-}
-
-namespace OuterN2.N2
-{
-    namespace InnerN3.N3
-    {
-        class OuterClass5 {
-            class InnerClass6 {
-            }
-        }
-    }
-}
-";
-
-        var codeAfterMove =
-@"namespace OuterN1.N1
-{
-    namespace InnerN2.N2
-    {
-        class OuterClass1
-        {
-            class InnerClass2
-            {
-            }
-        }
-    }
-
-    namespace InnerN3.N3
-    {
-        partial class OuterClass2
-        {
-
-            class InnerClass4
-            {
-            }
-        }
-
-        class OuterClass3
-        {
-        }
-    }
-}
-
-namespace OuterN2.N2
-{
-    namespace InnerN3.N3
-    {
-        class OuterClass5 {
-            class InnerClass6 {
-            }
-        }
-    }
-}
-";
-
-        var expectedDocumentName = "InnerClass2.cs";
-
-        var destinationDocumentText =
-@"namespace OuterN1.N1
-{
-
-    namespace InnerN3.N3
-    {
-        partial class OuterClass2
-        {
-            class InnerClass2 
-            {
-                class InnerClass3
+                namespace InnerN3.N3
                 {
+                    class OuterClass5 {
+                        class InnerClass6 {
+                        }
+                    }
                 }
             }
-        }
-    }
-}
-";
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+
+            """, """
+            namespace OuterN1.N1
+            {
+                namespace InnerN2.N2
+                {
+                    class OuterClass1
+                    {
+                        class InnerClass2
+                        {
+                        }
+                    }
+                }
+
+                namespace InnerN3.N3
+                {
+                    partial class OuterClass2
+                    {
+
+                        class InnerClass4
+                        {
+                        }
+                    }
+
+                    class OuterClass3
+                    {
+                    }
+                }
+            }
+
+            namespace OuterN2.N2
+            {
+                namespace InnerN3.N3
+                {
+                    class OuterClass5 {
+                        class InnerClass6 {
+                        }
+                    }
+                }
+            }
+
+            """, "InnerClass2.cs", """
+            namespace OuterN1.N1
+            {
+
+                namespace InnerN3.N3
+                {
+                    partial class OuterClass2
+                    {
+                        class InnerClass2 
+                        {
+                            class InnerClass3
+                            {
+                            }
+                        }
+                    }
+                }
+            }
+
+            """);
 
     [WpfFact]
-    public async Task MoveTypeUsings1()
-    {
-        var code =
-@"
-// Only used by inner type.
-using System;
+    public Task MoveTypeUsings1()
+        => TestMoveTypeToNewFileAsync("""
 
-// Unused by both types.
-using System.Collections;
+            // Only used by inner type.
+            using System;
 
-class Outer { 
-    [||]class Inner {
-        DateTime d;
-    }
-}";
-        var codeAfterMove = @"
-// Only used by inner type.
+            // Unused by both types.
+            using System.Collections;
 
-// Unused by both types.
-using System.Collections;
+            class Outer { 
+                [||]class Inner {
+                    DateTime d;
+                }
+            }
+            """, """
 
-partial class Outer { 
-}";
+            // Only used by inner type.
 
-        var expectedDocumentName = "Inner.cs";
-        var destinationDocumentText =
-@"
-// Only used by inner type.
-using System;
+            // Unused by both types.
+            using System.Collections;
 
-// Unused by both types.
+            partial class Outer { 
+            }
+            """, "Inner.cs", """
 
-partial class Outer {
-    class Inner {
-        DateTime d;
-    }
-}";
+            // Only used by inner type.
+            using System;
 
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            // Unused by both types.
+
+            partial class Outer {
+                class Inner {
+                    DateTime d;
+                }
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16283")]
-    public async Task TestLeadingTrivia1()
-    {
-        var code =
-@"
-class Outer
-{
-    class Inner1
-    {
-    }
+    public Task TestLeadingTrivia1()
+        => TestMoveTypeToNewFileAsync(
+            """
 
-    [||]class Inner2
-    {
-    }
-}";
-        var codeAfterMove = @"
-partial class Outer
-{
-    class Inner1
-    {
-    }
-}";
+            class Outer
+            {
+                class Inner1
+                {
+                }
 
-        var expectedDocumentName = "Inner2.cs";
-        var destinationDocumentText = @"
-partial class Outer
-{
-    class Inner2
-    {
-    }
-}";
+                [||]class Inner2
+                {
+                }
+            }
+            """, """
 
-        await TestMoveTypeToNewFileAsync(
-            code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            partial class Outer
+            {
+                class Inner1
+                {
+                }
+            }
+            """, "Inner2.cs", """
+
+            partial class Outer
+            {
+                class Inner2
+                {
+                }
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17171")]
-    public async Task TestInsertFinalNewLine()
-    {
-        var code =
-@"
-class Outer
-{
-    class Inner1
-    {
-    }
+    public Task TestInsertFinalNewLine()
+        => TestMoveTypeToNewFileAsync(
+            """
 
-    [||]class Inner2
-    {
-    }
-}";
-        var codeAfterMove = @"
-partial class Outer
-{
-    class Inner1
-    {
-    }
-}";
+            class Outer
+            {
+                class Inner1
+                {
+                }
 
-        var expectedDocumentName = "Inner2.cs";
-        var destinationDocumentText = @"
-partial class Outer
-{
-    class Inner2
-    {
-    }
-}
-";
+                [||]class Inner2
+                {
+                }
+            }
+            """, """
 
-        await TestMoveTypeToNewFileAsync(
-            code, codeAfterMove, expectedDocumentName, destinationDocumentText,
+            partial class Outer
+            {
+                class Inner1
+                {
+                }
+            }
+            """, "Inner2.cs", """
+
+            partial class Outer
+            {
+                class Inner2
+                {
+                }
+            }
+
+            """,
             options: Option(FormattingOptions2.InsertFinalNewLine, true));
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17171")]
-    public async Task TestInsertFinalNewLine2()
-    {
-        var code =
-@"
-class Outer
-{
-    class Inner1
-    {
-    }
+    public Task TestInsertFinalNewLine2()
+        => TestMoveTypeToNewFileAsync(
+            """
 
-    [||]class Inner2
-    {
-    }
-}";
-        var codeAfterMove = @"
-partial class Outer
-{
-    class Inner1
-    {
-    }
-}";
+            class Outer
+            {
+                class Inner1
+                {
+                }
 
-        var expectedDocumentName = "Inner2.cs";
-        var destinationDocumentText = @"
-partial class Outer
-{
-    class Inner2
-    {
-    }
-}";
+                [||]class Inner2
+                {
+                }
+            }
+            """, """
 
-        await TestMoveTypeToNewFileAsync(
-            code, codeAfterMove, expectedDocumentName, destinationDocumentText,
+            partial class Outer
+            {
+                class Inner1
+                {
+                }
+            }
+            """, "Inner2.cs", """
+
+            partial class Outer
+            {
+                class Inner2
+                {
+                }
+            }
+            """,
             options: Option(FormattingOptions2.InsertFinalNewLine, false));
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16282")]
-    public async Task MoveTypeRemoveOuterInheritanceTypes()
-    {
-        var code =
-@"
-class Outer : IComparable { 
-    [||]class Inner : IWhatever {
-        DateTime d;
-    }
-}";
-        var codeAfterMove =
-@"
-partial class Outer : IComparable { 
-}";
+    public Task MoveTypeRemoveOuterInheritanceTypes()
+        => TestMoveTypeToNewFileAsync(
+            """
 
-        var expectedDocumentName = "Inner.cs";
-        var destinationDocumentText =
-@"
-partial class Outer
-{
-    class Inner : IWhatever {
-        DateTime d;
-    }
-}";
+            class Outer : IComparable { 
+                [||]class Inner : IWhatever {
+                    DateTime d;
+                }
+            }
+            """, """
 
-        await TestMoveTypeToNewFileAsync(
-            code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            partial class Outer : IComparable { 
+            }
+            """, "Inner.cs", """
+
+            partial class Outer
+            {
+                class Inner : IWhatever {
+                    DateTime d;
+                }
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17930")]
-    public async Task MoveTypeWithDirectives1()
-    {
-        var code =
-@"using System;
+    public Task MoveTypeWithDirectives1()
+        => TestMoveTypeToNewFileAsync(
+            """
+            using System;
 
-namespace N
-{
-    class Program
-    {
-        static void Main()
-        {
-        }
-    }
-}
+            namespace N
+            {
+                class Program
+                {
+                    static void Main()
+                    {
+                    }
+                }
+            }
 
-#if true
-public class [||]Inner
-{
+            #if true
+            public class [||]Inner
+            {
 
-}
-#endif";
-        var codeAfterMove =
-        @"using System;
+            }
+            #endif
+            """, """
+            using System;
 
-namespace N
-{
-    class Program
-    {
-        static void Main()
-        {
-        }
-    }
-}
+            namespace N
+            {
+                class Program
+                {
+                    static void Main()
+                    {
+                    }
+                }
+            }
 
-#if true
-#endif";
+            #if true
+            #endif
+            """, "Inner.cs", """
 
-        var expectedDocumentName = "Inner.cs";
-        var destinationDocumentText =
-@"
-#if true
-public class Inner
-{
+            #if true
+            public class Inner
+            {
 
-}
-#endif";
-
-        await TestMoveTypeToNewFileAsync(
-            code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            }
+            #endif
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17930")]
-    public async Task MoveTypeWithDirectives2()
-    {
-        var code =
-@"using System;
+    public Task MoveTypeWithDirectives2()
+        => TestMoveTypeToNewFileAsync(
+            """
+            using System;
 
-namespace N
-{
-    class Program
-    {
-        static void Main()
-        {
-        }
+            namespace N
+            {
+                class Program
+                {
+                    static void Main()
+                    {
+                    }
 
-#if true
-        public class [||]Inner
-        {
+            #if true
+                    public class [||]Inner
+                    {
 
-        }
-#endif
-    }
-}";
-        var codeAfterMove =
-        @"using System;
+                    }
+            #endif
+                }
+            }
+            """, """
+            using System;
 
-namespace N
-{
-    partial class Program
-    {
-        static void Main()
-        {
-        }
+            namespace N
+            {
+                partial class Program
+                {
+                    static void Main()
+                    {
+                    }
 
-#if true
-#endif
-    }
-}";
+            #if true
+            #endif
+                }
+            }
+            """, "Inner.cs", """
+            namespace N
+            {
+                partial class Program
+                {
+            #if true
+                    public class Inner
+                    {
 
-        var expectedDocumentName = "Inner.cs";
-        var destinationDocumentText =
-@"namespace N
-{
-    partial class Program
-    {
-#if true
-        public class Inner
-        {
+                    }
+            #endif
+                }
+            }
+            """);
 
-        }
-#endif
-    }
-}";
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/19613")]
+    public Task MoveTypeWithDirectives3()
+        => TestMoveTypeToNewFileAsync(
+            """
+            public class Goo
+            {
+                #region Region
+                public class [||]Bar
+                {
+                }
+                #endregion
+            }
+            """, """
+            public partial class Goo
+            {
 
-        await TestMoveTypeToNewFileAsync(
-            code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+                #region Region
+                #endregion
+            }
+            """, "Bar.cs", """
+            public partial class Goo
+            {
+                #region Region
+                public class Bar
+                {
+                }
+                #endregion
+            }
+            """);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/19613")]
+    public Task MoveTypeWithDirectives4()
+        => TestMoveTypeToNewFileAsync(
+            """
+            public class Goo
+            {
+                #region Region1
+                public class NotBar
+                {
+                }
+                #endregion
+
+                #region Region2
+                public class [||]Bar
+                {
+                }
+                #endregion
+            }
+            """, """
+            public partial class Goo
+            {
+                #region Region1
+                public class NotBar
+                {
+                }
+
+                #endregion
+                #region Region2
+                #endregion
+            }
+            """, "Bar.cs", """
+            public partial class Goo
+            {
+                #region Region2
+                public class Bar
+                {
+                }
+                #endregion
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21456")]
-    public async Task TestLeadingBlankLines1()
-    {
-        var code =
-@"// Banner Text
-using System;
+    public Task TestLeadingBlankLines1()
+        => TestMoveTypeToNewFileAsync(
+            """
+            // Banner Text
+            using System;
 
-[||]class Class1
-{
-    void Foo()
-    {
-        Console.WriteLine();
-    }
-}
+            [||]class Class1
+            {
+                void Foo()
+                {
+                    Console.WriteLine();
+                }
+            }
 
-class Class2
-{
-    void Foo()
-    {
-        Console.WriteLine();
-    }
-}
-";
-        var codeAfterMove = @"// Banner Text
-using System;
+            class Class2
+            {
+                void Foo()
+                {
+                    Console.WriteLine();
+                }
+            }
 
-class Class2
-{
-    void Foo()
-    {
-        Console.WriteLine();
-    }
-}
-";
+            """, """
+            // Banner Text
+            using System;
 
-        var expectedDocumentName = "Class1.cs";
-        var destinationDocumentText = @"// Banner Text
-using System;
+            class Class2
+            {
+                void Foo()
+                {
+                    Console.WriteLine();
+                }
+            }
 
-class Class1
-{
-    void Foo()
-    {
-        Console.WriteLine();
-    }
-}
-";
+            """, "Class1.cs", """
+            // Banner Text
+            using System;
 
-        await TestMoveTypeToNewFileAsync(
-            code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            class Class1
+            {
+                void Foo()
+                {
+                    Console.WriteLine();
+                }
+            }
+
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21456")]
-    public async Task TestLeadingBlankLines2()
-    {
-        var code =
-@"// Banner Text
-using System;
+    public Task TestLeadingBlankLines2()
+        => TestMoveTypeToNewFileAsync(
+            """
+            // Banner Text
+            using System;
 
-class Class1
-{
-    void Foo()
-    {
-        Console.WriteLine();
-    }
-}
+            class Class1
+            {
+                void Foo()
+                {
+                    Console.WriteLine();
+                }
+            }
 
-[||]class Class2
-{
-    void Foo()
-    {
-        Console.WriteLine();
-    }
-}
-";
-        var codeAfterMove = @"// Banner Text
-using System;
+            [||]class Class2
+            {
+                void Foo()
+                {
+                    Console.WriteLine();
+                }
+            }
 
-class Class1
-{
-    void Foo()
-    {
-        Console.WriteLine();
-    }
-}
-";
+            """, """
+            // Banner Text
+            using System;
 
-        var expectedDocumentName = "Class2.cs";
-        var destinationDocumentText = @"// Banner Text
-using System;
+            class Class1
+            {
+                void Foo()
+                {
+                    Console.WriteLine();
+                }
+            }
 
-class Class2
-{
-    void Foo()
-    {
-        Console.WriteLine();
-    }
-}
-";
+            """, "Class2.cs", """
+            // Banner Text
+            using System;
 
-        await TestMoveTypeToNewFileAsync(
-            code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            class Class2
+            {
+                void Foo()
+                {
+                    Console.WriteLine();
+                }
+            }
+
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
-    public async Task TestLeadingCommentInContainer()
-    {
-        var code =
-@"// Banner Text
-using System;
+    public Task TestLeadingCommentInContainer()
+        => TestMoveTypeToNewFileAsync(
+            """
+            // Banner Text
+            using System;
 
-class Class1
-// Leading comment
-{
-    class [||]Class2
-    {
-    }
+            class Class1
+            // Leading comment
+            {
+                class [||]Class2
+                {
+                }
 
-    void Foo()
-    {
-        Console.WriteLine();
-    }
+                void Foo()
+                {
+                    Console.WriteLine();
+                }
 
-    public int I() => 5;
-}
-";
-        var codeAfterMove = @"// Banner Text
-using System;
+                public int I() => 5;
+            }
 
-partial class Class1
-// Leading comment
-{
+            """, """
+            // Banner Text
+            using System;
 
-    void Foo()
-    {
-        Console.WriteLine();
-    }
+            partial class Class1
+            // Leading comment
+            {
 
-    public int I() => 5;
-}
-";
+                void Foo()
+                {
+                    Console.WriteLine();
+                }
 
-        var expectedDocumentName = "Class2.cs";
-        var destinationDocumentText = @"// Banner Text
-partial class Class1
-{
-    class Class2
-    {
-    }
-}
-";
+                public int I() => 5;
+            }
 
-        await TestMoveTypeToNewFileAsync(
-            code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """, "Class2.cs", """
+            // Banner Text
+            partial class Class1
+            {
+                class Class2
+                {
+                }
+            }
+
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
-    public async Task TestLeadingCommentInContainer2()
-    {
-        var code =
-@"// Banner Text
-using System;
+    public Task TestLeadingCommentInContainer2()
+        => TestMoveTypeToNewFileAsync(
+            """
+            // Banner Text
+            using System;
 
-class Class1
-{ // Leading comment
-    class [||]Class2
-    {
-    }
+            class Class1
+            { // Leading comment
+                class [||]Class2
+                {
+                }
 
-    void Foo()
-    {
-        Console.WriteLine();
-    }
+                void Foo()
+                {
+                    Console.WriteLine();
+                }
 
-    public int I() => 5;
-}
-";
-        var codeAfterMove = @"// Banner Text
-using System;
+                public int I() => 5;
+            }
 
-partial class Class1
-{ // Leading comment
+            """, """
+            // Banner Text
+            using System;
 
-    void Foo()
-    {
-        Console.WriteLine();
-    }
+            partial class Class1
+            { // Leading comment
 
-    public int I() => 5;
-}
-";
+                void Foo()
+                {
+                    Console.WriteLine();
+                }
 
-        var expectedDocumentName = "Class2.cs";
-        var destinationDocumentText = @"// Banner Text
-partial class Class1
-{
-    class Class2
-    {
-    }
-}
-";
+                public int I() => 5;
+            }
 
-        await TestMoveTypeToNewFileAsync(
-            code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """, "Class2.cs", """
+            // Banner Text
+            partial class Class1
+            {
+                class Class2
+                {
+                }
+            }
+
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
-    public async Task TestTrailingCommentInContainer()
-    {
-        var code =
-@"// Banner Text
-using System;
+    public Task TestTrailingCommentInContainer()
+        => TestMoveTypeToNewFileAsync(
+            """
+            // Banner Text
+            using System;
 
-class Class1
-{
-    class [||]Class2
-    {
-    }
+            class Class1
+            {
+                class [||]Class2
+                {
+                }
 
-    void Foo()
-    {
-        Console.WriteLine();
-    }
+                void Foo()
+                {
+                    Console.WriteLine();
+                }
 
-    public int I() => 5;
-    // End of class document
-}
-";
-        var codeAfterMove = @"// Banner Text
-using System;
+                public int I() => 5;
+                // End of class document
+            }
 
-partial class Class1
-{
+            """, """
+            // Banner Text
+            using System;
 
-    void Foo()
-    {
-        Console.WriteLine();
-    }
+            partial class Class1
+            {
 
-    public int I() => 5;
-    // End of class document
-}
-";
+                void Foo()
+                {
+                    Console.WriteLine();
+                }
 
-        var expectedDocumentName = "Class2.cs";
-        var destinationDocumentText = @"// Banner Text
-partial class Class1
-{
-    class Class2
-    {
-    }
-}
-";
+                public int I() => 5;
+                // End of class document
+            }
 
-        await TestMoveTypeToNewFileAsync(
-            code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """, "Class2.cs", """
+            // Banner Text
+            partial class Class1
+            {
+                class Class2
+                {
+                }
+            }
+
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
-    public async Task TestTrailingCommentInContainer2()
-    {
-        var code =
-@"// Banner Text
-using System;
+    public Task TestTrailingCommentInContainer2()
+        => TestMoveTypeToNewFileAsync(
+            """
+            // Banner Text
+            using System;
 
-class Class1
-{
-    class [||]Class2
-    {
-    }
+            class Class1
+            {
+                class [||]Class2
+                {
+                }
 
-    void Foo()
-    {
-        Console.WriteLine();
-    }
+                void Foo()
+                {
+                    Console.WriteLine();
+                }
 
-    public int I() => 5;
-} // End of class document
-";
-        var codeAfterMove = @"// Banner Text
-using System;
+                public int I() => 5;
+            } // End of class document
 
-partial class Class1
-{
+            """, """
+            // Banner Text
+            using System;
 
-    void Foo()
-    {
-        Console.WriteLine();
-    }
+            partial class Class1
+            {
 
-    public int I() => 5;
-} // End of class document
-";
+                void Foo()
+                {
+                    Console.WriteLine();
+                }
 
-        var expectedDocumentName = "Class2.cs";
-        var destinationDocumentText = @"// Banner Text
-partial class Class1
-{
-    class Class2
-    {
-    }
-}";
+                public int I() => 5;
+            } // End of class document
 
-        await TestMoveTypeToNewFileAsync(
-            code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """, "Class2.cs", """
+            // Banner Text
+            partial class Class1
+            {
+                class Class2
+                {
+                }
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/50329")]
-    public async Task MoveRecordToNewFilePreserveUsings()
-    {
-        var code =
-@"using System;
+    public Task MoveRecordToNewFilePreserveUsings()
+        => TestMoveTypeToNewFileAsync("""
+            using System;
 
-[||]record CacheContext(String Message);
+            [||]record CacheContext(String Message);
 
-class Program { }";
-        var codeAfterMove = @"class Program { }";
+            class Program { }
+            """, @"class Program { }", "CacheContext.cs", """
+            using System;
 
-        var expectedDocumentName = "CacheContext.cs";
-        var destinationDocumentText = @"using System;
+            record CacheContext(String Message);
 
-record CacheContext(String Message);
-";
-
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """);
 
     [WpfFact]
-    public async Task MoveClassToNewFilePreserveUsings_PrimaryConstructor()
-    {
-        var code =
-@"using System;
+    public Task MoveClassToNewFilePreserveUsings_PrimaryConstructor()
+        => TestMoveTypeToNewFileAsync("""
+            using System;
 
-[||]class CacheContext(String Message);
+            [||]class CacheContext(String Message);
 
-class Program { }";
-        var codeAfterMove = @"class Program { }";
+            class Program { }
+            """, @"class Program { }", "CacheContext.cs", """
+            using System;
 
-        var expectedDocumentName = "CacheContext.cs";
-        var destinationDocumentText = @"using System;
+            class CacheContext(String Message);
 
-class CacheContext(String Message);
-";
-
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """);
 
     [WpfFact]
-    public async Task MoveStructToNewFilePreserveUsings_PrimaryConstructor()
-    {
-        var code =
-@"using System;
+    public Task MoveStructToNewFilePreserveUsings_PrimaryConstructor()
+        => TestMoveTypeToNewFileAsync("""
+            using System;
 
-[||]struct CacheContext(String Message);
+            [||]struct CacheContext(String Message);
 
-class Program { }";
-        var codeAfterMove = @"class Program { }";
+            class Program { }
+            """, @"class Program { }", "CacheContext.cs", """
+            using System;
 
-        var expectedDocumentName = "CacheContext.cs";
-        var destinationDocumentText = @"using System;
+            struct CacheContext(String Message);
 
-struct CacheContext(String Message);
-";
-
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """);
 
     [WpfFact]
-    public async Task MoveInterfaceToNewFilePreserveUsings_PrimaryConstructor()
-    {
-        var code =
-@"using System;
+    public Task MoveInterfaceToNewFilePreserveUsings_PrimaryConstructor()
+        => TestMoveTypeToNewFileAsync("""
+            using System;
 
-[||]interface CacheContext(String Message);
+            [||]interface CacheContext(String Message);
 
-class Program { }";
-        var codeAfterMove = @"using System;
+            class Program { }
+            """, """
+            using System;
 
-class Program { }";
+            class Program { }
+            """, "CacheContext.cs", """
+            interface CacheContext(String Message);
 
-        var expectedDocumentName = "CacheContext.cs";
-        var destinationDocumentText = @"interface CacheContext(String Message);
-";
-
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """);
 
     [WpfFact]
-    public async Task MoveClassInTopLevelStatements()
-    {
-        var code = @"
-using ConsoleApp1;
-using System;
+    public Task MoveClassInTopLevelStatements()
+        => TestMoveTypeToNewFileAsync("""
 
-var c = new C();
-Console.WriteLine(c.Hello);
+            using ConsoleApp1;
+            using System;
 
-class [||]C
-{
-    public string Hello => ""Hello"";
-}";
+            var c = new C();
+            Console.WriteLine(c.Hello);
 
-        var codeAfterMove = @"
-using ConsoleApp1;
-using System;
+            class [||]C
+            {
+                public string Hello => "Hello";
+            }
+            """, """
 
-var c = new C();
-Console.WriteLine(c.Hello);
-";
+            using ConsoleApp1;
+            using System;
 
-        var expectedDocumentName = "C.cs";
-        var destinationDocumentText = @"class C
-{
-    public string Hello => ""Hello"";
-}";
+            var c = new C();
+            Console.WriteLine(c.Hello);
 
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """, "C.cs", """
+            class C
+            {
+                public string Hello => "Hello";
+            }
+            """);
 
     [WpfFact]
-    public async Task MissingInTopLevelStatementsOnly()
-    {
-        var code = @"
-using ConsoleApp1;
-using System;
+    public Task MissingInTopLevelStatementsOnly()
+        => TestMissingAsync("""
 
-var c = new object();
-[||]Console.WriteLine(c.ToString());
-";
+            using ConsoleApp1;
+            using System;
 
-        await TestMissingAsync(code);
-    }
+            var c = new object();
+            [||]Console.WriteLine(c.ToString());
+
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55544")]
-    public async Task MoveInNamespace_WithAttributes1()
-    {
-        var code = @"
-using Sytem.Reflection;
+    public Task MoveInNamespace_WithAttributes1()
+        => TestMoveTypeToNewFileAsync("""
 
-[assembly: AssemblyCompany("")]
-namespace N
-{
-    class A 
-    {
-    }
+            using Sytem.Reflection;
 
-    class [||]B
-    {
-    }
-}";
+            [assembly: AssemblyCompany(")]
+            namespace N
+            {
+                class A 
+                {
+                }
 
-        var codeAfterMove = @"
-using Sytem.Reflection;
+                class [||]B
+                {
+                }
+            }
+            """, """
 
-[assembly: AssemblyCompany("")]
-namespace N
-{
-    class A 
-    {
-    }
-}";
+            using Sytem.Reflection;
 
-        var expectedDocumentName = "B.cs";
-        var destinationDocumentText = @"namespace N
-{
-    class B
-    {
-    }
-}";
-
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            [assembly: AssemblyCompany(")]
+            namespace N
+            {
+                class A 
+                {
+                }
+            }
+            """, "B.cs", """
+            namespace N
+            {
+                class B
+                {
+                }
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55544")]
-    public async Task MoveInNamespace_WithAttributes2()
-    {
-        var code = @"
-using Sytem.Reflection;
+    public Task MoveInNamespace_WithAttributes2()
+        => TestMoveTypeToNewFileAsync("""
 
-[assembly: AssemblyCompany("")]
-namespace N
-{
-    class A 
-    {
-    }
+            using Sytem.Reflection;
 
-    [Test]
-    class [||]B
-    {
-    }
-}";
+            [assembly: AssemblyCompany(")]
+            namespace N
+            {
+                class A 
+                {
+                }
 
-        var codeAfterMove = @"
-using Sytem.Reflection;
+                [Test]
+                class [||]B
+                {
+                }
+            }
+            """, """
 
-[assembly: AssemblyCompany("")]
-namespace N
-{
-    class A 
-    {
-    }
-}";
+            using Sytem.Reflection;
 
-        var expectedDocumentName = "B.cs";
-        var destinationDocumentText = @"namespace N
-{
-    [Test]
-    class B
-    {
-    }
-}";
-
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            [assembly: AssemblyCompany(")]
+            namespace N
+            {
+                class A 
+                {
+                }
+            }
+            """, "B.cs", """
+            namespace N
+            {
+                [Test]
+                class B
+                {
+                }
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55544")]
-    public async Task MoveInNamespace_WithAttributes3()
-    {
-        var code = @"
-namespace N
-{
-    class A 
-    {
-    }
+    public Task MoveInNamespace_WithAttributes3()
+        => TestMoveTypeToNewFileAsync("""
 
-    [Test]
-    class [||]B
-    {
-    }
-}";
+            namespace N
+            {
+                class A 
+                {
+                }
 
-        var codeAfterMove = @"
-namespace N
-{
-    class A 
-    {
-    }
-}";
+                [Test]
+                class [||]B
+                {
+                }
+            }
+            """, """
 
-        var expectedDocumentName = "B.cs";
-        var destinationDocumentText = @"
-namespace N
-{
-    [Test]
-    class B
-    {
-    }
-}";
+            namespace N
+            {
+                class A 
+                {
+                }
+            }
+            """, "B.cs", """
 
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            namespace N
+            {
+                [Test]
+                class B
+                {
+                }
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55544")]
-    public async Task MoveTopLevel_WithAttributes1()
-    {
-        var code = @"
-[Test]
-class [||]A
-{
-}
+    public Task MoveTopLevel_WithAttributes1()
+        => TestMoveTypeToNewFileAsync("""
 
-class B
-{
-}";
+            [Test]
+            class [||]A
+            {
+            }
 
-        var codeAfterMove = @"
-class B
-{
-}";
+            class B
+            {
+            }
+            """, """
 
-        var expectedDocumentName = "A.cs";
-        var destinationDocumentText = @"[Test]
-class A
-{
-}
-";
+            class B
+            {
+            }
+            """, "A.cs", """
+            [Test]
+            class A
+            {
+            }
 
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55544")]
-    public async Task MoveTopLevel_WithAttributes2()
-    {
-        var code = @"
-[Test]
-class [||]A
-{
-}
+    public Task MoveTopLevel_WithAttributes2()
+        => TestMoveTypeToNewFileAsync("""
 
-[Test]
-class B
-{
-}";
+            [Test]
+            class [||]A
+            {
+            }
 
-        var codeAfterMove = @"
-[Test]
-class B
-{
-}";
+            [Test]
+            class B
+            {
+            }
+            """, """
 
-        var expectedDocumentName = "A.cs";
-        var destinationDocumentText = @"[Test]
-class A
-{
-}
-";
+            [Test]
+            class B
+            {
+            }
+            """, "A.cs", """
+            [Test]
+            class A
+            {
+            }
 
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+            """);
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/63114")]
     [InlineData("class")]
@@ -1725,27 +1567,51 @@ class A
     [InlineData("interface")]
     [InlineData("enum")]
     [InlineData("record")]
-    public async Task MoveNestedTypeFromInterface(string memberType)
-    {
-        var code = $@"
-interface I
-{{
-    {memberType} [||]Member
-    {{
-    }}
-}}";
-        var codeAfterMove = @"
-partial interface I
-{
-}";
-        var expectedDocumentName = "Member.cs";
-        var destinationDocumentText = $@"
-partial interface I
-{{
-    {memberType} Member
-    {{
-    }}
-}}";
-        await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
-    }
+    public Task MoveNestedTypeFromInterface(string memberType)
+        => TestMoveTypeToNewFileAsync($$"""
+
+            interface I
+            {
+                {{memberType}} [||]Member
+                {
+                }
+            }
+            """, """
+
+            partial interface I
+            {
+            }
+            """, "Member.cs", $$"""
+
+            partial interface I
+            {
+                {{memberType}} Member
+                {
+                }
+            }
+            """);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/74703")]
+    public Task TestUpdateFileName()
+        => TestMoveTypeToNewFileAsync(
+            """
+
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document Folders="A\B" FilePath="Goo.cs">// This is a banner referencing Goo.cs
+            [||]class Class1 { }
+            class Class2 { }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, """
+            // This is a banner referencing Goo.cs
+            class Class2 { }
+                    
+            """, "Class1.cs",
+            """
+            // This is a banner referencing Class1.cs
+            class Class1 { }
+                    
+            """, destinationDocumentContainers: ["A", "B"]);
 }

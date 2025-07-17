@@ -13,21 +13,19 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
 using static CSharpSyntaxTokens;
 
 [ExportLanguageService(typeof(SyntaxGeneratorInternal), LanguageNames.CSharp), Shared]
-internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
+internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
-    public CSharpSyntaxGeneratorInternal()
-    {
-    }
-
     public static readonly SyntaxGeneratorInternal Instance = new CSharpSyntaxGeneratorInternal();
 
     public override ISyntaxFacts SyntaxFacts
@@ -126,26 +124,57 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
 
     public override SyntaxNode InterpolationFormatClause(string format)
         => SyntaxFactory.InterpolationFormatClause(
-                ColonToken,
-                SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, format, format, default));
+            ColonToken,
+            SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, format, format, default));
 
     public override SyntaxNode TypeParameterList(IEnumerable<string> typeParameterNames)
         => SyntaxFactory.TypeParameterList([.. typeParameterNames.Select(SyntaxFactory.TypeParameter)]);
 
-    internal static SyntaxTokenList GetParameterModifiers(RefKind refKind, bool forFunctionPointerReturnParameter = false)
-        => refKind switch
+    internal static SyntaxTokenList GetParameterModifiers(
+        IParameterSymbol parameter, bool forFunctionPointerReturnParameter = false)
+        => GetParameterModifiers(ParameterIsScoped(parameter), parameter.RefKind, parameter.IsParams, forFunctionPointerReturnParameter);
+
+    internal static SyntaxTokenList GetParameterModifiers(
+        bool isScoped, RefKind refKind, bool isParams, bool forFunctionPointerReturnParameter = false)
+    {
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
+
+        if (isParams)
+            result.Add(ParamsKeyword);
+
+        if (isScoped)
+            result.Add(ScopedKeyword);
+
+        switch (refKind)
         {
-            RefKind.None => [],
-            RefKind.Out => [OutKeyword],
-            RefKind.Ref => [RefKeyword],
+            case RefKind.Out:
+                result.Add(OutKeyword);
+                break;
+
+            case RefKind.Ref:
+                result.Add(RefKeyword);
+                break;
+
             // Note: RefKind.RefReadonly == RefKind.In. Function Pointers must use the correct
             // ref kind syntax when generating for the return parameter vs other parameters.
             // The return parameter must use ref readonly, like regular methods.
-            RefKind.In when !forFunctionPointerReturnParameter => [InKeyword],
-            RefKind.RefReadOnly when forFunctionPointerReturnParameter => [RefKeyword, ReadOnlyKeyword],
-            RefKind.RefReadOnlyParameter => [RefKeyword, ReadOnlyKeyword],
-            _ => throw ExceptionUtilities.UnexpectedValue(refKind),
-        };
+            case RefKind.In when !forFunctionPointerReturnParameter:
+                result.Add(InKeyword);
+                break;
+
+            case RefKind.RefReadOnly when forFunctionPointerReturnParameter:
+                result.Add(RefKeyword);
+                result.Add(ReadOnlyKeyword);
+                break;
+
+            case RefKind.RefReadOnlyParameter:
+                result.Add(RefKeyword);
+                result.Add(ReadOnlyKeyword);
+                break;
+        }
+
+        return SyntaxFactory.TokenList(result);
+    }
 
     public override SyntaxNode Type(ITypeSymbol typeSymbol, bool typeContext)
         => typeContext ? typeSymbol.GenerateTypeSyntax() : typeSymbol.GenerateExpressionSyntax();
@@ -211,4 +240,100 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
         => SyntaxFactory.UnaryPattern(operatorToken, (PatternSyntax)Parenthesize(pattern));
 
     #endregion
+
+    public override SyntaxNode CastExpression(SyntaxNode type, SyntaxNode expression)
+        => SyntaxFactory.CastExpression((TypeSyntax)type, (ExpressionSyntax)Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
+
+    public override SyntaxNode DefaultExpression(SyntaxNode type)
+        => SyntaxFactory.DefaultExpression((TypeSyntax)type).WithAdditionalAnnotations(Simplifier.Annotation);
+
+    public override SyntaxNode DefaultExpression(ITypeSymbol type)
+    {
+        // If it's just a reference type, then "null" is the default expression for it.  Note:
+        // this counts for actual reference type, or a type parameter with a 'class' constraint.
+        // Also, if it's a nullable type, then we can use "null".
+        if (type.IsReferenceType ||
+            type is IPointerTypeSymbol ||
+            type.IsNullable())
+        {
+            return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
+        }
+
+        switch (type.SpecialType)
+        {
+            case SpecialType.System_Boolean:
+                return SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression);
+            case SpecialType.System_SByte:
+            case SpecialType.System_Byte:
+            case SpecialType.System_Int16:
+            case SpecialType.System_UInt16:
+            case SpecialType.System_Int32:
+            case SpecialType.System_UInt32:
+            case SpecialType.System_Int64:
+            case SpecialType.System_UInt64:
+            case SpecialType.System_Decimal:
+            case SpecialType.System_Single:
+            case SpecialType.System_Double:
+                return SyntaxFactory.LiteralExpression(
+                    SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal("0", 0));
+        }
+
+        // Default to a "default(<typename>)" expression.
+        return DefaultExpression(type.GenerateTypeSyntax());
+    }
+
+    public override SyntaxNode TypeExpression(ITypeSymbol typeSymbol, RefKind refKind)
+    {
+        var type = typeSymbol.GenerateTypeSyntax();
+        return refKind switch
+        {
+            RefKind.Ref => SyntaxFactory.RefType(type),
+            RefKind.RefReadOnly => SyntaxFactory.RefType(RefKeyword, ReadOnlyKeyword, type),
+            _ => type,
+        };
+    }
+
+    public override SyntaxNode MemberAccessExpressionWorker(SyntaxNode? expression, SyntaxNode simpleName)
+    {
+        // can only be null in VB
+        Contract.ThrowIfNull(expression);
+
+        return SyntaxFactory.MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression,
+            ParenthesizeLeft((ExpressionSyntax)expression),
+            (SimpleNameSyntax)simpleName);
+    }
+
+    /// <summary>
+    /// Parenthesize the left hand size of a member access, invocation or element access expression
+    /// </summary>
+    internal static ExpressionSyntax ParenthesizeLeft(ExpressionSyntax expression)
+    {
+        if (expression is TypeSyntax ||
+            expression.Kind()
+                is SyntaxKind.ThisExpression
+                or SyntaxKind.BaseExpression
+                or SyntaxKind.ParenthesizedExpression
+                or SyntaxKind.SimpleMemberAccessExpression
+                or SyntaxKind.InvocationExpression
+                or SyntaxKind.ElementAccessExpression
+                or SyntaxKind.MemberBindingExpression)
+        {
+            return expression;
+        }
+
+        return (ExpressionSyntax)Parenthesize(expression);
+    }
+
+    public override SyntaxNode BitwiseOrExpression(SyntaxNode left, SyntaxNode right)
+        => CreateBinaryExpression(SyntaxKind.BitwiseOrExpression, left, right);
+
+    public static SyntaxNode CreateBinaryExpression(SyntaxKind syntaxKind, SyntaxNode left, SyntaxNode right)
+        => SyntaxFactory.BinaryExpression(syntaxKind, (ExpressionSyntax)Parenthesize(left), (ExpressionSyntax)Parenthesize(right));
+
+    public override SyntaxNode IdentifierName(string identifier)
+        => identifier.ToIdentifierName();
+
+    public override SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression)
+        => SyntaxFactory.CastExpression((TypeSyntax)type, (ExpressionSyntax)Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
 }

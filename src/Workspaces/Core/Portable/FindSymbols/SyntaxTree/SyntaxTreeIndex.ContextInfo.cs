@@ -35,7 +35,10 @@ internal sealed partial class SyntaxTreeIndex
             bool containsConversion,
             bool containsGlobalKeyword,
             bool containsCollectionInitializer,
-            bool containsAttribute)
+            bool containsAttribute,
+            bool containsDirective,
+            bool containsPrimaryConstructorBaseType,
+            bool containsPartialClass)
             : this(predefinedTypes, predefinedOperators,
                    ConvertToContainingNodeFlag(
                      containsForEachStatement,
@@ -54,7 +57,10 @@ internal sealed partial class SyntaxTreeIndex
                      containsConversion,
                      containsGlobalKeyword,
                      containsCollectionInitializer,
-                     containsAttribute))
+                     containsAttribute,
+                     containsDirective,
+                     containsPrimaryConstructorBaseType,
+                     containsPartialClass))
         {
         }
 
@@ -82,7 +88,10 @@ internal sealed partial class SyntaxTreeIndex
             bool containsConversion,
             bool containsGlobalKeyword,
             bool containsCollectionInitializer,
-            bool containsAttribute)
+            bool containsAttribute,
+            bool containsDirective,
+            bool containsPrimaryConstructorBaseType,
+            bool containsPartialClass)
         {
             var containingNodes = ContainingNodes.None;
 
@@ -103,6 +112,9 @@ internal sealed partial class SyntaxTreeIndex
             containingNodes |= containsGlobalKeyword ? ContainingNodes.ContainsGlobalKeyword : 0;
             containingNodes |= containsCollectionInitializer ? ContainingNodes.ContainsCollectionInitializer : 0;
             containingNodes |= containsAttribute ? ContainingNodes.ContainsAttribute : 0;
+            containingNodes |= containsDirective ? ContainingNodes.ContainsDirective : 0;
+            containingNodes |= containsPrimaryConstructorBaseType ? ContainingNodes.ContainsPrimaryConstructorBaseType : 0;
+            containingNodes |= containsPartialClass ? ContainingNodes.ContainsPartialClass : 0;
 
             return containingNodes;
         }
@@ -127,6 +139,9 @@ internal sealed partial class SyntaxTreeIndex
 
         public bool ContainsLockStatement
             => (_containingNodes & ContainingNodes.ContainsLockStatement) == ContainingNodes.ContainsLockStatement;
+
+        public bool ContainsPartialClass
+            => (_containingNodes & ContainingNodes.ContainsPartialClass) == ContainingNodes.ContainsPartialClass;
 
         public bool ContainsUsingStatement
             => (_containingNodes & ContainingNodes.ContainsUsingStatement) == ContainingNodes.ContainsUsingStatement;
@@ -163,6 +178,12 @@ internal sealed partial class SyntaxTreeIndex
 
         public bool ContainsAttribute
             => (_containingNodes & ContainingNodes.ContainsAttribute) == ContainingNodes.ContainsAttribute;
+
+        public bool ContainsDirective
+            => (_containingNodes & ContainingNodes.ContainsDirective) == ContainingNodes.ContainsDirective;
+
+        public bool ContainsPrimaryConstructorBaseType
+            => (_containingNodes & ContainingNodes.ContainsPrimaryConstructorBaseType) == ContainingNodes.ContainsPrimaryConstructorBaseType;
 
         public void WriteTo(ObjectWriter writer)
         {
@@ -209,6 +230,9 @@ internal sealed partial class SyntaxTreeIndex
             ContainsGlobalKeyword = 1 << 14,
             ContainsCollectionInitializer = 1 << 15,
             ContainsAttribute = 1 << 16,
+            ContainsDirective = 1 << 17,
+            ContainsPrimaryConstructorBaseType = 1 << 18,
+            ContainsPartialClass = 1 << 19,
         }
     }
 }

@@ -4,14 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -30,9 +28,9 @@ public abstract partial class AbstractMetadataAsSourceTests
     public const string DefaultMetadataSource = "public class C {}";
     public const string DefaultSymbolMetadataName = "C";
 
-    internal class TestContext : IDisposable
+    internal sealed class TestContext : IDisposable
     {
-        public readonly TestWorkspace Workspace;
+        public readonly EditorTestWorkspace Workspace;
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;
 
         public static TestContext Create(
@@ -43,17 +41,19 @@ public abstract partial class AbstractMetadataAsSourceTests
             string? languageVersion = null,
             string? metadataLanguageVersion = null,
             string? metadataCommonReferences = null,
-            bool fileScopedNamespaces = false)
+            bool fileScopedNamespaces = false,
+            string? commonReferencesValue = null)
         {
             projectLanguage ??= LanguageNames.CSharp;
             metadataSources ??= [];
             metadataSources = !metadataSources.Any()
-                ? new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource }
+                ? [DefaultMetadataSource]
                 : metadataSources;
 
             var workspace = CreateWorkspace(
                 projectLanguage, metadataSources, includeXmlDocComments,
-                sourceWithSymbolReference, languageVersion, metadataLanguageVersion, metadataCommonReferences);
+                sourceWithSymbolReference, languageVersion,
+                metadataLanguageVersion, metadataCommonReferences, commonReferencesValue);
 
             if (fileScopedNamespaces)
             {
@@ -66,7 +66,7 @@ public abstract partial class AbstractMetadataAsSourceTests
             return new TestContext(workspace);
         }
 
-        public TestContext(TestWorkspace workspace)
+        public TestContext(EditorTestWorkspace workspace)
         {
             Workspace = workspace;
             _metadataAsSourceService = Workspace.GetService<IMetadataAsSourceFileService>();
@@ -102,7 +102,7 @@ public abstract partial class AbstractMetadataAsSourceTests
             // Get an ISymbol corresponding to the metadata name
             var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
             var diagnostics = compilation.GetDiagnostics().ToArray();
-            Assert.Equal(0, diagnostics.Length);
+            Assert.Empty(diagnostics);
             var symbol = await ResolveSymbolAsync(symbolMetadataName, compilation);
             Contract.ThrowIfNull(symbol);
 
@@ -170,7 +170,7 @@ public abstract partial class AbstractMetadataAsSourceTests
             {
                 compilation = await this.DefaultProject.GetRequiredCompilationAsync(CancellationToken.None);
                 var diagnostics = compilation.GetDiagnostics().ToArray();
-                Assert.Equal(0, diagnostics.Length);
+                Assert.Empty(diagnostics);
             }
 
             foreach (var reference in compilation.References)
@@ -241,24 +241,26 @@ public abstract partial class AbstractMetadataAsSourceTests
                 ? LanguageNames.VisualBasic : LanguageNames.CSharp;
         }
 
-        private static TestWorkspace CreateWorkspace(
+        private static EditorTestWorkspace CreateWorkspace(
             string projectLanguage,
             IEnumerable<string>? metadataSources,
             bool includeXmlDocComments,
             string? sourceWithSymbolReference,
             string? languageVersion,
             string? metadataLanguageVersion,
-            string? metadataCommonReferences)
+            string? metadataCommonReferences,
+            string? commonReferencesValue)
         {
             var languageVersionAttribute = languageVersion is null ? "" : $@" LanguageVersion=""{languageVersion}""";
 
-            var xmlString = string.Concat(@"
-<Workspace>
-    <Project Language=""", projectLanguage, @""" CommonReferences=""true"" ReferencesOnDisk=""true""", languageVersionAttribute);
+            commonReferencesValue ??= """CommonReferences="true" """;
 
-            xmlString += ">";
+            var xmlString = $$"""
+                <Workspace>
+                    <Project Language="{{projectLanguage}}" {{commonReferencesValue}}ReferencesOnDisk="true" {{languageVersionAttribute}}>
+                """;
 
-            metadataSources ??= new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource };
+            metadataSources ??= [DefaultMetadataSource];
 
             foreach (var source in metadataSources)
             {
@@ -282,17 +284,19 @@ public abstract partial class AbstractMetadataAsSourceTests
                     sourceWithSymbolReference));
             }
 
-            xmlString = string.Concat(xmlString, @"
-    </Project>
-</Workspace>");
+            xmlString += """
+
+                    </Project>
+                </Workspace>
+                """;
 
             // We construct our own composition here because we only want the decompilation metadata as source provider
             // to be available.
             var composition = EditorTestCompositions.EditorFeatures
-                .WithExcludedPartTypes(ImmutableHashSet.Create(typeof(IMetadataAsSourceFileProvider)))
+                .WithExcludedPartTypes([typeof(IMetadataAsSourceFileProvider)])
                 .AddParts(typeof(DecompilationMetadataAsSourceFileProvider));
 
-            return TestWorkspace.Create(xmlString, composition: composition);
+            return EditorTestWorkspace.Create(xmlString, composition: composition);
         }
 
         internal Document GetDocument(MetadataAsSourceFile file)
@@ -307,7 +311,7 @@ public abstract partial class AbstractMetadataAsSourceTests
 
         internal async Task<ISymbol> GetNavigationSymbolAsync()
         {
-            var testDocument = Workspace.Documents.Single(d => d.FilePath == "SourceDocument");
+            var testDocument = Workspace.Documents.Single(d => d.Name == "SourceDocument");
             var document = Workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
 
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);

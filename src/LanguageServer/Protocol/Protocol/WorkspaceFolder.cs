@@ -4,12 +4,13 @@
 
 using System;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>Describes a workspace folder</summary>
 /// <remarks>Since LSP 3.6</remarks>
-internal class WorkspaceFolder
+internal sealed class WorkspaceFolder
 {
     /// <summary>
     /// The URI for this workspace folder.
@@ -17,7 +18,15 @@ internal class WorkspaceFolder
     [JsonPropertyName("uri")]
     [JsonConverter(typeof(DocumentUriConverter))]
     [JsonRequired]
-    public Uri Uri { get; init; }
+    public DocumentUri DocumentUri { get; init; }
+
+    [Obsolete("Use DocumentUri instead. This property will be removed in a future version.")]
+    [JsonIgnore]
+    public Uri Uri
+    {
+        get => DocumentUri.GetRequiredParsedUri();
+        init => DocumentUri = new DocumentUri(value);
+    }
 
     /// <summary>
     /// The name of the workspace folder used in the UI.

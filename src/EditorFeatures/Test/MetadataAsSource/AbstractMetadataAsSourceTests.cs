@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource;
 [UseExportProvider]
 public abstract partial class AbstractMetadataAsSourceTests : IAsyncLifetime
 {
-    protected static readonly string ICSharpCodeDecompilerVersion = "8.1.1.7464";
+    protected static readonly string ICSharpCodeDecompilerVersion = "9.1.0.7988";
 
     public virtual Task InitializeAsync()
     {
@@ -45,9 +45,23 @@ public abstract partial class AbstractMetadataAsSourceTests : IAsyncLifetime
     }
 
     internal static async Task GenerateAndVerifySourceAsync(
-        string metadataSource, string symbolName, string projectLanguage, string expected, bool signaturesOnly = true, bool includeXmlDocComments = false, string languageVersion = null, string metadataLanguageVersion = null, string metadataCommonReferences = null)
+        string metadataSource,
+        string symbolName,
+        string projectLanguage,
+        string expected,
+        bool signaturesOnly = true,
+        bool includeXmlDocComments = false,
+        string languageVersion = null,
+        string metadataLanguageVersion = null,
+        string metadataCommonReferences = null,
+        string commonReferencesValue = null)
     {
-        using var context = TestContext.Create(projectLanguage, [metadataSource], includeXmlDocComments, languageVersion: languageVersion, metadataLanguageVersion: metadataLanguageVersion, metadataCommonReferences: metadataCommonReferences);
+        using var context = TestContext.Create(
+            projectLanguage, [metadataSource], includeXmlDocComments,
+            languageVersion: languageVersion,
+            metadataLanguageVersion: metadataLanguageVersion,
+            metadataCommonReferences: metadataCommonReferences,
+            commonReferencesValue: commonReferencesValue);
         await context.GenerateAndVerifySourceAsync(symbolName, expected, signaturesOnly: signaturesOnly);
     }
 

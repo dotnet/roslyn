@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 
-internal class CSharpDecompiledSourceFormattingRule : AbstractFormattingRule
+internal sealed class CSharpDecompiledSourceFormattingRule : AbstractFormattingRule
 {
     public static readonly AbstractFormattingRule Instance = new CSharpDecompiledSourceFormattingRule();
 

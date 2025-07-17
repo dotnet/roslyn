@@ -27,11 +27,10 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 
-internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKeyCommandArgs>
+internal sealed partial class EventHookupCommandHandler : IChainedCommandHandler<TabKeyCommandArgs>
 {
     private static readonly SyntaxAnnotation s_plusEqualsTokenAnnotation = new();
 
@@ -53,12 +52,9 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         _threadingContext.ThrowIfNotOnUIThread();
         if (!TryExecuteCommand(args, nextHandler))
         {
+            EventHookupSessionManager.DismissExistingSessions();
             nextHandler();
         }
-
-        // We always dismiss the tracking session once a tab has gone through.  Either we didn't handle it (and
-        // nextHandler was called above).  Or we did handle it, in which case the bg async work owns the experience now.
-        EventHookupSessionManager.DismissExistingSessions();
     }
 
     private bool TryExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
@@ -99,18 +95,16 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         // Capture everything we need off of the session manager as we'll be dismissing the core session immediately
         // before we kick off the work to emit hte event.  Detach the bg work that was already kicked off so that we
         // own its lifetime from now on.
-        var (eventNameTask, eventNameTokenSource) = EventHookupSessionManager.CurrentSession.DetachEventNameTask();
+        var eventNameTask = EventHookupSessionManager.CurrentSession.GetEventNameAsync();
         var applicableToSpan = EventHookupSessionManager.CurrentSession.TrackingSpan.GetSpan(currentSnapshot);
 
-        var task = ExecuteCommandAsync(
+        ExecuteCommandAsync(
             args,
             nextHandler,
             applicableToSpan,
             document,
             eventNameTask,
-            eventNameTokenSource,
-            caretPoint.Value);
-        task.CompletesAsyncOperation(token);
+            caretPoint.Value).ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
 
         // At this point, we've taken control, so don't send the tab into the buffer.  But do dismiss the overall
         // session.  We no longer need it.
@@ -123,7 +117,6 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         SnapshotSpan applicableToSpan,
         Document document,
         Task<string?> eventNameTask,
-        CancellationTokenSource eventNameCancellationTokenSource,
         SnapshotPoint initialCaretPoint)
     {
         _threadingContext.ThrowIfNotOnUIThread();
@@ -131,35 +124,18 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         var textView = args.TextView;
         var subjectBuffer = args.SubjectBuffer;
 
-        // Don't want any exceptions bubble up from this point on (they have no where to go since we effectively did a
-        // fire-and-forget).  So we instead handle things ourselves, reporting NFWs if unforseen things happened.
-        try
+        if (!await TryExecuteCommandAsync().ConfigureAwait(true))
         {
-            if (!await TryExecuteCommandAsync().ConfigureAwait(true))
-            {
-                _threadingContext.ThrowIfNotOnUIThread();
+            _threadingContext.ThrowIfNotOnUIThread();
 
-                // We didn't successfully handle the command.  If no other changes have gotten through in the mean time,
-                // then attempt to send the tab through to the editor.  If other changes went through, don't send the
-                // tab through as it's likely to make things worse.
-                if (applicableToSpan.Snapshot.Version == subjectBuffer.CurrentSnapshot.Version &&
-                    textView.GetCaretPoint(subjectBuffer) == initialCaretPoint)
-                {
-                    nextHandler();
-                }
+            // We didn't successfully handle the command.  If no other changes have gotten through in the mean time,
+            // then attempt to send the tab through to the editor.  If other changes went through, don't send the
+            // tab through as it's likely to make things worse.
+            if (applicableToSpan.Snapshot.Version == subjectBuffer.CurrentSnapshot.Version &&
+                textView.GetCaretPoint(subjectBuffer) == initialCaretPoint)
+            {
+                nextHandler();
             }
-        }
-        catch (OperationCanceledException)
-        {
-        }
-        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-        {
-        }
-        finally
-        {
-            // Once we finish doing our own work (including potentially cancelling out), ensure that any BG worked
-            // kicked off to compute the event name is canceled as well so it doesn't keep consuming resources.
-            eventNameCancellationTokenSource.Cancel();
         }
 
         return;
@@ -191,7 +167,8 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
             }
 
             // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
-            waitContext.CancelOnEdit = false;
+            var disposable = await waitContext.SuppressAutoCancelAsync().ConfigureAwait(true);
+            await using var _ = disposable.ConfigureAwait(true);
 
             var workspace = document.Project.Solution.Workspace;
             if (!workspace.TryApplyChanges(solutionAndRenameSpan.Value.solution))

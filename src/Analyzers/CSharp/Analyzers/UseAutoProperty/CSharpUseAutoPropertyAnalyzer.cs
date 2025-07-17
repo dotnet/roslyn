@@ -10,7 +10,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseAutoProperty;
 using Roslyn.Utilities;
@@ -18,14 +17,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAnalyzer<
+internal sealed class CSharpUseAutoPropertyAnalyzer() : AbstractUseAutoPropertyAnalyzer<
     SyntaxKind,
     PropertyDeclarationSyntax,
     ConstructorDeclarationSyntax,
     FieldDeclarationSyntax,
     VariableDeclaratorSyntax,
     ExpressionSyntax,
-    IdentifierNameSyntax>
+    IdentifierNameSyntax>(CSharpSemanticFacts.Instance)
 {
     protected override SyntaxKind PropertyDeclarationKind
         => SyntaxKind.PropertyDeclaration;
@@ -36,31 +35,14 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
     protected override bool SupportsFieldAttributesOnProperties
         => true;
 
-    protected override ISemanticFacts SemanticFacts
-        => CSharpSemanticFacts.Instance;
-
     protected override bool SupportsReadOnlyProperties(Compilation compilation)
         => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
     protected override bool SupportsPropertyInitializer(Compilation compilation)
         => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
-    protected override bool SupportsFieldExpression(Compilation compilation)
-        => compilation.LanguageVersion() >= LanguageVersion.Preview;
-
     protected override ExpressionSyntax? GetFieldInitializer(VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
         => variable.Initializer?.Value;
-
-    protected override bool ContainsFieldExpression(PropertyDeclarationSyntax propertyDeclaration, CancellationToken cancellationToken)
-    {
-        foreach (var node in propertyDeclaration.DescendantNodes())
-        {
-            if (node.IsKind(SyntaxKind.FieldExpression))
-                return true;
-        }
-
-        return false;
-    }
 
     protected override void RecordIneligibleFieldLocations(
         HashSet<string> fieldNames,

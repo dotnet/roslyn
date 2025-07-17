@@ -15,12 +15,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature;
 
 [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-public partial class ChangeSignatureTests : AbstractChangeSignatureTests
+public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
 {
     [WpfFact]
     public async Task AddOptionalParameter_ToEmptySignature_CallsiteOmitted()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Omitted, isRequired: false, defaultValue: "1") };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 void M$$()
@@ -28,10 +30,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M();
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Omitted, isRequired: false, defaultValue: "1") };
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             class C
             {
                 void M(int a = 1)
@@ -39,15 +38,16 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M();
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [WpfFact]
     public async Task AddOptionalParameter_AfterRequiredParameter_CallsiteOmitted()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(0),
+            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Omitted, isRequired: false, defaultValue: "1") };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 void M$$(int x)
@@ -55,11 +55,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(1);
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(0),
-            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Omitted, isRequired: false, defaultValue: "1") };
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             class C
             {
                 void M(int x, int a = 1)
@@ -67,15 +63,16 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(1);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [WpfFact]
     public async Task AddOptionalParameter_BeforeOptionalParameter_CallsiteOmitted()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Omitted, isRequired: false, defaultValue: "1"),
+            new AddedParameterOrExistingIndex(0) };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 void M$$(int x = 2)
@@ -85,11 +82,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(x: 2);
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Omitted, isRequired: false, defaultValue: "1"),
-            new AddedParameterOrExistingIndex(0) };
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             class C
             {
                 void M(int a = 1, int x = 2)
@@ -99,15 +92,16 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(x: 2);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [WpfFact]
     public async Task AddOptionalParameter_BeforeExpandedParamsArray_CallsiteOmitted()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Omitted, isRequired: false, defaultValue: "1"),
+            new AddedParameterOrExistingIndex(0) };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 void M$$(params int[] p)
@@ -118,11 +112,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(1, 2, 3);
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Omitted, isRequired: false, defaultValue: "1"),
-            new AddedParameterOrExistingIndex(0) };
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             class C
             {
                 void M(int a = 1, params int[] p)
@@ -133,15 +123,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(p: new int[] { 1, 2, 3 });
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [WpfFact]
     public async Task AddOptionalParameterWithOmittedCallsiteToAttributeConstructor()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(0),
+            new AddedParameterOrExistingIndex(1),
+            AddedParameterOrExistingIndex.CreateAdded("int", "x", CallSiteKind.Omitted, isRequired: false, defaultValue: "3"),
+            new AddedParameterOrExistingIndex(2)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             [Some(1, 2, 4)]
             class SomeAttribute : System.Attribute
             {
@@ -149,13 +142,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 {
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(0),
-            new AddedParameterOrExistingIndex(1),
-            AddedParameterOrExistingIndex.CreateAdded("int", "x", CallSiteKind.Omitted, isRequired: false, defaultValue: "3"),
-            new AddedParameterOrExistingIndex(2)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             [Some(1, 2, y: 4)]
             class SomeAttribute : System.Attribute
             {
@@ -163,8 +150,6 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 {
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 }

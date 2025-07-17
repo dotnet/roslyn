@@ -16,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.RefLifetime)]
     public class RefStructInterfacesTests : CSharpTestBase
     {
         private static readonly TargetFramework s_targetFrameworkSupportingByRefLikeGenerics = TargetFramework.Net90;
@@ -29196,6 +29197,34 @@ static class CSharpCompilerCrash
                 //     static async IAsyncEnumerator<T> B<T>() where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "B").WithLocation(8, 38)
                 );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78430")]
+        public void Issue78430()
+        {
+            var source =
+@"
+public ref struct TestStruct
+{
+    public int Prop1 {get; set;}
+}
+
+public static class TestClass
+{
+    public static void TestExtensionMethod<T>(this T value)
+        where T : allows ref struct
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            var testStruct = comp.GetTypeByMetadataName("TestStruct");
+            var extensionMethodSymbol = comp.GetMember<MethodSymbol>("TestClass.TestExtensionMethod");
+
+            AssertEx.Equal("void TestStruct.TestExtensionMethod<TestStruct>()", extensionMethodSymbol.ReduceExtensionMethod(testStruct, null).ToTestDisplayString());
         }
     }
 }

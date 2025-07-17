@@ -78,6 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
 
-        internal override int? TryGetOverloadResolutionPriority() => null;
+        internal override int TryGetOverloadResolutionPriority() => 0;
     }
 }

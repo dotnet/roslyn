@@ -383,10 +383,10 @@ class C {
             testContainsHelper1("#undef x", SyntaxKind.UndefDirectiveTrivia);
             testContainsHelper1("#warning", SyntaxKind.WarningDirectiveTrivia);
 
-            // #! is special and is only recognized at start of a script file and nowhere else.
             testContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Script));
-            testContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit(" #!command", options: TestOptions.Script));
-            testContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Regular));
+            testContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit(" #!command", options: TestOptions.Script));
+            testContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Regular));
+            testContainsHelper2([SyntaxKind.IgnoredDirectiveTrivia], SyntaxFactory.ParseCompilationUnit("#:x"));
 
             return;
 
@@ -470,7 +470,7 @@ class C {
             {
                 Assert.True(compilationUnit.ContainsDirectives);
                 foreach (var directiveKind in directiveKinds)
-                    Assert.True(compilationUnit.ContainsDirective(directiveKind));
+                    Assert.True(compilationUnit.ContainsDirective(directiveKind), directiveKind.ToString());
 
                 for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.XmlElement; kind++)
                 {
@@ -2788,6 +2788,44 @@ class C
 #region Fred
 #endregion
 }";
+
+            TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
+            {
+                var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+                Assert.NotNull(m);
+
+                var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+
+                var text = cu2.ToFullString();
+
+                Assert.Equal(expected, text);
+            });
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19613")]
+        public void TestRemove_KeepUnbalancedDirectives_Indented()
+        {
+            var inputText = """
+                class C
+                {
+                    // before
+                    #region Fred
+                    // more before
+                    void M()
+                    {
+                    } // after
+                    #endregion
+                }
+                """;
+
+            var expectedText = """
+                class C
+                {
+
+                    #region Fred
+                    #endregion
+                }
+                """;
 
             TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
             {

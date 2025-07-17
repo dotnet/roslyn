@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name) => [];
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity) => [];
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
@@ -96,6 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => [];
         public override bool IsStatic => false;
         public override bool IsRefLikeType => false;
+
+        internal override string ExtensionName
+            => throw ExceptionUtilities.Unreachable();
+
         public override bool IsReadOnly => false;
         public override bool IsAbstract => false;
         public override bool IsSealed => true;
@@ -104,7 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsFileLocal => false;
         internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
         internal override bool HasCodeAnalysisEmbeddedAttribute => true;
+        internal override bool HasCompilerLoweringPreserveAttribute => false;
         internal override bool IsInterpolatedStringHandlerType => false;
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
         internal override bool HasSpecialName => false;
         internal override bool IsComImport => false;
         internal override bool IsWindowsRuntimeImport => false;

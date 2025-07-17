@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
 internal sealed class CodeGenerationDestructorSymbol(
-    INamedTypeSymbol containingType,
+    INamedTypeSymbol? containingType,
     ImmutableArray<AttributeData> attributes) : CodeGenerationMethodSymbol(containingType,
          attributes,
          Accessibility.NotApplicable,
@@ -18,9 +16,9 @@ internal sealed class CodeGenerationDestructorSymbol(
          refKind: RefKind.None,
          explicitInterfaceImplementations: default,
          name: string.Empty,
-         typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
-         parameters: ImmutableArray<IParameterSymbol>.Empty,
-         returnTypeAttributes: ImmutableArray<AttributeData>.Empty)
+         typeParameters: [],
+         parameters: [],
+         returnTypeAttributes: [])
 {
     public override MethodKind MethodKind => MethodKind.Destructor;
 

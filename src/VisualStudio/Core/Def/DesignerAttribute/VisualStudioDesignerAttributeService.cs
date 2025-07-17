@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -30,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
 internal sealed class VisualStudioDesignerAttributeService :
-    IDesignerAttributeDiscoveryService.ICallback, IEventListener<object>, IDisposable
+    IDesignerAttributeDiscoveryService.ICallback, IEventListener
 {
     private readonly VisualStudioWorkspaceImpl _workspace;
     private readonly IThreadingContext _threadingContext;
@@ -59,6 +60,8 @@ internal sealed class VisualStudioDesignerAttributeService :
     // deliver them to VS in batches to prevent flooding the UI thread.
     private readonly AsyncBatchingWorkQueue<DesignerAttributeData> _projectSystemNotificationQueue;
 
+    private WorkspaceEventRegistration? _workspaceChangedDisposer;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioDesignerAttributeService(
@@ -86,21 +89,25 @@ internal sealed class VisualStudioDesignerAttributeService :
             _threadingContext.DisposalToken);
     }
 
-    public void Dispose()
-    {
-        _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-    }
-
-    void IEventListener<object>.StartListening(Workspace workspace, object _)
+    void IEventListener.StartListening(Workspace workspace)
     {
         if (workspace != _workspace)
             return;
 
-        _workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
         _workQueue.AddWork(cancelExistingWork: true);
     }
 
-    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    void IEventListener.StopListening(Workspace workspace)
+    {
+        if (workspace != _workspace)
+            return;
+
+        _workspaceChangedDisposer?.Dispose();
+        _workspaceChangedDisposer = null;
+    }
+
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         _workQueue.AddWork(cancelExistingWork: true);
     }
@@ -307,7 +314,7 @@ internal sealed class VisualStudioDesignerAttributeService :
     public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(_projectSystemNotificationQueue);
-        _projectSystemNotificationQueue.AddWork(data);
+        _projectSystemNotificationQueue.AddWork(data.AsSpan());
         return ValueTaskFactory.CompletedTask;
     }
 }

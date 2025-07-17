@@ -154,6 +154,19 @@ internal abstract class AnalyzedPattern
             if (!AreEquivalent(target.Syntax, compareTarget.Syntax))
                 return null;
 
+            // An &&/|| expression that looks the same on both sides.  This looks like something we could merge into an
+            // 'and/or' pattern that only executes the target once, and compares the result to multiple constants.
+            // However, we disqualify certain forms as they strongly imply that executing the target multiple times
+            // is necessary.  For example:
+            //
+            //  `if (ReadValue(x, ref index) == A && ReadValue(x, ref index) == B)`
+            //
+            // This should not get converted to `if (ReadValue(x, ref index) == A and B)`.
+            //
+            // This list is not exhaustive and can be expanded as needed.
+            if (target.Syntax.DescendantNodesAndSelf().OfType<ArgumentSyntax>().Any(a => a.RefKindKeyword.Kind() is SyntaxKind.RefKeyword))
+                return null;
+
             return new Binary(leftPattern, rightPattern, isDisjunctive, token, target);
         }
     }

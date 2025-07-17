@@ -440,11 +440,6 @@ Zobrazit položky z neimportovaných oborů názvů (experimentální);</target>
         <target state="translated">Nikdy nezahrnovat fragmenty</target>
         <note />
       </trans-unit>
-      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>Only add new line on enter after end of fully typed word</source>
-        <target state="translated">Při stisku Enter přidat nový řádek jenom po dopsání celého slova</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

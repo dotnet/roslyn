@@ -159,9 +159,9 @@ internal static class ISyntaxFactsExtensions
     public static bool ContainsInterleavedDirective(
         this ISyntaxFacts syntaxFacts, ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken)
     {
-        if (nodes.Length > 0)
+        if (nodes is [var firstNode, ..] and [.., var lastNode])
         {
-            var span = TextSpan.FromBounds(nodes.First().Span.Start, nodes.Last().Span.End);
+            var span = TextSpan.FromBounds(firstNode.Span.Start, lastNode.Span.End);
 
             foreach (var node in nodes)
             {
@@ -655,6 +655,16 @@ internal static class ISyntaxFactsExtensions
         return node == right;
     }
 
+    public static bool IsRightOfAliasQualifiedName(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+    {
+        var parent = node?.Parent;
+        if (!syntaxFacts.IsAliasQualifiedName(parent))
+            return false;
+
+        syntaxFacts.GetPartsOfAliasQualifiedName(parent, out _, out _, out var right);
+        return node == right;
+    }
+
     public static bool IsTypeOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
     {
         var parent = node?.Parent;
@@ -732,6 +742,9 @@ internal static class ISyntaxFactsExtensions
 
     #region names
 
+    public static bool IsAliasQualifiedName(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        => node?.RawKind == syntaxFacts.SyntaxKinds.AliasQualifiedName;
+
     public static bool IsGenericName(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         => node?.RawKind == syntaxFacts.SyntaxKinds.GenericName;
 
@@ -791,6 +804,9 @@ internal static class ISyntaxFactsExtensions
 
     public static bool IsConditionalAccessExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         => node?.RawKind == syntaxFacts.SyntaxKinds.ConditionalAccessExpression;
+
+    public static bool IsFieldExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        => node?.RawKind == syntaxFacts.SyntaxKinds.FieldExpression;
 
     public static bool IsImplicitArrayCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         => node?.RawKind == syntaxFacts.SyntaxKinds.ImplicitArrayCreationExpression;
@@ -999,6 +1015,9 @@ internal static class ISyntaxFactsExtensions
 
     public static bool IsIndexerMemberCref(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         => node?.RawKind == syntaxFacts.SyntaxKinds.IndexerMemberCref;
+
+    public static bool IsPrimaryConstructorBaseType(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        => node?.RawKind == syntaxFacts.SyntaxKinds.PrimaryConstructorBaseType;
 
     #endregion
 

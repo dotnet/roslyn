@@ -12,24 +12,9 @@
         <target state="translated">Pravidla formátování jazyka C#</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indentation_preferences">
-        <source>Indentation preferences</source>
-        <target state="translated">Předvolby odsazení</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_and_Sort_Usings">
         <source>R&amp;emove and Sort Usings</source>
         <target state="translated">Od&amp;ebrat a seřadit direktivy Using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_Usings">
-        <source>&amp;Sort Usings</source>
-        <target state="translated">&amp;Seřadit direktivy using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Space_preferences">
-        <source>Space preferences</source>
-        <target state="translated">Předvolby mezer</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit">
@@ -42,9 +27,14 @@
         <target state="translated">Implementujte rozhraní.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Wrapping_preferences">
-        <source>Wrapping preferences</source>
-        <target state="translated">Předvolby zalamování</target>
+      <trans-unit id="Sort_Usings">
+        <source>Sort Usings</source>
+        <target state="new">Sort Usings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Usings_with_accelerator">
+        <source>&amp;Sort Usings</source>
+        <target state="new">&amp;Sort Usings</target>
         <note />
       </trans-unit>
     </body>

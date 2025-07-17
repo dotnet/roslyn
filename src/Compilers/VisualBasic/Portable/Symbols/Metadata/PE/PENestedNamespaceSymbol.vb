@@ -118,10 +118,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         Protected Overrides Sub EnsureAllMembersLoaded()
-            Dim typesByNS = _typesByNS
+            Dim typesByNS = Volatile.Read(_typesByNS)
 
-            If m_lazyTypes Is Nothing OrElse m_lazyMembers Is Nothing Then
-                Debug.Assert(typesByNS IsNot Nothing)
+            If typesByNS Is Nothing Then
+                Debug.Assert(m_lazyTypes IsNot Nothing AndAlso m_lazyMembers IsNot Nothing)
+            Else
                 LoadAllMembers(typesByNS)
                 Interlocked.Exchange(_typesByNS, Nothing)
             End If

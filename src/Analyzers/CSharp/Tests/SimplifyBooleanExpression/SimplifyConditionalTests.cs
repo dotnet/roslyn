@@ -16,20 +16,15 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyBooleanExpression;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
-public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class SimplifyConditionalTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public SimplifyConditionalTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpSimplifyConditionalDiagnosticAnalyzer(), new SimplifyConditionalCodeFixProvider());
 
     [Fact]
-    public async Task TestSimpleCase()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleCase()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -58,12 +53,10 @@ public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProvider
                 private bool Y() => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimpleNegatedCase()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleNegatedCase()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -92,12 +85,10 @@ public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProvider
                 private bool Y() => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMustBeBool1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMustBeBool1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -112,12 +103,10 @@ public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProvider
                 private bool Y() => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMustBeBool2()
-    {
-        await TestMissingAsync(
+    public Task TestMustBeBool2()
+        => TestMissingAsync(
             """
             using System;
 
@@ -132,12 +121,10 @@ public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProvider
                 private bool Y() => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithTrueTrue()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithTrueTrue()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -166,12 +153,10 @@ public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProvider
                 private bool Y() => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithFalseFalse()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithFalseFalse()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -200,12 +185,10 @@ public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProvider
                 private bool Y() => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWhenTrueIsTrueAndWhenFalseIsUnknown()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWhenTrueIsTrueAndWhenFalseIsUnknown()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -234,12 +217,44 @@ public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProvider
                 private bool Y() => throw new NotImplementedException();
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71418")]
+    public Task TestWhenTrueIsTrueAndWhenFalseIsUnknown_A()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                string M()
+                {
+                    return [|X()
+                        ? true
+                        : Y()|];
+                }
+
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                string M()
+                {
+                    return X() || Y();
+                }
+
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """);
 
     [Fact]
-    public async Task TestWhenTrueIsFalseAndWhenFalseIsUnknown()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWhenTrueIsFalseAndWhenFalseIsUnknown()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -268,12 +283,44 @@ public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProvider
                 private bool Y() => throw new NotImplementedException();
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71418")]
+    public Task TestWhenTrueIsFalseAndWhenFalseIsUnknown_A()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                string M()
+                {
+                    return [|X()
+                        ? false
+                        : Y()|];
+                }
+
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                string M()
+                {
+                    return !X() && Y();
+                }
+
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """);
 
     [Fact]
-    public async Task TestWhenTrueIsUnknownAndWhenFalseIsTrue()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWhenTrueIsUnknownAndWhenFalseIsTrue()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -302,12 +349,44 @@ public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProvider
                 private bool Y() => throw new NotImplementedException();
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71418")]
+    public Task TestWhenTrueIsUnknownAndWhenFalseIsTrue_A()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                string M()
+                {
+                    return [|X()
+                        ? Y()
+                        : true|];
+                }
+
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                string M()
+                {
+                    return !X() || Y();
+                }
+
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """);
 
     [Fact]
-    public async Task TestWhenTrueIsUnknownAndWhenFalseIsFalse()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWhenTrueIsUnknownAndWhenFalseIsFalse()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -336,12 +415,44 @@ public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProvider
                 private bool Y() => throw new NotImplementedException();
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71418")]
+    public Task TestWhenTrueIsUnknownAndWhenFalseIsFalse_A()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                string M()
+                {
+                    return [|X()
+                        ? Y()
+                        : false|];
+                }
+
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                string M()
+                {
+                    return X() && Y();
+                }
+
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62827")]
-    public async Task TestFixAll()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAll()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -364,5 +475,4 @@ public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProvider
                 }
             }
             """);
-    }
 }

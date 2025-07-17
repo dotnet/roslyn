@@ -5,15 +5,13 @@
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Threading
-Imports System.Xml.Linq
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
-Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -1552,7 +1550,7 @@ end class
             Dim format = New SymbolDisplayFormat(
                 memberOptions:=SymbolDisplayMemberOptions.IncludeType,
                 kindOptions:=SymbolDisplayKindOptions.IncludeMemberKeyword,
-                compilerInternalOptions:=SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames)
+                compilerInternalOptions:=SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames)
 
             TestSymbolDescription(
                 text,
@@ -5898,7 +5896,7 @@ class Program
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword)
-        End sub
+        End Sub
 
         <Fact>
         Public Sub UseLongHandValueTuple()
@@ -5999,6 +5997,150 @@ end class"
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation)
+        End Sub
+
+        <Fact>
+        Public Sub PreprocessingSymbol()
+            Dim source =
+"
+#If NET5_0_OR_GREATER
+#End If"
+            Dim format = New SymbolDisplayFormat(
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or SymbolDisplayMemberOptions.IncludeType Or SymbolDisplayMemberOptions.IncludeModifiers,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            Dim comp = CreateCompilation(source)
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim preprocessingNameSyntax = tree.GetRoot().DescendantNodes(descendIntoTrivia:=True).OfType(Of IdentifierNameSyntax).First()
+            Dim preprocessingSymbolInfo = model.GetPreprocessingSymbolInfo(preprocessingNameSyntax)
+            Dim preprocessingSymbol = preprocessingSymbolInfo.Symbol
+
+            Assert.Equal(
+                "NET5_0_OR_GREATER",
+                SymbolDisplay.ToDisplayString(preprocessingSymbol, format))
+
+            Dim displayParts = preprocessingSymbol.ToDisplayParts(format)
+            Dim expectedDisplayParts =
+            {
+                New SymbolDisplayPart(SymbolDisplayPartKind.Text, preprocessingSymbol, "NET5_0_OR_GREATER")
+            }
+            Assert.Equal(
+                expected:=expectedDisplayParts,
+                actual:=displayParts)
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub TestExtensionBlockCSharp_01(useMetadata As Boolean)
+            Dim text =
+<text>
+static class E
+{
+    extension(object o)
+    {
+        public void M() { }
+    }
+}
+</text>.Value
+
+            Dim format = New SymbolDisplayFormat(
+                                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or
+                                               SymbolDisplayMemberOptions.IncludeModifiers Or
+                                               SymbolDisplayMemberOptions.IncludeAccessibility Or
+                                               SymbolDisplayMemberOptions.IncludeType Or
+                                               SymbolDisplayMemberOptions.IncludeContainingType,
+                                kindOptions:=SymbolDisplayKindOptions.IncludeMemberKeyword,
+                                parameterOptions:=SymbolDisplayParameterOptions.IncludeType Or
+                                                  SymbolDisplayParameterOptions.IncludeName Or
+                                                  SymbolDisplayParameterOptions.IncludeDefaultValue,
+                                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            Dim parseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Preview)
+            Dim comp As Compilation
+            If useMetadata Then
+                Dim libComp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
+                comp = CreateCSharpCompilation("d", code:="", parseOptions:=parseOptions, referencedAssemblies:=libComp.References.Concat(libComp.EmitToImageReference()))
+            Else
+                comp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
+            End If
+
+            Dim e = DirectCast(comp.GlobalNamespace.GetMembers("E").Single(), ITypeSymbol)
+            Dim extension = e.GetMembers().OfType(Of ITypeSymbol).Single()
+
+            Assert.True(extension.IsExtension)
+            Assert.Equal("E.<>E__0", SymbolDisplay.ToDisplayString(extension, format))
+
+            Dim parts = SymbolDisplay.ToDisplayParts(extension, format)
+            Verify(parts,
+                   "E.<>E__0",
+                   SymbolDisplayPartKind.ClassName,
+                   SymbolDisplayPartKind.Operator,
+                   SymbolDisplayPartKind.ClassName)
+
+            Dim skeletonM = extension.GetMembers("M").Single()
+            Assert.Equal("Public Sub E.<>E__0.M()", SymbolDisplay.ToDisplayString(skeletonM, format))
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub TestExtensionBlockCSharp_02(useMetadata As Boolean)
+            Dim text =
+<text>
+    <![CDATA[
+static class E
+{
+    extension<T>(T t)
+    {
+        public void M() { }
+    }
+}
+    ]]>
+</text>.Value
+
+            Dim format = New SymbolDisplayFormat(
+                                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or
+                                               SymbolDisplayMemberOptions.IncludeModifiers Or
+                                               SymbolDisplayMemberOptions.IncludeAccessibility Or
+                                               SymbolDisplayMemberOptions.IncludeType Or
+                                               SymbolDisplayMemberOptions.IncludeContainingType,
+                                kindOptions:=SymbolDisplayKindOptions.IncludeMemberKeyword,
+                                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                                parameterOptions:=SymbolDisplayParameterOptions.IncludeType Or
+                                                  SymbolDisplayParameterOptions.IncludeName Or
+                                                  SymbolDisplayParameterOptions.IncludeDefaultValue,
+                                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            Dim parseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Preview)
+            Dim comp As Compilation
+            If useMetadata Then
+                Dim libComp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
+                comp = CreateCSharpCompilation("d", code:="", parseOptions:=parseOptions, referencedAssemblies:=libComp.References.Concat(libComp.EmitToImageReference()))
+            Else
+                comp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
+            End If
+
+            Dim e = DirectCast(comp.GlobalNamespace.GetMembers("E").Single(), ITypeSymbol)
+            Dim extension = e.GetMembers().OfType(Of ITypeSymbol).Single()
+
+            ' Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, the arity should not be included in the extension type name
+            Assert.True(extension.IsExtension)
+            Assert.Equal("E.<>E__0`1(Of T)", SymbolDisplay.ToDisplayString(extension, format))
+
+            Dim parts = SymbolDisplay.ToDisplayParts(extension, format)
+            Verify(parts,
+               "E.<>E__0`1(Of T)",
+               SymbolDisplayPartKind.ClassName,
+               SymbolDisplayPartKind.Operator,
+               SymbolDisplayPartKind.ClassName,
+               SymbolDisplayPartKind.Punctuation,
+               SymbolDisplayPartKind.Keyword,
+               SymbolDisplayPartKind.Space,
+               SymbolDisplayPartKind.TypeParameterName,
+               SymbolDisplayPartKind.Punctuation)
+
+            Dim skeletonM = extension.GetMembers("M").Single()
+            Assert.Equal("Public Sub E.<>E__0`1(Of T).M()", SymbolDisplay.ToDisplayString(skeletonM, format))
         End Sub
 
 #Region "Helpers"

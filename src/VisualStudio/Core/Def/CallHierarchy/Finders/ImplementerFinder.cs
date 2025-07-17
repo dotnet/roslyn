@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
 
-internal class ImplementerFinder : AbstractCallFinder
+internal sealed class ImplementerFinder : AbstractCallFinder
 {
     public ImplementerFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
         : base(symbol, projectId, asyncListener, provider)
@@ -45,7 +43,7 @@ internal class ImplementerFinder : AbstractCallFinder
             var bestLocation = sourceLocations.FirstOrDefault(d => documents == null || documents.Contains(d));
             if (bestLocation != null)
             {
-                var item = await Provider.CreateItemAsync(implementation, bestLocation.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(false);
+                var item = await Provider.CreateItemAsync(implementation, bestLocation.Project, [], cancellationToken).ConfigureAwait(false);
                 callback.AddResult(item);
                 cancellationToken.ThrowIfCancellationRequested();
             }

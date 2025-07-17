@@ -2,23 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class RefKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class RefKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.RefKeyword)
 {
-    public RefKeywordRecommender()
-        : base(SyntaxKind.RefKeyword)
-    {
-    }
-
     /// <summary>
     /// Same as <see cref="SyntaxKindSet.AllMemberModifiers"/> with ref specific exclusions
     /// </summary>
@@ -147,7 +142,7 @@ internal class RefKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
             syntaxTree.IsGlobalMemberDeclarationContext(position, syntaxTree.IsScript() ? RefGlobalMemberScriptModifiers : RefGlobalMemberModifiers, cancellationToken) ||
             context.IsMemberDeclarationContext(
                 validModifiers: RefMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: true,
                 cancellationToken: cancellationToken);
     }
@@ -222,6 +217,6 @@ internal class RefKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers,
-            validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken);
+            validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: true, cancellationToken);
     }
 }

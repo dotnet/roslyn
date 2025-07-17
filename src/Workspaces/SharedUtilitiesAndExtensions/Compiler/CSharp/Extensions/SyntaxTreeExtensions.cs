@@ -84,6 +84,7 @@ internal static partial class SyntaxTreeExtensions
         return token.GetAncestors<BaseTypeDeclarationSyntax>().Where(t => BaseTypeDeclarationContainsPosition(t, position));
     }
 
+    private static readonly Func<SyntaxKind, bool> s_isDot = k => k is SyntaxKind.DotToken;
     private static readonly Func<SyntaxKind, bool> s_isDotOrArrow = k => k is SyntaxKind.DotToken or SyntaxKind.MinusGreaterThanToken;
     private static readonly Func<SyntaxKind, bool> s_isDotOrArrowOrColonColon =
         k => k is SyntaxKind.DotToken or SyntaxKind.MinusGreaterThanToken or SyntaxKind.ColonColonToken;
@@ -97,6 +98,9 @@ internal static partial class SyntaxTreeExtensions
 
     public static bool IsRightOfDotOrArrow(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         => syntaxTree.IsRightOf(position, s_isDotOrArrow, cancellationToken);
+
+    public static bool IsRightOfDot(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        => syntaxTree.IsRightOf(position, s_isDot, cancellationToken);
 
     private static bool IsRightOf(
         this SyntaxTree syntaxTree, int position, Func<SyntaxKind, bool> predicate, CancellationToken cancellationToken)
@@ -345,14 +349,14 @@ internal static partial class SyntaxTreeExtensions
         if (kind is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
         {
             var sourceText = token.SyntaxTree!.GetText(cancellationToken);
-            var startDelimeterLength = 0;
-            var endDelimeterLength = 0;
+            var startDelimiterLength = 0;
+            var endDelimiterLength = 0;
             for (int i = token.SpanStart, n = token.Span.End; i < n; i++)
             {
                 if (sourceText[i] != '"')
                     break;
 
-                startDelimeterLength++;
+                startDelimiterLength++;
             }
 
             for (int i = token.Span.End - 1, n = token.Span.Start; i >= n; i--)
@@ -360,17 +364,17 @@ internal static partial class SyntaxTreeExtensions
                 if (sourceText[i] != '"')
                     break;
 
-                endDelimeterLength++;
+                endDelimiterLength++;
             }
 
-            return token.Span.Length == startDelimeterLength ||
-                (token.Span.Length > startDelimeterLength && endDelimeterLength < startDelimeterLength);
+            return token.Span.Length == startDelimiterLength ||
+                (token.Span.Length > startDelimiterLength && endDelimiterLength < startDelimiterLength);
         }
         else
         {
-            var startDelimeterLength = token.IsVerbatimStringLiteral() ? 2 : 1;
-            return token.Span.Length == startDelimeterLength ||
-                (token.Span.Length > startDelimeterLength && token.Text[^1] != lastChar);
+            var startDelimiterLength = token.IsVerbatimStringLiteral() ? 2 : 1;
+            return token.Span.Length == startDelimiterLength ||
+                (token.Span.Length > startDelimiterLength && token.Text[^1] != lastChar);
         }
     }
 

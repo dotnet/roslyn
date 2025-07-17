@@ -47,7 +47,6 @@ public abstract class HostWorkspaceServices : IDisposable
     /// <summary>
     /// The host services this workspace services originated from.
     /// </summary>
-    /// <returns></returns>
     public abstract HostServices HostServices { get; }
 
     /// <summary>

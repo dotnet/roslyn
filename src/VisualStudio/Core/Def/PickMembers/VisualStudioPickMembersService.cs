@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers;
 
 [ExportWorkspaceService(typeof(IPickMembersService), ServiceLayer.Host), Shared]
-internal class VisualStudioPickMembersService : IPickMembersService
+internal sealed class VisualStudioPickMembersService : IPickMembersService
 {
     private readonly IGlyphService _glyphService;
 
@@ -38,9 +38,7 @@ internal class VisualStudioPickMembersService : IPickMembersService
         if (result == true)
         {
             return new PickMembersResult(
-                viewModel.MemberContainers.Where(c => c.IsChecked)
-                                          .Select(c => c.Symbol)
-                                          .ToImmutableArray(),
+                [.. viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.Symbol)],
                 options,
                 viewModel.SelectedAll);
         }

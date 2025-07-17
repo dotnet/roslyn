@@ -7,7 +7,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
+using Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.Formatting;
 
 [ExportNewDocumentFormattingProvider(LanguageNames.CSharp), Shared]
-internal class CSharpAccessibilityModifiersNewDocumentFormattingProvider : INewDocumentFormattingProvider
+internal sealed class CSharpAccessibilityModifiersNewDocumentFormattingProvider : INewDocumentFormattingProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -41,7 +41,7 @@ internal class CSharpAccessibilityModifiersNewDocumentFormattingProvider : INewD
         var typeDeclarations = root.DescendantNodes().Where(node => syntaxFacts.IsTypeDeclaration(node));
         var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
-        var service = document.GetRequiredLanguageService<IAddAccessibilityModifiersService>();
+        var service = document.GetRequiredLanguageService<IAddOrRemoveAccessibilityModifiersService>();
 
         foreach (var declaration in typeDeclarations)
         {
@@ -62,14 +62,14 @@ internal class CSharpAccessibilityModifiersNewDocumentFormattingProvider : INewD
             // error.
             var modifiers = syntaxFacts.GetModifiers(declaration);
             CSharpAccessibilityFacts.GetAccessibilityAndModifiers(modifiers, out _, out var declarationModifiers, out _);
-            if (declarationModifiers.IsPartial)
+            if (declarationModifiers.HasFlag(Modifiers.Partial))
                 continue;
 
             var type = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
             if (type == null)
                 continue;
 
-            AddAccessibilityModifiersHelpers.UpdateDeclaration(editor, type, declaration);
+            AddOrRemoveAccessibilityModifiersHelpers.UpdateDeclaration(editor, type, declaration);
         }
 
         return document.WithSyntaxRoot(editor.GetChangedRoot());

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable CS0419 // Ambiguous reference in cref attribute
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -13,12 +15,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using EncodingExtensions = Microsoft.CodeAnalysis.EncodingExtensions;
 
 namespace Roslyn.Utilities;
-
-#if CODE_STYLE
-using Resources = CodeStyleResources;
-#else
-using Resources = WorkspacesResources;
-#endif
 
 /// <summary>
 /// An <see cref="ObjectWriter"/> that serializes objects to a byte stream.
@@ -134,6 +130,28 @@ internal sealed partial class ObjectWriter : IDisposable
     public void WriteUInt64(ulong value) => _writer.Write(value);
     public void WriteUInt16(ushort value) => _writer.Write(value);
     public void WriteString(string? value) => WriteStringValue(value);
+
+    public Stream BaseStream => _writer.BaseStream;
+
+    public void Reset()
+    {
+        _stringReferenceMap.Reset();
+
+        // Reset the position and length back to zero
+        _writer.BaseStream.Position = 0;
+
+        if (_writer.BaseStream is SerializableBytes.ReadWriteStream pooledStream)
+        {
+            // ReadWriteStream.SetLength allows us to indicate to not truncate, allowing
+            // reuse of the backing arrays.
+            pooledStream.SetLength(0, truncate: false);
+        }
+        else
+        {
+            // Otherwise, set the new length via the standard Stream.SetLength
+            _writer.BaseStream.SetLength(0);
+        }
+    }
 
     /// <summary>
     /// Used so we can easily grab the low/high 64bits of a guid for serialization.
@@ -435,7 +453,7 @@ internal sealed partial class ObjectWriter : IDisposable
         }
         else
         {
-            throw new ArgumentException(Resources.Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer);
+            throw new ArgumentException(CompilerExtensionsResources.Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer);
         }
     }
 

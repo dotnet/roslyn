@@ -40,10 +40,25 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Une soustraction doit être le dernier élément dans une classe de caractères</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
+      <trans-unit id="Add_0_check">
+        <source>Add '{0}' check</source>
+        <target state="new">Add '{0}' check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">Ajouter l'attribut 'DebuggerDisplay'</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_negative_value_check">
+        <source>Add negative value check</source>
+        <target state="new">Add negative value check</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_negative_value_or_zero_check">
+        <source>Add negative value or zero check</source>
+        <target state="new">Add negative value or zero check</target>
+        <note />
       </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
@@ -147,17 +162,17 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Adding_or_moving_0_of_1_requires_restarting_the_application">
         <source>Adding or moving {0} of {1} requires restarting the application.</source>
-        <target state="new">Adding or moving {0} of {1} requires restarting the application.</target>
+        <target state="translated">L’ajout ou le déplacement de {0} de {1} nécessite le redémarrage de l’application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_or_moving_0_of_1_with_explicit_or_sequential_layout_requires_restarting_the_application">
         <source>Adding or moving {0} of {1} with explicit or sequential layout requires restarting the application.</source>
-        <target state="new">Adding or moving {0} of {1} with explicit or sequential layout requires restarting the application.</target>
+        <target state="translated">L'ajout ou le déplacement de {0} sur {1} avec une disposition explicite ou séquentielle nécessite le redémarrage de l'application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_or_moving_0_of_a_COM_interface_requires_restarting_the_application">
         <source>Adding or moving {0} of a COM interface requires restarting the application.</source>
-        <target state="new">Adding or moving {0} of a COM interface requires restarting the application.</target>
+        <target state="translated">L’ajout ou le déplacement {0} d’une interface COM nécessite le redémarrage de l’application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
@@ -320,11 +335,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">La tâche attendue ne retourne aucune valeur</target>
         <note />
       </trans-unit>
-      <trans-unit id="Built_in_Copilot_analysis">
-        <source>Built-in Copilot analysis</source>
-        <target state="translated">Analyse Copilot intégrée</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
         <source>C# and Visual Basic References</source>
         <target state="translated">Références C# et Visual Basic</target>
@@ -333,6 +343,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">Impossible d'appliquer les changements -- Erreur inattendue : '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
+        <source>Cannot determine valid range of statements to extract</source>
+        <target state="translated">Impossible de déterminer la plage valide des instructions à extraire</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_include_class_0_in_character_range">
@@ -344,11 +359,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <source>Cannot navigate to the symbol under the caret.</source>
         <target state="translated">Impossible de naviguer jusqu'au symbole sous le caret.</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
-        <source>Capture group numbers must be less than or equal to Int32.MaxValue</source>
-        <target state="translated">Les nombres de groupe de capture doivent être inférieurs ou égaux à Int32.MaxValue</target>
-        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
       </trans-unit>
       <trans-unit id="Capture_number_cannot_be_zero">
         <source>Capture number cannot be zero</source>
@@ -440,9 +450,24 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">La modification des types de paramètres de {0} requiert le redémarrage de l’application.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_project_or_package_reference_caused_the_identity_of_referenced_assembly_to_change_from_0_to_1_which_requires_restarting_the_application">
+        <source>Changing project or package reference caused the identity of referenced assembly to change from '{0}' to '{1}', which requires restarting the application.</source>
+        <target state="new">Changing project or package reference caused the identity of referenced assembly to change from '{0}' to '{1}', which requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_project_setting_0_from_1_to_2_requires_restarting_the_application">
+        <source>Changing project setting '{0}' from '{1}' to '{2}' requires restarting the application.</source>
+        <target state="new">Changing project setting '{0}' from '{1}' to '{2}' requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
         <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
         <target state="translated">La modification de l’attribut pseudo-personnalisé « {0} » de {1} requiert le redémarrage de l’application</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit">
+        <source>Changing source file '{0}' in a stale project has no effect until the project is rebuit.</source>
+        <target state="new">Changing source file '{0}' in a stale project has no effect until the project is rebuit.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application">
@@ -467,12 +492,12 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application">
         <source>Changing the signature of {0} requires restarting the application.</source>
-        <target state="new">Changing the signature of {0} requires restarting the application.</target>
+        <target state="translated">Changer la signature {0} nécessite de redémarrer l'application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</source>
-        <target state="new">Changing the signature of {0} requires restarting the application because is not supported by the runtime.</target>
+        <target state="translated">La modification de la signature de {0} nécessite le redémarrage de l'application car elle n'est pas prise en charge par le runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
@@ -505,6 +530,16 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Commentaires non autorisés</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0">
+        <source>Conditional alternation is missing a closing parenthesis after the group number {0}</source>
+        <target state="new">Conditional alternation is missing a closing parenthesis after the group number {0}</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
+      </trans-unit>
+      <trans-unit id="Conditional_alternation_refers_to_an_undefined_group_number_0">
+        <source>Conditional alternation refers to an undefined group number {0}</source>
+        <target state="new">Conditional alternation refers to an undefined group number {0}</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1)\1))</note>
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Configurer le style de code {0}</target>
@@ -523,6 +558,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Configure_severity_for_all_analyzers">
         <source>Configure severity for all analyzers</source>
         <target state="translated">Configurer la gravité pour tous les analyseurs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conflict_s_detected">
+        <source>Conflict(s) detected.</source>
+        <target state="translated">Conflit(s) détecté(s).</target>
         <note />
       </trans-unit>
       <trans-unit id="Constructors_not_allowed">
@@ -544,6 +584,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <source>Convert number</source>
         <target state="translated">Convertir un numéro</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_field_property">
+        <source>Convert to 'field' property</source>
+        <target state="new">Convert to 'field' property</target>
+        <note>{Locked="field"} "field" is C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
@@ -735,6 +780,16 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Exemples :</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
+      <trans-unit id="Extension_0_is_already_registered">
+        <source>Extension '{0}' is already registered.</source>
+        <target state="new">Extension '{0}' is already registered.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extension_0_was_not_registered">
+        <source>Extension '{0}' was not registered.</source>
+        <target state="new">Extension '{0}' was not registered.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
         <target state="translated">Extraire la classe de base...</target>
@@ -833,6 +888,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Générer des opérateurs de comparaison</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_from_members">
+        <source>Generate constructor from members...</source>
+        <target state="translated">Générer un constructeur à partir des membres...</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -935,9 +995,9 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Variable temporaire inline</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insufficient_hexadecimal_digits">
-        <source>Insufficient hexadecimal digits</source>
-        <target state="translated">Chiffres hexadécimaux insuffisants</target>
+      <trans-unit id="Insufficient_or_invalid_hexadecimal_digits">
+        <source>Insufficient or invalid hexadecimal digits</source>
+        <target state="new">Insufficient or invalid hexadecimal digits</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
       </trans-unit>
       <trans-unit id="Introduce_constant">
@@ -1035,11 +1095,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">La création d’une méthode asynchrone nécessite le redémarrage de l’application, car elle n’est pas prise en charge par le runtime.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Malformed">
-        <source>malformed</source>
-        <target state="translated">incorrecte</target>
-        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
-      </trans-unit>
       <trans-unit id="Malformed_character_escape">
         <source>Malformed \p{X} character escape</source>
         <target state="translated">Caractère d'échappement incorrect \p{X}</target>
@@ -1078,11 +1133,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Method_0_must_be_static_and_non_generic">
         <source>Method '{0}' must be static and non-generic</source>
         <target state="translated">La méthode « {0} » doit être statique et non générique</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Method_0_must_have_a_single_parameter_of_type_1_and_return_2">
-        <source>Method '{0}' must have a single parameter of type '{1}' and return '{2}'</source>
-        <target state="translated">Le « {0} » de méthode doit avoir un seul paramètre de type « {1} » et « {2} » de retour</target>
         <note />
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
@@ -1175,6 +1225,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Déplacer le contenu vers un espace de noms...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_declaration_near_reference_may_change_semantics">
+        <source>Move declaration near reference (may change semantics)</source>
+        <target state="translated">Déplacer la déclaration près de la référence (peut modifier la sémantique)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_file_to_0">
         <source>Move file to '{0}'</source>
         <target state="translated">Déplacer le fichier vers '{0}'</target>
@@ -1200,6 +1255,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Le déplacement de {0} requiert le redémarrage de l’application.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Multiple_handlers_found_for_message_0">
+        <source>Multiple handlers found for message {0}.</source>
+        <target state="new">Multiple handlers found for message {0}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="NET_Code_Actions">
         <source>.NET Code Actions</source>
         <target state="translated">Actions du code .NET</target>
@@ -1221,13 +1281,28 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
-        <source>Nested quantifier {0}</source>
-        <target state="translated">Quantificateur imbriqué {0}</target>
+        <source>Nested quantifier '{0}'</source>
+        <target state="needs-review-translation">Quantificateur imbriqué {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
         <source>No common root node for extraction.</source>
         <target state="translated">Pas de nœud racine commun pour l'extraction.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_extension_registered_as_0">
+        <source>No extension registered as '{0}'.</source>
+        <target state="new">No extension registered as '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_extensions_registered_at_0">
+        <source>No extensions registered at '{0}'.</source>
+        <target state="new">No extensions registered at '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_handler_found_for_message_0">
+        <source>No handler found for message {0}.</source>
+        <target state="new">No handler found for message {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="No_source_document_info_found_in_PDB">
@@ -1245,6 +1320,16 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Pas de sélection valide pour procéder à l'extraction.</target>
         <note />
       </trans-unit>
+      <trans-unit id="No_valid_statement_range_to_extract">
+        <source>No valid statement range to extract</source>
+        <target state="translated">Aucune plage valide d'instructions à extraire</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_all_code_paths_return">
+        <source>Not all code paths return</source>
+        <target state="translated">Tous les chemins du code n'ont pas été retournés</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Not_enough_close_parens">
         <source>Not enough )'s</source>
         <target state="translated">Pas assez de )'s</target>
@@ -1260,6 +1345,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Opérateurs</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameter_type_0_is_not_among_supported_types_1">
+        <source>Parameter type '{0}' is not among supported types: {1}</source>
+        <target state="new">Parameter type '{0}' is not among supported types: {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
         <source>Please resolve errors in your code before renaming this element.</source>
         <target state="translated">Corrigez les erreurs dans votre code avant de renommer cet élément.</target>
@@ -1268,6 +1358,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Probable_JSON_string_detected">
         <source>Probable JSON string detected</source>
         <target state="translated">Chaîne JSON probable détectée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_references_mutliple_assemblies_of_the_same_simple_name_0_1_Changing_a_reference_to_such_an_assembly_requires_restarting_the_application">
+        <source>Project references mutliple assemblies of the same simple name '{0}': {1}. Changing a reference to such an assembly requires restarting the application.</source>
+        <target state="new">Project references mutliple assemblies of the same simple name '{0}': {1}. Changing a reference to such an assembly requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Properties_not_allowed_in_an_array">
@@ -1292,7 +1387,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Pull_0_up_to">
         <source>Pull '{0}' up to ...</source>
-        <target state="new">Pull '{0}' up to ...</target>
+        <target state="translated">Tirez '{0}' jusqu'à ...</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">
@@ -1305,34 +1400,29 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Extraire les membres sélectionnés vers le haut</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pull_selected_members_up_to_0">
-        <source>Pull selected members up to {0}</source>
-        <target state="translated">Extraire les membres sélectionnés jusqu’à {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Quantifier_x_y_following_nothing">
-        <source>Quantifier {x,y} following nothing</source>
-        <target state="translated">Le quantificateur {x,y} ne suit rien</target>
+      <trans-unit id="Quantifier_0_following_nothing">
+        <source>Quantifier '{0}' following nothing</source>
+        <target state="new">Quantifier '{0}' following nothing</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
+      </trans-unit>
+      <trans-unit id="Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
+        <source>Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</source>
+        <target state="new">Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
       </trans-unit>
       <trans-unit id="Query">
         <source>Query</source>
         <target state="translated">Requête</target>
         <note />
       </trans-unit>
-      <trans-unit id="Reference_to_undefined_group">
-        <source>reference to undefined group</source>
-        <target state="translated">référence à un groupe indéfini</target>
-        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1))</note>
-      </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
-        <source>Reference to undefined group name {0}</source>
-        <target state="translated">Référence au nom de groupe indéfini {0}</target>
+        <source>Reference to undefined group name '{0}'</source>
+        <target state="needs-review-translation">Référence au nom de groupe indéfini {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_number_0">
         <source>Reference to undefined group number {0}</source>
-        <target state="translated">Référence à un numéro de groupe indéfini {0}</target>
+        <target state="new">Reference to undefined group number {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;-1&gt;). Here, {0} will be the number of the undefined group ('1')</note>
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_long">
@@ -2530,6 +2620,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Résoudre le module '{0}' sur '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Return_type_0_is_not_among_supported_types_1">
+        <source>Return type '{0}' is not among supported types: {1}</source>
+        <target state="new">Return type '{0}' is not among supported types: {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Modification non applicable</target>
@@ -2580,6 +2675,16 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Silencieux</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_member_access_0">
+        <source>Simplify member access '{0}'</source>
+        <target state="translated">Simplifier l'accès au membre '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_name_0">
+        <source>Simplify name '{0}'</source>
+        <target state="translated">Simplifier le nom '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_Imports_or_usings">
         <source>Sort Imports or usings</source>
         <target state="translated">Trier les importations ou les utilisations</target>
@@ -2608,11 +2713,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="Split_into_nested_0_statements">
         <source>Split into nested '{0}' statements</source>
         <target state="translated">Diviser en instructions '{0}' imbriquées</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="StreamMustSupportReadAndSeek">
-        <source>Stream must support read and seek operations.</source>
-        <target state="translated">Le flux doit prendre en charge les opérations de lecture et de recherche.</target>
         <note />
       </trans-unit>
       <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
@@ -2661,13 +2761,18 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <note />
       </trans-unit>
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
-        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="translated">L'assembly d'analyseur '{0}' fait référence à la version '{1}' du compilateur, qui est plus récente que la version en cours d'exécution '{2}'.</target>
+        <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="needs-review-translation">L'assembly d'analyseur '{0}' fait référence à la version '{1}' du compilateur, qui est plus récente que la version en cours d'exécution '{2}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_query_does_not_specify_0_method_or_top_level_function">
-        <source>The query does not specify '{0}' method or top-level function</source>
-        <target state="translated">La requête ne spécifie pas « {0} » méthode ou fonction de niveau supérieur</target>
+      <trans-unit id="The_query_does_not_specify_0_top_level_function">
+        <source>The query does not specify '{0}' top-level function</source>
+        <target state="new">The query does not specify '{0}' top-level function</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_query_specifies_multiple_top_level_functions_1">
+        <source>The query specifies multiple top-level functions '{1}'</source>
+        <target state="new">The query specifies multiple top-level functions '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2710,6 +2815,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Trop de )'s</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
+      <trans-unit id="Top_level_function_0_must_have_a_single_parameter">
+        <source>Top-level function '{0}' must have a single parameter</source>
+        <target state="new">Top-level function '{0}' must have a single parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">Virgule de fin non autorisée</target>
@@ -2723,6 +2833,16 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">Impossible de lire le fichier source '{0}' ou le PDB généré pour le projet conteneur. Les changements apportés à ce fichier durant le débogage ne seront pas appliqués tant que son contenu ne correspondra pas à la source générée.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_create_0">
+        <source>Unable to create '{0}'</source>
+        <target state="translated">Impossible de créer « {0} »</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_get_the_directory_name_for_0">
+        <source>Unable to get the directory name for {0}.</source>
+        <target state="new">Unable to get the directory name for {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
@@ -2925,11 +3045,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">La mise à jour de la taille d’un {0} requiert le redémarrage de l’application.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
-        <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
-        <target state="translated">La mise à jour du type de {0} (de '{1}' à '{2}') autour d'une instruction active nécessite le redémarrage de l'application.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
         <source>Updating the type of {0} requires restarting the application.</source>
         <target state="translated">La mise à jour du type de {0} requiert le redémarrage de l’application.</target>
@@ -3080,6 +3195,16 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">'{0}' bases</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_cannot_be_negative">
+        <source>'{0}' cannot be negative</source>
+        <target state="new">'{0}' cannot be negative</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_cannot_be_negative_or_zero">
+        <source>'{0}' cannot be negative or zero</source>
+        <target state="new">'{0}' cannot be negative or zero</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
         <target state="translated">« {0} » ne peut pas être vide ou avoir la valeur Null.</target>
@@ -3148,6 +3273,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">'{0}' n'a pas une valeur null ici.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_not_nullable_aware">
+        <source>'{0}' is not nullable aware.</source>
+        <target state="new">'{0}' is not nullable aware.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_items_in_cache">
@@ -3431,6 +3561,11 @@ Si le spécificateur de format "H" est utilisé sans autres spécificateurs de f
         <target state="translated">et mettre à jour les sites d’appel directement</target>
         <note />
       </trans-unit>
+      <trans-unit id="class_name">
+        <source>&lt;class name&gt;</source>
+        <target state="translated">&lt;class name&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
         <source>class with explicit or sequential layout</source>
         <target state="translated">classe avec une disposition séquentielle ou explicite</target>
@@ -3506,6 +3641,11 @@ Si le spécificateur de format "d" est utilisé sans autres spécificateurs de f
       <trans-unit id="day_of_the_week_full_description">
         <source>The "dddd" custom format specifier (plus any number of additional "d" specifiers) represents the full name of the day of the week. The localized name of the day of the week is retrieved from the DateTimeFormatInfo.DayNames property of the current or specified culture.</source>
         <target state="translated">Le spécificateur de format personnalisé "dddd" (plus n'importe quel nombre de spécificateurs "d" supplémentaires) représente le nom complet du jour de la semaine. Le nom localisé du jour de la semaine est récupéré à partir de la propriété DateTimeFormatInfo.DayNames de la culture actuelle ou spécifiée.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="default">
+        <source>default&gt;</source>
+        <target state="new">default&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="discard">
@@ -3610,6 +3750,11 @@ Le spécificateur de format standard "f" représente une combinaison des modèle
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">dans la source (attribut)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="interface_name">
+        <source>&lt;interface name&gt;</source>
+        <target state="translated">&lt;interface name&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
@@ -3728,6 +3873,11 @@ Si le spécificateur de format "M" est utilisé sans autres spécificateurs de f
       <trans-unit id="month_full_description">
         <source>The "MMMM" custom format specifier represents the full name of the month. The localized name of the month is retrieved from the DateTimeFormatInfo.MonthNames property of the current or specified culture.</source>
         <target state="translated">Le spécificateur de format personnalisé "MMMM" représente le nom complet du mois. Le nom localisé du mois est récupéré à partir de la propriété DateTimeFormatInfo.MonthNames de la culture actuelle ou spécifiée.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="namespace_name">
+        <source>&lt;namespace name&gt;</source>
+        <target state="translated">&lt;namespace name&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -3989,11 +4139,6 @@ Si le spécificateur de format "g" est utilisé sans autres spécificateurs de f
         <target state="translated">Retourne :</target>
         <note />
       </trans-unit>
-      <trans-unit id="Exceptions_colon">
-        <source>Exceptions:</source>
-        <target state="translated">Exceptions :</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remarks_colon">
         <source>Remarks:</source>
         <target state="translated">Remarques :</target>
@@ -4096,8 +4241,8 @@ Voulez-vous continuer ?</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
-        <source>    {0} - {1}</source>
-        <target state="translated">    {0} - {1}</target>
+        <source>{0} - {1}</source>
+        <target state="needs-review-translation">    {0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">
@@ -4715,11 +4860,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">Supprimer les séparateurs</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor">
-        <source>Generate constructor...</source>
-        <target state="translated">Générer le constructeur...</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Pick_members_to_be_used_as_constructor_parameters">
         <source>Pick members to be used as constructor parameters</source>
         <target state="translated">Choisir les membres à utiliser comme paramètres de constructeur</target>
@@ -4745,16 +4885,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">Ajouter un contrôle de valeur null</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_string_IsNullOrEmpty_check">
-        <source>Add 'string.IsNullOrEmpty' check</source>
-        <target state="translated">Ajouter le contrôle 'string.IsNullOrEmpty'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
-        <source>Add 'string.IsNullOrWhiteSpace' check</source>
-        <target state="translated">Ajouter le contrôle 'string.IsNullOrWhiteSpace'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Initialize_field_0">
         <source>Initialize field '{0}'</source>
         <target state="translated">Initialiser le champ '{0}'</target>
@@ -4767,7 +4897,7 @@ Version utilisée dans : {2}</target>
       </trans-unit>
       <trans-unit id="Add_null_checks">
         <source>Add _null checks</source>
-        <target state="needs-review-translation">Ajouter des contrôles de valeur null</target>
+        <target state="translated">Ajoutez des contrôles _null</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_operators">

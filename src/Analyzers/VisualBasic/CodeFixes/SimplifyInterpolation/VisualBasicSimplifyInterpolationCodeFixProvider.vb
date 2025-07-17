@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.SimplifyInterpolation), [Shared]>
-    Friend Class VisualBasicSimplifyInterpolationCodeFixProvider
+    Friend NotInheritable Class VisualBasicSimplifyInterpolationCodeFixProvider
         Inherits AbstractSimplifyInterpolationCodeFixProvider(Of
             InterpolationSyntax, ExpressionSyntax, InterpolationAlignmentClauseSyntax,
             InterpolationFormatClauseSyntax, InterpolatedStringExpressionSyntax)
@@ -20,9 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetHelpers() As AbstractSimplifyInterpolationHelpers
-            Return VisualBasicSimplifyInterpolationHelpers.Instance
-        End Function
+        Protected Overrides ReadOnly Property Helpers As AbstractSimplifyInterpolationHelpers(Of InterpolationSyntax, ExpressionSyntax) = VisualBasicSimplifyInterpolationHelpers.Instance
 
         Protected Overrides Function WithExpression(interpolation As InterpolationSyntax, expression As ExpressionSyntax) As InterpolationSyntax
             Return interpolation.WithExpression(expression)

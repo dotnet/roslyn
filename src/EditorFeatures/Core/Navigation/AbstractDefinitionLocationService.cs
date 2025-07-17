@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -50,14 +51,17 @@ internal abstract partial class AbstractDefinitionLocationService(
 
         async ValueTask<DefinitionLocation?> GetDefinitionLocationWorkerAsync(Document document)
         {
-            return await GetControlFlowTargetLocationAsync(document).ConfigureAwait(false) ??
-                   await GetSymbolLocationAsync(document).ConfigureAwait(false);
+            // We don't need nullable information to compute the symbol.  So avoid expensive work computing this.
+            var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return await GetControlFlowTargetLocationAsync(document, semanticModel).ConfigureAwait(false) ??
+                   await GetSymbolLocationAsync(document, semanticModel).ConfigureAwait(false);
         }
 
-        async ValueTask<DefinitionLocation?> GetControlFlowTargetLocationAsync(Document document)
+        async ValueTask<DefinitionLocation?> GetControlFlowTargetLocationAsync(
+            Document document, SemanticModel semanticModel)
         {
             var (controlFlowTarget, controlFlowSpan) = await symbolService.GetTargetIfControlFlowAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
+                document, semanticModel, position, cancellationToken).ConfigureAwait(false);
             if (controlFlowTarget == null)
                 return null;
 
@@ -66,11 +70,12 @@ internal abstract partial class AbstractDefinitionLocationService(
             return location is null ? null : new DefinitionLocation(location, new DocumentSpan(document, controlFlowSpan));
         }
 
-        async ValueTask<DefinitionLocation?> GetSymbolLocationAsync(Document document)
+        async ValueTask<DefinitionLocation?> GetSymbolLocationAsync(
+            Document document, SemanticModel semanticModel)
         {
             // Try to compute the referenced symbol and attempt to go to definition for the symbol.
             var (symbol, project, span) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
+                document, semanticModel, position, cancellationToken).ConfigureAwait(false);
             if (symbol is null)
                 return null;
 
@@ -126,15 +131,12 @@ internal abstract partial class AbstractDefinitionLocationService(
     {
         var solution = project.Solution;
 
-        var sourceLocations = symbol.Locations.WhereAsArray(loc => loc.IsInSource);
-        if (sourceLocations.Length != 1)
+        if (symbol.DeclaringSyntaxReferences is not [{ SyntaxTree: { } definitionTree, Span: var definitionSpan }])
             return null;
 
-        var definitionLocation = sourceLocations[0];
-        if (!definitionLocation.SourceSpan.IntersectsWith(position))
+        if (!definitionSpan.IntersectsWith(position))
             return null;
 
-        var definitionTree = definitionLocation.SourceTree;
         var definitionDocument = solution.GetDocument(definitionTree);
         if (definitionDocument != originalDocument)
             return null;
@@ -142,7 +144,8 @@ internal abstract partial class AbstractDefinitionLocationService(
         // Ok, we were already on the definition. Look for better symbols we could show results for instead. This can be
         // expanded with other mappings in the future if appropriate.
         return await TryGetExplicitInterfaceLocationAsync().ConfigureAwait(false) ??
-               await TryGetInterceptedLocationAsync().ConfigureAwait(false);
+               await TryGetInterceptedLocationAsync().ConfigureAwait(false) ??
+               await TryGetOtherPartOfPartialAsync().ConfigureAwait(false);
 
         async ValueTask<INavigableLocation?> TryGetExplicitInterfaceLocationAsync()
         {
@@ -250,6 +253,24 @@ internal abstract partial class AbstractDefinitionLocationService(
                     return true;
                 });
             }
+        }
+        async ValueTask<INavigableLocation?> TryGetOtherPartOfPartialAsync()
+        {
+            ISymbol? otherPart = symbol is IMethodSymbol method ? method.PartialDefinitionPart ?? method.PartialImplementationPart : null;
+            otherPart ??= symbol is IPropertySymbol property ? property.PartialDefinitionPart ?? property.PartialImplementationPart : null;
+
+            if (otherPart is null || Equals(symbol, otherPart))
+                return null;
+
+            if (otherPart.Locations is not [{ SourceTree: { } sourceTree, SourceSpan: var span }])
+                return null;
+
+            var document = solution.GetDocument(sourceTree);
+            if (document is null)
+                return null;
+
+            var documentSpan = new DocumentSpan(document, span);
+            return await documentSpan.GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 

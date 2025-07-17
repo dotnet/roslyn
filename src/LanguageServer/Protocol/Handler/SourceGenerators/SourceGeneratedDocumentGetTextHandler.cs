@@ -7,10 +7,11 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SourceGenerators;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(SourceGeneratedDocumentGetTextHandler)), Shared]
 [Method(MethodName)]
@@ -29,18 +30,46 @@ internal sealed class SourceGeneratedDocumentGetTextHandler() : ILspServiceDocum
     {
         var document = context.Document;
 
+        if (document is null)
+        {
+            // The source generated file being asked about is not present.
+            // This is a rare case the request queue always gives us a frozen, non-null document for any opened sg document,
+            // even if the generator itself was removed and the document no longer exists in the host solution.
+            //
+            // We can only get a null document here if the sg document has not been opened and
+            // the source generated document does not exist in the workspace.
+            //
+            // Return a value indicating that the document is removed.
+            return new SourceGeneratedDocumentText(ResultId: null, Text: null);
+        }
+
         // Nothing here strictly prevents this from working on any other document, but we'll assert we got a source-generated file, since
         // it wouldn't really make sense for the server to be asked for the contents of a regular file. Since this endpoint is intended for
         // source-generated files only, this would indicate that something else has gone wrong.
         Contract.ThrowIfFalse(document is SourceGeneratedDocument);
 
-        // When a user has a open source-generated file, we ensure that the contents in the LSP snapshot match the contents that we
-        // get through didOpen/didChanges, like any other file. That way operations in LSP file are in sync with the
-        // contents the user has. However in this case, we don't want to look at that frozen text, but look at what the
-        // generator would generate if we ran it again. Otherwise, we'll get "stuck" and never update the file with something new.
-        document = await document.Project.Solution.WithoutFrozenSourceGeneratedDocuments().GetDocumentAsync(document.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+        var cache = context.GetRequiredLspService<SourceGeneratedDocumentCache>();
+        var projectOrDocument = new ProjectOrDocumentId(document.Id);
 
-        var text = document != null ? await document.GetTextAsync(cancellationToken).ConfigureAwait(false) : null;
-        return new SourceGeneratedDocumentText(text?.ToString());
+        using var _ = PooledDictionary<ProjectOrDocumentId, PreviousPullResult>.GetInstance(out var previousPullResults);
+        if (request.ResultId is not null)
+        {
+            previousPullResults.Add(projectOrDocument, new PreviousPullResult(request.ResultId, request.TextDocument));
+        }
+
+        var newResult = await cache.GetOrComputeNewDataAsync(previousPullResults, projectOrDocument, document.Project, new SourceGeneratedDocumentGetTextState(document), cancellationToken).ConfigureAwait(false);
+
+        if (newResult is null)
+        {
+            Contract.ThrowIfNull(request.ResultId, "Attempted to reuse cache entry but given no resultId");
+            // The generated document is the same, we can return the same resultId.
+            return new SourceGeneratedDocumentText(request.ResultId, Text: null);
+        }
+        else
+        {
+            // We may get no text back if the unfrozen source generated file no longer exists.
+            var data = newResult.Value.Data?.ToString();
+            return new SourceGeneratedDocumentText(newResult.Value.ResultId, data);
+        }
     }
 }

@@ -66,7 +66,7 @@ internal abstract partial class AbstractPartialTypeCompletionProvider<TSyntaxCon
             displayText: displayText,
             displayTextSuffix: suffix,
             insertionText: insertionText,
-            symbols: ImmutableArray.Create(symbol),
+            symbols: [symbol],
             contextPosition: context.Position,
             properties: GetProperties(symbol, context),
             rules: CompletionItemRules.Default);

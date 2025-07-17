@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities;
 
-public class TestUtilities
+public static class TestUtilities
 {
     public static void ThrowIfExpectedItemNotFound<TCollection>(IEnumerable<TCollection> actual, IEnumerable<TCollection> expected)
         where TCollection : IEquatable<TCollection>

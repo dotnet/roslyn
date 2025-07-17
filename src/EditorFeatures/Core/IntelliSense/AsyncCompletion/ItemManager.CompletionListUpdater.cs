@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -648,7 +649,7 @@ internal partial class ItemManager
             // model (and all the previously filtered items), but switch over to soft
             // selection.
             return new FilteredCompletionModel(
-                items: ImmutableArray<CompletionItemWithHighlight>.Empty, selectedItemIndex,
+                items: [], selectedItemIndex,
                 filters: _snapshotData.SelectedFilters, selectionHint: UpdateSelectionHint.SoftSelected, centerSelection: true, uniqueItem: null);
         }
 

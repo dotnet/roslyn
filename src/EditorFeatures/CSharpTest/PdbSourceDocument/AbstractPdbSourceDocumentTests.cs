@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -212,14 +211,17 @@ public abstract class AbstractPdbSourceDocumentTests
         Encoding? fallbackEncoding = null)
     {
         var preprocessorSymbolsAttribute = preprocessorSymbols?.Length > 0
-            ? $"PreprocessorSymbols=\"{string.Join(";", preprocessorSymbols)}\""
+            ? $"""
+            PreprocessorSymbols="{string.Join(";", preprocessorSymbols)}"
+            """
             : "";
 
-        var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"" {preprocessorSymbolsAttribute}>
-    </Project>
-</Workspace>", composition: GetTestComposition());
+        var workspace = EditorTestWorkspace.Create($"""
+            <Workspace>
+                <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true" {preprocessorSymbolsAttribute}>
+                </Project>
+            </Workspace>
+            """, composition: GetTestComposition());
 
         var project = workspace.CurrentSolution.Projects.First();
 
@@ -242,7 +244,7 @@ public abstract class AbstractPdbSourceDocumentTests
         // to be available.
 
         return EditorTestCompositions.EditorFeatures
-            .WithExcludedPartTypes(ImmutableHashSet.Create(typeof(IMetadataAsSourceFileProvider)))
+            .WithExcludedPartTypes([typeof(IMetadataAsSourceFileProvider)])
             .AddParts(typeof(PdbSourceDocumentMetadataAsSourceFileProvider), typeof(NullResultMetadataAsSourceFileProvider));
     }
 
@@ -251,9 +253,7 @@ public abstract class AbstractPdbSourceDocumentTests
         var dllFilePath = GetDllPath(path);
         var sourceCodePath = GetSourceFilePath(path);
         var pdbFilePath = GetPdbPath(path);
-        var assemblyName = "reference";
-
-        CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, source, project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb, fallbackEncoding);
+        CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, "reference", source, project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb, fallbackEncoding);
     }
 
     protected static void CompileTestSource(string dllFilePath, string sourceCodePath, string? pdbFilePath, string assemblyName, SourceText source, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb, Encoding? fallbackEncoding = null)
@@ -342,7 +342,7 @@ public abstract class AbstractPdbSourceDocumentTests
         return Path.Combine(path, "reference.pdb");
     }
 
-    protected class StaticSourceTextContainer(SourceText sourceText) : SourceTextContainer
+    protected sealed class StaticSourceTextContainer(SourceText sourceText) : SourceTextContainer
     {
         public override SourceText CurrentText => sourceText;
 

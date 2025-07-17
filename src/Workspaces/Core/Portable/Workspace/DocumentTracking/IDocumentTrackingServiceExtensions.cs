@@ -25,9 +25,8 @@ internal static class IDocumentTrackingServiceExtensions
     /// contained within <paramref name="solution"/>.
     /// </summary>
     public static ImmutableArray<Document> GetVisibleDocuments(this IDocumentTrackingService service, Solution solution)
-        => service.GetVisibleDocuments()
+        => [.. service.GetVisibleDocuments()
                   .Select(solution.GetDocument)
                   .WhereNotNull()
-                  .Distinct()
-                  .ToImmutableArray();
+                  .Distinct()];
 }

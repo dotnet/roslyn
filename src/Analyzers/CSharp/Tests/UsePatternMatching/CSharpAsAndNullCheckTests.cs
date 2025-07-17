@@ -16,13 +16,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public CSharpAsAndNullCheckTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpAsAndNullCheckDiagnosticAnalyzer(), new CSharpAsAndNullCheckCodeFixProvider());
 
@@ -60,9 +56,8 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
     public async Task InlineTypeCheck2(string input, string output)
         => await TestStatement($"while ({input}) {{ }}", $"while ({output}) {{ }}");
 
-    private async Task TestStatement(string input, string output, LanguageVersion version = LanguageVersion.CSharp8)
-    {
-        await TestInRegularAndScript1Async(
+    private Task TestStatement(string input, string output, LanguageVersion version = LanguageVersion.CSharp8)
+        => TestInRegularAndScript1Async(
             $$"""
             class C
             {
@@ -82,12 +77,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """, new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(version)));
-    }
 
     [Fact]
-    public async Task TestMissingInCSharp6()
-    {
-        await TestMissingAsync(
+    public Task TestMissingInCSharp6()
+        => TestMissingAsync(
             """
             class C
             {
@@ -100,12 +93,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
-    }
 
     [Fact]
-    public async Task TestMissingInWrongName()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingInWrongName()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -118,12 +109,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInSwitchSection()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInSwitchSection()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -155,12 +144,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33345")]
-    public async Task TestRemoveNewLinesInSwitchStatement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRemoveNewLinesInSwitchStatement()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -195,12 +182,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnNonDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnNonDeclaration()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -213,12 +198,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25237")]
-    public async Task TestMissingOnReturnStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnReturnStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -228,12 +211,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnIsExpression()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnIsExpression()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -246,12 +227,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InlineTypeCheckComplexExpression1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task InlineTypeCheckComplexExpression1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -275,12 +254,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInlineTypeCheckWithElse()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInlineTypeCheckWithElse()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -310,12 +287,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestComments1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -341,12 +316,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestComments2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -371,12 +344,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestComments3()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -403,12 +374,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33345")]
-    public async Task TestRemoveNewLines()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRemoveNewLines()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -435,12 +404,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33345")]
-    public async Task TestRemoveNewLinesWhereBlankLineIsNotEmpty()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRemoveNewLinesWhereBlankLineIsNotEmpty()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -467,12 +434,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33345")]
-    public async Task TestRemoveNewLines2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRemoveNewLines2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -502,12 +467,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InlineTypeCheckComplexCondition1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task InlineTypeCheckComplexCondition1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -531,12 +494,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InlineTypeCheckComplexCondition2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task InlineTypeCheckComplexCondition2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -560,12 +521,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InlineTypeCheckComplexCondition3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task InlineTypeCheckComplexCondition3()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -589,12 +548,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDefiniteAssignment1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDefiniteAssignment1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -610,12 +567,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDefiniteAssignment2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDefiniteAssignment2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -630,12 +585,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDefiniteAssignment3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDefiniteAssignment3()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -666,12 +619,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21097")]
-    public async Task TestDefiniteAssignment4()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDefiniteAssignment4()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -691,12 +642,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24286")]
-    public async Task TestDefiniteAssignment5()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDefiniteAssignment5()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class Test
             {
@@ -710,12 +659,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDefiniteAssignment6()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDefiniteAssignment6()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -732,12 +679,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDefiniteAssignment7()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDefiniteAssignment7()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -753,12 +698,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28821")]
-    public async Task TestDefiniteAssignment8()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDefiniteAssignment8()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -780,12 +723,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28866")]
-    public async Task TestWrittenExpressionBeforeNullCheck()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWrittenExpressionBeforeNullCheck()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Goo
             {
@@ -804,12 +745,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15957")]
-    public async Task TestTrivia1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrivia1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -841,12 +780,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17129")]
-    public async Task TestTrivia2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrivia2()
+        => TestInRegularAndScript1Async(
             """
             using System;
             namespace N
@@ -888,12 +825,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17122")]
-    public async Task TestMissingOnNullableType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnNullableType()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             namespace N
@@ -910,12 +845,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18053")]
-    public async Task TestMissingWhenTypesDoNotMatch()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingWhenTypesDoNotMatch()
+        => TestMissingInRegularAndScriptAsync(
             """
             class SyntaxNode
             {
@@ -944,12 +877,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnWhileNoInline()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnWhileNoInline()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -962,12 +893,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWhileDefiniteAssignment1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWhileDefiniteAssignment1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -982,12 +911,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWhileDefiniteAssignment2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWhileDefiniteAssignment2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1002,12 +929,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWhileDefiniteAssignment3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWhileDefiniteAssignment3()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1021,12 +946,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWhileDefiniteAssignment4()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWhileDefiniteAssignment4()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1040,12 +963,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23504")]
-    public async Task DoNotChangeOriginalFormatting1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task DoNotChangeOriginalFormatting1()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -1073,12 +994,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23504")]
-    public async Task DoNotChangeOriginalFormatting2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task DoNotChangeOriginalFormatting2()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -1102,12 +1021,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21172")]
-    public async Task TestMissingWithDynamic()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithDynamic()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1120,12 +1037,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21551")]
-    public async Task TestOverloadedUserOperator()
-    {
-        await TestMissingAsync(
+    public Task TestOverloadedUserOperator()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1141,12 +1056,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
               public static bool operator !=(C c1, C c2) => false;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNegativeDefiniteAssignment1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNegativeDefiniteAssignment1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1168,12 +1081,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """, parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
-    }
 
     [Fact]
-    public async Task TestNegativeDefiniteAssignment2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNegativeDefiniteAssignment2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1207,12 +1118,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """, parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25993")]
-    public async Task TestEmbeddedStatement1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestEmbeddedStatement1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1248,12 +1157,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25993")]
-    public async Task TestEmbeddedStatement2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestEmbeddedStatement2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1272,12 +1179,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseBeforeDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestUseBeforeDeclaration()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1298,12 +1203,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
 
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPossiblyUnassigned()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestPossiblyUnassigned()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1326,12 +1229,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOutOfScope()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestOutOfScope()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1352,12 +1253,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDeclarationOnOuterBlock()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDeclarationOnOuterBlock()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1391,12 +1290,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestConditionalExpression()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestConditionalExpression()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1416,12 +1313,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestConditionalExpression_OppositeBranch()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestConditionalExpression_OppositeBranch()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1432,12 +1327,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForStatement_NoInlineTypeCheck()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestForStatement_NoInlineTypeCheck()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1448,12 +1341,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForStatement_InlineTypeCheck()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForStatement_InlineTypeCheck()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1473,12 +1364,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """, parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
-    }
 
     [Fact]
-    public async Task TestForStatement_InScope()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForStatement_InScope()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1504,12 +1393,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """, parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
-    }
 
     [Fact]
-    public async Task TestForStatement_NotAssignedBeforeAccess()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestForStatement_NotAssignedBeforeAccess()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1524,12 +1411,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForStatement_AssignedBeforeAccess()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForStatement_AssignedBeforeAccess()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1559,12 +1444,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """, parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
-    }
 
     [Fact]
-    public async Task TestForStatement_MultipleDeclarators()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForStatement_MultipleDeclarators()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1591,12 +1474,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """, parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
-    }
 
     [Fact]
-    public async Task TestForStatement_UseBeforeDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestForStatement_UseBeforeDeclaration()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1610,12 +1491,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForStatement_Initializer()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestForStatement_Initializer()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1629,12 +1508,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLocalFunction()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLocalFunction()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1654,12 +1531,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """, parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
-    }
 
     [Fact]
-    public async Task TestLocalFunction_UseOutOfScope()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestLocalFunction_UseOutOfScope()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1671,12 +1546,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExpressionLambda()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExpressionLambda()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1696,12 +1569,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """, parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
-    }
 
     [Fact]
-    public async Task TestExpressionLambda_UseOutOfScope()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestExpressionLambda_UseOutOfScope()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1713,12 +1584,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31388")]
-    public async Task TestUseBetweenAssignmentAndIfCondition()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestUseBetweenAssignmentAndIfCondition()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1735,12 +1604,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 void M2(bool b) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40007")]
-    public async Task TestSpaceAfterGenericType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSpaceAfterGenericType()
+        => TestInRegularAndScript1Async(
             """
             #nullable enable
 
@@ -1778,12 +1645,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45596")]
-    public async Task TestMissingInUsingDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingInUsingDeclaration()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1796,12 +1661,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45596")]
-    public async Task TestMissingInUsingStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingInUsingStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1816,12 +1679,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37398")]
-    public async Task TestPrecedingDirectiveTrivia()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestPrecedingDirectiveTrivia()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1855,12 +1716,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40006")]
-    public async Task TestArrayOfNullables()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestArrayOfNullables()
+        => TestInRegularAndScript1Async(
             """
             #nullable enable
 
@@ -1890,12 +1749,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55782")]
-    public async Task TestLocalReferencedAcrossScopes1()
-    {
-        var code = """
+    public Task TestLocalReferencedAcrossScopes1()
+        => TestMissingInRegularAndScriptAsync("""
             using System.Transactions;
 
             class BaseObject { }
@@ -1936,15 +1793,11 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                     return 0;
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55782")]
-    public async Task TestLocalReferencedAcrossScopes2()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestLocalReferencedAcrossScopes2()
+        => TestInRegularAndScript1Async("""
             using System.Transactions;
 
             class BaseObject { }
@@ -2025,12 +1878,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37875")]
-    public async Task TestNullableWhenWrittenTo1()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestNullableWhenWrittenTo1()
+        => TestInRegularAndScript1Async("""
             #nullable enable
             using System;
 
@@ -2059,12 +1910,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37875")]
-    public async Task TestNullableWhenWrittenTo2()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestNullableWhenWrittenTo2()
+        => TestInRegularAndScript1Async("""
             #nullable enable
             using System;
 
@@ -2095,12 +1944,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37875")]
-    public async Task TestNullableWhenWrittenTo3()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestNullableWhenWrittenTo3()
+        => TestMissingInRegularAndScriptAsync("""
             #nullable enable
             using System;
 
@@ -2116,12 +1963,10 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37875")]
-    public async Task TestNullableWhenWrittenTo4()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestNullableWhenWrittenTo4()
+        => TestMissingInRegularAndScriptAsync("""
             #nullable enable
             using System;
 
@@ -2137,5 +1982,24 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39600")]
+    public Task TestNotWithInterveningMutation()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+
+            class Program
+            {
+                void Goo(object[] values, int index)
+                {
+                    [|var|] v1 = values[index++] as string;
+                    index++;
+
+                    if (v1 != null)
+                    {
+                        Console.WriteLine(v1);
+                    }
+                }
+            }
+            """);
 }

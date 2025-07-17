@@ -3,35 +3,30 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.ComponentModel.Design;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
+using Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
 using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
-using Microsoft.VisualStudio.LanguageServices.Options;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService;
 using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
@@ -46,55 +41,18 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.LanguageServices.Setup;
 
 [Guid(Guids.RoslynPackageIdString)]
-
-// The option page configuration is duplicated in PackageRegistration.pkgdef
 [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
 [ProvideToolWindow(typeof(StackTraceExplorerToolWindow))]
 internal sealed class RoslynPackage : AbstractPackage
 {
-    // The randomly-generated key name is used for serializing the Background Analysis Scope preference to the .SUO
-    // file. It doesn't have any semantic meaning, but is intended to not conflict with any other extension that
-    // might be saving an "AnalysisScope" named stream to the same file.
-    // note: must be <= 31 characters long
-    private const string BackgroundAnalysisScopeOptionKey = "AnalysisScope-DCE33A29A768";
-    private const byte BackgroundAnalysisScopeOptionVersion = 1;
-
-    private static RoslynPackage? _lazyInstance;
+    private static RoslynPackage? s_lazyInstance;
 
     private RuleSetEventHandler? _ruleSetEventHandler;
-    private ColorSchemeApplier? _colorSchemeApplier;
-    private IDisposable? _solutionEventMonitor;
-
-    private BackgroundAnalysisScope? _analysisScope;
-
-    public RoslynPackage()
-    {
-        // We need to register an option in order for OnLoadOptions/OnSaveOptions to be called
-        AddOptionKey(BackgroundAnalysisScopeOptionKey);
-    }
-
-    public BackgroundAnalysisScope? AnalysisScope
-    {
-        get
-        {
-            return _analysisScope;
-        }
-
-        set
-        {
-            if (_analysisScope == value)
-                return;
-
-            _analysisScope = value;
-            AnalysisScopeChanged?.Invoke(this, EventArgs.Empty);
-        }
-    }
-
-    public event EventHandler? AnalysisScopeChanged;
+    private SolutionEventMonitor? _solutionEventMonitor;
 
     internal static async ValueTask<RoslynPackage?> GetOrLoadAsync(IThreadingContext threadingContext, IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
-        if (_lazyInstance is null)
+        if (s_lazyInstance is null)
         {
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -104,76 +62,75 @@ internal sealed class RoslynPackage : AbstractPackage
 
             if (ErrorHandler.Succeeded(((IVsShell)shell).IsPackageLoaded(typeof(RoslynPackage).GUID, out var package)))
             {
-                _lazyInstance = (RoslynPackage)package;
+                s_lazyInstance = (RoslynPackage)package;
             }
         }
 
-        return _lazyInstance;
+        return s_lazyInstance;
     }
 
-    protected override void OnLoadOptions(string key, Stream stream)
+    protected override void RegisterInitializeAsyncWork(PackageLoadTasks packageInitializationTasks)
     {
-        if (key == BackgroundAnalysisScopeOptionKey)
+        base.RegisterInitializeAsyncWork(packageInitializationTasks);
+
+        packageInitializationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
+        packageInitializationTasks.AddTask(isMainThreadTask: true, task: PackageInitializationMainThreadAsync);
+
+        return;
+
+        Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
         {
-            if (stream.ReadByte() == BackgroundAnalysisScopeOptionVersion)
-            {
-                var hasValue = stream.ReadByte() == 1;
-                AnalysisScope = hasValue ? (BackgroundAnalysisScope)stream.ReadByte() : null;
-            }
-            else
-            {
-                AnalysisScope = null;
-            }
+            return ProfferServiceBrokerServicesAsync(cancellationToken);
         }
 
-        base.OnLoadOptions(key, stream);
-    }
-
-    protected override void OnSaveOptions(string key, Stream stream)
-    {
-        if (key == BackgroundAnalysisScopeOptionKey)
+        Task PackageInitializationMainThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
         {
-            stream.WriteByte(BackgroundAnalysisScopeOptionVersion);
-            stream.WriteByte(AnalysisScope.HasValue ? (byte)1 : (byte)0);
-            stream.WriteByte((byte)AnalysisScope.GetValueOrDefault());
-        }
+            var settingsEditorFactory = SettingsEditorFactory.GetInstance();
+            RegisterEditorFactory(settingsEditorFactory);
 
-        base.OnSaveOptions(key, stream);
+            return Task.CompletedTask;
+        }
     }
 
-    protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+    protected override void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
     {
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+        base.RegisterOnAfterPackageLoadedAsyncWork(afterPackageLoadedTasks);
 
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        afterPackageLoadedTasks.AddTask(isMainThreadTask: false, task: OnAfterPackageLoadedBackgroundThreadAsync);
+        afterPackageLoadedTasks.AddTask(isMainThreadTask: true, task: OnAfterPackageLoadedMainThreadAsync);
 
-        cancellationToken.ThrowIfCancellationRequested();
+        return;
 
-        // Ensure the options persisters are loaded since we have to fetch options from the shell
-        LoadOptionPersistersAsync(this.ComponentModel, cancellationToken).Forget();
+        Task OnAfterPackageLoadedBackgroundThreadAsync(PackageLoadTasks afterPackageLoadedTasks, CancellationToken cancellationToken)
+        {
+            // Ensure the options persisters are loaded since we have to fetch options from the shell
+            _ = ComponentModel.GetService<IGlobalOptionService>();
 
-        await InitializeColorsAsync(cancellationToken).ConfigureAwait(true);
+            var colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
+            colorSchemeApplier.RegisterInitializationWork(afterPackageLoadedTasks);
 
-        // load some services that have to be loaded in UI thread
-        LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
+            // We are at the VS layer, so we know we must be able to get the IGlobalOperationNotificationService here.
+            var globalNotificationService = this.ComponentModel.GetService<IGlobalOperationNotificationService>();
 
-        // We are at the VS layer, so we know we must be able to get the IGlobalOperationNotificationService here.
-        var globalNotificationService = this.ComponentModel.GetService<IGlobalOperationNotificationService>();
-        Assumes.Present(globalNotificationService);
+            _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
+            TrackBulkFileOperations(globalNotificationService);
 
-        _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
-        TrackBulkFileOperations(globalNotificationService);
+            return Task.CompletedTask;
+        }
 
-        var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
-        RegisterEditorFactory(settingsEditorFactory);
+        Task OnAfterPackageLoadedMainThreadAsync(PackageLoadTasks afterPackageLoadedTasks, CancellationToken cancellationToken)
+        {
+            // load some services that have to be loaded in UI thread
+            LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
 
-        // Misc workspace has to be up and running by the time our package is usable so that it can track running
-        // doc events and appropriately map files to/from it and other relevant workspaces (like the
-        // metadata-as-source workspace).
-        await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync().ConfigureAwait(false);
+            return Task.CompletedTask;
+        }
+    }
 
+    private async Task ProfferServiceBrokerServicesAsync(CancellationToken cancellationToken)
+    {
         // Proffer in-process service broker services
-        var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(this.JoinableTaskFactory).ConfigureAwait(false);
+        var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(cancellationToken).ConfigureAwait(false);
 
         serviceBrokerContainer.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
@@ -185,48 +142,13 @@ internal sealed class RoslynPackage : AbstractPackage
             (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
     }
 
-    private async Task LoadOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
-    {
-        var listenerProvider = componentModel.GetService<IAsynchronousOperationListenerProvider>();
-        using var token = listenerProvider.GetListener(FeatureAttribute.Workspace).BeginAsyncOperation(nameof(LoadOptionPersistersAsync));
-
-        // Switch to a background thread to ensure assembly loads don't show up as UI delays attributed to
-        // InitializeAsync.
-        await TaskScheduler.Default;
-
-        var persisterProviders = componentModel.GetExtensions<IOptionPersisterProvider>().ToImmutableArray();
-
-        foreach (var provider in persisterProviders)
-        {
-            var persister = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
-
-            // Initialize the PackageSettingsPersister to allow it to listen to analysis scope changed
-            // events from this package.
-            if (persister is PackageSettingsPersister packageSettingsPersister)
-                packageSettingsPersister.Initialize(this);
-        }
-    }
-
-    private async Task InitializeColorsAsync(CancellationToken cancellationToken)
-    {
-        await TaskScheduler.Default;
-        _colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
-        await _colorSchemeApplier.InitializeAsync(cancellationToken).ConfigureAwait(false);
-    }
-
     protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
     {
         await TaskScheduler.Default;
 
-        await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(false);
-
         // we need to load it as early as possible since we can have errors from
         // package from each language very early
-        await this.ComponentModel.GetService<VisualStudioSuppressionFixService>().InitializeAsync(this).ConfigureAwait(false);
+        await this.ComponentModel.GetService<VisualStudioSuppressionFixService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
         await this.ComponentModel.GetService<VisualStudioDiagnosticListSuppressionStateService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
         await this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
@@ -288,11 +210,8 @@ internal sealed class RoslynPackage : AbstractPackage
 
         ReportSessionWideTelemetry();
 
-        if (_solutionEventMonitor != null)
-        {
-            _solutionEventMonitor.Dispose();
-            _solutionEventMonitor = null;
-        }
+        _solutionEventMonitor?.Dispose();
+        _solutionEventMonitor = null;
 
         base.Dispose(disposing);
     }
@@ -348,9 +267,6 @@ internal sealed class RoslynPackage : AbstractPackage
 
         void StartBulkFileOperationNotification()
         {
-            Contract.ThrowIfNull(gate);
-            Contract.ThrowIfNull(globalNotificationService);
-
             lock (gate)
             {
                 // this shouldn't happen, but we are using external component
@@ -367,9 +283,6 @@ internal sealed class RoslynPackage : AbstractPackage
 
         void StopBulkFileOperationNotification()
         {
-            Contract.ThrowIfNull(gate);
-            Contract.ThrowIfNull(globalNotificationService);
-
             lock (gate)
             {
                 // localRegistration may be null if BulkFileOperation was already in the middle of running.  So we

@@ -30,17 +30,15 @@ internal abstract class AbstractGoToBaseService : IGoToBaseService
 
     public async Task FindBasesAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
     {
-        var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+        var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
             document, position, cancellationToken).ConfigureAwait(false);
 
-        if (symbolAndProjectOpt == null)
+        if (symbolAndProject is not var (symbol, project))
         {
             await context.ReportNoResultsAsync(
                 FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, cancellationToken).ConfigureAwait(false);
             return;
         }
-
-        var (symbol, project) = symbolAndProjectOpt.Value;
 
         var solution = project.Solution;
         var bases = FindBaseHelpers.FindBases(symbol, solution, cancellationToken);

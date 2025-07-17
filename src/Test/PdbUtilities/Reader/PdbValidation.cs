@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 Marshal.ThrowExceptionForHR(symReader.GetSourceServerData(out byte* data, out int size));
                 if (size == 0)
                 {
-                    return Array.Empty<byte>();
+                    return [];
                 }
 
                 var result = new byte[size];

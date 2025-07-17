@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -215,6 +216,8 @@ internal abstract partial class AbstractNavigateToSearchService
                 return NavigateToItemKind.Property;
             case DeclaredSymbolInfoKind.Struct:
                 return NavigateToItemKind.Structure;
+            case DeclaredSymbolInfoKind.Operator:
+                return NavigateToItemKind.OtherSymbol;
             default:
                 throw ExceptionUtilities.UnexpectedValue(declaredSymbolInfo.Kind);
         }
@@ -312,7 +315,7 @@ internal abstract partial class AbstractNavigateToSearchService
                 }
             }
 
-            _lookupTable = ImmutableArray.CreateRange(lookupTable);
+            _lookupTable = [.. lookupTable];
         }
 
         public bool Contains(DeclaredSymbolInfoKind item)

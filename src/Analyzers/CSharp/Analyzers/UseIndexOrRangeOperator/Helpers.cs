@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator;
 
 internal static class Helpers
 {
+    public static bool IsStringRemoveMethod(IMethodSymbol method)
+        => method is { ContainingType.SpecialType: SpecialType.System_String, Name: nameof(string.Remove) };
+
     /// <summary>
     /// Find an `int MyType.Count` or `int MyType.Length` property.
     /// </summary>

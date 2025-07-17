@@ -79,7 +79,6 @@ internal sealed partial class CSharpRemoveUnusedVariableCodeFixProvider : Abstra
 
         // Local declarations must be parented by an executable block, or global statement, otherwise
         // removing them would be invalid (and more than likely crash the fixer)
-        return localDeclaration.Parent is GlobalStatementSyntax ||
-            blockFacts.IsExecutableBlock(localDeclaration.Parent);
+        return blockFacts.GetImmediateParentExecutableBlockForStatement(localDeclaration) != null;
     }
 }

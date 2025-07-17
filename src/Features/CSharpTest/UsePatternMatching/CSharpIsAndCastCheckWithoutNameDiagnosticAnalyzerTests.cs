@@ -16,20 +16,15 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITestOutputHelper logger)
-         : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer(), new CSharpIsAndCastCheckWithoutNameCodeFixProvider());
 
     [Fact]
-    public async Task TestBinaryExpression()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestBinaryExpression()
+        => TestInRegularAndScript1Async(
             """
             class TestFile
             {
@@ -50,12 +45,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotInCSharp6()
-    {
-        await TestMissingAsync(
+    public Task TestNotInCSharp6()
+        => TestMissingAsync(
             """
             class TestFile
             {
@@ -66,12 +59,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """, parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
-    }
 
     [Fact]
-    public async Task TestExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExpressionBody()
+        => TestInRegularAndScript1Async(
             """
             class TestFile
             {
@@ -89,12 +80,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                     => obj is TestFile {|Rename:file|} && file.i > 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestField()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestField()
+        => TestInRegularAndScript1Async(
             """
             class TestFile
             {
@@ -114,12 +103,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 bool M = obj is TestFile {|Rename:file|} && file.i > 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLambdaBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLambdaBody()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -146,12 +133,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                     => Goo(() => obj is TestFile {|Rename:file|} && file.i > 0, () => obj is TestFile && ((TestFile)obj).i > 0);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDefiniteAssignment1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDefiniteAssignment1()
+        => TestInRegularAndScript1Async(
             """
             class TestFile
             {
@@ -190,12 +175,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDefiniteAssignment2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDefiniteAssignment2()
+        => TestInRegularAndScript1Async(
             """
             class TestFile
             {
@@ -234,12 +217,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnAnalyzerMatch()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnAnalyzerMatch()
+        => TestMissingAsync(
             """
             class TestFile
             {
@@ -252,12 +233,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnNullable()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnNullable()
+        => TestMissingAsync(
             """
             struct TestFile
             {
@@ -270,12 +249,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComplexMatch()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestComplexMatch()
+        => TestInRegularAndScript1Async(
             """
             class TestFile
             {
@@ -297,12 +274,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrivia()
+        => TestInRegularAndScript1Async(
             """
             class TestFile
             {
@@ -324,12 +299,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixOnlyAfterIsCheck()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixOnlyAfterIsCheck()
+        => TestInRegularAndScript1Async(
             """
             class TestFile
             {
@@ -351,12 +324,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestArrayNaming()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestArrayNaming()
+        => TestInRegularAndScript1Async(
             """
             class TestFile
             {
@@ -378,12 +349,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNamingConflict1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNamingConflict1()
+        => TestInRegularAndScript1Async(
             """
             class TestFile
             {
@@ -407,12 +376,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNamingConflict2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNamingConflict2()
+        => TestInRegularAndScript1Async(
             """
             class TestFile
             {
@@ -441,12 +408,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNamingNoConflict1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNamingNoConflict1()
+        => TestInRegularAndScript1Async(
             """
             class TestFile
             {
@@ -475,12 +440,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNamingNoConflict2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNamingNoConflict2()
+        => TestInRegularAndScript1Async(
             """
             class TestFile
             {
@@ -509,12 +472,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNamingNoConflict3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNamingNoConflict3()
+        => TestInRegularAndScript1Async(
             """
             class X { public int file; }
 
@@ -547,12 +508,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNamingNoConflict4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNamingNoConflict4()
+        => TestInRegularAndScript1Async(
             """
             class X { public int file; }
 
@@ -585,12 +544,10 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51340")]
-    public async Task TestNoDiagnosticWhenCS0103Happens()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task TestNoDiagnosticWhenCS0103Happens()
+        => TestDiagnosticMissingAsync(
             """
             using System.Linq;
             class Bar
@@ -610,24 +567,20 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 public SpecificThingType Prop { get; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58558")]
-    public async Task TestInExpressionTree1()
-    {
-        await TestMissingAsync(
+    public Task TestInExpressionTree1()
+        => TestMissingAsync(
             """
             using System.Linq.Expressions;
 
             object? o = null;
             Expression<Func<bool>> test = () => [||]o is int && (int)o > 5;
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58558")]
-    public async Task TestInExpressionTree2()
-    {
-        await TestMissingAsync(
+    public Task TestInExpressionTree2()
+        => TestMissingAsync(
             """
             using System.Linq.Expressions;
 
@@ -640,5 +593,52 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 }
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68051")]
+    public Task TestNotWhenCrossingStaticLambda()
+        => TestMissingAsync(
+            """
+            using System;
+
+            class C
+            {
+                void Main(object o)
+                {
+                    if ([||]o is string)
+                    {
+                        M(static (object o) =>
+                        {
+                            var s = (string)o;
+                        });
+                    }
+                }
+                private void M(Action<object> value)
+                {
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68051")]
+    public Task TestNotWhenCrossingInstanceLambdaThatReferencesDifferentVariable()
+        => TestMissingAsync(
+            """
+            using System;
+
+            class C
+            {
+                void Main(object o)
+                {
+                    if ([||]o is string)
+                    {
+                        M((object o) =>
+                        {
+                            var s = (string)o;
+                        });
+                    }
+                }
+                private void M(Action<object> value)
+                {
+                }
+            }
+            """);
 }

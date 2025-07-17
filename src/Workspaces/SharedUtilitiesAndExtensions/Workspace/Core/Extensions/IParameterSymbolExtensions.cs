@@ -33,4 +33,19 @@ internal static partial class IParameterSymbolExtensions
                     parameter.HasExplicitDefaultValue,
                     parameter.HasExplicitDefaultValue ? parameter.ExplicitDefaultValue : null);
     }
+
+    public static IParameterSymbol WithAttributes(this IParameterSymbol parameter, ImmutableArray<AttributeData> attributes)
+    {
+        return parameter.GetAttributes() == attributes
+            ? parameter
+            : CodeGenerationSymbolFactory.CreateParameterSymbol(
+                    attributes,
+                    parameter.RefKind,
+                    parameter.IsParams,
+                    parameter.Type,
+                    parameter.Name,
+                    parameter.IsOptional,
+                    parameter.HasExplicitDefaultValue,
+                    parameter.HasExplicitDefaultValue ? parameter.ExplicitDefaultValue : null);
+    }
 }

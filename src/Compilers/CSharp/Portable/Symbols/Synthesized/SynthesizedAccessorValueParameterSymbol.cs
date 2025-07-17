@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -77,11 +78,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return accessor.GetAttributeDeclarations();
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+            AddSynthesizedFlowAnalysisAttributes(ref attributes);
+        }
 
-            if (ContainingSymbol is SourcePropertyAccessorSymbol propertyAccessor && propertyAccessor.AssociatedSymbol is SourcePropertySymbolBase property)
+        internal void AddSynthesizedFlowAnalysisAttributes(ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+            if (ContainingSymbol is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase property })
             {
                 var annotations = FlowAnalysisAnnotations;
                 if ((annotations & FlowAnalysisAnnotations.DisallowNull) != 0)

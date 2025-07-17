@@ -68,7 +68,7 @@
 
                     <CheckBox x:Uid="Show_name_suggestions"
                                   x:Name="Show_name_suggestions"
-                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_name_suggestions}" />
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_name_s_uggestions}" />
 
                     <CheckBox x:Uid="Show_items_from_unimported_namespaces"
                                   x:Name="Show_items_from_unimported_namespaces"
@@ -76,7 +76,7 @@
 
                     <CheckBox x:Uid="Tab_twice_to_insert_arguments"
                                   x:Name="Tab_twice_to_insert_arguments"
-                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Tab_twice_to_insert_arguments}" />
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Tab_twice_to_insert_arguments_experimental}" />
 
                     <CheckBox x:Uid="Show_new_snippet_experience"
                                   x:Name="Show_new_snippet_experience"

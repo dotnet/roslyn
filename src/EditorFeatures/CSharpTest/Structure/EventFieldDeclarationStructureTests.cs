@@ -11,23 +11,19 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
-public class EventFieldDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EventFieldDeclarationSyntax>
+public sealed class EventFieldDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EventFieldDeclarationSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new EventFieldDeclarationStructureProvider();
 
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-    public async Task TestEventFieldWithComments()
-    {
-        var code = """
+    public Task TestEventFieldWithComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span:// Goo
                     // Bar|}
                     $$event EventHandler E;
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", "// Goo ...", autoCollapse: true));
-    }
 }

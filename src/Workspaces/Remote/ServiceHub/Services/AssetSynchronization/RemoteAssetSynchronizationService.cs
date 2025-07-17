@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Remote;
 internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.ServiceConstructionArguments arguments)
     : BrokeredServiceBase(in arguments), IRemoteAssetSynchronizationService
 {
+    private const string SynchronizeTextChangesAsyncSucceededMetricName = "SucceededCount";
+    private const string SynchronizeTextChangesAsyncFailedMetricName = "FailedCount";
+    private const string SynchronizeTextChangesAsyncSucceededKeyName = nameof(RemoteAssetSynchronizationService) + "." + SynchronizeTextChangesAsyncSucceededMetricName;
+    private const string SynchronizeTextChangesAsyncFailedKeyName = nameof(RemoteAssetSynchronizationService) + "." + SynchronizeTextChangesAsyncFailedMetricName;
+
     internal sealed class Factory : FactoryBase<IRemoteAssetSynchronizationService>
     {
         protected override IRemoteAssetSynchronizationService CreateService(in ServiceConstructionArguments arguments)
@@ -49,16 +54,33 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
     }
 
     public ValueTask SynchronizeTextChangesAsync(
-        ImmutableArray<(DocumentId documentId, Checksum baseTextChecksum, ImmutableArray<TextChange> textChanges)> changes,
+        DocumentId documentId,
+        Checksum baseTextChecksum,
+        ImmutableArray<TextChange> textChanges,
+        Checksum newTextChecksum,
         CancellationToken cancellationToken)
     {
         return RunServiceAsync(async cancellationToken =>
         {
-            var workspace = GetWorkspace();
+            var wasSynchronized = await SynchronizeTextChangesHelperAsync().ConfigureAwait(false);
 
-            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, cancellationToken))
+            var metricName = wasSynchronized ? SynchronizeTextChangesAsyncSucceededMetricName : SynchronizeTextChangesAsyncFailedMetricName;
+            var keyName = wasSynchronized ? SynchronizeTextChangesAsyncSucceededKeyName : SynchronizeTextChangesAsyncFailedKeyName;
+            TelemetryLogging.LogAggregatedCounter(FunctionId.RemoteHostService_SynchronizeTextAsyncStatus, KeyValueLogMessage.Create(static (m, args) =>
             {
-                foreach (var (documentId, baseTextChecksum, textChanges) in changes)
+                var (keyName, metricName) = args;
+                m[TelemetryLogging.KeyName] = keyName;
+                m[TelemetryLogging.KeyValue] = 1L;
+                m[TelemetryLogging.KeyMetricName] = metricName;
+            }, (keyName, metricName)));
+
+            return;
+
+            async Task<bool> SynchronizeTextChangesHelperAsync()
+            {
+                var workspace = GetWorkspace();
+
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, cancellationToken))
                 {
                     // Try to get the text associated with baseTextChecksum
                     var text = await TryGetSourceTextAsync(WorkspaceManager, workspace, documentId, baseTextChecksum, cancellationToken).ConfigureAwait(false);
@@ -66,20 +88,20 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
                     {
                         // it won't bring in base text if it is not there already.
                         // text needed will be pulled in when there is request
-                        continue;
+                        return false;
                     }
 
                     // Now attempt to manually apply the edit, producing the new forked text.  Store that directly in
                     // the asset cache so that future calls to retrieve it can do so quickly, without synchronizing over
                     // the entire document.
                     var newText = text.WithChanges(textChanges);
-                    var newSerializableText = new SerializableSourceText(newText, newText.GetContentHash());
+                    var newSerializableText = new SerializableSourceText(newText, newTextChecksum);
 
                     WorkspaceManager.SolutionAssetCache.GetOrAdd(newSerializableText.ContentChecksum, newSerializableText);
                 }
-            }
 
-            return;
+                return true;
+            }
 
             async static Task<SourceText?> TryGetSourceTextAsync(
                 RemoteWorkspaceManager workspaceManager,

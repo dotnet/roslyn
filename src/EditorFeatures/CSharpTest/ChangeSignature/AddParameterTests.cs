@@ -15,12 +15,18 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature;
 
 [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-public partial class ChangeSignatureTests : AbstractChangeSignatureTests
+public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
 {
     [Fact]
     public async Task AddParameters()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(0),
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "System.Int32"),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "string", "newString", CallSiteKind.Value, ""), "System.String"),
+            new AddedParameterOrExistingIndex(5)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             static class Ext
             {
                 /// <summary>
@@ -61,14 +67,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(p: new[] { 5 }, y: "four", x: 3, c: true, b: "two", a: 1, o: t);
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(0),
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "System.Int32"),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "string", "newString", CallSiteKind.Value, ""), "System.String"),
-            new AddedParameterOrExistingIndex(5)};
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             static class Ext
             {
                 /// <summary>
@@ -109,15 +108,15 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(y: "four", b: "two", newIntegerParameter: 12345, newString:, o: t);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameterToParameterlessMethod()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "System.Int32")};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             static class Ext
             {
                 static void $$M()
@@ -125,10 +124,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M();
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "System.Int32")};
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             static class Ext
             {
                 static void M(int newIntegerParameter)
@@ -136,15 +132,17 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(12345);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderLocalFunctionParametersAndArguments_OnDeclaration()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             using System;
             class MyClass
             {
@@ -156,12 +154,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     }
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             using System;
             class MyClass
             {
@@ -173,15 +166,17 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     }
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderLocalFunctionParametersAndArguments_OnInvocation()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             using System;
             class MyClass
             {
@@ -193,12 +188,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     }
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             using System;
             class MyClass
             {
@@ -210,15 +200,17 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     }
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderMethodParameters()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             using System;
             class MyClass
             {
@@ -226,12 +218,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 {
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             using System;
             class MyClass
             {
@@ -239,15 +226,17 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 {
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderMethodParametersAndArguments()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             using System;
             class MyClass
             {
@@ -256,12 +245,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     Goo(3, "hello");
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             using System;
             class MyClass
             {
@@ -270,15 +254,17 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     Goo("hello", 34, 3);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderMethodParametersAndArgumentsOfNestedCalls()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             using System;
             class MyClass
             {
@@ -287,12 +273,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     return Goo(Goo(4, "inner"), "outer");
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             using System;
             class MyClass
             {
@@ -301,15 +282,17 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     return Goo("outer", 34, Goo("inner", 34, 4));
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderConstructorParametersAndArguments()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(1),
+            AddedParameterOrExistingIndex.CreateAdded("byte", "b", CallSiteKind.Value, "34"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             using System;
 
             class MyClass2 : MyClass
@@ -330,12 +313,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     var t = new MyClass(x, y);
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(1),
-            AddedParameterOrExistingIndex.CreateAdded("byte", "b", CallSiteKind.Value, "34"),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             using System;
 
             class MyClass2 : MyClass
@@ -356,15 +334,17 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     var t = new MyClass(y, 34, x);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderAttributeConstructorParametersAndArguments()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             [My("test", 8)]
             class MyClass
             {
@@ -376,12 +356,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 {
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             [My(8, 34, "test")]
             class MyClass
             {
@@ -393,15 +368,24 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 {
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderExtensionMethodParametersAndArguments_StaticCall()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(0),
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(5),
+            new AddedParameterOrExistingIndex(4),
+            new AddedParameterOrExistingIndex(3)};
+
+        // Although the `ParameterConfig` has 0 for the `SelectedIndex`, the UI dialog will make an adjustment
+        // and select parameter `y` instead because the `this` parameter cannot be moved or removed.
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 static void Main(string[] args)
@@ -415,17 +399,8 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 public static void M(this $$C goo, int x, int y, string a = "test_a", string b = "test_b", string c = "test_c")
                 { }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(0),
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(5),
-            new AddedParameterOrExistingIndex(4),
-            new AddedParameterOrExistingIndex(3)};
-
-        var updatedCode = """
+            """, updatedSignature: permutation,
+            expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 static void Main(string[] args)
@@ -439,18 +414,21 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 public static void M(this C goo, int y, int x, byte b, string c = "test_c", string b = "test_b", string a = "test_a")
                 { }
             }
-            """;
-
-        // Although the `ParameterConfig` has 0 for the `SelectedIndex`, the UI dialog will make an adjustment
-        // and select parameter `y` instead because the `this` parameter cannot be moved or removed.
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
-            expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
+            """, expectedSelectedIndex: 0);
     }
 
     [Fact]
     public async Task AddAndReorderExtensionMethodParametersAndArguments_ExtensionCall()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(0),
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(5),
+            new AddedParameterOrExistingIndex(4),
+            new AddedParameterOrExistingIndex(3)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 static void Main(string[] args)
@@ -464,16 +442,8 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 public static void M(this C goo, int x$$, int y, string a = "test_a", string b = "test_b", string c = "test_c")
                 { }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(0),
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(5),
-            new AddedParameterOrExistingIndex(4),
-            new AddedParameterOrExistingIndex(3)};
-        var updatedCode = """
+            """, updatedSignature: permutation,
+            expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 static void Main(string[] args)
@@ -487,16 +457,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 public static void M(this C goo, int y, int x, byte b, string c = "test_c", string b = "test_b", string a = "test_a")
                 { }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
-            expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 1);
+            """, expectedSelectedIndex: 1);
     }
 
     [Fact]
     public async Task AddParameterWithOmittedArgument_ParamsAsArray()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(0),
+            new AddedParameterOrExistingIndex(1),
+            AddedParameterOrExistingIndex.CreateAdded("int", "z", CallSiteKind.Omitted, isRequired: false, defaultValue: "3"),
+            new AddedParameterOrExistingIndex(2)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 void $$M(int x, int y, params int[] p)
@@ -504,13 +476,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(x, y, p: p);
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(0),
-            new AddedParameterOrExistingIndex(1),
-            AddedParameterOrExistingIndex.CreateAdded("int", "z", CallSiteKind.Omitted, isRequired: false, defaultValue: "3"),
-            new AddedParameterOrExistingIndex(2)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 void M(int x, int y, int z = 3, params int[] p)
@@ -518,15 +484,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(x, y, p: p);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParamsMethodParametersAndArguments_ParamsAsArray()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(0),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(2)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 void $$M(int x, int y, params int[] p)
@@ -534,13 +503,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(x, y, new[] { 1, 2, 3 });
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(0),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(2)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 void M(int y, int x, byte b, params int[] p)
@@ -548,15 +511,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(y, x, 34, new[] { 1, 2, 3 });
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParamsMethodParametersAndArguments_ParamsExpanded()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(0),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(2)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 void $$M(int x, int y, params int[] p)
@@ -564,14 +530,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(x, y, 1, 2, 3);
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(0),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(2)};
-
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 void M(int y, int x, byte b, params int[] p)
@@ -579,15 +538,22 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(y, x, 34, 1, 2, 3);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderExtensionAndParamsMethodParametersAndArguments_VariedCallsites()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(0),
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(5),
+            new AddedParameterOrExistingIndex(4),
+            new AddedParameterOrExistingIndex(3),
+            new AddedParameterOrExistingIndex(6)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 static void Main(string[] args)
@@ -604,17 +570,8 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 public static void $$M(this C goo, int x, int y, string a = "test_a", string b = "test_b", string c = "test_c", params int[] p)
                 { }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(0),
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(5),
-            new AddedParameterOrExistingIndex(4),
-            new AddedParameterOrExistingIndex(3),
-            new AddedParameterOrExistingIndex(6)};
-        var updatedCode = """
+            """, updatedSignature: permutation,
+            expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 static void Main(string[] args)
@@ -631,16 +588,17 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 public static void M(this C goo, int y, int x, byte b, string c = "test_c", string b = "test_b", string a = "test_a", params int[] p)
                 { }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
-            expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
+            """, expectedSelectedIndex: 0);
     }
 
     [Fact]
     public async Task AddAndReorderIndexerParametersAndArguments()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class Program
             {
                 void M()
@@ -655,12 +613,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     set { }
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             class Program
             {
                 void M()
@@ -675,15 +628,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     set { }
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParamTagsInDocComments_SingleLineDocComments_OnIndividualLines()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 /// <param name="a"></param>
@@ -694,13 +650,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 /// <param name="c"></param>
@@ -712,15 +662,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParamTagsInDocComments_SingleLineDocComments_OnSameLine()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 /// <param name="a">a is fun</param><param name="b">b is fun</param><param name="c">c is fun</param>
@@ -729,13 +682,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 /// <param name="c">c is fun</param><param name="b">b is fun</param><param name="bb"></param>
@@ -745,15 +692,21 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParamTagsInDocComments_SingleLineDocComments_MixedLineDistribution()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(5),
+            new AddedParameterOrExistingIndex(4),
+            new AddedParameterOrExistingIndex(3),
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 /// <param name="a"></param><param name="b"></param>
@@ -767,16 +720,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(5),
-            new AddedParameterOrExistingIndex(4),
-            new AddedParameterOrExistingIndex(3),
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 /// <param name="f"></param><param name="e">Comments spread
@@ -791,15 +735,20 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParamTagsInDocComments_SingleLineDocComments_MixedWithRegularComments()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(4),
+            new AddedParameterOrExistingIndex(3),
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 /// <param name="a"></param><param name="b"></param>
@@ -810,15 +759,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(4),
-            new AddedParameterOrExistingIndex(3),
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 /// <param name="e"></param><param name="d"></param>
@@ -830,15 +771,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParamTagsInDocComments_MultiLineDocComments_OnSeparateLines1()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class Program
             {
                 /**
@@ -850,13 +794,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 {
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             class Program
             {
                 /**
@@ -869,15 +807,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 {
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParamTagsInDocComments_MultiLineDocComments_OnSingleLine()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class Program
             {
                 /** <param name="x">x!</param><param name="y">y!</param><param name="z">z!</param> */
@@ -885,13 +826,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 {
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             class Program
             {
                 /** <param name="z">z!</param><param name="b"></param><param name="y">y!</param> */
@@ -900,15 +835,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 {
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParamTagsInDocComments_IncorrectOrder_MaintainsOrder()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 /// <param name="a"></param>
@@ -919,13 +857,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 /// <param name="a"></param>
@@ -936,14 +868,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParamTagsInDocComments_WrongNames_MaintainsOrder()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 /// <param name="a2"></param>
@@ -954,13 +890,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 /// <param name="a2"></param>
@@ -971,14 +901,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParamTagsInDocComments_InsufficientTags_MaintainsOrder()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 /// <param name="a"></param>
@@ -988,13 +922,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 /// <param name="a"></param>
@@ -1004,14 +932,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParamTagsInDocComments_ExcessiveTags_MaintainsOrder()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 /// <param name="a"></param>
@@ -1023,13 +955,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 /// <param name="a"></param>
@@ -1041,14 +967,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParamTagsInDocComments_OnConstructors()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 /// <param name="a"></param>
@@ -1059,13 +989,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 /// <param name="c"></param>
@@ -1077,14 +1001,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParamTagsInDocComments_OnIndexers()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 /// <param name="a"></param>
@@ -1096,13 +1024,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     set { }
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 /// <param name="c"></param>
@@ -1115,14 +1037,17 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     set { }
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParametersInCrefs()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 /// <summary>
@@ -1131,12 +1056,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 $$void M(int x, string y)
                 { }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             class C
             {
                 /// <summary>
@@ -1145,15 +1065,17 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 void M(string y, byte b, int x)
                 { }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParametersInMethodThatImplementsInterfaceMethodOnlyThroughADerivedType1()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             interface I
             {
                 $$void M(int x, string y);
@@ -1169,12 +1091,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
             class D : C, I
             {
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             interface I
             {
                 void M(string y, byte b, int x);
@@ -1190,15 +1107,17 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
             class D : C, I
             {
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddAndReorderParametersInMethodThatImplementsInterfaceMethodOnlyThroughADerivedType2()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             interface I
             {
                 void M(int x, string y);
@@ -1214,12 +1133,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
             class D : C, I
             {
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             interface I
             {
                 void M(string y, byte b, int x);
@@ -1235,15 +1149,16 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
             class D : C, I
             {
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43664")]
     public async Task AddParameterOnUnparenthesizedLambda()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(0),
+            AddedParameterOrExistingIndex.CreateAdded("byte", "bb", CallSiteKind.Value, callSiteValue: "34") };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             using System.Linq;
 
             namespace ConsoleApp426
@@ -1261,12 +1176,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     static bool Test() { return true; }
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(0),
-            AddedParameterOrExistingIndex.CreateAdded("byte", "bb", CallSiteKind.Value, callSiteValue: "34") };
-
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             using System.Linq;
 
             namespace ConsoleApp426
@@ -1284,15 +1194,17 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     static bool Test() { return true; }
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44126")]
     public async Task AddAndReorderImplicitObjectCreationParameter()
     {
-        var markup = """
+        var permutation = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, callSiteValue: "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             using System;
             class C
             {
@@ -1305,12 +1217,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     C _ = new(1, "y");
                 }
             }
-            """;
-        var permutation = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, callSiteValue: "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             using System;
             class C
             {
@@ -1323,22 +1230,12 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     C _ = new("y", 34, 1);
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44558")]
     public async Task AddParameters_Record()
     {
-        var markup = """
-            /// <param name="First"></param>
-            /// <param name="Second"></param>
-            /// <param name="Third"></param>
-            record $$R(int First, int Second, int Third)
-            {
-                static R M() => new R(1, 2, 3);
-            }
-            """;
         var updatedSignature = new AddedParameterOrExistingIndex[]
         {
             new(0),
@@ -1346,7 +1243,15 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
             new(1),
             new(new AddedParameter(null, "int", "Forth", CallSiteKind.Value, "12345"), "System.Int32")
         };
-        var updatedCode = """
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            /// <param name="First"></param>
+            /// <param name="Second"></param>
+            /// <param name="Third"></param>
+            record $$R(int First, int Second, int Third)
+            {
+                static R M() => new R(1, 2, 3);
+            }
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             /// <param name="First"></param>
             /// <param name="Third"></param>
             /// <param name="Second"></param>
@@ -1355,23 +1260,12 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
             {
                 static R M() => new R(1, 3, 2, 12345);
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameters_PrimaryConstructor_Class()
     {
-        var markup = """
-            /// <param name="First"></param>
-            /// <param name="Second"></param>
-            /// <param name="Third"></param>
-            class $$R(int First, int Second, int Third)
-            {
-                static R M() => new R(1, 2, 3);
-            }
-            """;
         var updatedSignature = new AddedParameterOrExistingIndex[]
         {
             new(0),
@@ -1379,7 +1273,15 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
             new(1),
             new(new AddedParameter(null, "int", "Forth", CallSiteKind.Value, "12345"), "System.Int32")
         };
-        var updatedCode = """
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            /// <param name="First"></param>
+            /// <param name="Second"></param>
+            /// <param name="Third"></param>
+            class $$R(int First, int Second, int Third)
+            {
+                static R M() => new R(1, 2, 3);
+            }
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             /// <param name="First"></param>
             /// <param name="Third"></param>
             /// <param name="Second"></param>
@@ -1388,23 +1290,12 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
             {
                 static R M() => new R(1, 3, 2, 12345);
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddParameters_PrimaryConstructor_Struct()
     {
-        var markup = """
-            /// <param name="First"></param>
-            /// <param name="Second"></param>
-            /// <param name="Third"></param>
-            struct $$R(int First, int Second, int Third)
-            {
-                static R M() => new R(1, 2, 3);
-            }
-            """;
         var updatedSignature = new AddedParameterOrExistingIndex[]
         {
             new(0),
@@ -1412,7 +1303,15 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
             new(1),
             new(new AddedParameter(null, "int", "Forth", CallSiteKind.Value, "12345"), "System.Int32")
         };
-        var updatedCode = """
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            /// <param name="First"></param>
+            /// <param name="Second"></param>
+            /// <param name="Third"></param>
+            struct $$R(int First, int Second, int Third)
+            {
+                static R M() => new R(1, 2, 3);
+            }
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             /// <param name="First"></param>
             /// <param name="Third"></param>
             /// <param name="Second"></param>
@@ -1421,8 +1320,6 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
             {
                 static R M() => new R(1, 3, 2, 12345);
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 }

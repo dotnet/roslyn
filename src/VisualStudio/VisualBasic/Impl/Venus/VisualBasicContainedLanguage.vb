@@ -3,16 +3,12 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 Imports Microsoft.VisualStudio.ComponentModelHost
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.Utilities
@@ -59,7 +55,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                               pszObjectName As String,
                                               pszNameOfEvent As String) As Integer Implements IVsContainedLanguageStaticEventBinding.AddStaticEventBinding
             Me.ComponentModel.GetService(Of IUIThreadOperationExecutor)().Execute(
-                BasicVSResources.IntelliSense,
+                EditorFeaturesResources.IntelliSense,
                 defaultDescription:="",
                 allowCancellation:=False,
                 showProgress:=False,
@@ -116,7 +112,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                                         ppbstrMemberIDs As IntPtr) As Integer Implements IVsContainedLanguageStaticEventBinding.GetStaticEventBindingsForObject
             Dim members As Integer
             Me.ComponentModel.GetService(Of IUIThreadOperationExecutor)().Execute(
-                BasicVSResources.IntelliSense,
+                EditorFeaturesResources.IntelliSense,
                 defaultDescription:="",
                 allowCancellation:=False,
                 showProgress:=Nothing,
@@ -139,7 +135,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                                  pszNameOfEvent As String) As Integer Implements IVsContainedLanguageStaticEventBinding.RemoveStaticEventBinding
 
             Me.ComponentModel.GetService(Of IUIThreadOperationExecutor)().Execute(
-                BasicVSResources.IntelliSense,
+                EditorFeaturesResources.IntelliSense,
                 defaultDescription:="",
                 allowCancellation:=False,
                 showProgress:=Nothing,

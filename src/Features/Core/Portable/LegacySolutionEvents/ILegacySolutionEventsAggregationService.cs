@@ -31,7 +31,7 @@ internal interface ILegacySolutionEventsAggregationService : IWorkspaceService
 internal sealed class DefaultLegacySolutionEventsAggregationService(
     [ImportMany] IEnumerable<Lazy<ILegacySolutionEventsListener>> eventsServices) : ILegacySolutionEventsAggregationService
 {
-    private readonly ImmutableArray<Lazy<ILegacySolutionEventsListener>> _eventsServices = eventsServices.ToImmutableArray();
+    private readonly ImmutableArray<Lazy<ILegacySolutionEventsListener>> _eventsServices = [.. eventsServices];
 
     public bool ShouldReportChanges(SolutionServices services)
     {

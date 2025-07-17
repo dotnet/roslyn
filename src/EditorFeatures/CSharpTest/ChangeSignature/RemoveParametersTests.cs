@@ -22,12 +22,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature;
 
-public partial class ChangeSignatureTests : AbstractChangeSignatureTests
+public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
 {
     [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
     public async Task RemoveParameters1()
     {
-        var markup = """
+        var updatedSignature = new[] { 0, 2, 5 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             static class Ext
             {
                 /// <summary>
@@ -68,9 +69,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(p: new[] { 5 }, y: "four", x: 3, c: true, b: "two", a: 1, o: t);
                 }
             }
-            """;
-        var updatedSignature = new[] { 0, 2, 5 };
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             static class Ext
             {
                 /// <summary>
@@ -111,15 +110,14 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(y: "four", b: "two", o: t);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
     public async Task RemoveParameters_GenericParameterType()
     {
-        var markup = """
+        var updatedSignature = Array.Empty<int>();
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class DA
             {
                 void M(params int[] i) { }
@@ -150,9 +148,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     E2 -= new D(M3);
                 }
             }
-            """;
-        var updatedSignature = Array.Empty<int>();
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             class DA
             {
                 void M() { }
@@ -183,9 +179,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     E2 -= new D(M3);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -200,17 +194,18 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 
         for (var i = 0; i <= 4; i++)
         {
-            workspaceXml += $@"
-<Document FilePath = ""C{i}.cs"">
-class C{i}
-{{
-    void M()
-    {{
-        C5 c = new C5();
-        c.Ext(1, ""two"");
-    }}
-}}
-</Document>";
+            workspaceXml += $$"""
+                <Document FilePath = "C{{i}}.cs">
+                class C{{i}}
+                {
+                    void M()
+                    {
+                        C5 c = new C5();
+                        c.Ext(1, "two");
+                    }
+                }
+                </Document>
+                """;
         }
 
         workspaceXml += """
@@ -230,17 +225,18 @@ class C{i}
 
         for (var i = 6; i <= 9; i++)
         {
-            workspaceXml += $@"
-<Document FilePath = ""C{i}.cs"">
-class C{i}
-{{
-    void M()
-    {{
-        C5 c = new C5();
-        c.Ext(1, ""two"");
-    }}
-}}
-</Document>";
+            workspaceXml += $$"""
+                <Document FilePath = "C{{i}}.cs">
+                class C{{i}}
+                {
+                    void M()
+                    {
+                        C5 c = new C5();
+                        c.Ext(1, "two");
+                    }
+                }
+                </Document>
+                """;
         }
 
         workspaceXml += """
@@ -284,17 +280,18 @@ class C{i}
 
         for (var i = 0; i <= 4; i++)
         {
-            workspaceXml += $@"
-<Document FilePath = ""C{i}.cs"">
-class C{i}
-{{
-    void M()
-    {{
-        C5 c = new C5();
-        c.Ext(1, ""two"");
-    }}
-}}
-</Document>";
+            workspaceXml += $$"""
+                <Document FilePath = "C{{i}}.cs">
+                class C{{i}}
+                {
+                    void M()
+                    {
+                        C5 c = new C5();
+                        c.Ext(1, "two");
+                    }
+                }
+                </Document>
+                """;
         }
 
         workspaceXml += """
@@ -314,17 +311,18 @@ class C{i}
 
         for (var i = 6; i <= 9; i++)
         {
-            workspaceXml += $@"
-<Document FilePath = ""C{i}.cs"">
-class C{i}
-{{
-    void M()
-    {{
-        C5 c = new C5();
-        c.Ext(1, ""two"");
-    }}
-}}
-</Document>";
+            workspaceXml += $$"""
+                <Document FilePath = "C{{i}}.cs">
+                class C{{i}}
+                {
+                    void M()
+                    {
+                        C5 c = new C5();
+                        c.Ext(1, "two");
+                    }
+                }
+                </Document>
+                """;
         }
 
         workspaceXml += """
@@ -375,7 +373,7 @@ class C{i}
             </Workspace>
             """),
             workspaceKind: WorkspaceKind.Interactive,
-            composition: EditorTestCompositions.EditorFeaturesWpf);
+            composition: EditorTestCompositions.EditorFeatures);
         // Force initialization.
         workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 
@@ -394,7 +392,8 @@ class C{i}
     [WorkItem("https://github.com/dotnet/roslyn/issues/44126")]
     public async Task RemoveParameters_ImplicitObjectCreation()
     {
-        var markup = """
+        var updatedSignature = new[] { 1 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class C
             {
                 public $$C(int a, string b) { }
@@ -404,9 +403,7 @@ class C{i}
                     C c = new(1, "b");
                 }
             }
-            """;
-        var updatedSignature = new[] { 1 };
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             public class C
             {
                 public C(string b) { }
@@ -416,32 +413,26 @@ class C{i}
                     C c = new("b");
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/66547")]
     public async Task RemoveParameters_SpecialSymbolNamedParameter()
     {
-        var markup = """
+        var updatedSignature = new[] { 1 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             void $$m(object? param, bool @new = true)
             {
             }
 
             m(null, @new: false);
-            """;
-
-        var updatedSignature = new[] { 1 };
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             void m(bool @new = true)
             {
             }
 
             m(@new: false);
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 }

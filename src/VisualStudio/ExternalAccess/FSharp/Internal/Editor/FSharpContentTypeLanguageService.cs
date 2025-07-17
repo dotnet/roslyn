@@ -7,27 +7,26 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.VisualStudio.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
+
+[ExportContentTypeLanguageService(FSharpContentTypeNames.FSharpContentType, LanguageNames.FSharp), Shared]
+internal class FSharpContentTypeLanguageService : IContentTypeLanguageService
 {
-    [ExportContentTypeLanguageService(FSharpContentTypeNames.FSharpContentType, LanguageNames.FSharp), Shared]
-    internal class FSharpContentTypeLanguageService : IContentTypeLanguageService
+    private readonly IContentTypeRegistryService _contentTypeRegistry;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FSharpContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
     {
-        private readonly IContentTypeRegistryService _contentTypeRegistry;
+        _contentTypeRegistry = contentTypeRegistry;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
-        {
-            _contentTypeRegistry = contentTypeRegistry;
-        }
-
-        public IContentType GetDefaultContentType()
-        {
-            return _contentTypeRegistry.GetContentType(FSharpContentTypeNames.FSharpContentType);
-        }
+    public IContentType GetDefaultContentType()
+    {
+        return _contentTypeRegistry.GetContentType(FSharpContentTypeNames.FSharpContentType);
     }
 }

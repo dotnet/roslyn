@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -86,9 +87,18 @@ internal sealed partial class RemoteSemanticClassificationService : BrokeredServ
         var classifiedSpans = await TryGetOrReadCachedSemanticClassificationsAsync(
             documentKey, type, checksum, cancellationToken).ConfigureAwait(false);
         var textSpanIntervalTree = new TextSpanMutableIntervalTree(textSpans);
-        return classifiedSpans.IsDefault
-            ? null
-            : SerializableClassifiedSpans.Dehydrate(classifiedSpans.WhereAsArray(c => textSpanIntervalTree.HasIntervalThatIntersectsWith(c.TextSpan)));
+
+        if (classifiedSpans.IsDefault)
+            return null;
+
+        using var _ = Classifier.GetPooledList(out var temp);
+        foreach (var span in classifiedSpans)
+        {
+            if (textSpanIntervalTree.HasIntervalThatIntersectsWith(span.TextSpan))
+                temp.Add(span);
+        }
+
+        return SerializableClassifiedSpans.Dehydrate(temp);
     }
 
     private static async ValueTask CacheClassificationsAsync(

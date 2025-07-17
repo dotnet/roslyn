@@ -325,7 +325,7 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
             throw new ArgumentException("target");
         }
 
-        var attributeSyntaxList = AttributeGenerator.GenerateAttributeLists(attributes.ToImmutableArray(), info, target).ToArray();
+        var attributeSyntaxList = AttributeGenerator.GenerateAttributeLists([.. attributes], info, target).ToArray();
 
         return destination switch
         {
@@ -344,20 +344,22 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
 
         if (destination is EnumDeclarationSyntax enumDeclaration)
         {
-            return Cast<TDeclarationNode>(enumDeclaration.AddMembers(members.Cast<EnumMemberDeclarationSyntax>().ToArray()));
+            enumDeclaration.EnsureOpenAndCloseBraceTokens();
+            return Cast<TDeclarationNode>(enumDeclaration.AddMembers([.. members.Cast<EnumMemberDeclarationSyntax>()]));
         }
         else if (destination is TypeDeclarationSyntax typeDeclaration)
         {
-            return Cast<TDeclarationNode>(typeDeclaration.AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
+            typeDeclaration = typeDeclaration.EnsureOpenAndCloseBraceTokens();
+            return Cast<TDeclarationNode>(typeDeclaration.AddMembers([.. members.Cast<MemberDeclarationSyntax>()]));
         }
         else if (destination is BaseNamespaceDeclarationSyntax namespaceDeclaration)
         {
-            return Cast<TDeclarationNode>(namespaceDeclaration.AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
+            return Cast<TDeclarationNode>(namespaceDeclaration.AddMembers([.. members.Cast<MemberDeclarationSyntax>()]));
         }
         else
         {
             return Cast<TDeclarationNode>(Cast<CompilationUnitSyntax>(destination)
-                .AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
+                .AddMembers([.. members.Cast<MemberDeclarationSyntax>()]));
         }
     }
 
@@ -452,13 +454,13 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
                 if (attributes.Count == 1)
                 {
                     // Remove the entire attribute list.
-                    ComputePositionAndTriviaForRemoveAttributeList(attributeList, (SyntaxTrivia t) => t.IsKind(SyntaxKind.EndOfLineTrivia), out positionOfRemovedNode, out trivia);
+                    ComputePositionAndTriviaForRemoveAttributeList(attributeList, t => t.IsKind(SyntaxKind.EndOfLineTrivia), out positionOfRemovedNode, out trivia);
                     newAttributeLists = attributeLists.Where(aList => aList != attributeList);
                 }
                 else
                 {
                     // Remove just the given attribute from the attribute list.
-                    ComputePositionAndTriviaForRemoveAttributeFromAttributeList(attributeToRemove, (SyntaxToken t) => t.IsKind(SyntaxKind.CommaToken), out positionOfRemovedNode, out trivia);
+                    ComputePositionAndTriviaForRemoveAttributeFromAttributeList(attributeToRemove, t => t.IsKind(SyntaxKind.CommaToken), out positionOfRemovedNode, out trivia);
                     var newAttributes = SeparatedList(attributes.Where(a => a != attributeToRemove));
                     var newAttributeList = attributeList.WithAttributes(newAttributes);
                     newAttributeLists = attributeLists.Select(attrList => attrList == attributeList ? newAttributeList : attrList);
@@ -580,9 +582,31 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
         var finalMember = baseMethodDeclaration
             .WithExpressionBody(null)
             .WithSemicolonToken(default)
-            .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
+            .WithBody(AddStatementsToBlock(body, statements));
 
         return Cast<TDeclarationNode>(finalMember);
+    }
+
+    public static BlockSyntax AddStatementsToBlock(BlockSyntax block, IEnumerable<SyntaxNode> statements)
+    {
+        var statementsArray = StatementGenerator.GenerateStatements(statements);
+        if (statementsArray.Count > 0)
+        {
+            var closeBraceTrivia = block.CloseBraceToken.LeadingTrivia;
+            var lastEndIf = closeBraceTrivia.LastOrDefault(t => t.GetStructure() is EndIfDirectiveTriviaSyntax);
+            if (lastEndIf != default)
+            {
+                var splitIndex = closeBraceTrivia.IndexOf(lastEndIf) + 1;
+
+                statementsArray = statementsArray.Replace(
+                    statementsArray[0],
+                    statementsArray[0].WithPrependedLeadingTrivia(closeBraceTrivia.Take(splitIndex)));
+                block = block.WithCloseBraceToken(
+                    block.CloseBraceToken.WithLeadingTrivia(closeBraceTrivia.Skip(splitIndex)));
+            }
+        }
+
+        return block.WithStatements(block.Statements.AddRange(statementsArray));
     }
 
     private static TDeclarationNode AddStatementsToLocalFunctionStatement<TDeclarationNode>(
@@ -601,7 +625,7 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
         var finalMember = localFunctionStatement
             .WithExpressionBody(null)
             .WithSemicolonToken(default)
-            .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
+            .WithBody(AddStatementsToBlock(body, statements));
 
         return Cast<TDeclarationNode>(finalMember);
     }
@@ -626,7 +650,7 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
 
         var finalMember = anonymousFunctionSyntax
             .WithExpressionBody(null)
-            .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
+            .WithBody(AddStatementsToBlock(body, statements));
 
         return Cast<TDeclarationNode>(finalMember);
     }

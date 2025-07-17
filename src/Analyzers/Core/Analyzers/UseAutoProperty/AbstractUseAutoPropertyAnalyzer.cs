@@ -28,7 +28,12 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
     TFieldDeclaration,
     TVariableDeclarator,
     TExpression,
-    TIdentifierName> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    TIdentifierName>(ISemanticFacts semanticFacts)
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(IDEDiagnosticIds.UseAutoPropertyDiagnosticId,
+           EnforceOnBuildValues.UseAutoProperty,
+           CodeStyleOptions2.PreferAutoProperties,
+           new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+           new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     where TSyntaxKind : struct, Enum
     where TPropertyDeclaration : SyntaxNode
     where TConstructorDeclaration : SyntaxNode
@@ -48,17 +53,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
     /// <summary>
     /// Not static as this has different semantics around case sensitivity for C# and VB.
     /// </summary>
-    private readonly ObjectPool<HashSet<string>> _fieldNamesPool;
-
-    protected AbstractUseAutoPropertyAnalyzer()
-        : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId,
-               EnforceOnBuildValues.UseAutoProperty,
-               CodeStyleOptions2.PreferAutoProperties,
-               new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-               new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
-    {
-        _fieldNamesPool = new(() => new(this.SyntaxFacts.StringComparer));
-    }
+    private readonly ObjectPool<HashSet<string>> _fieldNamesPool = new(() => new(semanticFacts.SyntaxFacts.StringComparer));
 
     protected static void AddFieldUsage(ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, IFieldSymbol field, SyntaxNode location)
         => fieldWrites.GetOrAdd(field, static _ => s_nodeSetPool.Allocate()).Add(location);
@@ -74,12 +69,11 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
     /// <summary>
     /// A method body edit anywhere in a type will force us to reanalyze the whole type.
     /// </summary>
-    /// <returns></returns>
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-    protected abstract ISemanticFacts SemanticFacts { get; }
-    protected ISyntaxFacts SyntaxFacts => this.SemanticFacts.SyntaxFacts;
+    private ISemanticFacts SemanticFacts { get; } = semanticFacts;
+    private ISyntaxFacts SyntaxFacts => SemanticFacts.SyntaxFacts;
 
     protected abstract TSyntaxKind PropertyDeclarationKind { get; }
 
@@ -88,9 +82,6 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
     protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
     protected abstract bool SupportsPropertyInitializer(Compilation compilation);
-    protected abstract bool SupportsFieldExpression(Compilation compilation);
-
-    protected abstract bool ContainsFieldExpression(TPropertyDeclaration propertyDeclaration, CancellationToken cancellationToken);
 
     protected abstract TExpression? GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
     protected abstract TExpression? GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
@@ -139,6 +130,8 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
                         IsConst: false,
                         // Can't preserve volatile semantics on a property.
                         IsVolatile: false,
+                        // Can't have an autoprop that returns by-ref. 
+                        RefKind: RefKind.None,
                         // To make processing later on easier, limit to well-behaved fields (versus having multiple
                         // fields merged together in error recoery scenarios).
                         DeclaringSyntaxReferences.Length: 1,
@@ -269,13 +262,13 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         if (trivialFieldExpression != null)
             return new(CheckFieldAccessExpression(semanticModel, trivialFieldExpression, fieldNames, cancellationToken));
 
-        if (!this.SupportsFieldExpression(semanticModel.Compilation))
+        if (!this.SyntaxFacts.SupportsFieldExpression(semanticModel.SyntaxTree.Options))
             return AccessedFields.Empty;
 
         using var _ = PooledHashSet<IFieldSymbol>.GetInstance(out var set);
         AddAccessedFields(semanticModel, getMethod, fieldNames, set, cancellationToken);
 
-        return new(TrivialField: null, set.ToImmutableArray());
+        return new(TrivialField: null, [.. set]);
     }
 
     private AccessedFields GetSetterFields(
@@ -285,13 +278,13 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         if (trivialFieldExpression != null)
             return new(CheckFieldAccessExpression(semanticModel, trivialFieldExpression, fieldNames, cancellationToken));
 
-        if (!this.SupportsFieldExpression(semanticModel.Compilation))
+        if (!this.SyntaxFacts.SupportsFieldExpression(semanticModel.SyntaxTree.Options))
             return AccessedFields.Empty;
 
         using var _ = PooledHashSet<IFieldSymbol>.GetInstance(out var set);
         AddAccessedFields(semanticModel, setMethod, fieldNames, set, cancellationToken);
 
-        return new(TrivialField: null, set.ToImmutableArray());
+        return new(TrivialField: null, [.. set]);
     }
 
     private IFieldSymbol? CheckFieldAccessExpression(
@@ -371,6 +364,9 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         if (property.GetMethod == null)
             return;
 
+        if (property.RefKind != RefKind.None)
+            return;
+
         if (!CanExplicitInterfaceImplementationsBeFixed && property.ExplicitInterfaceImplementations.Length != 0)
             return;
 
@@ -385,8 +381,11 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
             return;
 
         // If the property already contains a `field` expression, then we can't do anything more here.
-        if (SupportsFieldExpression(compilation) && ContainsFieldExpression(propertyDeclaration, cancellationToken))
+        if (this.SyntaxFacts.SupportsFieldExpression(propertyDeclaration.SyntaxTree.Options) &&
+            propertyDeclaration.DescendantNodes().Any(this.SyntaxFacts.IsFieldExpression))
+        {
             return;
+        }
 
         var getterFields = GetGetterFields(semanticModel, property.GetMethod, fieldNames, cancellationToken);
         getterFields = getterFields.Where(
@@ -554,7 +553,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
                 // All the usages were inside the property.  This is ok if we support the `field` keyword as those
                 // usages will be updated to that form.
-                if (!this.SupportsFieldExpression(context.Compilation))
+                if (!this.SyntaxFacts.SupportsFieldExpression(result.PropertyDeclaration.SyntaxTree.Options))
                     continue;
             }
 

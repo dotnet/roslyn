@@ -22,6 +22,11 @@
         <target state="translated">İfade gövdeli Üyeler</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indentation_preferences">
+        <source>Indentation preferences</source>
+        <target state="translated">Girinti tercihleri</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Null_checking_preferences">
         <source>Null-checking preferences</source>
         <target state="translated">Null denetimi tercihleri</target>
@@ -30,6 +35,16 @@
       <trans-unit id="Pattern_matching_preferences">
         <source>Pattern matching preferences</source>
         <target state="translated">Desen eşleştirme tercihleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Space_preferences">
+        <source>Space preferences</source>
+        <target state="translated">Boşluk tercihleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrapping_preferences">
+        <source>Wrapping preferences</source>
+        <target state="translated">Kaydırma tercihleri</target>
         <note />
       </trans-unit>
       <trans-unit id="using_directive_preferences">

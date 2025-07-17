@@ -19,13 +19,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitType;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = null)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public UseImplicitTypeTests(ITestOutputHelper? logger = null)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpUseImplicitTypeDiagnosticAnalyzer(), new UseImplicitTypeCodeFixProvider());
 
@@ -85,9 +81,8 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
         };
 
     [Fact]
-    public async Task NotOnFieldDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnFieldDeclaration()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -96,12 +91,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 [|int|] _myfield = 5;
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnFieldLikeEvents()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnFieldLikeEvents()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -110,12 +103,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 public event [|D|] _myevent;
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnConstants()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnConstants()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -127,12 +118,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnNullLiteral()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnNullLiteral()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -144,12 +133,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
-    public async Task NotOnRefVar()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task NotOnRefVar()
+        => TestMissingInRegularAndScriptAsync("""
             class Program
             {
                 void Method()
@@ -159,12 +146,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 ref int Method2() => throw null;
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnDynamic()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnDynamic()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -176,12 +161,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnAnonymousMethodExpression()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnAnonymousMethodExpression()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -195,12 +178,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnLambdaExpression()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnLambdaExpression()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -212,12 +193,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnMethodGroup()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnMethodGroup()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -229,12 +208,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnDeclarationWithMultipleDeclarators()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnDeclarationWithMultipleDeclarators()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -246,12 +223,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnDeclarationWithoutInitializer()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnDeclarationWithoutInitializer()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -263,12 +238,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnIFormattable()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnIFormattable()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -280,12 +253,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnFormattableString()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnFormattableString()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -297,12 +268,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotInCatchDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotInCatchDeclaration()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -320,12 +289,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotDuringConflicts()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotDuringConflicts()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -341,12 +308,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotIfAlreadyImplicitlyTyped()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotIfAlreadyImplicitlyTyped()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -358,12 +323,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnImplicitConversion()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnImplicitConversion()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -376,12 +339,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnBoxingImplicitConversion()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnBoxingImplicitConversion()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -394,12 +355,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnRHS()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnRHS()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -411,12 +370,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnVariablesUsedInInitalizerExpression()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnVariablesUsedInInitalizerExpression()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -428,12 +385,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
-    public async Task NotOnVariablesOfEnumTypeNamedAsEnumTypeUsedInInitalizerExpressionAtFirstPosition()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnVariablesOfEnumTypeNamedAsEnumTypeUsedInInitalizerExpressionAtFirstPosition()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -447,12 +402,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
-    public async Task NotOnVariablesNamedAsTypeUsedInInitalizerExpressionContainingTypeNameAtFirstPositionOfMemberAccess()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnVariablesNamedAsTypeUsedInInitalizerExpressionContainingTypeNameAtFirstPositionOfMemberAccess()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -469,12 +422,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
-    public async Task SuggestOnVariablesUsedInInitalizerExpressionAsInnerPartsOfQualifiedNameStartedWithGlobal()
-    {
-        await TestAsync(
+    public Task SuggestOnVariablesUsedInInitalizerExpressionAsInnerPartsOfQualifiedNameStartedWithGlobal()
+        => TestAsync(
             """
             enum A { X, Y }
 
@@ -497,12 +448,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, CSharpParseOptions.Default, options: ImplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
-    public async Task SuggestOnVariablesUsedInInitalizerExpressionAsInnerPartsOfQualifiedName()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestOnVariablesUsedInInitalizerExpressionAsInnerPartsOfQualifiedName()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -541,12 +490,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
-    public async Task SuggestOnVariablesUsedInInitalizerExpressionAsLastPartOfQualifiedName()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestOnVariablesUsedInInitalizerExpressionAsLastPartOfQualifiedName()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -583,12 +530,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task NotOnAssignmentToInterfaceType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnAssignmentToInterfaceType()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -608,12 +553,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
             {
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnArrayInitializerWithoutNewKeyword()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnArrayInitializerWithoutNewKeyword()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -630,12 +573,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task SuggestVarOnLocalWithIntrinsicTypeString()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnLocalWithIntrinsicTypeString()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -658,12 +599,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarOnIntrinsicType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnIntrinsicType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -686,12 +625,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
-    public async Task SuggestVarOnRefIntrinsicType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnRefIntrinsicType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -716,12 +653,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 static ref int Ref() => throw null;
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
-    public async Task WithRefIntrinsicTypeInForeach()
-    {
-        var before = """
+    public Task WithRefIntrinsicTypeInForeach()
+        => TestInRegularAndScriptAsync("""
             class E
             {
                 public ref int Current => throw null;
@@ -733,8 +668,7 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                     foreach (ref [|int|] x in this) { }
                 }
             }
-            """;
-        var after = """
+            """, """
             class E
             {
                 public ref int Current => throw null;
@@ -746,14 +680,11 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                     foreach (ref var x in this) { }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
-    }
+            """, options: ImplicitTypeEverywhere());
 
     [Fact]
-    public async Task SuggestVarOnFrameworkType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnFrameworkType()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -776,12 +707,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarOnUserDefinedType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnUserDefinedType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -804,12 +733,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarOnGenericType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnGenericType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -832,12 +759,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarOnSeeminglyConflictingType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnSeeminglyConflictingType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -860,12 +785,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarOnSingleDimensionalArrayTypeWithNewOperator()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnSingleDimensionalArrayTypeWithNewOperator()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -888,12 +811,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarOnSingleDimensionalArrayTypeWithNewOperator2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnSingleDimensionalArrayTypeWithNewOperator2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -916,12 +837,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarOnSingleDimensionalJaggedArrayType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnSingleDimensionalJaggedArrayType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -950,12 +869,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarOnDeclarationWithObjectInitializer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnDeclarationWithObjectInitializer()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -988,12 +905,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarOnDeclarationWithCollectionInitializer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnDeclarationWithCollectionInitializer()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1018,12 +933,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarOnDeclarationWithCollectionAndObjectInitializers()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnDeclarationWithCollectionAndObjectInitializers()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1064,12 +977,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarOnForStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnForStatement()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1096,12 +1007,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarOnForeachStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnForeachStatement()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1132,12 +1041,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarOnQueryExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnQueryExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1182,12 +1089,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
             }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarInUsingStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarInUsingStatement()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1230,12 +1135,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarOnExplicitConversion()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnExplicitConversion()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1260,12 +1163,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarInConditionalAccessExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarInConditionalAccessExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1300,12 +1201,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarInCheckedExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarInCheckedExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1330,12 +1229,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarInUnCheckedExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarInUnCheckedExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1360,12 +1257,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarInAwaitExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarInAwaitExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1400,12 +1295,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestVarInParenthesizedExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarInParenthesizedExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1428,12 +1321,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task DoNotSuggestVarOnBuiltInType_Literal_WithOption()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotSuggestVarOnBuiltInType_Literal_WithOption()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1445,12 +1336,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
-    }
 
     [Fact]
-    public async Task DoNotSuggestVarOnBuiltInType_WithOption()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotSuggestVarOnBuiltInType_WithOption()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1464,12 +1353,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
-    }
 
     [Fact]
-    public async Task DoNotSuggestVarOnFrameworkTypeEquivalentToBuiltInType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotSuggestVarOnFrameworkTypeEquivalentToBuiltInType()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1483,12 +1370,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
-    }
 
     [Fact]
-    public async Task SuggestVarWhereTypeIsEvident_DefaultExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarWhereTypeIsEvident_DefaultExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1511,12 +1396,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeWhereApparent());
-    }
 
     [Fact]
-    public async Task SuggestVarWhereTypeIsEvident_Literals()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarWhereTypeIsEvident_Literals()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1539,12 +1422,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeWhereApparentAndForIntrinsics());
-    }
 
     [Fact]
-    public async Task DoNotSuggestVarWhereTypeIsEvident_Literals()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotSuggestVarWhereTypeIsEvident_Literals()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1556,12 +1437,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeWhereApparent()));
-    }
 
     [Fact]
-    public async Task SuggestVarWhereTypeIsEvident_ObjectCreationExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarWhereTypeIsEvident_ObjectCreationExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1584,12 +1463,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeWhereApparent());
-    }
 
     [Fact]
-    public async Task SuggestVarWhereTypeIsEvident_CastExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarWhereTypeIsEvident_CastExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1614,12 +1491,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeWhereApparent());
-    }
 
     [Fact]
-    public async Task DoNotSuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotSuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1632,12 +1507,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeWhereApparent()));
-    }
 
     [Fact]
-    public async Task DoNotSuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotSuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1650,12 +1523,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, new TestParameters(options: ImplicitTypeWhereApparent()));
-    }
 
     [Fact]
-    public async Task DoNotSuggestVarWhereTypeIsEvident_IsExpression()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotSuggestVarWhereTypeIsEvident_IsExpression()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1676,12 +1547,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
             {
             }
             """, new TestParameters(options: ImplicitTypeWhereApparent()));
-    }
 
     [Fact]
-    public async Task SuggestVarWhereTypeIsEvident_AsExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarWhereTypeIsEvident_AsExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1722,12 +1591,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
             {
             }
             """, options: ImplicitTypeWhereApparent());
-    }
 
     [Fact]
-    public async Task SuggestVarWhereTypeIsEvident_ConversionHelpers()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarWhereTypeIsEvident_ConversionHelpers()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1750,12 +1617,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeWhereApparent());
-    }
 
     [Fact]
-    public async Task SuggestVarWhereTypeIsEvident_CreationHelpers()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarWhereTypeIsEvident_CreationHelpers()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1784,12 +1649,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 internal static XElement Load() => return null;
             }
             """, options: ImplicitTypeWhereApparent());
-    }
 
     [Fact]
-    public async Task SuggestVarWhereTypeIsEvident_CreationHelpersWithInferredTypeArguments()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarWhereTypeIsEvident_CreationHelpersWithInferredTypeArguments()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1812,12 +1675,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeWhereApparent());
-    }
 
     [Fact]
-    public async Task SuggestVarWhereTypeIsEvident_ConvertToType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarWhereTypeIsEvident_ConvertToType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1842,12 +1703,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeWhereApparent());
-    }
 
     [Fact]
-    public async Task SuggestVarWhereTypeIsEvident_IConvertibleToType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarWhereTypeIsEvident_IConvertibleToType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1874,13 +1733,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                 }
             }
             """, options: ImplicitTypeWhereApparent());
-    }
 
     [Fact]
-    public async Task SuggestVarNotificationLevelSilent()
-    {
-        var source =
-            """
+    public Task SuggestVarNotificationLevelSilent()
+        => TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -1889,18 +1745,14 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                     [|C|] n1 = new C();
                 }
             }
-            """;
-        await TestDiagnosticInfoAsync(source,
+            """,
             options: ImplicitTypeSilentEnforcement(),
             diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Hidden);
-    }
 
     [Fact]
-    public async Task SuggestVarNotificationLevelInfo()
-    {
-        var source =
-            """
+    public Task SuggestVarNotificationLevelInfo()
+        => TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -1909,18 +1761,14 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                     [|int|] s = 5;
                 }
             }
-            """;
-        await TestDiagnosticInfoAsync(source,
+            """,
             options: ImplicitTypeEnforcements(),
             diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Info);
-    }
 
     [Fact]
-    public async Task SuggestVarNotificationLevelWarning()
-    {
-        var source =
-            """
+    public Task SuggestVarNotificationLevelWarning()
+        => TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -1929,18 +1777,14 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                     [|C[]|] n1 = new[] { new C() }; // type not apparent and not intrinsic
                 }
             }
-            """;
-        await TestDiagnosticInfoAsync(source,
+            """,
             options: ImplicitTypeEnforcements(),
             diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning);
-    }
 
     [Fact]
-    public async Task SuggestVarNotificationLevelError()
-    {
-        var source =
-            """
+    public Task SuggestVarNotificationLevelError()
+        => TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -1949,21 +1793,18 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
                     [|C|] n1 = new C();
                 }
             }
-            """;
-        await TestDiagnosticInfoAsync(source,
+            """,
             options: ImplicitTypeEnforcements(),
             diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Error);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
     public async Task SuggestVarOnLocalWithIntrinsicArrayType()
     {
         var before = @"class C { static void M() { [|int[]|] s = new int[0]; } }";
-        var after = @"class C { static void M() { var s = new int[0]; } }";
 
         //The type is intrinsic and apparent
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
+        await TestInRegularAndScriptAsync(before, @"class C { static void M() { var s = new int[0]; } }", options: ImplicitTypeEverywhere());
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent())); // Preference of intrinsic types dominates
     }
@@ -2025,17 +1866,14 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
     public async Task SuggestVarOnLocalWithNonApparentTupleType()
     {
         var before = @"class C { static void M(C c) { [|(int a, C b)|] s = (a: 1, b: c); } }";
-        var after = @"class C { static void M(C c) { var s = (a: 1, b: c); } }";
-
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
+        await TestInRegularAndScriptAsync(before, @"class C { static void M(C c) { var s = (a: 1, b: c); } }", options: ImplicitTypeEverywhere());
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparentAndForIntrinsics()));
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11154")]
-    public async Task ValueTupleCreate()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ValueTupleCreate()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2059,12 +1897,10 @@ public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBase
             }
             """ + trivial2uple,
 options: ImplicitTypeWhereApparent());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11095")]
-    public async Task ValueTupleCreate_2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ValueTupleCreate_2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2088,12 +1924,10 @@ options: ImplicitTypeWhereApparent());
             }
             """ + trivial2uple,
 options: ImplicitTypeWhereApparent());
-    }
 
     [Fact]
-    public async Task TupleWithDifferentNames()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TupleWithDifferentNames()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2103,13 +1937,11 @@ options: ImplicitTypeWhereApparent());
                 }
             }
             """,
-new TestParameters(options: ImplicitTypeEverywhere()));
-    }
+            new TestParameters(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14052")]
-    public async Task DoNotOfferOnForEachConversionIfItChangesSemantics()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotOfferOnForEachConversionIfItChangesSemantics()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -2140,13 +1972,11 @@ new TestParameters(options: ImplicitTypeEverywhere()));
                 }
             }
             """,
-new TestParameters(options: ImplicitTypeEverywhere()));
-    }
+            new TestParameters(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14052")]
-    public async Task OfferOnForEachConversionIfItDoesNotChangesSemantics()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OfferOnForEachConversionIfItDoesNotChangesSemantics()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -2207,12 +2037,10 @@ new TestParameters(options: ImplicitTypeEverywhere()));
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20437")]
-    public async Task SuggestVarOnDeclarationExpressionSyntax()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestVarOnDeclarationExpressionSyntax()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2235,14 +2063,11 @@ new TestParameters(options: ImplicitTypeEverywhere()));
                 }
             }
             """,
-options: ImplicitTypeEverywhere());
-    }
+            options: ImplicitTypeEverywhere());
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
-    public async Task DoNotSuggestVarOnDeclarationExpressionSyntaxWithIntrinsicType()
-    {
-        var before =
-            """
+    public Task DoNotSuggestVarOnDeclarationExpressionSyntaxWithIntrinsicType()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 static void M(out int x)
@@ -2250,14 +2075,11 @@ options: ImplicitTypeEverywhere());
                     M([|out int|] x);
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
-    }
+            """, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
-    public async Task DoNotSuggestVarOnStackAllocExpressions_SpanType()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task DoNotSuggestVarOnStackAllocExpressions_SpanType()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             namespace System
             {
@@ -2274,12 +2096,12 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
-    public async Task DoNotSuggestVarOnStackAllocExpressions_SpanType_NestedConditional()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79337")]
+    public Task DoSuggestVarOnStackAllocExpressions_SpanType_NestedConditional()
+        => TestInRegularAndScript1Async("""
             using System;
             namespace System
             {
@@ -2295,13 +2117,29 @@ options: ImplicitTypeEverywhere());
                     [|Span<int>|] x = choice ? stackalloc int [10] : stackalloc int [100];
                 }
             }
+            """, """
+            using System;
+            namespace System
+            {
+                public readonly ref struct Span<T> 
+                {
+                    unsafe public Span(void* pointer, int length) { }
+                }
+            }
+            class C
+            {
+                static void M(bool choice)
+                {
+                    var x = choice ? stackalloc int [10] : stackalloc int [100];
+                }
+            }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
-    public async Task DoNotSuggestVarOnStackAllocExpressions_SpanType_NestedCast()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79337")]
+    public Task DoSuggestVarOnStackAllocExpressions_SpanType_NestedCast()
+        => TestInRegularAndScript1Async("""
             using System;
             namespace System
             {
@@ -2317,13 +2155,27 @@ options: ImplicitTypeEverywhere());
                     [|Span<int>|] x = (Span<int>)stackalloc int [100];
                 }
             }
+            """, """
+            using System;
+            namespace System
+            {
+                public readonly ref struct Span<T> 
+                {
+                    unsafe public Span(void* pointer, int length) { }
+                }
+            }
+            class C
+            {
+                static void M()
+                {
+                    var x = (Span<int>)stackalloc int [100];
+                }
+            }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
-    public async Task SuggestVarOnLambdasWithNestedStackAllocs()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task SuggestVarOnLambdasWithNestedStackAllocs()
+        => TestInRegularAndScriptAsync("""
             using System.Linq;
             class C
             {
@@ -2350,12 +2202,10 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
-    public async Task SuggestVarOnAnonymousMethodsWithNestedStackAllocs()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task SuggestVarOnAnonymousMethodsWithNestedStackAllocs()
+        => TestInRegularAndScriptAsync("""
             using System.Linq;
             class C
             {
@@ -2382,12 +2232,10 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
-    public async Task SuggestVarOnStackAllocsNestedInLambdas()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task SuggestVarOnStackAllocsNestedInLambdas()
+        => TestInRegularAndScriptAsync("""
             using System.Linq;
             class C
             {
@@ -2414,12 +2262,10 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
-    public async Task SuggestVarOnStackAllocsNestedInAnonymousMethods()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task SuggestVarOnStackAllocsNestedInAnonymousMethods()
+        => TestInRegularAndScriptAsync("""
             using System.Linq;
             class C
             {
@@ -2446,12 +2292,10 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
-    public async Task SuggestVarOnStackAllocsInOuterMethodScope()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task SuggestVarOnStackAllocsInOuterMethodScope()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 unsafe static void M()
@@ -2468,12 +2312,10 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
-    public async Task DoSuggestForDeclarationExpressionIfItWouldNotChangeOverloadResolution2()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task DoSuggestForDeclarationExpressionIfItWouldNotChangeOverloadResolution2()
+        => TestInRegularAndScriptAsync("""
             class Program
             {
                 static int Main(string[] args)
@@ -2498,12 +2340,10 @@ options: ImplicitTypeEverywhere());
                 public static bool TryGetValue(string key, out bool value, int x) => false;
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
-    public async Task DoNotSuggestForDeclarationExpressionIfItWouldChangeOverloadResolution()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task DoNotSuggestForDeclarationExpressionIfItWouldChangeOverloadResolution()
+        => TestMissingInRegularAndScriptAsync("""
             class Program
             {
                 static int Main(string[] args)
@@ -2517,12 +2357,10 @@ options: ImplicitTypeEverywhere());
                 public static bool TryGetValue<T>(string key, out T value) => false;
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
-    public async Task DoNotSuggestIfChangesGenericTypeInference()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task DoNotSuggestIfChangesGenericTypeInference()
+        => TestMissingInRegularAndScriptAsync("""
             class Program
             {
                 static int Main(string[] args)
@@ -2534,12 +2372,10 @@ options: ImplicitTypeEverywhere());
                 public static bool TryGetValue<T>(string key, out T value) => false;
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
-    public async Task SuggestIfDoesNotChangeGenericTypeInference1()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task SuggestIfDoesNotChangeGenericTypeInference1()
+        => TestInRegularAndScriptAsync("""
             class Program
             {
                 static int Main(string[] args)
@@ -2562,12 +2398,10 @@ options: ImplicitTypeEverywhere());
                 public static bool TryGetValue<T>(string key, out T value) => false;
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
-    public async Task SuggestIfDoesNotChangeGenericTypeInference2()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task SuggestIfDoesNotChangeGenericTypeInference2()
+        => TestInRegularAndScriptAsync("""
             class Program
             {
                 static int Main(string[] args)
@@ -2590,12 +2424,10 @@ options: ImplicitTypeEverywhere());
                 public static bool TryGetValue<T>(T key, out T value) => false;
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23711")]
-    public async Task SuggestVarForDelegateType()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task SuggestVarForDelegateType()
+        => TestInRegularAndScriptAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -2620,12 +2452,10 @@ options: ImplicitTypeEverywhere());
                 delegate object GetHandler();
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23711")]
-    public async Task DoNotSuggestVarForDelegateType1()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task DoNotSuggestVarForDelegateType1()
+        => TestMissingInRegularAndScriptAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -2638,12 +2468,10 @@ options: ImplicitTypeEverywhere());
                 delegate object GetHandler();
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23711")]
-    public async Task DoNotSuggestVarForDelegateType2()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task DoNotSuggestVarForDelegateType2()
+        => TestMissingInRegularAndScriptAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -2658,12 +2486,10 @@ options: ImplicitTypeEverywhere());
                 delegate object GetHandler();
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23711")]
-    public async Task DoNotSuggestVarForDelegateType3()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task DoNotSuggestVarForDelegateType3()
+        => TestMissingInRegularAndScriptAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -2676,12 +2502,10 @@ options: ImplicitTypeEverywhere());
                 delegate object GetHandler();
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24262")]
-    public async Task DoNotSuggestVarForInterfaceVariableInForeachStatement()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task DoNotSuggestVarForInterfaceVariableInForeachStatement()
+        => TestMissingInRegularAndScriptAsync("""
             public interface ITest
             {
                 string Value { get; }
@@ -2704,12 +2528,10 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24262")]
-    public async Task DoNotSuggestVarForInterfaceVariableInDeclarationStatement()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task DoNotSuggestVarForInterfaceVariableInDeclarationStatement()
+        => TestMissingInRegularAndScriptAsync("""
             public interface ITest
             {
                 string Value { get; }
@@ -2728,12 +2550,10 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24262")]
-    public async Task DoNotSuggestVarForAbstractClassVariableInForeachStatement()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task DoNotSuggestVarForAbstractClassVariableInForeachStatement()
+        => TestMissingInRegularAndScriptAsync("""
             public abstract class MyAbClass
             {
                 string Value { get; }
@@ -2757,12 +2577,10 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24262")]
-    public async Task DoNotSuggestVarForAbstractClassVariableInDeclarationStatement()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task DoNotSuggestVarForAbstractClassVariableInDeclarationStatement()
+        => TestMissingInRegularAndScriptAsync("""
             public abstract class MyAbClass
             {
                 string Value { get; }
@@ -2783,12 +2601,10 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task DoNoSuggestVarForRefForeachVar()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task DoNoSuggestVarForRefForeachVar()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             namespace System
             {
@@ -2815,12 +2631,10 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26923")]
-    public async Task NoSuggestionOnForeachCollectionExpression()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NoSuggestionOnForeachCollectionExpression()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -2836,12 +2650,10 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39171")]
-    public async Task NoSuggestionForSwitchExpressionDifferentTypes()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NoSuggestionForSwitchExpressionDifferentTypes()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -2862,12 +2674,10 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39171")]
-    public async Task SuggestSwitchExpressionSameOrInheritedTypes()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestSwitchExpressionSameOrInheritedTypes()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2910,12 +2720,10 @@ options: ImplicitTypeEverywhere());
                 }     
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32088")]
-    public async Task DoNotSuggestVarOnDeclarationExpressionWithInferredTupleNames()
-    {
-        await TestMissingAsync(
+    public Task DoNotSuggestVarOnDeclarationExpressionWithInferredTupleNames()
+        => TestMissingAsync(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -2934,12 +2742,10 @@ options: ImplicitTypeEverywhere());
                     new Dictionary<int, List<(int, int)>>();
             }
             """, parameters: new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32088")]
-    public async Task DoSuggestVarOnDeclarationExpressionWithMatchingTupleNames()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoSuggestVarOnDeclarationExpressionWithMatchingTupleNames()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -2976,13 +2782,11 @@ options: ImplicitTypeEverywhere());
                     new Dictionary<int, List<(int, int)>>();
             }
             """,
-options: ImplicitTypeEverywhere());
-    }
+            options: ImplicitTypeEverywhere());
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44507")]
-    public async Task DoNotSuggestVarInAmbiguousSwitchExpression()
-    {
-        await TestMissingAsync(
+    public Task DoNotSuggestVarInAmbiguousSwitchExpression()
+        => TestMissingAsync(
             """
             using System;
 
@@ -3008,12 +2812,10 @@ options: ImplicitTypeEverywhere());
             {
             }
             """, parameters: new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44507")]
-    public async Task DoNotSuggestVarInSwitchExpressionWithDelegateType()
-    {
-        await TestMissingAsync(
+    public Task DoNotSuggestVarInSwitchExpressionWithDelegateType()
+        => TestMissingAsync(
             """
             using System;
 
@@ -3036,12 +2838,10 @@ options: ImplicitTypeEverywhere());
                 private readonly Action<object, EventArgs> f2;
             }
             """, parameters: new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task DoNotSuggestVarForImplicitObjectCreation()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotSuggestVarForImplicitObjectCreation()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3054,7 +2854,6 @@ options: ImplicitTypeEverywhere());
 
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
-    }
 
     [Fact]
     public Task SuggestForNullable1()
@@ -3087,7 +2886,7 @@ options: ImplicitTypeEverywhere());
                 string? NullableString() => null;
             }
             """,
-options: ImplicitTypeEverywhere());
+            options: ImplicitTypeEverywhere());
 
     [Fact]
     public Task SuggestForNullable2()
@@ -3120,7 +2919,7 @@ options: ImplicitTypeEverywhere());
                 string NonNullString() => string.Empty;
             }
             """,
-options: ImplicitTypeEverywhere());
+            options: ImplicitTypeEverywhere());
 
     [Fact]
     public Task SuggestForNullable3()
@@ -3153,7 +2952,7 @@ options: ImplicitTypeEverywhere());
                 string NonNullString() => string.Empty;
             }
             """,
-options: ImplicitTypeEverywhere());
+            options: ImplicitTypeEverywhere());
 
     [Fact]
     public Task SuggestForNullableOut1()
@@ -3202,7 +3001,7 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """,
-options: ImplicitTypeEverywhere());
+            options: ImplicitTypeEverywhere());
 
     [Fact]
     public Task SuggestForNullableOut2()
@@ -3251,7 +3050,7 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """,
-options: ImplicitTypeEverywhere());
+            options: ImplicitTypeEverywhere());
 
     [Fact]
     public Task SuggestForNullableOut3()
@@ -3300,12 +3099,11 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """,
-options: ImplicitTypeEverywhere());
+            options: ImplicitTypeEverywhere());
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41780")]
-    public async Task SuggestOnRefType1()
-    {
-        await TestAsync(
+    public Task SuggestOnRefType1()
+        => TestAsync(
             """
             class C
             {
@@ -3324,5 +3122,107 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """, CSharpParseOptions.Default, options: ImplicitTypeEverywhere());
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58404")]
+    public Task TestLambdaNaturalType1()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            
+            class C
+            {
+                static void M()
+                {
+                    [|Func<int>|] s = int () => { };
+                }
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                static void M()
+                {
+                    var s = int () => { };
+                }
+            }
+            """, options: ImplicitTypeEverywhere());
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58404")]
+    public Task TestLambdaNaturalType1_CSharp9()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            
+            class C
+            {
+                static void M()
+                {
+                    [|Func<int>|] s = int () => { };
+                }
+            }
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9), options: ImplicitTypeEverywhere()));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58404")]
+    public Task TestLambdaNaturalType2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            
+            class C
+            {
+                static void M()
+                {
+                    [|Action<int>|] s = (a) => { };
+                }
+            }
+            """, new(options: ImplicitTypeEverywhere()));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58404")]
+    public Task TestLambdaNaturalType3()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            delegate int D()
+            
+            class C
+            {
+                static void M()
+                {
+                    [|D|] s = int () => { };
+                }
+            }
+            """, new(options: ImplicitTypeEverywhere()));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64902")]
+    public Task TestNotOnAwaitedTask()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+
+            public class Program
+            {
+                public static async Task Main()
+                {
+                    object test1 = DoSomeWork();
+                    object test2 = await Task.Run(() => DoSomeWork());
+
+                    IEnumerable<object> test3 = DoSomeWorkGeneric();
+                    [|IEnumerable<object>|] test4 = await Task.Run(() => DoSomeWorkGeneric());
+                }
+
+                public static object DoSomeWork()
+                {
+                    return new object();
+                }
+
+                public static IEnumerable<object> DoSomeWorkGeneric()
+                {
+                    return new List<object>();
+                }
+            }
+            """, new(options: ImplicitTypeWhereApparent()));
 }

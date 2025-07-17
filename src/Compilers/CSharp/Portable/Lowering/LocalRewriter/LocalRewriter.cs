@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_factory.CompilationState.Compilation.ShouldEmitNullableAttributes(localFunction))
                 {
                     bool constraintsNeedNullableAttribute = typeParameters.Any(
-                       static typeParameter => ((SourceTypeParameterSymbolBase)typeParameter).ConstraintsNeedNullableAttribute());
+                       static typeParameter => ((SourceTypeParameterSymbol)typeParameter).ConstraintsNeedNullableAttribute());
 
                     if (constraintsNeedNullableAttribute || hasReturnTypeOrParameter(localFunction, static t => t.NeedsNullableAttribute()))
                     {
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                static bool hasReturnTypeOrParameter(LocalFunctionSymbol localFunction, Func<TypeWithAnnotations, bool> predicate) =>
+                static bool hasReturnTypeOrParameter(MethodSymbol localFunction, Func<TypeWithAnnotations, bool> predicate) =>
                     predicate(localFunction.ReturnTypeWithAnnotations) || localFunction.ParameterTypesWithAnnotations.Any(predicate);
             }
 
@@ -1134,6 +1134,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         private CompoundUseSiteInfo<AssemblySymbol> GetNewCompoundUseSiteInfo()
         {
             return new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
+        }
+
+        private BoundExpression ConvertReceiverForExtensionMemberIfNeeded(Symbol member, BoundExpression receiver, bool markAsChecked)
+        {
+            if (member.GetIsNewExtensionMember())
+            {
+                Debug.Assert(!member.IsStatic);
+                ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
+                Debug.Assert(extensionParameter is not null);
+#if DEBUG
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                Debug.Assert(Conversions.IsValidExtensionMethodThisArgConversion(this._compilation.Conversions.ClassifyConversionFromType(receiver.Type, extensionParameter.Type, isChecked: false, ref discardedUseSiteInfo)));
+#endif
+
+                // We don't need to worry about checked context because only implicit conversions are allowed on the receiver of an extension member
+                return MakeConversionNode(receiver, extensionParameter.Type, @checked: false, acceptFailingConversion: false, markAsChecked: markAsChecked);
+            }
+
+            return receiver;
         }
 
 #if DEBUG

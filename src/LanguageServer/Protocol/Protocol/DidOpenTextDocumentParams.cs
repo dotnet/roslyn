@@ -2,27 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol
-{
-    using System.Text.Json.Serialization;
+namespace Roslyn.LanguageServer.Protocol;
 
+using System.Text.Json.Serialization;
+
+/// <summary>
+/// Class which represents the parameter that is sent with textDocument/didOpen message.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#didOpenTextDocumentParams">Language Server Protocol specification</see> for additional information.
+/// </para>
+/// </summary>
+internal sealed class DidOpenTextDocumentParams
+{
     /// <summary>
-    /// Class which represents the parameter that is sent with textDocument/didOpen message.
-    /// <para>
-    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#didOpenTextDocumentParams">Language Server Protocol specification</see> for additional information.
-    /// </para>
+    /// Gets or sets the <see cref="TextDocumentItem"/> which represents the text document that was opened.
     /// </summary>
-    internal class DidOpenTextDocumentParams
+    [JsonPropertyName("textDocument")]
+    [JsonRequired]
+    public TextDocumentItem TextDocument
     {
-        /// <summary>
-        /// Gets or sets the <see cref="TextDocumentItem"/> which represents the text document that was opened.
-        /// </summary>
-        [JsonPropertyName("textDocument")]
-        [JsonRequired]
-        public TextDocumentItem TextDocument
-        {
-            get;
-            set;
-        }
+        get;
+        set;
     }
 }

@@ -13,7 +13,7 @@ using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionServi
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion;
 
 [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-public class AutomaticBracketCompletionTests : AbstractAutomaticBraceCompletionTests
+public sealed class AutomaticBracketCompletionTests : AbstractAutomaticBraceCompletionTests
 {
     [WpfFact]
     public void Creation()
@@ -293,7 +293,9 @@ public class AutomaticBracketCompletionTests : AbstractAutomaticBraceCompletionT
                 }
             }
             """;
-        var expectedBeforeReturn = """
+        using var session = CreateSession(code);
+        CheckStart(session.Session);
+        CheckText(session.Session, """
             class C
             {
                 void M(object o)
@@ -301,8 +303,8 @@ public class AutomaticBracketCompletionTests : AbstractAutomaticBraceCompletionT
                     _ = o is []
                 }
             }
-            """;
-        var expected = """
+            """);
+        CheckReturn(session.Session, 12, """
             class C
             {
                 void M(object o)
@@ -313,11 +315,7 @@ public class AutomaticBracketCompletionTests : AbstractAutomaticBraceCompletionT
                     ]
                 }
             }
-            """;
-        using var session = CreateSession(code);
-        CheckStart(session.Session);
-        CheckText(session.Session, expectedBeforeReturn);
-        CheckReturn(session.Session, 12, expected);
+            """);
     }
 
     internal static Holder CreateSession(string code)

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,10 +25,8 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting;
 
 [Trait(Traits.Feature, Traits.Features.Formatting)]
-public class FormattingEngineTests : CSharpFormattingEngineTestBase
+public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpFormattingEngineTestBase(output)
 {
-    public FormattingEngineTests(ITestOutputHelper output) : base(output) { }
-
     private static OptionsCollection SmartIndentButDoNotFormatWhileTyping()
         => new(LanguageNames.CSharp)
         {
@@ -39,18 +38,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
     public void FormatDocumentCommandHandler()
     {
-        var code = """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        int x;$$
-                int y;
-                    }
-                }
-                """;
-
-        var expected = """
+        AssertFormatWithView("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -59,26 +47,22 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         int y;
                     }
                 }
-                """;
-
-        AssertFormatWithView(expected, code);
+                """, """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        int x;$$
+                int y;
+                    }
+                }
+                """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
     public void FormatDocumentPasteCommandHandler()
     {
-        var code = """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        int x;$$
-                int y;
-                    }
-                }
-                """;
-
-        var expected = """
+        AssertFormatWithPasteOrReturn("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -87,15 +71,22 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         int y;
                     }
                 }
-                """;
-
-        AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true);
+                """, """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        int x;$$
+                int y;
+                    }
+                }
+                """, allowDocumentChanges: true);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547261")]
     public void FormatDocumentReadOnlyWorkspacePasteCommandHandler()
     {
-        var code = """
+        AssertFormatWithPasteOrReturn("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -104,9 +95,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                 int y;
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                     static void Main(string[] args)
@@ -115,15 +104,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                 int y;
                     }
                 }
-                """;
-
-        AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: false);
+                """, allowDocumentChanges: false);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
     public void DoNotFormatUsingStatementOnReturn()
     {
-        var code = """
+        AssertFormatWithPasteOrReturn("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -132,9 +119,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                                 using (null)$$
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                     static void Main(string[] args)
@@ -143,15 +128,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                                 using (null)$$
                     }
                 }
-                """;
-
-        AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true, isPaste: false);
+                """, allowDocumentChanges: true, isPaste: false);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
     public void FormatUsingStatementWhenTypingCloseParen()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -160,9 +143,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                                 using (null)$$
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                     static void Main(string[] args)
@@ -171,15 +152,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         using (null)
                     }
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
     public void FormatNotUsingStatementOnReturn()
     {
-        var code = """
+        AssertFormatWithPasteOrReturn("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -188,9 +167,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                                 for (;;)$$
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                     static void Main(string[] args)
@@ -199,15 +176,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                                 for (;;)$$
                     }
                 }
-                """;
-
-        AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true, isPaste: false);
+                """, allowDocumentChanges: true, isPaste: false);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/977133")]
     public void DoNotFormatRangeOrFormatTokenOnOpenBraceOnSameLine()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class C
                 {
                     public void M()
@@ -215,8 +190,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         if (true)        {$$
                     }
                 }
-                """;
-        var expected = """
+                """, """
                 class C
                 {
                     public void M()
@@ -224,14 +198,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         if (true)        {
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/pull/14491")]
     public void DoNotFormatRangeButFormatTokenOnOpenBraceOnNextLine()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class C
                 {
                     public void M()
@@ -240,8 +213,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                             {$$
                     }
                 }
-                """;
-        var expected = """
+                """, """
                 class C
                 {
                     public void M()
@@ -250,14 +222,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         {
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007071")]
     public void FormatPragmaWarningInbetweenDelegateDeclarationStatement()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 using System;
 
                 class Program
@@ -271,8 +242,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         };$$
                     }
                 }
-                """;
-        var expected = """
+                """, """
                 using System;
 
                 class Program
@@ -286,14 +256,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         };
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")]
     public void FormatHashRegion()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 using System;
 
                 class Program
@@ -303,8 +272,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                 #region$$
                     }
                 }
-                """;
-        var expected = """
+                """, """
                 using System;
 
                 class Program
@@ -314,14 +282,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         #region
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")]
     public void FormatHashEndRegion()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 using System;
 
                 class Program
@@ -332,8 +299,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                 #endregion$$
                     }
                 }
-                """;
-        var expected = """
+                """, """
                 using System;
 
                 class Program
@@ -344,8 +310,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         #endregion
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/987373")]
@@ -392,7 +357,15 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     }
                 }
                 """;
-        var expected = """
+        using var workspace = EditorTestWorkspace.CreateCSharp(code);
+        var subjectDocument = workspace.Documents.Single();
+        var spans = subjectDocument.SelectedSpans;
+
+        var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+        var syntaxRoot = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
+        var options = CSharpSyntaxFormattingOptions.Default;
+        var node = Formatter.Format(syntaxRoot, spans, workspace.Services.SolutionServices, options, rules: default, CancellationToken.None);
+        Assert.Equal("""
                 class C
                 {
                     public void M()
@@ -432,22 +405,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         if (true) { }
                     }
                 }
-                """;
-        using var workspace = EditorTestWorkspace.CreateCSharp(code);
-        var subjectDocument = workspace.Documents.Single();
-        var spans = subjectDocument.SelectedSpans;
-
-        var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-        var syntaxRoot = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
-        var options = CSharpSyntaxFormattingOptions.Default;
-        var node = Formatter.Format(syntaxRoot, spans, workspace.Services.SolutionServices, options, rules: default, CancellationToken.None);
-        Assert.Equal(expected, node.ToFullString());
+                """, node.ToFullString());
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044118")]
     public void SemicolonInCommentOnLastLineDoesNotFormat()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 using System;
 
                 class Program
@@ -457,9 +421,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         }
                 }
                 // ;$$
-                """;
-
-        var expected = """
+                """, """
                 using System;
 
                 class Program
@@ -469,15 +431,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         }
                 }
                 // ;
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideSingleLineRegularComment_1()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                                               //        {$$
@@ -486,9 +447,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                                               //        {
@@ -497,15 +456,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideSingleLineRegularComment_2()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                                               //        {$$   
@@ -514,9 +472,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                                               //        {   
@@ -525,15 +481,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineRegularComment_1()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(int          a/*         {$$       */, int b)
@@ -541,9 +496,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                     static void Main(int          a/*         {       */, int b)
@@ -551,15 +504,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineRegularComment_2()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(int          a/*         {$$
@@ -568,9 +520,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                     static void Main(int          a/*         {
@@ -579,15 +529,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineRegularComment_3()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(int          a/*         {$$    
@@ -596,9 +545,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                     static void Main(int          a/*         {    
@@ -607,15 +554,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideSingleLineDocComment_1()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                                               ///        {$$
@@ -624,9 +570,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                                               ///        {
@@ -635,15 +579,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideSingleLineDocComment_2()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                                               ///        {$$   
@@ -652,9 +595,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                                               ///        {   
@@ -663,15 +604,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineDocComment_1()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                                               /**        {$$   **/
@@ -680,9 +620,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                                               /**        {   **/
@@ -691,15 +629,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineDocComment_2()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                                               /**        {$$   
@@ -709,9 +646,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                                               /**        {   
@@ -721,15 +656,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineDocComment_3()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                                               /**        {$$
@@ -739,9 +673,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                                               /**        {
@@ -751,15 +683,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideInactiveCode()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                                                         #if false
@@ -771,9 +702,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                                                         #if false
@@ -785,15 +714,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideStringLiteral()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -801,9 +729,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         var asdas =     "{$$"        ;
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                     static void Main(string[] args)
@@ -811,15 +737,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         var asdas =     "{"        ;
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideCharLiteral()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -827,9 +752,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         var asdas =     '{$$'        ;
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                     static void Main(string[] args)
@@ -837,15 +760,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         var asdas =     '{'        ;
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideCommentsOfPreprocessorDirectives()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                        #region
@@ -855,9 +777,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                        #region
@@ -867,15 +787,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void ColonInSwitchCase()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -887,9 +806,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         }
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                     static void Main(string[] args)
@@ -901,15 +818,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         }
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void ColonInDefaultSwitchCase()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -922,9 +838,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         }
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                     static void Main(string[] args)
@@ -937,14 +851,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         }
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/9097")]
     public void ColonInPatternSwitchCase01()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main()
@@ -955,9 +868,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         }
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                     static void Main()
@@ -968,15 +879,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         }
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void ColonInLabeledStatement()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -984,65 +894,56 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                             label1   :$$   int s = 0;
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                     static void Main(string[] args)
                     {
-                            label1:   int s = 0;
+                    label1: int s = 0;
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInTargetAttribute()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 using System;
                 [method    :$$    C]
                 class C : Attribute
                 {
                 }
-                """;
-
-        var expected = """
+                """, """
                 using System;
                 [method    :    C]
                 class C : Attribute
                 {
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInBaseList()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class C   :$$   Attribute
                 {
                 }
-                """;
-
-        var expected = """
+                """, """
                 class C   :   Attribute
                 {
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInThisConstructor()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Goo
                 {
                     Goo(int s)   :$$   this()
@@ -1053,9 +954,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     {
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Goo
                 {
                     Goo(int s)   :   this()
@@ -1066,15 +965,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     {
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInConditionalOperator()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -1082,9 +980,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         var vari = goo()     ?    true  :$$  false;
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                     static void Main(string[] args)
@@ -1092,15 +988,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         var vari = goo()     ?    true  :  false;
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInArgument()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -1108,9 +1003,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         Main(args  :$$  args);
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                     static void Main(string[] args)
@@ -1118,15 +1011,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         Main(args  :  args);
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInTypeParameter()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program<T>
                 {
                     class C1<U>
@@ -1135,9 +1027,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program<T>
                 {
                     class C1<U>
@@ -1146,40 +1036,41 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2224")]
     public void DoNotSmartFormatBracesOnSmartIndentNone()
     {
-        var code = """
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { IndentationOptionsStorage.SmartIndent, FormattingOptions2.IndentStyle.None }
+        };
+        AssertFormatAfterTypeChar("""
                 class Program<T>
                 {
                     class C1<U>
                 {$$
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program<T>
                 {
                     class C1<U>
                 {
                 }
-                """;
-        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { IndentationOptionsStorage.SmartIndent, FormattingOptions2.IndentStyle.None }
-        };
-        AssertFormatAfterTypeChar(code, expected, globalOptions);
+                """, globalOptions);
     }
 
     [WpfFact]
     [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     public void StillAutoIndentCloseBraceWhenFormatOnCloseBraceIsOff()
     {
-        var code = """
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { AutoFormattingOptionsStorage.FormatOnCloseBrace, false }
+        };
+
+        AssertFormatAfterTypeChar("""
                 namespace N
                 {
                     class C
@@ -1188,9 +1079,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                              int x = 10;
                         }$$
                 }
-                """;
-
-        var expected = """
+                """, """
                 namespace N
                 {
                     class C
@@ -1199,21 +1088,19 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                              int x = 10;
                     }
                 }
-                """;
-
-        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { AutoFormattingOptionsStorage.FormatOnCloseBrace, false }
-        };
-
-        AssertFormatAfterTypeChar(code, expected, globalOptions);
+                """, globalOptions);
     }
 
     [WpfFact]
     [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     public void AutoIndentCloseBraceWhenFormatOnTypingIsOff()
     {
-        var code = """
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { AutoFormattingOptionsStorage.FormatOnTyping, false }
+        };
+
+        AssertFormatAfterTypeChar("""
                 namespace N
                 {
                     class C
@@ -1222,9 +1109,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                              int x = 10;
                         }$$
                 }
-                """;
-
-        var expected = """
+                """, """
                 namespace N
                 {
                     class C
@@ -1233,24 +1118,19 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                              int x = 10;
                     }
                 }
-                """;
-
-        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { AutoFormattingOptionsStorage.FormatOnTyping, false }
-        };
-
-        AssertFormatAfterTypeChar(code, expected, globalOptions);
+                """, globalOptions);
     }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/5873")]
     public void KeepTabsInCommentsWhenFormattingIsOff()
     {
-        // There are tabs in this test case.  Tools that touch the Roslyn repo should
-        // not remove these as we are explicitly testing tab behavior.
-        var code =
-            """
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { AutoFormattingOptionsStorage.FormatOnTyping, false }
+        };
+
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main()
@@ -1258,10 +1138,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         return;		/* Comment preceded by tabs */		// This one too
                         }$$
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 class Program
                 {
                     static void Main()
@@ -1269,23 +1146,14 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         return;		/* Comment preceded by tabs */		// This one too
                     }
                 }
-                """;
-
-        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { AutoFormattingOptionsStorage.FormatOnTyping, false }
-        };
-
-        AssertFormatAfterTypeChar(code, expected, globalOptions);
+                """, globalOptions);
     }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/5873")]
     public void DoNotKeepTabsInCommentsWhenFormattingIsOn()
     {
-        // There are tabs in this test case.  Tools that touch the Roslyn repo should
-        // not remove these as we are explicitly testing tab behavior.
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main()
@@ -1293,10 +1161,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         return;		/* Comment preceded by tabs */		// This one too
                         }$$
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 class Program
                 {
                     static void Main()
@@ -1304,17 +1169,19 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         return;     /* Comment preceded by tabs */        // This one too
                     }
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact]
     [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     public void DoNotFormatStatementIfSemicolonOptionIsOff()
     {
-        var code =
-            """
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { AutoFormattingOptionsStorage.FormatOnSemicolon, false }
+        };
+
+        AssertFormatAfterTypeChar("""
                 namespace N
                 {
                     class C
@@ -1322,10 +1189,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         int x   =   10     ;$$
                     }
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 namespace N
                 {
                     class C
@@ -1333,22 +1197,19 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         int x   =   10     ;
                     }
                 }
-                """;
-
-        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { AutoFormattingOptionsStorage.FormatOnSemicolon, false }
-        };
-
-        AssertFormatAfterTypeChar(code, expected, globalOptions);
+                """, globalOptions);
     }
 
     [WpfFact]
     [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     public void DoNotFormatStatementIfTypingOptionIsOff()
     {
-        var code =
-            """
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { AutoFormattingOptionsStorage.FormatOnTyping, false }
+        };
+
+        AssertFormatAfterTypeChar("""
                 namespace N
                 {
                     class C
@@ -1356,10 +1217,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         int x   =   10     ;$$
                     }
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 namespace N
                 {
                     class C
@@ -1367,68 +1225,49 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         int x   =   10     ;
                     }
                 }
-                """;
-
-        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { AutoFormattingOptionsStorage.FormatOnTyping, false }
-        };
-
-        AssertFormatAfterTypeChar(code, expected, globalOptions);
+                """, globalOptions);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4435")]
     [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     public void OpenCurlyNotFormattedIfNotAtStartOfLine()
     {
-        var code =
-            """
+        AssertFormatAfterTypeChar("""
                 class C
                 {
                     public  int     P   {$$
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 class C
                 {
                     public  int     P   {
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4435")]
     [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     public void OpenCurlyFormattedIfAtStartOfLine()
     {
-        var code =
-            """
+        AssertFormatAfterTypeChar("""
                 class C
                 {
                     public  int     P
                         {$$
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 class C
                 {
                     public  int     P
                     {
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact]
     public void DoNotFormatIncompleteBlockOnSingleLineIfNotTypingCloseCurly1()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1438,8 +1277,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                             get { return true;$$
                     }
                 }
-                """;
-        var expected = """
+                """, """
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1449,14 +1287,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                             get { return true;
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact]
     public void DoNotFormatIncompleteBlockOnSingleLineIfNotTypingCloseCurly2()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1464,8 +1301,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         static bool Property { get { return true;$$
                     }
                 }
-                """;
-        var expected = """
+                """, """
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1473,14 +1309,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         static bool Property { get { return true;
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact]
     public void DoNotFormatIncompleteBlockOnSingleLineIfNotTypingCloseCurly3()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1488,8 +1323,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         static bool Property { get;$$
                     }
                 }
-                """;
-        var expected = """
+                """, """
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1497,14 +1331,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         static bool Property { get;
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact]
     public void DoNotFormatCompleteBlockOnSingleLineIfTypingCloseCurly1()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1513,8 +1346,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         {
                             get { return true; }$$
                 }
-                """;
-        var expected = """
+                """, """
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1523,36 +1355,33 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         {
                             get { return true; }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact]
     public void DoNotFormatCompleteBlockOnSingleLineIfTypingCloseCurly2()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 namespace ConsoleApplication1
                 {
                     class Program
                     {
                         static bool Property { get { return true; }$$
                 }
-                """;
-        var expected = """
+                """, """
                 namespace ConsoleApplication1
                 {
                     class Program
                     {
                         static bool Property { get { return true; }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact]
     public void FormatIncompleteBlockOnMultipleLinesIfTypingCloseCurly1()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1562,8 +1391,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                             get { return true;
                     }$$
                 }
-                """;
-        var expected = """
+                """, """
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1575,14 +1403,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                                 return true;
                             }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact]
     public void FormatIncompleteBlockOnMultipleLinesIfTypingCloseCurly2()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1592,8 +1419,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                             get { return true;
                     }
                 }$$
-                """;
-        var expected = """
+                """, """
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1605,15 +1431,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                                 return true;
                             }
                         }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact]
     public void DoNotFormatCompleteBlockOnSingleLineIfTypingSemicolon()
     {
-        var code =
-            """
+        AssertFormatAfterTypeChar("""
                 public class Class1
                 {
                     void M()
@@ -1623,9 +1447,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         x.ToString();
                     }
                 }
-                """;
-        var expected =
-            """
+                """, """
                 public class Class1
                 {
                     void M()
@@ -1635,15 +1457,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         x.ToString();
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact]
     public void FormatCompleteBlockOnSingleLineIfTypingCloseCurlyOnLaterLine()
     {
-        var code =
-            """
+        AssertFormatAfterTypeChar("""
                 public class Class1
                 {
                     void M()
@@ -1654,9 +1474,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         }$$
                     }
                 }
-                """;
-        var expected =
-            """
+                """, """
                 public class Class1
                 {
                     void M()
@@ -1669,14 +1487,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         }
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7900")]
     public void FormatLockStatementWithEmbeddedStatementOnSemicolonDifferentLine()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class C
                 {
                     private object _l = new object();
@@ -1686,8 +1503,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                                        Console.WriteLine("d");$$
                     }
                 }
-                """;
-        var expected = """
+                """, """
                 class C
                 {
                     private object _l = new object();
@@ -1697,14 +1513,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                             Console.WriteLine("d");
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7900")]
     public void FormatLockStatementWithEmbeddedStatementOnSemicolonSameLine()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 class C
                 {
                     private object _l = new object();
@@ -1713,8 +1528,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         lock (_l)      Console.WriteLine("d");$$
                     }
                 }
-                """;
-        var expected = """
+                """, """
                 class C
                 {
                     private object _l = new object();
@@ -1723,8 +1537,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         lock (_l) Console.WriteLine("d");
                     }
                 }
-                """;
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11642")]
@@ -1734,36 +1547,12 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         // ParenthesizedExpression(ParenthesizedLambdaExpression(ParameterList(), Block()))
         var code = @"(()=>{})";
         var node = SyntaxFactory.ParseExpression(code);
-        var expected = @"(() => { })";
-        AssertFormatOnArbitraryNode(node, expected);
+        AssertFormatOnArbitraryNode(node, @"(() => { })");
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57465")]
-    public async Task FormatLambdaWithDirective()
-    {
-        var code = """
-                namespace N
-                {
-                    public class C
-                    {
-                        protected void Render()
-                        {
-                            if (outer)
-                            {
-                                    M(() =>
-                                        {
-                #nullable enable
-                                               if (inner)
-                                                    {
-                                                    }
-                                                }
-                                        );
-                                }
-                        }
-                    }
-                }
-                """;
-        var expected = """
+    public Task FormatLambdaWithDirective()
+        => AssertFormatAsync("""
                 namespace N
                 {
                     public class C
@@ -1784,36 +1573,32 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         }
                     }
                 }
-                """;
-
-        await AssertFormatAsync(expected, code, spans: null);
-    }
-
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57465")]
-    public async Task FormatLambdaWithComment()
-    {
-        var code = """
+                """, """
                 namespace N
                 {
                     public class C
                     {
                         protected void Render()
                         {
-                if (true)
+                            if (outer)
                             {
-                            M(() => 
-                            {
-                                if (true)
-                                {
-                /* marker */
+                                    M(() =>
+                                        {
+                #nullable enable
+                                               if (inner)
+                                                    {
                                                     }
-                                                });
+                                                }
+                                        );
                                 }
                         }
                     }
                 }
-                """;
-        var expected = """
+                """, spans: null);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57465")]
+    public Task FormatLambdaWithComment()
+        => AssertFormatAsync("""
                 namespace N
                 {
                     public class C
@@ -1833,10 +1618,27 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         }
                     }
                 }
-                """;
-
-        await AssertFormatAsync(expected, code, spans: null);
-    }
+                """, """
+                namespace N
+                {
+                    public class C
+                    {
+                        protected void Render()
+                        {
+                if (true)
+                            {
+                            M(() => 
+                            {
+                                if (true)
+                                {
+                /* marker */
+                                                    }
+                                                });
+                                }
+                        }
+                    }
+                }
+                """, spans: null);
 
     [WpfTheory]
     [CombinatorialData]
@@ -1844,22 +1646,24 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
     public async Task FormatAttributeAtEndOfFile(bool trailingNewLine)
     {
         var endOfFile = trailingNewLine ? Environment.NewLine : "";
-        var code = $@"using System.Diagnostics.CodeAnalysis;
+        var expected = $"""
+            using System.Diagnostics.CodeAnalysis;
 
-[assembly:SuppressMessage(""Globalization"", ""CA1308: Normalize strings to uppercase"", Justification = ""My reason"", Scope = ""member"", Target = ""~M:Method"") ] {endOfFile}";
-        var expected = $@"using System.Diagnostics.CodeAnalysis;
+            [assembly: SuppressMessage("Globalization", "CA1308: Normalize strings to uppercase", Justification = "My reason", Scope = "member", Target = "~M:Method")]{endOfFile}
+            """;
 
-[assembly: SuppressMessage(""Globalization"", ""CA1308: Normalize strings to uppercase"", Justification = ""My reason"", Scope = ""member"", Target = ""~M:Method"")]{endOfFile}";
+        await AssertFormatAsync(expected, $"""
+            using System.Diagnostics.CodeAnalysis;
 
-        await AssertFormatAsync(expected, code, spans: null);
+            [assembly:SuppressMessage("Globalization", "CA1308: Normalize strings to uppercase", Justification = "My reason", Scope = "member", Target = "~M:Method") ] {endOfFile}
+            """, spans: null);
         await AssertFormatAsync(expected, expected, spans: null);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff1()
     {
-        var code =
-            """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -1868,10 +1672,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                             {$$
                     }
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 class Program
                 {
                     void M()
@@ -1880,16 +1681,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         {
                     }
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+                """, SmartIndentButDoNotFormatWhileTyping());
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff2()
     {
-        var code =
-            """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -1898,10 +1696,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         {}$$
                     }
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 class Program
                 {
                     void M()
@@ -1910,17 +1705,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         { }
                     }
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+                """, SmartIndentButDoNotFormatWhileTyping());
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff3()
     {
-        // We only smart indent the { if it's on it's own line.
-        var code =
-            """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -1928,10 +1719,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         if (true){$$
                     }
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 class Program
                 {
                     void M()
@@ -1939,17 +1727,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         if (true){
                     }
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+                """, SmartIndentButDoNotFormatWhileTyping());
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff4()
     {
-        // We only smart indent the { if it's on it's own line.
-        var code =
-            """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -1957,10 +1741,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         if (true){}$$
                     }
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 class Program
                 {
                     void M()
@@ -1968,17 +1749,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         if (true){ }
                     }
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+                """, SmartIndentButDoNotFormatWhileTyping());
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff5()
     {
-        // Typing the { should not affect the formating of the preceding tokens.
-        var code =
-            """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -1987,10 +1764,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                             {$$
                     }
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 class Program
                 {
                     void M()
@@ -1999,17 +1773,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         {
                     }
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+                """, SmartIndentButDoNotFormatWhileTyping());
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff6()
     {
-        // Typing the { should not affect the formating of the preceding tokens.
-        var code =
-            """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -2017,10 +1787,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         if ( true ){$$
                     }
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 class Program
                 {
                     void M()
@@ -2028,40 +1795,31 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         if ( true ){
                     }
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+                """, SmartIndentButDoNotFormatWhileTyping());
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff7()
     {
-        var code =
-            """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
                         {$$
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 class Program
                 {
                     void M()
                     {
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+                """, SmartIndentButDoNotFormatWhileTyping());
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff1()
     {
-        var code =
-            """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -2071,10 +1829,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                             }$$
                     }
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 class Program
                 {
                     void M()
@@ -2084,17 +1839,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         }
                     }
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+                """, SmartIndentButDoNotFormatWhileTyping());
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff2()
     {
-        // Note that the { is not updated since we are not formatting.
-        var code =
-            """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -2103,10 +1854,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                             }$$
                     }
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 class Program
                 {
                     void M()
@@ -2115,77 +1863,50 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         }
                     }
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+                """, SmartIndentButDoNotFormatWhileTyping());
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff3()
     {
-        var code =
-            """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
                     {
                         }$$
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 class Program
                 {
                     void M()
                     {
                     }
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+                """, SmartIndentButDoNotFormatWhileTyping());
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff4()
     {
-        // Should not affect formatting of open brace
-        var code =
-            """
+        AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M() {
                         }$$
                 }
-                """;
-
-        var expected =
-            """
+                """, """
                 class Program
                 {
                     void M() {
                     }
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+                """, SmartIndentButDoNotFormatWhileTyping());
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31907")]
-    public async Task NullableReferenceTypes()
-    {
-        var code = """
-                [|
-                class MyClass
-                {
-                    void MyMethod()
-                    {
-                        var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt !: method).ReturnType;
-                    }
-                }
-                |]
-                """;
-        var expected = """
+    public Task NullableReferenceTypes()
+        => AssertFormatWithBaseIndentAsync("""
 
                 class MyClass
                 {
@@ -2195,10 +1916,17 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     }
                 }
 
-                """;
-
-        await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
-    }
+                """, """
+                [|
+                class MyClass
+                {
+                    void MyMethod()
+                    {
+                        var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt !: method).ReturnType;
+                    }
+                }
+                |]
+                """, baseIndentation: 4);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30518")]
     public void FormatGeneratedNodeInInitializer()
@@ -2209,41 +1937,22 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     true
                 }
                 """;
-
-        var expected = """
-                new bool[] {
-                    true,
-                true == false, true
-                }
-                """;
-
         var tree = SyntaxFactory.ParseSyntaxTree(code, options: TestOptions.Script);
         var root = tree.GetRoot();
 
         var entry = SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression), SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression));
         var newRoot = root.InsertNodesBefore(root.DescendantNodes().Last(), [entry]);
-        AssertFormatOnArbitraryNode(newRoot, expected);
+        AssertFormatOnArbitraryNode(newRoot, """
+                new bool[] {
+                    true,
+                true == false, true
+                }
+                """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/27268")]
-    public async Task PositionalPattern()
-    {
-        var code = """
-                [|
-                class MyClass
-                {
-                    void MyMethod()
-                    {
-                        var point = new Point (3, 4);
-                        if (point is Point (3, 4) _
-                            && point is Point{x: 3, y: 4} _)
-                        {
-                        }
-                    }
-                }
-                |]
-                """;
-        var expected = """
+    public Task PositionalPattern()
+        => AssertFormatWithBaseIndentAsync("""
 
                 class MyClass
                 {
@@ -2257,26 +1966,25 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     }
                 }
 
-                """;
-
-        await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
-    }
-
-    [WpfFact]
-    public async Task WithExpression()
-    {
-        var code = """
+                """, """
                 [|
-                record C(int Property)
+                class MyClass
                 {
-                    void M()
+                    void MyMethod()
                     {
-                        _ = this  with  {  Property  =  1  } ;
+                        var point = new Point (3, 4);
+                        if (point is Point (3, 4) _
+                            && point is Point{x: 3, y: 4} _)
+                        {
+                        }
                     }
                 }
                 |]
-                """;
-        var expected = """
+                """, baseIndentation: 4);
+
+    [WpfFact]
+    public Task WithExpression()
+        => AssertFormatWithBaseIndentAsync("""
 
                 record C(int Property)
                 {
@@ -2286,15 +1994,35 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     }
                 }
 
-                """;
-
-        await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
-    }
+                """, """
+                [|
+                record C(int Property)
+                {
+                    void M()
+                    {
+                        _ = this  with  {  Property  =  1  } ;
+                    }
+                }
+                |]
+                """, baseIndentation: 4);
 
     [WpfFact]
-    public async Task WithExpression_MultiLine()
-    {
-        var code = """
+    public Task WithExpression_MultiLine()
+        => AssertFormatWithBaseIndentAsync("""
+
+                record C(int Property, int Property2)
+                {
+                    void M()
+                    {
+                        _ = this with
+                        {
+                            Property = 1,
+                            Property2 = 2
+                        };
+                    }
+                }
+
+                """, """
                 [|
                 record C(int Property, int Property2)
                 {
@@ -2308,8 +2036,11 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     }
                 }
                 |]
-                """;
-        var expected = """
+                """, baseIndentation: 4);
+
+    [WpfFact]
+    public Task WithExpression_MultiLine_UserPositionedBraces()
+        => AssertFormatWithBaseIndentAsync("""
 
                 record C(int Property, int Property2)
                 {
@@ -2323,15 +2054,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     }
                 }
 
-                """;
-
-        await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
-    }
-
-    [WpfFact]
-    public async Task WithExpression_MultiLine_UserPositionedBraces()
-    {
-        var code = """
+                """, """
                 [|
                 record C(int Property, int Property2)
                 {
@@ -2345,30 +2068,12 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     }
                 }
                 |]
-                """;
-        var expected = """
-
-                record C(int Property, int Property2)
-                {
-                    void M()
-                    {
-                        _ = this with
-                        {
-                            Property = 1,
-                            Property2 = 2
-                        };
-                    }
-                }
-
-                """;
-
-        await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
-    }
+                """, baseIndentation: 4);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
     public void SeparateGroups_KeepMultipleLinesBetweenGroups()
     {
-        var code = """
+        AssertFormatWithView("""
                 $$
                 using System.A;
                 using System.B;
@@ -2376,9 +2081,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                 using MS.A;
                 using MS.B;
-                """;
-
-        var expected = """
+                """, """
                 $$
                 using System.A;
                 using System.B;
@@ -2386,15 +2089,13 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                 using MS.A;
                 using MS.B;
-                """;
-
-        AssertFormatWithView(expected, code, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
     public void SeparateGroups_KeepMultipleLinesBetweenGroups_FileScopedNamespace()
     {
-        var code = """
+        AssertFormatWithView("""
                 $$
                 namespace N;
 
@@ -2404,9 +2105,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                 using MS.A;
                 using MS.B;
-                """;
-
-        var expected = """
+                """, """
                 $$
                 namespace N;
 
@@ -2416,83 +2115,69 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
                 using MS.A;
                 using MS.B;
-                """;
-
-        AssertFormatWithView(expected, code, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
     public void SeparateGroups_DoNotGroupIfNotSorted()
     {
-        var code = """
+        AssertFormatWithView("""
                 $$
                 using System.B;
                 using System.A;
                 using MS.B;
                 using MS.A;
-                """;
-
-        var expected = """
+                """, """
                 $$
                 using System.B;
                 using System.A;
                 using MS.B;
                 using MS.A;
-                """;
-
-        AssertFormatWithView(expected, code, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
     public void SeparateGroups_GroupIfSorted()
     {
-        var code = """
-                $$
-                using System.A;
-                using System.B;
-                using MS.A;
-                using MS.B;
-                """;
-
-        var expected = """
+        AssertFormatWithView("""
                 $$
                 using System.A;
                 using System.B;
 
                 using MS.A;
                 using MS.B;
-                """;
-
-        AssertFormatWithView(expected, code, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, """
+                $$
+                using System.A;
+                using System.B;
+                using MS.A;
+                using MS.B;
+                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
     public void SeparateGroups_GroupIfSorted_RecognizeSystemNotFirst()
     {
-        var code = """
-                $$
-                using MS.A;
-                using MS.B;
-                using System.A;
-                using System.B;
-                """;
-
-        var expected = """
+        AssertFormatWithView("""
                 $$
                 using MS.A;
                 using MS.B;
 
                 using System.A;
                 using System.B;
-                """;
-
-        AssertFormatWithView(expected, code, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, """
+                $$
+                using MS.A;
+                using MS.B;
+                using System.A;
+                using System.B;
+                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/58157")]
     public void FormatImplicitObjectCollection()
     {
-        var code = """
+        AssertFormatWithView("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -2503,9 +2188,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         };
                     }
                 }
-                """;
-
-        var expected = """
+                """, """
                 class Program
                 {
                     static void Main(string[] args)
@@ -2516,9 +2199,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         };
                     }
                 }
-                """;
-
-        AssertFormatWithView(expected, code);
+                """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49492")]
@@ -2556,16 +2237,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
     [WpfFact]
     public void FormatUserDefinedOperator()
     {
-        var code = """
-                $$
-                class C
-                {
-                    public static C operator + ( C x, C y){
-                    }
-                }
-                """;
-
-        var expected = """
+        AssertFormatWithView("""
                 $$
                 class C
                 {
@@ -2573,24 +2245,20 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     {
                     }
                 }
-                """;
-
-        AssertFormatWithView(expected, code);
+                """, """
+                $$
+                class C
+                {
+                    public static C operator + ( C x, C y){
+                    }
+                }
+                """);
     }
 
     [WpfFact]
     public void FormatUserDefinedUnaryOperator()
     {
-        var code = """
-                $$
-                class C
-                {
-                    public static C operator ++ ( C x){
-                    }
-                }
-                """;
-
-        var expected = """
+        AssertFormatWithView("""
                 $$
                 class C
                 {
@@ -2598,24 +2266,20 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     {
                     }
                 }
-                """;
-
-        AssertFormatWithView(expected, code);
+                """, """
+                $$
+                class C
+                {
+                    public static C operator ++ ( C x){
+                    }
+                }
+                """);
     }
 
     [WpfFact]
     public void FormatUserDefinedExplicitCastOperator()
     {
-        var code = """
-                $$
-                class C
-                {
-                    public static explicit operator C ( int x){
-                    }
-                }
-                """;
-
-        var expected = """
+        AssertFormatWithView("""
                 $$
                 class C
                 {
@@ -2623,84 +2287,68 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     {
                     }
                 }
-                """;
-
-        AssertFormatWithView(expected, code);
+                """, """
+                $$
+                class C
+                {
+                    public static explicit operator C ( int x){
+                    }
+                }
+                """);
     }
 
     [WpfFact]
     public void FormatUserDefinedOperatorOnType()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 interface I1
                 {
                     abstract static I1 operator + ( I1 x, I1 y);$$
                 }
-                """;
-
-        var expected = """
+                """, """
                 interface I1
                 {
                     abstract static I1 operator +(I1 x, I1 y);
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact]
     public void FormatUserDefinedUnaryOperatorOnType()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 interface I1
                 {
                     abstract static I1 operator ++ ( I1 x);$$
                 }
-                """;
-
-        var expected = """
+                """, """
                 interface I1
                 {
                     abstract static I1 operator ++(I1 x);
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact]
     public void FormatUserDefinedExplicitCastOperatorOnType()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 interface I1<T> where T : I1<T>
                 {
                     abstract static explicit operator string ( T x);$$
                 }
-                """;
-
-        var expected = """
+                """, """
                 interface I1<T> where T : I1<T>
                 {
                     abstract static explicit operator string(T x);
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
     [WpfFact]
     public void FormatUserDefinedCheckedOperator()
     {
-        var code = """
-                $$
-                class C
-                {
-                    public static C operator checked + ( C x, C y){
-                    }
-                }
-                """;
-
-        var expected = """
+        AssertFormatWithView("""
                 $$
                 class C
                 {
@@ -2708,24 +2356,20 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     {
                     }
                 }
-                """;
-
-        AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
+                """, """
+                $$
+                class C
+                {
+                    public static C operator checked + ( C x, C y){
+                    }
+                }
+                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
     }
 
     [WpfFact]
     public void FormatUserDefinedCheckedUnaryOperator()
     {
-        var code = """
-                $$
-                class C
-                {
-                    public static C operator checked ++ ( C x){
-                    }
-                }
-                """;
-
-        var expected = """
+        AssertFormatWithView("""
                 $$
                 class C
                 {
@@ -2733,24 +2377,20 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     {
                     }
                 }
-                """;
-
-        AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
+                """, """
+                $$
+                class C
+                {
+                    public static C operator checked ++ ( C x){
+                    }
+                }
+                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
     }
 
     [WpfFact]
     public void FormatUserDefinedExplicitCheckedCastOperator()
     {
-        var code = """
-                $$
-                class C
-                {
-                    public static explicit operator checked C ( int x){
-                    }
-                }
-                """;
-
-        var expected = """
+        AssertFormatWithView("""
                 $$
                 class C
                 {
@@ -2758,84 +2398,68 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     {
                     }
                 }
-                """;
-
-        AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
+                """, """
+                $$
+                class C
+                {
+                    public static explicit operator checked C ( int x){
+                    }
+                }
+                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
     }
 
     [WpfFact]
     public void FormatUserDefinedCheckedOperatorOnType()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 interface I1
                 {
                     abstract static I1 operator checked + ( I1 x, I1 y);$$
                 }
-                """;
-
-        var expected = """
+                """, """
                 interface I1
                 {
                     abstract static I1 operator checked +(I1 x, I1 y);
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
+                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
     }
 
     [WpfFact]
     public void FormatUserDefinedCheckedUnaryOperatorOnType()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 interface I1
                 {
                     abstract static I1 operator checked ++ ( I1 x);$$
                 }
-                """;
-
-        var expected = """
+                """, """
                 interface I1
                 {
                     abstract static I1 operator checked ++(I1 x);
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
+                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
     }
 
     [WpfFact]
     public void FormatUserDefinedExplicitCheckedCastOperatorOnType()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 interface I1<T> where T : I1<T>
                 {
                     abstract static explicit operator checked string ( T x);$$
                 }
-                """;
-
-        var expected = """
+                """, """
                 interface I1<T> where T : I1<T>
                 {
                     abstract static explicit operator checked string(T x);
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
+                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
     }
 
     [WpfFact]
     public void FormatUnsignedRightShift()
     {
-        var code = """
-                $$
-                class C
-                {
-                    public static C operator>>> ( C x, C y){
-                    }
-                }
-                """;
-
-        var expected = """
+        AssertFormatWithView("""
                 $$
                 class C
                 {
@@ -2843,41 +2467,120 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     {
                     }
                 }
-                """;
+                """, """
+                $$
+                class C
+                {
+                    public static C operator>>> ( C x, C y){
+                    }
+                }
+                """);
+    }
 
-        AssertFormatWithView(expected, code);
+    [WpfTheory]
+    [CombinatorialData]
+    public void FormatInstanceIncrementOperator([CombinatorialValues("++", "--")] string op)
+    {
+        AssertFormatWithView($$$"""
+                $$
+                class C
+                {
+                    public void operator {{{op}}}()
+                    {
+                    }
+                }
+                """, $$$"""
+                $$
+                class C
+                {
+                    public void operator{{{op}}} ( ){
+                    }
+                }
+                """);
+    }
+
+    [WpfTheory]
+    [CombinatorialData]
+    public void FormatInstanceIncrementOperator_Checked([CombinatorialValues("++", "--")] string op)
+    {
+        AssertFormatWithView($$$"""
+                $$
+                class C
+                {
+                    public void operator checked {{{op}}}()
+                    {
+                    }
+                }
+                """, $$$"""
+                $$
+                class C
+                {
+                    public void operator  checked{{{op}}} ( ){
+                    }
+                }
+                """);
+    }
+
+    [WpfTheory]
+    [CombinatorialData]
+    public void FormatInstanceCompoundAssignmentOperator([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+    {
+        AssertFormatWithView($$$"""
+                $$
+                class C
+                {
+                    public void operator {{{op}}}(C x)
+                    {
+                    }
+                }
+                """, $$$"""
+                $$
+                class C
+                {
+                    public void operator{{{op}}} ( C x ){
+                    }
+                }
+                """);
+    }
+
+    [WpfTheory]
+    [CombinatorialData]
+    public void FormatInstanceCompoundAssignmentOperator_Checked([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+    {
+        AssertFormatWithView($$$"""
+                $$
+                class C
+                {
+                    public void operator checked {{{op}}}(C x)
+                    {
+                    }
+                }
+                """, $$$"""
+                $$
+                class C
+                {
+                    public void operator  checked{{{op}}} ( C x ){
+                    }
+                }
+                """);
     }
 
     [WpfFact]
     public void FormatCollectionExpressionAfterEquals()
     {
-        var code = """
-                $$
-                var   v  =   [  1  , 2  , 3  ]  ;
-                """;
-
-        var expected = """
+        AssertFormatWithView("""
                 $$
                 var v = [1, 2, 3];
-                """;
-
-        AssertFormatWithView(expected, code);
+                """, """
+                $$
+                var   v  =   [  1  , 2  , 3  ]  ;
+                """);
     }
 
     [WpfFact]
     public void FormatCollectionExpressionAfterEquals2()
     {
-        var code = """
-                class C
-                {
-                    void M()
-                    {
-                        List<int> list = [     ]  ;$$
-                    }
-                }
-                """;
-
-        var expected = """
+        AssertFormatWithView("""
                 class C
                 {
                     void M()
@@ -2885,32 +2588,128 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                         List<int> list = [];$$
                     }
                 }
-                """;
-
-        AssertFormatWithView(expected, code);
+                """, """
+                class C
+                {
+                    void M()
+                    {
+                        List<int> list = [     ]  ;$$
+                    }
+                }
+                """);
     }
 
     [WpfFact]
     public void FormatUnsignedRightShiftOnType()
     {
-        var code = """
+        AssertFormatAfterTypeChar("""
                 interface I1
                 {
                     abstract static I1 operator >>> ( I1 x, I1 y);$$
                 }
-                """;
-
-        var expected = """
+                """, """
                 interface I1
                 {
                     abstract static I1 operator >>>(I1 x, I1 y);
                 }
-                """;
-
-        AssertFormatAfterTypeChar(code, expected);
+                """);
     }
 
-    private static void AssertFormatAfterTypeChar(string code, string expected, OptionsCollection? globalOptions = null, ParseOptions? parseOptions = null)
+    [WpfTheory]
+    [CombinatorialData]
+    public void FormatInstanceIncrementOperatorOnType([CombinatorialValues("++", "--")] string op)
+    {
+        AssertFormatAfterTypeChar($$$"""
+                interface I1
+                {
+                    abstract void operator{{{op}}} ( );$$
+                }
+                """, $$$"""
+                interface I1
+                {
+                    abstract void operator {{{op}}}();
+                }
+                """);
+    }
+
+    [WpfTheory]
+    [CombinatorialData]
+    public void FormatInstanceIncrementOperatorOnType_Checked([CombinatorialValues("++", "--")] string op)
+    {
+        AssertFormatAfterTypeChar($$$"""
+                interface I1
+                {
+                    abstract void operator  checked{{{op}}} ( );$$
+                }
+                """, $$$"""
+                interface I1
+                {
+                    abstract void operator checked {{{op}}}();
+                }
+                """);
+    }
+
+    [WpfTheory]
+    [CombinatorialData]
+    public void FormatInstanceCompoundAssignmentOperatorOnType([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+    {
+        AssertFormatAfterTypeChar($$$"""
+                interface I1
+                {
+                    abstract void operator{{{op}}} ( I1 x );$$
+                }
+                """, $$$"""
+                interface I1
+                {
+                    abstract void operator {{{op}}}(I1 x);
+                }
+                """);
+    }
+
+    [WpfTheory]
+    [CombinatorialData]
+    public void FormatInstanceCompoundAssignmentOperatorOnType_Checked([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+    {
+        AssertFormatAfterTypeChar($$$"""
+                interface I1
+                {
+                    abstract void operator  checked{{{op}}} ( I1 x );$$
+                }
+                """, $$$"""
+                interface I1
+                {
+                    abstract void operator checked {{{op}}}(I1 x);
+                }
+                """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/13981")]
+    public void FormatLabeledStatementAfterColon()
+    {
+        AssertFormatAfterTypeChar("""
+            class C
+            {
+                void M()
+                {
+                        foo:$$
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                foo:
+                }
+            }
+            """);
+    }
+
+    private static void AssertFormatAfterTypeChar(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
+        OptionsCollection? globalOptions = null,
+        ParseOptions? parseOptions = null)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions: parseOptions);
 

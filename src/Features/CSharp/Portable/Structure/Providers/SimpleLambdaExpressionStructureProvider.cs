@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
-internal class SimpleLambdaExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<SimpleLambdaExpressionSyntax>
+internal sealed class SimpleLambdaExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<SimpleLambdaExpressionSyntax>
 {
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,

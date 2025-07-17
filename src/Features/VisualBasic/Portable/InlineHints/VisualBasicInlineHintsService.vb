@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
     ''' The service to locate all positions where inline hints should be placed.
     ''' </summary>
     <ExportLanguageService(GetType(IInlineHintsService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicInlineHintsService
+    Friend NotInheritable Class VisualBasicInlineHintsService
         Inherits AbstractInlineHintsService
 
         <ImportingConstructor>

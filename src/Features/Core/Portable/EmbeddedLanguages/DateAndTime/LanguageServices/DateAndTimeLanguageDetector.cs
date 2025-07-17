@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -18,8 +19,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.Language
 /// </summary>
 internal sealed class DateAndTimeLanguageDetector(
     EmbeddedLanguageInfo info,
-    INamedTypeSymbol? dateTimeType,
-    INamedTypeSymbol? dateTimeOffsetType)
+    Compilation compilation)
     : AbstractLanguageDetector<DateAndTimeOptions, DateTimeTree, DateAndTimeLanguageDetector, DateAndTimeLanguageDetector.DateAndTimeInfo>(
         info, LanguageIdentifiers, CommentDetector)
 {
@@ -28,18 +28,14 @@ internal sealed class DateAndTimeLanguageDetector(
         public ImmutableArray<string> LanguageIdentifiers => ["Date", "Time", "DateTime", "DateTimeFormat"];
 
         public DateAndTimeLanguageDetector Create(Compilation compilation, EmbeddedLanguageInfo info)
-        {
-            var dateTimeType = compilation.GetTypeByMetadataName(typeof(DateTime).FullName!);
-            var dateTimeOffsetType = compilation.GetTypeByMetadataName(typeof(DateTimeOffset).FullName!);
-
-            return new DateAndTimeLanguageDetector(info, dateTimeType, dateTimeOffsetType);
-        }
+            => new DateAndTimeLanguageDetector(info, compilation);
     }
 
     private const string FormatName = "format";
 
-    private readonly INamedTypeSymbol? _dateTimeType = dateTimeType;
-    private readonly INamedTypeSymbol? _dateTimeOffsetType = dateTimeOffsetType;
+    private readonly Compilation _compilation = compilation;
+    private INamedTypeSymbol? _dateTimeType;
+    private INamedTypeSymbol? _dateTimeOffsetType;
 
     protected override bool TryGetOptions(SemanticModel semanticModel, ITypeSymbol exprType, SyntaxNode expr, CancellationToken cancellationToken, out DateAndTimeOptions options)
     {
@@ -158,7 +154,15 @@ internal sealed class DateAndTimeLanguageDetector(
            AnalyzeStringLiteral(method, argName, argIndex);
 
     private bool IsDateTimeType(ITypeSymbol? type)
-        => type != null && (type.Equals(_dateTimeType) || type.Equals(_dateTimeOffsetType));
+    {
+        if (type == null)
+            return false;
+
+        _dateTimeType ??= _compilation.GetTypeByMetadataName(typeof(DateTime).FullName!);
+        _dateTimeOffsetType ??= _compilation.GetTypeByMetadataName(typeof(DateTimeOffset).FullName!);
+
+        return type.Equals(_dateTimeType) || type.Equals(_dateTimeOffsetType);
+    }
 
     private static bool AnalyzeStringLiteral(IMethodSymbol method, string? argName, int? argIndex)
     {

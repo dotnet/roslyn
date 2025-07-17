@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.CSharp.Navigation
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
@@ -11,7 +12,7 @@ Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
-    Public Class GoToDefinitionTestsBase
+    Public MustInherit Class GoToDefinitionTestsBase
         Public Shared Async Function TestAsync(
                 workspaceDefinition As XElement,
                 Optional expectedResult As Boolean = True) As Task

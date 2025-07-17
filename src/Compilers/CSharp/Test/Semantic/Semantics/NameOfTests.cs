@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class NameofTests : CSharpTestBase
+    public sealed class NameofTests : CSharpTestBase
     {
         [Fact]
         public void TestGoodNameofInstances()
@@ -249,9 +249,6 @@ class Test<T>
                 // (17,66): error CS1031: Type expected
                 //         s = nameof(System.Collections.Generic.Dictionary<Program,>.KeyCollection);
                 Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(17, 66),
-                // (11,27): error CS0305: Using the generic type 'Action<T>' requires 1 type arguments
-                //         s = nameof(System.Action<>);
-                Diagnostic(ErrorCode.ERR_BadArity, "Action<>").WithArguments("System.Action<T>", "type", "1").WithLocation(11, 27),
                 // (16,20): error CS0103: The name 'List' does not exist in the current context
                 //         s = nameof(List<int>.Enumerator);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "List<int>").WithArguments("List").WithLocation(16, 20),
@@ -282,9 +279,6 @@ class Test<T>
                 // (31,20): error CS8083: An alias-qualified name is not an expression.
                 //         s = nameof(global::Program); // not an expression
                 Diagnostic(ErrorCode.ERR_AliasQualifiedNameNotAnExpression, "global::Program").WithLocation(31, 20),
-                // (32,20): error CS0305: Using the generic type 'Test<T>' requires 1 type arguments
-                //         s = nameof(Test<>.s); // inaccessible
-                Diagnostic(ErrorCode.ERR_BadArity, "Test<>").WithArguments("Test<T>", "type", "1").WithLocation(32, 20),
                 // (32,27): error CS0122: 'Test<T>.s' is inaccessible due to its protection level
                 //         s = nameof(Test<>.s); // inaccessible
                 Diagnostic(ErrorCode.ERR_BadAccess, "s").WithArguments("Test<T>.s").WithLocation(32, 27),
@@ -1089,7 +1083,7 @@ public class Program
                     AssertEx.SetEqual(
                         symbols.Select(s => s.GetPublicSymbol()),
                         symbolInfo.CandidateSymbols,
-                        Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+                        ReferenceEqualityComparer.Instance);
                 }
             }
 
@@ -1253,7 +1247,7 @@ public class Program
                     AssertEx.SetEqual(
                         symbols.Select(s => s.GetPublicSymbol()),
                         symbolInfo.CandidateSymbols,
-                        Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+                        ReferenceEqualityComparer.Instance);
                 }
             }
 
@@ -2372,6 +2366,891 @@ class Attr : System.Attribute { public Attr(string s) {} }";
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_Preview()
+        {
+            CompileAndVerify("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<>);
+                Console.WriteLine(v);
+                """, expectedOutput: "List").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_CSharp13()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<>);
+                Console.WriteLine(v);
+                """, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+                    // (4,16): error CS8652: The feature 'unbound generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // var v = nameof(List<>);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "List<>").WithArguments("unbound generic types in nameof operator").WithLocation(4, 16));
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_Next()
+        {
+            CompileAndVerify("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<>);
+                Console.WriteLine(v);
+                """, parseOptions: TestOptions.RegularNext, expectedOutput: "List").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_CSharp13_Nested1()
+        {
+            CreateCompilation("""
+                using System;
+                
+                var v = nameof(A<>.B<int>);
+                Console.WriteLine(v);
+
+                class A<X> { public class B<Y>; }
+                """, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+                // (3,16): error CS8652: The feature 'unbound generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // var v = nameof(A<>.B<int>);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A<>").WithArguments("unbound generic types in nameof operator").WithLocation(3, 16));
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_CSharp13_Nested2()
+        {
+            CreateCompilation("""
+                using System;
+                
+                var v = nameof(A<int>.B<>);
+                Console.WriteLine(v);
+
+                class A<X> { public class B<Y>; }
+                """, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+                // (3,23): error CS8652: The feature 'unbound generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // var v = nameof(A<int>.B<>);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "B<>").WithArguments("unbound generic types in nameof operator").WithLocation(3, 23));
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_CSharp13_Nested3()
+        {
+            CreateCompilation("""
+                using System;
+                
+                var v = nameof(A<>.B<>);
+                Console.WriteLine(v);
+
+                class A<X> { public class B<Y>; }
+                """, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+                    // (3,16): error CS8652: The feature 'unbound generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // var v = nameof(A<>.B<>);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "A<>").WithArguments("unbound generic types in nameof operator").WithLocation(3, 16),
+                    // (3,20): error CS8652: The feature 'unbound generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // var v = nameof(A<>.B<>);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "B<>").WithArguments("unbound generic types in nameof operator").WithLocation(3, 20));
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_BaseCase()
+        {
+            CompileAndVerify("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<>);
+                Console.WriteLine(v);
+                """, expectedOutput: "List").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_Nested1()
+        {
+            CompileAndVerify("""
+                using System;
+                    
+                var v = nameof(A<>.B<int>);
+                Console.WriteLine(v);
+
+                class A<X> { public class B<Y>; }
+                """, expectedOutput: "B").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_Nested2()
+        {
+            CompileAndVerify("""
+                using System;
+                    
+                var v = nameof(A<int>.B<>);
+                Console.WriteLine(v);
+
+                class A<X> { public class B<Y>; }
+                """, expectedOutput: "B").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_Nested3()
+        {
+            CompileAndVerify("""
+                using System;
+                    
+                var v = nameof(A<>.B<>);
+                Console.WriteLine(v);
+
+                class A<X> { public class B<Y>; }
+                """, expectedOutput: "B").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_MultipleTypeArguments()
+        {
+            CompileAndVerify("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(Dictionary<,>);
+                Console.WriteLine(v);
+                """, expectedOutput: "Dictionary").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_IncorrectTypeArgumentCount1()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(Dictionary<>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics(
+                    // (2,1): hidden CS8019: Unnecessary using directive.
+                    // using System.Collections.Generic;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1),
+                    // (4,16): error CS0305: Using the generic type 'Dictionary<TKey, TValue>' requires 2 type arguments
+                    // var v = nameof(Dictionary<>);
+                    Diagnostic(ErrorCode.ERR_BadArity, "Dictionary<>").WithArguments("System.Collections.Generic.Dictionary<TKey, TValue>", "type", "2").WithLocation(4, 16));
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_IncorrectTypeArgumentCount2()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<,>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System.Collections.Generic;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1),
+                // (4,16): error CS0305: Using the generic type 'List<T>' requires 1 type arguments
+                // var v = nameof(List<,>);
+                Diagnostic(ErrorCode.ERR_BadArity, "List<,>").WithArguments("System.Collections.Generic.List<T>", "type", "1").WithLocation(4, 16));
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_NoNestedOpenTypes1()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<List<>>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics(
+                    // (4,21): error CS7003: Unexpected use of an unbound generic name
+                    // var v = nameof(List<List<>>);
+                    Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(4, 21));
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_NoNestedOpenTypes2()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<List<>[]>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics(
+                    // (4,21): error CS7003: Unexpected use of an unbound generic name
+                    // var v = nameof(List<List<>>);
+                    Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(4, 21));
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_NoNestedOpenTypes3()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<Outer<>.Inner>);
+                Console.WriteLine(v);
+                
+                public class Outer<T> { public class Inner { } }
+                """).VerifyDiagnostics(
+                    // (4,21): error CS7003: Unexpected use of an unbound generic name
+                    // var v = nameof(List<Outer<>.Inner>);
+                    Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "Outer<>").WithLocation(4, 21));
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_NoNestedOpenTypes4()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<Outer.Inner<>>);
+                Console.WriteLine(v);
+                
+                public class Outer { public class Inner<T> { } }
+                """).VerifyDiagnostics(
+                    // (4,27): error CS7003: Unexpected use of an unbound generic name
+                    // var v = nameof(List<Outer.Inner<>>);
+                    Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "Inner<>").WithLocation(4, 27));
+        }
+
+        [Fact]
+        public void Nameof_NestedClosedType1()
+        {
+            CompileAndVerify("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<List<int>>);
+                Console.WriteLine(v);
+                """, expectedOutput: "List").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Nameof_NestedClosedType2()
+        {
+            CompileAndVerify("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<List<int>[]>);
+                Console.WriteLine(v);
+                """, expectedOutput: "List").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_NoPartialOpenTypes_1()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(Dictionary<,int>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics(
+                    // (4,27): error CS1031: Type expected
+                    // var v = nameof(Dictionary<,int>);
+                    Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(4, 27));
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_NoPartialOpenTypes_2()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(Dictionary<int,>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics(
+                // (4,31): error CS1031: Type expected
+                // var v = nameof(Dictionary<int,>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(4, 31));
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_MemberAccessThatDoesNotUseTypeArgument()
+        {
+            CompileAndVerify("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<>.Count);
+                Console.WriteLine(v);
+                """, expectedOutput: "Count").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument()
+        {
+            CompileAndVerify("""
+                using System;
+                    
+                var v = nameof(IGoo<>.Count);
+                Console.WriteLine(v);
+
+                interface IGoo<T>
+                {
+                    T Count { get; }
+                }
+                """, expectedOutput: "Count").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument_ReferenceObjectMember()
+        {
+            CompileAndVerify("""
+                using System;
+                    
+                var v = nameof(IGoo<>.Count.ToString);
+                Console.WriteLine(v);
+
+                interface IGoo<T>
+                {
+                    T Count { get; }
+                }
+                """, expectedOutput: "ToString").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument_ReferenceConstraintMember_Interface()
+        {
+            CompileAndVerify("""
+                using System;
+                    
+                var v = nameof(IGoo<>.X.CompareTo);
+                Console.WriteLine(v);
+
+                interface IGoo<T> where T : IComparable<T>
+                {
+                    T X { get; }
+                }
+                """, expectedOutput: "CompareTo").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument_ReferenceConstraintMember_ThroughTypeParameter()
+        {
+            CompileAndVerify("""
+                using System;
+                    
+                var v = nameof(IGoo<,>.X.CompareTo);
+                Console.WriteLine(v);
+
+                interface IGoo<T,U> where T : U where U : IComparable<T>
+                {
+                    T X { get; }
+                }
+                """, expectedOutput: "CompareTo").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument_ReferenceConstraintMember_Class()
+        {
+            CompileAndVerify("""
+                using System;
+                    
+                var v = nameof(IGoo<>.X.Z);
+                Console.WriteLine(v);
+
+                class Base
+                {
+                    public int Z { get; }
+                }
+
+                interface IGoo<T> where T : Base
+                {
+                    T X { get; }
+                }
+                """, expectedOutput: "Z").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_GenericMethod1()
+        {
+            CompileAndVerify("""
+                using System;
+                    
+                var v = nameof(IGoo.M);
+                Console.WriteLine(v);
+
+                interface IGoo
+                {
+                    void M<T>();
+                }
+                """, expectedOutput: "M").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_GenericMethod2()
+        {
+            CreateCompilation("""
+                using System;
+                    
+                var v = nameof(IGoo.M<>);
+                Console.WriteLine(v);
+
+                interface IGoo
+                {
+                    void M<T>();
+                }
+                """).VerifyDiagnostics(
+                    // (3,16): error CS0305: Using the generic method group 'M' requires 1 type arguments
+                    // var v = nameof(IGoo.M<>);
+                    Diagnostic(ErrorCode.ERR_BadArity, "IGoo.M<>").WithArguments("M", "method group", "1").WithLocation(3, 16));
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_GenericMethod3()
+        {
+            CreateCompilation("""
+                using System;
+                    
+                var v = nameof(IGoo.M<int>);
+                Console.WriteLine(v);
+
+                interface IGoo
+                {
+                    void M<T>();
+                }
+                """).VerifyDiagnostics(
+                // (3,16): error CS8084: Type parameters are not allowed on a method group as an argument to 'nameof'.
+                // var v = nameof(IGoo.M<int>);
+                Diagnostic(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, "IGoo.M<int>").WithLocation(3, 16));
+        }
+
+        [Fact]
+        public void NameofFunctionPointer1()
+        {
+            CreateCompilation("""
+                class C
+                {
+                    unsafe void M()
+                    {
+                        var v = nameof(delegate*<int>);
+                    }
+                }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,32): error CS1514: { expected
+                //         var v = nameof(delegate*<int>);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "*").WithLocation(5, 32),
+                // (5,32): warning CS8848: Operator '*' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         var v = nameof(delegate*<int>);
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "*").WithArguments("*").WithLocation(5, 32),
+                // (5,33): error CS1525: Invalid expression term '<'
+                //         var v = nameof(delegate*<int>);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(5, 33),
+                // (5,34): error CS1525: Invalid expression term 'int'
+                //         var v = nameof(delegate*<int>);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(5, 34),
+                // (5,38): error CS1525: Invalid expression term ')'
+                //         var v = nameof(delegate*<int>);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(5, 38));
+        }
+
+        [Fact]
+        public void NameofFunctionPointer2()
+        {
+            CreateCompilation("""
+                using System.Collections.Generic;
+                    
+                class C
+                {
+                    unsafe void M()
+                    {
+                        var v = nameof(delegate*<List<>>);
+                    }
+                }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (7,32): error CS1514: { expected
+                //         var v = nameof(delegate*<List<>>);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "*").WithLocation(7, 32),
+                // (7,32): warning CS8848: Operator '*' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         var v = nameof(delegate*<List<>>);
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "*").WithArguments("*").WithLocation(7, 32),
+                // (7,33): error CS1525: Invalid expression term '<'
+                //         var v = nameof(delegate*<List<>>);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(7, 33),
+                // (7,34): error CS0119: 'List<T>' is a type, which is not valid in the given context
+                //         var v = nameof(delegate*<List<>>);
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "List<>").WithArguments("System.Collections.Generic.List<T>", "type").WithLocation(7, 34),
+                // (7,41): error CS1525: Invalid expression term ')'
+                //         var v = nameof(delegate*<List<>>);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 41));
+        }
+
+        [Fact]
+        public void NameofFunctionPointer3()
+        {
+            CreateCompilation("""
+                using System.Collections.Generic;
+                    
+                class C
+                {
+                    unsafe void M()
+                    {
+                        var v = nameof(List<delegate*<int>>);
+                    }
+                }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (7,13): warning CS0219: The variable 'v' is assigned but its value is never used
+                //         var v = nameof(List<delegate*<int>>);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v").WithArguments("v").WithLocation(7, 13),
+                // (7,29): error CS0306: The type 'delegate*<int>' may not be used as a type argument
+                //         var v = nameof(List<delegate*<int>>);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int>").WithArguments("delegate*<int>").WithLocation(7, 29));
+        }
+
+        [Fact]
+        public void NameofFunctionPointer4()
+        {
+            CreateCompilation("""
+                using System.Collections.Generic;
+                    
+                class C
+                {
+                    unsafe void M()
+                    {
+                        var v = nameof(List<delegate*<List<>>>);
+                    }
+                }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (7,13): warning CS0219: The variable 'v' is assigned but its value is never used
+                //         var v = nameof(List<delegate*<List<>>>);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v").WithArguments("v").WithLocation(7, 13),
+                // (7,29): error CS0306: The type 'delegate*<List<T>>' may not be used as a type argument
+                //         var v = nameof(List<delegate*<List<>>>);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<List<>>").WithArguments("delegate*<System.Collections.Generic.List<T>>").WithLocation(7, 29),
+                // (7,39): error CS7003: Unexpected use of an unbound generic name
+                //         var v = nameof(List<delegate*<List<>>>);
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(7, 39));
+        }
+
+        [Fact]
+        public void NameofFunctionPointer5()
+        {
+            CreateCompilation("""
+                using System.Collections.Generic;
+                
+                class D<A, B, C>
+                {
+                    unsafe void M()
+                    {
+                        var v = nameof(D<, delegate*<int>, List<>>);
+                    }
+                }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (7,26): error CS1031: Type expected
+                //         var v = nameof(D<, delegate*<int>, List<>>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(7, 26),
+                // (7,44): error CS7003: Unexpected use of an unbound generic name
+                //         var v = nameof(D<, delegate*<int>, List<>>);
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(7, 44));
+        }
+
+        [Fact]
+        public void Nameof_NestedOpenType1()
+        {
+            CompileAndVerify("""
+                using System;
+                using System.Collections.Generic;
+                    
+                var v = nameof(List<List<int>[]>);
+                Console.WriteLine(v);
+                """, expectedOutput: "List").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Nameof_NestedOpenType2()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+                    
+                var v = nameof(List<List<>[]>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics(
+                // (4,21): error CS7003: Unexpected use of an unbound generic name
+                // var v = nameof(List<List<>[]>);
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(4, 21));
+        }
+
+        [Fact]
+        public void Nameof_NestedOpenType3()
+        {
+            CompileAndVerify("""
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                    
+                var v = nameof(List<List<int>?>);
+                Console.WriteLine(v);
+                """, expectedOutput: "List").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Nameof_NestedOpenType4()
+        {
+            CreateCompilation("""
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                    
+                var v = nameof(List<List<>?>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics(
+                // (5,21): error CS7003: Unexpected use of an unbound generic name
+                // var v = nameof(List<List<>?>);
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(5, 21));
+        }
+
+        [Fact]
+        public void Nameof_AliasQualifiedName()
+        {
+            CompileAndVerify("""
+                using System;
+                    
+                var v = nameof(global::System.Collections.Generic.List<>);
+                Console.WriteLine(v);
+                """, expectedOutput: "List").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("IGoo<>")]
+        [InlineData("IGoo<>.Count")]
+        public void OpenTypeInNameof_SemanticModelTest1(string nameofTypeString)
+        {
+            var compilation = CreateCompilation($$"""
+                using System;
+                    
+                var v1 = nameof({{nameofTypeString}});
+                var v2 = typeof(IGoo<>);
+                Console.WriteLine(v1 + v2);
+
+                interface IGoo<T> { public T Count { get; } }
+                """).VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+
+            var firstGeneric = root.DescendantNodes().OfType<GenericNameSyntax>().First();
+            var lastGeneric = root.DescendantNodes().OfType<GenericNameSyntax>().Last();
+
+            Assert.NotSame(firstGeneric, lastGeneric);
+
+            // Ensure the type inside the nameof is the same as the type inside the typeof.
+            var nameofType = semanticModel.GetTypeInfo(firstGeneric).Type;
+            var typeofType = semanticModel.GetTypeInfo(lastGeneric).Type;
+
+            Assert.NotNull(nameofType);
+            Assert.NotNull(typeofType);
+
+            // typeof will produce IGoo<>, while nameof will produce IGoo<T>.  These are distinctly different types (the
+            // latter has members for example).
+            Assert.NotEqual(nameofType, typeofType);
+
+            Assert.True(nameofType.IsDefinition);
+            Assert.False(nameofType.IsUnboundGenericType());
+
+            Assert.False(typeofType.IsDefinition);
+            Assert.True(typeofType.IsUnboundGenericType());
+
+            Assert.Empty(typeofType.GetMembers("Count"));
+            Assert.Single(nameofType.GetMembers("Count"));
+
+            var igooType = compilation.GetTypeByMetadataName("IGoo`1").GetPublicSymbol();
+            Assert.NotNull(igooType);
+
+            Assert.Equal(igooType, nameofType);
+        }
+
+        [Fact]
+        public void Nameof_Indexer_01()
+        {
+            string source = """
+                using System.Collections.Generic;
+                var d = new Dictionary<string, string>();
+                _ = nameof(d[""]);
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS8081: Expression does not have a name.
+                // _ = nameof(d[""]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, @"d[""""]").WithLocation(3, 12));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_02()
+        {
+            string source = """
+                var a = new object[1];
+                _ = nameof(a[0]);
+                _ = nameof(a[^1]);
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (2,12): error CS8081: Expression does not have a name.
+                // _ = nameof(a[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "a[0]").WithLocation(2, 12),
+                // (3,12): error CS8081: Expression does not have a name.
+                // _ = nameof(a[^1]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "a[^1]").WithLocation(3, 12));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_03()
+        {
+            string source = """
+                using System;
+                var s = new Span<int>();
+                _ = nameof(s[0]);
+                _ = nameof(s[^1]);
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS8081: Expression does not have a name.
+                // _ = nameof(s[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "s[0]").WithLocation(3, 12),
+                // (4,12): error CS8081: Expression does not have a name.
+                // _ = nameof(s[^1]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "s[^1]").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_04()
+        {
+            string source = """
+                class C<T>
+                {
+                    public ref T this[int i] => throw null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new C<object>();
+                        _ = nameof(x[0]);
+                        _ = nameof(x[0] = default);
+                        var y = new C<int>();
+                        _ = nameof(y[0] += 1);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(x[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "x[0]").WithLocation(10, 20),
+                // (11,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(x[0] = default);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "x[0] = default").WithLocation(11, 20),
+                // (13,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(y[0] += 1);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "y[0] += 1").WithLocation(13, 20));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_05()
+        {
+            string source = """
+                ref struct R<T>
+                {
+                    public T this[int i] => default;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R<object>();
+                        _ = nameof(r[0]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "r[0]").WithLocation(10, 20));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_06()
+        {
+            string source = """
+                ref struct R<T>
+                {
+                    public T this[int i] { set { } }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R<object>();
+                        _ = nameof(r[0]);
+                        _ = nameof(r[0] = default);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "r[0]").WithLocation(10, 20),
+                // (10,20): error CS0154: The property or indexer 'R<object>.this[int]' cannot be used in this context because it lacks the get accessor
+                //         _ = nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "r[0]").WithArguments("R<object>.this[int]").WithLocation(10, 20),
+                // (11,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(r[0] = default);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "r[0] = default").WithLocation(11, 20));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_07()
+        {
+            string source = """
+                using System.Diagnostics.CodeAnalysis;
+                ref struct R<T>
+                {
+                    private ref readonly int _i;
+                    public T this[[UnscopedRef] in int i] { get { _i = ref i; return default; } }
+                }
+                class Program
+                {
+                    static R<string> F(bool b)
+                    {
+                        var r = new R<string>();
+                        _ = b ?
+                            r[0] :
+                            nameof(r[0]);
+                        return r;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (13,13): error CS8350: This combination of arguments to 'R<string>.this[in int]' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //             r[0] :
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r[0]").WithArguments("R<string>.this[in int]", "i").WithLocation(13, 13),
+                // (13,15): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //             r[0] :
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "0").WithLocation(13, 15),
+                // (14,20): error CS8081: Expression does not have a name.
+                //             nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "r[0]").WithLocation(14, 20),
+                // (14,20): error CS8350: This combination of arguments to 'R<string>.this[in int]' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //             nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r[0]").WithArguments("R<string>.this[in int]", "i").WithLocation(14, 20),
+                // (14,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //             nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "0").WithLocation(14, 22));
         }
     }
 }

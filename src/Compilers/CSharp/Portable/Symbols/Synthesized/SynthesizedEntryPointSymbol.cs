@@ -205,6 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         internal override Cci.CallingConvention CallingConvention
         {
             get { return 0; }
@@ -320,9 +322,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override int? TryGetOverloadResolutionPriority()
+        internal override int TryGetOverloadResolutionPriority()
         {
-            return null;
+            return 0;
         }
 
         /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
@@ -378,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ReturnType.SpecialType == SpecialType.System_Int32);
             }
 
-            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
             {
                 base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 

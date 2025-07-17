@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -34,13 +35,15 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace;
 /// <summary>
 /// This intermediate class is used to hide method `TryGetReplacementReferenceSyntax` from <see cref="IChangeNamespaceService" />.
 /// </summary>
-internal abstract class AbstractChangeNamespaceService : IChangeNamespaceService
+internal abstract partial class AbstractChangeNamespaceService : IChangeNamespaceService
 {
     public abstract Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken);
 
     public abstract Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CancellationToken cancellationToken);
 
     public abstract Task<Solution?> TryChangeTopLevelNamespacesAsync(Document document, string targetNamespace, CancellationToken cancellationToken);
+
+    public abstract AbstractReducer NameReducer { get; }
 
     /// <summary>
     /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the 
@@ -57,11 +60,20 @@ internal abstract class AbstractChangeNamespaceService : IChangeNamespaceService
     public abstract bool TryGetReplacementReferenceSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, ISyntaxFactsService syntaxFacts, [NotNullWhen(returnValue: true)] out SyntaxNode? old, [NotNullWhen(returnValue: true)] out SyntaxNode? @new);
 }
 
-internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax>
+internal abstract partial class AbstractChangeNamespaceService<
+    TCompilationUnitSyntax,
+    TMemberDeclarationSyntax,
+    TNamespaceDeclarationSyntax,
+    TNameSyntax,
+    TSimpleNameSyntax,
+    TCrefSyntax>
     : AbstractChangeNamespaceService
-    where TNamespaceDeclarationSyntax : SyntaxNode
     where TCompilationUnitSyntax : SyntaxNode
     where TMemberDeclarationSyntax : SyntaxNode
+    where TNamespaceDeclarationSyntax : TMemberDeclarationSyntax
+    where TNameSyntax : SyntaxNode
+    where TSimpleNameSyntax : TNameSyntax
+    where TCrefSyntax : SyntaxNode
 {
     private static readonly char[] s_dotSeparator = ['.'];
 
@@ -125,9 +137,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         var originalNamespaceDeclarations = await GetTopLevelNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
 
         if (originalNamespaceDeclarations.Length == 0)
-        {
             return null;
-        }
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var originalNamespaceName = semanticModel.GetRequiredDeclaredSymbol(originalNamespaceDeclarations.First(), cancellationToken).ToDisplayString();
@@ -139,12 +149,10 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         for (var i = 0; i < originalNamespaceDeclarations.Length; i++)
         {
             var namespaceName = semanticModel.GetRequiredDeclaredSymbol(originalNamespaceDeclarations[i], cancellationToken).ToDisplayString();
+
+            // Skip all namespaces that didn't match the original namespace name that we were syncing. 
             if (namespaceName != originalNamespaceName)
-            {
-                // Skip all namespaces that didn't match the original namespace name that 
-                // we were syncing. 
                 continue;
-            }
 
             syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -165,10 +173,9 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            return syntaxRoot
+            return [.. syntaxRoot
                 .DescendantNodes(n => !syntaxFacts.IsDeclaration(n))
-                .Where(syntaxFacts.IsBaseNamespaceDeclaration)
-                .ToImmutableArray();
+                .Where(syntaxFacts.IsBaseNamespaceDeclaration)];
         }
     }
 
@@ -195,16 +202,12 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         var containersFromAllDocuments = await GetValidContainersFromAllLinkedDocumentsAsync(document, container, cancellationToken).ConfigureAwait(false);
         if (containersFromAllDocuments.IsDefault)
-        {
             return solution;
-        }
 
         // No action required if declared namespace already matches target.
         var declaredNamespace = GetDeclaredNamespace(container);
         if (syntaxFacts.StringComparer.Equals(targetNamespace, declaredNamespace))
-        {
             return solution;
-        }
 
         // Annotate the container nodes so we can still find and modify them after syntax tree has changed.
         var annotatedSolution = await AnnotateContainersAsync(solution, containersFromAllDocuments, cancellationToken).ConfigureAwait(false);
@@ -223,9 +226,8 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         foreach (var documentId in documentIds)
         {
-            var (newSolution, refDocumentIds) =
-                await ChangeNamespaceInSingleDocumentAsync(solutionAfterNamespaceChange, documentId, declaredNamespace, targetNamespace, cancellationToken)
-                    .ConfigureAwait(false);
+            var (newSolution, refDocumentIds) = await ChangeNamespaceInSingleDocumentAsync(
+                solutionAfterNamespaceChange, documentId, declaredNamespace, targetNamespace, cancellationToken).ConfigureAwait(false);
             solutionAfterNamespaceChange = newSolution;
             referenceDocuments.AddRange(refDocumentIds);
         }
@@ -464,8 +466,8 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             }
         }
 
-        var documentWithNewNamespace = await FixDeclarationDocumentAsync(document, refLocationsInCurrentDocument, oldNamespace, newNamespace, cancellationToken)
-            .ConfigureAwait(false);
+        var documentWithNewNamespace = await FixDeclarationDocumentAsync(
+            document, refLocationsInCurrentDocument, oldNamespace, newNamespace, cancellationToken).ConfigureAwait(false);
         var solutionWithChangedNamespace = documentWithNewNamespace.Project.Solution;
 
         var refLocationsInSolution = refLocationsInOtherDocuments
@@ -500,15 +502,6 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         var solutionWithFixedReferences = solutionWithChangedNamespace.WithDocumentSyntaxRoots(fixedDocuments);
         return (solutionWithFixedReferences, refLocationGroups.SelectAsArray(g => g.Key));
-    }
-
-    private readonly struct LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
-    {
-        public ReferenceLocation ReferenceLocation { get; } = location;
-
-        public bool IsReferenceToExtensionMethod { get; } = isReferenceToExtensionMethod;
-
-        public Document Document => ReferenceLocation.Document;
     }
 
     private static async Task<ImmutableArray<LocationForAffectedSymbol>> FindReferenceLocationsForSymbolAsync(
@@ -591,8 +584,8 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         if (refLocations.Count > 0)
         {
-            (document, containersToAddImports) = await FixReferencesAsync(document, this, addImportService, refLocations, newNamespaceParts, cancellationToken)
-                .ConfigureAwait(false);
+            (document, containersToAddImports) = await FixReferencesAsync(
+                document, this, addImportService, refLocations, newNamespaceParts, cancellationToken).ConfigureAwait(false);
         }
         else
         {
@@ -603,10 +596,10 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         Debug.Assert(containersToAddImports.Length > 0);
 
-        // Need to import all containing namespaces of old namespace and add them to the document (if it's not global namespace)
-        // Include the new namespace in case there are multiple namespace declarations in
-        // the declaring document. They may need a using statement added to correctly keep
-        // references to the type inside it's new namespace
+        // Need to import all containing namespaces of old namespace and add them to the document (if it's not global
+        // namespace). Include the new namespace in case there are multiple namespace declarations in the declaring
+        // document. They may need a using statement added to correctly keep references to the type inside it's new
+        // namespace
         var namesToImport = GetAllNamespaceImportsForDeclaringDocument(oldNamespace, newNamespace);
 
         var documentOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -621,16 +614,60 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         var root = await documentWithAddedImports.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        root = ChangeNamespaceDeclaration((TCompilationUnitSyntax)root, oldNamespaceParts, newNamespaceParts)
-            .WithAdditionalAnnotations(Formatter.Annotation);
+        root = ChangeNamespaceDeclaration((TCompilationUnitSyntax)root, oldNamespaceParts, newNamespaceParts);
+
+        // We need to change the indentation here. TODO: Replace with an "indentation annotation" when
+        // https://github.com/dotnet/roslyn/issues/59228 happens.
+        if (oldNamespace is "" || newNamespace is "")
+            root = root.WithAdditionalAnnotations(Formatter.Annotation);
 
         // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
         var services = documentWithAddedImports.Project.Solution.Services;
         root = Formatter.Format(root, Formatter.Annotation, services, documentOptions.FormattingOptions, cancellationToken);
 
-        root = root.WithAdditionalAnnotations(Simplifier.Annotation);
+        using var _ = PooledHashSet<string>.GetInstance(out var allNamespaceNameParts);
+        allNamespaceNameParts.AddRange(oldNamespaceParts);
+        allNamespaceNameParts.AddRange(newNamespaceParts);
+
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        root = AddSimplifierAnnotationToPotentialReferences(syntaxFacts, root, allNamespaceNameParts);
+
         var formattedDocument = documentWithAddedImports.WithSyntaxRoot(root);
-        return await Simplifier.ReduceAsync(formattedDocument, documentOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+        return await SimplifyTypeNamesAsync(formattedDocument, documentOptions, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static SyntaxNode AddSimplifierAnnotationToPotentialReferences(
+        ISyntaxFactsService syntaxFacts, SyntaxNode root, HashSet<string> allNamespaceNameParts)
+    {
+        // Find all identifiers in this tree that use at least one of the namespace names of either the old or new
+        // namespace.  Mark those as needing potential complexification/simplification to preserve meaning.
+        //
+        // Note: we could go further here and actually bind these nodes to make sure they are actually references
+        // to one of the namespaces in question.  But that doesn't seem super necessary as the chance that these names
+        // are actually to something else *and* they would reduce without issue seems very low.  This can be revisited
+        // if we get feedback on this.
+
+        using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var namesToUpdate);
+        foreach (var descendent in root.DescendantNodes(descendIntoTrivia: true))
+        {
+            if (descendent is TSimpleNameSyntax simpleName &&
+                allNamespaceNameParts.Contains(syntaxFacts.GetIdentifierOfSimpleName(simpleName).ValueText))
+            {
+                namesToUpdate.Add(GetHighestNameOrCref(simpleName));
+            }
+        }
+
+        return root.ReplaceNodes(
+            namesToUpdate,
+            (_, current) => current.WithAdditionalAnnotations(Simplifier.Annotation));
+
+        static SyntaxNode GetHighestNameOrCref(TNameSyntax name)
+        {
+            while (name.Parent is TNameSyntax parentName)
+                name = parentName;
+
+            return name.Parent is TCrefSyntax ? name.Parent : name;
+        }
     }
 
     private static async Task<Document> FixReferencingDocumentAsync(
@@ -648,9 +685,8 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         var newNamespaceParts = GetNamespaceParts(newNamespace);
 
-        var (documentWithRefFixed, containers) =
-            await FixReferencesAsync(document, changeNamespaceService, addImportService, refLocations, newNamespaceParts, cancellationToken)
-                .ConfigureAwait(false);
+        var (documentWithRefFixed, containers) = await FixReferencesAsync(
+            document, changeNamespaceService, addImportService, refLocations, newNamespaceParts, cancellationToken).ConfigureAwait(false);
 
         var documentOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -663,10 +699,24 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             cancellationToken).ConfigureAwait(false);
 
         // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
-        var formattedDocument = await Formatter.FormatAsync(documentWithAdditionalImports, Formatter.Annotation, documentOptions.FormattingOptions, cancellationToken)
-            .ConfigureAwait(false);
+        var formattedDocument = await Formatter.FormatAsync(
+            documentWithAdditionalImports, Formatter.Annotation, documentOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
-        return await Simplifier.ReduceAsync(formattedDocument, documentOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+        return await SimplifyTypeNamesAsync(formattedDocument, documentOptions, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<Document> SimplifyTypeNamesAsync(
+        Document document, CodeCleanupOptions documentOptions, CancellationToken cancellationToken)
+    {
+        var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var service = document.GetRequiredLanguageService<ISimplificationService>();
+        return await service.ReduceAsync(
+            document,
+            [new TextSpan(0, text.Length)],
+            documentOptions.SimplifierOptions,
+            [changeNamespaceService.NameReducer],
+            cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -705,9 +755,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             // it will be handled properly because it is one of the reference to the type symbol. Otherwise, we don't
             // attempt to make a potential fix, and user might end up with errors as a result.                    
             if (refLoc.ReferenceLocation.Alias != null)
-            {
                 continue;
-            }
 
             // Other documents in the solution might have changed after we calculated those ReferenceLocation, 
             // so we can't trust anything to be still up-to-date except their spans.
@@ -740,9 +788,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         }
 
         foreach (var container in containers)
-        {
             editor.TrackNode(container);
-        }
 
         var fixedDocument = editor.GetChangedDocument();
         root = await fixedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -845,7 +891,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
     private static async Task<Solution> MergeDiffAsync(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
     {
         var diffMergingSession = new LinkedFileDiffMergingSession(oldSolution, newSolution, newSolution.GetChanges(oldSolution));
-        var mergeResult = await diffMergingSession.MergeDiffsAsync(mergeConflictHandler: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var mergeResult = await diffMergingSession.MergeDiffsAsync(cancellationToken).ConfigureAwait(false);
         return mergeResult.MergedSolution;
     }
 
@@ -855,7 +901,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         {
         }
 
-        public static SyntaxNodeSpanStartComparer Instance { get; } = new SyntaxNodeSpanStartComparer();
+        public static SyntaxNodeSpanStartComparer Instance { get; } = new();
 
         public int Compare(SyntaxNode? x, SyntaxNode? y)
         {

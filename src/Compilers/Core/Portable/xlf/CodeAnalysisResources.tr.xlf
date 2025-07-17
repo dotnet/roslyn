@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Attribute">
         <source>attribute</source>
-        <target state="new">attribute</target>
+        <target state="translated">öznitelik</target>
         <note />
       </trans-unit>
       <trans-unit id="BadBuiltInOps1">
@@ -85,6 +85,11 @@
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
         <target state="translated">'bitiş', 'başlangıç' değerinden küçük olmamalıdır. başla='{0}' bitiş='{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionMessage_FileMayBeLockedBy">
+        <source>{0}; file may be locked by {1}</source>
+        <target state="translated">{0}; dosya dosya tarafından kilitlenmiş {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
@@ -270,7 +275,7 @@
       </trans-unit>
       <trans-unit id="SymWriterMetadataOverLimit">
         <source>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</source>
-        <target state="new">Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</target>
+        <target state="translated">Hata ayıklama meta veri boyutu '{0}' sınırı aşıldığından yöntem {1} için yerel PDB {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
@@ -280,7 +285,7 @@
       </trans-unit>
       <trans-unit id="Type0DoesNotHaveExpectedConstructor">
         <source>'{0}' type does not have the expected constructor</source>
-        <target state="new">'{0}' type does not have the expected constructor</target>
+        <target state="translated">'{0}' türü beklenen oluşturucuya sahip değil</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">

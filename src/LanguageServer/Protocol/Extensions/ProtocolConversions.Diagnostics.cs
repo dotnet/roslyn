@@ -82,7 +82,7 @@ internal static partial class ProtocolConversions
                 Location = new LSP.Location
                 {
                     Range = GetRange(l),
-                    Uri = ProtocolConversions.CreateAbsoluteUri(l.UnmappedFileSpan.Path)
+                    DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(l.UnmappedFileSpan.Path)
                 },
                 Message = diagnostic.Message
             }).ToArray();
@@ -107,7 +107,7 @@ internal static partial class ProtocolConversions
             Code = diagnosticData.Id,
             CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
             Message = diagnosticData.Message,
-            Severity = ConvertDiagnosticSeverity(diagnosticData.Severity, supportsVisualStudioExtensions),
+            Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
             Tags = ConvertTags(diagnosticData, isLiveSource, potentialDuplicate),
             DiagnosticRank = ConvertRank(diagnosticData),
             Range = GetRange(diagnosticData.DataLocation)
@@ -207,14 +207,13 @@ internal static partial class ProtocolConversions
         return null;
     }
 
-    private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity, bool supportsVisualStudioExtensions)
+    private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity)
         => severity switch
         {
             // Hidden is translated in ConvertTags to pass along appropriate _ms tags
             // that will hide the item in a client that knows about those tags.
             DiagnosticSeverity.Hidden => LSP.DiagnosticSeverity.Hint,
-            // VSCode shows information diagnostics as blue squiggles, and hint diagnostics as 3 dots.  We prefer the latter rendering so we return hint diagnostics in vscode.
-            DiagnosticSeverity.Info => supportsVisualStudioExtensions ? LSP.DiagnosticSeverity.Information : LSP.DiagnosticSeverity.Hint,
+            DiagnosticSeverity.Info => LSP.DiagnosticSeverity.Information,
             DiagnosticSeverity.Warning => LSP.DiagnosticSeverity.Warning,
             DiagnosticSeverity.Error => LSP.DiagnosticSeverity.Error,
             _ => throw ExceptionUtilities.UnexpectedValue(severity),

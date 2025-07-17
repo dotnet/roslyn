@@ -19,12 +19,12 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.RpcContracts.DiagnosticManagement;
 using Microsoft.VisualStudio.RpcContracts.Utilities;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
-using static Microsoft.ServiceHub.Framework.ServiceBrokerClient;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 /// <summary>
@@ -38,7 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 {
     private readonly Workspace _workspace;
-    private readonly IDiagnosticAnalyzerService _diagnosticService;
     private readonly IAsynchronousOperationListener _listener;
     private readonly CancellationToken _disposalToken;
     private readonly IServiceBroker _serviceBroker;
@@ -65,14 +64,12 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ExternalErrorDiagnosticUpdateSource(
         VisualStudioWorkspace workspace,
-        IDiagnosticAnalyzerService diagnosticService,
         IAsynchronousOperationListenerProvider listenerProvider,
         [Import(typeof(SVsFullAccessServiceBroker))] IServiceBroker serviceBroker,
         IThreadingContext threadingContext)
     {
         _disposalToken = threadingContext.DisposalToken;
         _workspace = workspace;
-        _diagnosticService = diagnosticService;
         _listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
 
         _serviceBroker = serviceBroker;
@@ -90,7 +87,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
             await workItem(cancellationToken).ConfigureAwait(false);
     }
 
-    public DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _diagnosticService.AnalyzerInfoCache;
+    public DiagnosticAnalyzerInfoCache AnalyzerInfoCache => this._workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>().AnalyzerInfoCache;
 
     public void Dispose()
     {
@@ -363,7 +360,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 if (project == null)
                 {
                     // projectId no longer exist
-                    return ImmutableHashSet<string>.Empty;
+                    return [];
                 }
 
                 // set ids set

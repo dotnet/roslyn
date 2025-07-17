@@ -3634,6 +3634,7 @@ literal:Literal");
 using System;
 CultureInfoNormalizer.Normalize();
 C.M(() => " + expression + @");
+CultureInfoNormalizer.Reset();
 
 class C
 {
@@ -3903,6 +3904,7 @@ C.M(b =>
         if (b) return default(CustomHandler);
         else return " + expression + @";
     });
+CultureInfoNormalizer.Reset();
 
 static class C
 {
@@ -4179,6 +4181,7 @@ using System;
 CultureInfoNormalizer.Normalize();
 var x = (bool)(object)false ? default(CustomHandler) : " + expression + @";
 Console.WriteLine(x);
+CultureInfoNormalizer.Reset();
 
 public partial struct CustomHandler
 {
@@ -4191,7 +4194,7 @@ public partial struct CustomHandler
 
         verifier.VerifyIL("<top-level-statements-entry-point>", !expression.Contains('+') ? @"
 {
-  // Code size       56 (0x38)
+  // Code size       61 (0x3d)
   .maxstack  2
   .locals init (CustomHandler V_0)
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
@@ -4209,12 +4212,13 @@ public partial struct CustomHandler
   IL_002c:  ldloc.0
   IL_002d:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
   IL_0032:  call       ""void System.Console.WriteLine(string)""
-  IL_0037:  ret
+  IL_0037:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_003c:  ret
 }
 "
 : @"
 {
-  // Code size       66 (0x42)
+  // Code size       71 (0x47)
   .maxstack  2
   .locals init (CustomHandler V_0)
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
@@ -4234,7 +4238,8 @@ public partial struct CustomHandler
   IL_0036:  ldloc.0
   IL_0037:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
   IL_003c:  call       ""void System.Console.WriteLine(string)""
-  IL_0041:  ret
+  IL_0041:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_0046:  ret
 }
 ");
     }
@@ -4444,6 +4449,7 @@ using System;
 CultureInfoNormalizer.Normalize();
 var x = (bool)(object)false switch { true => default(CustomHandler), false => " + expression + @" };
 Console.WriteLine(x);
+CultureInfoNormalizer.Reset();
 
 public partial struct CustomHandler
 {
@@ -4456,7 +4462,7 @@ public partial struct CustomHandler
 
         verifier.VerifyIL("<top-level-statements-entry-point>", !expression.Contains('+') ? @"
 {
-  // Code size       59 (0x3b)
+  // Code size       64 (0x40)
   .maxstack  2
   .locals init (string V_0,
                 CustomHandler V_1)
@@ -4478,12 +4484,13 @@ public partial struct CustomHandler
   IL_0033:  stloc.0
   IL_0034:  ldloc.0
   IL_0035:  call       ""void System.Console.WriteLine(string)""
-  IL_003a:  ret
+  IL_003a:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_003f:  ret
 }
 "
 : @"
 {
-  // Code size       69 (0x45)
+  // Code size       74 (0x4a)
   .maxstack  2
   .locals init (string V_0,
                 CustomHandler V_1)
@@ -4507,7 +4514,8 @@ public partial struct CustomHandler
   IL_003d:  stloc.0
   IL_003e:  ldloc.0
   IL_003f:  call       ""void System.Console.WriteLine(string)""
-  IL_0044:  ret
+  IL_0044:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_0049:  ret
 }
 ");
     }
@@ -5710,7 +5718,7 @@ class C
             // (4,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
             // C.M($"""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler c", "CustomHandler").WithLocation(4, 5),
-            // (12,27): error CS8944: 'C.M(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+            // (12,27): error CS8944: 'C.M(CustomHandler)' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
             //     public static void M([InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c) {}
             Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgumentAttribute("""")").WithArguments("C.M(CustomHandler)").WithLocation(expression.Contains('+') ? 12 : 10, 27));
 
@@ -5799,7 +5807,7 @@ class C
             // (4,11): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
             // _ = new C($"""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler c", "CustomHandler").WithLocation(4, 11),
-            // (12,15): error CS8944: 'C.C(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+            // (12,15): error CS8944: 'C.C(CustomHandler)' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
             //     public C([InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c) {}
             Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgumentAttribute("""")").WithArguments("C.C(CustomHandler)").WithLocation(expression.Contains('+') ? 12 : 10, 15));
 
@@ -12748,7 +12756,7 @@ M($""""""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
 """"""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(4, 3),
-            // (8,10): error CS8944: 'M(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+            // (8,10): error CS8944: 'M(CustomHandler)' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
             //  void M([InterpolatedStringHandlerArgument("")] CustomHandler c) { }
             Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("M(CustomHandler)").WithLocation(8, 10 + mod.Length));
     }
@@ -12815,7 +12823,7 @@ a($""""""
             // (4,12): warning CS8971: InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.
             // var a =  ([InterpolatedStringHandlerArgument("")] CustomHandler c) => { };
             Diagnostic(ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters, @"InterpolatedStringHandlerArgument("""")").WithLocation(4, 12 + mod.Length),
-            // (4,12): error CS8944: 'lambda expression' is not an instance method, the receiver cannot be an interpolated string handler argument.
+            // (4,12): error CS8944: 'lambda expression' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
             // var a =  ([InterpolatedStringHandlerArgument("")] CustomHandler c) => { };
             Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("lambda expression").WithLocation(4, 12 + mod.Length));
     }
@@ -12892,7 +12900,7 @@ delegate void M([InterpolatedStringHandlerArgument("""")] CustomHandler c);
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
 """"""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(6, 3),
-            // (10,18): error CS8944: 'M.Invoke(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+            // (10,18): error CS8944: 'M.Invoke(CustomHandler)' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
             // delegate void M([InterpolatedStringHandlerArgument("")] CustomHandler c);
             Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("M.Invoke(CustomHandler)").WithLocation(10, 18));
     }
@@ -13241,7 +13249,7 @@ partial struct CustomHandler
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
 """"""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(5, 5),
-            // (17,38): error CS8944: 'S1Ext.M(S1, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+            // (17,38): error CS8944: 'S1Ext.M(S1, CustomHandler)' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
             //     public static void M(this S1 s, [InterpolatedStringHandlerArgument("")] CustomHandler c) => throw null;
             Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("S1Ext.M(S1, CustomHandler)").WithLocation(17, 38));
     }

@@ -9,6 +9,7 @@ Imports System.Diagnostics
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -548,6 +549,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 Return boundAttribute
+            ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute) Then
+
+                If Not CanHaveOverloadResolutionPriority Then
+                    'Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+                    Return Nothing
+                End If
+
+                Dim hasAnyDiagnostics As Boolean = False
+                Dim attrdata = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, hasAnyDiagnostics)
+                If Not attrdata.HasErrors Then
+                    Dim priority As Integer = attrdata.GetConstructorArgument(Of Integer)(0, SpecialType.System_Int32)
+                    arguments.GetOrCreateData(Of CommonPropertyEarlyWellKnownAttributeData)().OverloadResolutionPriority = priority
+                    Return If(Not hasAnyDiagnostics, attrdata, Nothing)
+                Else
+                    Return Nothing
+                End If
             End If
 
             Return MyBase.EarlyDecodeWellKnownAttribute(arguments)
@@ -594,6 +611,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             _setMethod IsNot Nothing AndAlso DirectCast(_setMethod, SourcePropertyAccessorSymbol).HasDebuggerHiddenAttribute) Then
                         diagnostics.Add(ERRID.WRN_DebuggerHiddenIgnoredOnProperties, arguments.AttributeSyntaxOpt.GetLocation())
                     End If
+                    Return
+                ElseIf arguments.Attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute) Then
+
+                    If Not CanHaveOverloadResolutionPriority Then
+                        diagnostics.Add(If(IsOverrides,
+                                       ERRID.ERR_CannotApplyOverloadResolutionPriorityToOverride,
+                                       ERRID.ERR_CannotApplyOverloadResolutionPriorityToMember),
+                                    arguments.AttributeSyntaxOpt.GetLocation())
+                    Else
+                        InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
+                                                   arguments.AttributeSyntaxOpt.GetLocation(),
+                                                   DirectCast(arguments.AttributeSyntaxOpt.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
+                                                   InternalSyntax.Feature.OverloadResolutionPriority)
+                    End If
+
                     Return
                 End If
             End If
@@ -693,6 +725,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End Get
         End Property
+
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Dim data As CommonPropertyEarlyWellKnownAttributeData = Me.GetEarlyDecodedWellKnownAttributeData()
+            Return If(data?.OverloadResolutionPriority, 0)
+        End Function
+
+        Private Function GetEarlyDecodedWellKnownAttributeData() As CommonPropertyEarlyWellKnownAttributeData
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazyCustomAttributesBag
+            If attributesBag Is Nothing OrElse Not attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed Then
+                attributesBag = Me.GetAttributesBag()
+            End If
+
+            Return DirectCast(attributesBag.EarlyDecodedWellKnownAttributeData, CommonPropertyEarlyWellKnownAttributeData)
+        End Function
 
         Public Overrides ReadOnly Property IsWithEvents As Boolean
             Get
@@ -1218,7 +1264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
             MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             If Me.Type.ContainsTupleNames() Then

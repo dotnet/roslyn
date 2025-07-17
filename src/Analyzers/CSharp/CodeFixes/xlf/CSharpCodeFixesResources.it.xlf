@@ -197,6 +197,11 @@
         <target state="translated">Usa l'espressione di raccolta</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_explicit_array">
+        <source>Use explicit array</source>
+        <target state="translated">Usa matrice esplicita</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">Usa stringa verbatim interpolata</target>

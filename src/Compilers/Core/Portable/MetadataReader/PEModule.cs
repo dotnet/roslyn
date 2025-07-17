@@ -18,6 +18,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -645,6 +646,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+#nullable enable
+
         /// <summary>
         /// The function groups types defined in the module by their fully-qualified namespace name.
         /// The case-sensitivity of the grouping depends upon the provided StringComparer.
@@ -670,9 +673,11 @@ namespace Microsoft.CodeAnalysis
             // merged, even if they are equal according to the provided comparer.  This improves the error
             // experience because types retain their exact namespaces.
 
-            Dictionary<string, ArrayBuilder<TypeDefinitionHandle>> namespaces = new Dictionary<string, ArrayBuilder<TypeDefinitionHandle>>();
+            Dictionary<string, ArrayBuilder<TypeDefinitionHandle>?> namespaces = new Dictionary<string, ArrayBuilder<TypeDefinitionHandle>?>();
 
-            GetTypeNamespaceNamesOrThrow(namespaces);
+            // Note: the ! assertion here is for the ArrayBuilder<TypeDefinitionHandle> values being non-null in this 
+            // method. The dictionary is empty so this is trivially true.
+            GetTypeNamespaceNamesOrThrow(namespaces!);
             GetForwardedTypeNamespaceNamesOrThrow(namespaces);
 
             var result = new ArrayBuilder<IGrouping<string, TypeDefinitionHandle>>(namespaces.Count);
@@ -686,7 +691,7 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        internal class TypesByNamespaceSortComparer : IComparer<IGrouping<string, TypeDefinitionHandle>>
+        internal sealed class TypesByNamespaceSortComparer : IComparer<IGrouping<string, TypeDefinitionHandle>>
         {
             private readonly StringComparer _nameComparer;
 
@@ -695,11 +700,21 @@ namespace Microsoft.CodeAnalysis
                 _nameComparer = nameComparer;
             }
 
-            public int Compare(IGrouping<string, TypeDefinitionHandle> left, IGrouping<string, TypeDefinitionHandle> right)
+            public int Compare(IGrouping<string, TypeDefinitionHandle>? left, IGrouping<string, TypeDefinitionHandle>? right)
             {
                 if (left == right)
                 {
                     return 0;
+                }
+
+                if (left is null)
+                {
+                    return -1;
+                }
+
+                if (right is null)
+                {
+                    return 1;
                 }
 
                 int result = _nameComparer.Compare(left.Key, right.Key);
@@ -745,7 +760,7 @@ namespace Microsoft.CodeAnalysis
                 NamespaceDefinitionHandle nsHandle = pair.NamespaceHandle;
                 TypeDefinitionHandle typeDef = pair.TypeDef;
 
-                ArrayBuilder<TypeDefinitionHandle> builder;
+                ArrayBuilder<TypeDefinitionHandle>? builder;
 
                 if (namespaceHandles.TryGetValue(nsHandle, out builder))
                 {
@@ -761,7 +776,7 @@ namespace Microsoft.CodeAnalysis
             {
                 string @namespace = MetadataReader.GetString(kvp.Key);
 
-                ArrayBuilder<TypeDefinitionHandle> builder;
+                ArrayBuilder<TypeDefinitionHandle>? builder;
 
                 if (namespaces.TryGetValue(@namespace, out builder))
                 {
@@ -816,7 +831,7 @@ namespace Microsoft.CodeAnalysis
         /// the qualifier).
         /// </summary>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private void GetForwardedTypeNamespaceNamesOrThrow(Dictionary<string, ArrayBuilder<TypeDefinitionHandle>> namespaces)
+        private void GetForwardedTypeNamespaceNamesOrThrow(Dictionary<string, ArrayBuilder<TypeDefinitionHandle>?> namespaces)
         {
             EnsureForwardTypeToAssemblyMap();
 
@@ -830,6 +845,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
+
+#nullable disable
 
         private IdentifierCollection ComputeTypeNameCollection()
         {
@@ -1020,6 +1037,11 @@ namespace Microsoft.CodeAnalysis
         internal bool HasCodeAnalysisEmbeddedAttribute(EntityHandle token)
         {
             return FindTargetAttribute(token, AttributeDescription.CodeAnalysisEmbeddedAttribute).HasValue;
+        }
+
+        internal bool HasCompilerLoweringPreserveAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.CompilerLoweringPreserveAttribute).HasValue;
         }
 
         internal bool HasInterpolatedStringHandlerAttribute(EntityHandle token)
@@ -1294,17 +1316,18 @@ namespace Microsoft.CodeAnalysis
                 diagnosticId = null;
             }
 
-            string? urlFormat = crackUrlFormat(decoder, ref sig);
-            return new ObsoleteAttributeData(ObsoleteAttributeKind.Experimental, message: null, isError: false, diagnosticId, urlFormat);
+            (string? urlFormat, string? message) = crackUrlFormatAndMessage(decoder, ref sig);
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Experimental, message: message, isError: false, diagnosticId, urlFormat);
 
-            static string? crackUrlFormat(IAttributeNamedArgumentDecoder decoder, ref BlobReader sig)
+            static (string? urlFormat, string? message) crackUrlFormatAndMessage(IAttributeNamedArgumentDecoder decoder, ref BlobReader sig)
             {
                 if (sig.RemainingBytes <= 0)
                 {
-                    return null;
+                    return default;
                 }
 
                 string? urlFormat = null;
+                string? message = null;
 
                 try
                 {
@@ -1313,7 +1336,7 @@ namespace Microsoft.CodeAnalysis
                     // Next is a description of the optional “named” fields and properties.
                     // This starts with NumNamed– an unsigned int16 giving the number of “named” properties or fields that follow.
                     var numNamed = sig.ReadUInt16();
-                    for (int i = 0; i < numNamed && urlFormat is null; i++)
+                    for (int i = 0; i < numNamed && (urlFormat is null || message is null); i++)
                     {
                         var ((name, value), isProperty, typeCode, /* elementTypeCode */ _) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
                         if (typeCode == SerializationTypeCode.String && isProperty && value.ValueInternal is string stringValue)
@@ -1322,13 +1345,17 @@ namespace Microsoft.CodeAnalysis
                             {
                                 urlFormat = stringValue;
                             }
+                            else if (message is null && name == ObsoleteAttributeData.MessagePropertyName)
+                            {
+                                message = stringValue;
+                            }
                         }
                     }
                 }
                 catch (BadImageFormatException) { }
                 catch (UnsupportedSignatureContent) { }
 
-                return urlFormat;
+                return (urlFormat, message);
             }
         }
 
@@ -1382,6 +1409,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     nameof(CompilerFeatureRequiredFeatures.RefStructs) => CompilerFeatureRequiredFeatures.RefStructs,
                     nameof(CompilerFeatureRequiredFeatures.RequiredMembers) => CompilerFeatureRequiredFeatures.RequiredMembers,
+                    nameof(CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators) => CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators,
                     _ => CompilerFeatureRequiredFeatures.None,
                 };
         }
@@ -2303,19 +2331,6 @@ namespace Microsoft.CodeAnalysis
                 CrackStringInAttributeValue(out string? @string, ref sig))
             {
                 value = new BoolAndStringData(sense, @string);
-                return true;
-            }
-
-            value = default;
-            return false;
-        }
-
-        private static bool CrackBoolAndBoolInAttributeValue(out (bool, bool) value, ref BlobReader sig)
-        {
-            if (CrackBooleanInAttributeValue(out bool item1, ref sig) &&
-                CrackBooleanInAttributeValue(out bool item2, ref sig))
-            {
-                value = (item1, item2);
                 return true;
             }
 

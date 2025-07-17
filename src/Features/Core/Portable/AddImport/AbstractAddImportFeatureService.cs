@@ -37,6 +37,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     /// </summary>
     private static readonly ConditionalWeakTable<PortableExecutableReference, StrongBox<bool>> s_isInPackagesDirectory = new();
 
+    protected abstract bool IsWithinImport(SyntaxNode node);
     protected abstract bool CanAddImport(SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken);
     protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFacts syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
     protected abstract bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
@@ -45,7 +46,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     protected abstract bool CanAddImportForGetEnumerator(string diagnosticId, ISyntaxFacts syntaxFactsService, SyntaxNode node);
     protected abstract bool CanAddImportForGetAsyncEnumerator(string diagnosticId, ISyntaxFacts syntaxFactsService, SyntaxNode node);
     protected abstract bool CanAddImportForQuery(string diagnosticId, SyntaxNode node);
-    protected abstract bool CanAddImportForType(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
+    protected abstract bool CanAddImportForTypeOrNamespace(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
 
     protected abstract ISet<INamespaceSymbol> GetImportNamespacesInScope(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
     protected abstract ITypeSymbol GetDeconstructInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
@@ -117,6 +118,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                             if (result.Count > maxResults)
                                 break;
                         }
+
+                        GC.KeepAlive(semanticModel);
                     }
                 }
             }
@@ -126,8 +129,15 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     }
 
     private async Task<ImmutableArray<Reference>> FindResultsAsync(
-        Document document, SemanticModel semanticModel, string diagnosticId, SyntaxNode node, int maxResults, ISymbolSearchService symbolSearchService,
-        AddImportOptions options, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
+        Document document,
+        SemanticModel semanticModel,
+        string diagnosticId,
+        SyntaxNode node,
+        int maxResults,
+        ISymbolSearchService symbolSearchService,
+        AddImportOptions options,
+        ImmutableArray<PackageSource> packageSources,
+        CancellationToken cancellationToken)
     {
         // Caches so we don't produce the same data multiple times while searching 
         // all over the solution.
@@ -136,25 +146,20 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         var referenceToCompilation = new ConcurrentDictionary<PortableExecutableReference, Compilation>(concurrencyLevel: 2, capacity: project.Solution.Projects.Sum(p => p.MetadataReferences.Count));
 
         var finder = new SymbolReferenceFinder(
-            this, document, semanticModel, diagnosticId, node, symbolSearchService,
-            options, packageSources, cancellationToken);
+            this, document, semanticModel, diagnosticId, node, symbolSearchService, options, packageSources, cancellationToken);
 
         // Look for exact matches first:
-        var exactReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, maxResults, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var exactReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, maxResults, finder, exact: true, cancellationToken).ConfigureAwait(false);
         if (exactReferences.Length > 0)
             return exactReferences;
 
-        // No exact matches found.  Fall back to fuzzy searching.
-        // Only bother doing this for host workspaces.  We don't want this for 
-        // things like the Interactive workspace as this will cause us to 
-        // create expensive bk-trees which we won't even be able to save for 
-        // future use.
+        // No exact matches found.  Fall back to fuzzy searching. Only bother doing this for host workspaces.  We don't
+        // want this for things like the Interactive workspace as this will cause us to create expensive bk-trees which
+        // we won't even be able to save for future use.
         if (!IsHostOrRemoteWorkspace(project))
-        {
             return [];
-        }
 
-        var fuzzyReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, maxResults, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var fuzzyReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, maxResults, finder, exact: false, cancellationToken).ConfigureAwait(false);
         return fuzzyReferences;
     }
 
@@ -164,33 +169,35 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     private async Task<ImmutableArray<Reference>> FindResultsAsync(
         ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
         ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
-        Project project, int maxResults, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
+        Project project,
+        int maxResults,
+        SymbolReferenceFinder finder,
+        bool exact,
+        CancellationToken cancellationToken)
     {
         var allReferences = new ConcurrentQueue<Reference>();
 
-        // First search the current project to see if any symbols (source or metadata) match the 
-        // search string.
-        await FindResultsInAllSymbolsInStartingProjectAsync(
-            allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+        // First search the current project to see if any symbols (source or metadata) match the search string.
+        var searchOptions = finder.Options.SearchOptions;
+        if (searchOptions.SearchReferencedProjectSymbols)
+            await FindResultsInAllSymbolsInStartingProjectAsync(allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
 
-        // Only bother doing this for host workspaces.  We don't want this for 
-        // things like the Interactive workspace as we can't even add project
-        // references to the interactive window.  We could consider adding metadata
-        // references with #r in the future.
+        // Only bother doing this for host workspaces.  We don't want this for things like the Interactive workspace as
+        // we can't even add project references to the interactive window.  We could consider adding metadata references
+        // with #r in the future.
         if (IsHostOrRemoteWorkspace(project))
         {
-            // Now search unreferenced projects, and see if they have any source symbols that match
-            // the search string.
-            await FindResultsInUnreferencedProjectSourceSymbolsAsync(projectToAssembly, project, allReferences, maxResults, finder, exact, cancellationToken).ConfigureAwait(false);
+            // Now search unreferenced projects, and see if they have any source symbols that match the search string.
+            if (searchOptions.SearchUnreferencedProjectSourceSymbols)
+                await FindResultsInUnreferencedProjectSourceSymbolsAsync(projectToAssembly, project, allReferences, maxResults, finder, exact, cancellationToken).ConfigureAwait(false);
 
-            // Finally, check and see if we have any metadata symbols that match the search string.
-            await FindResultsInUnreferencedMetadataSymbolsAsync(referenceToCompilation, project, allReferences, maxResults, finder, exact, cancellationToken).ConfigureAwait(false);
+            // Next, check and see if we have any metadata symbols that match the search string.
+            if (searchOptions.SearchUnreferencedMetadataSymbols)
+                await FindResultsInUnreferencedMetadataSymbolsAsync(referenceToCompilation, project, allReferences, maxResults, finder, exact, cancellationToken).ConfigureAwait(false);
 
-            // We only support searching NuGet in an exact manner currently. 
-            if (exact)
-            {
-                await finder.FindNugetOrReferenceAssemblyReferencesAsync(allReferences, cancellationToken).ConfigureAwait(false);
-            }
+            // Finally, search for nuget or reference assembly symbols that match the search string.
+            if (searchOptions.SearchNuGetPackages || searchOptions.SearchReferenceAssemblies)
+                await finder.FindNugetOrReferenceAssemblyReferencesAsync(allReferences, exact, cancellationToken).ConfigureAwait(false);
         }
 
         return [.. allReferences];

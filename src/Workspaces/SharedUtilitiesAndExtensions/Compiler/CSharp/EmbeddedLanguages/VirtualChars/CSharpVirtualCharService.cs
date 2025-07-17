@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
@@ -179,7 +178,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         // they start right after some `{...}` interpolation
         var isFirstChunk =
             parentExpression is LiteralExpressionSyntax ||
-            (parentExpression is InterpolatedStringExpressionSyntax { Contents: var contents } && contents.First() == token.GetRequiredParent());
+            (parentExpression is InterpolatedStringExpressionSyntax { Contents: [var firstContent, ..] } && firstContent == token.GetRequiredParent());
 
         if (parentExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
             return default;

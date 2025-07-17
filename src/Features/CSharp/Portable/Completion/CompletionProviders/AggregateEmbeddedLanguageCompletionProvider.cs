@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class AggregateEmbeddedLanguageCompletionProvider([ImportMany] IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices) : AbstractAggregateEmbeddedLanguageCompletionProvider(languageServices, LanguageNames.CSharp)
+internal sealed class AggregateEmbeddedLanguageCompletionProvider([ImportMany] IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices) : AbstractAggregateEmbeddedLanguageCompletionProvider(languageServices, LanguageNames.CSharp)
 {
     internal override string Language => LanguageNames.CSharp;
 }

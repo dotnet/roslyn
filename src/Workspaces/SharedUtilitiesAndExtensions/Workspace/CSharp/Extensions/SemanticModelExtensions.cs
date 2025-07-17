@@ -9,9 +9,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -68,9 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static ImmutableArray<ParameterName> GenerateNames(IList<string> reservedNames, ImmutableArray<bool> isFixed, ImmutableArray<string> parameterNames)
-            => NameGenerator.EnsureUniqueness(parameterNames, isFixed)
+            => [.. NameGenerator.EnsureUniqueness(parameterNames, isFixed)
                 .Select((name, index) => new ParameterName(name, isFixed[index]))
-                .Skip(reservedNames.Count).ToImmutableArray();
+                .Skip(reservedNames.Count)];
 
         public static ImmutableArray<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,

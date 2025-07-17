@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -31,30 +30,32 @@ internal abstract partial class AbstractOverrideCompletionProvider() : AbstractM
         }
     }
 
-    protected override Task<ISymbol> GenerateMemberAsync(ISymbol newOverriddenMember, INamedTypeSymbol newContainingType, Document newDocument, CompletionItem completionItem, CancellationToken cancellationToken)
+    protected override Task<ISymbol> GenerateMemberAsync(
+        Document document, CompletionItem completionItem, Compilation compilation, ISymbol overriddenMember, INamedTypeSymbol containingType, CancellationToken cancellationToken)
     {
-        // Special case: if you are overriding object.ToString(), we will make the return value as non-nullable. The return was made nullable because
-        // are implementations out there that will return null, but that's not something we really want new implementations doing. We may need to consider
-        // expanding this behavior to other methods in the future; if that is the case then we would want there to be an attribute on the return type
+        // Special case: if you are overriding object.ToString(), we will make the return value as non-nullable. The
+        // return was made nullable because are implementations out there that will return null, but that's not
+        // something we really want new implementations doing. We may need to consider expanding this behavior to other
+        // methods in the future; if that is the case then we would want there to be an attribute on the return type
         // rather than updating this list, but for now there is no such attribute until we find more cases for it. See
         // https://github.com/dotnet/roslyn/issues/30317 for some additional conversation about this design decision.
         //
         // We don't check if methodSymbol.ContainingType is object, in case you're overriding something that is itself an override
-        if (newOverriddenMember is IMethodSymbol methodSymbol &&
+        if (overriddenMember is IMethodSymbol methodSymbol &&
             methodSymbol.Name == "ToString" &&
             methodSymbol.Parameters.Length == 0)
         {
-            newOverriddenMember = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, returnType: methodSymbol.ReturnType.WithNullableAnnotation(NullableAnnotation.NotAnnotated));
+            overriddenMember = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, returnType: methodSymbol.ReturnType.WithNullableAnnotation(NullableAnnotation.NotAnnotated));
         }
 
         // Figure out what to insert, and do it. Throw if we've somehow managed to get this far and can't.
-        var syntaxFactory = newDocument.GetRequiredLanguageService<SyntaxGenerator>();
+        var syntaxFactory = document.GetRequiredLanguageService<SyntaxGenerator>();
 
         var itemModifiers = MemberInsertionCompletionItem.GetModifiers(completionItem);
-        var modifiers = itemModifiers.WithIsUnsafe(itemModifiers.IsUnsafe | newOverriddenMember.RequiresUnsafeModifier());
+        var modifiers = itemModifiers.WithIsUnsafe(itemModifiers.IsUnsafe | overriddenMember.RequiresUnsafeModifier());
 
         return syntaxFactory.OverrideAsync(
-            newOverriddenMember, newContainingType, newDocument, modifiers, cancellationToken);
+            overriddenMember, containingType, document, modifiers, cancellationToken);
     }
 
     public abstract bool TryDetermineReturnType(

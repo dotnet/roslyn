@@ -64,7 +64,7 @@ internal sealed partial class PerLanguageOption2<T> : IPerLanguageValuedOption<T
     OptionDefinition IOption2.Definition => Definition;
     public T DefaultValue => Definition.DefaultValue;
 
-#if CODE_STYLE
+#if !WORKSPACE
     bool IOption2.IsPerLanguage => true;
 #else
     string IOption.Feature => "config";

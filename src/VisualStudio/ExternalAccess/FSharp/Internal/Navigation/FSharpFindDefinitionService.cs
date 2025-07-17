@@ -23,4 +23,9 @@ internal class FSharpNavigableItemsService(IFSharpFindDefinitionService service)
         var items = await service.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
         return items.SelectAsArray(x => (INavigableItem)new InternalFSharpNavigableItem(x));
     }
+
+    public Task<ImmutableArray<INavigableItem>> GetNavigableItemsAsync(Document document, int position, bool forSymbolType, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
 }

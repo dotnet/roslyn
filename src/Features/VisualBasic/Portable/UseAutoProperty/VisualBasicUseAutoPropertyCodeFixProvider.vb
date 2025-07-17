@@ -8,6 +8,7 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.UseAutoProperty
@@ -39,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return Nothing
         End Function
 
-        Protected Overrides Function RewriteFieldReferencesInProperty([property] As PropertyBlockSyntax, fieldLocations As LightweightRenameLocations, cancellationToken As CancellationToken) As PropertyBlockSyntax
+        Protected Overrides Function RewriteFieldReferencesInProperty([property] As PropertyBlockSyntax, fieldLocations As ImmutableArray(Of ReferencedSymbol), cancellationToken As CancellationToken) As PropertyBlockSyntax
             ' Only called to rewrite to `field` (which VB does not support).
             Return [property]
         End Function
@@ -60,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Dim generator = SyntaxGenerator.GetGenerator(propertyDocument.Project)
             Dim canBeReadOnly = Not isWrittenToOutsideOfConstructor AndAlso Not propertyDeclaration.Accessors.Any(SyntaxKind.SetAccessorBlock)
 
-            statement = DirectCast(generator.WithModifiers(statement, generator.GetModifiers(propertyDeclaration).WithIsReadOnly(canBeReadOnly)), PropertyStatementSyntax)
+            statement = generator.WithModifiers(statement, generator.GetModifiers(propertyDeclaration).WithIsReadOnly(canBeReadOnly))
 
             Dim initializer = Await GetFieldInitializerAsync(fieldSymbol, cancellationToken).ConfigureAwait(False)
             If initializer.equalsValue IsNot Nothing Then

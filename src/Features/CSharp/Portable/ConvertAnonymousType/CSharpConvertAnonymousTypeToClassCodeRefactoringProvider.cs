@@ -16,7 +16,7 @@ using static CSharpSyntaxTokens;
 
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToClass), Shared]
-internal class CSharpConvertAnonymousTypeToClassCodeRefactoringProvider :
+internal sealed class CSharpConvertAnonymousTypeToClassCodeRefactoringProvider :
     AbstractConvertAnonymousTypeToClassCodeRefactoringProvider<
         ExpressionSyntax,
         NameSyntax,
@@ -66,7 +66,7 @@ internal class CSharpConvertAnonymousTypeToClassCodeRefactoringProvider :
     }
 
     private SyntaxNodeOrTokenList CreateArguments(SyntaxNodeOrTokenList list)
-        => new(list.Select(CreateArgumentOrComma));
+        => [.. list.Select(CreateArgumentOrComma)];
 
     private SyntaxNodeOrToken CreateArgumentOrComma(SyntaxNodeOrToken declOrComma)
         => declOrComma.IsToken

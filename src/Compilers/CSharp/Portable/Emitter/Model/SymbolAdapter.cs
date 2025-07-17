@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(this.Kind != SymbolKind.Assembly);
 
             ImmutableArray<CSharpAttributeData> userDefined;
-            ArrayBuilder<SynthesizedAttributeData> synthesized = null;
+            ArrayBuilder<CSharpAttributeData> synthesized = null;
             userDefined = this.GetAttributes();
             this.AddSynthesizedAttributes(moduleBuilder, ref synthesized);
 
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(
             ImmutableArray<CSharpAttributeData> userDefined,
-            ArrayBuilder<SynthesizedAttributeData> synthesized,
+            ArrayBuilder<CSharpAttributeData> synthesized,
             bool isReturnType,
             bool emittingAssemblyAttributesInNetModule)
         {
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private IEnumerable<CSharpAttributeData> GetCustomAttributesToEmitIterator(
             ImmutableArray<CSharpAttributeData> userDefined,
-            ArrayBuilder<SynthesizedAttributeData> synthesized,
+            ArrayBuilder<CSharpAttributeData> synthesized,
             bool isReturnType,
             bool emittingAssemblyAttributesInNetModule)
         {
@@ -180,13 +181,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override bool Equals(object obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
         }
 
         [Conditional("DEBUG")]

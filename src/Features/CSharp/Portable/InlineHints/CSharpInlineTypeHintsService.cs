@@ -10,19 +10,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineHints;
 
 [ExportLanguageService(typeof(IInlineTypeHintsService), LanguageNames.CSharp), Shared]
-internal sealed class CSharpInlineTypeHintsService : AbstractInlineTypeHintsService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpInlineTypeHintsService() : AbstractInlineTypeHintsService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpInlineTypeHintsService()
-    {
-    }
-
     protected override TypeHint? TryGetTypeHint(
         SemanticModel semanticModel,
         SyntaxNode node,
@@ -41,7 +36,7 @@ internal sealed class CSharpInlineTypeHintsService : AbstractInlineTypeHintsServ
             {
                 var type = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
                 if (IsValidType(type))
-                    return CreateTypeHint(type, displayAllOverride, forImplicitVariableTypes, variableDeclaration.Type, variableDeclaration.Variables[0].Identifier);
+                    return CreateTypeHint(type, variableDeclaration.Type, variableDeclaration.Variables[0].Identifier);
             }
 
             // We handle individual variables of ParenthesizedVariableDesignationSyntax separately.
@@ -51,7 +46,7 @@ internal sealed class CSharpInlineTypeHintsService : AbstractInlineTypeHintsServ
             {
                 var type = semanticModel.GetTypeInfo(declarationExpression.Type, cancellationToken).Type;
                 if (IsValidType(type))
-                    return CreateTypeHint(type, displayAllOverride, forImplicitVariableTypes, declarationExpression.Type, declarationExpression.Designation);
+                    return CreateTypeHint(type, declarationExpression.Type, declarationExpression.Designation);
             }
             else if (node is SingleVariableDesignationSyntax { Parent: not DeclarationPatternSyntax and not DeclarationExpressionSyntax } variableDesignation)
             {
@@ -60,7 +55,7 @@ internal sealed class CSharpInlineTypeHintsService : AbstractInlineTypeHintsServ
                 if (IsValidType(type))
                 {
                     return node.Parent is VarPatternSyntax varPattern
-                        ? CreateTypeHint(type, displayAllOverride, forImplicitVariableTypes, varPattern.VarKeyword, variableDesignation.Identifier)
+                        ? CreateTypeHint(type, varPattern.VarKeyword, variableDesignation.Identifier)
                         : new(type, new TextSpan(variableDesignation.Identifier.SpanStart, 0), textChange: null, trailingSpace: true);
                 }
             }
@@ -69,7 +64,7 @@ internal sealed class CSharpInlineTypeHintsService : AbstractInlineTypeHintsServ
                 var info = semanticModel.GetForEachStatementInfo(forEachStatement);
                 var type = info.ElementType;
                 if (IsValidType(type))
-                    return CreateTypeHint(type, displayAllOverride, forImplicitVariableTypes, forEachStatement.Type, forEachStatement.Identifier);
+                    return CreateTypeHint(type, forEachStatement.Type, forEachStatement.Identifier);
             }
         }
 
@@ -83,7 +78,7 @@ internal sealed class CSharpInlineTypeHintsService : AbstractInlineTypeHintsServ
                     IsValidType(parameter?.Type))
                 {
                     return parameterNode.Parent?.Parent?.Kind() is SyntaxKind.ParenthesizedLambdaExpression
-                        ? new TypeHint(parameter.Type, span, textChange: new TextChange(span, parameter.Type.ToDisplayString(s_minimalTypeStyle) + " "), trailingSpace: true)
+                        ? new TypeHint(parameter.Type, span, textChange: new TextChange(span, GetTypeDisplayString(parameter.Type) + " "), trailingSpace: true)
                         : new TypeHint(parameter.Type, span, textChange: null, trailingSpace: true);
                 }
             }
@@ -97,7 +92,7 @@ internal sealed class CSharpInlineTypeHintsService : AbstractInlineTypeHintsServ
                 if (IsValidType(type))
                 {
                     var span = new TextSpan(implicitNew.NewKeyword.Span.End, 0);
-                    return new(type, span, new TextChange(span, " " + type.ToDisplayString(s_minimalTypeStyle)), leadingSpace: true);
+                    return new(type, span, new TextChange(span, " " + GetTypeDisplayString(type)), leadingSpace: true);
                 }
             }
         }
@@ -110,26 +105,34 @@ internal sealed class CSharpInlineTypeHintsService : AbstractInlineTypeHintsServ
                 if (IsValidType(type))
                 {
                     var span = new TextSpan(collectionExpression.OpenBracketToken.SpanStart, 0);
-                    return new(type, span, new TextChange(span, type.ToDisplayString(s_minimalTypeStyle)), leadingSpace: true);
+
+                    // We pass null for the TextChange in collection expressions because
+                    // inserting with the type is incorrect and will make the code uncompilable.
+                    return new(type, span, textChange: null, leadingSpace: true);
                 }
             }
         }
 
         return null;
-    }
 
-    private static TypeHint CreateTypeHint(
-        ITypeSymbol type,
-        bool displayAllOverride,
-        bool normalOption,
-        SyntaxNodeOrToken displayAllSpan,
-        SyntaxNodeOrToken normalSpan)
-    {
-        var span = GetSpan(displayAllOverride, normalOption, displayAllSpan, normalSpan);
-        // if this is a hint that is placed in-situ (i.e. it's not overwriting text like 'var'), then place
-        // a space after it to make things feel less cramped.
-        var trailingSpace = span.Length == 0;
-        return new TypeHint(type, span, new TextChange(displayAllSpan.Span, type.ToDisplayString(s_minimalTypeStyle)), trailingSpace: trailingSpace);
+        string GetTypeDisplayString(ITypeSymbol type)
+            // ToMinimalDisplayString will produce the smallest name for this type that should compile at the specified
+            // location in this tree.  We want that over ToDisplayString as that will produce the most readable name,
+            // which isn't necessarily something that will compile (for example, if needed namespaces are missing from
+            // the name).
+            => type.ToMinimalDisplayString(semanticModel, node.SpanStart, s_minimalTypeStyle);
+
+        TypeHint CreateTypeHint(
+            ITypeSymbol type,
+            SyntaxNodeOrToken displayAllSpan,
+            SyntaxNodeOrToken normalSpan)
+        {
+            var span = GetSpan(displayAllOverride, forImplicitVariableTypes, displayAllSpan, normalSpan);
+            // if this is a hint that is placed in-situ (i.e. it's not overwriting text like 'var'), then place
+            // a space after it to make things feel less cramped.
+            var trailingSpace = span.Length == 0;
+            return new TypeHint(type, span, new TextChange(displayAllSpan.Span, GetTypeDisplayString(type)), trailingSpace: trailingSpace);
+        }
     }
 
     private static TextSpan GetSpan(

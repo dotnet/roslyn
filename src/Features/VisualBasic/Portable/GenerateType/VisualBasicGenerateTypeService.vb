@@ -9,20 +9,17 @@ Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports Microsoft.CodeAnalysis.GenerateType
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
     <ExportLanguageService(GetType(IGenerateTypeService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicGenerateTypeService
+    Partial Friend NotInheritable Class VisualBasicGenerateTypeService
         Inherits AbstractGenerateTypeService(Of VisualBasicGenerateTypeService, SimpleNameSyntax, ObjectCreationExpressionSyntax, ExpressionSyntax, TypeBlockSyntax, ArgumentSyntax)
 
         <ImportingConstructor>
@@ -30,11 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
         Public Sub New()
         End Sub
 
-        Protected Overrides ReadOnly Property DefaultFileExtension As String
-            Get
-                Return ".vb"
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property DefaultFileExtension As String = ".vb"
 
         Protected Overrides Function GenerateParameterNames(semanticModel As SemanticModel, arguments As IList(Of ArgumentSyntax), cancellationToken As CancellationToken) As IList(Of ParameterName)
             Return semanticModel.GenerateParameterNames(arguments, reservedNames:=Nothing, cancellationToken:=cancellationToken)

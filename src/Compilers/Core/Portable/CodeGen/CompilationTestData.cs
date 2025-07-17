@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private static readonly SymbolDisplayFormat _testDataKeyFormat = new SymbolDisplayFormat(
             compilerInternalOptions:
-                SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames |
+                SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames |
                 SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes,
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,

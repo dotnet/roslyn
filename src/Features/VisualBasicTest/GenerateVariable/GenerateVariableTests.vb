@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
         End Function
 
         <Fact>
-        Public Async Function TestGenerateSimpleProperty() As Threading.Tasks.Task
+        Public Async Function TestGenerateSimpleProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
@@ -39,7 +39,7 @@ End Module")
         End Function
 
         <Fact>
-        Public Async Function TestGenerateSimpleField() As Threading.Tasks.Task
+        Public Async Function TestGenerateSimpleField() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
@@ -57,7 +57,7 @@ index:=1)
         End Function
 
         <Fact>
-        Public Async Function TestGenerateReadOnlyField() As Threading.Tasks.Task
+        Public Async Function TestGenerateReadOnlyField() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
@@ -75,7 +75,7 @@ index:=2)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539692")>
-        Public Async Function TestGenerateFromAssignment() As Threading.Tasks.Task
+        Public Async Function TestGenerateFromAssignment() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
     Shared Sub M
@@ -138,7 +138,7 @@ index:=1)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539695")>
-        Public Async Function TestGenerateProtectedSharedFieldIntoBase() As Threading.Tasks.Task
+        Public Async Function TestGenerateProtectedSharedFieldIntoBase() As Task
             Await TestInRegularAndScriptAsync(
 "Class Base
 End Class
@@ -173,7 +173,7 @@ End Class")
         End Function
 
         <Fact>
-        Public Async Function TestGenerateFriendAccessibilityForField() As Threading.Tasks.Task
+        Public Async Function TestGenerateFriendAccessibilityForField() As Task
             Await TestInRegularAndScriptAsync(
 "Class A
 End Class
@@ -194,7 +194,7 @@ index:=1)
         End Function
 
         <Fact>
-        Public Async Function TestGeneratePropertyOnInterface1() As Threading.Tasks.Task
+        Public Async Function TestGeneratePropertyOnInterface1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface IGoo
 End Interface
@@ -216,7 +216,7 @@ End Class")
         End Function
 
         <Fact>
-        Public Async Function TestGeneratePropertyOnInterface2() As Threading.Tasks.Task
+        Public Async Function TestGeneratePropertyOnInterface2() As Task
             Await TestInRegularAndScriptAsync(
 "Interface IGoo
 End Interface
@@ -238,7 +238,7 @@ End Class", index:=1)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539796")>
-        Public Async Function TestGeneratePropertyIntoModule() As Threading.Tasks.Task
+        Public Async Function TestGeneratePropertyIntoModule() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
@@ -263,7 +263,7 @@ End Class")
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539796")>
-        Public Async Function TestFieldPropertyIntoModule() As Threading.Tasks.Task
+        Public Async Function TestFieldPropertyIntoModule() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
@@ -947,7 +947,7 @@ End Class")
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542241")>
-        Public Async Function TestFieldWithAnonymousTypeType() As Threading.Tasks.Task
+        Public Async Function TestFieldWithAnonymousTypeType() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
@@ -2712,7 +2712,7 @@ end class", index:=1)
         End Function
 
         <Fact>
-        Public Async Function TestGenerateSimplePropertyInSyncLock() As Threading.Tasks.Task
+        Public Async Function TestGenerateSimplePropertyInSyncLock() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
@@ -2731,7 +2731,7 @@ End Module")
         End Function
 
         <Fact>
-        Public Async Function TestGenerateSimpleFieldInSyncLock() As Threading.Tasks.Task
+        Public Async Function TestGenerateSimpleFieldInSyncLock() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
@@ -2751,7 +2751,7 @@ index:=1)
         End Function
 
         <Fact>
-        Public Async Function TestGenerateReadOnlyFieldInSyncLock() As Threading.Tasks.Task
+        Public Async Function TestGenerateReadOnlyFieldInSyncLock() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())

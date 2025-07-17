@@ -21,7 +21,7 @@ internal abstract class AbstractCodeCleanUpFixerProvider : ICodeCleanUpFixerProv
     protected AbstractCodeCleanUpFixerProvider(
         IEnumerable<Lazy<AbstractCodeCleanUpFixer, ContentTypeMetadata>> codeCleanUpFixers)
     {
-        _codeCleanUpFixers = codeCleanUpFixers.ToImmutableArray();
+        _codeCleanUpFixers = [.. codeCleanUpFixers];
     }
 
     public IReadOnlyCollection<ICodeCleanUpFixer> GetFixers()

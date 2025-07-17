@@ -197,6 +197,11 @@
         <target state="translated">Usar expresión de colección</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_explicit_array">
+        <source>Use explicit array</source>
+        <target state="translated">Usar matriz explícita</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">Utilizar cadenas verbatim interpoladas</target>

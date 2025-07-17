@@ -4,20 +4,25 @@
 
 using Microsoft.CodeAnalysis.CodeStyle;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
-{
-    public partial class AutomationObject
-    {
-        public int Fading_FadeOutUnreachableCode
-        {
-            get { return GetBooleanOption(FadingOptions.FadeOutUnreachableCode); }
-            set { SetBooleanOption(FadingOptions.FadeOutUnreachableCode, value); }
-        }
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options;
 
-        public int Fading_FadeOutUnusedImports
-        {
-            get { return GetBooleanOption(FadingOptions.FadeOutUnusedImports); }
-            set { SetBooleanOption(FadingOptions.FadeOutUnusedImports, value); }
-        }
+public partial class AutomationObject
+{
+    public int Fading_FadeOutUnreachableCode
+    {
+        get { return GetBooleanOption(FadingOptions.FadeOutUnreachableCode); }
+        set { SetBooleanOption(FadingOptions.FadeOutUnreachableCode, value); }
+    }
+
+    public int Fading_FadeOutUnusedImports
+    {
+        get { return GetBooleanOption(FadingOptions.FadeOutUnusedImports); }
+        set { SetBooleanOption(FadingOptions.FadeOutUnusedImports, value); }
+    }
+
+    public int Fading_FadeOutUnusedMembers
+    {
+        get { return GetBooleanOption(FadingOptions.FadeOutUnusedMembers); }
+        set { SetBooleanOption(FadingOptions.FadeOutUnusedMembers, value); }
     }
 }

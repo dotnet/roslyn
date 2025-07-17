@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-public class FullyQualifyUnboundIdentifierTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class FullyQualifyUnboundIdentifierTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public FullyQualifyUnboundIdentifierTests(ITestOutputHelper logger)
        : base(logger)
@@ -32,58 +32,62 @@ public class FullyQualifyUnboundIdentifierTests : AbstractCSharpDiagnosticProvid
         => FlattenActions(actions);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26887")]
-    public async Task TestFullyQualifyUnboundIdentifier1()
-    {
-        await TestInRegularAndScriptAsync(
-@"public class Program
-{
-    public class Inner
-    {
-    }
-}
+    public Task TestFullyQualifyUnboundIdentifier1()
+        => TestInRegularAndScriptAsync(
+            """
+            public class Program
+            {
+                public class Inner
+                {
+                }
+            }
 
-class Test
-{
-    [|Inner|]
-}",
-@"public class Program
-{
-    public class Inner
-    {
-    }
-}
+            class Test
+            {
+                [|Inner|]
+            }
+            """,
+            """
+            public class Program
+            {
+                public class Inner
+                {
+                }
+            }
 
-class Test
-{
-    Program.Inner
-}");
-    }
+            class Test
+            {
+                Program.Inner
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26887")]
-    public async Task TestFullyQualifyUnboundIdentifier2()
-    {
-        await TestInRegularAndScriptAsync(
-@"public class Program
-{
-    public class Inner
-    {
-    }
-}
+    public Task TestFullyQualifyUnboundIdentifier2()
+        => TestInRegularAndScriptAsync(
+            """
+            public class Program
+            {
+                public class Inner
+                {
+                }
+            }
 
-class Test
-{
-    public [|Inner|]
-}",
-@"public class Program
-{
-    public class Inner
-    {
-    }
-}
+            class Test
+            {
+                public [|Inner|]
+            }
+            """,
+            """
+            public class Program
+            {
+                public class Inner
+                {
+                }
+            }
 
-class Test
-{
-    public Program.Inner
-}");
-    }
+            class Test
+            {
+                public Program.Inner
+            }
+            """);
 }

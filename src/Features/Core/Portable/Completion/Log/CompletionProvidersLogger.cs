@@ -53,21 +53,6 @@ internal static class CompletionProvidersLogger
     internal static void LogCommitOfTypeImportCompletionItem()
         => s_countLogAggregator.IncreaseCount(ActionInfo.CommitsOfTypeImportCompletionItem);
 
-    internal static void LogExtensionMethodCompletionTicksDataPoint(TimeSpan total, TimeSpan getSymbols, TimeSpan createItems, TimeSpan? remoteAssetSync)
-    {
-        s_histogramLogAggregator.LogTime(ActionInfo.ExtensionMethodCompletionTicks, total);
-        s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionTicks, total);
-
-        if (remoteAssetSync.HasValue)
-        {
-            s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionRemoteAssetSyncTicks, remoteAssetSync.Value);
-            s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionRemoteTicks, total - remoteAssetSync.Value - getSymbols - createItems);
-        }
-
-        s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionGetSymbolsTicks, getSymbols);
-        s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionCreateItemsTicks, createItems);
-    }
-
     internal static void LogExtensionMethodCompletionMethodsProvidedDataPoint(int count)
         => s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionMethodsProvided, count);
 
@@ -98,7 +83,7 @@ internal static class CompletionProvidersLogger
 
     internal static void ReportTelemetry()
     {
-        Logger.Log(FunctionId.Intellisense_CompletionProviders_Data, KeyValueLogMessage.Create(m =>
+        Logger.Log(FunctionId.Intellisense_CompletionProviders_Data, KeyValueLogMessage.Create(static m =>
         {
             foreach (var kv in s_statisticLogAggregator)
             {

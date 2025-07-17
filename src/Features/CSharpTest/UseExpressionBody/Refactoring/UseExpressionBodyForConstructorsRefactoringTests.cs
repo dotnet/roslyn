@@ -12,12 +12,13 @@ using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-public class UseExpressionBodyForConstructorsRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class UseExpressionBodyForConstructorsRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new UseExpressionBodyCodeRefactoringProvider();
@@ -35,106 +36,175 @@ public class UseExpressionBodyForConstructorsRefactoringTests : AbstractCSharpCo
         => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None));
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
-    {
-        await TestMissingAsync(
-@"class C
-{
-    public C()
-    {
-        [||]Bar();
-    }
-}", parameters: new TestParameters(options: UseExpressionBody));
-    }
+    public Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                public C()
+                {
+                    [||]Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-    {
-        await TestInRegularAndScript1Async(
-@"class C
-{
-    public C()
-    {
-        [||]Bar();
-    }
-}",
-@"class C
-{
-    public C() => Bar();
-}", parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
-    }
+    public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public C()
+                {
+                    [||]Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public C() => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-    {
-        await TestInRegularAndScript1Async(
-@"class C
-{
-    public C()
-    {
-        [||]Bar();
-    }
-}",
-@"class C
-{
-    public C() => Bar();
-}", parameters: new TestParameters(options: UseBlockBody));
-    }
+    public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public C()
+                {
+                    [||]Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public C() => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
 
     [Fact]
-    public async Task TestNotOfferedInLambda()
-    {
-        await TestMissingAsync(
-@"class C
-{
-    public C()
-    {
-        return () => { [||] };
-    }
-}", parameters: new TestParameters(options: UseBlockBody));
-    }
+    public Task TestNotOfferedInLambda()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                public C()
+                {
+                    return () => { [||] };
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
-    {
-        await TestMissingAsync(
-@"class C
-{
-    public C() => [||]Bar();
-}", parameters: new TestParameters(options: UseBlockBody));
-    }
+    public Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                public C() => [||]Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
-@"class C
-{
-    public C() => [||]Bar();
-}",
-@"class C
-{
-    public C()
-    {
-        Bar();
-    }
-}", parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
-    }
+    public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public C() => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                public C()
+                {
+                    Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
-@"class C
-{
-    public C() => [||]Bar();
-}",
-@"class C
-{
-    public C()
-    {
-        Bar();
-    }
-}", parameters: new TestParameters(options: UseExpressionBody));
-    }
+    public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public C() => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                public C()
+                {
+                    Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
+
+    [Fact]
+    public Task TestOfferedWithSelectionInsideExpressionBody()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public C()
+                {
+                    [|Bar()|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public C() => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+
+    [Fact]
+    public Task TestNotOfferedWithSelectionOutsideExpressionBody()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                public C()
+                {
+                    [|Bar();
+                }
+            }|]
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38057")]
+    public Task TestCommentAfterConstructorName()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public C() // comment
+                {
+                    [||]return Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public C() => Bar(); // comment
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
 }

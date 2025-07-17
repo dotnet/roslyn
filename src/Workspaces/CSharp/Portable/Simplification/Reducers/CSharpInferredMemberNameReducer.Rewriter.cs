@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
 using static CSharpInferredMemberNameSimplifier;
 
-internal partial class CSharpInferredMemberNameReducer
+internal sealed partial class CSharpInferredMemberNameReducer
 {
-    private class Rewriter : AbstractReductionRewriter
+    private sealed class Rewriter : AbstractReductionRewriter
     {
         public Rewriter(ObjectPool<IReductionRewriter> pool)
             : base(pool)
@@ -40,7 +40,6 @@ internal partial class CSharpInferredMemberNameReducer
 
         private static SyntaxNode SimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node, SemanticModel semanticModel, SimplifierOptions options, CancellationToken canellationToken)
         {
-
             if (CanSimplifyAnonymousTypeMemberName(node))
             {
                 return node.WithNameEquals(null).WithTriviaFrom(node);

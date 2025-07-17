@@ -2,24 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Globalization
-Imports System.IO
 Imports System.Reflection
-Imports System.Runtime.CompilerServices
-Imports System.Runtime.InteropServices
-Imports System.Text
-Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 Imports Roslyn.Test.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -2566,6 +2555,60 @@ BC30401: 'E1' cannot implement 'E1' because there is no matching event on interf
             Assert.True(xSym.ContainingSymbol.IsImplicitlyDeclared)
             Assert.Same(e1.Type, xSym.ContainingType)
             Assert.Same(xSym, xSym.ContainingType.DelegateInvokeMethod.Parameters.First())
+        End Sub
+
+        <Fact()>
+        Public Sub CompilerLoweringPreserveAttribute_01()
+            Dim source1 = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+<CompilerLoweringPreserve>
+<AttributeUsage(AttributeTargets.Field Or AttributeTargets.Event)>
+Public Class Preserve1Attribute
+    Inherits Attribute
+End Class
+
+<CompilerLoweringPreserve>
+<AttributeUsage(AttributeTargets.Event)>
+Public Class Preserve2Attribute
+    Inherits Attribute
+End Class
+
+<AttributeUsage(AttributeTargets.Field Or AttributeTargets.Event)>
+Public Class Preserve3Attribute
+    Inherits Attribute
+End Class
+"
+            Dim source2 = "
+Class Test1
+    <Preserve1>
+    <Preserve2>
+    <Preserve3>
+    Event E1 As System.Action
+End Class
+"
+
+            Dim validate = Sub(m As ModuleSymbol)
+                               AssertEx.SequenceEqual(
+                                   {
+                                       "Preserve1Attribute",
+                                       "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                                       "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                                   },
+                                   m.GlobalNamespace.GetMember("Test1.E1Event").GetAttributes().Select(Function(a) a.ToString()))
+                           End Sub
+
+            Dim comp1 = CreateCompilation(
+                {source1, source2, CompilerLoweringPreserveAttributeDefinition},
+                options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            CompileAndVerify(comp1, symbolValidator:=validate).VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilation([source2], references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            CompileAndVerify(comp2, symbolValidator:=validate).VerifyDiagnostics()
+
+            Dim comp3 = CreateCompilation(source2, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            CompileAndVerify(comp3, symbolValidator:=validate).VerifyDiagnostics()
         End Sub
 
     End Class

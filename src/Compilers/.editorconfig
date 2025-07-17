@@ -12,11 +12,20 @@ dotnet_diagnostic.RS0100.severity = none
 # RS0102: Braces must not have blank lines between them
 dotnet_diagnostic.RS0102.severity = none
 
+# IDE0051: Unused member
+dotnet_diagnostic.IDE0051.severity = none
+
 # IDE0170: Prefer extended property pattern
 dotnet_diagnostic.IDE0170.severity = suggestion
 
 # IDE0090: Simplify new expression
 dotnet_diagnostic.IDE0090.severity = none
+
+# IDE0130: Namespaces should match folder structure
+dotnet_diagnostic.IDE0130.severity = none
+
+# CA1052: Static holder types should be Static or NotInheritable
+dotnet_diagnostic.CA1052.severity = none
 
 # CSharp code style settings:
 [*.cs]

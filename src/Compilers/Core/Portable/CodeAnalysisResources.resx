@@ -794,4 +794,7 @@
   <data name="Type0DoesNotHaveExpectedConstructor" xml:space="preserve">
     <value>'{0}' type does not have the expected constructor</value>
   </data>
+  <data name="ExceptionMessage_FileMayBeLockedBy" xml:space="preserve">
+    <value>{0}; file may be locked by {1}</value>
+  </data>
 </root>

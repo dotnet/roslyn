@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -14,7 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -29,13 +30,10 @@ internal sealed class AwaitCompletionProvider() : AbstractAwaitCompletionProvide
 
     public override ImmutableHashSet<char> TriggerCharacters => CompletionUtilities.CommonTriggerCharactersWithArgumentList;
 
-    protected override bool IsAwaitKeywordContext(SyntaxContext syntaxContext)
-        => base.IsAwaitKeywordContext(syntaxContext);
-
     /// <summary>
     /// Gets the span start where async keyword should go.
     /// </summary>
-    protected override int GetSpanStart(SyntaxNode declaration)
+    protected override int GetAsyncKeywordInsertionPosition(SyntaxNode declaration)
     {
         return declaration switch
         {
@@ -49,6 +47,51 @@ internal sealed class AwaitCompletionProvider() : AbstractAwaitCompletionProvide
             SimpleLambdaExpressionSyntax simpleLambda => simpleLambda.Parameter.SpanStart,
             _ => throw ExceptionUtilities.UnexpectedValue(declaration.Kind())
         };
+    }
+
+    protected override TextChange? GetReturnTypeChange(SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken)
+    {
+        var existingReturnType = declaration switch
+        {
+            MethodDeclarationSyntax method => method.ReturnType,
+            LocalFunctionStatementSyntax local => local.ReturnType,
+            // Normally null as users don't common put return types on parenthesized lambdas.
+            ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ReturnType,
+            // No explicit return type on anonymous methods or simple lambdas.
+            AnonymousMethodExpressionSyntax anonymous => null,
+            SimpleLambdaExpressionSyntax simpleLambda => null,
+            _ => throw ExceptionUtilities.UnexpectedValue(declaration.Kind())
+        };
+
+        if (existingReturnType is null)
+            return null;
+
+        var newTypeName = GetNewTypeName(existingReturnType);
+
+        if (newTypeName is null)
+            return null;
+
+        return new TextChange(existingReturnType.Span, newTypeName);
+
+        string? GetNewTypeName(TypeSyntax existingReturnType)
+        {
+            // `void => Task`
+            if (existingReturnType is PredefinedTypeSyntax { Keyword: (kind: SyntaxKind.VoidKeyword) })
+                return nameof(Task);
+
+            // Don't change the return type if we don't understand it, or it already seems task-like.
+            var taskLikeTypes = new KnownTaskTypes(semanticModel.Compilation);
+            var returnType = semanticModel.GetTypeInfo(existingReturnType, cancellationToken).Type;
+            if (returnType is null or IErrorTypeSymbol ||
+                taskLikeTypes.IsTaskLike(returnType) ||
+                returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumerableOfTType) ||
+                returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumeratorOfTType))
+            {
+                return null;
+            }
+
+            return $"{nameof(Task)}<{existingReturnType}>";
+        }
     }
 
     protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken leftToken, int position)

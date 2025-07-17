@@ -28,7 +28,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text.Classification;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
 
@@ -128,7 +127,7 @@ internal sealed partial class StreamingFindUsagesPresenter : IStreamingFindUsage
             return classificationFormatMapService.GetClassificationFormatMap("tooltip");
         });
 
-        _customColumns = columns.ToImmutableArray();
+        _customColumns = [.. columns];
     }
 
     public IClassificationFormatMap ClassificationFormatMap

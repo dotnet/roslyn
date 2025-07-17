@@ -4,18 +4,17 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
+
+[DataContract]
+internal readonly struct UnitTestingPinnedSolutionInfoWrapper
 {
-    [DataContract]
-    internal readonly struct UnitTestingPinnedSolutionInfoWrapper
-    {
-        [DataMember(Order = 0)]
-        internal readonly Checksum UnderlyingObject;
+    [DataMember(Order = 0)]
+    internal readonly Checksum UnderlyingObject;
 
-        public UnitTestingPinnedSolutionInfoWrapper(Checksum underlyingObject)
-            => UnderlyingObject = underlyingObject;
+    public UnitTestingPinnedSolutionInfoWrapper(Checksum underlyingObject)
+        => UnderlyingObject = underlyingObject;
 
-        public static implicit operator UnitTestingPinnedSolutionInfoWrapper(Checksum info)
-            => new(info);
-    }
+    public static implicit operator UnitTestingPinnedSolutionInfoWrapper(Checksum info)
+        => new(info);
 }

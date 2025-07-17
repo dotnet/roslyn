@@ -122,18 +122,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private byte[]? GetUtf8ByteRepresentation(BoundUtf8String node)
         {
-            var utf8 = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-
-            try
+            if (node.Value.TryGetUtf8ByteRepresentation(out byte[]? result, out string? error))
             {
-                return utf8.GetBytes(node.Value);
+                return result;
             }
-            catch (Exception ex)
+            else
             {
                 _diagnostics.Add(
                     ErrorCode.ERR_CannotBeConvertedToUtf8,
                     node.Syntax.Location,
-                    ex.Message);
+                    error);
 
                 return null;
             }
@@ -783,6 +781,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// (e.g. if the default value was specified by an attribute and was, therefore, not checked by the compiler).
         /// Set acceptFailingConversion if you want to see default(rewrittenType) in such cases.
         /// The error will be suppressed only for conversions from <see cref="decimal"/> or <see cref="DateTime"/>.
+        ///
+        /// Generally, conversions should be checked and BoundConversion nodes created during initial binding and re-used in lowering. But in some cases,
+        /// we do not preserve the conversion node. In such case, <paramref name="markAsChecked"/> is set to true
+        /// to indicate that the conversion has been previously checked during initial binding.
         /// </remarks>
         private BoundExpression MakeConversionNode(BoundExpression rewrittenOperand, TypeSymbol rewrittenType, bool @checked, bool acceptFailingConversion = false, bool markAsChecked = false)
         {

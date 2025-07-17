@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
 [ExportBraceCompletionService(LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CurlyBraceCompletionService() : AbstractCurlyBraceOrBracketCompletionService
+internal sealed class CurlyBraceCompletionService() : AbstractCurlyBraceOrBracketCompletionService
 {
     protected override char OpeningBrace => CurlyBrace.OpenCharacter;
 

@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets;
 namespace Microsoft.CodeAnalysis.UnusedReferences;
 
 [ExportWorkspaceService(typeof(IUnusedReferenceAnalysisService)), Shared]
-internal partial class UnusedReferenceAnalysisService : IUnusedReferenceAnalysisService
+internal sealed partial class UnusedReferenceAnalysisService : IUnusedReferenceAnalysisService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -36,7 +36,7 @@ internal partial class UnusedReferenceAnalysisService : IUnusedReferenceAnalysis
 
             if (!result.HasValue)
             {
-                return ImmutableArray<ReferenceInfo>.Empty;
+                return [];
             }
 
             return result.Value;

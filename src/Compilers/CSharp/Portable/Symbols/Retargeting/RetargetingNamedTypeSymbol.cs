@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
@@ -37,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
         private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
+
+        private StrongBox<ParameterSymbol> _lazyExtensionParameter;
 
         public RetargetingNamedTypeSymbol(RetargetingModuleSymbol retargetingModule, NamedTypeSymbol underlyingType, TupleExtraData tupleData = null)
             : base(underlyingType, tupleData)
@@ -88,6 +91,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 // This is always the instance type, so the type arguments are the same as the type parameters.
                 return GetTypeParametersAsTypeArguments();
             }
+        }
+
+        internal sealed override ParameterSymbol ExtensionParameter
+        {
+            get
+            {
+                if (_lazyExtensionParameter is null)
+                {
+                    var extensionParameter = _underlyingType.ExtensionParameter is { } receiverParameter ? new RetargetingExtensionReceiverParameterSymbol(this, receiverParameter) : null;
+                    Interlocked.CompareExchange(ref _lazyExtensionParameter, new StrongBox<ParameterSymbol>(extensionParameter), null);
+                }
+
+                return _lazyExtensionParameter.Value;
+            }
+        }
+
+        public override MethodSymbol TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
+        {
+            Debug.Assert(this.IsExtension);
+            Debug.Assert(method.IsDefinition);
+            Debug.Assert(method.ContainingType == (object)this);
+
+            var underlyingImplementation = _underlyingType.TryGetCorrespondingExtensionImplementationMethod(((RetargetingMethodSymbol)method).UnderlyingMethod);
+
+            if (underlyingImplementation is null)
+            {
+                return null;
+            }
+
+            return RetargetingTranslator.Retarget(underlyingImplementation);
         }
 
         public override NamedTypeSymbol ConstructedFrom
@@ -436,5 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             builderArgument = null;
             return false;
         }
+
+        internal override bool HasCompilerLoweringPreserveAttribute => _underlyingType.HasCompilerLoweringPreserveAttribute;
     }
 }

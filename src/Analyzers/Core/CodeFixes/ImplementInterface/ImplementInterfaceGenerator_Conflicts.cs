@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -9,19 +10,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-#else
-using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
-#endif
-
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
-internal abstract partial class AbstractImplementInterfaceService
+internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarationSyntax>
 {
     private sealed partial class ImplementInterfaceGenerator
     {
-        private bool HasConflictingMember(ISymbol member, ArrayBuilder<ISymbol> implementedVisibleMembers)
+        private bool HasConflictingMember(ISymbol member, ArrayBuilder<ISymbol> implementedVisibleMembers, [NotNullWhen(true)] out ISymbol? conflictingMember)
         {
             // Checks if this member conflicts with an existing member in classOrStructType or with
             // a method we've already implemented.  If so, we'll need to implement this one
@@ -29,10 +24,8 @@ internal abstract partial class AbstractImplementInterfaceService
 
             var allMembers = State.ClassOrStructType.GetAccessibleMembersInThisAndBaseTypes<ISymbol>(State.ClassOrStructType).Concat(implementedVisibleMembers);
 
-            var conflict1 = allMembers.Any(m => HasConflict(m, member));
-            var conflict2 = IsReservedName(member.Name);
-
-            return conflict1 || conflict2;
+            conflictingMember = allMembers.FirstOrDefault(m => HasConflict(m, member));
+            return conflictingMember != null;
         }
 
         private bool HasConflict(ISymbol member1, ISymbol member2)

@@ -164,7 +164,7 @@ internal sealed class CSharpConvertForEachToLinqQueryProvider
             semanticModel,
             convertingNodesBuilder.ToImmutableAndFree(),
             identifiersBuilder.ToImmutableAndFree(),
-            statementsCannotBeConverted.ToImmutableArray(),
+            [.. statementsCannotBeConverted],
             currentLeadingTokens.ToImmutableAndFree(),
             trailingTokensBuilder.ToImmutableAndFree());
 

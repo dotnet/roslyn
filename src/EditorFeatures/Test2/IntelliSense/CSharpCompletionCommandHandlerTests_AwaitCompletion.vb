@@ -2,8 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CSharp
-
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.Completion)>
@@ -428,7 +426,7 @@ public class C
         End Function
 
         <WpfFact>
-        Public Async Function AwaitCompletionDoesNotAddAsync_NotTask() As Task
+        Public Async Function AwaitCompletionDoesAddAsync_NotTask() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Threading.Tasks;
@@ -446,12 +444,12 @@ public class C
                 Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
 
                 state.SendTab()
-                Assert.Equal("
+                AssertEx.Equal("
 using System.Threading.Tasks;
 
 public class C
 {
-    public static async void Main()
+    public static async Task Main()
     {
         await
     }
@@ -1113,10 +1111,12 @@ class C
                 Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
 
                 state.SendTab()
-                Assert.Equal("
+                AssertEx.Equal("
+using System.Threading.Tasks;
+
 class C
 {
-    public async void Test()
+    public async Task Test()
     {
         void Image_ImageOpened()
         {
@@ -1151,16 +1151,430 @@ class C
 
                 state.SendTypeChars("awai")
                 state.SendTab()
-                Assert.Equal("
+                AssertEx.Equal("
+using System.Threading.Tasks;
+
 class C
 {
-    public async void Test()
+    public async Task Test()
     {
         void Image_ImageOpened()
         {
         }
 
         await Goo();
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55975")>
+        Public Async Function FixupReturnType_Method_Void() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+public class C
+{
+    public void Main()
+    {
+        $$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                AssertEx.Equal("
+using System.Threading.Tasks;
+
+public class C
+{
+    public async Task Main()
+    {
+        await
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55975")>
+        Public Async Function FixupReturnType_LocalFunction_Void() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+public class C
+{
+    public void Main()
+    {
+        void Goo()
+        {
+            $$
+        }
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                AssertEx.Equal("
+using System.Threading.Tasks;
+
+public class C
+{
+    public void Main()
+    {
+        async Task Goo()
+        {
+            await
+        }
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55975")>
+        Public Async Function FixupReturnType_ParenthesizedLambda_Void() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+public class C
+{
+    public void Main()
+    {
+        var v = void () =>
+        {
+            $$
+        }
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                AssertEx.Equal("
+using System.Threading.Tasks;
+
+public class C
+{
+    public void Main()
+    {
+        var v = async Task () =>
+        {
+            await
+        }
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55975")>
+        Public Async Function FixupReturnType_Method_NonVoid() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+public class C
+{
+    public int Main()
+    {
+        $$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                AssertEx.Equal("
+using System.Threading.Tasks;
+
+public class C
+{
+    public async Task<int> Main()
+    {
+        await
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55975")>
+        Public Async Function FixupReturnType_LocalFunction_NonVoid() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+public class C
+{
+    public void Main()
+    {
+        int Goo()
+        {
+            $$
+        }
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                AssertEx.Equal("
+using System.Threading.Tasks;
+
+public class C
+{
+    public void Main()
+    {
+        async Task<int> Goo()
+        {
+            await
+        }
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55975")>
+        Public Async Function FixupReturnType_ParenthesizedLambda_NonVoid() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+public class C
+{
+    public void Main()
+    {
+        var v = int () =>
+        {
+            $$
+        }
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                AssertEx.Equal("
+using System.Threading.Tasks;
+
+public class C
+{
+    public void Main()
+    {
+        var v = async Task<int> () =>
+        {
+            await
+        }
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/55975")>
+        <InlineData("Task")>
+        <InlineData("Task<int>")>
+        <InlineData("ValueTask")>
+        <InlineData("ValueTask<int>")>
+        <InlineData("UnknownType")>
+        Public Async Function NoFixupReturnType_Method(taskType As String) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+public class C
+{
+    public Task Main()
+    {
+        $$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                AssertEx.Equal("
+using System.Threading.Tasks;
+
+public class C
+{
+    public async Task Main()
+    {
+        await
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55975")>
+        Public Async Function NoFixupReturnType_SimpleLambda() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public Task Main()
+    {
+        Func<int, int> v = a =>
+        {
+            $$
+        }
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                AssertEx.Equal("
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public Task Main()
+    {
+        Func<int, int> v = async a =>
+        {
+            await
+        }
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55975")>
+        Public Async Function NoFixupReturnType_ParenthesizedLambda() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public Task Main()
+    {
+        Func<int, int> v = (a) =>
+        {
+            $$
+        }
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                AssertEx.Equal("
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public Task Main()
+    {
+        Func<int, int> v = async (a) =>
+        {
+            await
+        }
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/78822")>
+        Public Async Function AwaitCompletionAddsAsync_AsyncEnumerableMethodDeclaration1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public class C
+{
+    public static IAsyncEnumerable<string> Main()
+    {
+        $$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async IAsyncEnumerable<string> Main()
+    {
+        await
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/78822")>
+        Public Async Function AwaitCompletionAddsAsync_AsyncEnumerableMethodDeclaration2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async IAsyncEnumerable<string> Main()
+    {
+        $$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async IAsyncEnumerable<string> Main()
+    {
+        await
     }
 }
 ", state.GetDocumentText())

@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         ""features"": {{
           ""debug-determinism"": ""true""
         }},
-        ""languageVersion"": ""VisualBasic16_9"",
+        ""languageVersion"": ""VisualBasic17_13"",
         ""specifiedLanguageVersion"": ""Default"",
         ""preprocessorSymbols"": {{
           ""TARGET"": ""library"",
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""features"": {{
             ""debug-determinism"": ""true""
           }},
-          ""languageVersion"": ""VisualBasic16_9"",
+          ""languageVersion"": ""VisualBasic17_13"",
           ""specifiedLanguageVersion"": ""Default"",
           ""preprocessorSymbols"": {{
             ""TARGET"": ""library"",

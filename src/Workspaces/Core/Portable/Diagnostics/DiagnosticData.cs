@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,7 +28,7 @@ internal sealed class DiagnosticData(
     int warningLevel,
     ImmutableArray<string> customTags,
     ImmutableDictionary<string, string?> properties,
-    ProjectId? projectId,
+    ProjectId projectId,
     DiagnosticDataLocation location,
     ImmutableArray<DiagnosticDataLocation> additionalLocations = default,
     string? language = null,
@@ -64,7 +65,7 @@ internal sealed class DiagnosticData(
     public readonly ImmutableDictionary<string, string?> Properties = properties;
 
     [DataMember(Order = 9)]
-    public readonly ProjectId? ProjectId = projectId;
+    public readonly ProjectId ProjectId = projectId;
 
     [DataMember(Order = 10)]
     public readonly DiagnosticDataLocation DataLocation = location;
@@ -180,15 +181,25 @@ internal sealed class DiagnosticData(
             }
             else
             {
-                originalLineInfo = location.GetLineSpan();
+                try
+                {
+                    originalLineInfo = location.GetLineSpan();
+                }
+                catch (Exception e) when (FatalError.ReportWithDumpAndCatch(e, ErrorSeverity.Critical))
+                {
+                    // Help track down https://github.com/dotnet/roslyn/issues/76225 which appears to be an
+                    // issue caused by https://github.com/dotnet/roslyn/pull/74728
+                    throw;
+                }
+
                 mappedLineInfo = location.GetMappedLineSpan();
             }
         }
     }
 
-    public static DiagnosticData Create(Solution solution, Diagnostic diagnostic, Project? project)
-        => Create(diagnostic, project?.Id, project?.Language,
-            location: new DiagnosticDataLocation(new FileLinePositionSpan(project?.FilePath ?? solution.FilePath ?? "", span: default)),
+    public static DiagnosticData Create(Diagnostic diagnostic, Project project)
+        => Create(diagnostic, project.Id, project.Language,
+            location: new DiagnosticDataLocation(new FileLinePositionSpan(project.FilePath ?? project.Solution.FilePath ?? "", span: default)),
             additionalLocations: default, additionalProperties: null);
 
     public static DiagnosticData Create(Diagnostic diagnostic, TextDocument document)
@@ -219,7 +230,7 @@ internal sealed class DiagnosticData(
 
     private static DiagnosticData Create(
         Diagnostic diagnostic,
-        ProjectId? projectId,
+        ProjectId projectId,
         string? language,
         DiagnosticDataLocation location,
         ImmutableArray<DiagnosticDataLocation> additionalLocations,
@@ -248,7 +259,7 @@ internal sealed class DiagnosticData(
     private static ImmutableDictionary<string, string?>? GetAdditionalProperties(TextDocument document, Diagnostic diagnostic)
     {
         var service = document.Project.GetLanguageService<IDiagnosticPropertiesService>();
-        return service?.GetAdditionalProperties(diagnostic);
+        return service?.GetAdditionalProperties(diagnostic)!;
     }
 
     private static ImmutableArray<DiagnosticDataLocation> GetAdditionalLocations(TextDocument document, Diagnostic diagnostic)
@@ -263,13 +274,24 @@ internal sealed class DiagnosticData(
         {
             if (location.IsInSource)
             {
-                builder.AddIfNotNull(CreateLocation(document.Project.Solution.GetDocument(location.SourceTree), location));
+                builder.Add(CreateLocation(document.Project.Solution.GetDocument(location.SourceTree), location));
             }
             else if (location.Kind == LocationKind.ExternalFile)
             {
                 var textDocumentId = document.Project.GetDocumentForExternalLocation(location);
-                builder.AddIfNotNull(CreateLocation(document.Project.GetTextDocument(textDocumentId), location));
+                builder.Add(CreateLocation(document.Project.GetTextDocument(textDocumentId), location));
             }
+            else if (location.Kind == LocationKind.None)
+            {
+                builder.Add(CreateLocation(document: null, location));
+            }
+            // TODO: Should we throw an exception in an else?
+            // This will be reachable if a user creates his own type inheriting Location, and
+            // returns, e.g, LocationKind.XmlFile in Kind override.
+            // The case for custom `Location`s in general will be hard (if possible at all) to
+            // always round trip correctly.
+            // Or, maybe just always create a location with null document, so at least we guarantee that
+            // the count of additional location created by analyzer always matches what end up being in the code fix.
         }
 
         return builder.ToImmutableAndClear();
@@ -303,7 +325,7 @@ internal sealed class DiagnosticData(
         }
 
         var diagnostic = Diagnostic.Create(descriptor, Location.None, effectiveSeverity, additionalLocations: null, properties: null, messageArgs: messageArguments);
-        diagnosticData = Create(project.Solution, diagnostic, project);
+        diagnosticData = Create(diagnostic, project);
         return true;
     }
 

@@ -14,7 +14,8 @@ using FileSystemWatcher = Roslyn.LanguageServer.Protocol.FileSystemWatcher;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
+public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper)
+    : AbstractLanguageServerHostTests(testOutputHelper)
 {
     private readonly ClientCapabilities _clientCapabilitiesWithFileWatcherSupport = new ClientCapabilities
     {
@@ -24,14 +25,10 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         }
     };
 
-    public LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-    {
-    }
-
     [Fact]
     public async Task LspFileWatcherNotSupportedWithoutClientSupport()
     {
-        await using var testLspServer = await TestLspServer.CreateAsync(new ClientCapabilities(), TestOutputLogger);
+        await using var testLspServer = await TestLspServer.CreateAsync(new ClientCapabilities(), LoggerFactory, MefCacheDirectory.Path);
 
         Assert.False(LspFileChangeWatcher.SupportsLanguageServerHost(testLspServer.LanguageServerHost));
     }
@@ -39,7 +36,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
     [Fact]
     public async Task LspFileWatcherSupportedWithClientSupport()
     {
-        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, TestOutputLogger);
+        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, LoggerFactory, MefCacheDirectory.Path);
 
         Assert.True(LspFileChangeWatcher.SupportsLanguageServerHost(testLspServer.LanguageServerHost));
     }
@@ -49,7 +46,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
     {
         AsynchronousOperationListenerProvider.Enable(enable: true);
 
-        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, TestOutputLogger);
+        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, LoggerFactory, MefCacheDirectory.Path);
         var lspFileChangeWatcher = new LspFileChangeWatcher(
             testLspServer.LanguageServerHost,
             testLspServer.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
@@ -57,16 +54,15 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         var dynamicCapabilitiesRpcTarget = new DynamicCapabilitiesRpcTarget();
         testLspServer.AddClientLocalRpcTarget(dynamicCapabilitiesRpcTarget);
 
-        using var tempRoot = new TempRoot();
-        var tempDirectory = tempRoot.CreateDirectory();
+        var tempDirectory = TempRoot.CreateDirectory();
 
         // Try creating a context and ensure we created the registration
-        var context = lspFileChangeWatcher.CreateContext([new ProjectSystem.WatchedDirectory(tempDirectory.Path, extensionFilter: null)]);
+        var context = lspFileChangeWatcher.CreateContext([new ProjectSystem.WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
         await WaitForFileWatcherAsync(testLspServer);
 
         var watcher = GetSingleFileWatcher(dynamicCapabilitiesRpcTarget);
 
-        Assert.Equal(tempDirectory.Path, watcher.GlobPattern.Second.BaseUri.Second.LocalPath);
+        Assert.Equal(tempDirectory.Path, watcher.GlobPattern.Second.BaseUri.Second.GetRequiredParsedUri().LocalPath);
         Assert.Equal("**/*", watcher.GlobPattern.Second.Pattern);
 
         // Get rid of the registration and it should be gone again
@@ -80,7 +76,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
     {
         AsynchronousOperationListenerProvider.Enable(enable: true);
 
-        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, TestOutputLogger);
+        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, LoggerFactory, MefCacheDirectory.Path);
         var lspFileChangeWatcher = new LspFileChangeWatcher(
             testLspServer.LanguageServerHost,
             testLspServer.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
@@ -88,8 +84,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         var dynamicCapabilitiesRpcTarget = new DynamicCapabilitiesRpcTarget();
         testLspServer.AddClientLocalRpcTarget(dynamicCapabilitiesRpcTarget);
 
-        using var tempRoot = new TempRoot();
-        var tempDirectory = tempRoot.CreateDirectory();
+        var tempDirectory = TempRoot.CreateDirectory();
 
         // Try creating a single file watch and ensure we created the registration
         var context = lspFileChangeWatcher.CreateContext([]);
@@ -98,7 +93,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
 
         var watcher = GetSingleFileWatcher(dynamicCapabilitiesRpcTarget);
 
-        Assert.Equal("Z:\\", watcher.GlobPattern.Second.BaseUri.Second.LocalPath);
+        Assert.Equal("Z:\\", watcher.GlobPattern.Second.BaseUri.Second.GetRequiredParsedUri().LocalPath);
         Assert.Equal("SingleFile.txt", watcher.GlobPattern.Second.Pattern);
 
         // Get rid of the registration and it should be gone again
@@ -107,10 +102,8 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         Assert.Empty(dynamicCapabilitiesRpcTarget.Registrations);
     }
 
-    private static async Task WaitForFileWatcherAsync(TestLspServer testLspServer)
-    {
-        await testLspServer.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
-    }
+    private static Task WaitForFileWatcherAsync(TestLspServer testLspServer)
+        => testLspServer.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
 
     private static FileSystemWatcher GetSingleFileWatcher(DynamicCapabilitiesRpcTarget dynamicCapabilities)
     {

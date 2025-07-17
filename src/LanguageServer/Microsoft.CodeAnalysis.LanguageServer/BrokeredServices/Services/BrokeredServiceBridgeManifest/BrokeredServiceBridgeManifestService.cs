@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Extensions.Logging;
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.Broker
 
 #pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
 [ExportBrokeredService(MonikerName, MonikerVersion, Audience = ServiceAudience.Local)]
-internal class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeManifest, IExportedBrokeredService
+internal sealed class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeManifest, IExportedBrokeredService
 {
     internal const string MonikerName = "Microsoft.VisualStudio.Server.IBrokeredServiceBridgeManifest";
     internal const string MonikerVersion = "0.1";
@@ -41,12 +40,11 @@ internal class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeManifest, I
     /// </summary>
     public ValueTask<IReadOnlyCollection<ServiceMoniker>> GetAvailableServicesAsync(CancellationToken cancellationToken)
     {
-        var services = (IReadOnlyCollection<ServiceMoniker>)_serviceBrokerFactory.GetRequiredServiceBrokerContainer().GetRegisteredServices()
+        var services = (IReadOnlyCollection<ServiceMoniker>)[.. _serviceBrokerFactory.GetRequiredServiceBrokerContainer().GetRegisteredServices()
             .Select(s => s.Key)
             .Where(s => s.Name.StartsWith("Microsoft.CodeAnalysis.LanguageServer.", StringComparison.Ordinal) ||
                         s.Name.StartsWith("Microsoft.VisualStudio.LanguageServer.", StringComparison.Ordinal) ||
-                        s.Name.StartsWith("Microsoft.VisualStudio.LanguageServices.", StringComparison.Ordinal))
-            .ToImmutableArray();
+                        s.Name.StartsWith("Microsoft.VisualStudio.LanguageServices.", StringComparison.Ordinal))];
         _logger.LogDebug($"Proffered services: {string.Join(',', services.Select(s => s.ToString()))}");
         return ValueTask.FromResult(services);
     }

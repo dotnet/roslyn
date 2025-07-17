@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
@@ -90,7 +89,7 @@ internal sealed partial class FindReferencesSearchEngine
                 : new BidirectionalSymbolSet(engine, initialSymbols, upSymbols, includeImplementationsThroughDerivedTypes);
         }
 
-        private static async Task<MetadataUnifyingSymbolHashSet> MapToAppropriateSymbolsAsync(
+        private static async ValueTask<MetadataUnifyingSymbolHashSet> MapToAppropriateSymbolsAsync(
             Solution solution, MetadataUnifyingSymbolHashSet symbols, CancellationToken cancellationToken)
         {
             var result = new MetadataUnifyingSymbolHashSet();
@@ -100,7 +99,7 @@ internal sealed partial class FindReferencesSearchEngine
             return result;
         }
 
-        private static async Task<ISymbol?> TryMapToAppropriateSymbolAsync(
+        private static async ValueTask<ISymbol?> TryMapToAppropriateSymbolAsync(
             Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             // Never search for an alias.  Always search for it's target.  Note: if the caller was

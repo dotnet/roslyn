@@ -8,12 +8,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
+
+using static GenerateFromMembersHelpers;
 
 internal sealed partial class AddConstructorParametersFromMembersCodeRefactoringProvider
 {

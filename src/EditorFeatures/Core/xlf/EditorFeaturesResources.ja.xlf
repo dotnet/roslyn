@@ -7,15 +7,15 @@
         <target state="translated">このコードのドキュメントの生成中にエラーが発生しました。</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
-        <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
-        <target state="translated">識別子 '{0}' のインラインの名前変更セッションがアクティブです。追加オプションにアクセスするには、インラインの名前変更をもう一度呼び出します。名前を変更する識別子はいつでも引き続き編集できます。</target>
-        <note>For screenreaders. {0} is the identifier being renamed.</note>
-      </trans-unit>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
         <target state="translated">変更の適用</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Chat_limit_reached_upgrade_now_or_wait_for_the_limit_to_reset">
+        <source>Chat limit reached, [upgrade now] or wait for the limit to reset.</source>
+        <target state="translated">チャットの制限に達しました。[今すぐアップグレード] するか、制限がリセットされるまでお待ちください。</target>
+        <note>The text surrounded by "[" and "]" characters will be hyperlinked. Please ensure the localized text still has "[" and "]" characters.</note>
       </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
@@ -792,11 +792,6 @@
         <target state="translated">名前の変更操作は正常に終了しませんでした。ファイルのいくつかは更新されなかった可能性があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">'{0}' を '{1}' に名前変更</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Preview_Warning">
         <source>Preview Warning</source>
         <target state="translated">警告のプレビュー</target>
@@ -982,11 +977,6 @@
         <target state="translated">前の兄弟の範囲を検索しています...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_colon_0">
-        <source>Rename: {0}</source>
-        <target state="translated">{0} の名前変更</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">インタラクティブ ウィンドウにエンジンを関連付ける必要があります。</target>
@@ -1102,13 +1092,6 @@
         <target state="translated">自動書式</target>
         <note />
       </trans-unit>
-      <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
-        <source>We can fix the error by not making struct "out/ref" parameter(s).
-Do you want to proceed?</source>
-        <target state="translated">構造体の "out/ref" パラメーターを作成しないことによって、エラーを解決できます。
-続行しますか?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_Signature_colon">
         <source>Change Signature:</source>
         <target state="translated">署名の変更:</target>
@@ -1167,11 +1150,6 @@ Do you want to proceed?</source>
       <trans-unit id="Preview_changes1">
         <source>_Preview changes</source>
         <target state="translated">変更のプレビュー(_P)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply3">
-        <source>Apply</source>
-        <target state="translated">適用</target>
         <note />
       </trans-unit>
       <trans-unit id="Cancel">
@@ -1242,16 +1220,6 @@ Do you want to proceed?</source>
       <trans-unit id="Go_To_Implementation">
         <source>Go To Implementation</source>
         <target state="translated">実装に移動</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="New_name_colon_0">
-        <source>New name: {0}</source>
-        <target state="translated">新しい名前: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modify_any_highlighted_location_to_begin_renaming">
-        <source>Modify any highlighted location to begin renaming.</source>
-        <target state="translated">名前の変更を始めるには、強調表示された場所を変更してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste">

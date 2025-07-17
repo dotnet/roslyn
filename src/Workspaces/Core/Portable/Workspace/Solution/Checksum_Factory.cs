@@ -23,7 +23,27 @@ internal readonly partial record struct Checksum
     private static readonly ObjectPool<XxHash128> s_incrementalHashPool =
         new(() => new(), size: 20);
 
+    // Pool of ObjectWriters to reduce allocations. The pool size is intentionally small as the writers are used for such
+    // a short period that concurrent usage of different items from the pool is infrequent.
+    private static readonly ObjectPool<ObjectWriter> s_objectWriterPool =
+        new(() => new(SerializableBytes.CreateWritableStream(), leaveOpen: true, writeValidationBytes: true), size: 4);
+
     public static Checksum Create(IEnumerable<string?> values)
+    {
+        using var pooledHash = s_incrementalHashPool.GetPooledObject();
+
+        foreach (var value in values)
+        {
+            pooledHash.Object.Append(MemoryMarshal.AsBytes(value.AsSpan()));
+            pooledHash.Object.Append(MemoryMarshal.AsBytes("\0".AsSpan()));
+        }
+
+        Span<byte> hash = stackalloc byte[XXHash128SizeBytes];
+        pooledHash.Object.GetHashAndReset(hash);
+        return From(hash);
+    }
+
+    public static Checksum Create(ImmutableArray<string> values)
     {
         using var pooledHash = s_incrementalHashPool.GetPooledObject();
 
@@ -57,15 +77,25 @@ internal readonly partial record struct Checksum
 
     public static Checksum Create<T>(T @object, Action<T, ObjectWriter> writeObject)
     {
-        using var stream = SerializableBytes.CreateWritableStream();
+        // Obtain a writer from the pool
+        var objectWriter = s_objectWriterPool.Allocate();
 
-        using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
-        {
-            writeObject(@object, objectWriter);
-        }
+        // Invoke the callback to Write object into objectWriter
+        writeObject(@object, objectWriter);
 
+        // Include validation bytes in the new checksum from the stream
+        var stream = objectWriter.BaseStream;
         stream.Position = 0;
-        return Create(stream);
+        var newChecksum = Create(stream);
+
+        // Reset object writer back to it's initial state, including the validation bytes
+        objectWriter.Reset();
+        objectWriter.WriteValidationBytes();
+
+        // Release the writer back to the pool
+        s_objectWriterPool.Free(objectWriter);
+
+        return newChecksum;
     }
 
     public static Checksum Create(Checksum checksum1, Checksum checksum2)

@@ -33,7 +33,7 @@ jobs:
       displayName: 'Install .NET 9 Runtime'
       inputs:
         packageType: runtime
-        version: 9.0.0-preview.3.24172.9
+        version: '9.0.0'
         includePreviewVersions: true
         installationPath: '$(Build.SourcesDirectory)/.dotnet'
 

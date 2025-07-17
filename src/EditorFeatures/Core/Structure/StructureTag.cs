@@ -21,6 +21,8 @@ internal sealed class StructureTag(AbstractStructureTaggerProvider tagProvider, 
 {
     private readonly AbstractStructureTaggerProvider _tagProvider = tagProvider;
 
+    public BlockSpan BlockSpan { get; } = blockSpan;
+
     /// <summary>
     /// The contents of the buffer to show if we mouse over the collapsed indicator.
     /// </summary>
@@ -29,8 +31,12 @@ internal sealed class StructureTag(AbstractStructureTaggerProvider tagProvider, 
     public readonly string CollapsedText = blockSpan.BannerText;
 
     public ITextSnapshot Snapshot { get; } = snapshot;
-    public Span? OutliningSpan { get; } = blockSpan.TextSpan.ToSpan();
-    public Span? HeaderSpan { get; } = DetermineHeaderSpan(blockSpan.TextSpan, blockSpan.HintSpan, snapshot);
+
+    public Span OutliningSpan { get; } = blockSpan.TextSpan.ToSpan();
+    public Span HeaderSpan { get; } = DetermineHeaderSpan(blockSpan.TextSpan, blockSpan.HintSpan, snapshot);
+
+    Span? IStructureTag.OutliningSpan => OutliningSpan;
+    Span? IStructureTag.HeaderSpan => HeaderSpan;
 
     public IReadOnlyList<SubHeadingStructureData>? SubHeadings { get; } = blockSpan.SubHeadings.IsDefault
         ? null

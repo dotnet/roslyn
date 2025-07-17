@@ -12,9 +12,9 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;
 
-internal partial class UnusedReferencesTableProvider
+internal sealed partial class UnusedReferencesTableProvider
 {
-    internal class UnusedReferencesDataSource : ITableDataSource
+    internal sealed class UnusedReferencesDataSource : ITableDataSource
     {
         public const string Name = nameof(UnusedReferencesDataSource);
 
@@ -22,8 +22,8 @@ internal partial class UnusedReferencesTableProvider
         public string Identifier => Name;
         public string? DisplayName => null;
 
-        private ImmutableList<SinkManager> _managers = ImmutableList<SinkManager>.Empty;
-        private ImmutableArray<UnusedReferencesEntry> _currentEntries = ImmutableArray<UnusedReferencesEntry>.Empty;
+        private ImmutableList<SinkManager> _managers = [];
+        private ImmutableArray<UnusedReferencesEntry> _currentEntries = [];
 
         public IDisposable Subscribe(ITableDataSink sink)
         {
@@ -53,7 +53,7 @@ internal partial class UnusedReferencesTableProvider
                 manager.Sink.RemoveAllEntries();
             }
 
-            _currentEntries = ImmutableArray<UnusedReferencesEntry>.Empty;
+            _currentEntries = [];
         }
 
         internal void AddSinkManager(SinkManager manager)
@@ -87,7 +87,7 @@ internal partial class UnusedReferencesTableProvider
             }
         }
 
-        internal class UnusedReferencesEntry : ITableEntry
+        internal sealed class UnusedReferencesEntry : ITableEntry
         {
             public string SolutionName { get; }
             public string ProjectName { get; }

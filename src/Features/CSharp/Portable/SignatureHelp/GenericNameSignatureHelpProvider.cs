@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -31,11 +32,9 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
     {
     }
 
-    public override bool IsTriggerCharacter(char ch)
-        => ch is '<' or ',';
+    public override ImmutableArray<char> TriggerCharacters => ['<', ','];
 
-    public override bool IsRetriggerCharacter(char ch)
-        => ch == '>';
+    public override ImmutableArray<char> RetriggerCharacters => ['>'];
 
     protected virtual bool TryGetGenericIdentifier(
         SyntaxNode root, int position,
@@ -62,7 +61,7 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
     {
         return !token.IsKind(SyntaxKind.None) &&
             token.ValueText.Length == 1 &&
-            IsTriggerCharacter(token.ValueText[0]) &&
+            TriggerCharacters.Contains(token.ValueText[0]) &&
             token.Parent is TypeArgumentListSyntax &&
             token.Parent.Parent is GenericNameSyntax;
     }
@@ -120,7 +119,7 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
         var accessibleSymbols =
             symbols.WhereAsArray(s => s.GetArity() > 0)
                    .WhereAsArray(s => s is INamedTypeSymbol or IMethodSymbol)
-                   .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
+                   .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true)
                    .Sort(semanticModel, genericIdentifier.SpanStart);
 
         if (!accessibleSymbols.Any())
@@ -133,8 +132,8 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
         var textSpan = GetTextSpan(genericIdentifier, lessThanToken);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-        return CreateSignatureHelpItems(accessibleSymbols.Select(s =>
-            Convert(s, lessThanToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
+        return CreateSignatureHelpItems([.. accessibleSymbols.Select(s =>
+            Convert(s, lessThanToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService))],
             textSpan, GetCurrentArgumentState(root, position, syntaxFacts, cancellationToken), selectedItemIndex: null, parameterIndexOverride: -1);
     }
 
@@ -185,7 +184,7 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
                 GetPreambleParts(namedType, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(),
-                namedType.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
+                [.. namedType.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
         }
         else
         {
@@ -198,7 +197,7 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
                 GetPreambleParts(method, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(method, semanticModel, position),
-                method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
+                [.. method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
         }
 
         return item;

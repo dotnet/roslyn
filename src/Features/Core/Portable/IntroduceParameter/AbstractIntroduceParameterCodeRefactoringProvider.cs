@@ -9,8 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -77,6 +77,11 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
 
         var expressionSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
         if (expressionSymbol is IParameterSymbol parameterSymbol && parameterSymbol.ContainingSymbol.Equals(containingSymbol))
+            return;
+
+        // Direct reference to named type or type parameter.  e.g. `$$Console.WriteLine()` or `T.Add(...)`.  These 
+        // are effectively statics (not values) and cannot become parameter.
+        if (expressionSymbol is INamedTypeSymbol or ITypeParameterSymbol)
             return;
 
         // Code actions for trampoline and overloads will not be offered if the method is a constructor.

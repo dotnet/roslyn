@@ -17,12 +17,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions;
 
-public class ApplyChangesOperationTests : AbstractCSharpCodeActionTest
+public sealed class ApplyChangesOperationTests : AbstractCSharpCodeActionTest
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
         => new MyCodeRefactoringProvider((Func<Solution, Solution>)parameters.fixProviderData);
 
-    private class MyCodeRefactoringProvider : CodeRefactoringProvider
+    private sealed class MyCodeRefactoringProvider : CodeRefactoringProvider
     {
         private readonly Func<Solution, Solution> _changeSolution;
 
@@ -55,25 +55,24 @@ public class ApplyChangesOperationTests : AbstractCSharpCodeActionTest
     }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
-    public async Task TestMakeTextChangeWithInterveningEditToDifferentFile()
-    {
-        // This should succeed as the code action is trying to edit a file that is not touched by the actual
-        // workspace edit that already went in.
-        await TestSuccessfulApplicationAsync(
-@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""Program1.cs"">
-class Program1
-{
-}
-        </Document>
-        <Document FilePath=""Program2.cs"">
-class Program2
-{
-}
-        </Document>
-    </Project>
-</Workspace>",
+    public Task TestMakeTextChangeWithInterveningEditToDifferentFile()
+        => TestSuccessfulApplicationAsync(
+            """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="Program1.cs">
+            class Program1
+            {
+            }
+                    </Document>
+                    <Document FilePath="Program2.cs">
+            class Program2
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """,
             codeActionTransform: solution =>
             {
                 var document1 = solution.Projects.Single().Documents.Single(d => d.FilePath!.Contains("Program1"));
@@ -84,28 +83,26 @@ class Program2
                 var document2 = solution.Projects.Single().Documents.Single(d => d.FilePath!.Contains("Program2"));
                 return solution.WithDocumentText(document2.Id, SourceText.From("NewProgram2Content"));
             });
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
-    public async Task TestMakeTextChangeWithInterveningRemovalToDifferentFile()
-    {
-        // This should succeed as the code action is trying to edit a file that is not touched by the actual
-        // workspace edit that already went in.
-        await TestSuccessfulApplicationAsync(
-@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""Program1.cs"">
-class Program1
-{
-}
-        </Document>
-        <Document FilePath=""Program2.cs"">
-class Program2
-{
-}
-        </Document>
-    </Project>
-</Workspace>",
+    public Task TestMakeTextChangeWithInterveningRemovalToDifferentFile()
+        => TestSuccessfulApplicationAsync(
+            """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="Program1.cs">
+            class Program1
+            {
+            }
+                    </Document>
+                    <Document FilePath="Program2.cs">
+            class Program2
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """,
             codeActionTransform: solution =>
             {
                 var document1 = solution.Projects.Single().Documents.Single(d => d.FilePath!.Contains("Program1"));
@@ -116,28 +113,26 @@ class Program2
                 var document2 = solution.Projects.Single().Documents.Single(d => d.FilePath!.Contains("Program2"));
                 return solution.RemoveDocument(document2.Id);
             });
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
-    public async Task TestMakeTextChangeWithInterveningEditToSameFile()
-    {
-        // This should fail as the code action is trying to edit a file that is was already edited by the actual
-        // workspace edit that already went in.
-        await TestFailureApplicationAsync(
-@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""Program1.cs"">
-class Program1
-{
-}
-        </Document>
-        <Document FilePath=""Program2.cs"">
-class Program2
-{
-}
-        </Document>
-    </Project>
-</Workspace>",
+    public Task TestMakeTextChangeWithInterveningEditToSameFile()
+        => TestFailureApplicationAsync(
+            """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="Program1.cs">
+            class Program1
+            {
+            }
+                    </Document>
+                    <Document FilePath="Program2.cs">
+            class Program2
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """,
             codeActionTransform: solution =>
             {
                 var document1 = solution.Projects.Single().Documents.Single(d => d.FilePath!.Contains("Program1"));
@@ -148,27 +143,26 @@ class Program2
                 var document1 = solution.Projects.Single().Documents.Single(d => d.FilePath!.Contains("Program1"));
                 return solution.WithDocumentText(document1.Id, SourceText.From("NewProgram1Content2"));
             });
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
-    public async Task TestMakeTextChangeWithInterveningRemovalOfThatFile()
-    {
-        // This should fail as the code action is trying to edit a file that is subsequently removed.
-        await TestFailureApplicationAsync(
-@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""Program1.cs"">
-class Program1
-{
-}
-        </Document>
-        <Document FilePath=""Program2.cs"">
-class Program2
-{
-}
-        </Document>
-    </Project>
-</Workspace>",
+    public Task TestMakeTextChangeWithInterveningRemovalOfThatFile()
+        => TestFailureApplicationAsync(
+            """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="Program1.cs">
+            class Program1
+            {
+            }
+                    </Document>
+                    <Document FilePath="Program2.cs">
+            class Program2
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """,
             codeActionTransform: solution =>
             {
                 var document1 = solution.Projects.Single().Documents.Single(d => d.FilePath!.Contains("Program1"));
@@ -179,28 +173,26 @@ class Program2
                 var document1 = solution.Projects.Single().Documents.Single(d => d.FilePath!.Contains("Program1"));
                 return solution.RemoveDocument(document1.Id);
             });
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
-    public async Task TestMakeProjectChangeWithInterveningTextEdit()
-    {
-        // This should fail as we don't want to make non-text changes that may have undesirable results to the solution
-        // given the intervening edits.
-        await TestFailureApplicationAsync(
-@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""Program1.cs"">
-class Program1
-{
-}
-        </Document>
-        <Document FilePath=""Program2.cs"">
-class Program2
-{
-}
-        </Document>
-    </Project>
-</Workspace>",
+    public Task TestMakeProjectChangeWithInterveningTextEdit()
+        => TestFailureApplicationAsync(
+            """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="Program1.cs">
+            class Program1
+            {
+            }
+                    </Document>
+                    <Document FilePath="Program2.cs">
+            class Program2
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """,
             codeActionTransform: solution =>
             {
                 var document1 = solution.Projects.Single().Documents.Single(d => d.FilePath!.Contains("Program1"));
@@ -211,23 +203,18 @@ class Program2
                 var document2 = solution.Projects.Single().Documents.Single(d => d.FilePath!.Contains("Program2"));
                 return solution.WithDocumentText(document2.Id, SourceText.From("NewProgram1Content2"));
             });
-    }
 
-    private async Task TestSuccessfulApplicationAsync(
+    private Task TestSuccessfulApplicationAsync(
         string workspaceXml,
         Func<Solution, Solution> codeActionTransform,
         Func<Solution, Solution> intermediaryTransform)
-    {
-        await TestApplicationAsync(workspaceXml, codeActionTransform, intermediaryTransform, success: true);
-    }
+        => TestApplicationAsync(workspaceXml, codeActionTransform, intermediaryTransform, success: true);
 
-    private async Task TestFailureApplicationAsync(
+    private Task TestFailureApplicationAsync(
         string workspaceXml,
         Func<Solution, Solution> codeActionTransform,
         Func<Solution, Solution> intermediaryTransform)
-    {
-        await TestApplicationAsync(workspaceXml, codeActionTransform, intermediaryTransform, success: false);
-    }
+        => TestApplicationAsync(workspaceXml, codeActionTransform, intermediaryTransform, success: false);
 
     private async Task TestApplicationAsync(
         string workspaceXml,

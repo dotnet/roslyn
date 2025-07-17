@@ -9,14 +9,14 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data;
 
 [UseExportProvider]
-public class CodeStyleSettingsTest
+public static class CodeStyleSettingsTest
 {
     private static IGlobalOptionService GetGlobalOptions(Workspace workspace)
         => workspace.Services.SolutionServices.ExportProvider.GetExportedValue<IGlobalOptionService>();
@@ -98,7 +98,7 @@ public class CodeStyleSettingsTest
             isEditorConfigOption: true);
     }
 
-    private class TestAnalyzerConfigOptions : AnalyzerConfigOptions
+    private sealed class TestAnalyzerConfigOptions : AnalyzerConfigOptions
     {
         private readonly IDictionary<string, string> _dictionary;
         public TestAnalyzerConfigOptions((string, string)[]? options = null)

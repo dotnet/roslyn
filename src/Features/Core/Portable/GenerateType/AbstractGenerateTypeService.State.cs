@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.GenerateType;
 
 internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNameSyntax, TObjectCreationExpressionSyntax, TExpressionSyntax, TTypeDeclarationSyntax, TArgumentSyntax>
 {
-    protected class State
+    protected sealed class State
     {
         public string Name { get; private set; } = null!;
         public bool NameIsVerbatim { get; private set; }
@@ -65,22 +65,17 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         private State(Compilation compilation)
             => Compilation = compilation;
 
-        public static async Task<State?> GenerateAsync(
+        public static async ValueTask<State?> GenerateAsync(
             TService service,
             SemanticDocument document,
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
             var state = new State(document.SemanticModel.Compilation);
-            if (!await state.TryInitializeAsync(service, document, node, cancellationToken).ConfigureAwait(false))
-            {
-                return null;
-            }
-
-            return state;
+            return await state.TryInitializeAsync(service, document, node, cancellationToken).ConfigureAwait(false) ? state : (State?)null;
         }
 
-        private async Task<bool> TryInitializeAsync(
+        private async ValueTask<bool> TryInitializeAsync(
             TService service,
             SemanticDocument semanticDocument,
             SyntaxNode node,
@@ -280,7 +275,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             return service.IsInInterfaceList(NameOrMemberAccessExpression);
         }
 
-        private async Task DetermineNamespaceOrTypeToGenerateInAsync(
+        private async ValueTask DetermineNamespaceOrTypeToGenerateInAsync(
             TService service,
             SemanticDocument document,
             CancellationToken cancellationToken)
@@ -419,7 +414,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         }
     }
 
-    protected class GenerateTypeServiceStateOptions
+    protected sealed class GenerateTypeServiceStateOptions
     {
         public TExpressionSyntax? NameOrMemberAccessExpression { get; set; }
         public TObjectCreationExpressionSyntax? ObjectCreationExpressionOpt { get; set; }

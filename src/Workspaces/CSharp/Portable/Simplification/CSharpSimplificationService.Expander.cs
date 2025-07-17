@@ -28,7 +28,7 @@ using static SyntaxFactory;
 
 internal partial class CSharpSimplificationService
 {
-    private class Expander : CSharpSyntaxRewriter
+    private sealed class Expander : CSharpSyntaxRewriter
     {
         private static readonly SyntaxTrivia s_oneWhitespaceSeparator = SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
 
@@ -394,10 +394,10 @@ internal partial class CSharpSimplificationService
             var rewrittenname = (TypeSyntax)this.Visit(node.Name);
             var parameters = (CrefParameterListSyntax)this.Visit(node.Parameters);
 
-            if (rewrittenname.Kind() == SyntaxKind.QualifiedName)
+            if (rewrittenname is QualifiedNameSyntax qualifiedName)
             {
                 return node.CopyAnnotationsTo(QualifiedCref(
-                    ((QualifiedNameSyntax)rewrittenname).Left
+                    qualifiedName.Left
                         .WithAdditionalAnnotations(Simplifier.Annotation),
                     NameMemberCref(((QualifiedNameSyntax)rewrittenname).Right, parameters)
                     .WithLeadingTrivia(SyntaxTriviaList.Empty))
@@ -459,10 +459,8 @@ internal partial class CSharpSimplificationService
                 {
                     var aliasTarget = aliasInfo.Target;
 
-                    if (aliasTarget.IsNamespace() && ((INamespaceSymbol)aliasTarget).IsGlobalNamespace)
-                    {
+                    if (aliasTarget is INamespaceSymbol { IsGlobalNamespace: true })
                         return rewrittenSimpleName;
-                    }
 
                     // if the enclosing expression is a typeof expression that already contains open type we cannot
                     // we need to insert an open type as well.
@@ -558,8 +556,7 @@ internal partial class CSharpSimplificationService
             if (IsTypeArgumentDefinedRecursive(symbol, typeArgumentSymbols, enterContainingSymbol: true))
             {
                 if (symbol.ContainingSymbol.Equals(symbol.OriginalDefinition.ContainingSymbol) &&
-                    symbol.Kind == SymbolKind.Method &&
-                    ((IMethodSymbol)symbol).IsStatic)
+                    symbol is IMethodSymbol { IsStatic: true })
                 {
                     if (IsTypeArgumentDefinedRecursive(symbol, typeArgumentSymbols, enterContainingSymbol: false))
                     {
@@ -646,8 +643,7 @@ internal partial class CSharpSimplificationService
             }
 
             // if it's a namespace or type name, fully qualify it.
-            if (symbol.Kind is SymbolKind.NamedType or
-                SymbolKind.Namespace)
+            if (symbol.Kind is SymbolKind.Namespace or SymbolKind.NamedType)
             {
                 var replacement = FullyQualifyIdentifierName(
                     (INamespaceOrTypeSymbol)symbol,
@@ -664,9 +660,7 @@ internal partial class CSharpSimplificationService
             }
 
             // if it's a member access, we're fully qualifying the left side and make it a member access.
-            if (symbol.Kind is SymbolKind.Method or
-                SymbolKind.Field or
-                SymbolKind.Property)
+            if (symbol.Kind is SymbolKind.Method or SymbolKind.Field or SymbolKind.Property)
             {
                 if (symbol.IsStatic ||
                     originalSimpleName.IsParentKind(SyntaxKind.NameMemberCref) ||
@@ -740,24 +734,22 @@ internal partial class CSharpSimplificationService
 
         private static ExpressionSyntax TryAddTypeArgumentToIdentifierName(ExpressionSyntax newNode, ISymbol symbol)
         {
-            if (newNode.Kind() == SyntaxKind.IdentifierName && symbol.Kind == SymbolKind.Method)
+            if (newNode.Kind() == SyntaxKind.IdentifierName &&
+                symbol is IMethodSymbol { TypeArguments.Length: > 0 } method)
             {
-                if (((IMethodSymbol)symbol).TypeArguments.Length != 0)
+                var typeArguments = method.TypeArguments;
+                if (!typeArguments.Any(static t => t.ContainsAnonymousType()))
                 {
-                    var typeArguments = ((IMethodSymbol)symbol).TypeArguments;
-                    if (!typeArguments.Any(static t => t.ContainsAnonymousType()))
-                    {
-                        var genericName = GenericName(
-                                        ((IdentifierNameSyntax)newNode).Identifier,
-                                        TypeArgumentList(
-                                            [.. typeArguments.Select(p => ParseTypeName(p.ToDisplayString(s_typeNameFormatWithGenerics)))]))
-                                        .WithLeadingTrivia(newNode.GetLeadingTrivia())
-                                        .WithTrailingTrivia(newNode.GetTrailingTrivia())
-                                        .WithAdditionalAnnotations(Simplifier.Annotation);
+                    var genericName = GenericName(
+                                    ((IdentifierNameSyntax)newNode).Identifier,
+                                    TypeArgumentList(
+                                        [.. typeArguments.Select(p => ParseTypeName(p.ToDisplayString(s_typeNameFormatWithGenerics)))]))
+                                    .WithLeadingTrivia(newNode.GetLeadingTrivia())
+                                    .WithTrailingTrivia(newNode.GetTrailingTrivia())
+                                    .WithAdditionalAnnotations(Simplifier.Annotation);
 
-                        genericName = newNode.CopyAnnotationsTo(genericName);
-                        return genericName;
-                    }
+                    genericName = newNode.CopyAnnotationsTo(genericName);
+                    return genericName;
                 }
             }
 
@@ -833,7 +825,7 @@ internal partial class CSharpSimplificationService
 
         private static void TypeArgumentsInAllContainingSymbol(ISymbol symbol, IList<ISymbol> typeArgumentSymbols, bool enterContainingSymbol, bool isRecursive)
         {
-            if (symbol == null || symbol.IsNamespace())
+            if (symbol == null || symbol is INamespaceSymbol)
             {
                 // This is the terminating condition
                 return;

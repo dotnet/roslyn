@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string ChangeSignature = nameof(ChangeSignature);
             public const string ClassView = nameof(ClassView);
             public const string Classification = nameof(Classification);
-            public const string CodeActionsAddAccessibilityModifiers = "CodeActions.AddAccessibilityModifiers";
+            public const string CodeActionsAddOrRemoveAccessibilityModifiers = "CodeActions.AddOrRemoveAccessibilityModifiers";
             public const string CodeActionsAddAnonymousTypeMemberName = "CodeActions.AddAnonymousTypeMemberName";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsConvertQueryToForEach = "CodeActions.ConvertQueryToForEach";
             public const string CodeActionsConvertToRawString = "CodeActions.CodeActionsConvertToRawString";
             public const string CodeActionsConvertSwitchStatementToExpression = "CodeActions.ConvertSwitchStatementToExpression";
+            public const string CodeActionsConvertToExtension = "CodeActions.ConvertToExtension";
             public const string CodeActionsConvertToInterpolatedString = "CodeActions.ConvertToInterpolatedString";
             public const string CodeActionsConvertToIterator = "CodeActions.ConvertToIterator";
             public const string CodeActionsConvertToRecord = "CodeActions.ConvertToRecord";
@@ -144,6 +145,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsMoveType = "CodeActions.MoveType";
             public const string CodeActionsNameTupleElement = "CodeActions.NameTupleElement";
             public const string CodeActionsOrderModifiers = "CodeActions.OrderModifiers";
+            public const string CodeActionsOrganizeImports = "CodeActions.OrganizeImports";
             public const string CodeActionsPopulateSwitch = "CodeActions.PopulateSwitch";
             public const string CodeActionsPullMemberUp = "CodeActions.PullMemberUp";
             public const string CodeActionsQualifyMemberAccess = "CodeActions.QualifyMemberAccess";
@@ -172,6 +174,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsSimplifyConditional = "CodeActions.SimplifyConditional";
             public const string CodeActionsSimplifyInterpolation = "CodeActions.SimplifyInterpolation";
             public const string CodeActionsSimplifyLinqExpression = "CodeActions.SimplifyLinqExpression";
+            public const string CodeActionsSimplifyLinqTypeCheckAndCast = "CodeActions.SimplifyLinqTypeCheckAndCast";
             public const string CodeActionsSimplifyPropertyPattern = "CodeActions.SimplifyPropertyPattern";
             public const string CodeActionsSimplifyThisOrMe = "CodeActions.SimplifyThisOrMe";
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";
@@ -192,6 +195,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseConditionalExpression = "CodeActions.UseConditionalExpression";
             public const string CodeActionsUseDeconstruction = "CodeActions.UseDeconstruction";
             public const string CodeActionsUseDefaultLiteral = "CodeActions.UseDefaultLiteral";
+            public const string CodeActionsUseExplicitArrayInExpressionTree = "CodeActions.UseExplicitArrayInExpressionTree";
             public const string CodeActionsUseExplicitTupleName = "CodeActions.UseExplicitTupleName";
             public const string CodeActionsUseExplicitType = "CodeActions.UseExplicitType";
             public const string CodeActionsUseExplicitTypeForConst = "CodeActions.UseExplicitTypeForConst";
@@ -218,6 +222,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseSystemHashCode = "CodeActions.UseSystemHashCode";
             public const string CodeActionsUseSystemThreadingLock = "CodeActions.UseSystemThreadingLock";
             public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
+            public const string CodeActionsUseTupleSwap = "CodeActions.UseTupleSwap";
+            public const string CodeActionsUseUnboundGenericTypeInNameOf = "CodeActions.UseUnboundGenericTypeInNameOf";
             public const string CodeActionsUseUtf8StringLiteral = "CodeActions.CodeActionsUseUtf8StringLiteral";
             public const string CodeActionsWrapping = "CodeActions.Wrapping";
             public const string CodeCleanup = nameof(CodeCleanup);
@@ -234,6 +240,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string ConvertAutoPropertyToFullProperty = nameof(ConvertAutoPropertyToFullProperty);
             public const string ConvertCast = nameof(ConvertCast);
             public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
+            public const string CopilotImplementNotImplementedException = nameof(CopilotImplementNotImplementedException);
             public const string DebuggingBreakpoints = "Debugging.Breakpoints";
             public const string DebuggingDataTips = "Debugging.DataTips";
             public const string DebuggingEditAndContinue = "Debugging.EditAndContinue";
@@ -285,13 +292,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string NetCore = nameof(NetCore);
             public const string NormalizeModifiersOrOperators = nameof(NormalizeModifiersOrOperators);
             public const string ObjectBrowser = nameof(ObjectBrowser);
+            public const string OnTheFlyDocs = nameof(OnTheFlyDocs);
             public const string Options = nameof(Options);
             public const string Organizing = nameof(Organizing);
             public const string Outlining = nameof(Outlining);
             public const string Packaging = nameof(Packaging);
             public const string PasteTracking = nameof(PasteTracking);
             public const string Peek = nameof(Peek);
-            public const string Progression = nameof(Progression);
             public const string ProjectSystemShims = nameof(ProjectSystemShims);
             public const string SarifErrorLogging = nameof(SarifErrorLogging);
             public const string QuickInfo = nameof(QuickInfo);
@@ -308,6 +315,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string SmartIndent = nameof(SmartIndent);
             public const string SmartTokenFormatting = nameof(SmartTokenFormatting);
             public const string Snippets = nameof(Snippets);
+            public const string SolutionExplorer = nameof(SolutionExplorer);
             public const string SourceGenerators = nameof(SourceGenerators);
             public const string SplitComment = nameof(SplitComment);
             public const string SplitStringLiteral = nameof(SplitStringLiteral);

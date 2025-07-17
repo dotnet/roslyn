@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -150,9 +149,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
     internal async Task<ImmutableArray<PragmaWarningCodeAction>> GetPragmaSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
         var codeFixes = await GetSuppressionsAsync(document, span, diagnostics, skipSuppressMessage: true, skipUnsuppress: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-        return codeFixes.SelectMany(fix => fix.Action.NestedActions)
-                        .OfType<PragmaWarningCodeAction>()
-                        .ToImmutableArray();
+        return [.. codeFixes.SelectMany(fix => fix.Action.NestedActions).OfType<PragmaWarningCodeAction>()];
     }
 
     private async Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(

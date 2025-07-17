@@ -10,11 +10,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // It is only valid to call this on a bound node factory with a module builder.
             Debug.Assert(ModuleBuilderOpt is { });
-            ModuleBuilderOpt.AddSynthesizedDefinition(CurrentType, nestedType.GetCciAdapter());
+            ModuleBuilderOpt.AddSynthesizedDefinition(nestedType.ContainingType, nestedType.GetCciAdapter());
         }
 
         public void OpenNestedType(NamedTypeSymbol nestedType)
@@ -179,6 +179,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(CurrentType is { });
             var result = new StateMachineFieldSymbol(CurrentType, TypeWithAnnotations.Create(type), name, isPublic, isThis);
+            AddField(CurrentType, result);
+            return result;
+        }
+
+        public StateMachineFieldSymbol StateMachineFieldForRegularParameter(TypeSymbol type, string name, ParameterSymbol parameter, bool isPublic)
+        {
+            Debug.Assert(CurrentType is { });
+            var result = new StateMachineFieldSymbolForRegularParameter(CurrentType, TypeWithAnnotations.Create(type), name, parameter, isPublic);
             AddField(CurrentType, result);
             return result;
         }
@@ -471,6 +479,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, ImmutableArray<BoundStatement> statements)
+        {
+            return Block(locals, ImmutableArray<MethodSymbol>.CastUp(localFunctions), statements);
+        }
+
+        public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<MethodSymbol> localFunctions, ImmutableArray<BoundStatement> statements)
         {
             return new BoundBlock(Syntax, locals, localFunctions, hasUnsafeModifier: false, instrumentation: null, statements) { WasCompilerGenerated = true };
         }
@@ -850,35 +863,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundCall(
                 Syntax, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, args,
-                argumentNamesOpt: default(ImmutableArray<string?>), argumentRefKindsOpt: getArgumentRefKinds(method, useStrictArgumentRefKinds), isDelegateCall: false, expanded: false,
+                argumentNamesOpt: default(ImmutableArray<string?>), argumentRefKindsOpt: ArgumentRefKindsFromParameterRefKinds(method, useStrictArgumentRefKinds), isDelegateCall: false, expanded: false,
                 invokedAsExtensionMethod: false, argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector), resultKind: LookupResultKind.Viable,
                 type: method.ReturnType, hasErrors: method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };
+        }
 
-            static ImmutableArray<RefKind> getArgumentRefKinds(MethodSymbol method, bool useStrictArgumentRefKinds)
+        public static ImmutableArray<RefKind> ArgumentRefKindsFromParameterRefKinds(MethodSymbol method, bool useStrictArgumentRefKinds)
+        {
+            var result = method.ParameterRefKinds;
+
+            if (!result.IsDefaultOrEmpty && (result.Contains(RefKind.RefReadOnlyParameter) ||
+                (useStrictArgumentRefKinds && result.Contains(RefKind.In))))
             {
-                var result = method.ParameterRefKinds;
+                var builder = ArrayBuilder<RefKind>.GetInstance(result.Length);
 
-                if (!result.IsDefaultOrEmpty && (result.Contains(RefKind.RefReadOnlyParameter) ||
-                    (useStrictArgumentRefKinds && result.Contains(RefKind.In))))
+                foreach (var refKind in result)
                 {
-                    var builder = ArrayBuilder<RefKind>.GetInstance(result.Length);
-
-                    foreach (var refKind in result)
-                    {
-                        builder.Add(refKind switch
-                        {
-                            RefKind.In or RefKind.RefReadOnlyParameter when useStrictArgumentRefKinds => RefKindExtensions.StrictIn,
-                            RefKind.RefReadOnlyParameter => RefKind.In,
-                            _ => refKind
-                        });
-                    }
-
-                    return builder.ToImmutableAndFree();
+                    builder.Add(ArgumentRefKindFromParameterRefKind(refKind, useStrictArgumentRefKinds));
                 }
 
-                return result;
+                return builder.ToImmutableAndFree();
             }
+
+            return result;
+        }
+
+        public static RefKind ArgumentRefKindFromParameterRefKind(RefKind refKind, bool useStrictArgumentRefKinds)
+        {
+            return refKind switch
+            {
+                RefKind.In or RefKind.RefReadOnlyParameter when useStrictArgumentRefKinds => RefKindExtensions.StrictIn,
+                RefKind.RefReadOnlyParameter => RefKind.In,
+                _ => refKind
+            };
         }
 
         public BoundCall Call(BoundExpression? receiver, MethodSymbol method, ImmutableArray<RefKind> refKinds, ImmutableArray<BoundExpression> args)

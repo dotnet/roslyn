@@ -35,7 +35,7 @@ internal class UnitTestGeneratorAddMissingImportsFeatureServiceAccessor()
     {
         var service = document.Project.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
         var result = await service.AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-        return new WrappedMissingImportsAnalysisResult(result.AddImportFixData.SelectAsArray(data => new WrappedAddImportFixData(data)));
+        return new WrappedMissingImportsAnalysisResult(result.SelectAsArray(data => new WrappedAddImportFixData(data)));
     }
 
 #pragma warning disable CA1822 // Mark members as static
@@ -43,7 +43,7 @@ internal class UnitTestGeneratorAddMissingImportsFeatureServiceAccessor()
 #pragma warning restore CA1822
     {
         var service = document.Project.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
-        var unwrappedResult = new AddMissingImportsAnalysisResult(analysisResult.AddImportFixDatas.SelectAsArray(result => result.Underlying));
+        var unwrappedResult = analysisResult.AddImportFixDatas.SelectAsArray(result => result.Underlying);
 
         // Unfortunately, the unit testing system doesn't have a way to report progress.
         return await service.AddMissingImportsAsync(document, unwrappedResult, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);

@@ -55,6 +55,9 @@ internal readonly struct InheritanceMarginItem(
     public override bool Equals(object? obj)
         => obj is InheritanceMarginItem item && Equals(item);
 
+    public override string ToString()
+        => string.Join("", DisplayTexts.Select(d => d.Text));
+
     public bool Equals(InheritanceMarginItem other)
         => this.LineNumber == other.LineNumber &&
            this.TopLevelDisplayText == other.TopLevelDisplayText &&

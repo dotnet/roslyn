@@ -12,15 +12,15 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
-[Shared]
-[ExportLanguageService(typeof(ILanguageDebugInfoService), InternalLanguageNames.TypeScript)]
+[ExportLanguageService(typeof(ILanguageDebugInfoService), InternalLanguageNames.TypeScript), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class VSTypeScriptLanguageDebugInfoService(IVSTypeScriptLanguageDebugInfoServiceImplementation implementation) : ILanguageDebugInfoService
+internal sealed class VSTypeScriptLanguageDebugInfoService(IVSTypeScriptLanguageDebugInfoServiceImplementation implementation)
+    : ILanguageDebugInfoService
 {
     private readonly IVSTypeScriptLanguageDebugInfoServiceImplementation _implementation = implementation;
 
-    public async Task<DebugDataTipInfo> GetDataTipInfoAsync(Document document, int position, CancellationToken cancellationToken)
+    public async Task<DebugDataTipInfo> GetDataTipInfoAsync(Document document, int position, bool includeKind, CancellationToken cancellationToken)
         => (await _implementation.GetDataTipInfoAsync(document, position, cancellationToken).ConfigureAwait(false)).UnderlyingObject;
 
     public async Task<DebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken)

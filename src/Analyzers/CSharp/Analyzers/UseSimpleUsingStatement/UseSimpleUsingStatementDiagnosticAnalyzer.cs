@@ -2,16 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement;
 
@@ -48,17 +53,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement;
 ///    semantics will not change.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class UseSimpleUsingStatementDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class UseSimpleUsingStatementDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId,
+        EnforceOnBuildValues.UseSimpleUsingStatement,
+        CSharpCodeStyleOptions.PreferSimpleUsingStatement,
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_simple_using_statement), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.using_statement_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    public UseSimpleUsingStatementDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId,
-               EnforceOnBuildValues.UseSimpleUsingStatement,
-               CSharpCodeStyleOptions.PreferSimpleUsingStatement,
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_simple_using_statement), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.using_statement_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -83,12 +85,13 @@ internal class UseSimpleUsingStatementDiagnosticAnalyzer : AbstractBuiltInCodeSt
         var outermostUsing = (UsingStatementSyntax)context.Node;
         var semanticModel = context.SemanticModel;
 
-        if (outermostUsing.Parent is not BlockSyntax parentBlock)
-        {
-            // Don't offer on a using statement that is parented by another using statement. We'll just offer on the
-            // topmost using statement.
+        var parentBlockLike = CSharpBlockFacts.Instance.GetImmediateParentExecutableBlockForStatement(outermostUsing);
+
+        // Don't offer on a using statement that is parented by another using statement. We'll just offer on the topmost
+        // using statement.  Also, this is only offered in a block and compilation unit.  Simple using statements are
+        // not allowed within switch sections.
+        if (parentBlockLike is not BlockSyntax and not CompilationUnitSyntax)
             return;
-        }
 
         var innermostUsing = outermostUsing;
 
@@ -102,7 +105,7 @@ internal class UseSimpleUsingStatementDiagnosticAnalyzer : AbstractBuiltInCodeSt
         }
 
         // Verify that changing this using-statement into a using-declaration will not change semantics.
-        if (!PreservesSemantics(semanticModel, parentBlock, outermostUsing, innermostUsing, cancellationToken))
+        if (!PreservesSemantics(semanticModel, parentBlockLike, outermostUsing, innermostUsing, cancellationToken))
             return;
 
         // Converting a using-statement to a using-variable-declaration will cause the using's variables to now be
@@ -110,7 +113,7 @@ internal class UseSimpleUsingStatementDiagnosticAnalyzer : AbstractBuiltInCodeSt
         // block. These may then collide with other variables in the block, causing an error.  Check for that and
         // bail if this happens.
         if (CausesVariableCollision(
-                context.SemanticModel, parentBlock,
+                context.SemanticModel, parentBlockLike,
                 outermostUsing, innermostUsing, cancellationToken))
         {
             return;
@@ -122,44 +125,61 @@ internal class UseSimpleUsingStatementDiagnosticAnalyzer : AbstractBuiltInCodeSt
             outermostUsing.UsingKeyword.GetLocation(),
             option.Notification,
             context.Options,
-            additionalLocations: ImmutableArray.Create(outermostUsing.GetLocation()),
+            additionalLocations: [outermostUsing.GetLocation()],
             properties: null));
     }
 
     private static bool CausesVariableCollision(
-        SemanticModel semanticModel, BlockSyntax parentBlock,
-        UsingStatementSyntax outermostUsing, UsingStatementSyntax innermostUsing,
-        CancellationToken cancellationToken)
-    {
-        var symbolNameToExistingSymbol = semanticModel.GetExistingSymbols(parentBlock, cancellationToken).ToLookup(s => s.Name);
-
-        for (var current = outermostUsing; current != null; current = current.Statement as UsingStatementSyntax)
-        {
-            // Check if the using statement itself contains variables that will collide with other variables in the
-            // block.
-            var usingOperation = (IUsingOperation)semanticModel.GetRequiredOperation(current, cancellationToken);
-            if (DeclaredLocalCausesCollision(symbolNameToExistingSymbol, usingOperation.Locals))
-                return true;
-        }
-
-        var innerUsingOperation = (IUsingOperation)semanticModel.GetRequiredOperation(innermostUsing, cancellationToken);
-        if (innerUsingOperation.Body is IBlockOperation innerUsingBlock)
-            return DeclaredLocalCausesCollision(symbolNameToExistingSymbol, innerUsingBlock.Locals);
-
-        return false;
-    }
-
-    private static bool DeclaredLocalCausesCollision(ILookup<string, ISymbol> symbolNameToExistingSymbol, ImmutableArray<ILocalSymbol> locals)
-        => locals.Any(static (local, symbolNameToExistingSymbol) => symbolNameToExistingSymbol[local.Name].Any(otherLocal => !local.Equals(otherLocal)), symbolNameToExistingSymbol);
-
-    private static bool PreservesSemantics(
         SemanticModel semanticModel,
-        BlockSyntax parentBlock,
+        SyntaxNode parentBlockLike,
         UsingStatementSyntax outermostUsing,
         UsingStatementSyntax innermostUsing,
         CancellationToken cancellationToken)
     {
-        var statements = parentBlock.Statements;
+        using var _ = PooledDictionary<string, ArrayBuilder<ISymbol>>.GetInstance(out var symbolNameToExistingSymbol);
+
+        try
+        {
+            foreach (var statement in CSharpBlockFacts.Instance.GetExecutableBlockStatements(parentBlockLike))
+            {
+                foreach (var symbol in semanticModel.GetAllDeclaredSymbols(statement, cancellationToken))
+                    symbolNameToExistingSymbol.MultiAdd(symbol.Name, symbol);
+            }
+
+            for (var current = outermostUsing; current != null; current = current.Statement as UsingStatementSyntax)
+            {
+                // Check if the using statement itself contains variables that will collide with other variables in the
+                // block.
+                var usingOperation = (IUsingOperation)semanticModel.GetRequiredOperation(current, cancellationToken);
+                if (DeclaredLocalCausesCollision(symbolNameToExistingSymbol, usingOperation.Locals))
+                    return true;
+            }
+
+            var innerUsingOperation = (IUsingOperation)semanticModel.GetRequiredOperation(innermostUsing, cancellationToken);
+            if (innerUsingOperation.Body is IBlockOperation innerUsingBlock)
+                return DeclaredLocalCausesCollision(symbolNameToExistingSymbol, innerUsingBlock.Locals);
+
+            return false;
+        }
+        finally
+        {
+            symbolNameToExistingSymbol.FreeValues();
+        }
+    }
+
+    private static bool DeclaredLocalCausesCollision(Dictionary<string, ArrayBuilder<ISymbol>> symbolNameToExistingSymbol, ImmutableArray<ILocalSymbol> locals)
+        => locals.Any(static (local, symbolNameToExistingSymbol) =>
+           symbolNameToExistingSymbol.TryGetValue(local.Name, out var symbols) &&
+           symbols.Any(otherLocal => !local.Equals(otherLocal)), symbolNameToExistingSymbol);
+
+    private static bool PreservesSemantics(
+        SemanticModel semanticModel,
+        SyntaxNode parentBlockLike,
+        UsingStatementSyntax outermostUsing,
+        UsingStatementSyntax innermostUsing,
+        CancellationToken cancellationToken)
+    {
+        var statements = CSharpBlockFacts.Instance.GetExecutableBlockStatements(parentBlockLike);
         var index = statements.IndexOf(outermostUsing);
 
         return UsingValueDoesNotLeakToFollowingStatements(semanticModel, statements, index, cancellationToken) &&
@@ -167,7 +187,7 @@ internal class UseSimpleUsingStatementDiagnosticAnalyzer : AbstractBuiltInCodeSt
     }
 
     private static bool UsingStatementDoesNotInvolveJumps(
-        SyntaxList<StatementSyntax> parentStatements, int index, UsingStatementSyntax innermostUsing)
+        IReadOnlyList<StatementSyntax> parentStatements, int index, UsingStatementSyntax innermostUsing)
     {
         // Jumps are not allowed to cross a using declaration in the forward direction, and can't go back unless
         // there is a curly brace between the using and the label.
@@ -204,7 +224,7 @@ internal class UseSimpleUsingStatementDiagnosticAnalyzer : AbstractBuiltInCodeSt
 
     private static bool UsingValueDoesNotLeakToFollowingStatements(
         SemanticModel semanticModel,
-        SyntaxList<StatementSyntax> statements,
+        IReadOnlyList<StatementSyntax> statements,
         int index,
         CancellationToken cancellationToken)
     {

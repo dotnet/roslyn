@@ -26,6 +26,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
@@ -51,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging;
 /// the data so it can be read from the background.
 /// </summary>
 [ExportWorkspaceService(typeof(IPackageInstallerService)), Shared]
-internal partial class PackageInstallerService : AbstractDelayStartedService, IPackageInstallerService, IVsSearchProviderCallback
+internal sealed partial class PackageInstallerService : AbstractDelayStartedService, IPackageInstallerService, IVsSearchProviderCallback
 {
     // Proper name, should not be localized.
     private const string NugetTitle = "NuGet";
@@ -155,7 +156,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
         {
             // The result was not available yet (or it was canceled/faulted).  Just return an empty result to
             // signify we couldn't get this right now.
-            return ImmutableArray<PackageSource>.Empty;
+            return [];
         }
     }
 
@@ -178,7 +179,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
             // https://github.com/dotnet/roslyn/issues/40857
         }
 
-        return ImmutableArray<PackageSource>.Empty;
+        return [];
     }
 
     [MemberNotNullWhen(true, nameof(_packageInstaller))]
@@ -231,7 +232,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
         var packageSourceProvider = await GetPackageSourceProviderAsync().ConfigureAwait(false);
 
         // Start listening to additional events workspace changes.
-        Workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _ = Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
         packageSourceProvider.SourcesChanged += OnSourceProviderSourcesChanged;
 
         // Kick off an initial set of work that will analyze the entire solution.
@@ -420,7 +421,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
         }
     }
 
-    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         // ThisCanBeCalledOnAnyThread();
 
@@ -630,7 +631,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
             return diff != 0 ? diff : -v1.Version.CompareTo(v2.Version);
         });
 
-        return versionsAndSplits.Select(v => v.Version).ToImmutableArray();
+        return [.. versionsAndSplits.Select(v => v.Version)];
     }
 
     private static int CompareSplit(string[] split1, string[] split2)
@@ -735,7 +736,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
     {
     }
 
-    private class SearchQuery : IVsSearchQuery
+    private sealed class SearchQuery : IVsSearchQuery
     {
         public SearchQuery(string packageName)
             => this.SearchString = packageName;

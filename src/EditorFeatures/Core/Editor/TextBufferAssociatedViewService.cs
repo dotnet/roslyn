@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor;
 [ContentType(ContentTypeNames.XamlContentType)]
 [TextViewRole(PredefinedTextViewRoles.Interactive)]
 [Export(typeof(ITextBufferAssociatedViewService))]
-internal class TextBufferAssociatedViewService : ITextViewConnectionListener, ITextBufferAssociatedViewService
+internal sealed class TextBufferAssociatedViewService : ITextViewConnectionListener, ITextBufferAssociatedViewService
 {
 #if DEBUG
     private static readonly HashSet<ITextView> s_registeredViews = [];
@@ -100,7 +100,7 @@ internal class TextBufferAssociatedViewService : ITextViewConnectionListener, IT
                 return [];
             }
 
-            return set.ToList();
+            return [.. set];
         }
     }
 

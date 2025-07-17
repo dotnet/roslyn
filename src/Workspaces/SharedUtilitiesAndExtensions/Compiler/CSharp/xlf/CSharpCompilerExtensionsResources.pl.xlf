@@ -22,6 +22,11 @@
         <target state="translated">Składowe z wyrażeniem w treści</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indentation_preferences">
+        <source>Indentation preferences</source>
+        <target state="translated">Preferencje wcięć</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Null_checking_preferences">
         <source>Null-checking preferences</source>
         <target state="translated">Preferencje sprawdzania wartości null</target>
@@ -30,6 +35,16 @@
       <trans-unit id="Pattern_matching_preferences">
         <source>Pattern matching preferences</source>
         <target state="translated">Preferencje dopasowywania do wzorca</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Space_preferences">
+        <source>Space preferences</source>
+        <target state="translated">Preferencje dotyczące odstępów</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrapping_preferences">
+        <source>Wrapping preferences</source>
+        <target state="translated">Preferencje zawijania</target>
         <note />
       </trans-unit>
       <trans-unit id="using_directive_preferences">

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -26,18 +25,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression;
 /// time.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer()
+    : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.RemoveUnnecessaryLambdaExpressionDiagnosticId,
+        EnforceOnBuildValues.RemoveUnnecessaryLambdaExpression,
+        CSharpCodeStyleOptions.PreferMethodGroupConversion,
+        fadingOption: null,
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_lambda_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Lambda_expression_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    public CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.RemoveUnnecessaryLambdaExpressionDiagnosticId,
-               EnforceOnBuildValues.RemoveUnnecessaryLambdaExpression,
-               CSharpCodeStyleOptions.PreferMethodGroupConversion,
-               fadingOption: null,
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_lambda_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Lambda_expression_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -51,7 +47,7 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer 
                 var conditionalAttributeType = context.Compilation.ConditionalAttribute();
 
                 context.RegisterSyntaxNodeAction(
-                    c => AnalyzeSyntax(c, expressionType, conditionalAttributeType),
+                    context => AnalyzeSyntax(context, expressionType, conditionalAttributeType),
                     SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.AnonymousMethodExpression);
             }
         });
@@ -139,6 +135,12 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer 
         if (invokedMethod.IsPartialDefinition && invokedMethod.PartialImplementationPart is null)
             return;
 
+        // Check if the invoked method is a member of a struct. If it is, and it is not readonly and the invoked method
+        // is not readonly, then we don't want to convert it to a method group. If we did, we may accidently change the
+        // behaviour of the code, since structs are value types and the method group will be copied rather than referenced.
+        if (invokedMethod.ContainingType.TypeKind == TypeKind.Struct && !invokedMethod.IsReadOnly && !invokedMethod.ContainingType.IsReadOnly)
+            return;
+
         // If we're calling a generic method, we have to have supplied type arguments.  They cannot be inferred once
         // we remove the arguments during simplification.
         var invokedTypeArguments = invokedExpression.GetRightmostName() is GenericNameSyntax genericName
@@ -173,7 +175,7 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer 
         }
 
         // If invoked method is conditional, converting lambda to method group produces compiler error
-        if (invokedMethod.GetAttributes().Any(a => Equals(a.AttributeClass, conditionalAttributeType)))
+        if (invokedMethod.HasAttribute(conditionalAttributeType))
             return;
 
         // In the case where we have `() => expr.m()`, check if `expr` is overwritten anywhere. If so then we do not

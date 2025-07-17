@@ -20,7 +20,7 @@ using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedCla
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification;
 
-public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
+public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTests
 {
     private const string s_testMarkup = """
 
@@ -43,6 +43,27 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
                     Test.M(""""
             {{code}}
             """");
+                }
+            }
+            """"" + s_testMarkup;
+
+        var start = allCode.IndexOf(code, StringComparison.Ordinal);
+        var length = code.Length;
+        var spans = ImmutableArray.Create(new TextSpan(start, length));
+        await TestEmbeddedCSharpWithMultipleSpansAsync(allCode, testHost, spans, expected);
+    }
+
+    private async Task TestSingleLineEmbeddedCSharpAsync(
+       string code,
+       TestHost testHost,
+       params FormattedClassification[] expected)
+    {
+        var allCode = $$"""""
+            class C
+            {
+                void M()
+                {
+                    Test.M(""""{{code}}"""");
                 }
             }
             """"" + s_testMarkup;
@@ -134,9 +155,8 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
     }
 
     [Theory, CombinatorialData]
-    public async Task TestEmbeddedCSharpMarkup1(TestHost testHost)
-    {
-        await TestEmbeddedCSharpAsync("""
+    public Task TestEmbeddedCSharpMarkup1(TestHost testHost)
+        => TestEmbeddedCSharpAsync("""
             class D
             {
             }
@@ -147,12 +167,10 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
             Class("D"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestEmbeddedCSharpCaret1(TestHost testHost)
-    {
-        await TestEmbeddedCSharpAsync("""
+    public Task TestEmbeddedCSharpCaret1(TestHost testHost)
+        => TestEmbeddedCSharpAsync("""
             class D
             {
                 $$
@@ -166,12 +184,10 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
             TestCode("    "),
             TestCodeMarkdown("$$"),
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestEmbeddedCSharpCaret2(TestHost testHost)
-    {
-        await TestEmbeddedCSharpAsync("""
+    public Task TestEmbeddedCSharpCaret2(TestHost testHost)
+        => TestEmbeddedCSharpAsync("""
             cla$$ss D
             {
             }
@@ -184,12 +200,10 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
             Class("D"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestEmbeddedCSharpSpan1(TestHost testHost)
-    {
-        await TestEmbeddedCSharpAsync("""
+    public Task TestEmbeddedCSharpSpan1(TestHost testHost)
+        => TestEmbeddedCSharpAsync("""
             class D
             {
                 [|System.Int32 i;|]
@@ -210,12 +224,10 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
             Punctuation.Semicolon,
             TestCodeMarkdown("|]"),
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestEmbeddedCSharpSpan2(TestHost testHost)
-    {
-        await TestEmbeddedCSharpAsync("""
+    public Task TestEmbeddedCSharpSpan2(TestHost testHost)
+        => TestEmbeddedCSharpAsync("""
             class D
             {
                 {|Example:System.Int32 i;|}
@@ -236,12 +248,10 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
             Punctuation.Semicolon,
             TestCodeMarkdown("|}"),
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestEmbeddedCSharpSpan3(TestHost testHost)
-    {
-        await TestEmbeddedCSharpAsync("""
+    public Task TestEmbeddedCSharpSpan3(TestHost testHost)
+        => TestEmbeddedCSharpAsync("""
             class D
             {
                 [|System.Int32 i;
@@ -261,12 +271,10 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
             Field("i"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestEmbeddedCSharpSpan4(TestHost testHost)
-    {
-        await TestEmbeddedCSharpAsync("""
+    public Task TestEmbeddedCSharpSpan4(TestHost testHost)
+        => TestEmbeddedCSharpAsync("""
             class D
             {
                 System.Int32 i;|]
@@ -286,12 +294,10 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
             Punctuation.Semicolon,
             TestCodeMarkdown("|]"),
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestEmbeddedCSharpSpan5(TestHost testHost)
-    {
-        await TestEmbeddedCSharpAsync("""
+    public Task TestEmbeddedCSharpSpan5(TestHost testHost)
+        => TestEmbeddedCSharpAsync("""
             class D
             {
                 {|Example:System.Int32 i;
@@ -311,12 +317,10 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
             Field("i"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestEmbeddedCSharpSpan6(TestHost testHost)
-    {
-        await TestEmbeddedCSharpAsync("""
+    public Task TestEmbeddedCSharpSpan6(TestHost testHost)
+        => TestEmbeddedCSharpAsync("""
             class D
             {
                 System.Int32 i;|}
@@ -336,12 +340,10 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
             Punctuation.Semicolon,
             TestCodeMarkdown("|}"),
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestEmbeddedCSharpSpan7(TestHost testHost)
-    {
-        await TestEmbeddedCSharpAsync("""
+    public Task TestEmbeddedCSharpSpan7(TestHost testHost)
+        => TestEmbeddedCSharpAsync("""
             class D
             {
                 {|Example System.Int32 i;|}
@@ -365,12 +367,10 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
             Punctuation.Semicolon,
             TestCodeMarkdown("|}"),
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestEmbeddedCSharpSpan8(TestHost testHost)
-    {
-        await TestEmbeddedCSharpAsync("""
+    public Task TestEmbeddedCSharpSpan8(TestHost testHost)
+        => TestEmbeddedCSharpAsync("""
             class D
             {
                 Sys[|tem.In$$t3|]2 i;
@@ -395,12 +395,10 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
             Field("i"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestEmbeddedCSharpString1(TestHost testHost)
-    {
-        await TestEmbeddedCSharpAsync("""
+    public Task TestEmbeddedCSharpString1(TestHost testHost)
+        => TestEmbeddedCSharpAsync("""
             class D
             {
                 // Embedded escapes not classified.
@@ -421,15 +419,15 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
             TestCode(" "),
             Operators.Equals,
             TestCode(" "),
-            String(@"""\r\n"""),
+            String("""
+                "\r\n"
+                """),
             Punctuation.Semicolon,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestEmbeddedCSharpString2(TestHost testHost)
-    {
-        await TestEmbeddedCSharpAsync(""""
+    public Task TestEmbeddedCSharpString2(TestHost testHost)
+        => TestEmbeddedCSharpAsync(""""
             class D
             {
                 string s = """
@@ -456,5 +454,22 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
                     """"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly);
-    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/76575")]
+    public Task TestOnlyMarkup1(TestHost testHost)
+        => TestEmbeddedCSharpAsync(
+            "[||]",
+            testHost,
+            TestCodeMarkdown("[|"),
+            TestCodeMarkdown("|]"));
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/76575")]
+    public Task TestOnlyMarkup2(TestHost testHost)
+        => TestSingleLineEmbeddedCSharpAsync(
+            "[||]",
+            testHost,
+            TestCodeMarkdown("[|"),
+            TestCodeMarkdown("|]"));
 }

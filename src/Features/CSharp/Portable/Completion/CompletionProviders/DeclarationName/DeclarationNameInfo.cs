@@ -29,9 +29,6 @@ internal readonly struct NameDeclarationInfo(
 
     private static readonly ImmutableArray<SymbolKindOrTypeKind> s_propertySyntaxKind =
         [new SymbolKindOrTypeKind(SymbolKind.Property)];
-
-    private readonly ImmutableArray<SymbolKindOrTypeKind> _possibleSymbolKinds = possibleSymbolKinds;
-
     public readonly DeclarationModifiers Modifiers = declarationModifiers;
     public readonly Accessibility? DeclaredAccessibility = accessibility;
 
@@ -39,7 +36,7 @@ internal readonly struct NameDeclarationInfo(
     public readonly IAliasSymbol? Alias = alias;
     public readonly ISymbol? Symbol = symbol;
 
-    public ImmutableArray<SymbolKindOrTypeKind> PossibleSymbolKinds => _possibleSymbolKinds.NullToEmpty();
+    public ImmutableArray<SymbolKindOrTypeKind> PossibleSymbolKinds { get => field.NullToEmpty(); } = possibleSymbolKinds;
 
     public static async Task<NameDeclarationInfo> GetDeclarationInfoAsync(Document document, int position, CancellationToken cancellationToken)
     {
@@ -461,11 +458,22 @@ internal readonly struct NameDeclarationInfo(
         return result.Type != null;
     }
 
-    private static bool IsPatternMatching(SyntaxToken token, SemanticModel semanticModel,
-        CancellationToken cancellationToken, out NameDeclarationInfo result)
+    private static bool IsPatternMatching(
+        SyntaxToken token,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken,
+        out NameDeclarationInfo result)
     {
         result = default;
-        if (token.Parent.IsParentKind(SyntaxKind.IsExpression))
+
+        var parent = token.Parent;
+        if (token.Kind() is SyntaxKind.GreaterThanToken &&
+            parent is TypeArgumentListSyntax { Parent: GenericNameSyntax genericName })
+        {
+            parent = genericName;
+        }
+
+        if (parent.IsParentKind(SyntaxKind.IsExpression))
         {
             result = IsLastTokenOfType<BinaryExpressionSyntax>(
                 token, semanticModel,
@@ -474,7 +482,7 @@ internal readonly struct NameDeclarationInfo(
                 _ => s_parameterSyntaxKind,
                 cancellationToken);
         }
-        else if (token.Parent.IsParentKind(SyntaxKind.CaseSwitchLabel))
+        else if (parent.IsParentKind(SyntaxKind.CaseSwitchLabel))
         {
             result = IsLastTokenOfType<CaseSwitchLabelSyntax>(
                 token, semanticModel,
@@ -483,7 +491,7 @@ internal readonly struct NameDeclarationInfo(
                 _ => s_parameterSyntaxKind,
                 cancellationToken);
         }
-        else if (token.Parent.IsParentKind(SyntaxKind.DeclarationPattern))
+        else if (parent.IsParentKind(SyntaxKind.DeclarationPattern))
         {
             result = IsLastTokenOfType<DeclarationPatternSyntax>(
                 token, semanticModel,
@@ -543,7 +551,7 @@ internal readonly struct NameDeclarationInfo(
 
     private static DeclarationModifiers GetDeclarationModifiers(SyntaxTokenList modifiers)
     {
-        var declarationModifiers = new DeclarationModifiers();
+        var declarationModifiers = DeclarationModifiers.None;
         foreach (var modifer in modifiers)
         {
             switch (modifer.Kind())

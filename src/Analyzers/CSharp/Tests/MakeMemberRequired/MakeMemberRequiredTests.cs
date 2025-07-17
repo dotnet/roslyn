@@ -121,30 +121,23 @@ public sealed class MakeMemberRequiredTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68478")]
-    public async Task SimpleSetPropertyMissingRequiredAttribute()
-    {
-        var code =
-            """
+    public Task SimpleSetPropertyMissingRequiredAttribute()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             #nullable enable
             class MyClass
             {
                 public string {|CS8618:MyProperty|} { get; set; }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task SimpleSetProperty()
-    {
-        await new VerifyCS.Test
+    public Task SimpleSetProperty()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -163,12 +156,10 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task SimpleInitProperty()
-    {
-        await new VerifyCS.Test
+    public Task SimpleInitProperty()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -187,34 +178,27 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotOnGetOnlyProperty()
-    {
-        var code = """
+    public Task NotOnGetOnlyProperty()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             #nullable enable
             
             class MyClass
             {
                 public string {|CS8618:MyProperty|} { get; }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(MemberAccessibilityModifierCombinationsWhereShouldProvideFix))]
-    public async Task TestEffectivePropertyAccessibilityWhereShouldProvideFix(string outerClassAccessibility, string containingTypeAccessibility, string propertyAccessibility)
-    {
-        await new VerifyCS.Test
+    public Task TestEffectivePropertyAccessibilityWhereShouldProvideFix(string outerClassAccessibility, string containingTypeAccessibility, string propertyAccessibility)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 #nullable enable
@@ -241,13 +225,11 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(MemberAccessibilityModifierCombinationsWhereShouldNotProvideFix))]
-    public async Task TestEffectivePropertyAccessibilityWhereShouldNotProvideFix(string outerClassAccessibility, string containingTypeAccessibility, string propertyAccessibility)
-    {
-        await new VerifyCS.Test
+    public Task TestEffectivePropertyAccessibilityWhereShouldNotProvideFix(string outerClassAccessibility, string containingTypeAccessibility, string propertyAccessibility)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 #nullable enable
@@ -263,13 +245,11 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(AccessorAccessibilityModifierCombinationsWhereShouldProvideFix))]
-    public async Task TestSetAccessorAccessibilityWhereShouldProvideFix(string containingTypeAccessibility, string setAccessorAccessibility)
-    {
-        await new VerifyCS.Test
+    public Task TestSetAccessorAccessibilityWhereShouldProvideFix(string containingTypeAccessibility, string setAccessorAccessibility)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 #nullable enable
@@ -290,13 +270,11 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(AccessorAccessibilityModifierCombinationsWhereShouldNotProvideFix))]
-    public async Task TestSetAccessorAccessibilityWhereShouldNotProvideFix(string containingTypeAccessibility, string setAccessorAccessibility)
-    {
-        await new VerifyCS.Test
+    public Task TestSetAccessorAccessibilityWhereShouldNotProvideFix(string containingTypeAccessibility, string setAccessorAccessibility)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 #nullable enable
@@ -309,13 +287,11 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(AccessorAccessibilityModifierCombinationsWhereShouldProvideFix))]
-    public async Task TestInitAccessorAccessibilityWhereShouldProvideFix(string containingTypeAccessibility, string setAccessorAccessibility)
-    {
-        await new VerifyCS.Test
+    public Task TestInitAccessorAccessibilityWhereShouldProvideFix(string containingTypeAccessibility, string setAccessorAccessibility)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 #nullable enable
@@ -336,13 +312,11 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(AccessorAccessibilityModifierCombinationsWhereShouldNotProvideFix))]
-    public async Task TestInitAccessorAccessibilityWhereShouldNotProvideFix(string containingTypeAccessibility, string setAccessorAccessibility)
-    {
-        await new VerifyCS.Test
+    public Task TestInitAccessorAccessibilityWhereShouldNotProvideFix(string containingTypeAccessibility, string setAccessorAccessibility)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 #nullable enable
@@ -355,12 +329,10 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task SimpleField()
-    {
-        await new VerifyCS.Test
+    public Task SimpleField()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -381,13 +353,11 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(MemberAccessibilityModifierCombinationsWhereShouldProvideFix))]
-    public async Task TestEffectiveFieldAccessibilityWhereShouldProvideFix(string outerClassAccessibility, string containingTypeAccessibility, string fieldAccessibility)
-    {
-        await new VerifyCS.Test
+    public Task TestEffectiveFieldAccessibilityWhereShouldProvideFix(string outerClassAccessibility, string containingTypeAccessibility, string fieldAccessibility)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 #nullable enable
@@ -414,13 +384,11 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(MemberAccessibilityModifierCombinationsWhereShouldNotProvideFix))]
-    public async Task TestEffectiveFieldAccessibilityWhereShouldNotProvideFix(string outerClassAccessibility, string containingTypeAccessibility, string fieldAccessibility)
-    {
-        await new VerifyCS.Test
+    public Task TestEffectiveFieldAccessibilityWhereShouldNotProvideFix(string outerClassAccessibility, string containingTypeAccessibility, string fieldAccessibility)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 #nullable enable
@@ -436,33 +404,28 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForLowerVersionOfCSharp()
-    {
-        var code = """
+    public Task NotForLowerVersionOfCSharp()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             #nullable enable
             
             class MyClass
             {
                 public string {|CS8618:MyProperty|} { get; set; }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotOnConstructorDeclaration()
-    {
-        var code = """
+    public Task NotOnConstructorDeclaration()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             #nullable enable
             
             class MyClass
@@ -470,42 +433,30 @@ public sealed class MakeMemberRequiredTests
                 public string MyProperty { get; set; }
                 public {|CS8618:MyClass|}() { }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotOnEventDeclaration()
-    {
-        var code = """
+    public Task NotOnEventDeclaration()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             #nullable enable
             
             class MyClass
             {
                 public event System.EventHandler {|CS8618:MyEvent|};
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task FixAll1()
-    {
-        await new VerifyCS.Test
+    public Task FixAll1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -526,12 +477,10 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task FixAll2()
-    {
-        await new VerifyCS.Test
+    public Task FixAll2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -552,12 +501,10 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task FixAll3()
-    {
-        await new VerifyCS.Test
+    public Task FixAll3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -576,12 +523,10 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task FixAll4()
-    {
-        await new VerifyCS.Test
+    public Task FixAll4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -600,12 +545,10 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task FixAll5()
-    {
-        await new VerifyCS.Test
+    public Task FixAll5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -626,12 +569,10 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TwoFieldDeclaratorsWithOneIssue()
-    {
-        await new VerifyCS.Test
+    public Task TwoFieldDeclaratorsWithOneIssue()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -650,5 +591,4 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
-    }
 }

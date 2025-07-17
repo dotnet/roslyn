@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
-internal class OperatorDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<OperatorDeclarationSyntax>
+internal sealed class OperatorDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<OperatorDeclarationSyntax>
 {
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,

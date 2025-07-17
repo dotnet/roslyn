@@ -140,8 +140,8 @@ internal abstract class AbstractRemoveUnusedVariableCodeFixProvider<TLocalDeclar
             }
             else
             {
-                var statementParent = localDeclaration.Parent;
-                if (blockFacts.IsExecutableBlock(statementParent))
+                var statementParent = blockFacts.GetImmediateParentExecutableBlockForStatement(localDeclaration);
+                if (statementParent != null)
                 {
                     var siblings = blockFacts.GetExecutableBlockStatements(statementParent);
                     var localDeclarationIndex = siblings.IndexOf(localDeclaration);

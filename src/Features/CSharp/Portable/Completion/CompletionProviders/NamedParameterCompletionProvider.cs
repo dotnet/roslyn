@@ -117,7 +117,7 @@ internal sealed partial class NamedParameterCompletionProvider : LSPCompletionPr
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: escapedName,
                     displayTextSuffix: ColonString,
-                    symbols: ImmutableArray.Create(parameter),
+                    symbols: [parameter],
                     rules: s_rules.WithMatchPriority(SymbolMatchPriority.PreferNamedArgument),
                     contextPosition: token.SpanStart,
                     filterText: escapedName));

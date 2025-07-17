@@ -2,12 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -8090,6 +8091,192 @@ End Class
             comp = CreateCompilationWithMscorlib40(libSrc, OutputKind.WindowsRuntimeMetadata)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_SynthMemberClashesWithMember5, "A").WithArguments("property", "A", "put_A", "class", "C"))
+        End Sub
+
+        <Fact()>
+        Public Sub CompilerLoweringPreserveAttribute_01()
+            Dim source1 = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+<CompilerLoweringPreserve>
+<AttributeUsage(AttributeTargets.Field Or AttributeTargets.Property)>
+Public Class Preserve1Attribute
+    Inherits Attribute
+End Class
+
+<CompilerLoweringPreserve>
+<AttributeUsage(AttributeTargets.Property)>
+Public Class Preserve2Attribute
+    Inherits Attribute
+End Class
+
+<AttributeUsage(AttributeTargets.Field Or AttributeTargets.Property)>
+Public Class Preserve3Attribute
+    Inherits Attribute
+End Class
+"
+            Dim source2 = "
+Class Test1
+    <Preserve1>
+    <Preserve2>
+    <Preserve3>
+    Property P1 As Integer
+End Class
+"
+
+            Dim validate = Sub(m As ModuleSymbol)
+                               AssertEx.SequenceEqual(
+                                   {
+                                       "Preserve1Attribute",
+                                       "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                                       "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                                   },
+                                   m.GlobalNamespace.GetMember("Test1._P1").GetAttributes().Select(Function(a) a.ToString()))
+                           End Sub
+
+            Dim comp1 = CreateCompilation(
+                {source1, source2, CompilerLoweringPreserveAttributeDefinition},
+                options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            CompileAndVerify(comp1, symbolValidator:=validate).VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilation([source2], references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            CompileAndVerify(comp2, symbolValidator:=validate).VerifyDiagnostics()
+
+            Dim comp3 = CreateCompilation(source2, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            CompileAndVerify(comp3, symbolValidator:=validate).VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub CompilerLoweringPreserveAttribute_02_Retargeting()
+            Dim source0 = "
+Public Class Test0
+End Class
+"
+
+            Dim comp0 = CreateCompilation(source0)
+
+            Dim source1 = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+<CompilerLoweringPreserve>
+<AttributeUsage(AttributeTargets.Field Or AttributeTargets.Property)>
+Public Class Preserve1Attribute
+    Inherits Attribute
+End Class
+
+<CompilerLoweringPreserve>
+<AttributeUsage(AttributeTargets.Property)>
+Public Class Preserve2Attribute
+    Inherits Attribute
+End Class
+
+<AttributeUsage(AttributeTargets.Field Or AttributeTargets.Property)>
+Public Class Preserve3Attribute
+    Inherits Attribute
+End Class
+"
+            Dim source2 = "
+Class Test1
+    <Preserve1>
+    <Preserve2>
+    <Preserve3>
+    Property P1 As Integer
+End Class
+"
+
+            Dim validate = Sub(m As ModuleSymbol)
+                               AssertEx.SequenceEqual(
+                                   {
+                                       "Preserve1Attribute",
+                                       "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                                       "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                                   },
+                                   m.GlobalNamespace.GetMember("Test1._P1").GetAttributes().Select(Function(a) a.ToString()))
+                           End Sub
+
+            Dim comp1 = CreateCompilation(
+                {source1, CompilerLoweringPreserveAttributeDefinition},
+                references:={comp0.ToMetadataReference()},
+                options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            Dim comp2 = CreateCompilation(
+                source2,
+                references:={comp1.ToMetadataReference()},
+                options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            Assert.IsType(Of RetargetingNamedTypeSymbol)(comp2.GetTypeByMetadataName("Preserve1Attribute"))
+
+            CompileAndVerify(comp2, symbolValidator:=validate).VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub CompilerLoweringPreserveAttribute_03_Generic()
+            Dim source1 = "
+using System;
+using System.Runtime.CompilerServices;
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    public class CompilerLoweringPreserveAttribute : Attribute
+    {
+        public CompilerLoweringPreserveAttribute() { }
+    }
+}
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public class Preserve1Attribute<T> : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Property)]
+public class Preserve2Attribute<T> : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public class Preserve3Attribute<T> : Attribute { }
+"
+            Dim comp1 = CreateCSharpCompilation(source1)
+
+            Dim source2 = "
+Class Test1
+    <Preserve1(Of Integer)>
+    <Preserve2(Of Integer)>
+    <Preserve3(Of Integer)>
+    Property P1 As Integer
+End Class
+"
+
+            Dim comp2 = CreateCompilation(
+                source2,
+                references:={comp1.EmitToImageReference()},
+                options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            Assert.True(comp2.GetTypeByMetadataName("Preserve1Attribute`1").Construct(comp2.ObjectType).HasCompilerLoweringPreserveAttribute)
+            Assert.False(comp2.GetTypeByMetadataName("Preserve3Attribute`1").Construct(comp2.ObjectType).HasCompilerLoweringPreserveAttribute)
+
+            comp2.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30002: Type 'Preserve1' is not defined.
+    <Preserve1(Of Integer)>
+     ~~~~~~~~~
+BC32066: Type arguments are not valid because attributes cannot be generic.
+    <Preserve1(Of Integer)>
+     ~~~~~~~~~
+BC30002: Type 'Preserve2' is not defined.
+    <Preserve2(Of Integer)>
+     ~~~~~~~~~
+BC32066: Type arguments are not valid because attributes cannot be generic.
+    <Preserve2(Of Integer)>
+     ~~~~~~~~~
+BC30002: Type 'Preserve3' is not defined.
+    <Preserve3(Of Integer)>
+     ~~~~~~~~~
+BC32066: Type arguments are not valid because attributes cannot be generic.
+    <Preserve3(Of Integer)>
+     ~~~~~~~~~
+]]></expected>)
         End Sub
 
 #Region "Helpers"

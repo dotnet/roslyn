@@ -31,15 +31,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim formattingOptions = Await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(False)
             Dim indentSize = formattingOptions.IndentationSize
 
-            Dim navigationPoint = NavigationPointHelpers.GetNavigationPoint(generatedTree.GetText(text.Encoding), indentSize, generatedNode)
+            Dim generatedText = Await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(False)
+            Dim navigationPoint = NavigationPointHelpers.GetNavigationPoint(generatedText, indentSize, generatedNode)
 
             ' switch back to ui thread to actually perform the application and navigation
             Await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
 
             Using transaction = New CaretPreservingEditTransaction(VBEditorResources.Generate_Member, textView, _textUndoHistoryRegistry, _editorOperationsFactoryService)
-                newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken)
-
                 Dim solution = newDocument.Project.Solution
+                Await solution.Workspace.ApplyDocumentChangesAsync(
+                    ThreadingContext, newDocument, cancellationToken).ConfigureAwait(True)
+
                 Await NavigateToPositionAsync(
                     solution.Workspace, solution.GetRequiredDocument(navigationPoint.Tree).Id,
                     navigationPoint.Position, navigationPoint.VirtualSpaces, cancellationToken).ConfigureAwait(True)

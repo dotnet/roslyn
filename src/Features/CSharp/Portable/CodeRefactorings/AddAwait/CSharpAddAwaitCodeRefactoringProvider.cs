@@ -22,7 +22,7 @@ internal sealed partial class CSharpAddAwaitCodeRefactoringProvider()
     : AbstractAddAwaitCodeRefactoringProvider<ExpressionSyntax>
 {
     protected override string GetTitle()
-        => CSharpFeaturesResources.Add_await;
+        => CSharpCodeFixesResources.Add_await;
 
     protected override string GetTitleWithConfigureAwait()
         => CSharpFeaturesResources.Add_await_and_ConfigureAwaitFalse;

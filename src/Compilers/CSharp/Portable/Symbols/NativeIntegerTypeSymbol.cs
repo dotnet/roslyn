@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -184,6 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsRecordStruct => false;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
 
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
+
         internal override bool Equals(TypeSymbol? other, TypeCompareKind comparison)
         {
             if (other is null)
@@ -204,6 +207,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override int GetHashCode() => _underlyingType.GetHashCode();
+
+        internal override bool HasCompilerLoweringPreserveAttribute => false;
 
 #if !DEBUG
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
@@ -383,6 +388,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => UnderlyingMethod.GetUnmanagedCallersOnlyAttributeData(forceComplete);
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         public override Symbol? AssociatedSymbol => _associatedSymbol;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
@@ -409,6 +416,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builderArgument = null;
             return false;
         }
+
+        internal override int TryGetOverloadResolutionPriority()
+            => UnderlyingMethod.TryGetOverloadResolutionPriority();
     }
 
     internal sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol
@@ -445,6 +455,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
 
         internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
+
+        internal override bool HasEnumeratorCancellationAttribute => _underlyingParameter.HasEnumeratorCancellationAttribute;
 
         public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol._underlyingParameter);
 

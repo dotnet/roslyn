@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -20,17 +20,16 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParentheses;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
-public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryParenthesesCodeFixProvider());
 
-    private async Task TestAsync(string initial, string expected, bool offeredWhenRequireForClarityIsEnabled, int index = 0)
+    private async Task TestAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initial,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
+        bool offeredWhenRequireForClarityIsEnabled, int index = 0)
     {
         await TestInRegularAndScriptAsync(initial, expected, options: RemoveAllUnnecessaryParentheses, index: index);
 
@@ -51,9 +50,8 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
         => TestHelpers.Diagnostic(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId, text, startLocation: new LinePosition(line, column));
 
     [Fact]
-    public async Task TestVariableInitializer_TestWithAllOptionsSetToIgnore()
-    {
-        await TestMissingAsync(
+    public Task TestVariableInitializer_TestWithAllOptionsSetToIgnore()
+        => TestMissingAsync(
             """
             class C
             {
@@ -63,12 +61,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, new TestParameters(options: IgnoreAllParentheses));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29736")]
-    public async Task TestVariableInitializer_TestMissingParenthesis()
-    {
-        await TestMissingAsync(
+    public Task TestVariableInitializer_TestMissingParenthesis()
+        => TestMissingAsync(
             """
             class C
             {
@@ -78,12 +74,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestArithmeticRequiredForClarity1()
-    {
-        await TestMissingAsync(
+    public Task TestArithmeticRequiredForClarity1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -93,12 +87,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, new TestParameters(options: RequireArithmeticBinaryParenthesesForClarity));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44629")]
-    public async Task TestStackAlloc()
-    {
-        await TestMissingAsync(
+    public Task TestStackAlloc()
+        => TestMissingAsync(
             """
             class C
             {
@@ -108,12 +100,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47365")]
-    public async Task TestDynamic()
-    {
-        await TestMissingAsync(
+    public Task TestDynamic()
+        => TestMissingAsync(
             """
             class C
             {
@@ -125,12 +115,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestArithmeticRequiredForClarity2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestArithmeticRequiredForClarity2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -149,12 +137,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, parameters: new TestParameters(options: RequireArithmeticBinaryParenthesesForClarity));
-    }
 
     [Fact]
-    public async Task TestLogicalRequiredForClarity1()
-    {
-        await TestMissingAsync(
+    public Task TestLogicalRequiredForClarity1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -164,12 +150,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, new TestParameters(options: RequireOtherBinaryParenthesesForClarity));
-    }
 
     [Fact]
-    public async Task TestLogicalRequiredForClarity2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLogicalRequiredForClarity2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -188,12 +172,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, parameters: new TestParameters(options: RequireOtherBinaryParenthesesForClarity));
-    }
 
     [Fact]
-    public async Task TestArithmeticNotRequiredForClarityWhenPrecedenceStaysTheSame_Integral1()
-    {
-        await TestAsync(
+    public Task TestArithmeticNotRequiredForClarityWhenPrecedenceStaysTheSame_Integral1()
+        => TestAsync(
             """
             class C
             {
@@ -212,12 +194,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestArithmeticNotRequiredForClarityWhenPrecedenceStaysTheSame_Integral2()
-    {
-        await TestAsync(
+    public Task TestArithmeticNotRequiredForClarityWhenPrecedenceStaysTheSame_Integral2()
+        => TestAsync(
             """
             class C
             {
@@ -236,12 +216,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestArithmeticRequiredForCorrectnessWhenPrecedenceStaysTheSameIfFloatingPoint()
-    {
-        await TestMissingAsync(
+    public Task TestArithmeticRequiredForCorrectnessWhenPrecedenceStaysTheSameIfFloatingPoint()
+        => TestMissingAsync(
             """
             class C
             {
@@ -251,12 +229,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestArithmeticNotRequiredForClarityWhenPrecedenceStaysTheSame_Floating2()
-    {
-        await TestAsync(
+    public Task TestArithmeticNotRequiredForClarityWhenPrecedenceStaysTheSame_Floating2()
+        => TestAsync(
             """
             class C
             {
@@ -275,12 +251,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame1()
-    {
-        await TestAsync(
+    public Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame1()
+        => TestAsync(
             """
             class C
             {
@@ -299,12 +273,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame2()
-    {
-        await TestAsync(
+    public Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame2()
+        => TestAsync(
             """
             class C
             {
@@ -323,12 +295,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestVariableInitializer_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestVariableInitializer_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -347,12 +317,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestReturnStatement_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestReturnStatement_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -371,12 +339,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestExpressionBody_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestExpressionBody_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -389,12 +355,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 int M() => 1 + 2;
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestCheckedExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestCheckedExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -413,12 +377,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestAssignment_TestAvailableWithAlwaysRemove_And_TestNotAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestAssignment_TestAvailableWithAlwaysRemove_And_TestNotAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -437,12 +399,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestCompoundAssignment_TestAvailableWithAlwaysRemove_And_TestNotAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestCompoundAssignment_TestAvailableWithAlwaysRemove_And_TestNotAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -461,12 +421,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestPimaryAssignment_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestPimaryAssignment_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -485,12 +443,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestNestedParenthesizedExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestNestedParenthesizedExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -509,12 +465,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true, index: 1);
-    }
 
     [Fact]
-    public async Task TestIncrementExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestIncrementExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -533,12 +487,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestLambdaBody_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestLambdaBody_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -557,12 +509,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestArrayElement_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestArrayElement_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -581,12 +531,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestWhereClause_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestWhereClause_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -609,12 +557,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestCastExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestCastExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -633,12 +579,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestMissingForConditionalAccess1()
-    {
-        await TestMissingAsync(
+    public Task TestMissingForConditionalAccess1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -648,12 +592,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37046")]
-    public async Task TestMissingForConditionalAccess2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingForConditionalAccess2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -663,12 +605,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestForConditionalAccessNotInExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestForConditionalAccessNotInExpression()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -688,12 +628,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, options: RemoveAllUnnecessaryParentheses);
-    }
 
     [Fact]
-    public async Task TestMissingForConditionalIndex()
-    {
-        await TestMissingAsync(
+    public Task TestMissingForConditionalIndex()
+        => TestMissingAsync(
             """
             class C
             {
@@ -703,12 +641,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestBinaryInCastExpression()
-    {
-        await TestMissingAsync(
+    public Task TestBinaryInCastExpression()
+        => TestMissingAsync(
             """
             class C
             {
@@ -718,12 +654,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestAroundCastExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestAroundCastExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -742,12 +676,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestConditionalInInterpolation()
-    {
-        await TestMissingAsync(
+    public Task TestConditionalInInterpolation()
+        => TestMissingAsync(
             """
             class C
             {
@@ -757,12 +689,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestConditionalInInterpolation_FixAll_1()
-    {
-        await TestAsync(
+    public Task TestConditionalInInterpolation_FixAll_1()
+        => TestAsync(
             """
             class C
             {
@@ -783,12 +713,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestConditionalInInterpolation_FixAll_2()
-    {
-        await TestAsync(
+    public Task TestConditionalInInterpolation_FixAll_2()
+        => TestAsync(
             """
             class C
             {
@@ -809,12 +737,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestNonConditionalInInterpolation_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestNonConditionalInInterpolation_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -833,12 +759,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestBinaryExpression_TestAvailableWithAlwaysRemove_And_NotAvailableWhenRequiredForClarity_1()
-    {
-        await TestAsync(
+    public Task TestBinaryExpression_TestAvailableWithAlwaysRemove_And_NotAvailableWhenRequiredForClarity_1()
+        => TestAsync(
             """
             class C
             {
@@ -857,12 +781,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: false);
-    }
 
     [Fact]
-    public async Task TestBinaryExpression_TestAvailableWithAlwaysRemove_And_NotAvailableWhenRequiredForClarity_2()
-    {
-        await TestAsync(
+    public Task TestBinaryExpression_TestAvailableWithAlwaysRemove_And_NotAvailableWhenRequiredForClarity_2()
+        => TestAsync(
             """
             class C
             {
@@ -881,12 +803,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: false);
-    }
 
     [Fact]
-    public async Task TestConditionalExpression_TestNotAvailableForComplexChildren1()
-    {
-        await TestMissingAsync(
+    public Task TestConditionalExpression_TestNotAvailableForComplexChildren1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -896,12 +816,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestConditionalExpression_TestNotAvailableForComplexChildren2()
-    {
-        await TestMissingAsync(
+    public Task TestConditionalExpression_TestNotAvailableForComplexChildren2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -911,12 +829,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestConditionalExpression_TestNotAvailableForComplexChildren3()
-    {
-        await TestMissingAsync(
+    public Task TestConditionalExpression_TestNotAvailableForComplexChildren3()
+        => TestMissingAsync(
             """
             class C
             {
@@ -926,12 +842,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestConditionalExpression_TestAvailableForPrimaryChildren1()
-    {
-        await TestAsync(
+    public Task TestConditionalExpression_TestAvailableForPrimaryChildren1()
+        => TestAsync(
             """
             class C
             {
@@ -950,12 +864,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestConditionalExpression_TestAvailableForPrimaryChildren2()
-    {
-        await TestAsync(
+    public Task TestConditionalExpression_TestAvailableForPrimaryChildren2()
+        => TestAsync(
             """
             class C
             {
@@ -974,12 +886,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestConditionalExpression_TestAvailableForPrimaryChildren3()
-    {
-        await TestAsync(
+    public Task TestConditionalExpression_TestAvailableForPrimaryChildren3()
+        => TestAsync(
             """
             class C
             {
@@ -998,12 +908,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestIsPattern_TestAvailableWithAlwaysRemove_And_NotAvailableWhenRequiredForClarity_1()
-    {
-        await TestAsync(
+    public Task TestIsPattern_TestAvailableWithAlwaysRemove_And_NotAvailableWhenRequiredForClarity_1()
+        => TestAsync(
             """
             class C
             {
@@ -1022,12 +930,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestIsPattern_TestAvailableWithAlwaysRemove_And_NotAvailableWhenRequiredForClarity_2()
-    {
-        await TestAsync(
+    public Task TestIsPattern_TestAvailableWithAlwaysRemove_And_NotAvailableWhenRequiredForClarity_2()
+        => TestAsync(
             """
             class C
             {
@@ -1046,12 +952,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: false);
-    }
 
     [Fact]
-    public async Task TestForOverloadedOperatorOnLeft()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForOverloadedOperatorOnLeft()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1074,12 +978,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 public static C operator +(C c1, C c2) => null;
             }
             """, parameters: new TestParameters(options: RequireAllParenthesesForClarity));
-    }
 
     [Fact]
-    public async Task TestMissingForOverloadedOperatorOnRight()
-    {
-        await TestMissingAsync(
+    public Task TestMissingForOverloadedOperatorOnRight()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1091,12 +993,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 public static C operator +(C c1, C c2) => null;
             }
             """, parameters: new TestParameters(options: RequireAllParenthesesForClarity));
-    }
 
     [Fact]
-    public async Task TestShiftRequiredForClarity1()
-    {
-        await TestMissingAsync(
+    public Task TestShiftRequiredForClarity1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1106,12 +1006,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, parameters: new TestParameters(options: RequireArithmeticBinaryParenthesesForClarity));
-    }
 
     [Fact]
-    public async Task TestShiftRequiredForClarity2()
-    {
-        await TestMissingAsync(
+    public Task TestShiftRequiredForClarity2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1121,12 +1019,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, parameters: new TestParameters(options: RequireAllParenthesesForClarity));
-    }
 
     [Fact]
-    public async Task TestDoNotRemoveShiftAcrossPrecedence()
-    {
-        await TestMissingAsync(
+    public Task TestDoNotRemoveShiftAcrossPrecedence()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1136,12 +1032,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestRemoveShiftIfNotNecessary2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRemoveShiftIfNotNecessary2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1160,12 +1054,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestDoNotRemoveShiftAcrossSamePrecedenceIfValueWouldChange()
-    {
-        await TestMissingAsync(
+    public Task TestDoNotRemoveShiftAcrossSamePrecedenceIfValueWouldChange()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1175,12 +1067,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestDoNotRemoveShiftIfShiftKindDiffers()
-    {
-        await TestMissingAsync(
+    public Task TestDoNotRemoveShiftIfShiftKindDiffers()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1190,12 +1080,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestRemoveCoalesceIfNotNecessary1()
-    {
-        await TestMissingAsync(
+    public Task TestRemoveCoalesceIfNotNecessary1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1205,12 +1093,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestRemoveCoalesceIfNotNecessary2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRemoveCoalesceIfNotNecessary2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1229,12 +1115,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestBitwiseExpression_TestMissingWithDifferencePrecedence1()
-    {
-        await TestMissingAsync(
+    public Task TestBitwiseExpression_TestMissingWithDifferencePrecedence1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1244,12 +1128,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestBitwiseExpression_TestMissingWithDifferencePrecedence2()
-    {
-        await TestMissingAsync(
+    public Task TestBitwiseExpression_TestMissingWithDifferencePrecedence2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1259,12 +1141,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestBitwiseExpression_TestAvailableWithSamePrecedenceMissingWithDifferencePrecedence2()
-    {
-        await TestAsync(
+    public Task TestBitwiseExpression_TestAvailableWithSamePrecedenceMissingWithDifferencePrecedence2()
+        => TestAsync(
             """
             class C
             {
@@ -1283,12 +1163,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25554")]
-    public async Task TestSwitchCase_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestSwitchCase_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -1313,12 +1191,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25554")]
-    public async Task TestSwitchCase_WithWhenClause_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestSwitchCase_WithWhenClause_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -1343,12 +1219,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25554")]
-    public async Task TestWhenClause_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestWhenClause_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -1373,12 +1247,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25554")]
-    public async Task TestConstantPatternExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
-    {
-        await TestAsync(
+    public Task TestConstantPatternExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        => TestAsync(
             """
             class C
             {
@@ -1401,12 +1273,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25554")]
-    public async Task TestConstantPatternExpression_RequiredForPrecedence()
-    {
-        await TestMissingAsync(
+    public Task TestConstantPatternExpression_RequiredForPrecedence()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1418,12 +1288,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestCastAmbiguity1()
-    {
-        await TestMissingAsync(
+    public Task TestCastAmbiguity1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1433,12 +1301,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCastAmbiguity2()
-    {
-        await TestMissingAsync(
+    public Task TestCastAmbiguity2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1448,12 +1314,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestCastAmbiguity3()
-    {
-        await TestMissingAsync(
+    public Task TestCastAmbiguity3()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1463,12 +1327,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestCastAmbiguity4()
-    {
-        await TestMissingAsync(
+    public Task TestCastAmbiguity4()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1478,12 +1340,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestPrimitiveCastNoAmbiguity1()
-    {
-        await TestAsync(
+    public Task TestPrimitiveCastNoAmbiguity1()
+        => TestAsync(
             """
             class C
             {
@@ -1502,12 +1362,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestPrimitiveCastNoAmbiguity2()
-    {
-        await TestAsync(
+    public Task TestPrimitiveCastNoAmbiguity2()
+        => TestAsync(
             """
             class C
             {
@@ -1526,12 +1384,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestPrimitiveCastNoAmbiguity3()
-    {
-        await TestAsync(
+    public Task TestPrimitiveCastNoAmbiguity3()
+        => TestAsync(
             """
             class C
             {
@@ -1550,12 +1406,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestPrimitiveCastNoAmbiguity4()
-    {
-        await TestAsync(
+    public Task TestPrimitiveCastNoAmbiguity4()
+        => TestAsync(
             """
             class C
             {
@@ -1574,12 +1428,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestArrayCastNoAmbiguity1()
-    {
-        await TestAsync(
+    public Task TestArrayCastNoAmbiguity1()
+        => TestAsync(
             """
             class C
             {
@@ -1598,12 +1450,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestArrayCastNoAmbiguity2()
-    {
-        await TestAsync(
+    public Task TestArrayCastNoAmbiguity2()
+        => TestAsync(
             """
             class C
             {
@@ -1622,12 +1472,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestArrayCastNoAmbiguity3()
-    {
-        await TestAsync(
+    public Task TestArrayCastNoAmbiguity3()
+        => TestAsync(
             """
             class C
             {
@@ -1646,12 +1494,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestArrayCastNoAmbiguity4()
-    {
-        await TestAsync(
+    public Task TestArrayCastNoAmbiguity4()
+        => TestAsync(
             """
             class C
             {
@@ -1670,12 +1516,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestPointerCastNoAmbiguity1()
-    {
-        await TestAsync(
+    public Task TestPointerCastNoAmbiguity1()
+        => TestAsync(
             """
             class C
             {
@@ -1694,12 +1538,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestPointerCastNoAmbiguity2()
-    {
-        await TestAsync(
+    public Task TestPointerCastNoAmbiguity2()
+        => TestAsync(
             """
             class C
             {
@@ -1718,12 +1560,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestPointerCastNoAmbiguity3()
-    {
-        await TestAsync(
+    public Task TestPointerCastNoAmbiguity3()
+        => TestAsync(
             """
             class C
             {
@@ -1742,12 +1582,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestPointerCastNoAmbiguity4()
-    {
-        await TestAsync(
+    public Task TestPointerCastNoAmbiguity4()
+        => TestAsync(
             """
             class C
             {
@@ -1766,12 +1604,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestNullableCastNoAmbiguity1()
-    {
-        await TestAsync(
+    public Task TestNullableCastNoAmbiguity1()
+        => TestAsync(
             """
             class C
             {
@@ -1790,12 +1626,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestNullableCastNoAmbiguity2()
-    {
-        await TestAsync(
+    public Task TestNullableCastNoAmbiguity2()
+        => TestAsync(
             """
             class C
             {
@@ -1814,12 +1648,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestNullableCastNoAmbiguity3()
-    {
-        await TestAsync(
+    public Task TestNullableCastNoAmbiguity3()
+        => TestAsync(
             """
             class C
             {
@@ -1838,12 +1670,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestNullableCastNoAmbiguity4()
-    {
-        await TestAsync(
+    public Task TestNullableCastNoAmbiguity4()
+        => TestAsync(
             """
             class C
             {
@@ -1862,12 +1692,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestAliasCastNoAmbiguity1()
-    {
-        await TestAsync(
+    public Task TestAliasCastNoAmbiguity1()
+        => TestAsync(
             """
             class C
             {
@@ -1886,12 +1714,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestAliasCastNoAmbiguity2()
-    {
-        await TestAsync(
+    public Task TestAliasCastNoAmbiguity2()
+        => TestAsync(
             """
             class C
             {
@@ -1910,12 +1736,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestAliasCastNoAmbiguity3()
-    {
-        await TestAsync(
+    public Task TestAliasCastNoAmbiguity3()
+        => TestAsync(
             """
             class C
             {
@@ -1934,12 +1758,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestAliasCastNoAmbiguity4()
-    {
-        await TestAsync(
+    public Task TestAliasCastNoAmbiguity4()
+        => TestAsync(
             """
             class C
             {
@@ -1958,12 +1780,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestCastOfPrimary()
-    {
-        await TestAsync(
+    public Task TestCastOfPrimary()
+        => TestAsync(
             """
             class C
             {
@@ -1982,12 +1802,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestCastOfMemberAccess()
-    {
-        await TestAsync(
+    public Task TestCastOfMemberAccess()
+        => TestAsync(
             """
             class C
             {
@@ -2006,12 +1824,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestCastOfNonAmbiguousUnary()
-    {
-        await TestAsync(
+    public Task TestCastOfNonAmbiguousUnary()
+        => TestAsync(
             """
             class C
             {
@@ -2030,12 +1846,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestCastOfCast()
-    {
-        await TestAsync(
+    public Task TestCastOfCast()
+        => TestAsync(
             """
             class C
             {
@@ -2054,12 +1868,10 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestIsPatternAndLogical_TestWithAllOptionsSetToIgnore()
-    {
-        await TestAsync(
+    public Task TestIsPatternAndLogical_TestWithAllOptionsSetToIgnore()
+        => TestAsync(
             """
             class C
             {
@@ -2078,13 +1890,11 @@ public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCShar
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: false);
-    }
+            offeredWhenRequireForClarityIsEnabled: false);
 
     [Fact]
-    public async Task TestGuardPatternMissing()
-    {
-        await TestMissingAsync(
+    public Task TestGuardPatternMissing()
+        => TestMissingAsync(
             """
             class C
             {
@@ -2094,12 +1904,10 @@ offeredWhenRequireForClarityIsEnabled: false);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParensAroundLValueMemberAccess()
-    {
-        await TestAsync(
+    public Task TestParensAroundLValueMemberAccess()
+        => TestAsync(
             """
             class C
             {
@@ -2118,13 +1926,11 @@ offeredWhenRequireForClarityIsEnabled: false);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
-    }
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
-    public async Task TestParensAroundMultiplicationInAddEquals()
-    {
-        await TestAsync(
+    public Task TestParensAroundMultiplicationInAddEquals()
+        => TestAsync(
             """
             class C
             {
@@ -2143,13 +1949,11 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
-    }
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
-    public async Task TestParensAroundAddInMultipleEquals()
-    {
-        await TestAsync(
+    public Task TestParensAroundAddInMultipleEquals()
+        => TestAsync(
             """
             class C
             {
@@ -2168,13 +1972,11 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
-    }
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
-    public async Task TestNecessaryCast()
-    {
-        await TestMissingAsync(
+    public Task TestNecessaryCast()
+        => TestMissingAsync(
             """
             class C
             {
@@ -2184,12 +1986,10 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParensAroundChecked()
-    {
-        await TestAsync(
+    public Task TestParensAroundChecked()
+        => TestAsync(
             """
             class C
             {
@@ -2208,13 +2008,11 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
-    }
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
-    public async Task TestParensAroundUnchecked()
-    {
-        await TestAsync(
+    public Task TestParensAroundUnchecked()
+        => TestAsync(
             """
             class C
             {
@@ -2233,13 +2031,11 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
-    }
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
-    public async Task TestParensAroundNameof()
-    {
-        await TestAsync(
+    public Task TestParensAroundNameof()
+        => TestAsync(
             """
             class C
             {
@@ -2258,13 +2054,11 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
-    }
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
-    public async Task TestParensIsCheck()
-    {
-        await TestAsync(
+    public Task TestParensIsCheck()
+        => TestAsync(
             """
             class C
             {
@@ -2283,13 +2077,11 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
-    }
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
-    public async Task TestNecessaryParensAroundIs()
-    {
-        await TestMissingAsync(
+    public Task TestNecessaryParensAroundIs()
+        => TestMissingAsync(
             """
             class C
             {
@@ -2299,12 +2091,10 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParensAroundAssignmentInInitialization()
-    {
-        await TestAsync(
+    public Task TestParensAroundAssignmentInInitialization()
+        => TestAsync(
             """
             class C
             {
@@ -2325,13 +2115,11 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
-    }
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
-    public async Task TestParensAroundLambda1()
-    {
-        await TestAsync(
+    public Task TestParensAroundLambda1()
+        => TestAsync(
             """
             class C
             {
@@ -2350,13 +2138,11 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
-    }
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
-    public async Task TestParensAroundLambda2()
-    {
-        await TestAsync(
+    public Task TestParensAroundLambda2()
+        => TestAsync(
             """
             class C
             {
@@ -2375,13 +2161,11 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
-    }
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
-    public async Task TestParensAroundCastedLambda1()
-    {
-        await TestMissingAsync(
+    public Task TestParensAroundCastedLambda1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -2391,12 +2175,10 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParensAroundCastedLambda2()
-    {
-        await TestMissingAsync(
+    public Task TestParensAroundCastedLambda2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -2406,12 +2188,10 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParensAroundCastedLambda3()
-    {
-        await TestMissingAsync(
+    public Task TestParensAroundCastedLambda3()
+        => TestMissingAsync(
             """
             class C
             {
@@ -2421,12 +2201,10 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParensAroundReturnValue1()
-    {
-        await TestAsync(
+    public Task TestParensAroundReturnValue1()
+        => TestAsync(
             """
             class C
             {
@@ -2445,13 +2223,11 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
-    }
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
-    public async Task TestParensAroundReturnValue2()
-    {
-        await TestAsync(
+    public Task TestParensAroundReturnValue2()
+        => TestAsync(
             """
             class C
             {
@@ -2470,13 +2246,11 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
-    }
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
-    public async Task TestParensAroundPPDirective1()
-    {
-        await TestAsync(
+    public Task TestParensAroundPPDirective1()
+        => TestAsync(
             """
             class C
             {
@@ -2497,14 +2271,11 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
-    }
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
-    public async Task TestParensAroundPPDirective2()
-    {
-        // Currently producing broken code.
-        await TestAsync(
+    public Task TestParensAroundPPDirective2()
+        => TestAsync(
             """
             class C
             {
@@ -2525,13 +2296,11 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true, index: 1);
-    }
+            offeredWhenRequireForClarityIsEnabled: true, index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57768")]
-    public async Task TestParensAroundPPDirective3()
-    {
-        await TestAsync(
+    public Task TestParensAroundPPDirective3()
+        => TestAsync(
             """
             class C
             {
@@ -2554,13 +2323,11 @@ offeredWhenRequireForClarityIsEnabled: true, index: 1);
                 }
             }
             """,
-offeredWhenRequireForClarityIsEnabled: true);
-    }
+            offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29454")]
-    public async Task TestMissingForPreIncrement()
-    {
-        await TestMissingAsync(
+    public Task TestMissingForPreIncrement()
+        => TestMissingAsync(
             """
             class C
             {
@@ -2570,12 +2337,10 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29454")]
-    public async Task TestMissingForPreDecrement()
-    {
-        await TestMissingAsync(
+    public Task TestMissingForPreDecrement()
+        => TestMissingAsync(
             """
             class C
             {
@@ -2585,12 +2350,10 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29454")]
-    public async Task TestForPostIncrement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForPostIncrement()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -2610,12 +2373,10 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """, parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29454")]
-    public async Task TestForPostDecrement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForPostDecrement()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -2635,12 +2396,10 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """, parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29454")]
-    public async Task TestForPreIncrementInLocalDeclaration()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForPreIncrementInLocalDeclaration()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -2659,12 +2418,10 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """, parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29454")]
-    public async Task TestForPreIncrementInSimpleAssignment()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForPreIncrementInSimpleAssignment()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -2683,12 +2440,10 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """, parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29454")]
-    public async Task TestForPreIncrementInArgument()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForPreIncrementInArgument()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -2707,12 +2462,10 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """, parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29454")]
-    public async Task TestMissingForPreIncrementAfterAdd()
-    {
-        await TestMissingAsync(
+    public Task TestMissingForPreIncrementAfterAdd()
+        => TestMissingAsync(
             """
             class C
             {
@@ -2722,12 +2475,10 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29454")]
-    public async Task TestMissingForUnaryPlusAfterAdd()
-    {
-        await TestMissingAsync(
+    public Task TestMissingForUnaryPlusAfterAdd()
+        => TestMissingAsync(
             """
             class C
             {
@@ -2737,12 +2488,10 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31103")]
-    public async Task TestMissingForConditionalRefAsLeftHandSideValue()
-    {
-        await TestMissingAsync(
+    public Task TestMissingForConditionalRefAsLeftHandSideValue()
+        => TestMissingAsync(
             """
             class Bar
             {
@@ -2752,12 +2501,10 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31103")]
-    public async Task TestConditionalExpressionAsRightHandSideValue()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestConditionalExpressionAsRightHandSideValue()
+        => TestInRegularAndScript1Async(
             """
             class Bar
             {
@@ -2776,13 +2523,11 @@ offeredWhenRequireForClarityIsEnabled: true);
                 }
             }
             """,
-parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
+            parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32085")]
-    public async Task TestMissingForNestedConditionalExpressionInLambda()
-    {
-        await TestMissingAsync(
+    public Task TestMissingForNestedConditionalExpressionInLambda()
+        => TestMissingAsync(
             """
             class Bar
             {
@@ -2793,7 +2538,6 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27925")]
     public async Task TestUnnecessaryParenthesisDiagnosticSingleLineExpression()
@@ -2895,9 +2639,8 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
     }
 
     [Fact, WorkItem(27925, "https://github.com/dotnet/roslyn/issues/39363")]
-    public async Task TestUnnecessaryParenthesesInSwitchExpression()
-    {
-        await TestAsync(
+    public Task TestUnnecessaryParenthesesInSwitchExpression()
+        => TestAsync(
             """
             class C
             {
@@ -2926,12 +2669,10 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
                 };
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26311")]
-    public async Task TestUnnecessaryParenthesesAroundDefaultLiteral()
-    {
-        await TestAsync(
+    public Task TestUnnecessaryParenthesesAroundDefaultLiteral()
+        => TestAsync(
             """
             class C
             {
@@ -2954,12 +2695,10 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestRangeWithConstantExpression()
-    {
-        await TestAsync(
+    public Task TestRangeWithConstantExpression()
+        => TestAsync(
             """
             class C
             {
@@ -2978,12 +2717,10 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestRangeWithMemberAccessExpression()
-    {
-        await TestAsync(
+    public Task TestRangeWithMemberAccessExpression()
+        => TestAsync(
             """
             class C
             {
@@ -3002,12 +2739,10 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestRangeWithElementAccessExpression()
-    {
-        await TestAsync(
+    public Task TestRangeWithElementAccessExpression()
+        => TestAsync(
             """
             class C
             {
@@ -3026,12 +2761,10 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestRangeWithBinaryExpression()
-    {
-        await TestMissingAsync(
+    public Task TestRangeWithBinaryExpression()
+        => TestMissingAsync(
             """
             class C
             {
@@ -3041,12 +2774,10 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact]
-    public async Task TestAlwaysUnnecessaryForPrimaryPattern1()
-    {
-        await TestAsync(
+    public Task TestAlwaysUnnecessaryForPrimaryPattern1()
+        => TestAsync(
             """
             class C
             {
@@ -3065,12 +2796,10 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestAlwaysUnnecessaryForPrimaryPattern2()
-    {
-        await TestAsync(
+    public Task TestAlwaysUnnecessaryForPrimaryPattern2()
+        => TestAsync(
             """
             class C
             {
@@ -3089,12 +2818,10 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50025")]
-    public async Task TestDoNotRemoveWithConstantAndTypeAmbiguity()
-    {
-        await TestMissingAsync(
+    public Task TestDoNotRemoveWithConstantAndTypeAmbiguity()
+        => TestMissingAsync(
             """
             public class C
             {    
@@ -3108,12 +2835,10 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 
             public class Goo { }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50025")]
-    public async Task TestDoRemoveWithNoConstantAndTypeAmbiguity()
-    {
-        await TestAsync(
+    public Task TestDoRemoveWithNoConstantAndTypeAmbiguity()
+        => TestAsync(
             """
             public class C
             {    
@@ -3136,12 +2861,10 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
                 }    
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestElementAccessOfSuppressedExpression1()
-    {
-        await TestAsync(
+    public Task TestElementAccessOfSuppressedExpression1()
+        => TestAsync(
             """
             public class C
             {
@@ -3160,12 +2883,10 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestElementAccessOfSuppressedExpression2()
-    {
-        await TestAsync(
+    public Task TestElementAccessOfSuppressedExpression2()
+        => TestAsync(
             """
             public class C
             {
@@ -3188,12 +2909,10 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45100")]
-    public async Task TestArithmeticOverflow1()
-    {
-        await TestMissingAsync(
+    public Task TestArithmeticOverflow1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -3206,12 +2925,10 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
                 }
             }
             """, parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45100")]
-    public async Task TestArithmeticOverflow1_CompilationOption()
-    {
-        await TestMissingAsync(
+    public Task TestArithmeticOverflow1_CompilationOption()
+        => TestMissingAsync(
             """
             class C
             {
@@ -3223,12 +2940,10 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
             """, parameters: new TestParameters(
 options: RemoveAllUnnecessaryParentheses,
 compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, checkOverflow: true)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45100")]
-    public async Task TestArithmeticOverflow2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestArithmeticOverflow2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -3247,12 +2962,10 @@ compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLib
                 }
             }
             """, parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43934")]
-    public async Task TestTupleArgumentsBecomeGenericSyntax1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTupleArgumentsBecomeGenericSyntax1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             public class C {
@@ -3277,12 +2990,10 @@ compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLib
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43934")]
-    public async Task TestTupleArgumentsBecomeGenericSyntax2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTupleArgumentsBecomeGenericSyntax2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             public class C {
@@ -3307,12 +3018,10 @@ compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLib
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43934")]
-    public async Task TestTupleArgumentsBecomeGenericSyntax3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTupleArgumentsBecomeGenericSyntax3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             public class C {
@@ -3337,12 +3046,10 @@ compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLib
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43934")]
-    public async Task TestTupleArgumentsBecomeGenericSyntax4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTupleArgumentsBecomeGenericSyntax4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             public class C {
@@ -3367,12 +3074,10 @@ compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLib
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43934")]
-    public async Task TestMethodArgumentsBecomeGenericSyntax1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodArgumentsBecomeGenericSyntax1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             public class C {
@@ -3397,12 +3102,10 @@ compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLib
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43934")]
-    public async Task TestMethodArgumentsBecomeGenericSyntax2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodArgumentsBecomeGenericSyntax2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             public class C {
@@ -3427,12 +3130,10 @@ compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLib
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43934")]
-    public async Task TestMethodArgumentsBecomeGenericSyntax3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodArgumentsBecomeGenericSyntax3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             public class C {
@@ -3457,5 +3158,115 @@ compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLib
                 }
             }
             """);
-    }
+
+    [Fact]
+    public Task TestRemoveAroundCollectionExpression()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool b)
+                {
+                    int[] a = b ? $$([1]) : []; 
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool b)
+                {
+                    int[] a = b ? [1] : []; 
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75203")]
+    public Task TestConditionalExpressionInWhenClauseAmbiguity1()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                public void M(object o, object?[] c)
+                {
+                    switch(o)
+                    {
+                        case { } when $$(c?[0] is { }):
+                            break;
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75203")]
+    public Task TestConditionalExpressionInWhenClauseAmbiguity2()
+        => TestInRegularAndScript1Async("""
+            class C
+            {
+                public void M(object o, object?[] c)
+                {
+                    switch(o)
+                    {
+                        case { } when $$(c ? [0] : [1]):
+                            break;
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                public void M(object o, object?[] c)
+                {
+                    switch(o)
+                    {
+                        case { } when c ? [0] : [1]:
+                            break;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestCollectionExpressionSpread()
+        => TestInRegularAndScript1Async("""
+            class C
+            {
+                public void M()
+                {
+                    var v = [.. $$(a ? b : c)];
+                }
+            }
+            """, """
+            class C
+            {
+                public void M()
+                {
+                    var v = [.. a ? b : c];
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78331")]
+    public Task TestCollectionExpressionInInitializer()
+        => TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                public void M()
+                {
+                    var v = new List<int[]>() { $$([]) };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78331")]
+    public Task TestAttributedLambdaExpressionInInitializer()
+        => TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                public void M()
+                {
+                    var v = new List<Action>() { $$([X] () => { }) };
+                }
+            }
+            """);
 }

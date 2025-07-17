@@ -15,20 +15,15 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDelegateWithConditionalAccess;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public InvokeDelegateWithConditionalAccessTests(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new InvokeDelegateWithConditionalAccessAnalyzer(), new InvokeDelegateWithConditionalAccessCodeFixProvider());
 
     [Fact]
-    public async Task Test1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task Test1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -55,12 +50,42 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76423")]
+    public Task Test1_TopLevel()
+        => TestInRegularAndScriptAsync(
+            """
+            var v = () => {};
+            [||]if (v != null)
+            {
+                v();
+            }
+            """,
+            """
+            var v = () => {};
+            v?.Invoke();
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76423")]
+    public Task Test2_TopLevel()
+        => TestAsync(
+            """
+            Action a = null;
+            [||]var v = a;
+            if (v != null)
+            {
+                v();
+            }
+            """,
+            """
+            Action a = null;
+
+            a?.Invoke();
+            """, parseOptions: CSharpParseOptions.Default);
 
     [Fact]
-    public async Task TestOnIf()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnIf()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -87,12 +112,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnInvoke()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnInvoke()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -119,12 +142,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
-    public async Task TestMissingBeforeCSharp6()
-    {
-        await TestMissingAsync(
+    public Task TestMissingBeforeCSharp6()
+        => TestMissingAsync(
             """
             class C
             {
@@ -140,12 +161,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """, new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
-    }
 
     [Fact]
-    public async Task TestInvertedIf()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInvertedIf()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -172,12 +191,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfWithNoBraces()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestIfWithNoBraces()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -202,12 +219,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithComplexExpression()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithComplexExpression()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -236,12 +251,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithElseClause()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingWithElseClause()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -260,12 +273,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnDeclarationWithMultipleVariables()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnDeclarationWithMultipleVariables()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -281,16 +292,14 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     /// <remarks>
     /// With multiple variables in the same declaration, the fix _is not_ offered on the declaration
     /// itself, but _is_ offered on the invocation pattern.
     /// </remarks>
     [Fact]
-    public async Task TestLocationWhereOfferedWithMultipleVariables()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLocationWhereOfferedWithMultipleVariables()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -318,16 +327,14 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     /// <remarks>
     /// If we have a variable declaration and if it is read/written outside the delegate 
     /// invocation pattern, the fix is not offered on the declaration.
     /// </remarks>
     [Fact]
-    public async Task TestMissingOnDeclarationIfUsedOutside()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnDeclarationIfUsedOutside()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -345,7 +352,6 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     /// <remarks>
     /// If we have a variable declaration and if it is read/written outside the delegate 
@@ -353,9 +359,8 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
     /// the invocation pattern itself.
     /// </remarks>
     [Fact]
-    public async Task TestLocationWhereOfferedIfUsedOutside()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLocationWhereOfferedIfUsedOutside()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -387,12 +392,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimpleForm1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleForm1()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -422,12 +425,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimpleForm2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleForm2()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -457,12 +458,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInElseClause1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInElseClause1()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -501,12 +500,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInElseClause2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInElseClause2()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -540,12 +537,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrivia1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -572,12 +567,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrivia2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -603,12 +596,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51563")]
-    public async Task TestTrivia3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrivia3()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -634,12 +625,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51563")]
-    public async Task TestTrivia4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrivia4()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -662,15 +651,13 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     /// <remarks>
     /// tests locations where the fix is offered.
     /// </remarks>
     [Fact]
-    public async Task TestFixOfferedOnIf()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixOfferedOnIf()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -697,15 +684,13 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     /// <remarks>
     /// tests locations where the fix is offered.
     /// </remarks>
     [Fact]
-    public async Task TestFixOfferedInsideIf()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixOfferedInsideIf()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -732,12 +717,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnConditionalInvocation()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnConditionalInvocation()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -750,12 +733,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnConditionalInvocation2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnConditionalInvocation2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -768,12 +749,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnConditionalInvocation3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnConditionalInvocation3()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -785,12 +764,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnNonNullCheckExpressions()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnNonNullCheckExpressions()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -806,12 +783,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnNonNullCheckExpressions2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnNonNullCheckExpressions2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -827,16 +802,14 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     /// <remarks>
     /// if local declaration is not immediately preceding the invocation pattern, 
     /// the fix is not offered on the declaration.
     /// </remarks>
     [Fact]
-    public async Task TestLocalNotImmediatelyPrecedingNullCheckAndInvokePattern()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestLocalNotImmediatelyPrecedingNullCheckAndInvokePattern()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -853,16 +826,14 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     /// <remarks>
     /// if local declaration is not immediately preceding the invocation pattern, 
     /// the fix is not offered on the declaration but is offered on the invocation pattern itself.
     /// </remarks>
     [Fact]
-    public async Task TestLocalDNotImmediatelyPrecedingNullCheckAndInvokePattern2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLocalDNotImmediatelyPrecedingNullCheckAndInvokePattern2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -892,12 +863,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnFunc()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnFunc()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -913,12 +882,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
-    public async Task TestWithLambdaInitializer()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithLambdaInitializer()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -946,12 +913,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
-    public async Task TestWithLambdaInitializer2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithLambdaInitializer2()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -979,12 +944,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
-    public async Task TestForWithAnonymousMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForWithAnonymousMethod()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -1012,12 +975,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
-    public async Task TestWithMethodReference()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithMethodReference()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -1045,12 +1006,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31827")]
-    public async Task TestWithExplicitInvokeCall1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithExplicitInvokeCall1()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -1078,12 +1037,10 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 event EventHandler Event;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31827")]
-    public async Task TestWithExplicitInvokeCall2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithExplicitInvokeCall2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1110,12 +1067,25 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76423")]
+    public Task TestWithExplicitInvokeCall2_TopLevel()
+        => TestInRegularAndScriptAsync(
+            """
+            var v = () => {};
+            [||]if (v != null)
+            {
+                v.Invoke();
+            }
+            """,
+            """
+            var v = () => {};
+            v?.Invoke();
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50976")]
-    public async Task TestMissingOnFunctionPointer()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnFunctionPointer()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1128,5 +1098,42 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76422")]
+    public Task TestInvokeMethodOnNonDelegate()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    [||]var v = new C();
+                    if (v != null)
+                    {
+                        v.Invoke();
+                    }
+                }
+            }
+                        
+            class C
+            {
+                public void Invoke() { }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76422")]
+    public Task TestInvokeMethodOnNonDelegate_TopLevel()
+        => TestMissingAsync(
+            """
+            var v = new C();
+            [||]if (v != null)
+            {
+                v.Invoke();
+            }
+                        
+            class C
+            {
+                public void Invoke() { }
+            }
+            """);
 }

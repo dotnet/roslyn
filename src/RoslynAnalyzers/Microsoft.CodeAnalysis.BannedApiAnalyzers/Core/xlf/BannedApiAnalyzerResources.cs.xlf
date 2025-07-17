@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="cs" original="../BannedApiAnalyzerResources.resx">
+    <body>
+      <trans-unit id="DuplicateBannedSymbolDescription">
+        <source>The list of banned symbols contains a duplicate.</source>
+        <target state="translated">Seznam zakázaných symbolů obsahuje duplicitu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateBannedSymbolMessage">
+        <source>The symbol '{0}' is listed multiple times in the list of banned APIs</source>
+        <target state="translated">Symbol {0} se v seznamu zakázaných rozhraní API nachází několikrát.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateBannedSymbolTitle">
+        <source>The list of banned symbols contains a duplicate</source>
+        <target state="translated">Seznam zakázaných symbolů obsahuje duplicitu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RestrictedInternalsVisibleToDescription">
+        <source>RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</source>
+        <target state="translated">RestrictedInternalsVisibleToAttribute povoluje omezenou verzi InternalsVisibleToAttribute, která omezuje přístup k interním symbolům na symboly v zadaném oboru názvů. Každé odkazující sestavení má přístup jen k interním symbolům definovaným v omezeném oboru názvů, který dané sestavení povoluje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RestrictedInternalsVisibleToMessage">
+        <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'.</source>
+        <target state="translated">Externí přístup k internímu symbolu {0} je zakázaný. Sestavení {1} povoluje přístup jen k interním symbolům definovaným v následujících oborech názvů: {2}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RestrictedInternalsVisibleToTitle">
+        <source>External access to internal symbols outside the restricted namespace(s) is prohibited</source>
+        <target state="translated">Externí přístup k interním symbolům mimo omezené obory názvů je zakázaný</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedDescription">
+        <source>The symbol has been marked as banned in this project, and an alternate should be used instead.</source>
+        <target state="translated">Symbol se v tomto projektu označil jako zakázaný, měla by se místo něj použít nějaká alternativa.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedMessage">
+        <source>The symbol '{0}' is banned in this project{1}</source>
+        <target state="translated">Symbol {0} je v tomto projektu {1} zakázaný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedTitle">
+        <source>Do not use banned APIs</source>
+        <target state="translated">Nepoužívat zakázaná rozhraní API</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

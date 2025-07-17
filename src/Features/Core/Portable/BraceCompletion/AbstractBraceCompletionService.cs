@@ -38,18 +38,15 @@ internal abstract class AbstractBraceCompletionService : IBraceCompletionService
 
     public abstract bool AllowOverType(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken);
 
-    public Task<bool> HasBraceCompletionAsync(BraceCompletionContext context, Document document, CancellationToken cancellationToken)
+    public ValueTask<bool> HasBraceCompletionAsync(BraceCompletionContext context, Document document, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (!context.HasCompletionForOpeningBrace(OpeningBrace))
-        {
-            return Task.FromResult(false);
-        }
+            return ValueTaskFactory.FromResult(false);
 
         var openingToken = context.GetOpeningToken();
         if (!NeedsSemantics)
-        {
-            return Task.FromResult(IsValidOpenBraceTokenAtPosition(context.Document.Text, openingToken, context.OpeningPoint));
-        }
+            return ValueTaskFactory.FromResult(IsValidOpenBraceTokenAtPosition(context.Document.Text, openingToken, context.OpeningPoint));
 
         // Pass along a document with frozen partial semantics.  Brace completion is a highly latency sensitive
         // operation.  We don't want to wait on things like source generators to figure things out.
@@ -104,7 +101,7 @@ internal abstract class AbstractBraceCompletionService : IBraceCompletionService
     /// <summary>
     /// Only called if <see cref="NeedsSemantics"/> returns true;
     /// </summary>
-    protected virtual Task<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
+    protected virtual ValueTask<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
     {
         // Subclass should have overridden this.
         throw ExceptionUtilities.Unreachable();

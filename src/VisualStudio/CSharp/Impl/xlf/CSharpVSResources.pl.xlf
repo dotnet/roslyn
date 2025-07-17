@@ -122,11 +122,6 @@
         <target state="translated">W elemencie namespace</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Outside_namespace">
-        <source>Outside namespace</source>
-        <target state="translated">Poza elementem namespace</target>
-        <note>'namespace' is a C# keyword and should not be localized</note>
-      </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">Preferencje dopasowywania wzorca:</target>
@@ -147,14 +142,9 @@
         <target state="translated">Preferuj niejawne tworzenie obiektu, gdy typ jest oczywisty</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
-        <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">Preferuj wyrażenie „is null” w przypadku sprawdzeń odwołań pod kątem równości</target>
-        <note>'is null' is a C# string and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Prefer_null_check_over_type_check">
-        <source>Prefer 'null' check over type check</source>
-        <target state="translated">Ustaw preferencje na sprawdzanie wartości „null” zamiast sprawdzania typu</target>
+      <trans-unit id="Prefer_implicitly_typed_lambda_expression">
+        <source>Prefer implicitly typed lambda expression</source>
+        <target state="new">Prefer implicitly typed lambda expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
@@ -177,11 +167,6 @@
         <target state="translated">Preferowane położenie dyrektywy „using”</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_usings">
-        <source>Remove unnecessary usings</source>
-        <target state="translated">Usuń niepotrzebne użycia</target>
-        <note />
-      </trans-unit>
       <trans-unit id="RunQuery">
         <source>Run Query</source>
         <target state="translated">Uruchom zapytanie</target>
@@ -192,29 +177,24 @@
         <target state="translated">Uruchom (Ctrl+Enter)</target>
         <note />
       </trans-unit>
-      <trans-unit id="SemanticSearch">
-        <source>Semantic Search</source>
-        <target state="translated">Wyszukiwanie semantyczne</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
         <source>Show hints for 'new' expressions</source>
         <target state="translated">Pokaż wskazówki dla wyrażeń „new”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces</source>
-        <target state="translated">Pokaż elementy z nieimportowanych przestrzeni nazw</target>
+      <trans-unit id="Show_name_s_uggestions">
+        <source>Show name s_uggestions</source>
+        <target state="translated">Pokaż s_ugestie dotyczące nazwy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_new_snippet_experience">
+        <source>Show new snippet experience</source>
+        <target state="translated">Pokaż nowe środowisko fragmentu kodu</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
         <source>Show new snippet experience (experimental)</source>
         <target state="translated">Pokaż nowe środowisko fragmentu kodu (eksperymentalne)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_remarks_in_Quick_Info">
-        <source>Show remarks in Quick Info</source>
-        <target state="translated">Pokaż uwagi w szybkich podpowiedziach</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
@@ -225,11 +205,6 @@
       <trans-unit id="Surround_With">
         <source>Surround With</source>
         <target state="translated">Otocz przez</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_Snippet">
-        <source>Insert Snippet</source>
-        <target state="translated">Wstaw fragment kodu</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_block_on_close_brace">
@@ -522,39 +497,9 @@
         <target state="translated">Opcje nowego wiersza dla słów kluczowych</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unused_local">
-        <source>Unused local</source>
-        <target state="translated">Nieużywane zmienne lokalne</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_procedure_line_separators">
-        <source>_Show procedure line separators</source>
-        <target state="translated">_Pokaż separatory wierszy procedury</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Editor_Help">
-        <source>Editor Help</source>
-        <target state="translated">Pomoc edytora</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_related_keywords_under_cursor">
-        <source>Highlight related _keywords under cursor</source>
-        <target state="translated">Wyróżnij powiązane _słowa kluczowe pod kursorem</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_references_to_symbol_under_cursor">
-        <source>_Highlight references to symbol under cursor</source>
-        <target state="translated">_Wyróżnij odwołania do symbolu pod kursorem</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>Enter _outlining mode when files open</source>
         <target state="translated">Przejdź _do trybu konspektu przy otwieraniu plików</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">Wyodrębnianie metody</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
@@ -562,34 +507,9 @@
         <target state="translated">_Generuj komentarze dokumentacji XML dla ///</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlighting">
-        <source>Highlighting</source>
-        <target state="translated">Wyróżnianie</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
         <source>_Insert * at the start of new lines when writing /* */ comments</source>
         <target state="translated">_Wstawiaj znak * na początku nowych wierszy podczas pisania komentarzy (/* */)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Optimize_for_solution_size">
-        <source>Optimize for solution size</source>
-        <target state="translated">Optymalizuj pod kątem rozmiaru rozwiązania</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Large">
-        <source>Large</source>
-        <target state="translated">Duży</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regular">
-        <source>Regular</source>
-        <target state="translated">Standardowy</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Small">
-        <source>Small</source>
-        <target state="translated">Mały</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_Directives">
@@ -597,19 +517,9 @@
         <target state="translated">Dyrektywy using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Performance">
-        <source>Performance</source>
-        <target state="translated">Wydajność</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_usings">
         <source>_Place 'System' directives first when sorting usings</source>
         <target state="translated">_Umieść dyrektywy „System” jako pierwsze podczas sortowania użyć</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_typed">
-        <source>_Show completion list after a character is typed</source>
-        <target state="translated">_Pokaż listę uzupełniania po wpisaniu znaku</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -625,11 +535,6 @@
       <trans-unit id="Selection_In_Completion_List">
         <source>Selection In Completion List</source>
         <target state="translated">Wybór na liście uzupełniania</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_preview_for_rename_tracking">
-        <source>Show preview for rename _tracking</source>
-        <target state="translated">Pokaż podgląd śledzenia _zmian nazw</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_property_indexer_and_event_accessors">
@@ -732,36 +637,6 @@
         <target state="translated">Dziel literały ciągów po _wpisaniu</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlight_matching_portions_of_completion_list_items">
-        <source>_Highlight matching portions of completion list items</source>
-        <target state="translated">_Wyróżnij pasujące fragmenty elementów listy uzupełniania</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_item_filters">
-        <source>Show completion item _filters</source>
-        <target state="translated">Pokaż _filtry elementów uzupełniania</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_key_behavior_colon">
-        <source>Enter key behavior:</source>
-        <target state="translated">Zachowanie klawisza Enter:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="translated">_Dodaj nowy wiersz po naciśnięciu klawisza Enter tylko po zakończeniu pełnego wpisanego wyrazu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_add_new_line_on_enter">
-        <source>_Always add new line on enter</source>
-        <target state="translated">_Zawsze dodawaj nowy wiersz po naciśnięciu klawisza Enter</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_add_new_line_on_enter">
-        <source>_Never add new line on enter</source>
-        <target state="translated">_Nigdy nie dodawaj nowego wiersza po naciśnięciu klawisza Enter</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Always_include_snippets">
         <source>Always include snippets</source>
         <target state="translated">Zawsze dołączaj fragmenty kodu</target>
@@ -770,21 +645,6 @@
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when ?-Tab is typed after an identifier</source>
         <target state="translated">Dołącz fragmenty kodu po wpisaniu znaku ? po identyfikatorze i naciśnięciu klawisza Tab</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_include_snippets">
-        <source>Never include snippets</source>
-        <target state="translated">Nigdy nie dołączaj fragmentów kodu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Snippets_behavior">
-        <source>Snippets behavior</source>
-        <target state="translated">Zachowanie fragmentów kodu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
-        <source>Show completion list after a character is _deleted</source>
-        <target state="translated">Pokaż listę _uzupełniania po usunięciu znaku</target>
         <note />
       </trans-unit>
       <trans-unit id="null_checking_colon">
@@ -822,11 +682,6 @@
         <target state="translated">Formatuj automatycznie podczas pisania</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">Nigdy</target>
-        <note />
-      </trans-unit>
       <trans-unit id="When_on_single_line">
         <source>When on single line</source>
         <target state="translated">W pojedynczym wierszu</target>
@@ -858,8 +713,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Show_name_suggestions">
-        <source>Show name s_uggestions</source>
-        <target state="translated">Pokaż s_ugestie dotyczące nazwy</target>
+        <source>Show name suggestions</source>
+        <target state="translated">Pokaż sugestie dotyczące nazw</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">

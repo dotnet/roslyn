@@ -5,38 +5,36 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ExtractClass;
 using Microsoft.CodeAnalysis.ExtractClass;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.ExtractClass
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.ExtractClass;
+
+[ExportWorkspaceService(typeof(IExtractClassOptionsService)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class OmniSharpExtractClassOptionsService(
+    IOmniSharpExtractClassOptionsService omniSharpExtractClassOptionsService) : IExtractClassOptionsService
 {
-    [Shared]
-    [ExportWorkspaceService(typeof(IExtractClassOptionsService))]
-    internal class OmniSharpExtractClassOptionsService : IExtractClassOptionsService
+    private readonly IOmniSharpExtractClassOptionsService _omniSharpExtractClassOptionsService = omniSharpExtractClassOptionsService;
+
+    public ExtractClassOptions? GetExtractClassOptions(
+        Document document,
+        INamedTypeSymbol originalType,
+        ImmutableArray<ISymbol> selectedMembers,
+        SyntaxFormattingOptions formattingOptions,
+        CancellationToken cancellationToken)
     {
-        private readonly IOmniSharpExtractClassOptionsService _omniSharpExtractClassOptionsService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public OmniSharpExtractClassOptionsService(IOmniSharpExtractClassOptionsService omniSharpExtractClassOptionsService)
-        {
-            _omniSharpExtractClassOptionsService = omniSharpExtractClassOptionsService;
-        }
-
-        public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalType, ImmutableArray<ISymbol> selectedMembers, CancellationToken cancellationToken)
-        {
-            var result = await _omniSharpExtractClassOptionsService.GetExtractClassOptionsAsync(document, originalType, selectedMembers).ConfigureAwait(false);
-            return result == null
-                ? null
-                : new ExtractClassOptions(
-                    result.FileName,
-                    result.TypeName,
-                    result.SameFile,
-                    result.MemberAnalysisResults.SelectAsArray(m => new ExtractClassMemberAnalysisResult(m.Member, m.MakeAbstract)));
-        }
+        var result = _omniSharpExtractClassOptionsService.GetExtractClassOptions(document, originalType, selectedMembers);
+        return result == null
+            ? null
+            : new ExtractClassOptions(
+                result.FileName,
+                result.TypeName,
+                result.SameFile,
+                result.MemberAnalysisResults.SelectAsArray(m => new ExtractClassMemberAnalysisResult(m.Member, m.MakeAbstract)));
     }
 }

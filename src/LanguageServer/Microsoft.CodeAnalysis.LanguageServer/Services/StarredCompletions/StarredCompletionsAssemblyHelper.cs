@@ -11,6 +11,7 @@ using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
+
 internal static class StarredCompletionAssemblyHelper
 {
     private const string CompletionsDllName = "Microsoft.VisualStudio.IntelliCode.CSharp.dll";
@@ -137,7 +138,7 @@ internal static class StarredCompletionAssemblyHelper
 
     private static async Task<CompletionProvider> CreateCompletionProviderAsync(MethodInfo createCompletionProviderMethodInfo, IServiceBroker serviceBroker, string modelBasePath, ILogger logger)
     {
-        var completionProviderObj = createCompletionProviderMethodInfo.Invoke(null, new object[4] { serviceBroker, BrokeredServices.Services.Descriptors.RemoteModelService, modelBasePath, logger });
+        var completionProviderObj = createCompletionProviderMethodInfo.Invoke(null, [serviceBroker, BrokeredServices.Services.Descriptors.RemoteModelService, modelBasePath, logger]);
         if (completionProviderObj == null)
         {
             throw new NotSupportedException($"{createCompletionProviderMethodInfo.Name} method could not be invoked");

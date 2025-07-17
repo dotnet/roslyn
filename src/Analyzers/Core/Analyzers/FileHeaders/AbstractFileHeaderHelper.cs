@@ -9,16 +9,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FileHeaders;
 
-internal abstract class AbstractFileHeaderHelper
+internal abstract class AbstractFileHeaderHelper(ISyntaxKinds syntaxKinds)
 {
-    protected AbstractFileHeaderHelper(ISyntaxKinds syntaxKinds)
-    {
-        SingleLineCommentTriviaKind = syntaxKinds.SingleLineCommentTrivia;
-        MultiLineCommentTriviaKind = syntaxKinds.MultiLineCommentTrivia;
-        WhitespaceTriviaKind = syntaxKinds.WhitespaceTrivia;
-        EndOfLineTriviaKind = syntaxKinds.EndOfLineTrivia;
-    }
-
     /// <summary>
     /// Gets the text prefix indicating a single-line comment.
     /// </summary>
@@ -27,16 +19,16 @@ internal abstract class AbstractFileHeaderHelper
     protected abstract ReadOnlyMemory<char> GetTextContextOfComment(SyntaxTrivia commentTrivia);
 
     /// <inheritdoc cref="ISyntaxKinds.SingleLineCommentTrivia"/>
-    private int SingleLineCommentTriviaKind { get; }
+    private int SingleLineCommentTriviaKind { get; } = syntaxKinds.SingleLineCommentTrivia;
 
     /// <inheritdoc cref="ISyntaxKinds.MultiLineCommentTrivia"/>
-    private int? MultiLineCommentTriviaKind { get; }
+    private int? MultiLineCommentTriviaKind { get; } = syntaxKinds.MultiLineCommentTrivia;
 
     /// <inheritdoc cref="ISyntaxKinds.WhitespaceTrivia"/>
-    private int WhitespaceTriviaKind { get; }
+    private int WhitespaceTriviaKind { get; } = syntaxKinds.WhitespaceTrivia;
 
     /// <inheritdoc cref="ISyntaxKinds.EndOfLineTrivia"/>
-    private int EndOfLineTriviaKind { get; }
+    private int EndOfLineTriviaKind { get; } = syntaxKinds.EndOfLineTrivia;
 
     public FileHeader ParseFileHeader(SyntaxNode root)
     {

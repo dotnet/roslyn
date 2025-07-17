@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -24,8 +25,10 @@ internal sealed class LoadedProject : IDisposable
     private readonly string _projectDirectory;
 
     private readonly ProjectSystemProject _projectSystemProject;
+    public ProjectSystemProjectFactory ProjectFactory { get; }
     private readonly ProjectSystemProjectOptionsProcessor _optionsProcessor;
-    private readonly IFileChangeContext _fileChangeContext;
+    private readonly IFileChangeContext _sourceFileChangeContext;
+    private readonly IFileChangeContext _projectFileChangeContext;
     private readonly ProjectTargetFrameworkManager _targetFrameworkManager;
 
     /// <summary>
@@ -37,42 +40,33 @@ internal sealed class LoadedProject : IDisposable
     /// </summary>
     private Lazy<ImmutableArray<Matcher>>? _mostRecentFileMatchers;
     private IWatchedFile? _mostRecentProjectAssetsFileWatcher;
-    private ImmutableArray<CommandLineReference> _mostRecentMetadataReferences = ImmutableArray<CommandLineReference>.Empty;
-    private ImmutableArray<CommandLineAnalyzerReference> _mostRecentAnalyzerReferences = ImmutableArray<CommandLineAnalyzerReference>.Empty;
+    private ImmutableArray<CommandLineReference> _mostRecentMetadataReferences = [];
+    private ImmutableArray<CommandLineAnalyzerReference> _mostRecentAnalyzerReferences = [];
 
-    public LoadedProject(ProjectSystemProject projectSystemProject, SolutionServices solutionServices, IFileChangeWatcher fileWatcher, ProjectTargetFrameworkManager targetFrameworkManager)
+    public LoadedProject(ProjectSystemProject projectSystemProject, ProjectSystemProjectFactory projectFactory, IFileChangeWatcher fileWatcher, ProjectTargetFrameworkManager targetFrameworkManager)
     {
         Contract.ThrowIfNull(projectSystemProject.FilePath);
         _projectFilePath = projectSystemProject.FilePath;
 
         _projectSystemProject = projectSystemProject;
-        _optionsProcessor = new ProjectSystemProjectOptionsProcessor(projectSystemProject, solutionServices);
+        ProjectFactory = projectFactory;
+        _optionsProcessor = new ProjectSystemProjectOptionsProcessor(projectSystemProject, projectFactory.Workspace.CurrentSolution.Services);
         _targetFrameworkManager = targetFrameworkManager;
 
         // We'll watch the directory for all source file changes
         // TODO: we only should listen for add/removals here, but we can't specify such a filter now
         _projectDirectory = Path.GetDirectoryName(_projectFilePath)!;
 
-        _fileChangeContext = fileWatcher.CreateContext([
-            new(_projectDirectory, ".cs"),
-            new(_projectDirectory, ".cshtml"),
-            new(_projectDirectory, ".razor")
-        ]);
-        _fileChangeContext.FileChanged += FileChangedContext_FileChanged;
+        _sourceFileChangeContext = fileWatcher.CreateContext([new(_projectDirectory, [".cs", ".cshtml", ".razor"])]);
+        _sourceFileChangeContext.FileChanged += SourceFileChangeContext_FileChanged;
 
-        // Start watching for file changes for the project file as well
-        _fileChangeContext.EnqueueWatchingFile(_projectFilePath);
+        _projectFileChangeContext = fileWatcher.CreateContext([]);
+        _projectFileChangeContext.FileChanged += ProjectFileChangeContext_FileChanged;
+        _projectFileChangeContext.EnqueueWatchingFile(_projectFilePath);
     }
 
-    private void FileChangedContext_FileChanged(object? sender, string filePath)
+    private void SourceFileChangeContext_FileChanged(object? sender, string filePath)
     {
-        // If the project file itself changed, we almost certainly need to reload the project.
-        if (string.Equals(filePath, _projectFilePath, StringComparison.OrdinalIgnoreCase))
-        {
-            NeedsReload?.Invoke(this, EventArgs.Empty);
-            return;
-        }
-
         var matchers = _mostRecentFileMatchers?.Value;
         if (matchers is null)
         {
@@ -96,6 +90,11 @@ internal sealed class LoadedProject : IDisposable
         }
     }
 
+    private void ProjectFileChangeContext_FileChanged(object? sender, string filePath)
+    {
+        NeedsReload?.Invoke(this, EventArgs.Empty);
+    }
+
     public event EventHandler? NeedsReload;
 
     public string? GetTargetFramework()
@@ -104,13 +103,18 @@ internal sealed class LoadedProject : IDisposable
         return _mostRecentFileInfo.TargetFramework;
     }
 
+    /// <summary>
+    /// Unloads the project and removes it from the workspace.
+    /// </summary>
     public void Dispose()
     {
+        _sourceFileChangeContext.Dispose();
+        _projectFileChangeContext.Dispose();
         _optionsProcessor.Dispose();
         _projectSystemProject.RemoveFromWorkspace();
     }
 
-    public async ValueTask<(ProjectLoadTelemetryReporter.TelemetryInfo, bool NeedsRestore)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, ILogger logger)
+    public async ValueTask<(ProjectLoadTelemetryReporter.TelemetryInfo, bool NeedsRestore)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, bool isMiscellaneousFile, ILogger logger)
     {
         if (_mostRecentFileInfo != null)
         {
@@ -122,21 +126,19 @@ internal sealed class LoadedProject : IDisposable
         var disposableBatchScope = await _projectSystemProject.CreateBatchScopeAsync(CancellationToken.None).ConfigureAwait(false);
         await using var _ = disposableBatchScope.ConfigureAwait(false);
 
-        var projectDisplayName = Path.GetFileNameWithoutExtension(newProjectInfo.FilePath)!;
-        var projectFullPathWithTargetFramework = newProjectInfo.FilePath;
-
-        if (newProjectInfo.TargetFramework != null)
-        {
-            var targetFrameworkSuffix = " (" + newProjectInfo.TargetFramework + ")";
-            projectDisplayName += targetFrameworkSuffix;
-            projectFullPathWithTargetFramework += targetFrameworkSuffix;
-        }
+        var targetFrameworkSuffix = newProjectInfo.TargetFramework != null ? " (" + newProjectInfo.TargetFramework + ")" : "";
+        var projectDisplayName = isMiscellaneousFile
+            ? FeaturesResources.Miscellaneous_Files
+            : Path.GetFileNameWithoutExtension(newProjectInfo.FilePath) + targetFrameworkSuffix;
+        var projectFullPathWithTargetFramework = newProjectInfo.FilePath + targetFrameworkSuffix;
 
         _projectSystemProject.DisplayName = projectDisplayName;
         _projectSystemProject.OutputFilePath = newProjectInfo.OutputFilePath;
         _projectSystemProject.OutputRefFilePath = newProjectInfo.OutputRefFilePath;
         _projectSystemProject.GeneratedFilesOutputDirectory = newProjectInfo.GeneratedFilesOutputDirectory;
         _projectSystemProject.CompilationOutputAssemblyFilePath = newProjectInfo.IntermediateOutputFilePath;
+        _projectSystemProject.DefaultNamespace = newProjectInfo.DefaultNamespace;
+        _projectSystemProject.HasAllInformation = !isMiscellaneousFile;
 
         if (newProjectInfo.TargetFrameworkIdentifier != null)
         {
@@ -215,24 +217,24 @@ internal sealed class LoadedProject : IDisposable
             newProjectInfo.AdditionalDocuments.Where(TreatAsIsDynamicFile),
             _mostRecentFileInfo?.AdditionalDocuments.Where(TreatAsIsDynamicFile),
             DocumentFileInfoComparer.Instance,
-            document => _projectSystemProject.AddDynamicSourceFile(document.FilePath, folders: ImmutableArray<string>.Empty),
+            document => _projectSystemProject.AddDynamicSourceFile(document.FilePath, folders: []),
             document => _projectSystemProject.RemoveDynamicSourceFile(document.FilePath),
             "Project {0} now has {1} dynamic file(s).");
 
-        WatchProjectAssetsFile(newProjectInfo, _fileChangeContext);
+        WatchProjectAssetsFile(newProjectInfo);
 
         var needsRestore = ProjectDependencyHelper.NeedsRestore(newProjectInfo, _mostRecentFileInfo, logger);
 
         _mostRecentFileMatchers = new Lazy<ImmutableArray<Matcher>>(() =>
         {
-            return newProjectInfo.FileGlobs.Select(glob =>
+            return [.. newProjectInfo.FileGlobs.Select(glob =>
             {
                 var matcher = new Matcher();
                 matcher.AddIncludePatterns(glob.Includes);
                 matcher.AddExcludePatterns(glob.Excludes);
                 matcher.AddExcludePatterns(glob.Removes);
                 return matcher;
-            }).ToImmutableArray();
+            })];
         });
         _mostRecentFileInfo = newProjectInfo;
 
@@ -270,7 +272,7 @@ internal sealed class LoadedProject : IDisposable
                 logger.LogTrace(logMessage, projectFullPathWithTargetFramework, newItems.Count);
         }
 
-        void WatchProjectAssetsFile(ProjectFileInfo currentProjectInfo, IFileChangeContext fileChangeContext)
+        void WatchProjectAssetsFile(ProjectFileInfo currentProjectInfo)
         {
             if (_mostRecentFileInfo?.ProjectAssetsFilePath == currentProjectInfo.ProjectAssetsFilePath)
             {
@@ -280,14 +282,9 @@ internal sealed class LoadedProject : IDisposable
 
             // Dispose of the last once since we're changing the file we're watching.
             _mostRecentProjectAssetsFileWatcher?.Dispose();
-
-            IWatchedFile? currentWatcher = null;
-            if (currentProjectInfo.ProjectAssetsFilePath != null)
-            {
-                currentWatcher = fileChangeContext.EnqueueWatchingFile(currentProjectInfo.ProjectAssetsFilePath);
-            }
-
-            _mostRecentProjectAssetsFileWatcher = currentWatcher;
+            _mostRecentProjectAssetsFileWatcher = currentProjectInfo.ProjectAssetsFilePath is { } assetsFilePath
+                    ? _projectFileChangeContext.EnqueueWatchingFile(assetsFilePath)
+                    : null;
         }
     }
 

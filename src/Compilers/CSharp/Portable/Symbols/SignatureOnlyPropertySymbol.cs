@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsIndexer { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override int? TryGetOverloadResolutionPriority() => throw ExceptionUtilities.Unreachable();
+        internal override int TryGetOverloadResolutionPriority() => throw ExceptionUtilities.Unreachable();
 
         #endregion Not used by PropertySignatureComparer
     }

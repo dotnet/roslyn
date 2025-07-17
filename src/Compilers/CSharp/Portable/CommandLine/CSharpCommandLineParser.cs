@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool? delaySignSetting = null;
             string? keyFileSetting = null;
             string? keyContainerSetting = null;
-            List<ResourceDescription> managedResources = new List<ResourceDescription>();
+            List<CommandLineResource> managedResources = new List<CommandLineResource>();
             List<CommandLineSourceFile> sourceFiles = new List<CommandLineSourceFile>();
             List<CommandLineSourceFile> additionalFiles = new List<CommandLineSourceFile>();
             var analyzerConfigPaths = ArrayBuilder<string>.GetInstance();
@@ -742,8 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break; // Dev11 reports unrecognized option
                             }
 
-                            var embeddedResource = ParseResourceDescription(arg, valueMemory.Value, baseDirectory, diagnostics, embedded: true);
-                            if (embeddedResource != null)
+                            if (TryParseResourceDescription(arg, valueMemory.Value, baseDirectory, diagnostics, isEmbedded: true, out var embeddedResource))
                             {
                                 managedResources.Add(embeddedResource);
                                 resourcesOrModulesSpecified = true;
@@ -758,8 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break; // Dev11 reports unrecognized option
                             }
 
-                            var linkedResource = ParseResourceDescription(arg, valueMemory.Value, baseDirectory, diagnostics, embedded: false);
-                            if (linkedResource != null)
+                            if (TryParseResourceDescription(arg, valueMemory.Value, baseDirectory, diagnostics, isEmbedded: false, out var linkedResource))
                             {
                                 managedResources.Add(linkedResource);
                                 resourcesOrModulesSpecified = true;
@@ -1580,7 +1578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DisplayHelp = displayHelp,
                 DisplayVersion = displayVersion,
                 DisplayLangVersions = displayLangVersions,
-                ManifestResources = managedResources.AsImmutable(),
+                ManifestResourceArguments = managedResources.AsImmutable(),
                 CompilationOptions = options,
                 ParseOptions = parseOptions,
                 EmitOptions = emitOptions,
@@ -1816,6 +1814,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case "arm64":
                     return Platform.Arm64;
                 default:
+                    // This switch supports architectures that .NET Framework runs on Windows only.
+                    // Non-Windows architectures that .NET runs on are intentionally not supported here.
                     AddDiagnostic(diagnostics, ErrorCode.ERR_BadPlatformType, value);
                     return Platform.AnyCpu;
             }
@@ -2013,78 +2013,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static ResourceDescription? ParseResourceDescription(
-            string arg,
-            string resourceDescriptor,
-            string? baseDirectory,
-            IList<Diagnostic> diagnostics,
-            bool embedded) =>
-            ParseResourceDescription(arg, resourceDescriptor.AsMemory(), baseDirectory, diagnostics, embedded);
-
-        internal static ResourceDescription? ParseResourceDescription(
-            string arg,
+        internal static bool TryParseResourceDescription(
+            string argName,
             ReadOnlyMemory<char> resourceDescriptor,
             string? baseDirectory,
             IList<Diagnostic> diagnostics,
-            bool embedded)
+            bool isEmbedded,
+            out CommandLineResource resource)
         {
-            string? filePath;
-            string? fullPath;
-            string? fileName;
-            string? resourceName;
-            string? accessibility;
-
-            ParseResourceDescription(
+            if (!TryParseResourceDescription(
                 resourceDescriptor,
                 baseDirectory,
-                false,
-                out filePath,
-                out fullPath,
-                out fileName,
-                out resourceName,
-                out accessibility);
+                skipLeadingSeparators: false,
+                allowEmptyAccessibility: false,
+                out var filePath,
+                out var fullPath,
+                out var fileName,
+                out var resourceName,
+                out var isPublic,
+                out var rawAccessibility))
+            {
+                if (isPublic == null)
+                {
+                    AddDiagnostic(diagnostics, ErrorCode.ERR_BadResourceVis, rawAccessibility ?? "");
+                }
+                else if (RoslynString.IsNullOrWhiteSpace(filePath))
+                {
+                    AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, argName);
+                }
+                else
+                {
+                    Debug.Assert(!PathUtilities.IsValidFilePath(fullPath));
+                    AddDiagnostic(diagnostics, ErrorCode.FTL_InvalidInputFileName, filePath);
+                }
 
-            bool isPublic;
-            if (accessibility == null)
-            {
-                // If no accessibility is given, we default to "public".
-                // NOTE: Dev10 distinguishes between null and empty/whitespace-only.
-                isPublic = true;
-            }
-            else if (string.Equals(accessibility, "public", StringComparison.OrdinalIgnoreCase))
-            {
-                isPublic = true;
-            }
-            else if (string.Equals(accessibility, "private", StringComparison.OrdinalIgnoreCase))
-            {
-                isPublic = false;
-            }
-            else
-            {
-                AddDiagnostic(diagnostics, ErrorCode.ERR_BadResourceVis, accessibility);
-                return null;
-            }
-
-            if (RoslynString.IsNullOrWhiteSpace(filePath))
-            {
-                AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
-                return null;
-            }
-            Debug.Assert(!resourceName.IsEmpty()); // see ParseResourceDescription's check on filePath
-
-            if (!PathUtilities.IsValidFilePath(fullPath))
-            {
-                AddDiagnostic(diagnostics, ErrorCode.FTL_InvalidInputFileName, filePath);
-                return null;
+                resource = default;
+                return false;
             }
 
-            Func<Stream> dataProvider = () =>
-                                            {
-                                                // Use FileShare.ReadWrite because the file could be opened by the current process.
-                                                // For example, it is an XML doc file produced by the build.
-                                                return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                                            };
-            return new ResourceDescription(resourceName, fileName, dataProvider, isPublic, embedded, checkArgs: false);
+            resource = new CommandLineResource(
+                resourceName: resourceName,
+                fullPath: fullPath,
+                linkedResourceFileName: isEmbedded ? null : fileName,
+                isPublic.Value);
+
+            return true;
         }
 
         private static void ParseWarnings(ReadOnlyMemory<char> value, ArrayBuilder<string> ids)

@@ -14,6 +14,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.InternalUtilities
@@ -2487,6 +2488,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 SynthesizedMetadataCompiler.ProcessSynthesizedMembers(Me, moduleBeingBuilt, cancellationToken)
+
+                If moduleBeingBuilt.OutputKind.IsApplication() Then
+                    Dim entryPoint = GetEntryPointAndDiagnostics(cancellationToken)
+                    diagnostics.AddRange(entryPoint.Diagnostics)
+                    If entryPoint.MethodSymbol IsNot Nothing AndAlso Not entryPoint.Diagnostics.HasAnyErrors() Then
+                        moduleBeingBuilt.SetPEEntryPoint(entryPoint.MethodSymbol, diagnostics)
+                    Else
+                        Return False
+                    End If
+                End If
             Else
                 ' start generating PDB checksums if we need to emit PDBs
                 If (emittingPdb OrElse moduleBuilder.EmitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage)) AndAlso
@@ -2593,6 +2604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             metadataStream As Stream,
             ilStream As Stream,
             pdbStream As Stream,
+            options As EmitDifferenceOptions,
             testData As CompilationTestData,
             cancellationToken As CancellationToken) As EmitDifferenceResult
 
@@ -2604,6 +2616,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataStream,
                 ilStream,
                 pdbStream,
+                options,
                 testData,
                 cancellationToken)
         End Function
@@ -2842,6 +2855,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New MissingNamespaceSymbol(
                        container.EnsureVbSymbolOrNothing(Of NamespaceSymbol)(NameOf(container)),
                        name)
+        End Function
+
+        Protected Overrides Function CommonCreatePreprocessingSymbol(name As String) As IPreprocessingSymbol
+            Return New PreprocessingSymbol(name)
         End Function
 
         Protected Overrides Function CommonCreateArrayTypeSymbol(elementType As ITypeSymbol, rank As Integer, elementNullableAnnotation As NullableAnnotation) As IArrayTypeSymbol

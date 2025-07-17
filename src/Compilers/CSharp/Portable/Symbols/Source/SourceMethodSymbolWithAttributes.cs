@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -14,9 +13,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -24,14 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A source method that can have attributes, including a member method, accessor, or local function.
     /// </summary>
-    internal abstract class SourceMethodSymbolWithAttributes : SourceMethodSymbol, IAttributeTargetSymbol
+    internal abstract partial class SourceMethodSymbol : IAttributeTargetSymbol
     {
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private CustomAttributesBag<CSharpAttributeData> _lazyReturnTypeCustomAttributesBag;
 
         // some symbols may not have a syntax (e.g. lambdas, synthesized event accessors)
         protected readonly SyntaxReference syntaxReferenceOpt;
-        protected SourceMethodSymbolWithAttributes(SyntaxReference syntaxReferenceOpt)
+        protected SourceMethodSymbol(SyntaxReference syntaxReferenceOpt)
         {
             this.syntaxReferenceOpt = syntaxReferenceOpt;
         }
@@ -614,6 +613,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
             {
+                if (!this.UseUpdatedEscapeRules)
+                {
+                    diagnostics.Add(ErrorCode.WRN_UnscopedRefAttributeOldRules, arguments.AttributeSyntaxOpt.Location);
+                }
+
                 if (this.IsValidUnscopedRefAttributeTarget())
                 {
                     arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasUnscopedRefAttribute = true;
@@ -634,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
             {
-                MessageID.IDS_OverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+                MessageID.IDS_FeatureOverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
 
                 if (!CanHaveOverloadResolutionPriority)
                 {
@@ -819,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasErrors = false;
 
             var implementationPart = this.PartialImplementationPart ?? this;
-            if (!implementationPart.IsExtern || !implementationPart.IsStatic)
+            if (!implementationPart.IsExtern || (!implementationPart.IsStatic && !implementationPart.GetIsNewExtensionMember()))
             {
                 diagnostics.Add(ErrorCode.ERR_DllImportOnInvalidMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;
@@ -939,7 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(arguments.AttributeSyntaxOpt is object);
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
-            if (MethodKind != MethodKind.Ordinary)
+            if (MethodKind != MethodKind.Ordinary || this.GetIsNewExtensionMember())
             {
                 diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, arguments.AttributeSyntaxOpt.Location);
                 return;
@@ -1031,23 +1035,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             thisNamespaceNames.Free();
 
-            if (ContainingType.IsGenericType)
+            bool hadError = ReportBadInterceptsLocation(diagnostics, attributeLocation);
+            if (hadError)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorContainingTypeCannotBeGeneric, attributeLocation, this);
-                return;
-            }
-
-            if (MethodKind != MethodKind.Ordinary)
-            {
-                diagnostics.Add(ErrorCode.ERR_InterceptorMethodMustBeOrdinary, attributeLocation);
-                return;
-            }
-
-            Debug.Assert(_lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed);
-            var unmanagedCallersOnly = this.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);
-            if (unmanagedCallersOnly != null)
-            {
-                diagnostics.Add(ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly, attributeLocation);
                 return;
             }
 
@@ -1103,10 +1093,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            DeclaringCompilation.AddInterception(matchingTree.FilePath, position, attributeLocation, this);
+            DeclaringCompilation.AddInterception(matchingTree.GetText().GetContentHash(), position, attributeLocation, this);
 
             // Caller must free the returned builder.
-            static ArrayBuilder<string> getNamespaceNames(SourceMethodSymbolWithAttributes @this)
+            static ArrayBuilder<string> getNamespaceNames(SourceMethodSymbol @this)
             {
                 var namespaceNames = ArrayBuilder<string>.GetInstance();
                 for (var containingNamespace = @this.ContainingNamespace; containingNamespace?.IsGlobalNamespace == false; containingNamespace = containingNamespace.ContainingNamespace)
@@ -1155,7 +1145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // https://github.com/dotnet/roslyn/issues/72265: Remove support for path-based interceptors prior to stable release.
         private void DecodeInterceptsLocationAttributeExperimentalCompat(
             DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,
             string? attributeFilePath,
@@ -1166,6 +1155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var attributeSyntax = arguments.AttributeSyntaxOpt;
             Debug.Assert(attributeSyntax is object);
             var attributeLocation = attributeSyntax.Location;
+            diagnostics.Add(ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature, attributeLocation);
+
             const int filePathParameterIndex = 0;
             const int lineNumberParameterIndex = 1;
             const int characterNumberParameterIndex = 2;
@@ -1188,23 +1179,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (ContainingType.IsGenericType)
+            bool hadError = ReportBadInterceptsLocation(diagnostics, attributeLocation);
+            if (hadError)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorContainingTypeCannotBeGeneric, attributeLocation, this);
-                return;
-            }
-
-            if (MethodKind != MethodKind.Ordinary)
-            {
-                diagnostics.Add(ErrorCode.ERR_InterceptorMethodMustBeOrdinary, attributeLocation);
-                return;
-            }
-
-            Debug.Assert(_lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed);
-            var unmanagedCallersOnly = this.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);
-            if (unmanagedCallersOnly != null)
-            {
-                diagnostics.Add(ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly, attributeLocation);
                 return;
             }
 
@@ -1316,7 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            DeclaringCompilation.AddInterception(matchingTree.FilePath, referencedToken.Position, attributeLocation, this);
+            DeclaringCompilation.AddInterception(matchingTree.GetText().GetContentHash(), referencedToken.Position, attributeLocation, this);
 
             // Caller must free the returned builder.
             ArrayBuilder<string> getNamespaceNames()
@@ -1366,6 +1343,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeSyntax, recommendedProperty);
                 }
             }
+        }
+
+        private bool ReportBadInterceptsLocation(BindingDiagnosticBag diagnostics, Location attributeLocation)
+        {
+            if (!this.GetIsNewExtensionMember() && ContainingType.IsGenericType)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorContainingTypeCannotBeGeneric, attributeLocation, this);
+                return true;
+            }
+
+            if (MethodKind != MethodKind.Ordinary)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorMethodMustBeOrdinary, attributeLocation);
+                return true;
+            }
+
+            Debug.Assert(_lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed);
+            var unmanagedCallersOnly = this.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);
+            if (unmanagedCallersOnly != null)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly, attributeLocation);
+                return true;
+            }
+
+            return false;
         }
 
         private void DecodeUnmanagedCallersOnlyAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
@@ -1424,7 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(SourceMethodSymbolWithAttributes @this, CSharpAttributeData attribute, Location location, BindingDiagnosticBag diagnostics)
+            static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(SourceMethodSymbol @this, CSharpAttributeData attribute, Location location, BindingDiagnosticBag diagnostics)
             {
                 Debug.Assert(attribute.AttributeClass is not null);
                 ImmutableHashSet<CodeAnalysis.Symbols.INamedTypeSymbolInternal>? callingConventionTypes = null;
@@ -1579,7 +1581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     GetInMethodSyntaxNode() is object)
                 {
                     var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
-                    var enumeratorCancellationCount = Parameters.Count(p => p.IsSourceParameterWithEnumeratorCancellationAttribute());
+                    var enumeratorCancellationCount = Parameters.Count(p => p.HasEnumeratorCancellationAttribute);
                     if (enumeratorCancellationCount == 0 &&
                         ParameterTypesWithAnnotations.Any(static (p, cancellationTokenType) => p.Type.Equals(cancellationTokenType), cancellationTokenType))
                     {
@@ -1670,10 +1672,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                var data = GetDecodedWellKnownAttributeData();
-                return data != null && data.HasSpecialNameAttribute;
+                return HasSpecialNameAttribute;
             }
         }
+
+        internal sealed override bool HasSpecialNameAttribute =>
+            GetDecodedWellKnownAttributeData()?.HasSpecialNameAttribute == true;
 
         internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
             GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
@@ -1744,7 +1748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override int? TryGetOverloadResolutionPriority()
-            => GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority;
+        internal override int TryGetOverloadResolutionPriority()
+            => GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority ?? 0;
     }
 }

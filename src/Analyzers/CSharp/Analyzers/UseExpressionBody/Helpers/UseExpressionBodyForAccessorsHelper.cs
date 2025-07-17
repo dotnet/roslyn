@@ -2,16 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
-internal class UseExpressionBodyForAccessorsHelper :
+using static SyntaxFactory;
+
+internal sealed class UseExpressionBodyForAccessorsHelper :
     UseExpressionBodyHelper<AccessorDeclarationSyntax>
 {
     public static readonly UseExpressionBodyForAccessorsHelper Instance = new();
@@ -51,7 +54,15 @@ internal class UseExpressionBodyForAccessorsHelper :
         => declaration.WithExpressionBody(expressionBody);
 
     protected override AccessorDeclarationSyntax WithBody(AccessorDeclarationSyntax declaration, BlockSyntax? body)
-        => declaration.WithBody(body);
+    {
+        // If the accessor was on the same line as its parent, add an elastic marker so we can place it properly now
+        // that it will have a multi-line block body.  If it's already on its own line, do nothing as we want to just
+        // keep it there and not move it.
+        var result = declaration.WithBody(body);
+        return !declaration.GetLeadingTrivia().Any(t => t.Kind() == SyntaxKind.EndOfLineTrivia)
+            ? result.WithPrependedLeadingTrivia(ElasticMarker)
+            : result;
+    }
 
     protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, AccessorDeclarationSyntax declaration)
         => declaration.IsKind(SyntaxKind.GetAccessorDeclaration);

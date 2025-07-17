@@ -19,13 +19,12 @@ internal abstract class AbstractGoToDefinitionSymbolService : IGoToDefinitionSym
 
     protected abstract int? GetTargetPositionIfControlFlow(SemanticModel semanticModel, SyntaxToken token);
 
-    public async Task<(ISymbol? symbol, Project project, TextSpan boundSpan)> GetSymbolProjectAndBoundSpanAsync(Document document, int position, CancellationToken cancellationToken)
+    public async Task<(ISymbol? symbol, Project project, TextSpan boundSpan)> GetSymbolProjectAndBoundSpanAsync(
+        Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
     {
         var project = document.Project;
         var services = document.Project.Solution.Services;
 
-        // We don't need nullable information to compute the symbol.  So avoid expensive work computing this.
-        var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var semanticInfo = await SymbolFinder.GetSemanticInfoAtPositionAsync(semanticModel, position, services, cancellationToken).ConfigureAwait(false);
 
         // Prefer references to declarations. It's more likely that the user is attempting to 
@@ -62,17 +61,16 @@ internal abstract class AbstractGoToDefinitionSymbolService : IGoToDefinitionSym
         return (explicitlyDeclaredSymbol, project, semanticInfo.Span);
     }
 
-    public async Task<(int? targetPosition, TextSpan tokenSpan)> GetTargetIfControlFlowAsync(Document document, int position, CancellationToken cancellationToken)
+    public async Task<(int? targetPosition, TextSpan tokenSpan)> GetTargetIfControlFlowAsync(
+        Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
     {
-        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = semanticModel.SyntaxTree;
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var token = await syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
+        var token = await syntaxTree.GetTouchingTokenAsync(
+            semanticModel, position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 
         if (token == default)
             return default;
-
-        // We don't need nullable information to compute control flow targets.  So avoid expensive work computing this.
-        var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         return (GetTargetPositionIfControlFlow(semanticModel, token), token.Span);
     }

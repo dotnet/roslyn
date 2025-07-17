@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -14,41 +13,36 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator;
 
 using static Helpers;
 
 /// <summary>
-/// <para>Analyzer that looks for several variants of code like <c>s.Slice(start, end - start)</c> and
-/// offers to update to <c>s[start..end]</c> or <c>s.Slice(start..end)</c>.  In order to convert to the
-/// indexer, the type being called on needs a slice-like method that takes two ints, and returns
-/// an instance of the same type. It also needs a <c>Length</c>/<c>Count</c> property, as well as an indexer
-/// that takes a <see cref="T:System.Range"/> instance.  In order to convert between methods, there need to be
-/// two overloads that are equivalent except that one takes two ints, and the other takes a
-/// <see cref="T:System.Range"/>.</para>
+/// <para>Analyzer that looks for several variants of code like <c>s.Slice(start, end - start)</c> and offers to update
+/// to <c>s[start..end]</c> or <c>s.Slice(start..end)</c>.  In order to convert to the indexer, the type being called on
+/// needs a slice-like method that takes two ints, and returns an instance of the same type. It also needs a
+/// <c>Length</c>/<c>Count</c> property, as well as an indexer that takes a <see cref="T:System.Range"/> instance.  In
+/// order to convert between methods, there need to be two overloads that are equivalent except that one takes two ints,
+/// and the other takes a <see cref="T:System.Range"/>.</para>
 ///
-/// <para>It is assumed that if the type follows this shape that it is well behaved and that this
-/// transformation will preserve semantics.  If this assumption is not good in practice, we
-/// could always limit the feature to only work on an allow list of known safe types.</para>
+/// <para>It is assumed that if the type follows this shape that it is well behaved and that this transformation will
+/// preserve semantics.  If this assumption is not good in practice, we could always limit the feature to only work on
+/// an allow list of known safe types.</para>
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 [SuppressMessage("Documentation", "CA1200:Avoid using cref tags with a prefix", Justification = "Required to avoid ambiguous reference warnings.")]
-internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.UseRangeOperatorDiagnosticId,
+        EnforceOnBuildValues.UseRangeOperator,
+        CSharpCodeStyleOptions.PreferRangeOperator,
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_range_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources._0_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
     // public const string UseIndexer = nameof(UseIndexer);
     public const string ComputedRange = nameof(ComputedRange);
     public const string ConstantRange = nameof(ConstantRange);
-
-    public CSharpUseRangeOperatorDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseRangeOperatorDiagnosticId,
-               EnforceOnBuildValues.UseRangeOperator,
-               CSharpCodeStyleOptions.PreferRangeOperator,
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_range_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources._0_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -56,19 +50,19 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer : Abstrac
     {
         context.RegisterCompilationStartAction(context =>
         {
-            var compilation = (CSharpCompilation)context.Compilation;
+            var compilation = context.Compilation;
 
             // Check if we're at least on C# 8
-            if (compilation.LanguageVersion < LanguageVersion.CSharp8)
+            if (compilation.LanguageVersion() < LanguageVersion.CSharp8)
                 return;
 
             // We're going to be checking every invocation in the compilation. Cache information
             // we compute in this object so we don't have to continually recompute it.
-            if (!InfoCache.TryCreate(context.Compilation, out var infoCache))
+            if (!InfoCache.TryCreate(compilation, out var infoCache))
                 return;
 
             context.RegisterOperationAction(
-                c => AnalyzeInvocation(c, infoCache),
+                context => AnalyzeInvocation(context, infoCache),
                 OperationKind.Invocation);
         });
     }
@@ -123,9 +117,8 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer : Abstrac
     {
         var targetMethod = invocation.TargetMethod;
 
-        // We are dealing with a call like `.Substring(expr)`.
-        // Ensure that there is an overload with signature like `Substring(int start, int length)`
-        // and there is a suitable indexer to replace this with `[expr..]`.
+        // We are dealing with a call like `.Substring(expr)`. Ensure that there is an overload with signature like
+        // `Substring(int start, int length)` and there is a suitable indexer to replace this with `[expr..]`.
         if (!infoCache.TryGetMemberInfoOneArgument(targetMethod, out var memberInfo))
             return null;
 
@@ -152,8 +145,77 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer : Abstrac
         if (targetMethod == null)
             return null;
 
+        if (IsStringRemoveMethod(targetMethod) &&
+            infoCache.TryGetMemberInfo(targetMethod, out var memberInfo))
+        {
+            return AnalyzeTwoArgumentStringRemoveInvocation(invocation, infoCache, invocationSyntax, targetMethod, memberInfo);
+        }
+
         return AnalyzeTwoArgumentSubtractionInvocation(invocation, infoCache, invocationSyntax, targetMethod) ??
                AnalyzeTwoArgumentFromStartOrToEndInvocation(invocation, infoCache, invocationSyntax, targetMethod);
+    }
+
+    private static Result? AnalyzeTwoArgumentStringRemoveInvocation(
+        IInvocationOperation invocation,
+        InfoCache infoCache,
+        InvocationExpressionSyntax invocationSyntax,
+        IMethodSymbol targetMethod,
+        MemberInfo memberInfo)
+    {
+        Contract.ThrowIfNull(invocation.Instance);
+
+        var startOperation = invocation.Arguments[0].Value;
+        var lengthOperation = invocation.Arguments[1].Value;
+
+        if (!IsValidIndexing(invocation, infoCache, targetMethod))
+            return null;
+
+        if (IsConstantInt32(startOperation, value: 0))
+        {
+            // `string.Remove(0, string.Length - x)` or `string.Remove(0, x)`
+            // Becomes `string[^x..]` or `string[x..]`
+            return new Result(
+                ResultKind.Computed,
+                invocation, invocationSyntax,
+                targetMethod, memberInfo,
+                op1: lengthOperation,
+                op2: null);
+        }
+
+        if (IsSubtraction(startOperation, out var subtraction))
+        {
+            // `string.Remove(string.Length - x, x)` becomes `string[..^x]`
+            if (!IsInstanceLengthCheck(memberInfo.LengthLikeProperty, invocation.Instance, subtraction.LeftOperand))
+                return null;
+
+            if (!CSharpSyntaxFacts.Instance.AreEquivalent(lengthOperation.Syntax, subtraction.RightOperand.Syntax))
+                return null;
+
+            return new Result(
+               ResultKind.Constant,
+               invocation, invocationSyntax,
+               targetMethod, memberInfo,
+               op1: lengthOperation,
+               op2: null);
+        }
+        else if (IsSubtraction(lengthOperation, out subtraction))
+        {
+            // `string.Remove(x, string.Length - x)` becomes `string[..x]`
+            if (!IsInstanceLengthCheck(memberInfo.LengthLikeProperty, invocation.Instance, subtraction.LeftOperand))
+                return null;
+
+            if (!CSharpSyntaxFacts.Instance.AreEquivalent(startOperation.Syntax, subtraction.RightOperand.Syntax))
+                return null;
+
+            return new Result(
+               ResultKind.Constant,
+               invocation, invocationSyntax,
+               targetMethod, memberInfo,
+               op1: startOperation,
+               op2: null);
+        }
+
+        return null;
     }
 
     private static Result? AnalyzeTwoArgumentSubtractionInvocation(
@@ -249,8 +311,6 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer : Abstrac
     {
         // Keep track of the invocation node
         var invocation = result.Invocation;
-        var additionalLocations = ImmutableArray.Create(
-            invocation.GetLocation());
 
         // Mark the span under the two arguments to .Slice(..., ...) as what we will be
         // updating.
@@ -263,7 +323,7 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer : Abstrac
             location,
             notificationOption,
             analyzerOptions,
-            additionalLocations,
+            [invocation.GetLocation()],
             ImmutableDictionary<string, string?>.Empty,
             result.SliceLikeMethod.Name);
     }

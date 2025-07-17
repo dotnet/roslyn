@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
@@ -20,11 +19,6 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         IDEDiagnosticIds.UseCollectionExpressionForCreateDiagnosticId,
         EnforceOnBuildValues.UseCollectionExpressionForCreate)
 {
-    public const string UnwrapArgument = nameof(UnwrapArgument);
-
-    private static readonly ImmutableDictionary<string, string?> s_unwrapArgumentProperties =
-        ImmutableDictionary<string, string?>.Empty.Add(UnwrapArgument, UnwrapArgument);
-
     protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
         => context.RegisterSyntaxNodeAction(context => AnalyzeInvocationExpression(context, expressionType), SyntaxKind.InvocationExpression);
 
@@ -40,7 +34,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             return;
 
         var invocationExpression = (InvocationExpressionSyntax)context.Node;
-        if (!IsCollectionFactoryCreate(semanticModel, invocationExpression, out var memberAccess, out var unwrapArgument, cancellationToken))
+        if (!IsCollectionFactoryCreate(semanticModel, invocationExpression, out var memberAccess, out var unwrapArgument, out var useSpread, cancellationToken))
             return;
 
         // Make sure we can actually use a collection expression in place of the full invocation.
@@ -52,9 +46,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         }
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
-        var properties = unwrapArgument ? s_unwrapArgumentProperties : ImmutableDictionary<string, string?>.Empty;
-        if (changesSemantics)
-            properties = properties.Add(UseCollectionInitializerHelpers.ChangesSemanticsName, "");
+        var properties = GetDiagnosticProperties(unwrapArgument, useSpread, changesSemantics);
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,

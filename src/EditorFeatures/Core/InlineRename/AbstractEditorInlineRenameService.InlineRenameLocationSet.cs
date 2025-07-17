@@ -7,14 +7,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
 internal abstract partial class AbstractEditorInlineRenameService
 {
-    private class InlineRenameLocationSet : IInlineRenameLocationSet
+    private sealed class InlineRenameLocationSet : IInlineRenameLocationSet
     {
         private readonly LightweightRenameLocations _renameLocationSet;
         private readonly SymbolInlineRenameInfo _renameInfo;
@@ -35,7 +35,7 @@ internal abstract partial class AbstractEditorInlineRenameService
         private InlineRenameLocation ConvertLocation(RenameLocation location)
         {
             return new InlineRenameLocation(
-                _renameLocationSet.Solution.GetDocument(location.DocumentId), location.Location.SourceSpan);
+                _renameLocationSet.Solution.GetRequiredDocument(location.DocumentId), location.Location.SourceSpan);
         }
 
         public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(
@@ -44,7 +44,7 @@ internal abstract partial class AbstractEditorInlineRenameService
             CancellationToken cancellationToken)
         {
             var conflicts = await _renameLocationSet.ResolveConflictsAsync(
-                _renameInfo.RenameSymbol, _renameInfo.GetFinalSymbolName(replacementText), nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
+                _renameInfo.RenameSymbol, _renameInfo.GetFinalSymbolName(replacementText), cancellationToken).ConfigureAwait(false);
 
             return new InlineRenameReplacementInfo(conflicts);
         }

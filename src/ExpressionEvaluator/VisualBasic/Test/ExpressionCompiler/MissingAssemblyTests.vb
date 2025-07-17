@@ -4,7 +4,9 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -14,9 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.DiaSymReader
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 Imports Xunit
-Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Public Class MissingAssemblyTests
@@ -521,6 +521,7 @@ End Class
 
                     Dim numRetries = 0
                     Dim errorMessage As String = Nothing
+                    Dim compileResult As CompileResult = Nothing
                     ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
                         runtime.Modules.Select(Function(m) m.MetadataBlock).ToImmutableArray(),
                         context,
@@ -534,6 +535,7 @@ End Class
                             uSize = CUInt(missingModule.MetadataLength)
                             Return missingModule.MetadataAddress
                         End Function,
+                        compileResult,
                         errorMessage)
 
                     Assert.Equal(2, numRetries) ' Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
@@ -675,12 +677,12 @@ End Class"
                 WithRuntimeInstance(comp, {Net461.References.mscorlib, ValueTupleLegacyRef},
                     Sub(runtime)
                         Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
-                        Dim moduleVersionId As Guid = Nothing
+                        Dim moduleId As ModuleId = Nothing
                         Dim symReader As ISymUnmanagedReader = Nothing
                         Dim typeToken = 0
                         Dim methodToken = 0
                         Dim localSignatureToken = 0
-                        GetContextState(runtime, "C.M", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                        GetContextState(runtime, "C.M", methodBlocks, moduleId, symReader, methodToken, localSignatureToken)
                         Dim errorMessage As String = Nothing
                         Dim testData As CompilationTestData = Nothing
                         Dim retryCount = 0
@@ -688,7 +690,7 @@ End Class"
                             runtime.Modules.Select(Function(m) m.MetadataBlock).ToImmutableArray(),
                             expression,
                             ImmutableArray(Of [Alias]).Empty,
-                            Function(b, u) EvaluationContext.CreateMethodContext(b.ToCompilation(), MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion:=1, ilOffset:=0, localSignatureToken:=localSignatureToken),
+                            Function(b, u) EvaluationContext.CreateMethodContext(b.ToCompilation(), MakeDummyLazyAssemblyReaders(), symReader, moduleId, methodToken, methodVersion:=1, ilOffset:=0, localSignatureToken:=localSignatureToken),
                             Function(assemblyIdentity As AssemblyIdentity, ByRef uSize As UInteger)
                                 retryCount += 1
                                 Assert.Equal("System.Runtime", assemblyIdentity.Name)

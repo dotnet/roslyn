@@ -3,31 +3,26 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature;
 
-internal abstract class AbstractChangeSignatureCommandHandler : ICommandHandler<ReorderParametersCommandArgs>,
-    ICommandHandler<RemoveParametersCommandArgs>
+internal abstract class AbstractChangeSignatureCommandHandler(IThreadingContext threadingContext)
+    : ICommandHandler<ReorderParametersCommandArgs>,
+      ICommandHandler<RemoveParametersCommandArgs>
 {
-    private readonly IThreadingContext _threadingContext;
-
-    protected AbstractChangeSignatureCommandHandler(IThreadingContext threadingContext)
-    {
-        _threadingContext = threadingContext;
-    }
+    private readonly IThreadingContext _threadingContext = threadingContext;
 
     public string DisplayName => EditorFeaturesResources.Change_Signature;
 
@@ -55,49 +50,48 @@ internal abstract class AbstractChangeSignatureCommandHandler : ICommandHandler<
     {
         using (context.OperationContext.AddScope(allowCancellation: true, FeaturesResources.Change_signature))
         {
-            if (!IsAvailable(subjectBuffer, out var workspace))
-            {
-                return false;
-            }
-
-            var caretPoint = textView.GetCaretPoint(subjectBuffer);
-            if (!caretPoint.HasValue)
-            {
-                return false;
-            }
-
-            var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
-                context.OperationContext, _threadingContext);
-            if (document == null)
-            {
-                return false;
-            }
-
-            var changeSignatureService = document.GetRequiredLanguageService<AbstractChangeSignatureService>();
-
-            var cancellationToken = context.OperationContext.UserCancellationToken;
-
-            // TODO: Make asynchronous and avoid expensive semantic operations on UI thread:
-            // https://github.com/dotnet/roslyn/issues/62135
-
-            // Async operation to determine the change signature
-            var changeSignatureContext = changeSignatureService.GetChangeSignatureContextAsync(
-                document,
-                caretPoint.Value.Position,
-                restrictToDeclarations: false,
-                cancellationToken).WaitAndGetResult(context.OperationContext.UserCancellationToken);
-
-            // UI thread bound operation to show the change signature dialog.
-            var changeSignatureOptions = AbstractChangeSignatureService.GetChangeSignatureOptions(changeSignatureContext);
-
-            // Async operation to compute the new solution created from the specified options.
-            var result = changeSignatureService.ChangeSignatureWithContextAsync(changeSignatureContext, changeSignatureOptions, cancellationToken).WaitAndGetResult(cancellationToken);
-
-            // UI thread bound operation to show preview changes dialog / show error message, then apply the solution changes (if applicable).
-            HandleResult(result, document.Project.Solution, workspace, context);
-
-            return true;
+            return _threadingContext.JoinableTaskFactory.Run(() => ExecuteCommandAsync(textView, subjectBuffer, context));
         }
+    }
+
+    private static async Task<bool> ExecuteCommandAsync(ITextView textView, ITextBuffer subjectBuffer, CommandExecutionContext context)
+    {
+        if (!IsAvailable(subjectBuffer, out var workspace))
+            return false;
+
+        var caretPoint = textView.GetCaretPoint(subjectBuffer);
+        if (!caretPoint.HasValue)
+            return false;
+
+        var document = await subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(context.OperationContext).ConfigureAwait(true);
+        if (document == null)
+            return false;
+
+        var changeSignatureService = document.GetRequiredLanguageService<AbstractChangeSignatureService>();
+
+        var cancellationToken = context.OperationContext.UserCancellationToken;
+
+        // TODO: Make asynchronous and avoid expensive semantic operations on UI thread:
+        // https://github.com/dotnet/roslyn/issues/62135
+
+        // Async operation to determine the change signature
+        var changeSignatureContext = await changeSignatureService.GetChangeSignatureContextAsync(
+            document,
+            caretPoint.Value.Position,
+            restrictToDeclarations: false,
+            cancellationToken).ConfigureAwait(true);
+
+        // UI thread bound operation to show the change signature dialog.
+        var changeSignatureOptions = AbstractChangeSignatureService.GetChangeSignatureOptions(changeSignatureContext);
+
+        // Async operation to compute the new solution created from the specified options.
+        var result = await changeSignatureService.ChangeSignatureWithContextAsync(
+            changeSignatureContext, changeSignatureOptions, cancellationToken).ConfigureAwait(true);
+
+        // UI thread bound operation to show preview changes dialog / show error message, then apply the solution changes (if applicable).
+        HandleResult(result, document.Project.Solution, workspace, context);
+
+        return true;
     }
 
     private static void HandleResult(ChangeSignatureResult result, Solution oldSolution, Workspace workspace, CommandExecutionContext context)
@@ -131,7 +125,7 @@ internal abstract class AbstractChangeSignatureCommandHandler : ICommandHandler<
                 string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Change_Signature),
                 "vs.csharp.refactoring.preview",
                 EditorFeaturesResources.Change_Signature_colon,
-                result.Name,
+                result.Name!,
                 result.Glyph.GetValueOrDefault(),
                 result.UpdatedSolution,
                 oldSolution);

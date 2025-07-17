@@ -27,80 +27,90 @@ public class BasicGenerateConstructorDialog : AbstractEditorTest
     [IdeFact]
     public async Task VerifyCodeRefactoringOfferedAndCanceled()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Dim i as Integer
-    Dim j as String
-    Dim k as Boolean
+        await SetUpEditorAsync("""
 
-$$
-End Class", HangMitigatingCancellationToken);
+            Class C
+                Dim i as Integer
+                Dim j as String
+                Dim k as Boolean
+
+            $$
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.CodeActionAsync("Generate constructor...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CodeActionAsync("Generate constructor from members...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.ClickCancelAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains(
-@"
-Class C
-    Dim i as Integer
-    Dim j as String
-    Dim k as Boolean
+            """
+
+            Class C
+                Dim i as Integer
+                Dim j as String
+                Dim k as Boolean
 
 
-End Class", actualText);
+            End Class
+            """, actualText);
     }
 
     [IdeFact]
     public async Task VerifyCodeRefactoringOfferedAndAccepted()
     {
         await SetUpEditorAsync(
-@"
-Class C
-    Dim i as Integer
-    Dim j as String
-    Dim k as Boolean
+            """
 
-$$
-End Class", HangMitigatingCancellationToken);
+            Class C
+                Dim i as Integer
+                Dim j as String
+                Dim k as Boolean
+
+            $$
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.CodeActionAsync("Generate constructor...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CodeActionAsync("Generate constructor from members...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.ClickOKAsync(HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains(
-@"
-Class C
-    Dim i as Integer
-    Dim j as String
-    Dim k as Boolean
+            """
 
-    Public Sub New(i As Integer, j As String, k As Boolean)
-        Me.i = i
-        Me.j = j
-        Me.k = k
-    End Sub
-End Class", actualText);
+            Class C
+                Dim i as Integer
+                Dim j as String
+                Dim k as Boolean
+
+                Public Sub New(i As Integer, j As String, k As Boolean)
+                    Me.i = i
+                    Me.j = j
+                    Me.k = k
+                End Sub
+            End Class
+            """, actualText);
     }
 
     [IdeFact]
     public async Task VerifyReordering()
     {
         await SetUpEditorAsync(
-@"
-Class C
-    Dim i as Integer
-    Dim j as String
-    Dim k as Boolean
+            """
 
-$$
-End Class", HangMitigatingCancellationToken);
+            Class C
+                Dim i as Integer
+                Dim j as String
+                Dim k as Boolean
+
+            $$
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.CodeActionAsync("Generate constructor...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CodeActionAsync("Generate constructor from members...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
@@ -109,35 +119,39 @@ End Class", HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains(
-@"
-Class C
-    Dim i as Integer
-    Dim j as String
-    Dim k as Boolean
+            """
 
-    Public Sub New(j As String, i As Integer, k As Boolean)
-        Me.j = j
-        Me.i = i
-        Me.k = k
-    End Sub
-End Class", actualText);
+            Class C
+                Dim i as Integer
+                Dim j as String
+                Dim k as Boolean
+
+                Public Sub New(j As String, i As Integer, k As Boolean)
+                    Me.j = j
+                    Me.i = i
+                    Me.k = k
+                End Sub
+            End Class
+            """, actualText);
     }
 
     [IdeFact]
     public async Task VerifyDeselect()
     {
         await SetUpEditorAsync(
-@"
-Class C
-    Dim i as Integer
-    Dim j as String
-    Dim k as Boolean
+            """
 
-$$
-End Class", HangMitigatingCancellationToken);
+            Class C
+                Dim i as Integer
+                Dim j as String
+                Dim k as Boolean
+
+            $$
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.CodeActionAsync("Generate constructor...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CodeActionAsync("Generate constructor from members...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
@@ -146,16 +160,18 @@ End Class", HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains(
-@"
-Class C
-    Dim i as Integer
-    Dim j as String
-    Dim k as Boolean
+            """
 
-    Public Sub New(j As String, k As Boolean)
-        Me.j = j
-        Me.k = k
-    End Sub
-End Class", actualText);
+            Class C
+                Dim i as Integer
+                Dim j as String
+                Dim k as Boolean
+
+                Public Sub New(j As String, k As Boolean)
+                    Me.j = j
+                    Me.k = k
+                End Sub
+            End Class
+            """, actualText);
     }
 }

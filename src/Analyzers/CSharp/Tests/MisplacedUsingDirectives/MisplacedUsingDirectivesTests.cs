@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -19,13 +20,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirectives;
 
-public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public MisplacedUsingDirectivesTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new MisplacedUsingDirectivesDiagnosticAnalyzer(), new MisplacedUsingDirectivesCodeFixProvider());
 
@@ -41,43 +38,54 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     internal static readonly CodeStyleOption2<AddImportPlacement> OutsideNamespaceOption =
         new(AddImportPlacement.OutsideNamespace, NotificationOption2.Error);
 
-    protected const string ClassDefinition = """
+    internal static readonly CodeStyleOption2<AddImportPlacement> OutsideNamespaceIgnoringAliasesOption =
+        new(AddImportPlacement.OutsideNamespaceIgnoringAliases, NotificationOption2.Error);
+
+    private const string ClassDefinition = """
         public class TestClass
         {
         }
         """;
 
-    protected const string StructDefinition = """
+    private const string StructDefinition = """
         public struct TestStruct
         {
         }
         """;
 
-    protected const string InterfaceDefinition = """
+    private const string InterfaceDefinition = """
         public interface TestInterface
         {
         }
         """;
 
-    protected const string EnumDefinition = """
+    private const string EnumDefinition = """
         public enum TestEnum
         {
             TestValue
         }
         """;
 
-    protected const string DelegateDefinition = @"public delegate void TestDelegate();";
+    private const string DelegateDefinition = @"public delegate void TestDelegate();";
 
     private TestParameters GetTestParameters(CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
         => new(options: new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption } });
 
-    private protected Task TestDiagnosticMissingAsync(string initialMarkup, CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
+    private Task TestDiagnosticMissingAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
         => TestDiagnosticMissingAsync(initialMarkup, GetTestParameters(preferredPlacementOption));
 
-    private protected Task TestMissingAsync(string initialMarkup, CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
+    private Task TestMissingAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
         => TestMissingAsync(initialMarkup, GetTestParameters(preferredPlacementOption));
 
-    private protected Task TestInRegularAndScriptAsync(string initialMarkup, string expectedMarkup, CodeStyleOption2<AddImportPlacement> preferredPlacementOption, bool placeSystemNamespaceFirst)
+    private Task TestInRegularAndScriptAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        CodeStyleOption2<AddImportPlacement> preferredPlacementOption,
+        bool placeSystemNamespaceFirst)
     {
         var options = new OptionsCollection(GetLanguage())
         {
@@ -96,28 +104,24 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenPreserve_UsingsInNamespace_ValidUsingStatements()
     {
-        var testCode = """
+        return TestDiagnosticMissingAsync("""
             namespace TestNamespace
             {
                 [|using System;
                 using System.Threading;|]
             }
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, OutsidePreferPreservationOption);
+            """, OutsidePreferPreservationOption);
     }
 
     [Fact]
     public Task WhenPreserve_UsingsInNamespace_ValidUsingStatements_FileScopedNamespace()
     {
-        var testCode = """
+        return TestDiagnosticMissingAsync("""
             namespace TestNamespace;
 
             [|using System;
             using System.Threading;|]
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, OutsidePreferPreservationOption);
+            """, OutsidePreferPreservationOption);
     }
 
     /// <summary>
@@ -127,16 +131,14 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenPreserve_UsingsInCompilationUnitAndNamespace_ValidUsingStatements()
     {
-        var testCode = """
+        return TestDiagnosticMissingAsync("""
             using System;
 
             namespace TestNamespace
             {
                 [|using System.Threading;|]
             }
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, OutsidePreferPreservationOption);
+            """, OutsidePreferPreservationOption);
     }
 
     /// <summary>
@@ -151,13 +153,11 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [InlineData(DelegateDefinition)]
     public Task WhenPreserve_UsingsInCompilationUnitWithTypeDefinition_ValidUsingStatements(string typeDefinition)
     {
-        var testCode = $"""
+        return TestDiagnosticMissingAsync($"""
             [|using System;|]
 
             {typeDefinition}
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, InsidePreferPreservationOption);
+            """, InsidePreferPreservationOption);
     }
 
     /// <summary>
@@ -166,7 +166,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenPreserve_UsingsInCompilationUnitWithAttributes_ValidUsingStatements()
     {
-        var testCode = """
+        return TestDiagnosticMissingAsync("""
             [|using System.Reflection;|]
 
             [assembly: AssemblyVersion("1.0.0.0")]
@@ -176,9 +176,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 using System;
                 using System.Threading;
             }
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, InsidePreferPreservationOption);
+            """, InsidePreferPreservationOption);
     }
 
     /// <summary>
@@ -188,16 +186,14 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenPreserve_UsingsInCompilationUnit_ValidUsingStatements()
     {
-        var testCode = """
+        return TestDiagnosticMissingAsync("""
             [|using System;
             using System.Threading;|]
 
             namespace TestNamespace
             {
             }
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, InsidePreferPreservationOption);
+            """, InsidePreferPreservationOption);
     }
 
     #endregion
@@ -210,29 +206,25 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenOutsidePreferred_UsingsInCompilationUnit_ValidUsingStatements()
     {
-        var testCode = """
+        return TestDiagnosticMissingAsync("""
             [|using System;
             using System.Threading;|]
 
             namespace TestNamespace
             {
             }
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, OutsideNamespaceOption);
+            """, OutsideNamespaceOption);
     }
 
     [Fact]
     public Task WhenOutsidePreferred_UsingsInCompilationUnit_ValidUsingStatements_FileScopedNamespace()
     {
-        var testCode = """
+        return TestDiagnosticMissingAsync("""
             [|using System;
             using System.Threading;|]
 
             namespace TestNamespace;
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, OutsideNamespaceOption);
+            """, OutsideNamespaceOption);
     }
 
     /// <summary>
@@ -247,13 +239,11 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [InlineData(DelegateDefinition)]
     public Task WhenOutsidePreferred_UsingsInCompilationUnitWithMember_ValidUsingStatements(string typeDefinition)
     {
-        var testCode = $"""
+        return TestDiagnosticMissingAsync($"""
             [|using System;|]
 
             {typeDefinition}
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, OutsideNamespaceOption);
+            """, OutsideNamespaceOption);
     }
 
     /// <summary>
@@ -262,43 +252,37 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMoved()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             namespace TestNamespace
             {
                 [|using System;
                 using System.Threading;|]
             }
-            """;
-        var fixedTestCode = """
+            """, """
             {|Warning:using System;|}
             {|Warning:using System.Threading;|}
 
             namespace TestNamespace
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     [Fact]
     public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMoved_FileScopedNamespace()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             namespace TestNamespace;
 
             [|using System;
             using System.Threading;|]
-            """;
-        var fixedTestCode = """
+            """, """
 
             {|Warning:using System;|}
             {|Warning:using System.Threading;|}
             namespace TestNamespace;
 
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     /// <summary>
@@ -307,15 +291,14 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenOutsidePreferred_SimplifiedUsingInNamespace_UsingsMovedAndExpanded()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             namespace System
             {
                 [|using System;
                 using System.Threading;
                 using Reflection;|]
             }
-            """;
-        var fixedTestCode = """
+            """, """
             {|Warning:using System;|}
             {|Warning:using System.Threading;|}
             {|Warning:using System.Reflection;|}
@@ -323,9 +306,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             namespace System
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     /// <summary>
@@ -334,25 +315,21 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenOutsidePreferred_UsingsInBoth_UsingsMoved()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             using Microsoft.CodeAnalysis;
 
             namespace TestNamespace
             {
                 [|using System;|]
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             using Microsoft.CodeAnalysis;
             {|Warning:using System;|}
 
             namespace TestNamespace
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     /// <summary>
@@ -361,7 +338,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenOutsidePreferred_SimplifiedUsingAliasInNamespace_UsingsMovedAndExpanded()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             namespace System.MyExtension
             {
                 [|using System.Threading;
@@ -369,8 +346,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 using Assembly = Reflection.Assembly;
                 using List = Collections.Generic.IList<int>;|]
             }
-            """;
-        var fixedTestCode = """
+            """, """
             {|Warning:using System.Threading;|}
             {|Warning:using System.Reflection;|}
             {|Warning:using Assembly = System.Reflection.Assembly;|}
@@ -379,9 +355,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             namespace System.MyExtension
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     /// <summary>
@@ -390,7 +364,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenOutsidePreferred_UsingsInNamespaceAndCompilationUnitWithAttributes_UsingsMoved()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             using System.Reflection;
 
             [assembly: AssemblyVersion("1.0.0.0")]
@@ -400,8 +374,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 [|using System;
                 using System.Threading;|]
             }
-            """;
-        var fixedTestCode = """
+            """, """
             using System.Reflection;
             {|Warning:using System;|}
             {|Warning:using System.Threading;|}
@@ -411,9 +384,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             namespace TestNamespace
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     /// <summary>
@@ -422,7 +393,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenOutsidePreferred_UsingsInNamespaceAndCompilationUnitHasFileHeader_UsingsMovedAndHeaderPreserved()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             // Copyright (c) Tunnel Vision Laboratories, LLC. All Rights Reserved.
             // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
@@ -430,8 +401,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             {
                 [|using System;|]
             }
-            """;
-        var fixedTestCode = """
+            """, """
             // Copyright (c) Tunnel Vision Laboratories, LLC. All Rights Reserved.
             // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
@@ -440,15 +410,13 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             namespace TestNamespace
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     [Fact]
     public Task WhenOutsidePreferred_UsingsInNamespaceWithCommentsAndCompilationUnitHasFileHeader_UsingsMovedWithCommentsAndHeaderPreserved()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             // Copyright (c) Tunnel Vision Laboratories, LLC. All Rights Reserved.
             // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
@@ -460,8 +428,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 // Comment
                 using System;|]
             }
-            """;
-        var fixedTestCode = """
+            """, """
             // Copyright (c) Tunnel Vision Laboratories, LLC. All Rights Reserved.
             // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
@@ -474,15 +441,13 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             namespace TestNamespace
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     [Fact]
     public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedAndSystemPlacedFirstIgnored()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             namespace Foo
             {
                 [|using Microsoft.CodeAnalysis;
@@ -500,9 +465,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 {
                 }
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             {|Warning:using Microsoft.CodeAnalysis;|}
             {|Warning:using SystemAction = System.Action;|}
             {|Warning:using static System.Math;|}
@@ -520,15 +483,13 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 {
                 }
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     [Fact]
     public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedAndAlphaSortIgnored()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             namespace Foo
             {
                 [|using Microsoft.CodeAnalysis;
@@ -546,9 +507,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 {
                 }
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             {|Warning:using Microsoft.CodeAnalysis;|}
             {|Warning:using SystemAction = System.Action;|}
             {|Warning:using static System.Math;|}
@@ -566,9 +525,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 {
                 }
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: false);
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: false);
     }
 
     /// <summary>
@@ -577,7 +534,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenOutsidePreferred_UsingsInNestedNamespaces_UsingsMovedAndExpanded()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             using System;
 
             namespace System.Namespace
@@ -591,8 +548,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                     using Reflection;|]
                 }
             }
-            """;
-        var fixedTestCode = """
+            """, """
             using System;
             // Outer Comment
             {|Warning:using System.Threading;|}
@@ -605,9 +561,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 {
                 }
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     /// <summary>
@@ -616,7 +570,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenOutsidePreferred_UsingsInMultipleNamespaces_UsingsMovedAndExpanded()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             using System;
 
             namespace System.Namespace
@@ -630,8 +584,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 // Another Comment
                 using Reflection;|]
             }
-            """;
-        var fixedTestCode = """
+            """, """
             using System;
             // A Comment
             {|Warning:using System.Threading;|}
@@ -645,9 +598,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             namespace System.OtherNamespace
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     /// <summary>
@@ -656,7 +607,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenOutsidePreferred_UsingsInMultipleNamespaces_UsingsMovedAndDeduplicated()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             using System;
 
             namespace System.Namespace
@@ -672,8 +623,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 // Orphaned Comment 2
                 using System.Threading;|]
             }
-            """;
-        var fixedTestCode = """
+            """, """
             using System;
             // Orphaned Comment 1
             // A Comment
@@ -687,30 +637,107 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             namespace B
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61773")]
     public Task WhenOutsidePreferred_MoveGlobalUsing1()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             namespace N1
             {
                 [|global using System;|]
             }
-            """;
-        var fixedTestCode =
-            """
+            """, """
             {|Warning:global using System;|}
 
             namespace N1
             {
             }
-            """;
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+    }
 
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+    #endregion
+
+    #region OutsideNamespaceIgnoringAliases
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
+    public Task WhenOutsideIgnoringAliasesPreferred_UsingsInNamespace_UsingsMoved()
+    {
+        return TestInRegularAndScriptAsync("""
+            namespace TestNamespace
+            {
+                [|using System;
+                using System.Threading;|]
+                using SCG = System.Collections.Generic;
+            }
+            """, """
+            {|Warning:using System;|}
+            {|Warning:using System.Threading;|}
+
+            namespace TestNamespace
+            {
+                using SCG = System.Collections.Generic;
+            }
+            """, OutsideNamespaceIgnoringAliasesOption, placeSystemNamespaceFirst: true);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
+    public Task WhenOutsideIgnoringAliasesPreferred_UsingsInNamespace_UsingsMoved_InnerType()
+    {
+        return TestInRegularAndScriptAsync("""
+            namespace TestNamespace
+            {
+                [|using System;
+                using System.Threading;|]
+                using SCG = System.Collections.Generic;
+
+                class C
+                {
+                }
+            }
+            """, """
+            {|Warning:using System;|}
+            {|Warning:using System.Threading;|}
+
+            namespace TestNamespace
+            {
+                using SCG = System.Collections.Generic;
+
+                class C
+                {
+                }
+            }
+            """, OutsideNamespaceIgnoringAliasesOption, placeSystemNamespaceFirst: true);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
+    public Task WhenOutsideIgnoringAliasesPreferred_UsingsInNamespace_UsingsMoved_AliasInMiddle()
+    {
+        return TestInRegularAndScriptAsync("""
+            namespace TestNamespace
+            {
+                [|using System;
+                using SCG = System.Collections.Generic;
+                using System.Threading;|]
+
+                class C
+                {
+                }
+            }
+            """, """
+            {|Warning:using System;|}
+            {|Warning:using System.Threading;|}
+
+            namespace TestNamespace
+            {
+                using SCG = System.Collections.Generic;
+
+                class C
+                {
+                }
+            }
+            """, OutsideNamespaceIgnoringAliasesOption, placeSystemNamespaceFirst: true);
     }
 
     #endregion
@@ -723,28 +750,24 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenInsidePreferred_UsingsInNamespace_ValidUsingStatements()
     {
-        var testCode = """
+        return TestDiagnosticMissingAsync("""
             namespace TestNamespace
             {
                 [|using System;
                 using System.Threading;|]
             }
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, InsideNamespaceOption);
+            """, InsideNamespaceOption);
     }
 
     [Fact]
     public Task WhenInsidePreferred_UsingsInNamespace_ValidUsingStatements_FileScopedNamespace()
     {
-        var testCode = """
+        return TestDiagnosticMissingAsync("""
             namespace TestNamespace;
 
             [|using System;
             using System.Threading;|]
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, InsideNamespaceOption);
+            """, InsideNamespaceOption);
     }
 
     /// <summary>
@@ -759,13 +782,11 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [InlineData(DelegateDefinition)]
     public Task WhenInsidePreferred_UsingsInCompilationUnitWithTypeDefinition_ValidUsingStatements(string typeDefinition)
     {
-        var testCode = $"""
+        return TestDiagnosticMissingAsync($"""
             [|using System;|]
 
             {typeDefinition}
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, InsideNamespaceOption);
+            """, InsideNamespaceOption);
     }
 
     /// <summary>
@@ -774,7 +795,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnitWithAttributes_ValidUsingStatements()
     {
-        var testCode = """
+        return TestDiagnosticMissingAsync("""
             [|using System.Reflection;|]
 
             [assembly: AssemblyVersion("1.0.0.0")]
@@ -784,9 +805,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 using System;
                 using System.Threading;
             }
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, InsideNamespaceOption);
+            """, InsideNamespaceOption);
     }
 
     /// <summary>
@@ -795,7 +814,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnit_UsingsMovedAndSystemPlacedFirstIgnored()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             [|using Microsoft.CodeAnalysis;
             using SystemAction = System.Action;
             using static System.Math;
@@ -813,9 +832,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 {
                 }
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             namespace Foo
             {
                 {|Warning:using Microsoft.CodeAnalysis;|}
@@ -833,9 +850,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 {
                 }
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     /// <summary>
@@ -844,7 +859,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnit_UsingsAndWithAlphaSortIgnored()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             [|using Microsoft.CodeAnalysis;
             using SystemAction = System.Action;
             using static System.Math;
@@ -862,9 +877,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 {
                 }
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             namespace NamespaceName
             {
                 {|Warning:using Microsoft.CodeAnalysis;|}
@@ -882,9 +895,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 {
                 }
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: false);
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: false);
     }
 
     /// <summary>
@@ -893,7 +904,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnitWithFileHeader_UsingsMovedNotHeader()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             // This is a file header.
             [|using Microsoft.CodeAnalysis;
             using System;|]
@@ -901,18 +912,14 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             namespace TestNamespace
             {
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             // This is a file header.
             namespace TestNamespace
             {
                 {|Warning:using Microsoft.CodeAnalysis;|}
                 {|Warning:using System;|}
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     /// <summary>
@@ -921,45 +928,38 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenInsidePreferred_UsingsInBoth_UsingsMoved()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             [|using Microsoft.CodeAnalysis;|]
 
             namespace TestNamespace
             {
                 using System;
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             namespace TestNamespace
             {
                 {|Warning:using Microsoft.CodeAnalysis;|}
                 using System;
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     [Fact]
-    public Task WhenInsidePreferred_UsingsInBoth_UsingsMoved_FileScopedNamespaec()
+    public Task WhenInsidePreferred_UsingsInBoth_UsingsMoved_FileScopedNamespace()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             [|using Microsoft.CodeAnalysis;|]
 
             namespace TestNamespace;
 
             using System;
-            """;
-
-        var fixedTestCode = """
+            """, """
             namespace TestNamespace;
+
             {|Warning:using Microsoft.CodeAnalysis;|}
 
             using System;
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     /// <summary>
@@ -968,7 +968,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnitWithFileHeaderAndTrivia_UsingsAndTriviaMovedNotHeader()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             // File Header
 
             // Leading Comment
@@ -979,9 +979,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             namespace TestNamespace
             {
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             // File Header
 
             namespace TestNamespace
@@ -991,9 +989,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 {|Warning:using Microsoft.CodeAnalysis;|}
                 {|Warning:using System;|}
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     /// <summary>
@@ -1002,7 +998,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnitWithMultipleNamespaces_NoCodeFixOffered()
     {
-        var testCode = """
+        return TestMissingAsync("""
             [|using System;|]
 
             namespace TestNamespace1
@@ -1015,9 +1011,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             namespace TestNamespace2
             {
             }
-            """;
-
-        return TestMissingAsync(testCode, InsideNamespaceOption);
+            """, InsideNamespaceOption);
     }
 
     /// <summary>
@@ -1026,7 +1020,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnitWithPragma_PragmaMoved()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             #pragma warning disable 1573 // Comment
             [|using System;
             using System.Threading;|]
@@ -1034,18 +1028,14 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             namespace TestNamespace
             {
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             namespace TestNamespace
             {
             #pragma warning disable 1573 // Comment
                 {|Warning:using System;|}
                 {|Warning:using System.Threading;|}
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     /// <summary>
@@ -1054,7 +1044,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnitWithRegion_RegionMoved()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             #region Comment
             #endregion Comment
             [|using System;
@@ -1063,9 +1053,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             namespace TestNamespace
             {
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             namespace TestNamespace
             {
                 #region Comment
@@ -1073,9 +1061,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 {|Warning:using System;|}
                 {|Warning:using System.Threading;|}
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     /// <summary>
@@ -1084,7 +1070,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnitWithCommentTrivia_TriviaMoved()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
 
             // Some comment
             [|using System;
@@ -1093,9 +1079,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             namespace TestNamespace
             {
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             namespace TestNamespace
             {
 
@@ -1103,47 +1087,39 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
                 {|Warning:using System;|}
                 {|Warning:using System.Threading;|}
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61773")]
     public Task WhenInsidePreferred_DoNotMoveGlobalUsings1()
     {
-        var testCode = """
+        return TestMissingAsync("""
             [|global using System;|]
 
             namespace TestNamespace
             {
             }
-            """;
-
-        return TestMissingAsync(testCode, InsideNamespaceOption);
+            """, InsideNamespaceOption);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61773")]
     public Task WhenInsidePreferred_DoNotMoveGlobalUsings2()
     {
-        var testCode = """
+        return TestInRegularAndScriptAsync("""
             [|global using System;
             using System.Threading;|]
 
             namespace TestNamespace
             {
             }
-            """;
-
-        var fixedCode = """
+            """, """
             global using System;
 
             namespace TestNamespace
             {
                 {|Warning:using System.Threading;|}
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
     }
 
     #endregion

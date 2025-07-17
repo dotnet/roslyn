@@ -9,55 +9,53 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
-    Partial Friend Class VisualBasicMethodExtractor
-        Private Class VisualBasicAnalyzer
-            Inherits Analyzer
+    Partial Friend NotInheritable Class VisualBasicExtractMethodService
+        Partial Friend Class VisualBasicMethodExtractor
+            Private Class VisualBasicAnalyzer
+                Inherits Analyzer
 
-            Private Shared ReadOnly s_nonNoisySyntaxKindSet As HashSet(Of Integer) = New HashSet(Of Integer) From {SyntaxKind.WhitespaceTrivia, SyntaxKind.EndOfLineTrivia}
+                Public Sub New(currentSelectionResult As SelectionResult, cancellationToken As CancellationToken)
+                    MyBase.New(currentSelectionResult, localFunction:=False, cancellationToken)
+                End Sub
 
-            Public Shared Function AnalyzeResult(currentSelectionResult As VisualBasicSelectionResult, cancellationToken As CancellationToken) As AnalyzerResult
-                Dim analyzer = New VisualBasicAnalyzer(currentSelectionResult, cancellationToken)
-                Return analyzer.Analyze()
-            End Function
+                Protected Overrides ReadOnly Property TreatOutAsRef As Boolean = True
 
-            Public Sub New(currentSelectionResult As VisualBasicSelectionResult, cancellationToken As CancellationToken)
-                MyBase.New(currentSelectionResult, localFunction:=False, cancellationToken)
-            End Sub
+                Protected Overrides Function IsInPrimaryConstructorBaseType() As Boolean
+                    Return False
+                End Function
 
-            Protected Overrides ReadOnly Property TreatOutAsRef As Boolean = True
+                Protected Overrides Function GetRangeVariableType(symbol As IRangeVariableSymbol) As ITypeSymbol
+                    Dim info = Me.SemanticModel.GetSpeculativeTypeInfo(Me.SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression)
+                    If info.Type.IsErrorType() Then
+                        Return Nothing
+                    End If
 
-            Protected Overrides Function CreateFromSymbol(
-                compilation As Compilation, symbol As ISymbol,
-                type As ITypeSymbol, style As VariableStyle, requiresDeclarationExpressionRewrite As Boolean) As VariableInfo
-                If symbol.IsFunctionValue() AndAlso style.ParameterStyle.DeclarationBehavior <> DeclarationBehavior.None Then
-                    Contract.ThrowIfFalse(style.ParameterStyle.DeclarationBehavior = DeclarationBehavior.MoveIn OrElse style.ParameterStyle.DeclarationBehavior = DeclarationBehavior.SplitIn)
-                    style = AlwaysReturn(style)
-                End If
+                    Return If(info.ConvertedType.IsObjectType(), info.ConvertedType, info.Type)
+                End Function
 
-                Return CreateFromSymbolCommon(Of LocalDeclarationStatementSyntax)(compilation, symbol, type, style, s_nonNoisySyntaxKindSet)
-            End Function
+                Protected Overrides Function ReadOnlyFieldAllowed() As Boolean
+                    Dim methodBlock = Me.SelectionResult.GetContainingScopeOf(Of MethodBlockBaseSyntax)()
+                    If methodBlock Is Nothing Then
+                        Return True
+                    End If
 
-            Protected Overrides Function GetRangeVariableType(semanticModel As SemanticModel, symbol As IRangeVariableSymbol) As ITypeSymbol
-                Dim info = semanticModel.GetSpeculativeTypeInfo(Me.SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression)
-                If info.Type.IsErrorType() Then
-                    Return Nothing
-                End If
+                    Return TypeOf methodBlock.BlockStatement IsNot SubNewStatementSyntax
+                End Function
 
-                Return If(info.ConvertedType.IsObjectType(), info.ConvertedType, info.Type)
-            End Function
-
-            Protected Overrides Function ContainsReturnStatementInSelectedCode(jumpOutOfRegionStatements As IEnumerable(Of SyntaxNode)) As Boolean
-                Return jumpOutOfRegionStatements.Where(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax).Any()
-            End Function
-
-            Protected Overrides Function ReadOnlyFieldAllowed() As Boolean
-                Dim methodBlock = Me.SelectionResult.GetContainingScopeOf(Of MethodBlockBaseSyntax)()
-                If methodBlock Is Nothing Then
-                    Return True
-                End If
-
-                Return Not TypeOf methodBlock.BlockStatement Is SubNewStatementSyntax
-            End Function
+                Protected Overrides Function GetStatementFlowControlInformation(
+                        controlFlowAnalysis As ControlFlowAnalysis) As ExtractMethodFlowControlInformation
+                    ' We do not currently support converting code with advanced flow control constructs in VB. So just
+                    ' provide basic information that produces consistent behavior with how extract method has always
+                    ' worked in VB.
+                    Return ExtractMethodFlowControlInformation.Create(
+                        Me.SemanticModel.Compilation,
+                        supportsComplexFlowControl:=False,
+                        breakStatementCount:=0,
+                        continueStatementCount:=0,
+                        returnStatementCount:=controlFlowAnalysis.ExitPoints.Count(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax),
+                        endPointIsReachable:=controlFlowAnalysis.EndPointIsReachable)
+                End Function
+            End Class
         End Class
     End Class
 End Namespace

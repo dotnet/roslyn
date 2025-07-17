@@ -89,21 +89,28 @@ internal static class CastSimplifier
             {
                 Kind: OperationKind.MethodReference,
                 Parent.Kind: OperationKind.DelegateCreation,
-                Parent.Parent: IConversionOperation { Type.SpecialType: SpecialType.System_Object } conversionOperation
+                IsImplicit: false,
             })
         {
-            // If we have a double cast, report as unnecessary, e.g:
-            // (object)(object)MethodGroup
-            // (Delegate)(object)MethodGroup
-            // If we have a single object cast, don't report as unnecessary e.g:
-            // (object)MethodGroup
-            if (conversionOperation.Parent is IConversionOperation { Type: { } parentConversionType } &&
-                semanticModel.ClassifyConversion(cast.Expression, parentConversionType).Exists)
-            {
-                return true;
-            }
+            var current = castExpressionOperation.Parent.Parent;
+            while (current is IConversionOperation { Type.SpecialType: SpecialType.System_Delegate or SpecialType.System_MulticastDelegate })
+                current = current.Parent;
 
-            return false;
+            if (current is IConversionOperation { Type.SpecialType: SpecialType.System_Object })
+            {
+                // If we have a double cast, report as unnecessary, e.g:
+                // (object)(object)MethodGroup
+                // (Delegate)(object)MethodGroup
+                // If we have a single object cast, don't report as unnecessary e.g:
+                // (object)MethodGroup
+                if (current.Parent is IConversionOperation { Type: { } parentConversionType, IsImplicit: false } &&
+                    semanticModel.ClassifyConversion(cast.Expression, parentConversionType).Exists)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         return IsCastSafeToRemove(cast, cast.Expression, semanticModel, cancellationToken);
@@ -349,6 +356,14 @@ internal static class CastSimplifier
         if (rewrittenConvertedType is null || rewrittenConvertedType.TypeKind == TypeKind.Error || !rewrittenConversion.Exists)
             return false;
 
+        // If removing the conversion caused us to now become an explicit conversion (a conversion that can cause
+        // lossyness), then we must block as that's disallowed by the language.
+        //
+        // Note: compiler API is slightly odd here as they return such an 'IsExplicit+Exists' conversion when casting
+        // the expression inside a string interpolation.  So we ignore that case here
+        if (rewrittenConversion.IsExplicit && castNode.WalkUpParentheses().Parent is not InterpolationSyntax)
+            return false;
+
         if (CastRemovalWouldCauseUnintendedReferenceComparisonWarning(rewrittenExpression, rewrittenSemanticModel, cancellationToken))
             return false;
 
@@ -420,22 +435,27 @@ internal static class CastSimplifier
 
         #region allowed cases that allow this cast to be removed.
 
-        // In code like `((X)y).Z()` the cast to (X) can be removed if the same 'Z' method would be called.
-        // The rules here can be subtle.  For example, if Z is virtual, and (X) is a cast up the inheritance
-        // hierarchy then this is *normally* ok.  HOwever, the language resolve default parameter values 
-        // from the overridden method.  So if they differ, we can't actually remove the cast.
+        // In code like `((X)y).Z()` the cast to (X) can be removed if the same 'Z' method would be called. The rules
+        // here can be subtle.  For example, if Z is virtual, and (X) is a cast up the inheritance hierarchy then this
+        // is *normally* ok.  However, the language resolve default parameter values from the overridden method.  So if
+        // they differ, we can't actually remove the cast.
         //
-        // Similarly, if (X) is a cast to an interface, and Z is an impl of that interface method, it might
-        // be possible to remove, but only if y's type is sealed, as otherwise the interface method could be
-        // reimplemented in a derived type.
+        // Similarly, if (X) is a cast to an interface, and Z is an impl of that interface method, it might be possible
+        // to remove, but only if y's type is sealed, as otherwise the interface method could be reimplemented in a
+        // derived type.
         //
-        // Note: this path is fundamentally different from the other forms of cast removal we perform.  The
-        // casts are removed because statically they make no difference to the meaning of the code.  Here,
-        // the code statically changes meaning.  However, we can use our knowledge of how the language/runtime
-        // works to know at *runtime* that the user will get the exact same behavior.
+        // Note: this path is fundamentally different from the other forms of cast removal we perform.  The casts are
+        // removed because statically they make no difference to the meaning of the code.  Here, the code statically
+        // changes meaning.  However, we can use our knowledge of how the language/runtime works to know at *runtime*
+        // that the user will get the exact same behavior.
         if (castNode.WalkUpParentheses().Parent is MemberAccessExpressionSyntax memberAccessExpression)
         {
-            if (IsComplementaryMemberAccessAfterCastRemoval(
+            // Note: because this involves virtual calls, it is only safe if the original cast didn't change the runtime
+            // representation of the value at all.  So we only allow this for representation preserving casts.  For example,
+            // `string->object` preserves representation.  As does `int -> icomparable`
+            var isRepresentationPreservingCast = originalConversion.IsIdentityOrImplicitReference() || originalConversion.IsBoxing;
+            if (isRepresentationPreservingCast &&
+                IsComplementaryMemberAccessAfterCastRemoval(
                     memberAccessExpression, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
             {
                 return true;
@@ -506,11 +526,29 @@ internal static class CastSimplifier
                 return false;
         }
 
-        // If the types of the expressions are the same, then we can remove safely.
-        if (originalConvertedType.Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability))
-            return true;
+        if (originalConvertedType.Equals(rewrittenConvertedType))
+        {
+            // If the types of the expressions are exactly the same, then we can remove safely.
+            if (originalConvertedType.Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability))
+                return true;
 
-        // We can safely remove convertion to object in interpolated strings regardless of nullability
+            // The types differ on nullability.  But we may still want to remove this.
+            //
+            // For example:
+            //
+            //      string Method() => (string?)notNullString;
+            //
+            // Here we have a non-null type converted to its nullable form, which is target typed back to the non-null
+            // type.  Removing this nullable cast is safe and desirable.
+            var targetType = castNode.GetTargetType(originalSemanticModel, cancellationToken);
+            if (targetType is not null and not IErrorTypeSymbol &&
+                rewrittenConvertedType.Equals(targetType, SymbolEqualityComparer.IncludeNullability))
+            {
+                return true;
+            }
+        }
+
+        // We can safely remove conversion to object in interpolated strings regardless of nullability
         if (castNode.IsParentKind(SyntaxKind.Interpolation) && originalConversionOperation.Type?.SpecialType is SpecialType.System_Object)
             return true;
 
@@ -803,65 +841,107 @@ internal static class CastSimplifier
         if (originalSemanticModel.GetOperation(castExpression, cancellationToken) is not IConversionOperation conversionOperation)
             return false;
 
-        var originalConversion = conversionOperation.GetConversion();
-        if (!originalConversion.IsNullable && !originalConversion.IsNumeric)
-            return false;
+        return IsConditionalCastSafeToRemoveDueToConversionOfEntireConditionalExpression() ||
+               IsConditionalCastSafeToRemoveDueToConversionToOtherBranch();
 
-        if (originalConversion.IsNullable)
+        // Returns true if we have `x ? (T)y : z` and (T) can be removed because the outer expression is being converted
+        // to a (T) and that is pushed through to the branches.
+        bool IsConditionalCastSafeToRemoveDueToConversionOfEntireConditionalExpression()
         {
-            // if we have `a ? (int?)b : default` then we can't remove the nullable cast as it changes the
-            // meaning of `default`.
-            if (originalConditionalExpression.WhenTrue.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression) ||
-                originalConditionalExpression.WhenFalse.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression))
+            var originalConversion = conversionOperation.GetConversion();
+            if (!originalConversion.IsNullable && !originalConversion.IsNumeric)
+                return false;
+
+            if (originalConversion.IsNullable)
+            {
+                // if we have `a ? (int?)b : default` then we can't remove the nullable cast as it changes the
+                // meaning of `default`.
+                if (originalConditionalExpression.WhenTrue.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression) ||
+                    originalConditionalExpression.WhenFalse.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression))
+                {
+                    return false;
+                }
+            }
+
+            var originalCastExpressionTypeInfo = originalSemanticModel.GetTypeInfo(castExpression, cancellationToken);
+            var originalConditionalTypeInfo = originalSemanticModel.GetTypeInfo(originalConditionalExpression, cancellationToken);
+            var rewrittenConditionalTypeInfo = rewrittenSemanticModel.GetTypeInfo(rewrittenConditionalExpression, cancellationToken);
+
+            if (IsNullOrErrorType(originalCastExpressionTypeInfo) ||
+                IsNullOrErrorType(originalConditionalTypeInfo) ||
+                IsNullOrErrorType(rewrittenConditionalTypeInfo))
             {
                 return false;
             }
+
+            // when we have    a ? (T)b : c
+            // 
+            // then we want the type of the written conditional to be T as well.  And we want the final converted
+            // type of `a ? b : c` to be the same as what `a ? (T)b : c` is converted to.
+
+            if (!originalConditionalTypeInfo.ConvertedType!.Equals(rewrittenConditionalTypeInfo.ConvertedType, SymbolEqualityComparer.IncludeNullability))
+                return false;
+
+            var castType = originalSemanticModel.GetTypeInfo(castExpression, cancellationToken).Type;
+            if (IsNullOrErrorType(castType))
+                return false;
+
+            if (rewrittenSemanticModel.GetOperation(rewrittenConditionalExpression, cancellationToken) is not IConditionalOperation rewrittenConditionalOperation)
+                return false;
+
+            if (castType.Equals(rewrittenConditionalOperation.Type, SymbolEqualityComparer.IncludeNullability))
+                return true;
+
+            if (rewrittenConditionalOperation.Parent is IConversionOperation conditionalParentConversion &&
+                conditionalParentConversion.GetConversion().IsImplicit &&
+                castType.Equals(conditionalParentConversion.Type, SymbolEqualityComparer.IncludeNullability))
+            {
+                return true;
+            }
+
+            return false;
         }
 
-        var originalCastExpressionTypeInfo = originalSemanticModel.GetTypeInfo(castExpression, cancellationToken);
-        var originalConditionalTypeInfo = originalSemanticModel.GetTypeInfo(originalConditionalExpression, cancellationToken);
-        var rewrittenConditionalTypeInfo = rewrittenSemanticModel.GetTypeInfo(rewrittenConditionalExpression, cancellationToken);
-
-        if (IsNullOrErrorType(originalCastExpressionTypeInfo) ||
-            IsNullOrErrorType(originalConditionalTypeInfo) ||
-            IsNullOrErrorType(rewrittenConditionalTypeInfo))
+        // Returns true if we have `x ? (T)y : z` and (T) can be removed because the 'y' type is the same as the 'z' type, and
+        // both are converted to 'T' outside of the conditional.
+        bool IsConditionalCastSafeToRemoveDueToConversionToOtherBranch()
         {
-            return false;
+            // Always keep a cast of 'default'.  This can end up taking on incorrect values if it uses the type of the other branch
+            // (for example, between `(int?)default` vs `(int)default`).
+            if (castExpression.Expression.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression))
+                return false;
+
+            var otherSide = parent == originalConditionalExpression.WhenFalse ? originalConditionalExpression.WhenTrue : originalConditionalExpression.WhenFalse;
+            var otherSideType = originalSemanticModel.GetTypeInfo(otherSide, cancellationToken).Type;
+            var thisSideRewrittenType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).Type;
+
+            if (otherSideType is null || thisSideRewrittenType is null)
+                return false;
+
+            // Check if 'y' has the same type as 'z'.
+            if (!otherSideType.Equals(thisSideRewrittenType, SymbolEqualityComparer.IncludeNullability))
+                return false;
+
+            // Now check that with the (T) cast removed, that the outer `x ? y : z` is still
+            // immediately implicitly converted to a 'T'. If so, we can remove this inner (T) cast.
+
+            var rewrittenConditionalConvertedType = rewrittenSemanticModel.GetTypeInfo(rewrittenConditionalExpression, cancellationToken).ConvertedType;
+            if (rewrittenConditionalConvertedType is null)
+                return false;
+
+            var outerConversion = rewrittenSemanticModel.GetConversion(rewrittenConditionalExpression, cancellationToken);
+            if (!outerConversion.IsImplicit)
+                return false;
+
+            return rewrittenConditionalConvertedType.Equals(conversionOperation.Type);
         }
-
-        // when we have    a ? (T)b : c
-        // 
-        // then we want the type of the written conditional to be T as well.  And we want the final converted
-        // type of `a ? b : c` to be the same as what `a ? (T)b : c` is converted to.
-
-        if (!originalConditionalTypeInfo.ConvertedType!.Equals(rewrittenConditionalTypeInfo.ConvertedType, SymbolEqualityComparer.IncludeNullability))
-            return false;
-
-        var castType = originalSemanticModel.GetTypeInfo(castExpression, cancellationToken).Type;
-        if (IsNullOrErrorType(castType))
-            return false;
-
-        if (rewrittenSemanticModel.GetOperation(rewrittenConditionalExpression, cancellationToken) is not IConditionalOperation rewrittenConditionalOperation)
-            return false;
-
-        if (castType.Equals(rewrittenConditionalOperation.Type, SymbolEqualityComparer.IncludeNullability))
-            return true;
-
-        if (rewrittenConditionalOperation.Parent is IConversionOperation conditionalParentConversion &&
-            conditionalParentConversion.GetConversion().IsImplicit &&
-            castType.Equals(conditionalParentConversion.Type, SymbolEqualityComparer.IncludeNullability))
-        {
-            return true;
-        }
-
-        return false;
     }
 
     private static bool IsNullOrErrorType(TypeInfo info)
         => IsNullOrErrorType(info.Type) || IsNullOrErrorType(info.ConvertedType);
 
     private static bool IsNullOrErrorType([NotNullWhen(false)] ITypeSymbol? type)
-        => type is null || type is IErrorTypeSymbol;
+        => type is null or IErrorTypeSymbol;
 
     private static bool CastRemovalWouldCauseUnintendedReferenceComparisonWarning(
         ExpressionSyntax expression,
@@ -869,8 +949,8 @@ internal static class CastSimplifier
         CancellationToken cancellationToken)
     {
         // Translated from DiagnosticPass.CheckRelationals
-        var parentBinary = expression.WalkUpParentheses().GetRequiredParent() as BinaryExpressionSyntax;
-        if (parentBinary != null && parentBinary.Kind() is SyntaxKind.EqualsExpression or SyntaxKind.NotEqualsExpression)
+        if (expression.WalkUpParentheses().Parent
+                is BinaryExpressionSyntax(SyntaxKind.EqualsExpression or SyntaxKind.NotEqualsExpression) parentBinary)
         {
             var operation = semanticModel.GetOperation(parentBinary, cancellationToken);
             if (operation.UnwrapImplicitConversion() is IBinaryOperation binaryOperation)

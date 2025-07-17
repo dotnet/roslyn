@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Interactive;
 [Name("Interactive Command Handler")]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class ExecuteInInteractiveCommandHandler(
+internal sealed class ExecuteInInteractiveCommandHandler(
     [ImportMany] IEnumerable<Lazy<IExecuteInInteractiveCommandHandler, ContentTypeMetadata>> executeInInteractiveHandlers)
             : ICommandHandler<ExecuteInInteractiveCommandArgs>
 {

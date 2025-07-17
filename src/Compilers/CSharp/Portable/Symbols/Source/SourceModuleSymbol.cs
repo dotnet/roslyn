@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -242,6 +243,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 diagnostics = BindingDiagnosticBag.GetInstance();
                                 ValidateLinkedAssemblies(diagnostics, cancellationToken);
+                            }
+
+                            // If "data section string literals" are enabled, check the necessary APIs are available so used assemblies are tracked correctly.
+                            if (this.DeclaringCompilation.DataSectionStringLiteralThreshold != null)
+                            {
+                                diagnostics ??= BindingDiagnosticBag.GetInstance();
+                                _ = Binder.GetWellKnownTypeMember(this.DeclaringCompilation, WellKnownMember.System_Text_Encoding__get_UTF8, diagnostics, NoLocation.Singleton);
+                                _ = Binder.GetWellKnownTypeMember(this.DeclaringCompilation, WellKnownMember.System_Text_Encoding__GetString, diagnostics, NoLocation.Singleton);
                             }
 
                             if (_state.NotePartComplete(CompletionPart.StartValidatingReferencedAssemblies))
@@ -621,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 

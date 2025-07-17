@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -119,14 +120,17 @@ internal static class MethodGenerator
 
         var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
+        var isExplicit = explicitInterfaceSpecifier != null;
+        var parameters = method.Parameters.SelectAsArray(static (p, destination) => FilterAttributes(p, destination), destination);
+
         var methodDeclaration = MethodDeclaration(
-            attributeLists: GenerateAttributes(method, info, explicitInterfaceSpecifier != null),
+            attributeLists: GenerateAttributes(method, isExplicit, info),
             modifiers: GenerateModifiers(method, destination, info),
             returnType: method.GenerateReturnTypeSyntax(),
             explicitInterfaceSpecifier: explicitInterfaceSpecifier,
             identifier: method.Name.ToIdentifierToken(),
             typeParameterList: GenerateTypeParameterList(method, info),
-            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, explicitInterfaceSpecifier != null, info),
+            parameterList: ParameterGenerator.GenerateParameterList(parameters, isExplicit: isExplicit, info),
             constraintClauses: GenerateConstraintClauses(method),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
@@ -134,6 +138,27 @@ internal static class MethodGenerator
 
         methodDeclaration = UseExpressionBodyIfDesired(info, methodDeclaration, cancellationToken);
         return AddFormatterAndCodeGeneratorAnnotationsTo(methodDeclaration);
+    }
+
+    private static IParameterSymbol FilterAttributes(IParameterSymbol parameter, CodeGenerationDestination destination)
+        => parameter.WithAttributes(parameter.GetAttributes().WhereAsArray(static (a, destination) => FilterAttribute(a, destination), destination));
+
+    private static bool FilterAttribute(AttributeData attribute, CodeGenerationDestination destination)
+    {
+        if (destination is CodeGenerationDestination.InterfaceType)
+        {
+            // EnumeratorCancellation serves no purpose in an interface.  Filter it out.
+            return attribute.AttributeClass is not
+            {
+                Name: nameof(EnumeratorCancellationAttribute),
+                ContainingNamespace.Name: nameof(System.Runtime.CompilerServices),
+                ContainingNamespace.ContainingNamespace.Name: nameof(System.Runtime),
+                ContainingNamespace.ContainingNamespace.ContainingNamespace.Name: nameof(System),
+                ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace.IsGlobalNamespace: true,
+            };
+        }
+
+        return true;
     }
 
     private static LocalFunctionStatementSyntax GenerateLocalFunctionDeclarationWorker(
@@ -192,15 +217,17 @@ internal static class MethodGenerator
     }
 
     private static SyntaxList<AttributeListSyntax> GenerateAttributes(
-        IMethodSymbol method, CSharpCodeGenerationContextInfo info, bool isExplicit)
+        IMethodSymbol method, bool isExplicit, CSharpCodeGenerationContextInfo info)
     {
+        if (isExplicit)
+        {
+            return default;
+        }
+
         var attributes = new List<AttributeListSyntax>();
 
-        if (!isExplicit)
-        {
-            attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info));
-            attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, ReturnKeyword));
-        }
+        attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info));
+        attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, ReturnKeyword));
 
         return [.. attributes];
     }
@@ -230,12 +257,7 @@ internal static class MethodGenerator
             if (!referencedTypeParameters.Contains(typeParameter))
                 continue;
 
-            var constraint = typeParameter switch
-            {
-                { HasReferenceTypeConstraint: true } => s_classConstraint,
-                { HasValueTypeConstraint: true } => s_structConstraint,
-                _ => s_defaultConstraint
-            };
+            var constraint = GetConstraint(typeParameter);
 
             listOfClauses.Add(TypeParameterConstraintClause(
                 typeParameter.Name.ToIdentifierName(),
@@ -245,14 +267,63 @@ internal static class MethodGenerator
         return [.. listOfClauses];
     }
 
+    private static TypeParameterConstraintSyntax GetConstraint(ITypeParameterSymbol typeParameter)
+    {
+        using var _ = PooledHashSet<ITypeParameterSymbol>.GetInstance(out var visited);
+        var constraint = GetConstraintRecursive(typeParameter);
+
+        return constraint ?? s_defaultConstraint;
+
+        TypeParameterConstraintSyntax? GetConstraintRecursive(ITypeParameterSymbol typeParameter)
+        {
+            if (visited.Add(typeParameter))
+            {
+                // If it is explicitly marked as `T : struct` or `T : class` then we want to have the same constraint on the override.
+                if (typeParameter.HasValueTypeConstraint)
+                    return s_structConstraint;
+
+                if (typeParameter.HasReferenceTypeConstraint)
+                    return s_classConstraint;
+
+                foreach (var constraintType in typeParameter.ConstraintTypes)
+                {
+                    // If we ended up being constrained on a value type, then we have to have the `T : struct`
+                    // constraint to align with that.
+                    if (constraintType.IsValueType)
+                        return s_structConstraint;
+
+                    // For all reference types *except* interfaces, we want the `T : class` constraint.  An interface
+                    // can be implemented by a value type or a referernce type, so it adds no information to the
+                    // constraints.
+                    if (constraintType.IsReferenceType && constraintType.TypeKind != TypeKind.Interface)
+                        return s_classConstraint;
+
+                    // If we have `where T : U` then peek into the other contraint to see if it adds information.
+                    if (constraintType is ITypeParameterSymbol constraintTypeParameter)
+                    {
+                        var constraint = GetConstraintRecursive(constraintTypeParameter);
+                        if (constraint != null)
+                            return constraint;
+                    }
+                }
+            }
+
+            // We learned nothing from this constraint.
+            return null;
+        }
+    }
+
     private static TypeParameterListSyntax? GenerateTypeParameterList(
         IMethodSymbol method, CSharpCodeGenerationContextInfo info)
     {
         return TypeParameterGenerator.GenerateTypeParameterList(method.TypeParameters, info);
     }
 
-    private static SyntaxTokenList GenerateModifiers(
-        IMethodSymbol method, CodeGenerationDestination destination, CSharpCodeGenerationContextInfo info)
+    public static SyntaxTokenList GenerateModifiers(
+        IMethodSymbol method,
+        CodeGenerationDestination destination,
+        CSharpCodeGenerationContextInfo info,
+        bool includeAccessibility = true)
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
@@ -282,7 +353,8 @@ internal static class MethodGenerator
             else if (destination is not CodeGenerationDestination.CompilationUnit and
                 not CodeGenerationDestination.Namespace)
             {
-                AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
+                if (includeAccessibility)
+                    AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                 if (method.IsStatic)
                     tokens.Add(StaticKeyword);

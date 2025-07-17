@@ -6,130 +6,138 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
+
+internal partial class CSharpProjectShim : ICSharpProjectSite
 {
-    internal partial class CSharpProjectShim : ICSharpProjectSite
+    /// <summary>
+    /// When the project property page calls GetValidStartupClasses on us, it assumes
+    /// the strings passed to it are in the native C# language service's string table 
+    /// and never frees them. To avoid leaking our strings, we allocate them on the 
+    /// native heap for each call and keep the pointers here. On subsequent calls
+    /// or on disposal, we free the old strings before allocating the new ones.
+    /// </summary>
+    private IntPtr[]? _startupClasses = null;
+
+    public void GetCompiler(out ICSCompiler compiler, out ICSInputSet inputSet)
     {
-        /// <summary>
-        /// When the project property page calls GetValidStartupClasses on us, it assumes
-        /// the strings passed to it are in the native C# language service's string table 
-        /// and never frees them. To avoid leaking our strings, we allocate them on the 
-        /// native heap for each call and keep the pointers here. On subsequent calls
-        /// or on disposal, we free the old strings before allocating the new ones.
-        /// </summary>
-        private IntPtr[]? _startupClasses = null;
+        compiler = this;
+        inputSet = this;
+    }
 
-        public void GetCompiler(out ICSCompiler compiler, out ICSInputSet inputSet)
+    public bool CheckInputFileTimes(System.Runtime.InteropServices.ComTypes.FILETIME output)
+        => throw new NotImplementedException();
+
+    public void BuildProject(object progress)
+        => throw new NotImplementedException();
+
+    public void Unused()
+        => throw new NotImplementedException();
+
+    public void OnSourceFileAdded(string filename)
+    {
+        // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+        //var sourceCodeKind = extension.Equals(".csx", StringComparison.OrdinalIgnoreCase)
+        //    ? SourceCodeKind.Script
+        //    : SourceCodeKind.Regular;
+        AddFile(filename, SourceCodeKind.Regular);
+    }
+
+    public void OnSourceFileRemoved(string filename)
+        => RemoveFile(filename);
+
+    public int OnResourceFileAdded(string filename, string resourceName, bool embedded)
+        => VSConstants.S_OK;
+
+    public int OnResourceFileRemoved(string filename)
+        => VSConstants.S_OK;
+
+    public int OnImportAdded(string filename, string project)
+    {
+        // OnImportAdded is superseded by OnImportAddedEx. We maintain back-compat by treating
+        // it as a non-NoPIA reference.
+        return OnImportAddedEx(filename, project, CompilerOptions.OPTID_IMPORTS);
+    }
+
+    public int OnImportAddedEx(string filename, string project, CompilerOptions optionID)
+    {
+        if (optionID is not CompilerOptions.OPTID_IMPORTS and not CompilerOptions.OPTID_IMPORTSUSINGNOPIA)
         {
-            compiler = this;
-            inputSet = this;
+            throw new ArgumentException("optionID was an unexpected value.", nameof(optionID));
         }
 
-        public bool CheckInputFileTimes(System.Runtime.InteropServices.ComTypes.FILETIME output)
-            => throw new NotImplementedException();
+        var embedInteropTypes = optionID == CompilerOptions.OPTID_IMPORTSUSINGNOPIA;
+        ProjectSystemProject.AddMetadataReference(filename, new MetadataReferenceProperties(embedInteropTypes: embedInteropTypes));
 
-        public void BuildProject(object progress)
-            => throw new NotImplementedException();
+        return VSConstants.S_OK;
+    }
 
-        public void Unused()
-            => throw new NotImplementedException();
+    public void OnImportRemoved(string filename, string project)
+    {
+        filename = FileUtilities.NormalizeAbsolutePath(filename);
 
-        public void OnSourceFileAdded(string filename)
-        {
-            // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
-            //var sourceCodeKind = extension.Equals(".csx", StringComparison.OrdinalIgnoreCase)
-            //    ? SourceCodeKind.Script
-            //    : SourceCodeKind.Regular;
-            AddFile(filename, SourceCodeKind.Regular);
-        }
+        ProjectSystemProject.RemoveMetadataReference(filename, properties: ProjectSystemProject.GetPropertiesForMetadataReference(filename).Single());
+    }
 
-        public void OnSourceFileRemoved(string filename)
-            => RemoveFile(filename);
+    public void OnOutputFileChanged(string filename)
+    {
+        // We have nothing to do here
+    }
 
-        public int OnResourceFileAdded(string filename, string resourceName, bool embedded)
-            => VSConstants.S_OK;
+    public void OnActiveConfigurationChanged(string configName)
+    {
+        // We have nothing to do here
+    }
 
-        public int OnResourceFileRemoved(string filename)
-            => VSConstants.S_OK;
+    public void OnProjectLoadCompletion()
+    {
+        // Despite the name, this is not necessarily called when the project has actually been
+        // completely loaded. If you plan on using this, be careful!
+    }
 
-        public int OnImportAdded(string filename, string project)
-        {
-            // OnImportAdded is superseded by OnImportAddedEx. We maintain back-compat by treating
-            // it as a non-NoPIA reference.
-            return OnImportAddedEx(filename, project, CompilerOptions.OPTID_IMPORTS);
-        }
+    public int CreateCodeModel(object parent, out EnvDTE.CodeModel codeModel)
+    {
+        codeModel = ProjectCodeModel.GetOrCreateRootCodeModel((EnvDTE.Project)parent);
+        return VSConstants.S_OK;
+    }
 
-        public int OnImportAddedEx(string filename, string project, CompilerOptions optionID)
-        {
-            if (optionID is not CompilerOptions.OPTID_IMPORTS and not CompilerOptions.OPTID_IMPORTSUSINGNOPIA)
-            {
-                throw new ArgumentException("optionID was an unexpected value.", nameof(optionID));
-            }
+    public int CreateFileCodeModel(string fileName, object parent, out EnvDTE.FileCodeModel ppFileCodeModel)
+    {
+        ppFileCodeModel = ProjectCodeModel.GetOrCreateFileCodeModel(fileName, parent);
+        return VSConstants.S_OK;
+    }
 
-            var embedInteropTypes = optionID == CompilerOptions.OPTID_IMPORTSUSINGNOPIA;
-            ProjectSystemProject.AddMetadataReference(filename, new MetadataReferenceProperties(embedInteropTypes: embedInteropTypes));
+    public void OnModuleAdded(string filename)
+        => throw new NotImplementedException();
 
-            return VSConstants.S_OK;
-        }
+    public void OnModuleRemoved(string filename)
+        => throw new NotImplementedException();
 
-        public void OnImportRemoved(string filename, string project)
-        {
-            filename = FileUtilities.NormalizeAbsolutePath(filename);
+    public int GetValidStartupClasses(IntPtr[] classNames, ref int count)
+    {
+        var (result, newCount) = this.ThreadingContext.JoinableTaskFactory.Run(GetValidStartupClassesAsync);
+        if (newCount.HasValue)
+            count = newCount.Value;
 
-            ProjectSystemProject.RemoveMetadataReference(filename, properties: ProjectSystemProject.GetPropertiesForMetadataReference(filename).Single());
-        }
+        return result;
 
-        public void OnOutputFileChanged(string filename)
-        {
-            // We have nothing to do here
-        }
-
-        public void OnActiveConfigurationChanged(string configName)
-        {
-            // We have nothing to do here
-        }
-
-        public void OnProjectLoadCompletion()
-        {
-            // Despite the name, this is not necessarily called when the project has actually been
-            // completely loaded. If you plan on using this, be careful!
-        }
-
-        public int CreateCodeModel(object parent, out EnvDTE.CodeModel codeModel)
-        {
-            codeModel = ProjectCodeModel.GetOrCreateRootCodeModel((EnvDTE.Project)parent);
-            return VSConstants.S_OK;
-        }
-
-        public int CreateFileCodeModel(string fileName, object parent, out EnvDTE.FileCodeModel ppFileCodeModel)
-        {
-            ppFileCodeModel = ProjectCodeModel.GetOrCreateFileCodeModel(fileName, parent);
-            return VSConstants.S_OK;
-        }
-
-        public void OnModuleAdded(string filename)
-            => throw new NotImplementedException();
-
-        public void OnModuleRemoved(string filename)
-            => throw new NotImplementedException();
-
-        public int GetValidStartupClasses(IntPtr[] classNames, ref int count)
+        async Task<(int result, int? newCount)> GetValidStartupClassesAsync()
         {
             var project = Workspace.CurrentSolution.GetRequiredProject(ProjectSystemProject.Id);
-            var compilation = project.GetRequiredCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None).ConfigureAwait(true);
             var entryPoints = CSharpEntryPointFinder.FindEntryPoints(compilation);
 
             // If classNames is NULL, then we need to populate the number of valid startup
             // classes only
             if (classNames == null)
             {
-                count = entryPoints.Count();
-                return VSConstants.S_OK;
+                return (VSConstants.S_OK, entryPoints.Count());
             }
             else
             {
@@ -137,9 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 var entryPointNames = entryPoints.Select(e => e.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted))).ToArray();
 
                 if (entryPointNames.Length > classNames.Length)
-                {
-                    return VSConstants.S_FALSE;
-                }
+                    return (VSConstants.S_FALSE, null);
 
                 // The old language service stored startup class names in its string table,
                 // so the property page never freed them. To avoid leaking memory, we're 
@@ -149,27 +155,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 if (_startupClasses != null)
                 {
                     foreach (var @class in _startupClasses)
-                    {
                         Marshal.FreeHGlobal(@class);
-                    }
                 }
 
-                _startupClasses = entryPointNames.Select(Marshal.StringToHGlobalUni).ToArray();
+                _startupClasses = [.. entryPointNames.Select(Marshal.StringToHGlobalUni)];
                 Array.Copy(_startupClasses, classNames, _startupClasses.Length);
 
-                count = entryPointNames.Length;
-                return VSConstants.S_OK;
+                return (VSConstants.S_OK, entryPointNames.Length);
             }
         }
-
-        public void OnAliasesChanged(string file, string project, int previousAliasesCount, string[] previousAliases, int currentAliasesCount, string[] currentAliases)
+    }
+    public void OnAliasesChanged(string file, string project, int previousAliasesCount, string[] previousAliases, int currentAliasesCount, string[] currentAliases)
+    {
+        using (ProjectSystemProject.CreateBatchScope())
         {
-            using (ProjectSystemProject.CreateBatchScope())
-            {
-                var existingProperties = ProjectSystemProject.GetPropertiesForMetadataReference(file).Single();
-                ProjectSystemProject.RemoveMetadataReference(file, existingProperties);
-                ProjectSystemProject.AddMetadataReference(file, existingProperties.WithAliases(currentAliases));
-            }
+            var existingProperties = ProjectSystemProject.GetPropertiesForMetadataReference(file).Single();
+            ProjectSystemProject.RemoveMetadataReference(file, existingProperties);
+            ProjectSystemProject.AddMetadataReference(file, existingProperties.WithAliases(currentAliases));
         }
     }
 }

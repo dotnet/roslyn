@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -49,6 +50,7 @@ internal sealed class TextDocumentStates<TState>
 #endif
 
     private readonly ImmutableList<DocumentId> _ids;
+    private ImmutableArray<TState> _statesInCompilationOrder;
     private FilePathToDocumentIds? _filePathToDocumentIds;
 
     private TextDocumentStates(
@@ -64,14 +66,14 @@ internal sealed class TextDocumentStates<TState>
     }
 
     public TextDocumentStates(IEnumerable<TState> states)
-        : this(states.Select(s => s.Id).ToImmutableList(),
+        : this([.. states.Select(s => s.Id)],
                states.ToImmutableSortedDictionary(state => state.Id, state => state, DocumentIdComparer.Instance),
                filePathToDocumentIds: null)
     {
     }
 
     public TextDocumentStates(IEnumerable<DocumentInfo> infos, Func<DocumentInfo, TState> stateConstructor)
-        : this(infos.Select(info => info.Id).ToImmutableList(),
+        : this([.. infos.Select(info => info.Id)],
                infos.ToImmutableSortedDictionary(info => info.Id, stateConstructor, DocumentIdComparer.Instance),
                filePathToDocumentIds: null)
     {
@@ -116,11 +118,12 @@ internal sealed class TextDocumentStates<TState>
     /// <summary>
     /// Get states ordered in compilation order.
     /// </summary>
-    /// <returns></returns>
-    public IEnumerable<TState> GetStatesInCompilationOrder()
+    public ImmutableArray<TState> GetStatesInCompilationOrder()
     {
-        var map = States;
-        return Ids.Select(id => map[id]);
+        if (_statesInCompilationOrder.IsDefault)
+            _statesInCompilationOrder = Ids.SelectAsArray(static (id, map) => map[id], States);
+
+        return _statesInCompilationOrder;
     }
 
     public ImmutableArray<TValue> SelectAsArray<TValue>(Func<TState, TValue> selector)
@@ -147,7 +150,7 @@ internal sealed class TextDocumentStates<TState>
 
         return new(
             _ids.AddRange(ids),
-            States.AddRange(states.Select(state => KeyValuePairUtil.Create(state.Id, state))),
+            States.AddRange(states.Select(state => KeyValuePair.Create(state.Id, state))),
             filePathToDocumentIds: null);
     }
 

@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.SemanticSearch;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -45,9 +43,39 @@ internal sealed class RemoteSemanticSearchService(
 
         public ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken)
             => callback.InvokeAsync((callback, cancellationToken) => callback.OnUserCodeExceptionAsync(callbackId, exception, cancellationToken), cancellationToken);
+    }
 
-        public ValueTask OnCompilationFailureAsync(ImmutableArray<QueryCompilationError> errors, CancellationToken cancellationToken)
-            => callback.InvokeAsync((callback, cancellationToken) => callback.OnCompilationFailureAsync(callbackId, errors, cancellationToken), cancellationToken);
+    /// <summary>
+    /// Remote API.
+    /// </summary>
+    public ValueTask<CompileQueryResult> CompileQueryAsync(
+        string query,
+        string language,
+        string referenceAssembliesDir,
+        CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(cancellationToken =>
+        {
+            var services = GetWorkspaceServices();
+            var service = services.GetLanguageServices(language).GetRequiredService<ISemanticSearchService>();
+            var result = service.CompileQuery(services, query, referenceAssembliesDir, TraceLogger, cancellationToken);
+
+            return ValueTaskFactory.FromResult(result);
+        }, cancellationToken);
+    }
+
+    /// <summary>
+    /// Remote API.
+    /// </summary>
+    public ValueTask DiscardQueryAsync(CompiledQueryId queryId, CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(cancellationToken =>
+        {
+            var service = GetWorkspaceServices().GetLanguageServices(queryId.Language).GetRequiredService<ISemanticSearchService>();
+            service.DiscardQuery(queryId);
+
+            return default;
+        }, cancellationToken);
     }
 
     /// <summary>
@@ -56,14 +84,12 @@ internal sealed class RemoteSemanticSearchService(
     public ValueTask<ExecuteQueryResult> ExecuteQueryAsync(
         Checksum solutionChecksum,
         RemoteServiceCallbackId callbackId,
-        string language,
-        string query,
-        string referenceAssembliesDir,
+        CompiledQueryId queryId,
         CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
-            var service = solution.Services.GetLanguageServices(language).GetService<ISemanticSearchService>();
+            var service = solution.Services.GetLanguageServices(queryId.Language).GetService<ISemanticSearchService>();
             if (service == null)
             {
                 return new ExecuteQueryResult(FeaturesResources.Semantic_search_only_supported_on_net_core);
@@ -71,7 +97,7 @@ internal sealed class RemoteSemanticSearchService(
 
             var clientCallbacks = new ClientCallbacks(callback, callbackId);
 
-            return await service.ExecuteQueryAsync(solution, query, referenceAssembliesDir, clientCallbacks, clientCallbacks, TraceLogger, cancellationToken).ConfigureAwait(false);
+            return await service.ExecuteQueryAsync(solution, queryId, clientCallbacks, clientCallbacks, TraceLogger, cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
     }
 }

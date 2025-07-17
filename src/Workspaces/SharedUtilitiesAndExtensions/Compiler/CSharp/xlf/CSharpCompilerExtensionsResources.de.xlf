@@ -22,6 +22,11 @@
         <target state="translated">Ausdruckskörpermember</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indentation_preferences">
+        <source>Indentation preferences</source>
+        <target state="translated">Einstellungen für Einrückung</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Null_checking_preferences">
         <source>Null-checking preferences</source>
         <target state="translated">Einstellungen für NULL-Überprüfung</target>
@@ -30,6 +35,16 @@
       <trans-unit id="Pattern_matching_preferences">
         <source>Pattern matching preferences</source>
         <target state="translated">Einstellungen für den Musterabgleich</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Space_preferences">
+        <source>Space preferences</source>
+        <target state="translated">Einstellungen für Abstände</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrapping_preferences">
+        <source>Wrapping preferences</source>
+        <target state="translated">Umbrucheinstellungen</target>
         <note />
       </trans-unit>
       <trans-unit id="using_directive_preferences">

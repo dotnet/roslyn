@@ -12,22 +12,24 @@ namespace Microsoft.CodeAnalysis.CodeGeneration;
 
 internal abstract class AbstractFlagsEnumGenerator : IComparer<(IFieldSymbol field, ulong value)>
 {
-    protected abstract SyntaxNode CreateExplicitlyCastedLiteralValue(SyntaxGenerator generator, INamedTypeSymbol enumType, SpecialType underlyingSpecialType, object constantValue);
+    protected abstract SyntaxNode CreateExplicitlyCastedLiteralValue(INamedTypeSymbol enumType, SpecialType underlyingSpecialType, object constantValue);
     protected abstract bool IsValidName(INamedTypeSymbol enumType, string name);
 
-    public SyntaxNode CreateEnumConstantValue(SyntaxGenerator generator, INamedTypeSymbol enumType, object constantValue)
+    protected abstract SyntaxGeneratorInternal SyntaxGenerator { get; }
+
+    public SyntaxNode CreateEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
     {
         // Code copied from System.Enum.
         var isFlagsEnum = IsFlagsEnum(enumType);
         if (isFlagsEnum)
         {
-            return CreateFlagsEnumConstantValue(generator, enumType, constantValue);
+            return CreateFlagsEnumConstantValue(enumType, constantValue);
         }
         else
         {
             // Try to see if its one of the enum values.  If so, add that.  Otherwise, just add
             // the literal value of the enum.
-            return CreateNonFlagsEnumConstantValue(generator, enumType, constantValue);
+            return CreateNonFlagsEnumConstantValue(enumType, constantValue);
         }
     }
 
@@ -44,15 +46,11 @@ internal abstract class AbstractFlagsEnumGenerator : IComparer<(IFieldSymbol fie
             if (ctor != null)
             {
                 var type = ctor.ContainingType;
-                if (!ctor.Parameters.Any() && type.Name == "FlagsAttribute")
+                if (!ctor.Parameters.Any() &&
+                     type.Name == "FlagsAttribute" &&
+                     type.ContainingSymbol is INamespaceSymbol { Name: "System", ContainingNamespace.IsGlobalNamespace: true })
                 {
-                    var containingSymbol = type.ContainingSymbol;
-                    if (containingSymbol.Kind == SymbolKind.Namespace &&
-                        containingSymbol.Name == "System" &&
-                        ((INamespaceSymbol)containingSymbol.ContainingSymbol).IsGlobalNamespace)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
         }
@@ -60,18 +58,17 @@ internal abstract class AbstractFlagsEnumGenerator : IComparer<(IFieldSymbol fie
         return false;
     }
 
-    private SyntaxNode CreateFlagsEnumConstantValue(SyntaxGenerator generator, INamedTypeSymbol enumType, object constantValue)
+    private SyntaxNode CreateFlagsEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
     {
         // These values are sorted by value. Don't change this.
         var allFieldsAndValues = new List<(IFieldSymbol field, ulong value)>();
         GetSortedEnumFieldsAndValues(enumType, allFieldsAndValues);
 
         var usedFieldsAndValues = new List<(IFieldSymbol field, ulong value)>();
-        return CreateFlagsEnumConstantValue(generator, enumType, constantValue, allFieldsAndValues, usedFieldsAndValues);
+        return CreateFlagsEnumConstantValue(enumType, constantValue, allFieldsAndValues, usedFieldsAndValues);
     }
 
     private SyntaxNode CreateFlagsEnumConstantValue(
-        SyntaxGenerator generator,
         INamedTypeSymbol enumType,
         object constantValue,
         List<(IFieldSymbol field, ulong value)> allFieldsAndValues,
@@ -107,14 +104,14 @@ internal abstract class AbstractFlagsEnumGenerator : IComparer<(IFieldSymbol fie
             for (var i = usedFieldsAndValues.Count - 1; i >= 0; i--)
             {
                 var field = usedFieldsAndValues[i];
-                var node = CreateMemberAccessExpression(generator, field.field, enumType, underlyingSpecialType);
+                var node = CreateMemberAccessExpression(field.field, enumType, underlyingSpecialType);
                 if (finalNode == null)
                 {
                     finalNode = node;
                 }
                 else
                 {
-                    finalNode = generator.BitwiseOrExpression(finalNode, node);
+                    finalNode = this.SyntaxGenerator.BitwiseOrExpression(finalNode, node);
                 }
             }
 
@@ -128,28 +125,28 @@ internal abstract class AbstractFlagsEnumGenerator : IComparer<(IFieldSymbol fie
         var zeroField = GetZeroField(allFieldsAndValues);
         if (constantValueULong == 0 && zeroField != null)
         {
-            return CreateMemberAccessExpression(generator, zeroField, enumType, underlyingSpecialType);
+            return CreateMemberAccessExpression(zeroField, enumType, underlyingSpecialType);
         }
         else
         {
             // Add anything else in as a literal value.
-            return CreateExplicitlyCastedLiteralValue(generator, enumType, underlyingSpecialType, constantValue);
+            return CreateExplicitlyCastedLiteralValue(enumType, underlyingSpecialType, constantValue);
         }
     }
 
     private SyntaxNode CreateMemberAccessExpression(
-        SyntaxGenerator generator, IFieldSymbol field, INamedTypeSymbol enumType, SpecialType underlyingSpecialType)
+        IFieldSymbol field, INamedTypeSymbol enumType, SpecialType underlyingSpecialType)
     {
         if (IsValidName(enumType, field.Name))
         {
-            return generator.MemberAccessExpression(
-                generator.TypeExpression(enumType),
-                generator.IdentifierName(field.Name));
+            return this.SyntaxGenerator.MemberAccessExpression(
+                this.SyntaxGenerator.TypeExpression(enumType),
+                this.SyntaxGenerator.IdentifierName(field.Name));
         }
         else
         {
             Contract.ThrowIfNull(field.ConstantValue);
-            return CreateExplicitlyCastedLiteralValue(generator, enumType, underlyingSpecialType, field.ConstantValue);
+            return CreateExplicitlyCastedLiteralValue(enumType, underlyingSpecialType, field.ConstantValue);
         }
     }
 
@@ -185,7 +182,7 @@ internal abstract class AbstractFlagsEnumGenerator : IComparer<(IFieldSymbol fie
         allFieldsAndValues.Sort(this);
     }
 
-    private SyntaxNode CreateNonFlagsEnumConstantValue(SyntaxGenerator generator, INamedTypeSymbol enumType, object constantValue)
+    private SyntaxNode CreateNonFlagsEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
     {
         Contract.ThrowIfNull(enumType.EnumUnderlyingType);
         var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
@@ -198,14 +195,12 @@ internal abstract class AbstractFlagsEnumGenerator : IComparer<(IFieldSymbol fie
             {
                 var fieldValue = underlyingSpecialType.ConvertUnderlyingValueToUInt64(field.ConstantValue);
                 if (constantValueULong == fieldValue)
-                {
-                    return CreateMemberAccessExpression(generator, field, enumType, underlyingSpecialType);
-                }
+                    return CreateMemberAccessExpression(field, enumType, underlyingSpecialType);
             }
         }
 
         // Otherwise, just add the enum as a literal.
-        return CreateExplicitlyCastedLiteralValue(generator, enumType, underlyingSpecialType, constantValue);
+        return CreateExplicitlyCastedLiteralValue(enumType, underlyingSpecialType, constantValue);
     }
 
     int IComparer<(IFieldSymbol field, ulong value)>.Compare((IFieldSymbol field, ulong value) x, (IFieldSymbol field, ulong value) y)

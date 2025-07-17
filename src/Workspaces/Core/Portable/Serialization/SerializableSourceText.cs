@@ -15,7 +15,6 @@ using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Host.TemporaryStorageService;
 
 #if DEBUG
-using System.Linq;
 #endif
 
 namespace Microsoft.CodeAnalysis.Serialization;
@@ -57,26 +56,31 @@ internal sealed class SerializableSourceText
     public readonly Checksum ContentChecksum;
 
     public SerializableSourceText(TemporaryStorageTextHandle storageHandle)
-        : this(storageHandle, text: null, storageHandle.ContentHash)
+        : this(storageHandle, text: null, Checksum.Create(storageHandle.ContentHash))
     {
     }
 
     public SerializableSourceText(SourceText text, ImmutableArray<byte> contentHash)
-        : this(storageHandle: null, text, contentHash)
+        : this(storageHandle: null, text, Checksum.Create(contentHash))
     {
     }
 
-    private SerializableSourceText(TemporaryStorageTextHandle? storageHandle, SourceText? text, ImmutableArray<byte> contentHash)
+    public SerializableSourceText(SourceText text, Checksum contentChecksum)
+        : this(storageHandle: null, text, contentChecksum)
+    {
+    }
+
+    private SerializableSourceText(TemporaryStorageTextHandle? storageHandle, SourceText? text, Checksum contentChecksum)
     {
         Debug.Assert(storageHandle is null != text is null);
 
         _storageHandle = storageHandle;
         _text = text;
-        ContentChecksum = Checksum.Create(contentHash);
+        ContentChecksum = contentChecksum;
 
 #if DEBUG
         var computedContentHash = TryGetText()?.GetContentHash() ?? _storageHandle!.ContentHash;
-        Debug.Assert(contentHash.SequenceEqual(computedContentHash));
+        Debug.Assert(contentChecksum == Checksum.Create(computedContentHash));
 #endif
     }
 
@@ -84,7 +88,6 @@ internal sealed class SerializableSourceText
     /// Returns the strongly referenced SourceText if we have it, or tries to retrieve it from the weak reference if
     /// it's still being held there.
     /// </summary>
-    /// <returns></returns>
     private SourceText? TryGetText()
         => _text ?? _computedText.GetTarget();
 

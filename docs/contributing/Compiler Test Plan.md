@@ -34,6 +34,7 @@ This document provides guidance for thinking about language interactions and tes
 - Performance and stress testing
 - Can build VS
 - Check that `Obsolete` is honored for members used in binding/lowering
+- LangVersion
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
@@ -51,7 +52,10 @@ This document provides guidance for thinking about language interactions and tes
 - events (including add/remove accessors)
 - Parameter modifiers: ref, out, in, ref readonly, params (for array, for non-array)
 - Attributes (including generic attributes and security attributes)
-- Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, types and interfaces with nullability)
+  - Compiler-recognized attributes should not have any effect in earlier LangVersions,
+    except a LangVersion error should be reported when functionality depending on the attribute is used
+    (for example, InlineArray conversion to Span).
+- Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, `allows ref struct`, types and interfaces with nullability)
 - Default and constant values
 - Partial classes
 - Literals
@@ -76,6 +80,7 @@ This document provides guidance for thinking about language interactions and tes
 - Readonly members on structs (methods, property/indexer accessors, custom event accessors)
 - SkipLocalsInit
 - Method override or explicit implementation with `where T : { class, struct, default }`
+- `extension` blocks (emitted with content-based names)
  
 # Code
 - Operators (see Eric's list below)
@@ -170,7 +175,13 @@ M();
 ++x; 
 x++; 
 --x; 
-x--; 
+x--;
+a?.M(); // conditional access / null-propagating operator
+a?[b] = c;
+a?.b = c;
+a?[b] = c;
+a?.b += c; // and other compound assignment cases
+var x = a?.M(); // similar "value is used" versions of the above '?.' cases
 new C(); 
 if (…) … else … 
 switch(…) { … case (…) when (…): … } 
@@ -237,8 +248,8 @@ A variable is a storage location. These are all the different ways to refer to a
 x.y 
 f( ) 
 a[e] 
-x++ 
-x-- 
+x++ (including instance user defined)
+x-- (including instance user defined)
 new X() 
 new() 
 typeof(T) 
@@ -252,8 +263,8 @@ delegate ( ) { }
 !x 
 ~x 
 ^x
-++x 
---x 
+++x (including instance user defined)
+--x (including instance user defined)
 (X)x 
 x * y 
 x / y 
@@ -279,17 +290,17 @@ x || y
 x ?? y 
 x ? : y : z
 x = y 
-x *= y 
-x /= y 
-x %= y 
-x += y 
-x -= y 
-x <<= y 
-x >>= y 
-x >>>= y 
-x &= y 
-x ^= y 
-x |= y 
+x *= y (including instance user defined)
+x /= y (including instance user defined)
+x %= y (including instance user defined)
+x += y (including instance user defined)
+x -= y (including instance user defined)
+x <<= y (including instance user defined)
+x >>= y (including instance user defined)
+x >>>= y (including instance user defined)
+x &= y (including instance user defined)
+x ^= y (including instance user defined)
+x |= y (including instance user defined)
 x ??= y
 x => { } 
 sizeof( ) 
@@ -376,7 +387,7 @@ __makeref( x )
 - Interface method 
 - Field
 - User-defined indexer
-- User-defined operator (including checked)
+- User-defined operator (including checked, including instance increment/decrement and compound assignment)
 - User-defined conversion (including checked)
 
 ## Patterns

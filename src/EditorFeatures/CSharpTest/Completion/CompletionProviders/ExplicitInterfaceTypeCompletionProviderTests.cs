@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -14,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class ExplicitInterfaceTypeCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class ExplicitInterfaceTypeCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(ExplicitInterfaceTypeCompletionProvider);
@@ -42,19 +40,20 @@ public class ExplicitInterfaceTypeCompletionProviderTests : AbstractCSharpComple
     [InlineData("record struct")]
     public async Task TestAtStartOfRecord(string record)
     {
-        var markup = $@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""Preview"">
-        <Document>
-using System.Collections;
+        var markup = $$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" LanguageVersion="Preview">
+                    <Document>
+            using System.Collections;
 
-{record} C : IList
-{{
-    int $$
-}}
-        </Document>
-    </Project>
-</Workspace>";
+            {{record}} C : IList
+            {
+                int $$
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
 
         await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
         await VerifyItemExistsAsync(markup, "IEnumerable");
@@ -63,16 +62,13 @@ using System.Collections;
     }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=459044")]
-    public async Task TestInMisplacedUsing()
-    {
-        var markup = """
+    public Task TestInMisplacedUsing()
+        => VerifyNoItemsExistAsync("""
             class C
             {
                 using ($$)
             }
-            """;
-        await VerifyNoItemsExistAsync(markup); // no crash
-    }
+            """); // no crash
 
     [Fact]
     public async Task TestAtStartOfStruct()
@@ -254,9 +250,8 @@ using System.Collections;
     }
 
     [Fact]
-    public async Task NotInMember()
-    {
-        var markup = """
+    public Task NotInMember()
+        => VerifyNoItemsExistAsync("""
             using System.Collections;
 
             class C : IList
@@ -266,25 +261,18 @@ using System.Collections;
                     int $$
                 }
             }
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task NotWithAccessibility()
-    {
-        var markup = """
+    public Task NotWithAccessibility()
+        => VerifyNoItemsExistAsync("""
             using System.Collections;
 
             class C : IList
             {
                 public int $$
             }
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact]
     public async Task TestInInterface()
@@ -324,9 +312,8 @@ using System.Collections;
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70382")]
-    public async Task TestAfterGenericType()
-    {
-        var markup = """
+    public Task TestAfterGenericType()
+        => VerifyItemExistsAsync("""
             interface I<T>
             {
                 I<T> M();
@@ -336,15 +323,11 @@ using System.Collections;
             {
                  I<T> $$
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "I", displayTextSuffix: "<>");
-    }
+            """, "I", displayTextSuffix: "<>");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70382")]
-    public async Task TestAfterNestedGenericType()
-    {
-        var markup = """
+    public Task TestAfterNestedGenericType()
+        => VerifyItemExistsAsync("""
             interface I<T>
             {
                 I<T> M();
@@ -354,8 +337,19 @@ using System.Collections;
             {
                  I<I<T>> $$
             }
-            """;
+            """, "I", displayTextSuffix: "<>");
 
-        await VerifyItemExistsAsync(markup, "I", displayTextSuffix: "<>");
-    }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54005")]
+    public Task TestWithStaticKeyword()
+        => VerifyItemExistsAsync("""
+            interface I1
+            {
+                static abstract void M1();
+            }
+
+            class C1 : I1
+            {
+                static void $$
+            }
+            """, "I1", displayTextSuffix: "");
 }

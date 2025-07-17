@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -16,11 +20,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
 [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceUsingStatement)]
 public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_NoEditor
 {
+    private static OptionsCollection DoNotPreferSimpleUsingStatement => new(LanguageNames.CSharp)
+    {
+        { CSharpCodeStyleOptions.PreferSimpleUsingStatement, new CodeStyleOption2<bool>(false, NotificationOption2.Silent) }
+    };
+
+    private static OptionsCollection PreferSimpleUsingStatement => new(LanguageNames.CSharp)
+    {
+        { CSharpCodeStyleOptions.PreferSimpleUsingStatement, new CodeStyleOption2<bool>(true, NotificationOption2.Silent) }
+    };
+
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpIntroduceUsingStatementCodeRefactoringProvider();
 
-    private Task TestAsync(string initialMarkup, string expectedMarkup, LanguageVersion languageVersion = LanguageVersion.CSharp7)
-        => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion));
+    private Task TestAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        LanguageVersion languageVersion = LanguageVersion.CSharp7,
+        OptionsCollection? options = null)
+        => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion), options: options);
 
     [Theory]
     [InlineData("v[||]ar name = disposable;")]
@@ -35,9 +53,8 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
     [InlineData("var name = disposable[||];")]
     [InlineData("var name = disposable;[||]")]
     [InlineData("var name = disposable[||]")]
-    public async Task RefactoringIsAvailableForSelection(string declaration)
-    {
-        await TestAsync(
+    public Task RefactoringIsAvailableForSelection(string declaration)
+        => TestAsync(
             """
             class C
             {
@@ -58,12 +75,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RefactoringIsAvailableForVerticalSelection()
-    {
-        await TestAsync(
+    public Task RefactoringIsAvailableForVerticalSelection()
+        => TestAsync(
             """
             class C
             {
@@ -85,12 +100,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RefactoringIsAvailableForSelectionAtStartOfStatementWithPrecedingDeclaration()
-    {
-        await TestAsync(
+    public Task RefactoringIsAvailableForSelectionAtStartOfStatementWithPrecedingDeclaration()
+        => TestAsync(
             """
             class C
             {
@@ -113,12 +126,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RefactoringIsAvailableForSelectionAtStartOfLineWithPrecedingDeclaration()
-    {
-        await TestAsync(
+    public Task RefactoringIsAvailableForSelectionAtStartOfLineWithPrecedingDeclaration()
+        => TestAsync(
             """
             class C
             {
@@ -141,12 +152,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RefactoringIsAvailableForSelectionAtEndOfStatementWithFollowingDeclaration()
-    {
-        await TestAsync(
+    public Task RefactoringIsAvailableForSelectionAtEndOfStatementWithFollowingDeclaration()
+        => TestAsync(
             """
             class C
             {
@@ -170,12 +179,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RefactoringIsAvailableForSelectionAtEndOfLineWithFollowingDeclaration()
-    {
-        await TestAsync(
+    public Task RefactoringIsAvailableForSelectionAtEndOfLineWithFollowingDeclaration()
+        => TestAsync(
             """
             class C
             {
@@ -199,15 +206,13 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("var name = d[||]isposable;")]
     [InlineData("var name = disposabl[||]e;")]
     [InlineData("var name=[|disposable|];")]
-    public async Task RefactoringIsNotAvailableForSelection(string declaration)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task RefactoringIsNotAvailableForSelection(string declaration)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -217,12 +222,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RefactoringIsNotAvailableForDeclarationMissingInitializerExpression()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task RefactoringIsNotAvailableForDeclarationMissingInitializerExpression()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -232,12 +235,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RefactoringIsNotAvailableForUsingStatementDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task RefactoringIsNotAvailableForUsingStatementDeclaration()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -249,16 +250,14 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("[||]System.IDisposable x = disposable, y = disposable;")]
     [InlineData("System.IDisposable [||]x = disposable, y = disposable;")]
     [InlineData("System.IDisposable x = disposable, [||]y = disposable;")]
     [InlineData("System.IDisposable x = disposable, y = disposable;[||]")]
-    public async Task RefactoringIsNotAvailableForMultiVariableDeclaration(string declaration)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task RefactoringIsNotAvailableForMultiVariableDeclaration(string declaration)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -268,12 +267,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RefactoringIsAvailableForConstrainedGenericTypeParameter()
-    {
-        await TestAsync(
+    public Task RefactoringIsAvailableForConstrainedGenericTypeParameter()
+        => TestAsync(
             """
             class C<T> where T : System.IDisposable
             {
@@ -294,12 +291,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RefactoringIsNotAvailableForUnconstrainedGenericTypeParameter()
-    {
-        await TestMissingAsync(
+    public Task RefactoringIsNotAvailableForUnconstrainedGenericTypeParameter()
+        => TestMissingAsync(
             """
             class C<T>
             {
@@ -309,12 +304,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task LeadingCommentTriviaIsPlacedOnUsingStatement()
-    {
-        await TestAsync(
+    public Task LeadingCommentTriviaIsPlacedOnUsingStatement()
+        => TestAsync(
             """
             class C
             {
@@ -337,12 +330,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task CommentOnTheSameLineStaysOnTheSameLine()
-    {
-        await TestAsync(
+    public Task CommentOnTheSameLineStaysOnTheSameLine()
+        => TestAsync(
             """
             class C
             {
@@ -363,12 +354,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TrailingCommentTriviaOnNextLineGoesAfterBlock()
-    {
-        await TestAsync(
+    public Task TrailingCommentTriviaOnNextLineGoesAfterBlock()
+        => TestAsync(
             """
             class C
             {
@@ -391,12 +380,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ValidPreprocessorStaysValid()
-    {
-        await TestAsync(
+    public Task ValidPreprocessorStaysValid()
+        => TestAsync(
             """
             class C
             {
@@ -421,12 +408,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InvalidPreprocessorStaysInvalid()
-    {
-        await TestAsync(
+    public Task InvalidPreprocessorStaysInvalid()
+        => TestAsync(
             """
             class C
             {
@@ -453,12 +438,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InvalidPreprocessorStaysInvalid_CSharp8()
-    {
-        await TestAsync(
+    public Task InvalidPreprocessorStaysInvalid_CSharp8()
+        => TestAsync(
             """
             class C
             {
@@ -483,12 +466,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """, LanguageVersion.CSharp8);
-    }
 
     [Fact]
-    public async Task StatementsAreSurroundedByMinimalScope()
-    {
-        await TestAsync(
+    public Task StatementsAreSurroundedByMinimalScope()
+        => TestAsync(
             """
             class C
             {
@@ -518,12 +499,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task CommentsAreSurroundedExceptLinesFollowingLastUsage()
-    {
-        await TestAsync(
+    public Task CommentsAreSurroundedExceptLinesFollowingLastUsage()
+        => TestAsync(
             """
             class C
             {
@@ -550,12 +529,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task WorksInSwitchSections()
-    {
-        await TestAsync(
+    public Task WorksInSwitchSections()
+        => TestAsync(
             """
             class C
             {
@@ -589,12 +566,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task WorksOnStatementWithInvalidEmbeddingInIf()
-    {
-        await TestAsync(
+    public Task WorksOnStatementWithInvalidEmbeddingInIf()
+        => TestAsync(
             """
             class C
             {
@@ -617,12 +592,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RefactoringIsNotAvailableOnStatementWithInvalidEmbeddingInLambda()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task RefactoringIsNotAvailableOnStatementWithInvalidEmbeddingInLambda()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -632,12 +605,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")]
-    public async Task ExpandsToIncludeSurroundedVariableDeclarations()
-    {
-        await TestAsync(
+    public Task ExpandsToIncludeSurroundedVariableDeclarations()
+        => TestAsync(
             """
             using System.IO;
 
@@ -669,12 +640,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")]
-    public async Task ExpandsToIncludeSurroundedOutVariableDeclarations()
-    {
-        await TestAsync(
+    public Task ExpandsToIncludeSurroundedOutVariableDeclarations()
+        => TestAsync(
             """
             using System.IO;
 
@@ -716,12 +685,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")]
-    public async Task ExpandsToIncludeSurroundedPatternVariableDeclarations()
-    {
-        await TestAsync(
+    public Task ExpandsToIncludeSurroundedPatternVariableDeclarations()
+        => TestAsync(
             """
             using System.IO;
 
@@ -763,12 +730,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")]
-    public async Task ExpandsToIncludeSurroundedMultiVariableDeclarations()
-    {
-        await TestAsync(
+    public Task ExpandsToIncludeSurroundedMultiVariableDeclarations()
+        => TestAsync(
             """
             using System.IO;
 
@@ -802,12 +767,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
-    public async Task ConsumeFollowingTryStatement1()
-    {
-        await TestAsync(
+    public Task ConsumeFollowingTryStatement1()
+        => TestAsync(
             """
             using System.IO;
 
@@ -847,12 +810,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
-    public async Task ConsumeFollowingTryStatement2()
-    {
-        await TestAsync(
+    public Task ConsumeFollowingTryStatement2()
+        => TestAsync(
             """
             using System;
             using System.IO;
@@ -907,12 +868,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
-    public async Task ConsumeFollowingTryStatement3()
-    {
-        await TestAsync(
+    public Task ConsumeFollowingTryStatement3()
+        => TestAsync(
             """
             using System;
             using System.IO;
@@ -959,12 +918,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
-    public async Task ConsumeFollowingTryStatement4()
-    {
-        await TestAsync(
+    public Task ConsumeFollowingTryStatement4()
+        => TestAsync(
             """
             using System;
             using System.IO;
@@ -1013,12 +970,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
-    public async Task ConsumeFollowingTryStatement5()
-    {
-        await TestAsync(
+    public Task ConsumeFollowingTryStatement5()
+        => TestAsync(
             """
             using System;
             using System.IO;
@@ -1067,12 +1022,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
-    public async Task ConsumeFollowingTryStatement6()
-    {
-        await TestAsync(
+    public Task ConsumeFollowingTryStatement6()
+        => TestAsync(
             """
             using System;
             using System.IO;
@@ -1121,12 +1074,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
-    public async Task ConsumeFollowingTryStatement7()
-    {
-        await TestAsync(
+    public Task ConsumeFollowingTryStatement7()
+        => TestAsync(
             """
             using System;
             using System.IO;
@@ -1175,12 +1126,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
-    public async Task ConsumeFollowingTryStatement8()
-    {
-        await TestAsync(
+    public Task ConsumeFollowingTryStatement8()
+        => TestAsync(
             """
             using System;
             using System.IO;
@@ -1229,12 +1178,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
-    public async Task StatementsAreSurroundedByMinimalScope1_CSharp8()
-    {
-        await TestAsync(
+    public Task StatementsAreSurroundedByMinimalScope1_CSharp8()
+        => TestAsync(
             """
             class C
             {
@@ -1264,12 +1211,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """, LanguageVersion.CSharp8);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
-    public async Task StatementsAreSurroundedByMinimalScope2_CSharp8()
-    {
-        await TestAsync(
+    public Task StatementsAreSurroundedByMinimalScope2_CSharp8()
+        => TestAsync(
             """
             class C
             {
@@ -1294,12 +1239,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """, LanguageVersion.CSharp8);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
-    public async Task StatementsAreSurroundedByMinimalScope3_CSharp8()
-    {
-        await TestAsync(
+    public Task StatementsAreSurroundedByMinimalScope3_CSharp8()
+        => TestAsync(
             """
             class C
             {
@@ -1326,12 +1269,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """, LanguageVersion.CSharp8);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
-    public async Task StatementsAreSurroundedByMinimalScope4_CSharp8()
-    {
-        await TestAsync(
+    public Task StatementsAreSurroundedByMinimalScope4_CSharp8()
+        => TestAsync(
             """
             class C
             {
@@ -1370,12 +1311,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """, LanguageVersion.CSharp8);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
-    public async Task StatementsAreSurroundedByMinimalScope5_CSharp8()
-    {
-        await TestAsync(
+    public Task StatementsAreSurroundedByMinimalScope5_CSharp8()
+        => TestAsync(
             """
             class C
             {
@@ -1416,5 +1355,104 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """, LanguageVersion.CSharp8);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37260")]
+    public Task TestExpressionStatement()
+        => TestAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [||]MethodThatReturnsDisposableThing();
+                    Console.WriteLine();
+                }
+
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                void M()
+                {
+                    using (MethodThatReturnsDisposableThing())
+                    {
+                        Console.WriteLine();
+                    }
+                }
+            
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """, options: DoNotPreferSimpleUsingStatement);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37260")]
+    public Task TestExpressionStatement_PreferSimpleUsingStatement1()
+        => TestAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [||]MethodThatReturnsDisposableThing();
+                    Console.WriteLine();
+                }
+
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                void M()
+                {
+                    using var _ = MethodThatReturnsDisposableThing();
+                    Console.WriteLine();
+                }
+            
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """, options: PreferSimpleUsingStatement);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37260")]
+    public Task TestExpressionStatement_PreferSimpleUsingStatement2()
+        => TestAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    var _ = true;
+                    [||]MethodThatReturnsDisposableThing();
+                    Console.WriteLine();
+                }
+
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                void M()
+                {
+                    var _ = true;
+                    using var _1 = MethodThatReturnsDisposableThing();
+                    Console.WriteLine();
+                }
+            
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """, options: PreferSimpleUsingStatement);
 }

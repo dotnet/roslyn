@@ -6,8 +6,9 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.VisualBasic.Emit
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -33,16 +34,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Build and add synthesized attributes for this symbol.
         ''' </summary>
-        Friend Overridable Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overridable Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
         End Sub
 
         ''' <summary>
         ''' Convenience helper called by subclasses to add a synthesized attribute to a collection of attributes.
         ''' </summary>
-        Friend Shared Sub AddSynthesizedAttribute(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData), attribute As SynthesizedAttributeData)
+        Friend Shared Sub AddSynthesizedAttribute(ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData), attribute As VisualBasicAttributeData)
             If attribute IsNot Nothing Then
                 If attributes Is Nothing Then
-                    attributes = ArrayBuilder(Of SynthesizedAttributeData).GetInstance(4)
+                    attributes = ArrayBuilder(Of VisualBasicAttributeData).GetInstance(4)
                 End If
 
                 attributes.Add(attribute)

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.SplitComment)]
-public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandlerTests
+public sealed class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandlerTests
 {
     protected override EditorTestWorkspace CreateWorkspace(string markup)
         => EditorTestWorkspace.CreateCSharp(markup);
@@ -309,23 +309,25 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
     public void TestCommentWithMultipleLeadingSpaces(string commentValue)
     {
         TestHandled(
-@$"public class Program
-{{
-    public static void Main(string[] args) 
-    {{ 
-        //    {commentValue}
-    }}
-}}",
-"""
-public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        //    X
-        //    Test Comment
-    }
-}
-""");
+            $$"""
+            public class Program
+            {
+                public static void Main(string[] args) 
+                { 
+                    //    {{commentValue}}
+                }
+            }
+            """,
+            """
+            public class Program
+            {
+                public static void Main(string[] args) 
+                { 
+                    //    X
+                    //    Test Comment
+                }
+            }
+            """);
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
@@ -338,23 +340,25 @@ public class Program
     public void TestQuadCommentWithMultipleLeadingSpaces(string commentValue)
     {
         TestHandled(
-@$"public class Program
-{{
-    public static void Main(string[] args) 
-    {{ 
-        ////    {commentValue}
-    }}
-}}",
-"""
-public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        ////    X
-        ////    Test Comment
-    }
-}
-""");
+            $$"""
+            public class Program
+            {
+                public static void Main(string[] args) 
+                { 
+                    ////    {{commentValue}}
+                }
+            }
+            """,
+            """
+            public class Program
+            {
+                public static void Main(string[] args) 
+                { 
+                    ////    X
+                    ////    Test Comment
+                }
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]

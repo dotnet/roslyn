@@ -24,21 +24,16 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateType;
 
 [ExportLanguageService(typeof(IGenerateTypeService), LanguageNames.CSharp), Shared]
-internal class CSharpGenerateTypeService :
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpGenerateTypeService() :
     AbstractGenerateTypeService<CSharpGenerateTypeService, SimpleNameSyntax, ObjectCreationExpressionSyntax, ExpressionSyntax, TypeDeclarationSyntax, ArgumentSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpGenerateTypeService()
-    {
-    }
-
     protected override string DefaultFileExtension => ".cs";
 
     protected override ExpressionSyntax GetLeftSideOfDot(SimpleNameSyntax simpleName)
@@ -88,28 +83,22 @@ internal class CSharpGenerateTypeService :
 
     protected override bool IsInInterfaceList(ExpressionSyntax expression)
     {
-        if (expression is TypeSyntax &&
-            expression.Parent is BaseTypeSyntax baseType &&
-            baseType.Parent is BaseListSyntax baseList &&
+        if (expression is TypeSyntax { Parent: BaseTypeSyntax { Parent: BaseListSyntax baseList } baseType } &&
             baseType.Type == expression)
         {
             // If it's after the first item, then it's definitely an interface.
             if (baseList.Types[0] != expression.Parent)
-            {
                 return true;
-            }
 
             // If it's in the base list of an interface or struct, then it's definitely an
             // interface.
-            return baseList?.Parent.Kind() is
+            return baseList.Parent.Kind() is
                 SyntaxKind.InterfaceDeclaration or
                 SyntaxKind.StructDeclaration or
                 SyntaxKind.RecordStructDeclaration;
         }
 
-        if (expression is TypeSyntax &&
-            expression.Parent is TypeConstraintSyntax typeConstraint &&
-            typeConstraint.Parent is TypeParameterConstraintClauseSyntax constraintClause)
+        if (expression is TypeSyntax { Parent: TypeConstraintSyntax { Parent: TypeParameterConstraintClauseSyntax constraintClause } typeConstraint })
         {
             var index = constraintClause.Constraints.IndexOf(typeConstraint);
 
@@ -121,9 +110,7 @@ internal class CSharpGenerateTypeService :
     }
 
     protected override bool TryGetNameParts(ExpressionSyntax expression, out IList<string> nameParts)
-    {
-        return expression.TryGetNameParts(out nameParts);
-    }
+        => expression.TryGetNameParts(out nameParts);
 
     protected override bool TryInitializeState(
         SemanticDocument document,
@@ -134,14 +121,10 @@ internal class CSharpGenerateTypeService :
         generateTypeServiceStateOptions = new GenerateTypeServiceStateOptions();
 
         if (simpleName.IsVar)
-        {
             return false;
-        }
 
         if (SyntaxFacts.IsAliasQualifier(simpleName))
-        {
             return false;
-        }
 
         // Never offer if we're in a using directive, unless its a static using.  The feeling here is that it's highly
         // unlikely that this would be a location where a user would be wanting to generate
@@ -149,18 +132,14 @@ internal class CSharpGenerateTypeService :
         // isn't available for some reason (i.e. a missing reference).
         var usingDirectiveSyntax = simpleName.GetAncestorOrThis<UsingDirectiveSyntax>();
         if (usingDirectiveSyntax != null && usingDirectiveSyntax.StaticKeyword.Kind() != SyntaxKind.StaticKeyword)
-        {
             return false;
-        }
 
         ExpressionSyntax nameOrMemberAccessExpression = null;
         if (simpleName.IsRightSideOfDot())
         {
             // This simplename comes from the cref
             if (simpleName.IsParentKind(SyntaxKind.NameMemberCref))
-            {
                 return false;
-            }
 
             nameOrMemberAccessExpression = generateTypeServiceStateOptions.NameOrMemberAccessExpression = (ExpressionSyntax)simpleName.Parent;
 
@@ -183,9 +162,9 @@ internal class CSharpGenerateTypeService :
         }
 
         // BUG(5712): Don't offer generate type in an enum's base list.
-        if (nameOrMemberAccessExpression.Parent is BaseTypeSyntax &&
+        if (nameOrMemberAccessExpression.Parent is BaseTypeSyntax baseType &&
             nameOrMemberAccessExpression.Parent.IsParentKind(SyntaxKind.BaseList) &&
-            ((BaseTypeSyntax)nameOrMemberAccessExpression.Parent).Type == nameOrMemberAccessExpression &&
+            baseType.Type == nameOrMemberAccessExpression &&
             nameOrMemberAccessExpression.Parent.Parent.IsParentKind(SyntaxKind.EnumDeclaration))
         {
             return false;
@@ -210,17 +189,13 @@ internal class CSharpGenerateTypeService :
             generateTypeServiceStateOptions.IsDelegateAllowed = false;
 
             if (!isExpressionOrStatementContext)
-            {
                 return false;
-            }
 
             if (!simpleName.IsLeftSideOfDot() &&
                 !simpleName.IsInsideNameOfExpression(semanticModel, cancellationToken))
             {
                 if (nameOrMemberAccessExpression == null || !nameOrMemberAccessExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression) || !simpleName.IsRightSideOfDot())
-                {
                     return false;
-                }
 
                 var leftSymbol = semanticModel.GetSymbolInfo(((MemberAccessExpressionSyntax)nameOrMemberAccessExpression).Expression, cancellationToken).Symbol;
                 var token = simpleName.GetLastToken().GetNextToken();
@@ -271,11 +246,8 @@ internal class CSharpGenerateTypeService :
                 if (simpleName.Parent is QualifiedNameSyntax parent)
                 {
                     var leftSymbol = semanticModel.GetSymbolInfo(parent.Left, cancellationToken).Symbol;
-
                     if (leftSymbol != null && leftSymbol.IsKind(SymbolKind.Namespace))
-                    {
                         generateTypeServiceStateOptions.IsMembersWithModule = true;
-                    }
                 }
             }
         }
@@ -374,9 +346,9 @@ internal class CSharpGenerateTypeService :
         // Func<int> lambda = () => { return 0; };
         // var s4 = new MyD3(lambda);
 
-        if (nameOrMemberAccessExpression.Parent is ObjectCreationExpressionSyntax)
+        if (nameOrMemberAccessExpression.Parent is ObjectCreationExpressionSyntax objectCreationExpressionOpt)
         {
-            var objectCreationExpressionOpt = generateTypeServiceStateOptions.ObjectCreationExpressionOpt = (ObjectCreationExpressionSyntax)nameOrMemberAccessExpression.Parent;
+            generateTypeServiceStateOptions.ObjectCreationExpressionOpt = objectCreationExpressionOpt;
 
             // Enum and Interface not Allowed in Object Creation Expression
             generateTypeServiceStateOptions.IsInterfaceOrEnumNotAllowedInTypeContext = true;
@@ -384,9 +356,7 @@ internal class CSharpGenerateTypeService :
             if (objectCreationExpressionOpt.ArgumentList != null)
             {
                 if (objectCreationExpressionOpt.ArgumentList.CloseParenToken.IsMissing)
-                {
                     return false;
-                }
 
                 // Get the Method symbol for the Delegate to be created
                 if (generateTypeServiceStateOptions.IsDelegateAllowed &&
@@ -400,47 +370,52 @@ internal class CSharpGenerateTypeService :
                 }
             }
 
-            if (objectCreationExpressionOpt.Initializer != null)
+            var initializer = objectCreationExpressionOpt.Initializer;
+            AddPropertiesToInitialize(generateTypeServiceStateOptions, initializer);
+        }
+
+        // Check for `NewType t = new() { ... }` and initialize properties if present 
+        if (nameOrMemberAccessExpression.Parent is VariableDeclarationSyntax
             {
-                foreach (var expression in objectCreationExpressionOpt.Initializer.Expressions)
-                {
-                    if (expression is not AssignmentExpressionSyntax simpleAssignmentExpression)
-                    {
-                        continue;
-                    }
-
-                    if (simpleAssignmentExpression.Left is not SimpleNameSyntax name)
-                    {
-                        continue;
-                    }
-
-                    generateTypeServiceStateOptions.PropertiesToGenerate.Add(name);
-                }
-            }
+                Variables: [{ Initializer.Value: ImplicitObjectCreationExpressionSyntax { Initializer: { } implicitInitializer } }, ..]
+            })
+        {
+            AddPropertiesToInitialize(generateTypeServiceStateOptions, implicitInitializer);
         }
 
         if (generateTypeServiceStateOptions.IsDelegateAllowed)
         {
             // MyD1 z1 = goo;
-            if (nameOrMemberAccessExpression.Parent is VariableDeclarationSyntax variableDeclaration &&
-                variableDeclaration.Variables.Count != 0)
+            if (nameOrMemberAccessExpression.Parent is VariableDeclarationSyntax variableDeclaration)
             {
                 var firstVarDeclWithInitializer = variableDeclaration.Variables.FirstOrDefault(var => var.Initializer != null && var.Initializer.Value != null);
-                if (firstVarDeclWithInitializer != null && firstVarDeclWithInitializer.Initializer != null && firstVarDeclWithInitializer.Initializer.Value != null)
-                {
+                if (firstVarDeclWithInitializer != null)
                     generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, firstVarDeclWithInitializer.Initializer.Value, cancellationToken);
-                }
             }
 
             // var w1 = (MyD1)goo;
-            if (nameOrMemberAccessExpression.Parent is CastExpressionSyntax castExpression &&
-                castExpression.Expression != null)
-            {
+            if (nameOrMemberAccessExpression.Parent is CastExpressionSyntax { Expression: not null } castExpression)
                 generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, castExpression.Expression, cancellationToken);
-            }
         }
 
         return true;
+    }
+
+    private static void AddPropertiesToInitialize(GenerateTypeServiceStateOptions generateTypeServiceStateOptions, InitializerExpressionSyntax initializer)
+    {
+        if (initializer != null)
+        {
+            foreach (var expression in initializer.Expressions)
+            {
+                if (expression is not AssignmentExpressionSyntax simpleAssignmentExpression)
+                    continue;
+
+                if (simpleAssignmentExpression.Left is not SimpleNameSyntax name)
+                    continue;
+
+                generateTypeServiceStateOptions.PropertiesToGenerate.Add(name);
+            }
+        }
     }
 
     private static IMethodSymbol GetMethodSymbolIfPresent(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
@@ -510,7 +485,7 @@ internal class CSharpGenerateTypeService :
     {
         if (objectCreationExpression != null && objectCreationExpression.ArgumentList != null)
         {
-            argumentList = objectCreationExpression.ArgumentList.Arguments.ToList();
+            argumentList = [.. objectCreationExpression.ArgumentList.Arguments];
             return true;
         }
 
@@ -807,7 +782,7 @@ internal class CSharpGenerateTypeService :
         return CodeGenerationSymbolFactory.CreatePropertySymbol(
             attributes: [],
             accessibility: Accessibility.Public,
-            modifiers: new DeclarationModifiers(),
+            modifiers: DeclarationModifiers.None,
             explicitInterfaceImplementations: default,
             name: propertyName.Identifier.ValueText,
             type: propertyType,

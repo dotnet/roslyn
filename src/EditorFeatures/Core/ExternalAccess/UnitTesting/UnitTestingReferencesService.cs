@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeLens;
@@ -19,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTesting.ExternalAccess;
 internal class UnitTestingReferencesService
 {
     private static readonly IEnumerable<(string MethodFullyQualifedName, string MethodFilePath, string MethodOutputFilePath)> Empty =
-        Enumerable.Empty<(string MethodFullyQualifedName, string MethodFilePath, string MethodOutputFilePath)>();
+        [];
 
     internal static async Task<IEnumerable<(string MethodFullyQualifedName, string MethodFilePath, string MethodOutputFilePath)>> GetCallerMethodsAsync(
         IAsyncCodeLensDataPointProvider provider,

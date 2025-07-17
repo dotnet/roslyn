@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
-using Roslyn.Utilities;
 using ExportProvider = Microsoft.VisualStudio.Composition.ExportProvider;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 /// </remarks>
 #pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
 [Export]
-internal class ServiceBrokerFactory
+internal sealed class ServiceBrokerFactory
 {
     private BrokeredServiceContainer? _container;
     private readonly ExportProvider _exportProvider;
@@ -43,7 +42,7 @@ internal class ServiceBrokerFactory
     {
         _exportProvider = exportProvider;
         _bridgeCompletionTask = Task.CompletedTask;
-        _onServiceBrokerInitialized = onServiceBrokerInitialized.ToImmutableArray();
+        _onServiceBrokerInitialized = [.. onServiceBrokerInitialized];
         _wrappedServiceBroker = wrappedServiceBroker;
     }
 

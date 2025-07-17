@@ -6,17 +6,17 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
+Imports System.Threading
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
-    Friend Class DescriptionBuilder
+    Friend NotInheritable Class DescriptionBuilder
         Inherits AbstractDescriptionBuilder
 
         Public Sub New(
             description As IVsObjectBrowserDescription3,
             libraryManager As ObjectBrowserLibraryManager,
             listItem As ObjectListItem,
-            project As Project
-        )
+            project As Project)
 
             MyBase.New(description, libraryManager, listItem, project)
         End Sub
@@ -26,7 +26,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
             AddName(namespaceSymbol.ToDisplayString())
         End Sub
 
-        Protected Overrides Sub BuildDelegateDeclaration(typeSymbol As INamedTypeSymbol, options As _VSOBJDESCOPTIONS)
+        Protected Overrides Async Function BuildDelegateDeclarationAsync(
+                typeSymbol As INamedTypeSymbol,
+                options As _VSOBJDESCOPTIONS,
+                cancellationToken As CancellationToken) As Task
             Debug.Assert(typeSymbol.TypeKind = TypeKind.Delegate)
 
             BuildTypeModifiers(typeSymbol)
@@ -47,21 +50,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 
             If typeSymbol.TypeParameters.Length > 0 Then
                 AddText("(Of ")
-                BuildTypeParameterList(typeSymbol.TypeParameters)
+                Await BuildTypeParameterListAsync(typeSymbol.TypeParameters, cancellationToken).ConfigureAwait(True)
                 AddText(")")
             End If
 
             AddText("(")
-            BuildParameterList(delegateInvokeMethod.Parameters)
+            Await BuildParameterListAsync(delegateInvokeMethod.Parameters, cancellationToken).ConfigureAwait(True)
             AddText(")")
 
             If Not delegateInvokeMethod.ReturnsVoid Then
                 AddText(" As ")
-                AddTypeLink(delegateInvokeMethod.ReturnType, LinkFlags.None)
+                Await AddTypeLinkAsync(delegateInvokeMethod.ReturnType, LinkFlags.None, cancellationToken).ConfigureAwait(True)
             End If
-        End Sub
+        End Function
 
-        Protected Overrides Sub BuildTypeDeclaration(typeSymbol As INamedTypeSymbol, options As _VSOBJDESCOPTIONS)
+        Protected Overrides Async Function BuildTypeDeclarationAsync(
+                typeSymbol As INamedTypeSymbol,
+                options As _VSOBJDESCOPTIONS,
+                cancellationToken As CancellationToken) As Task
             BuildTypeModifiers(typeSymbol)
 
             Select Case typeSymbol.TypeKind
@@ -87,7 +93,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 
             If typeSymbol.TypeParameters.Length > 0 Then
                 AddText("(Of ")
-                BuildTypeParameterList(typeSymbol.TypeParameters)
+                Await BuildTypeParameterListAsync(typeSymbol.TypeParameters, cancellationToken).ConfigureAwait(True)
                 AddText(")")
             End If
 
@@ -98,7 +104,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
                     AddIndent()
                     AddIndent()
                     AddText("Inherits ")
-                    AddTypeLink(baseType, LinkFlags.None)
+                    Await AddTypeLinkAsync(baseType, LinkFlags.None, cancellationToken).ConfigureAwait(True)
                 End If
             End If
 
@@ -106,23 +112,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
                 Dim underlyingType = typeSymbol.EnumUnderlyingType
                 If underlyingType IsNot Nothing AndAlso underlyingType.SpecialType <> SpecialType.System_Int32 Then
                     AddText(" As ")
-                    AddTypeLink(underlyingType, LinkFlags.None)
+                    Await AddTypeLinkAsync(underlyingType, LinkFlags.None, cancellationToken).ConfigureAwait(True)
                 End If
             End If
-        End Sub
+        End Function
 
-        Protected Overrides Sub BuildMethodDeclaration(methodSymbol As IMethodSymbol, options As _VSOBJDESCOPTIONS)
+        Protected Overrides Async Function BuildMethodDeclarationAsync(
+                methodSymbol As IMethodSymbol,
+                options As _VSOBJDESCOPTIONS,
+                cancellationToken As CancellationToken) As Task
             Select Case methodSymbol.MethodKind
                 Case MethodKind.Conversion, MethodKind.UserDefinedOperator
-                    BuildOperatorDeclaration(methodSymbol)
+                    Await BuildOperatorDeclarationAsync(methodSymbol, cancellationToken).ConfigureAwait(True)
                 Case MethodKind.DeclareMethod
-                    BuildDeclareMethodDeclaration(methodSymbol)
+                    Await BuildDeclareMethodDeclarationAsync(methodSymbol, cancellationToken).ConfigureAwait(True)
                 Case Else
-                    BuildRegularMethodDeclaration(methodSymbol)
+                    Await BuildRegularMethodDeclarationAsync(methodSymbol, cancellationToken).ConfigureAwait(True)
             End Select
-        End Sub
+        End Function
 
-        Private Sub BuildOperatorDeclaration(methodSymbol As IMethodSymbol)
+        Private Async Function BuildOperatorDeclarationAsync(
+                methodSymbol As IMethodSymbol,
+                cancellationToken As CancellationToken) As Task
             BuildMemberModifiers(methodSymbol)
 
             Select Case methodSymbol.Name
@@ -138,16 +149,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
             AddName(methodSymbol.ToDisplayString(methodNameFormat))
 
             AddText("(")
-            BuildParameterList(methodSymbol.Parameters)
+            Await BuildParameterListAsync(methodSymbol.Parameters, cancellationToken).ConfigureAwait(True)
             AddText(")")
 
             If Not methodSymbol.ReturnsVoid Then
                 AddText(" As ")
-                AddTypeLink(methodSymbol.ReturnType, LinkFlags.None)
+                Await AddTypeLinkAsync(methodSymbol.ReturnType, LinkFlags.None, cancellationToken).ConfigureAwait(True)
             End If
-        End Sub
+        End Function
 
-        Private Sub BuildDeclareMethodDeclaration(methodSymbol As IMethodSymbol)
+        Private Async Function BuildDeclareMethodDeclarationAsync(
+                methodSymbol As IMethodSymbol,
+                cancellationToken As CancellationToken) As Task
             BuildMemberModifiers(methodSymbol)
 
             AddText("Declare ")
@@ -185,16 +198,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
             End If
 
             AddText("(")
-            BuildParameterList(methodSymbol.Parameters)
+            Await BuildParameterListAsync(methodSymbol.Parameters, cancellationToken).ConfigureAwait(True)
             AddText(")")
 
             If Not methodSymbol.ReturnsVoid Then
                 AddText(" As ")
-                AddTypeLink(methodSymbol.ReturnType, LinkFlags.None)
+                Await AddTypeLinkAsync(methodSymbol.ReturnType, LinkFlags.None, cancellationToken).ConfigureAwait(True)
             End If
-        End Sub
+        End Function
 
-        Private Sub BuildRegularMethodDeclaration(methodSymbol As IMethodSymbol)
+        Private Async Function BuildRegularMethodDeclarationAsync(
+                methodSymbol As IMethodSymbol,
+                cancellationToken As CancellationToken) As Task
             BuildMemberModifiers(methodSymbol)
 
             If methodSymbol.ReturnsVoid Then
@@ -208,27 +223,30 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 
             If methodSymbol.TypeParameters.Length > 0 Then
                 AddText("(Of ")
-                BuildTypeParameterList(methodSymbol.TypeParameters)
+                Await BuildTypeParameterListAsync(methodSymbol.TypeParameters, cancellationToken).ConfigureAwait(True)
                 AddText(")")
             End If
 
             AddText("(")
-            BuildParameterList(methodSymbol.Parameters)
+            Await BuildParameterListAsync(methodSymbol.Parameters, cancellationToken).ConfigureAwait(True)
             AddText(")")
 
             If Not methodSymbol.ReturnsVoid Then
                 AddText(" As ")
-                AddTypeLink(methodSymbol.ReturnType, LinkFlags.None)
+                Await AddTypeLinkAsync(methodSymbol.ReturnType, LinkFlags.None, cancellationToken).ConfigureAwait(True)
             End If
-        End Sub
+        End Function
 
-        Protected Overrides Sub BuildFieldDeclaration(fieldSymbol As IFieldSymbol, options As _VSOBJDESCOPTIONS)
+        Protected Overrides Async Function BuildFieldDeclarationAsync(
+                fieldSymbol As IFieldSymbol,
+                options As _VSOBJDESCOPTIONS,
+                cancellationToken As CancellationToken) As Task
             BuildMemberModifiers(fieldSymbol)
 
             AddText(fieldSymbol.Name)
 
             AddText(" As ")
-            AddTypeLink(fieldSymbol.Type, LinkFlags.None)
+            Await AddTypeLinkAsync(fieldSymbol.Type, LinkFlags.None, cancellationToken).ConfigureAwait(True)
 
             If fieldSymbol.HasConstantValue Then
                 AddText(" = ")
@@ -239,9 +257,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
                     AddText(fieldSymbol.ConstantValue.ToString())
                 End If
             End If
-        End Sub
+        End Function
 
-        Protected Overrides Sub BuildPropertyDeclaration(propertySymbol As IPropertySymbol, options As _VSOBJDESCOPTIONS)
+        Protected Overrides Async Function BuildPropertyDeclarationAsync(
+                propertySymbol As IPropertySymbol,
+                options As _VSOBJDESCOPTIONS,
+                cancellationToken As CancellationToken) As Task
             BuildMemberModifiers(propertySymbol)
 
             If propertySymbol.GetMethod IsNot Nothing Then
@@ -258,15 +279,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 
             If propertySymbol.Parameters.Length > 0 Then
                 AddText("(")
-                BuildParameterList(propertySymbol.Parameters)
+                Await BuildParameterListAsync(propertySymbol.Parameters, cancellationToken).ConfigureAwait(True)
                 AddText(")")
             End If
 
             AddText(" As ")
-            AddTypeLink(propertySymbol.Type, LinkFlags.None)
-        End Sub
+            Await AddTypeLinkAsync(propertySymbol.Type, LinkFlags.None, cancellationToken).ConfigureAwait(True)
+        End Function
 
-        Protected Overrides Sub BuildEventDeclaration(eventSymbol As IEventSymbol, options As _VSOBJDESCOPTIONS)
+        Protected Overrides Async Function BuildEventDeclarationAsync(
+                eventSymbol As IEventSymbol,
+                options As _VSOBJDESCOPTIONS,
+                cancellationToken As CancellationToken) As Task
             BuildMemberModifiers(eventSymbol)
 
             AddText("Event ")
@@ -279,12 +303,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
             If eventType IsNot Nothing AndAlso eventType.TypeKind = TypeKind.Delegate Then
                 Dim delegateInvokeMethod = CType(eventType, INamedTypeSymbol).DelegateInvokeMethod
                 If delegateInvokeMethod IsNot Nothing Then
-                    BuildParameterList(delegateInvokeMethod.Parameters)
+                    Await BuildParameterListAsync(delegateInvokeMethod.Parameters, cancellationToken).ConfigureAwait(True)
                 End If
             End If
 
             AddText(")")
-        End Sub
+        End Function
 
         Private Sub BuildAccessibility(symbol As ISymbol)
             Select Case symbol.DeclaredAccessibility
@@ -369,7 +393,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
             End If
         End Sub
 
-        Private Sub BuildParameterList(parameters As ImmutableArray(Of IParameterSymbol))
+        Private Async Function BuildParameterListAsync(
+                parameters As ImmutableArray(Of IParameterSymbol),
+                cancellationToken As CancellationToken) As Task
             Dim count = parameters.Length
             If count = 0 Then
                 Return
@@ -399,7 +425,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 
                 AddParam(current.Name)
                 AddText(" As ")
-                AddTypeLink(current.Type, LinkFlags.None)
+                Await AddTypeLinkAsync(current.Type, LinkFlags.None, cancellationToken).ConfigureAwait(True)
 
                 If current.HasExplicitDefaultValue Then
                     AddText(" = ")
@@ -410,9 +436,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
                     End If
                 End If
             Next
-        End Sub
+        End Function
 
-        Private Sub BuildTypeParameterList(typeParameters As ImmutableArray(Of ITypeParameterSymbol))
+        Private Async Function BuildTypeParameterListAsync(
+                typeParameters As ImmutableArray(Of ITypeParameterSymbol),
+                cancellationToken As CancellationToken) As Task
             Dim count = typeParameters.Length
             If count = 0 Then
                 Return
@@ -426,24 +454,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
                 Dim current = typeParameters(i)
 
                 AddName(current.Name)
-                AddConstraints(current)
+                Await AddConstraintsAsync(current, cancellationToken).ConfigureAwait(True)
             Next
-        End Sub
+        End Function
 
-        Private Sub AddConstraints(typeParameter As ITypeParameterSymbol)
+        Private Async Function AddConstraintsAsync(
+                typeParameter As ITypeParameterSymbol,
+                cancellationToken As CancellationToken) As Task
             Dim count = CountConstraints(typeParameter)
             If count = 0 Then
                 Return
             End If
 
             If count = 1 Then
-                AddSingleConstraint(typeParameter)
+                Await AddSingleConstraintAsync(typeParameter, cancellationToken).ConfigureAwait(True)
             Else
-                AddMultipleConstraints(typeParameter)
+                Await AddMultipleConstraintsAsync(typeParameter, cancellationToken).ConfigureAwait(True)
             End If
-        End Sub
+        End Function
 
-        Private Sub AddSingleConstraint(typeParameter As ITypeParameterSymbol)
+        Private Async Function AddSingleConstraintAsync(
+                typeParameter As ITypeParameterSymbol,
+                cancellationToken As CancellationToken) As Task
             AddName(" As ")
 
             If typeParameter.HasReferenceTypeConstraint Then
@@ -454,11 +486,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
                 AddName("New")
             Else
                 Debug.Assert(typeParameter.ConstraintTypes.Length = 1)
-                AddTypeLink(typeParameter.ConstraintTypes(0), LinkFlags.None)
+                Await AddTypeLinkAsync(typeParameter.ConstraintTypes(0), LinkFlags.None, cancellationToken).ConfigureAwait(True)
             End If
-        End Sub
+        End Function
 
-        Private Sub AddMultipleConstraints(typeParameter As ITypeParameterSymbol)
+        Private Async Function AddMultipleConstraintsAsync(
+                typeParameter As ITypeParameterSymbol,
+                cancellationToken As CancellationToken) As Task
             AddName(" As {")
 
             Dim constraintAdded = False
@@ -492,13 +526,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
                         AddName(", ")
                     End If
 
-                    AddTypeLink(constraintType, LinkFlags.None)
+                    Await AddTypeLinkAsync(constraintType, LinkFlags.None, cancellationToken).ConfigureAwait(True)
                     constraintAdded = True
                 Next
             End If
 
             AddName("}")
-        End Sub
+        End Function
 
         Private Shared Function CountConstraints(typeParameter As ITypeParameterSymbol) As Integer
             Dim result = typeParameter.ConstraintTypes.Length

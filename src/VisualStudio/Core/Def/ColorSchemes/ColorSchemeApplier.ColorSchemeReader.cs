@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -31,7 +30,7 @@ internal partial class ColorSchemeApplier
                 .Descendants("Theme")
                 .Select(ReadColorTheme);
 
-            return new ColorScheme(themes.ToImmutableArray());
+            return new ColorScheme([.. themes]);
         }
 
         private static ColorTheme ReadColorTheme(XElement themeElement)
@@ -55,7 +54,7 @@ internal partial class ColorSchemeApplier
                 .Select(ReadColorItem)
                 .WhereNotNull();
 
-            return new ColorCategory(categoryName, categoryGuid, colorItems.ToImmutableArray());
+            return new ColorCategory(categoryName, categoryGuid, [.. colorItems]);
         }
 
         private static ColorItem? ReadColorItem(XElement colorElement)

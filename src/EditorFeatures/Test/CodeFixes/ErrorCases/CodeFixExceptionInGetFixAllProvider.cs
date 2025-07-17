@@ -16,7 +16,7 @@ public class ExceptionInGetFixAllProvider : CodeFixProvider
 {
     public sealed override ImmutableArray<string> FixableDiagnosticIds
     {
-        get { return ImmutableArray.Create(CodeFixServiceTests.MockFixer.Id); }
+        get { return [CodeFixServiceTests.MockFixer.Id]; }
     }
 
     public sealed override FixAllProvider GetFixAllProvider()

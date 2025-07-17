@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 
 [ExportWorkspaceService(typeof(IWorkspaceVenusSpanMappingService), ServiceLayer.Default), Shared]
-internal partial class VisualStudioVenusSpanMappingService : IWorkspaceVenusSpanMappingService
+internal sealed partial class VisualStudioVenusSpanMappingService : IWorkspaceVenusSpanMappingService
 {
     private readonly VisualStudioWorkspaceImpl _workspace;
 

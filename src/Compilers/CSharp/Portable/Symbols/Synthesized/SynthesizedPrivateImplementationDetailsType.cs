@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -57,6 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsRefLikeType => false;
 
+        internal override string ExtensionName
+            => throw ExceptionUtilities.Unreachable();
+
         public override bool IsReadOnly => false;
 
         public override Symbol ContainingSymbol => _globalNamespace;
@@ -83,7 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
+        internal override bool HasCompilerLoweringPreserveAttribute => false;
+
         internal override bool IsInterpolatedStringHandlerType => false;
+
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
 
         internal override bool HasSpecialName => _privateImplementationDetails.IsSpecialName;
 

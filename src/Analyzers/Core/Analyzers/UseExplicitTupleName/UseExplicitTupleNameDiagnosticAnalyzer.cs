@@ -80,14 +80,11 @@ internal sealed class UseExplicitTupleNameDiagnosticAnalyzer : AbstractBuiltInCo
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (member.Kind == SymbolKind.Field)
+            if (member is IFieldSymbol fieldSymbol &&
+                unnamedField.Equals(fieldSymbol.CorrespondingTupleField) &&
+                !fieldSymbol.Name.Equals(unnamedField.Name))
             {
-                var fieldSymbol = (IFieldSymbol)member;
-                if (unnamedField.Equals(fieldSymbol.CorrespondingTupleField) &&
-                    !fieldSymbol.Name.Equals(unnamedField.Name))
-                {
-                    return fieldSymbol;
-                }
+                return fieldSymbol;
             }
         }
 

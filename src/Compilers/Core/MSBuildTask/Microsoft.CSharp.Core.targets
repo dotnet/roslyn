@@ -7,31 +7,26 @@
     <!-- .NETCoreApp < 3.0, .NETStandard < 2.1, or any other target framework -->
     <_MaxSupportedLangVersion Condition="('$(TargetFrameworkIdentifier)' != '.NETCoreApp' OR '$(_TargetFrameworkVersionWithoutV)' &lt; '3.0') AND
                                          ('$(TargetFrameworkIdentifier)' != '.NETStandard' OR '$(_TargetFrameworkVersionWithoutV)' &lt; '2.1')">7.3</_MaxSupportedLangVersion>
-    
+
     <!-- .NETCoreApp < 5.0, .NETStandard == 2.1 -->
     <_MaxSupportedLangVersion Condition="(('$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' &lt; '5.0') OR
                                           ('$(TargetFrameworkIdentifier)' == '.NETStandard' AND '$(_TargetFrameworkVersionWithoutV)' == '2.1')) AND
                                           '$(_MaxSupportedLangVersion)' == ''">8.0</_MaxSupportedLangVersion>
 
-    <!-- .NETCoreApp == 5.0 -->
-    <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '5.0' AND
-                                         '$(_MaxSupportedLangVersion)' == ''">9.0</_MaxSupportedLangVersion>
+    <!-- 
+      Automatically calculate the maximum supported C# language version based on the .NET Target Framework.
+      - Pattern: .NET 5.0 uses C# 9.0, .NET 6.0 uses C# 10.0, and so on.
+      - Starting from C# 9.0 for .NET 5.0, we add the difference between the major .NET version and 5 
+        to determine the correct language version.
+      NOTE: `.Split('.')[0]` needed due to https://github.com/dotnet/msbuild/issues/9757.
+    -->
+    <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND
+                                         '$(_MaxSupportedLangVersion)' == ''">$([MSBuild]::Add(9, $([MSBuild]::Subtract($(_TargetFrameworkVersionWithoutV.Split('.')[0]), 5)))).0</_MaxSupportedLangVersion>
 
-    <!-- .NETCoreApp == 6.0 -->
-    <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '6.0' AND
-                                         '$(_MaxSupportedLangVersion)' == ''">10.0</_MaxSupportedLangVersion>
-
-    <!-- .NETCoreApp == 7.0 -->
-    <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '7.0' AND
-                                         '$(_MaxSupportedLangVersion)' == ''">11.0</_MaxSupportedLangVersion>
-
-    <!-- .NETCoreApp == 8.0 -->
-    <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '8.0' AND
-                                         '$(_MaxSupportedLangVersion)' == ''">12.0</_MaxSupportedLangVersion>
-
-    <!-- .NETCoreApp == 9.0 -->
-    <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '9.0' AND
-                                         '$(_MaxSupportedLangVersion)' == ''">13.0</_MaxSupportedLangVersion>
+    <!-- Cap _MaxSupportedLangVersion if it exceeds _MaxAvailableLangVersion -->
+    <_MaxAvailableLangVersion>13.0</_MaxAvailableLangVersion>
+    <_MaxSupportedLangVersion Condition="'$(_MaxSupportedLangVersion)' != '' AND
+                                         '$(_MaxSupportedLangVersion)' &gt; '$(_MaxAvailableLangVersion)'">$(_MaxAvailableLangVersion)</_MaxSupportedLangVersion>
 
     <MaxSupportedLangVersion>$(_MaxSupportedLangVersion)</MaxSupportedLangVersion>
     <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
@@ -203,5 +198,7 @@
     <CommandLineArgsForDesignTimeEvaluation>-langversion:$(LangVersion)</CommandLineArgsForDesignTimeEvaluation>
     <CommandLineArgsForDesignTimeEvaluation Condition="'$(ChecksumAlgorithm)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -checksumalgorithm:$(ChecksumAlgorithm)</CommandLineArgsForDesignTimeEvaluation>
     <CommandLineArgsForDesignTimeEvaluation Condition="'$(DefineConstants)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -define:$(DefineConstants)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(Features)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -features:$(Features)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(DocumentationFile)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -doc:"$(DocumentationFile)"</CommandLineArgsForDesignTimeEvaluation>
   </PropertyGroup>
 </Project>

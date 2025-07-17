@@ -338,11 +338,14 @@
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
-                case ErrorCode.WRN_PartialPropertySignatureDifference:
+                case ErrorCode.WRN_PartialMemberSignatureDifference:
                 case ErrorCode.WRN_FieldIsAmbiguous:
                 case ErrorCode.WRN_UninitializedNonNullableBackingField:
                 case ErrorCode.WRN_UnassignedInternalRefField:
                 case ErrorCode.WRN_AccessorDoesNotUseBackingField:
+                case ErrorCode.WRN_ExperimentalWithMessage:
+                case ErrorCode.WRN_UnscopedRefAttributeOldRules:
+                case ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature:
                     return true;
                 default:
                     return false;

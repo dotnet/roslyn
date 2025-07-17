@@ -14,15 +14,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLocalFunctionToMethod;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpConvertLocalFunctionToMethodCodeRefactoringProvider();
 
     [Fact]
-    public async Task TestCaptures1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCaptures1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -82,12 +81,10 @@ public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCaptures2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCaptures2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -119,12 +116,10 @@ public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_No
                 public int Value;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCaptures3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCaptures3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -152,12 +147,10 @@ public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCaptures4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCaptures4()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -181,12 +174,10 @@ public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_No
                 private static int LocalFunction1(int i) => i;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCaptures5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCaptures5()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -216,12 +207,10 @@ public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTypeParameters1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTypeParameters1()
+        => TestInRegularAndScriptAsync(
             """
             class C<T0>
             {
@@ -274,12 +263,10 @@ public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTypeParameters2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTypeParameters2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -301,12 +288,10 @@ public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_No
                 private static int LocalFunction<T1, T2>(T1 a, T2 b, int i) => i;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNameConflict()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNameConflict()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -334,12 +319,10 @@ public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_No
                 private void LocalFunction1() => M();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNamedArguments1()
-    {
-        await TestAsync(
+    public Task TestNamedArguments1()
+        => TestAsync(
             """
             class C
             {
@@ -373,12 +356,10 @@ public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2));
-    }
 
     [Fact]
-    public async Task TestNamedArguments2()
-    {
-        await TestAsync(
+    public Task TestNamedArguments2()
+        => TestAsync(
             """
             class C
             {
@@ -412,12 +393,10 @@ public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7));
-    }
 
     [Fact]
-    public async Task TestDelegate1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDelegate1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -443,12 +422,10 @@ public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_No
                 private static int LocalFunction1(int i) => i;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDelegate2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDelegate2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -474,12 +451,10 @@ public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_No
                 private static int LocalFunction1(int a, ref string b, ref int i, int j) => i = j;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAsyncFunction1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAsyncFunction1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading;
@@ -515,12 +490,10 @@ public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAsyncFunction2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAsyncFunction2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading;
@@ -556,7 +529,6 @@ public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
     public async Task TestCaretPositon()
@@ -577,51 +549,54 @@ public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_No
         async Task TestAsync(string signature)
         {
             await TestInRegularAndScriptAsync(
-$@"class C
-{{
-    void M()
-    {{
-        {signature}
-        {{
-            return null;
-        }}
-    }}
-}}",
-"""
-class C
-{
-    void M()
-    {
-    }
+                $$"""
+                class C
+                {
+                    void M()
+                    {
+                        {{signature}}
+                        {
+                            return null;
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M()
+                    {
+                    }
 
-    private static C LocalFunction(C c)
-    {
-        return null;
-    }
-}
-""");
+                    private static C LocalFunction(C c)
+                    {
+                        return null;
+                    }
+                }
+                """);
         }
 
         async Task TestMissingAsync(string signature)
         {
             await this.TestMissingAsync(
-$@"class C
-{{
-    void M()
-    {{
-        {signature}
-        {{
-            return null;
-        }}
-    }}
-}}");
+                $$"""
+                class C
+                {
+                    void M()
+                    {
+                        {{signature}}
+                        {
+                            return null;
+                        }
+                    }
+                }
+                """);
         }
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMethodBlockSelection1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodBlockSelection1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -647,13 +622,10 @@ $@"class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMethodBlockSelection2()
-    {
-
-        await TestMissingAsync(
+    public Task TestMethodBlockSelection2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -666,12 +638,10 @@ $@"class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMethodBlockSelection3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodBlockSelection3()
+        => TestInRegularAndScriptAsync(
 
             """
             class C
@@ -701,13 +671,10 @@ $@"class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMethodBlockSelection4()
-    {
-
-        await this.TestMissingAsync(
+    public Task TestMethodBlockSelection4()
+        => this.TestMissingAsync(
 """
 class C
 {
@@ -723,13 +690,10 @@ class C
     }
 }
 """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMethodBlockSelection5()
-    {
-
-        await this.TestMissingAsync(
+    public Task TestMethodBlockSelection5()
+        => this.TestMissingAsync(
 """
 class C
 {
@@ -746,13 +710,10 @@ class C
     }
 }
 """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMethodBlockSelection6()
-    {
-
-        await this.TestMissingAsync(
+    public Task TestMethodBlockSelection6()
+        => this.TestMissingAsync(
 """
 class C
 {
@@ -770,12 +731,10 @@ class C
     }
 }
 """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMethodBlockSelection7()
-    {
-        await TestMissingAsync(
+    public Task TestMethodBlockSelection7()
+        => TestMissingAsync(
             """
             class C
             {
@@ -788,12 +747,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMethodBlockSelection8()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodBlockSelection8()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -819,12 +776,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMethodBlockSelection9()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodBlockSelection9()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -850,12 +805,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMethodBlockSelection10()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodBlockSelection10()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -881,12 +834,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMethodBlockSelection11()
-    {
-        await TestMissingAsync(
+    public Task TestMethodBlockSelection11()
+        => TestMissingAsync(
             """
             class C
             {
@@ -900,12 +851,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32976")]
-    public async Task TestUnsafeLocalFunction()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUnsafeLocalFunction()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -935,12 +884,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32976")]
-    public async Task TestUnsafeLocalFunctionInUnsafeMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUnsafeLocalFunctionInUnsafeMethod()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -970,12 +917,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32976")]
-    public async Task TestLocalFunctionInUnsafeMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestLocalFunctionInUnsafeMethod()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1005,12 +950,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTopLevelStatements()
-    {
-        await TestMissingAsync("""
+    public Task TestTopLevelStatements()
+        => TestMissingAsync("""
             Console.WriteLine("Hello");
             {
                 public static int [|Add|](int x, int y)
@@ -1019,12 +962,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32975")]
-    public async Task TestRefReturn()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestRefReturn()
+        => TestInRegularAndScript1Async("""
             class ClassA
             {
                 class RefClass { }
@@ -1054,12 +995,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32975")]
-    public async Task TestAttributes()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestAttributes()
+        => TestInRegularAndScript1Async("""
             class ClassA
             {
                 class RefClass { }
@@ -1091,12 +1030,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72024")]
-    public async Task TestLocalFunctionInField()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestLocalFunctionInField()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1114,5 +1051,49 @@ class C
                 public int Value;
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64904")]
+    public Task TestNameofReferenceInParameterInitializer()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+
+            sealed class A : Attribute
+            {
+                public A(string _) { }
+                public string P { get; set; }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    void [||]M2([A(nameof(b), P = nameof(b))] string b)
+                    {
+                    }
+                }
+            }
+            
+            """,
+            """
+            using System;
+
+            sealed class A : Attribute
+            {
+                public A(string _) { }
+                public string P { get; set; }
+            }
+
+            class C
+            {
+                void M()
+                {
+                }
+
+                private static void M2([A(nameof(b), P = nameof(b))] string b)
+                {
+                }
+            }
+            
+            """);
 }

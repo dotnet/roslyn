@@ -8,9 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImportOnPaste;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit;
 using Microsoft.CodeAnalysis.Formatting;
@@ -33,17 +33,19 @@ using WindowsInput.Native;
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
 
 [TestService]
-internal partial class StateResetInProcess
+internal sealed partial class StateResetInProcess
 {
     /// <summary>
     /// Contains the persistence slots of tool windows to close between tests.
     /// </summary>
     /// <seealso cref="__VSFPROPID.VSFPROPID_GuidPersistenceSlot"/>
-    private static readonly ImmutableHashSet<Guid> s_windowsToClose = ImmutableHashSet.Create(
+    private static readonly ImmutableHashSet<Guid> s_windowsToClose =
+    [
         FindReferencesWindowInProcess.FindReferencesWindowGuid,
         new Guid(EnvDTE.Constants.vsWindowKindObjectBrowser),
         new Guid(ToolWindowGuids80.CodedefinitionWindow),
-        VSConstants.StandardToolWindows.Immediate);
+        VSConstants.StandardToolWindows.Immediate,
+    ];
 
     public async Task ResetGlobalOptionsAsync(CancellationToken cancellationToken)
     {
@@ -60,10 +62,8 @@ internal partial class StateResetInProcess
         ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameInComments);
         ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameInStrings);
         ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameOverloads);
-        ResetOption(globalOptions, InlineRenameUIOptionsStorage.UseInlineAdornment);
         ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
         ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution);
-        ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag);
         ResetPerLanguageOption(globalOptions, FormattingOptions2.IndentationSize);
         ResetPerLanguageOption(globalOptions, BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened);
         ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces);

@@ -37,7 +37,7 @@ internal sealed class VisualStudioActiveDocumentTracker : IVsSelectionEvents
     /// <summary>
     /// The list of tracked frames. This can only be written by the UI thread, although can be read (with care) from any thread.
     /// </summary>
-    private ImmutableList<FrameListener> _visibleFrames = ImmutableList<FrameListener>.Empty;
+    private ImmutableList<FrameListener> _visibleFrames = [];
 
     /// <summary>
     /// The active IVsWindowFrame. This can only be written by the UI thread, although can be read (with care) from any thread.
@@ -208,7 +208,7 @@ internal sealed class VisualStudioActiveDocumentTracker : IVsSelectionEvents
     /// Listens to frame notifications for a visible frame. When the frame becomes invisible or closes,
     /// then it automatically disconnects.
     /// </summary>
-    private class FrameListener : IVsWindowFrameNotify, IVsWindowFrameNotify2
+    private sealed class FrameListener : IVsWindowFrameNotify, IVsWindowFrameNotify2
     {
         public readonly IVsWindowFrame Frame;
 

@@ -20,7 +20,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 {
     private abstract partial class SymbolReference(
         AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-        SymbolResult<INamespaceOrTypeSymbol> symbolResult) : Reference(provider, new SearchResult(symbolResult))
+        SymbolResult<INamespaceOrTypeSymbol> symbolResult)
+        : Reference(provider, new SearchResult(symbolResult), isWithinImport: false)
     {
         public readonly SymbolResult<INamespaceOrTypeSymbol> SymbolResult = symbolResult;
 
@@ -68,7 +69,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             var textChanges = await cleanedDocument.GetTextChangesAsync(
                 document, cancellationToken).ConfigureAwait(false);
 
-            return textChanges.ToImmutableArray();
+            return [.. textChanges];
         }
 
         public sealed override async Task<AddImportFixData> TryGetFixDataAsync(

@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem.Legacy;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -32,7 +33,7 @@ internal abstract partial class AbstractLegacyProject
 {
     public IVsHierarchy Hierarchy { get; }
     protected ProjectSystemProject ProjectSystemProject { get; }
-    internal ProjectSystemProjectOptionsProcessor ProjectSystemProjectOptionsProcessor { get; set; }
+    internal AbstractLegacyProjectSystemProjectOptionsProcessor ProjectSystemProjectOptionsProcessor { get; set; }
     protected IProjectCodeModel ProjectCodeModel { get; set; }
     protected VisualStudioWorkspace Workspace { get; }
 
@@ -67,8 +68,8 @@ internal abstract partial class AbstractLegacyProject
         IThreadingContext threadingContext,
         string externalErrorReportingPrefix)
     {
-        _threadingContext = threadingContext;
-        _threadingContext.ThrowIfNotOnUIThread();
+        ThreadingContext = threadingContext;
+        ThreadingContext.ThrowIfNotOnUIThread();
         Contract.ThrowIfNull(hierarchy);
 
         var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
@@ -177,7 +178,7 @@ internal abstract partial class AbstractLegacyProject
         string filename,
         SourceCodeKind sourceCodeKind)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        ThreadingContext.ThrowIfNotOnUIThread();
 
         // We have tests that assert that XOML files should not get added; this was similar
         // behavior to how ASP.NET projects would add .aspx files even though we ultimately ignored
@@ -209,7 +210,7 @@ internal abstract partial class AbstractLegacyProject
         if (!string.IsNullOrEmpty(linkMetadata))
         {
             var linkFolderPath = Path.GetDirectoryName(linkMetadata);
-            folders = linkFolderPath.Split(PathSeparatorCharacters, StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
+            folders = [.. linkFolderPath.Split(PathSeparatorCharacters, StringSplitOptions.RemoveEmptyEntries)];
         }
         else if (!string.IsNullOrEmpty(ProjectSystemProject.FilePath))
         {
@@ -306,7 +307,7 @@ internal abstract partial class AbstractLegacyProject
     /// <remarks>Using item IDs as a key like this in a long-lived way is considered unsupported by CPS and other
     /// IVsHierarchy providers, but this code (which is fairly old) still makes the assumptions anyways.</remarks>
     private readonly Dictionary<uint, ImmutableArray<string>> _folderNameMap = [];
-    private readonly IThreadingContext _threadingContext;
+    protected readonly IThreadingContext ThreadingContext;
 
     private ImmutableArray<string> GetFolderNamesForDocument(string filename)
     {
@@ -321,7 +322,7 @@ internal abstract partial class AbstractLegacyProject
 
     private ImmutableArray<string> GetFolderNamesForDocument(uint documentItemID)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        ThreadingContext.ThrowIfNotOnUIThread();
 
         if (documentItemID != (uint)VSConstants.VSITEMID.Nil && Hierarchy.GetProperty(documentItemID, (int)VsHierarchyPropID.Parent, out var parentObj) == VSConstants.S_OK)
         {
@@ -332,12 +333,12 @@ internal abstract partial class AbstractLegacyProject
             }
         }
 
-        return ImmutableArray<string>.Empty;
+        return [];
     }
 
     private ImmutableArray<string> GetFolderNamesForFolder(uint folderItemID)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        ThreadingContext.ThrowIfNotOnUIThread();
 
         using var pooledObject = SharedPools.Default<List<string>>().GetPooledObject();
 
@@ -346,7 +347,7 @@ internal abstract partial class AbstractLegacyProject
         if (!_folderNameMap.TryGetValue(folderItemID, out var folderNames))
         {
             ComputeFolderNames(folderItemID, newFolderNames, Hierarchy);
-            folderNames = newFolderNames.ToImmutableArray();
+            folderNames = [.. newFolderNames];
             _folderNameMap.Add(folderItemID, folderNames);
         }
         else
@@ -357,7 +358,7 @@ internal abstract partial class AbstractLegacyProject
             ComputeFolderNames(folderItemID, newFolderNames, Hierarchy);
             if (!Enumerable.SequenceEqual(folderNames, newFolderNames))
             {
-                folderNames = newFolderNames.ToImmutableArray();
+                folderNames = [.. newFolderNames];
                 _folderNameMap[folderItemID] = folderNames;
             }
         }

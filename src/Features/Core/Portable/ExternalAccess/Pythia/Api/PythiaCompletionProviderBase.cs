@@ -42,7 +42,7 @@ internal abstract class PythiaCompletionProviderBase : CommonCompletionProvider,
         SupportedPlatformData? supportedPlatforms = null,
         ImmutableDictionary<string, string>? properties = null,
         ImmutableArray<string> tags = default)
-        => SymbolCompletionItem.CreateWithSymbolId(displayText, displayTextSuffix: null, symbols, rules, contextPosition, sortText, insertionText,
+        => SymbolCompletionItem.CreateWithSymbolId(displayText, displayTextSuffix: null, [.. symbols], rules, contextPosition, sortText, insertionText,
             filterText, displayTextPrefix: null, inlineDescription: null, glyph: null, supportedPlatforms, properties.AsImmutableOrNull(), tags);
 
     public static ImmutableArray<SymbolDisplayPart> CreateRecommendedKeywordDisplayParts(string keyword, string toolTip)

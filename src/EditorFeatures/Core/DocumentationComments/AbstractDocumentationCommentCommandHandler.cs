@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -31,12 +32,14 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
     private readonly EditorOptionsService _editorOptionsService;
+    private readonly CopilotGenerateDocumentationCommentManager _generateDocumentationCommentManager;
 
     protected AbstractDocumentationCommentCommandHandler(
         IUIThreadOperationExecutor uiThreadOperationExecutor,
         ITextUndoHistoryRegistry undoHistoryRegistry,
         IEditorOperationsFactoryService editorOperationsFactoryService,
-        EditorOptionsService editorOptionsService)
+        EditorOptionsService editorOptionsService,
+        CopilotGenerateDocumentationCommentManager generateDocumentationCommentManager)
     {
         Contract.ThrowIfNull(uiThreadOperationExecutor);
         Contract.ThrowIfNull(undoHistoryRegistry);
@@ -46,14 +49,12 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         _undoHistoryRegistry = undoHistoryRegistry;
         _editorOperationsFactoryService = editorOperationsFactoryService;
         _editorOptionsService = editorOptionsService;
+        _generateDocumentationCommentManager = generateDocumentationCommentManager;
     }
 
     protected abstract string ExteriorTriviaText { get; }
 
-    private char TriggerCharacter
-    {
-        get { return ExteriorTriviaText[^1]; }
-    }
+    private char TriggerCharacter => ExteriorTriviaText[^1];
 
     public string DisplayName => EditorFeaturesResources.Documentation_Comment;
 
@@ -81,15 +82,11 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
     {
         var caretPosition = textView.GetCaretPoint(subjectBuffer) ?? -1;
         if (caretPosition < 0)
-        {
             return false;
-        }
 
         var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document == null)
-        {
             return false;
-        }
 
         var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
         var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
@@ -104,13 +101,17 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
             if (snippet != null)
             {
                 ApplySnippet(snippet, subjectBuffer, textView);
+                var oldSnapshot = subjectBuffer.CurrentSnapshot;
+                var oldCaret = textView.Caret.Position.VirtualBufferPosition;
+
                 returnValue = true;
+
+                _generateDocumentationCommentManager.TriggerDocumentationCommentProposalGeneration(document, snippet, oldSnapshot, oldCaret, textView, cancellationToken);
             }
         }
 
         return returnValue;
     }
-
     public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
         => nextHandler();
 
@@ -120,15 +121,11 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         nextHandler();
 
         if (args.TypedChar != TriggerCharacter)
-        {
             return;
-        }
 
         // Don't execute in cloud environment, as we let LSP handle that
         if (args.SubjectBuffer.IsInLspEditorContext())
-        {
             return;
-        }
 
         CompleteComment(args.SubjectBuffer, args.TextView, InsertOnCharacterTyped, CancellationToken.None);
     }
@@ -138,6 +135,8 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
 
     public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
     {
+        var cancellationToken = context.OperationContext.UserCancellationToken;
+
         // Don't execute in cloud environment, as we let LSP handle that
         if (args.SubjectBuffer.IsInLspEditorContext())
         {
@@ -169,7 +168,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
             return false;
         }
 
-        if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, originalPosition, context.OperationContext.UserCancellationToken))
+        if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, originalPosition, cancellationToken))
         {
             return false;
         }

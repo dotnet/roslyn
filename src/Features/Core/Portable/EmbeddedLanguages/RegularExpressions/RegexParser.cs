@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 
@@ -577,7 +576,7 @@ internal partial struct RegexParser
             RegexKind.DollarToken => ParseEndAnchor(),
             RegexKind.BackslashToken => ParseEscape(_currentToken, allowTriviaAfterEnd: true),
             RegexKind.OpenBracketToken => ParseCharacterClass(),
-            RegexKind.OpenParenToken => ParseGrouping(),
+            RegexKind.OpenParenToken => ParseGrouping(inConditionalExpression: false),
             RegexKind.CloseParenToken => ParseUnexpectedCloseParenToken(),
             RegexKind.OpenBraceToken => ParsePossibleUnexpectedNumericQuantifier(lastExpression),
             RegexKind.AsteriskToken or RegexKind.PlusToken or RegexKind.QuestionToken => ParseUnexpectedQuantifier(lastExpression),
@@ -645,7 +644,7 @@ internal partial struct RegexParser
         return new RegexWildcardNode(ConsumeCurrentToken(allowTrivia: true));
     }
 
-    private RegexGroupingNode ParseGrouping()
+    private RegexGroupingNode ParseGrouping(bool inConditionalExpression)
     {
         var start = _lexer.Position;
 
@@ -656,7 +655,7 @@ internal partial struct RegexParser
         switch (_currentToken.Kind)
         {
             case RegexKind.QuestionToken:
-                return ParseGroupQuestion(openParenToken, _currentToken);
+                return ParseGroupQuestion(openParenToken, _currentToken, inConditionalExpression);
 
             default:
                 // Wasn't (? just parse this as a normal group.
@@ -713,12 +712,15 @@ internal partial struct RegexParser
             : new TextSpan(token.VirtualChars[0].Span.Start, 0);
     }
 
-    private RegexGroupingNode ParseGroupQuestion(RegexToken openParenToken, RegexToken questionToken)
+    private RegexGroupingNode ParseGroupQuestion(
+        RegexToken openParenToken, RegexToken questionToken, bool inConditionalExpression)
     {
-        var optionsToken = _lexer.TryScanOptions();
-        if (optionsToken != null)
+        // Corresponds to check at: https://github.com/dotnet/runtime/blob/7790117932dc14aaeb2fc82aff6c0dc6c74ce434/src/libraries/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexParser.cs#L1003
+        if (!inConditionalExpression)
         {
-            return ParseOptionsGroupingNode(openParenToken, questionToken, optionsToken.Value);
+            var optionsToken = _lexer.TryScanOptions();
+            if (optionsToken != null)
+                return ParseOptionsGroupingNode(openParenToken, questionToken, optionsToken.Value);
         }
 
         var afterQuestionPos = _lexer.Position;
@@ -803,7 +805,7 @@ internal partial struct RegexParser
                 if (!HasCapture((int)capture.Value))
                 {
                     capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                        FeaturesResources.Reference_to_undefined_group,
+                        string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, capture.VirtualChars.First()),
                         capture.GetSpan()));
                 }
             }
@@ -811,7 +813,7 @@ internal partial struct RegexParser
             {
                 innerCloseParenToken = CreateMissingToken(RegexKind.CloseParenToken);
                 capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    FeaturesResources.Malformed,
+                    string.Format(FeaturesResources.Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0, capture.VirtualChars.First()),
                     capture.GetSpan()));
                 MoveBackBeforePreviousScan();
             }
@@ -916,7 +918,7 @@ internal partial struct RegexParser
 
         // Parse out the grouping that starts with the second open paren in (?(
         // this will get us to (?(...)
-        var grouping = ParseGrouping();
+        var grouping = ParseGrouping(inConditionalExpression: true);
 
         // Now parse out the embedded expression that follows that.  this will get us to
         // (?(...)...
@@ -928,7 +930,7 @@ internal partial struct RegexParser
             grouping, result, ParseGroupingCloseParen());
     }
 
-    private RegexExpressionNode ParseConditionalGroupingResult()
+    private RegexAlternationNode ParseConditionalGroupingResult()
     {
         var currentOptions = _options;
         var result = this.ParseAlternatingSequences(consumeCloseParen: false, isConditional: true);
@@ -1036,7 +1038,7 @@ internal partial struct RegexParser
 
         if (_currentToken.Kind == RegexKind.EndOfFile)
         {
-            openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
+            openParenToken = openParenToken.AddDiagnosticIfMissing(new EmbeddedDiagnostic(
                 FeaturesResources.Unrecognized_grouping_construct,
                 GetSpan(openParenToken, openToken)));
         }
@@ -1370,12 +1372,6 @@ internal partial struct RegexParser
                 ch = GetCharValue(((RegexUnicodeEscapeNode)component).HexText, withBase: 16);
                 return true;
 
-            case RegexKind.PosixProperty:
-                // When the native parser sees [:...:] it treats this as if it just saw '[' and skipped the 
-                // rest.
-                ch = '[';
-                return true;
-
             case RegexKind.Text:
                 ch = ((RegexTextNode)component).TextToken.VirtualChars[0].Value;
                 return true;
@@ -1536,36 +1532,6 @@ internal partial struct RegexParser
             // trivia is not allowed anywhere in a character class
             return ParseCharacterClassSubtractionNode(
                 ConsumeCurrentToken(allowTrivia: false));
-        }
-
-        // From the .NET regex code:
-        // This is code for Posix style properties - [:Ll:] or [:IsTibetan:].
-        // It currently doesn't do anything other than skip the whole thing!
-        if (!afterRangeMinus && _currentToken.Kind == RegexKind.OpenBracketToken && _lexer.IsAt(":"))
-        {
-            var beforeBracketPos = _lexer.Position - 1;
-            // trivia is not allowed anywhere in a character class
-            ConsumeCurrentToken(allowTrivia: false);
-
-            var captureName = _lexer.TryScanCaptureName();
-            if (captureName.HasValue && _lexer.IsAt(":]"))
-            {
-                _lexer.Position += 2;
-                var textChars = _lexer.GetSubPattern(beforeBracketPos, _lexer.Position);
-                var token = CreateToken(RegexKind.TextToken, [], textChars);
-
-                // trivia is not allowed anywhere in a character class
-                ConsumeCurrentToken(allowTrivia: false);
-                return new RegexPosixPropertyNode(token);
-            }
-            else
-            {
-                // Reset to back where we were.
-                // trivia is not allowed anywhere in a character class
-                _lexer.Position = beforeBracketPos;
-                ConsumeCurrentToken(allowTrivia: false);
-                Debug.Assert(_currentToken.Kind == RegexKind.OpenBracketToken);
-            }
         }
 
         // trivia is not allowed anywhere in a character class
@@ -2046,7 +2012,7 @@ internal partial struct RegexParser
             current.Kind == RegexKind.SimpleOptionsGrouping)
         {
             token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                FeaturesResources.Quantifier_x_y_following_nothing, token.GetSpan()));
+                string.Format(FeaturesResources.Quantifier_0_following_nothing, token.VirtualChars.First()), token.GetSpan()));
         }
         else if (current is RegexQuantifierNode or RegexLazyQuantifierNode)
         {

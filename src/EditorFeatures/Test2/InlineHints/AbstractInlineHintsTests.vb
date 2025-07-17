@@ -4,12 +4,8 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.InlineHints
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.InlineHints
 Imports Microsoft.CodeAnalysis.LanguageService
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
@@ -30,8 +26,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim tagService = document.GetRequiredLanguageService(Of IInlineParameterNameHintsService)
+
+                Dim span = If(hostDocument.SelectedSpans.Any(), hostDocument.SelectedSpans.Single(), New TextSpan(0, snapshot.Length))
                 Dim inlineHints = Await tagService.GetInlineHintsAsync(
-                    document, New Text.TextSpan(0, snapshot.Length), options, displayOptions, displayAllOverride:=False, CancellationToken.None)
+                    document, span, options, displayOptions, displayAllOverride:=False, CancellationToken.None)
 
                 Dim producedTags = From hint In inlineHints
                                    Select hint.DisplayParts.GetFullText().TrimEnd() + hint.Span.ToString
@@ -88,8 +86,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim tagService = document.GetRequiredLanguageService(Of IInlineTypeHintsService)
+
+                Dim span = If(hostDocument.SelectedSpans.Any(), hostDocument.SelectedSpans.Single(), New TextSpan(0, snapshot.Length))
                 Dim typeHints = Await tagService.GetInlineHintsAsync(
-                    document, New Text.TextSpan(0, snapshot.Length), options, displayOptions, displayAllOverride:=ephemeral, CancellationToken.None)
+                    document, span, options, displayOptions, displayAllOverride:=ephemeral, CancellationToken.None)
 
                 Dim producedTags = From hint In typeHints
                                    Select hint.DisplayParts.GetFullText() + ":" + hint.Span.ToString()

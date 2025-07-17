@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -141,8 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundForEachDeconstructStep? deconstruction,
             BoundAwaitableInfo? awaitableInfo,
-            GeneratedLabelSymbol breakLabel,
-            GeneratedLabelSymbol continueLabel,
+            LabelSymbol breakLabel,
+            LabelSymbol continueLabel,
             BoundStatement rewrittenBody)
         {
             var forEachSyntax = (CSharpSyntaxNode)node.Syntax;
@@ -180,8 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // ((C)(x)).GetEnumerator();  OR  (x).GetEnumerator();  OR  async variants (which fill-in arguments for optional parameters)
-            BoundExpression enumeratorVarInitValue = SynthesizeCall(getEnumeratorInfo, forEachSyntax, receiver,
-                allowExtensionAndOptionalParameters: isAsync || getEnumeratorInfo.Method.IsExtensionMethod, firstRewrittenArgument: firstRewrittenArgument);
+            BoundExpression enumeratorVarInitValue = MakeCall(getEnumeratorInfo, forEachSyntax, receiver,
+                firstRewrittenArgument: firstRewrittenArgument);
 
             // E e = ((C)(x)).GetEnumerator();
             BoundStatement enumeratorVarDecl = MakeLocalDeclaration(forEachSyntax, enumeratorVar, enumeratorVarInitValue);
@@ -214,11 +215,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
 
             var rewrittenBodyBlock = CreateBlockDeclaringIterationVariables(iterationVariables, iterationVarDecl, rewrittenBody, forEachSyntax);
-            BoundExpression rewrittenCondition = SynthesizeCall(
+            BoundExpression rewrittenCondition = MakeCall(
                 methodArgumentInfo: enumeratorInfo.MoveNextInfo,
                 syntax: forEachSyntax,
-                receiver: boundEnumeratorVar,
-                allowExtensionAndOptionalParameters: isAsync,
+                expression: boundEnumeratorVar,
                 firstRewrittenArgument: null);
 
             var disposalFinallyBlock = GetDisposalFinallyBlock(forEachSyntax, enumeratorInfo, enumeratorType, boundEnumeratorVar, out var hasAsyncDisposal);
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // ((IDisposable)e).Dispose() or e.Dispose() or await ((IAsyncDisposable)e).DisposeAsync() or await e.DisposeAsync()
-                disposeCall = MakeCallWithNoExplicitArgument(disposeInfo, forEachSyntax, receiver, firstRewrittenArgument: null);
+                disposeCall = MakeCall(disposeInfo, forEachSyntax, receiver, firstRewrittenArgument: null);
 
                 BoundStatement disposeCallStatement;
                 var disposeAwaitableInfoOpt = enumeratorInfo.DisposeAwaitableInfo;
@@ -535,19 +535,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return receiver;
         }
 
-        private BoundExpression SynthesizeCall(MethodArgumentInfo methodArgumentInfo, CSharpSyntaxNode syntax, BoundExpression? receiver, bool allowExtensionAndOptionalParameters, BoundExpression? firstRewrittenArgument)
-        {
-            if (allowExtensionAndOptionalParameters)
-            {
-                // Generate a call with zero explicit arguments, but with implicit arguments for optional and params parameters.
-                return MakeCallWithNoExplicitArgument(methodArgumentInfo, syntax, receiver, firstRewrittenArgument: firstRewrittenArgument);
-            }
-
-            // Generate a call with literally zero arguments
-            Debug.Assert(methodArgumentInfo.Arguments.IsEmpty);
-            return BoundCall.Synthesized(syntax, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, methodArgumentInfo.Method, arguments: ImmutableArray<BoundExpression>.Empty);
-        }
-
         /// <summary>
         /// Lower a foreach loop that will enumerate a collection via indexing.
         /// 
@@ -602,8 +589,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? elementConversion,
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundForEachDeconstructStep? deconstructionOpt,
-            GeneratedLabelSymbol breakLabel,
-            GeneratedLabelSymbol continueLabel,
+            LabelSymbol breakLabel,
+            LabelSymbol continueLabel,
             BoundStatement rewrittenBody)
         {
             NamedTypeSymbol? collectionType = (NamedTypeSymbol?)collectionExpression.Type;
@@ -898,8 +885,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? elementConversion,
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundForEachDeconstructStep? deconstruction,
-            GeneratedLabelSymbol breakLabel,
-            GeneratedLabelSymbol continueLabel,
+            LabelSymbol breakLabel,
+            LabelSymbol continueLabel,
             BoundStatement rewrittenBody)
         {
             Debug.Assert(collectionExpression.Type is { TypeKind: TypeKind.Array });
@@ -1047,8 +1034,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? elementConversion,
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundForEachDeconstructStep? deconstruction,
-            GeneratedLabelSymbol breakLabel,
-            GeneratedLabelSymbol continueLabel,
+            LabelSymbol breakLabel,
+            LabelSymbol continueLabel,
             BoundStatement rewrittenBody)
         {
             Debug.Assert(collectionExpression.Type is { TypeKind: TypeKind.Array });
@@ -1158,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // int p_dimension = a.GetLowerBound(dimension);
                 BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar[dimension], currentDimensionLowerBound);
 
-                GeneratedLabelSymbol breakLabelInner = dimension == 0 // outermost for-loop
+                LabelSymbol breakLabelInner = dimension == 0 // outermost for-loop
                     ? breakLabel // i.e. the one that break statements will jump to
                     : new GeneratedLabelSymbol("break"); // Should not affect emitted code since unused
 
@@ -1178,7 +1165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement positionIncrement = MakePositionIncrement(forEachSyntax, boundPositionVar[dimension], intType);
 
                 BoundStatement body;
-                GeneratedLabelSymbol continueLabelInner;
+                LabelSymbol continueLabelInner;
 
                 if (forLoop == null)
                 {

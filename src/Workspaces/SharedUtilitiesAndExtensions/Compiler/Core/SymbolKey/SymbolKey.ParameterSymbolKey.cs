@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -70,6 +69,11 @@ internal partial struct SymbolKey
                         }
 
                         break;
+#if !ROSLYN_4_12_OR_LOWER
+                    case INamedTypeSymbol { IsExtension: true, ExtensionParameter: { } extensionParameter }:
+                        Resolve(result, reader, metadataName, ordinal, [extensionParameter]);
+                        break;
+#endif
                 }
             }
 

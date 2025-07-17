@@ -61,17 +61,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol? instanceIdField,
             IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
+            ImmutableArray<FieldSymbol> nonReusableFieldsForCleanup,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
-            : base(F, originalMethod, state, instanceIdField, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+            : base(F, originalMethod, state, instanceIdField, hoistedVariables, nonReusableLocalProxies, nonReusableFieldsForCleanup, synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
         {
             _current = current;
 
             _nextFinalizeState = slotAllocatorOpt?.GetFirstUnusedStateMachineState(increasing: false) ?? StateMachineState.FirstIteratorFinalizeState;
         }
+
+        /// <summary>
+        /// Containing Symbols are not checked after this step - for performance reasons we can allow inaccurate locals
+        /// </summary>
+        protected override bool EnforceAccurateContainerForLocals => false;
 
 #nullable disable
         protected sealed override HotReloadExceptionCode EncMissingStateErrorCode
@@ -160,7 +166,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rootFrame.knownStates == null)
             {
                 // nothing to finalize
-                F.CloseMethod(F.Return());
+                var disposeBody = F.Block(
+                                    GenerateAllHoistedLocalsCleanup(),
+                                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState)),
+                                    F.Return());
+
+                F.CloseMethod(disposeBody);
             }
             else
             {
@@ -171,6 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     ImmutableArray.Create<LocalSymbol>(stateLocal),
                                     F.Assignment(F.Local(stateLocal), F.Field(F.This(), stateField)),
                                     EmitFinallyFrame(rootFrame, state),
+                                    GenerateAllHoistedLocalsCleanup(),
+                                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState)),
                                     F.Return());
 
                 F.CloseMethod(disposeBody);

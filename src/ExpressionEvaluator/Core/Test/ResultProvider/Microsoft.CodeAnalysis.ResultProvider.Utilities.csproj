@@ -10,6 +10,16 @@
     <IsShipping>false</IsShipping>
     <IsTestUtilityProject>true</IsTestUtilityProject>
 
+    <!-- IPooled is not available in ResultProvider -->
+    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER</DefineConstants>
+
+    <!--
+      Workaround: https://github.com/dotnet/roslyn/issues/78392
+      We use NO_VALUE_TUPLE symbol to conditionally compile the code that
+      uses ValueTuple because remote debugger does not ship it.
+    -->
+    <DefineConstants>$(DefineConstants);NO_VALUE_TUPLE</DefineConstants>
+
     <!-- Disable CA1825 (Avoid unnecessary zero-length array allocations. Use Array.Empty<X>() instead) as Array.Empty not available in one of the targets for this shared project -->
     <NoWarn>$(NoWarn);CA1825</NoWarn>
   </PropertyGroup>
@@ -31,29 +41,11 @@
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs">
       <Link>Compiler\InternalUtilities\Debug.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
-      <Link>Compiler\InternalUtilities\FailFast.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs">
-      <Link>Compiler\InternalUtilities\FatalError.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\EnumField.cs">
       <Link>Compiler\InternalUtilities\EnumField.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
-      <Link>Compiler\InternalUtilities\ExceptionUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs">
-      <Link>Compiler\InternalUtilities\NullableAttributes.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>Compiler\InternalUtilities\ReflectionUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs">
-      <Link>Compilers\InternalUtilities\InterpolatedStringHandlerAttribute.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs">
-      <Link>Compilers\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\Dependencies\PooledObjects\ObjectPool`1.cs">
       <Link>Compiler\InternalUtilities\ObjectPool`1.cs</Link>
@@ -94,4 +86,5 @@
     <EmbeddedResource Include="..\..\Source\ResultProvider\Portable\Resources.resx" Link="Resources.resx" GenerateSource="true" />
   </ItemGroup>
   <Import Project="..\..\Source\ResultProvider\ResultProvider.projitems" Label="Shared" />
+  <Import Project="..\..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

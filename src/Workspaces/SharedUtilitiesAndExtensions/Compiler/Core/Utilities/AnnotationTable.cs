@@ -73,28 +73,28 @@ internal sealed class AnnotationTable<TAnnotation>(string annotationKind) where 
     }
 
     public TSyntaxNode WithAdditionalAnnotations<TSyntaxNode>(TSyntaxNode node, params TAnnotation[] annotations) where TSyntaxNode : SyntaxNode
-        => node.WithAdditionalAnnotations(this.GetOrCreateRealAnnotations(annotations).ToArray());
+        => node.WithAdditionalAnnotations([.. this.GetOrCreateRealAnnotations(annotations)]);
 
     public SyntaxToken WithAdditionalAnnotations(SyntaxToken token, params TAnnotation[] annotations)
-        => token.WithAdditionalAnnotations(this.GetOrCreateRealAnnotations(annotations).ToArray());
+        => token.WithAdditionalAnnotations([.. this.GetOrCreateRealAnnotations(annotations)]);
 
     public SyntaxTrivia WithAdditionalAnnotations(SyntaxTrivia trivia, params TAnnotation[] annotations)
-        => trivia.WithAdditionalAnnotations(this.GetOrCreateRealAnnotations(annotations).ToArray());
+        => trivia.WithAdditionalAnnotations([.. this.GetOrCreateRealAnnotations(annotations)]);
 
     public SyntaxNodeOrToken WithAdditionalAnnotations(SyntaxNodeOrToken nodeOrToken, params TAnnotation[] annotations)
-        => nodeOrToken.WithAdditionalAnnotations(this.GetOrCreateRealAnnotations(annotations).ToArray());
+        => nodeOrToken.WithAdditionalAnnotations([.. this.GetOrCreateRealAnnotations(annotations)]);
 
     public TSyntaxNode WithoutAnnotations<TSyntaxNode>(TSyntaxNode node, params TAnnotation[] annotations) where TSyntaxNode : SyntaxNode
-        => node.WithoutAnnotations(GetRealAnnotations(annotations).ToArray());
+        => node.WithoutAnnotations([.. GetRealAnnotations(annotations)]);
 
     public SyntaxToken WithoutAnnotations(SyntaxToken token, params TAnnotation[] annotations)
-        => token.WithoutAnnotations(GetRealAnnotations(annotations).ToArray());
+        => token.WithoutAnnotations([.. GetRealAnnotations(annotations)]);
 
     public SyntaxTrivia WithoutAnnotations(SyntaxTrivia trivia, params TAnnotation[] annotations)
-        => trivia.WithoutAnnotations(GetRealAnnotations(annotations).ToArray());
+        => trivia.WithoutAnnotations([.. GetRealAnnotations(annotations)]);
 
     public SyntaxNodeOrToken WithoutAnnotations(SyntaxNodeOrToken nodeOrToken, params TAnnotation[] annotations)
-        => nodeOrToken.WithoutAnnotations(GetRealAnnotations(annotations).ToArray());
+        => nodeOrToken.WithoutAnnotations([.. GetRealAnnotations(annotations)]);
 
     private IEnumerable<TAnnotation> GetAnnotations(IEnumerable<SyntaxAnnotation> realAnnotations)
     {

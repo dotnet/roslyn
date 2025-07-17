@@ -7,6 +7,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -37,12 +38,8 @@ internal abstract partial class AbstractDescriptionBuilder
         _project = project;
     }
 
-    private Compilation GetCompilation()
-    {
-        return _project
-            .GetCompilationAsync(CancellationToken.None)
-            .WaitAndGetResult_ObjectBrowser(CancellationToken.None);
-    }
+    private Task<Compilation> GetCompilationAsync(CancellationToken cancellationToken)
+        => _project.GetCompilationAsync(cancellationToken);
 
     protected void AddAssemblyLink(IAssemblySymbol assemblySymbol)
     {
@@ -67,7 +64,7 @@ internal abstract partial class AbstractDescriptionBuilder
     protected void AddName(string text)
         => _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_NAME, null);
 
-    protected void AddNamespaceLink(INamespaceSymbol namespaceSymbol)
+    protected async Task AddNamespaceLinkAsync(INamespaceSymbol namespaceSymbol, CancellationToken cancellationToken)
     {
         if (namespaceSymbol.IsGlobalNamespace)
         {
@@ -75,7 +72,8 @@ internal abstract partial class AbstractDescriptionBuilder
         }
 
         var text = namespaceSymbol.ToDisplayString();
-        var navInfo = _libraryManager.LibraryService.NavInfoFactory.CreateForNamespace(namespaceSymbol, _project, GetCompilation(), useExpandedHierarchy: false);
+        var navInfo = _libraryManager.LibraryService.NavInfoFactory.CreateForNamespace(
+            namespaceSymbol, _project, await GetCompilationAsync(cancellationToken).ConfigureAwait(true), useExpandedHierarchy: false);
 
         _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_TYPE, navInfo);
     }
@@ -86,7 +84,8 @@ internal abstract partial class AbstractDescriptionBuilder
     protected void AddText(string text)
         => _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_MISC, null);
 
-    protected void AddTypeLink(ITypeSymbol typeSymbol, LinkFlags flags)
+    protected async Task AddTypeLinkAsync(
+        ITypeSymbol typeSymbol, LinkFlags flags, CancellationToken cancellationToken)
     {
         if (typeSymbol.TypeKind is TypeKind.Unknown or TypeKind.Error or TypeKind.TypeParameter ||
             typeSymbol.SpecialType == SpecialType.System_Void)
@@ -100,7 +99,7 @@ internal abstract partial class AbstractDescriptionBuilder
 
         if (splitLink && !typeSymbol.ContainingNamespace.IsGlobalNamespace)
         {
-            AddNamespaceLink(typeSymbol.ContainingNamespace);
+            await AddNamespaceLinkAsync(typeSymbol.ContainingNamespace, cancellationToken).ConfigureAwait(true);
             AddText(".");
         }
 
@@ -118,7 +117,8 @@ internal abstract partial class AbstractDescriptionBuilder
             miscellaneousOptions: miscellaneousOptions);
 
         var text = typeSymbol.ToDisplayString(typeDisplayFormat);
-        var navInfo = _libraryManager.LibraryService.NavInfoFactory.CreateForType(typeSymbol, _project, GetCompilation(), useExpandedHierarchy: false);
+        var navInfo = _libraryManager.LibraryService.NavInfoFactory.CreateForType(
+            typeSymbol, _project, await GetCompilationAsync(cancellationToken).ConfigureAwait(true), useExpandedHierarchy: false);
 
         _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_TYPE, navInfo);
     }
@@ -142,9 +142,10 @@ internal abstract partial class AbstractDescriptionBuilder
         }
     }
 
-    private void BuildNamespace(NamespaceListItem namespaceListItem, _VSOBJDESCOPTIONS options)
+    private async Task BuildNamespaceAsync(
+        NamespaceListItem namespaceListItem, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken)
     {
-        var compilation = GetCompilation();
+        var compilation = await GetCompilationAsync(cancellationToken).ConfigureAwait(true);
         if (compilation == null)
         {
             return;
@@ -159,12 +160,12 @@ internal abstract partial class AbstractDescriptionBuilder
         BuildNamespaceDeclaration(namespaceSymbol, options);
 
         AddEndDeclaration();
-        BuildMemberOf(namespaceSymbol.ContainingAssembly);
+        await BuildMemberOfAsync(namespaceSymbol.ContainingAssembly, cancellationToken).ConfigureAwait(true);
     }
 
-    private void BuildType(TypeListItem typeListItem, _VSOBJDESCOPTIONS options)
+    private async Task BuildTypeAsync(TypeListItem typeListItem, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken)
     {
-        var compilation = GetCompilation();
+        var compilation = await GetCompilationAsync(cancellationToken).ConfigureAwait(true);
         if (compilation == null)
         {
             return;
@@ -178,49 +179,44 @@ internal abstract partial class AbstractDescriptionBuilder
 
         if (symbol.TypeKind == TypeKind.Delegate)
         {
-            BuildDelegateDeclaration(symbol, options);
+            await BuildDelegateDeclarationAsync(symbol, options, cancellationToken).ConfigureAwait(true);
         }
         else
         {
-            BuildTypeDeclaration(symbol, options);
+            await BuildTypeDeclarationAsync(symbol, options, cancellationToken).ConfigureAwait(true);
         }
 
         AddEndDeclaration();
-        BuildMemberOf(symbol.ContainingNamespace);
-
-        BuildXmlDocumentation(symbol, compilation);
+        await BuildMemberOfAsync(symbol.ContainingNamespace, cancellationToken).ConfigureAwait(true);
+        await BuildXmlDocumentationAsync(symbol, compilation, cancellationToken).ConfigureAwait(true);
     }
 
-    private void BuildMember(MemberListItem memberListItem, _VSOBJDESCOPTIONS options)
+    private async Task BuildMemberAsync(MemberListItem memberListItem, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken)
     {
-        var compilation = GetCompilation();
+        var compilation = await GetCompilationAsync(cancellationToken).ConfigureAwait(true);
         if (compilation == null)
-        {
             return;
-        }
 
         var symbol = memberListItem.ResolveTypedSymbol(compilation);
         if (symbol == null)
-        {
             return;
-        }
 
         switch (symbol.Kind)
         {
             case SymbolKind.Method:
-                BuildMethodDeclaration((IMethodSymbol)symbol, options);
+                await BuildMethodDeclarationAsync((IMethodSymbol)symbol, options, cancellationToken).ConfigureAwait(true);
                 break;
 
             case SymbolKind.Field:
-                BuildFieldDeclaration((IFieldSymbol)symbol, options);
+                await BuildFieldDeclarationAsync((IFieldSymbol)symbol, options, cancellationToken).ConfigureAwait(true);
                 break;
 
             case SymbolKind.Property:
-                BuildPropertyDeclaration((IPropertySymbol)symbol, options);
+                await BuildPropertyDeclarationAsync((IPropertySymbol)symbol, options, cancellationToken).ConfigureAwait(true);
                 break;
 
             case SymbolKind.Event:
-                BuildEventDeclaration((IEventSymbol)symbol, options);
+                await BuildEventDeclarationAsync((IEventSymbol)symbol, options, cancellationToken).ConfigureAwait(true);
                 break;
 
             default:
@@ -229,20 +225,19 @@ internal abstract partial class AbstractDescriptionBuilder
         }
 
         AddEndDeclaration();
-        BuildMemberOf(symbol.ContainingType);
-
-        BuildXmlDocumentation(symbol, compilation);
+        await BuildMemberOfAsync(symbol.ContainingType, cancellationToken).ConfigureAwait(true);
+        await BuildXmlDocumentationAsync(symbol, compilation, cancellationToken).ConfigureAwait(true);
     }
 
     protected abstract void BuildNamespaceDeclaration(INamespaceSymbol namespaceSymbol, _VSOBJDESCOPTIONS options);
-    protected abstract void BuildDelegateDeclaration(INamedTypeSymbol typeSymbol, _VSOBJDESCOPTIONS options);
-    protected abstract void BuildTypeDeclaration(INamedTypeSymbol typeSymbol, _VSOBJDESCOPTIONS options);
-    protected abstract void BuildMethodDeclaration(IMethodSymbol methodSymbol, _VSOBJDESCOPTIONS options);
-    protected abstract void BuildFieldDeclaration(IFieldSymbol fieldSymbol, _VSOBJDESCOPTIONS options);
-    protected abstract void BuildPropertyDeclaration(IPropertySymbol propertySymbol, _VSOBJDESCOPTIONS options);
-    protected abstract void BuildEventDeclaration(IEventSymbol eventSymbol, _VSOBJDESCOPTIONS options);
+    protected abstract Task BuildDelegateDeclarationAsync(INamedTypeSymbol typeSymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
+    protected abstract Task BuildTypeDeclarationAsync(INamedTypeSymbol typeSymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
+    protected abstract Task BuildMethodDeclarationAsync(IMethodSymbol methodSymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
+    protected abstract Task BuildFieldDeclarationAsync(IFieldSymbol fieldSymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
+    protected abstract Task BuildPropertyDeclarationAsync(IPropertySymbol propertySymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
+    protected abstract Task BuildEventDeclarationAsync(IEventSymbol eventSymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
 
-    private void BuildMemberOf(ISymbol containingSymbol)
+    private async Task BuildMemberOfAsync(ISymbol containingSymbol, CancellationToken cancellationToken)
     {
         if (containingSymbol is INamespaceSymbol &&
             ((INamespaceSymbol)containingSymbol).IsGlobalNamespace)
@@ -272,18 +267,20 @@ internal abstract partial class AbstractDescriptionBuilder
         }
         else if (containingSymbol is ITypeSymbol typeSymbol)
         {
-            AddTypeLink(typeSymbol, LinkFlags.SplitNamespaceAndType | LinkFlags.ExpandPredefinedTypes);
+            await AddTypeLinkAsync(
+                typeSymbol, LinkFlags.SplitNamespaceAndType | LinkFlags.ExpandPredefinedTypes, cancellationToken).ConfigureAwait(true);
         }
         else if (containingSymbol is INamespaceSymbol namespaceSymbol)
         {
-            AddNamespaceLink(namespaceSymbol);
+            await AddNamespaceLinkAsync(namespaceSymbol, cancellationToken).ConfigureAwait(true);
         }
 
         AddText(right);
         AddEndDeclaration();
     }
 
-    private void BuildXmlDocumentation(ISymbol symbol, Compilation compilation)
+    private async Task BuildXmlDocumentationAsync(
+        ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
     {
         var documentationComment = symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: CancellationToken.None);
         if (documentationComment == null)
@@ -302,7 +299,7 @@ internal abstract partial class AbstractDescriptionBuilder
         if (documentationComment.SummaryText != null)
         {
             AddLineBreak();
-            AddName(ServicesVSResources.Summary_colon);
+            AddName(FeaturesResources.Summary_colon);
             AddLineBreak();
 
             AddText(formattingService.Format(documentationComment.SummaryText, compilation));
@@ -343,7 +340,7 @@ internal abstract partial class AbstractDescriptionBuilder
             }
 
             AddLineBreak();
-            AddName(ServicesVSResources.Parameters_colon1);
+            AddName(FeaturesResources.Parameters_colon);
 
             foreach (var parameterName in documentationComment.ParameterNames)
             {
@@ -369,7 +366,7 @@ internal abstract partial class AbstractDescriptionBuilder
             }
 
             AddLineBreak();
-            AddName(ServicesVSResources.Returns_colon);
+            AddName(FeaturesResources.Returns_colon);
             AddLineBreak();
 
             AddText(formattingService.Format(documentationComment.ReturnsText, compilation));
@@ -384,7 +381,7 @@ internal abstract partial class AbstractDescriptionBuilder
             }
 
             AddLineBreak();
-            AddName(ServicesVSResources.Value_colon);
+            AddName(FeaturesResources.Value_colon);
             AddLineBreak();
 
             AddText(formattingService.Format(documentationComment.ValueText, compilation));
@@ -399,7 +396,7 @@ internal abstract partial class AbstractDescriptionBuilder
             }
 
             AddLineBreak();
-            AddName(ServicesVSResources.Remarks_colon);
+            AddName(FeaturesResources.Remarks_colon);
             AddLineBreak();
 
             AddText(formattingService.Format(documentationComment.RemarksText, compilation));
@@ -414,7 +411,7 @@ internal abstract partial class AbstractDescriptionBuilder
             }
 
             AddLineBreak();
-            AddName(ServicesVSResources.Exceptions_colon);
+            AddName(WorkspacesResources.Exceptions_colon);
 
             foreach (var exceptionType in documentationComment.ExceptionTypes)
             {
@@ -425,13 +422,13 @@ internal abstract partial class AbstractDescriptionBuilder
                     var exceptionTexts = documentationComment.GetExceptionTexts(exceptionType);
                     if (exceptionTexts.Length == 0)
                     {
-                        AddTypeLink(exceptionTypeSymbol, LinkFlags.None);
+                        await AddTypeLinkAsync(exceptionTypeSymbol, LinkFlags.None, cancellationToken).ConfigureAwait(true);
                     }
                     else
                     {
                         foreach (var exceptionText in exceptionTexts)
                         {
-                            AddTypeLink(exceptionTypeSymbol, LinkFlags.None);
+                            await AddTypeLinkAsync(exceptionTypeSymbol, LinkFlags.None, cancellationToken).ConfigureAwait(true);
                             AddText(": ");
                             AddText(formattingService.Format(exceptionText, compilation));
                         }
@@ -455,7 +452,7 @@ internal abstract partial class AbstractDescriptionBuilder
         return ShowReturnsDocumentation(symbol);
     }
 
-    internal bool TryBuild(_VSOBJDESCOPTIONS options)
+    internal async Task<bool> TryBuildAsync(_VSOBJDESCOPTIONS options, CancellationToken cancellationToken)
     {
         switch (_listItem)
         {
@@ -466,13 +463,13 @@ internal abstract partial class AbstractDescriptionBuilder
                 BuildReference(referenceListItem);
                 return true;
             case NamespaceListItem namespaceListItem:
-                BuildNamespace(namespaceListItem, options);
+                await BuildNamespaceAsync(namespaceListItem, options, cancellationToken).ConfigureAwait(true);
                 return true;
             case TypeListItem typeListItem:
-                BuildType(typeListItem, options);
+                await BuildTypeAsync(typeListItem, options, cancellationToken).ConfigureAwait(true);
                 return true;
             case MemberListItem memberListItem:
-                BuildMember(memberListItem, options);
+                await BuildMemberAsync(memberListItem, options, cancellationToken).ConfigureAwait(true);
                 return true;
         }
 

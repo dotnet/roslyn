@@ -31,13 +31,10 @@ internal abstract partial class AbstractGenerateEnumMemberService<TService, TSim
             CancellationToken cancellationToken)
         {
             var state = new State();
-            if (!await state.TryInitializeAsync(service, document, node, cancellationToken).ConfigureAwait(false))
-                return null;
-
-            return state;
+            return await state.TryInitializeAsync(service, document, node, cancellationToken).ConfigureAwait(false) ? state : null;
         }
 
-        private async Task<bool> TryInitializeAsync(
+        private async ValueTask<bool> TryInitializeAsync(
             TService service,
             SemanticDocument document,
             SyntaxNode node,
@@ -67,7 +64,7 @@ internal abstract partial class AbstractGenerateEnumMemberService<TService, TSim
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            var sourceType = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+            var sourceType = (await SymbolFinderInternal.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false)) as INamedTypeSymbol;
             if (!ValidateTypeToGenerateIn(sourceType, true, EnumType))
                 return false;
 

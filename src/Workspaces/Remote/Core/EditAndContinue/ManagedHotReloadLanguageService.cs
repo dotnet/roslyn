@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -10,11 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -176,7 +177,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
                              where projectId != null
                              select projectId;
 
-            encService.UpdateBaselines(_debuggingSession.Value, currentCompileTimeSolution, projectIds.ToImmutableArray());
+            encService.UpdateBaselines(_debuggingSession.Value, currentCompileTimeSolution, [.. projectIds]);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -275,7 +276,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
     {
         if (_disabled)
         {
-            return new ManagedHotReloadUpdates([], []);
+            return new ManagedHotReloadUpdates([], [], [], []);
         }
 
         try
@@ -285,34 +286,23 @@ internal sealed partial class ManagedHotReloadLanguageService(
             var designTimeSolution = await GetCurrentDesignTimeSolutionAsync(cancellationToken).ConfigureAwait(false);
             var solution = GetCurrentCompileTimeSolution(designTimeSolution);
 
+            using var _ = PooledHashSet<string>.GetInstance(out var runningProjectPaths);
+            runningProjectPaths.AddAll(runningProjects);
+
+            // TODO: Update once implemented: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2449700
+            var runningProjectInfos = solution.Projects.Where(p => p.FilePath != null && runningProjectPaths.Contains(p.FilePath)).ToImmutableDictionary(
+                keySelector: static p => p.Id,
+                elementSelector: static p => new RunningProjectInfo { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = false });
+
             EmitSolutionUpdateResults.Data results;
 
             try
             {
-                using var _ = PooledHashSet<string>.GetInstance(out var runningProjectPaths);
-                runningProjectPaths.AddAll(runningProjects);
-                var runningProjectIds = solution.Projects.Where(p => p.FilePath != null && runningProjectPaths.Contains(p.FilePath)).Select(static p => p.Id).ToImmutableHashSet();
-
-                results = (await encService.EmitSolutionUpdateAsync(_debuggingSession.Value, solution, runningProjectIds, s_emptyActiveStatementProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
+                results = (await encService.EmitSolutionUpdateAsync(_debuggingSession.Value, solution, runningProjectInfos, s_emptyActiveStatementProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
-
-                var diagnostic = Diagnostic.Create(
-                    descriptor,
-                    Location.None,
-                    string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
-
-                results = new EmitSolutionUpdateResults.Data()
-                {
-                    Diagnostics = [DiagnosticData.Create(designTimeSolution, diagnostic, project: null)],
-                    RudeEdits = [],
-                    ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
-                    SyntaxError = null,
-                    ProjectsToRebuild = [],
-                    ProjectsToRestart = [],
-                };
+                results = EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, e.Message, runningProjectInfos);
             }
 
             // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
@@ -321,12 +311,19 @@ internal sealed partial class ManagedHotReloadLanguageService(
                 _pendingUpdatedDesignTimeSolution = designTimeSolution;
             }
 
-            return new ManagedHotReloadUpdates(results.ModuleUpdates.Updates, results.GetAllDiagnostics());
+            return new ManagedHotReloadUpdates(
+                results.ModuleUpdates.Updates,
+                results.GetAllDiagnostics(),
+                GetProjectPaths(results.ProjectsToRebuild),
+                GetProjectPaths(results.ProjectsToRestart.Keys));
+
+            ImmutableArray<string> GetProjectPaths(IEnumerable<ProjectId> ids)
+                => ids.SelectAsArray(id => solution.GetRequiredProject(id).FilePath!);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
             Disable();
-            return new ManagedHotReloadUpdates([], []);
+            return new ManagedHotReloadUpdates([], [], [], []);
         }
     }
 }

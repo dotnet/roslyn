@@ -8,8 +8,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
@@ -48,8 +48,9 @@ internal static class OperatorGenerator
         var declaration = GenerateOperatorDeclarationWorker(method, destination, info, cancellationToken);
         declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 
-        return AddAnnotationsTo(method,
+        declaration = AddAnnotationsTo(method,
             ConditionallyAddDocumentationCommentTo(declaration, method, info, cancellationToken));
+        return declaration.WithAdditionalAnnotations(Formatter.Annotation);
     }
 
     private static OperatorDeclarationSyntax UseExpressionBodyIfDesired(
@@ -89,15 +90,16 @@ internal static class OperatorGenerator
             ? CheckedKeyword
             : default;
 
+        var isExplicit = method.ExplicitInterfaceImplementations.Length > 0;
         var operatorDecl = OperatorDeclaration(
             attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info),
-            modifiers: GenerateModifiers(method, destination, hasNoBody),
+            modifiers: GenerateModifiers(method, destination, info, hasNoBody),
             returnType: method.ReturnType.GenerateTypeSyntax(),
             explicitInterfaceSpecifier: GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations),
             operatorKeyword: OperatorKeyword,
             checkedKeyword: checkedToken,
             operatorToken: operatorToken,
-            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, info: info),
+            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: isExplicit, info: info),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
             semicolonToken: hasNoBody ? SemicolonToken : new SyntaxToken());
@@ -106,9 +108,13 @@ internal static class OperatorGenerator
         return operatorDecl;
     }
 
-    private static SyntaxTokenList GenerateModifiers(IMethodSymbol method, CodeGenerationDestination destination, bool hasNoBody)
+    private static SyntaxTokenList GenerateModifiers(
+        IMethodSymbol method,
+        CodeGenerationDestination destination,
+        CSharpCodeGenerationContextInfo info,
+        bool hasNoBody)
     {
-        using var tokens = TemporaryArray<SyntaxToken>.Empty;
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
         if (method.ExplicitInterfaceImplementations.Length == 0 &&
             !(destination is CodeGenerationDestination.InterfaceType && hasNoBody))
@@ -116,10 +122,7 @@ internal static class OperatorGenerator
             tokens.Add(PublicKeyword);
         }
 
-        tokens.Add(StaticKeyword);
-
-        if (method.IsAbstract)
-            tokens.Add(AbstractKeyword);
+        tokens.AddRange(MethodGenerator.GenerateModifiers(method, destination, info, includeAccessibility: false));
 
         return [.. tokens.ToImmutableAndClear()];
     }

@@ -13,7 +13,6 @@ using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -405,11 +404,11 @@ namespace D
 
             importStrings = CustomDebugInfoReader.GetCSharpGroupedImportStrings(methodToken2, 0, getMethodCustomDebugInfo, getMethodImportStrings, out externAliasStrings);
             Assert.Equal(importString, importStrings.Single().Single());
-            Assert.Equal(0, externAliasStrings.Length);
+            Assert.Empty(externAliasStrings);
 
             importStrings = CustomDebugInfoReader.GetCSharpGroupedImportStrings(methodToken2, 0, getMethodCustomDebugInfo, getMethodImportStrings, out externAliasStrings);
             Assert.Equal(importString, importStrings.Single().Single());
-            Assert.Equal(0, externAliasStrings.Length);
+            Assert.Empty(externAliasStrings);
         }
 
         [Fact]

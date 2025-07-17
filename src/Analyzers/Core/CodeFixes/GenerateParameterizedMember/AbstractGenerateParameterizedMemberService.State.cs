@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
@@ -58,7 +58,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
         protected async Task<bool> TryFinishInitializingStateAsync(TService service, SemanticDocument document, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+            TypeToGenerateIn = await SymbolFinderInternal.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
             if (TypeToGenerateIn.IsErrorType())
             {
                 return false;

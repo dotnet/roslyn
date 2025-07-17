@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -89,8 +90,9 @@ internal sealed class CSharpMakeMethodAsynchronousCodeFixProvider() : AbstractMa
         KnownTaskTypes knownTypes,
         CancellationToken cancellationToken)
     {
-        var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, method.ReturnType, knownTypes, cancellationToken);
-        (var newModifiers, newReturnType) = AddAsyncModifierWithCorrectedTrivia(method.Modifiers, newReturnType);
+        var (newModifiers, newReturnType) = AddAsyncModifierWithCorrectedTrivia(
+            method.Modifiers,
+            FixMethodReturnType(keepVoid, methodSymbol, method.ReturnType, knownTypes, cancellationToken));
         return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
     }
 
@@ -101,8 +103,9 @@ internal sealed class CSharpMakeMethodAsynchronousCodeFixProvider() : AbstractMa
         KnownTaskTypes knownTypes,
         CancellationToken cancellationToken)
     {
-        var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, localFunction.ReturnType, knownTypes, cancellationToken);
-        (var newModifiers, newReturnType) = AddAsyncModifierWithCorrectedTrivia(localFunction.Modifiers, newReturnType);
+        var (newModifiers, newReturnType) = AddAsyncModifierWithCorrectedTrivia(
+            localFunction.Modifiers,
+            FixMethodReturnType(keepVoid, methodSymbol, localFunction.ReturnType, knownTypes, cancellationToken));
         return localFunction.WithReturnType(newReturnType).WithModifiers(newModifiers);
     }
 
@@ -128,13 +131,13 @@ internal sealed class CSharpMakeMethodAsynchronousCodeFixProvider() : AbstractMa
             if (IsIEnumerable(returnType, knownTypes) && IsIterator(methodSymbol, cancellationToken))
             {
                 newReturnType = knownTypes.IAsyncEnumerableOfTType is null
-                    ? MakeGenericType(nameof(IAsyncEnumerable<int>), methodSymbol.ReturnType)
+                    ? MakeGenericType(nameof(IAsyncEnumerable<>), methodSymbol.ReturnType)
                     : knownTypes.IAsyncEnumerableOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
             }
             else if (IsIEnumerator(returnType, knownTypes) && IsIterator(methodSymbol, cancellationToken))
             {
                 newReturnType = knownTypes.IAsyncEnumeratorOfTType is null
-                    ? MakeGenericType(nameof(IAsyncEnumerator<int>), methodSymbol.ReturnType)
+                    ? MakeGenericType(nameof(IAsyncEnumerator<>), methodSymbol.ReturnType)
                     : knownTypes.IAsyncEnumeratorOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
             }
             else if (IsIAsyncEnumerableOrEnumerator(returnType, knownTypes))
@@ -177,7 +180,21 @@ internal sealed class CSharpMakeMethodAsynchronousCodeFixProvider() : AbstractMa
     private static (SyntaxTokenList newModifiers, TypeSyntax newReturnType) AddAsyncModifierWithCorrectedTrivia(SyntaxTokenList modifiers, TypeSyntax returnType)
     {
         if (modifiers.Any())
-            return (modifiers.Add(s_asyncKeywordWithSpace), returnType);
+        {
+            // 'partial' modifier must say at the end of the modifiers arrays.
+            var partialModifier = modifiers.FirstOrDefault(static m => m.IsKind(SyntaxKind.PartialKeyword));
+            if (partialModifier != default)
+            {
+                var insertionIndex = modifiers.IndexOf(partialModifier);
+                modifiers = modifiers.Replace(partialModifier, partialModifier.WithoutLeadingTrivia());
+
+                return (modifiers.Insert(insertionIndex, s_asyncKeywordWithSpace.WithLeadingTrivia(partialModifier.LeadingTrivia)), returnType);
+            }
+            else
+            {
+                return (modifiers.Add(s_asyncKeywordWithSpace), returnType);
+            }
+        }
 
         // Move the leading trivia from the return type to the new modifiers list.
         var newModifiers = TokenList(s_asyncKeywordWithSpace.WithLeadingTrivia(returnType.GetLeadingTrivia()));

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -32,12 +33,15 @@ internal sealed partial class SyntaxTreeIndex
     public bool ContainsImplicitObjectCreation => _contextInfo.ContainsImplicitObjectCreation;
     public bool ContainsIndexerMemberCref => _contextInfo.ContainsIndexerMemberCref;
     public bool ContainsLockStatement => _contextInfo.ContainsLockStatement;
+    public bool ContainsPartialClass => _contextInfo.ContainsPartialClass;
     public bool ContainsQueryExpression => _contextInfo.ContainsQueryExpression;
     public bool ContainsThisConstructorInitializer => _contextInfo.ContainsThisConstructorInitializer;
     public bool ContainsTupleExpressionOrTupleType => _contextInfo.ContainsTupleExpressionOrTupleType;
     public bool ContainsUsingStatement => _contextInfo.ContainsUsingStatement;
     public bool ContainsCollectionInitializer => _contextInfo.ContainsCollectionInitializer;
     public bool ContainsAttribute => _contextInfo.ContainsAttribute;
+    public bool ContainsDirective => _contextInfo.ContainsDirective;
+    public bool ContainsPrimaryConstructorBaseType => _contextInfo.ContainsPrimaryConstructorBaseType;
 
     /// <summary>
     /// Gets the set of global aliases that point to something with the provided name and arity.

@@ -6,7 +6,9 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddImport
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.Extensions
@@ -20,36 +22,35 @@ Imports Microsoft.VisualStudio.TextManager.Interop
 Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
-    <ExportLanguageService(GetType(ISnippetExpansionLanguageHelper), LanguageNames.VisualBasic)>
-    <[Shared]>
+    <ExportLanguageService(GetType(ISnippetExpansionLanguageHelper), LanguageNames.VisualBasic), [Shared]>
     Friend NotInheritable Class VisualBasicSnippetExpansionLanguageHelper
         Inherits AbstractSnippetExpansionLanguageHelper
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New()
+        Public Sub New(threadingContext As IThreadingContext)
+            MyBase.New(threadingContext)
         End Sub
 
-        Public Overrides ReadOnly Property LanguageServiceGuid As Guid
-            Get
-                Return Guids.VisualBasicDebuggerLanguageId
-            End Get
-        End Property
+        Public Overrides ReadOnly Property LanguageServiceGuid As Guid = Guids.VisualBasicDebuggerLanguageId
 
-        Public Overrides ReadOnly Property FallbackDefaultLiteral As String
-            Get
-                Return "Nothing"
-            End Get
-        End Property
+        Public Overrides ReadOnly Property FallbackDefaultLiteral As String = "Nothing"
 
-        Public Overrides Function AddImports(document As Document, addImportOptions As AddImportPlacementOptions, formattingOptions As SyntaxFormattingOptions, position As Integer, snippetNode As XElement, cancellationToken As CancellationToken) As Document
+        Public Overrides Async Function AddImportsAsync(
+                document As Document,
+                addImportOptions As AddImportPlacementOptions,
+                formattingOptions As SyntaxFormattingOptions,
+                position As Integer,
+                snippetNode As XElement,
+                cancellationToken As CancellationToken) As Task(Of Document)
             Dim importsNode = snippetNode.Element(XName.Get("Imports", snippetNode.Name.NamespaceName))
             If importsNode Is Nothing OrElse
                Not importsNode.HasElements() Then
                 Return document
             End If
 
-            Dim newImportsStatements = GetImportsStatementsToAdd(document, snippetNode, importsNode, cancellationToken)
+            Dim newImportsStatements = Await GetImportsStatementsToAddAsync(
+                document, snippetNode, importsNode, cancellationToken).ConfigureAwait(True)
             If Not newImportsStatements.Any() Then
                 Return document
             End If
@@ -67,8 +68,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Dim newRoot = CType(root, CompilationUnitSyntax).AddImportsStatements(newImportsStatements, addImportOptions.PlaceSystemNamespaceFirst)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 
-            Dim formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken)
-            document.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken)
+            Dim formattedDocument = Await Formatter.FormatAsync(newDocument, Formatter.Annotation, formattingOptions, cancellationToken).ConfigureAwait(True)
+            Await document.Project.Solution.Workspace.ApplyDocumentChangesAsync(Me.ThreadingContext, formattedDocument, cancellationToken).configureawait(True)
 
             Return formattedDocument
         End Function
@@ -98,10 +99,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Return Nothing
         End Function
 
-        Private Shared Function GetImportsStatementsToAdd(document As Document, snippetNode As XElement, importsNode As XElement, cancellationToken As CancellationToken) As IList(Of ImportsStatementSyntax)
+        Private Shared Async Function GetImportsStatementsToAddAsync(document As Document, snippetNode As XElement, importsNode As XElement, cancellationToken As CancellationToken) As Task(Of IList(Of ImportsStatementSyntax))
             Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
             Dim localImportsClauses = CType(root, CompilationUnitSyntax).Imports.SelectMany(Function(x) x.ImportsClauses)
-            Dim compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(True)
             Dim options = CType(compilation.Options, VisualBasicCompilationOptions)
             Dim globalImportsClauses = options.GlobalImports.Select(Function(g) g.Clause)
 

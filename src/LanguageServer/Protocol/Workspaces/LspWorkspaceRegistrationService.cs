@@ -12,7 +12,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal abstract class LspWorkspaceRegistrationService : IDisposable
 {
     private readonly object _gate = new();
+
+    // These arrays are kept in sync, with _workspaceChangedDisposers[i] representing
+    // a disposer for a WorkspaceChanged event on the workspace at _registrations[i]
     private ImmutableArray<Workspace> _registrations = [];
+    private ImmutableArray<WorkspaceEventRegistration> _workspaceChangedDisposers = [];
 
     public ImmutableArray<Workspace> GetAllRegistrations()
     {
@@ -27,21 +31,23 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
         if (workspace is null)
             return;
 
-        Logger.Log(FunctionId.RegisterWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
+        Logger.Log(FunctionId.RegisterWorkspace, KeyValueLogMessage.Create(LogType.Trace, static (m, workspace) =>
         {
             m["WorkspaceKind"] = workspace.Kind;
             m["WorkspaceCanOpenDocuments"] = workspace.CanOpenDocuments;
             m["WorkspaceCanChangeActiveContextDocument"] = workspace.CanChangeActiveContextDocument;
             m["WorkspacePartialSemanticsEnabled"] = workspace.PartialSemanticsEnabled;
-        }));
+        }, workspace));
+
+        // Forward workspace change events for all registered LSP workspaces. Requires main thread as it
+        // fires LspSolutionChanged which hasn't been guaranteed to be thread safe.
+        var workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnLspWorkspaceChanged, WorkspaceEventOptions.RequiresMainThreadOptions);
 
         lock (_gate)
         {
             _registrations = _registrations.Add(workspace);
+            _workspaceChangedDisposers = _workspaceChangedDisposers.Add(workspaceChangedDisposer);
         }
-
-        // Forward workspace change events for all registered LSP workspaces.
-        workspace.WorkspaceChanged += OnLspWorkspaceChanged;
     }
 
     public void Deregister(Workspace? workspace)
@@ -49,14 +55,26 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
         if (workspace is null)
             return;
 
-        workspace.WorkspaceChanged -= OnLspWorkspaceChanged;
+        WorkspaceEventRegistration? disposer = null;
         lock (_gate)
         {
-            _registrations = _registrations.Remove(workspace);
+            var index = _registrations.IndexOf(workspace);
+
+            // Handle the case where we were registered with a null workspace, but deregistered
+            // with a non-null workspace
+            if (index >= 0)
+            {
+                _registrations = _registrations.RemoveAt(index);
+
+                disposer = _workspaceChangedDisposers[index];
+                _workspaceChangedDisposers = _workspaceChangedDisposers.RemoveAt(index);
+            }
         }
+
+        disposer?.Dispose();
     }
 
-    private void OnLspWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+    private void OnLspWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         LspSolutionChanged?.Invoke(this, e);
     }
@@ -65,12 +83,13 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
     {
         lock (_gate)
         {
-            foreach (var workspace in _registrations)
+            foreach (var disposer in _workspaceChangedDisposers)
             {
-                workspace.WorkspaceChanged -= OnLspWorkspaceChanged;
+                disposer.Dispose();
             }
 
-            _registrations = _registrations.Clear();
+            _registrations = [];
+            _workspaceChangedDisposers = [];
         }
     }
 
@@ -80,14 +99,4 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
     /// <b>IMPORTANT:</b> Implementations of this event handler should do as little synchronous work as possible since this will block.
     /// </summary>
     public EventHandler<WorkspaceChangeEventArgs>? LspSolutionChanged;
-}
-
-internal class LspWorkspaceRegisteredEventArgs : EventArgs
-{
-    public Workspace Workspace { get; }
-
-    public LspWorkspaceRegisteredEventArgs(Workspace workspace)
-    {
-        Workspace = workspace;
-    }
 }

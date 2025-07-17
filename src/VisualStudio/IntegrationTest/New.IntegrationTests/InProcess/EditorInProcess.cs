@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Design;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -27,11 +27,9 @@ using Microsoft.CodeAnalysis.GoToImplementation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
-using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -60,7 +58,7 @@ using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing;
 
-internal partial class EditorInProcess : ITextViewWindowInProcess
+internal sealed partial class EditorInProcess : ITextViewWindowInProcess
 {
     TestServices ITextViewWindowInProcess.TestServices => TestServices;
 
@@ -281,7 +279,7 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
 #pragma warning disable CS0618 // Type or member is obsolete
             if (activeSession.TryGetSuggestedActionSets(out var actionSets) != QuerySuggestedActionCompletionStatus.Completed)
             {
-                actionSets = Array.Empty<SuggestedActionSet>();
+                actionSets = [];
             }
 #pragma warning restore CS0618 // Type or member is obsolete
 
@@ -334,7 +332,7 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
             var classifierAggregatorService = await TestServices.Shell.GetComponentModelServiceAsync<IViewClassifierAggregatorService>(cancellationToken);
             classifier = classifierAggregatorService.GetClassifier(textView);
             var classifiedSpans = classifier.GetClassificationSpans(selectionSpan);
-            return classifiedSpans.Select(x => x.ClassificationType.Classification).ToArray();
+            return [.. classifiedSpans.Select(x => x.ClassificationType.Classification)];
         }
         finally
         {
@@ -566,7 +564,14 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var margin = await GetNavigationBarMarginAsync(textView, cancellationToken);
-        return margin.GetFieldValue<List<ComboBox>>("_combos");
+        try
+        {
+            return margin.GetFieldValue<List<ComboBox>>("_combos");
+        }
+        catch (FieldAccessException)
+        {
+            return margin.GetFieldValue<List<ComboBox>>("Combos");
+        }
     }
 
     private async Task<UIElement?> GetNavigationBarMarginAsync(IWpfTextView textView, CancellationToken cancellationToken)
@@ -745,7 +750,7 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
         var view = await GetActiveTextViewAsync(cancellationToken);
 
         var broker = await GetComponentModelServiceAsync<ILightBulbBroker>(cancellationToken);
-        return (await GetLightBulbActionsAsync(broker, view, cancellationToken)).Select(a => a.DisplayText).ToArray();
+        return [.. (await GetLightBulbActionsAsync(broker, view, cancellationToken)).Select(a => a.DisplayText)];
     }
 
     public async Task<bool> ApplyLightBulbActionAsync(string actionName, FixAllScope? fixAllScope, bool blockUntilComplete, CancellationToken cancellationToken)
@@ -1010,11 +1015,11 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
         };
 
         var componentModelService = await GetRequiredGlobalServiceAsync<SComponentModel, IComponentModel>(cancellationToken);
-        var commandHandlers = componentModelService.DefaultExportProvider.GetExports<ICommandHandler, NameMetadata>();
-        var goToImplementation = (GoToImplementationCommandHandler)commandHandlers.Single(handler => handler.Metadata.Name == PredefinedCommandHandlerNames.GoToImplementation).Value;
+
+        var goToImplementation = componentModelService.DefaultExportProvider.GetExportedValue<GoToImplementationNavigationService>();
         goToImplementation.GetTestAccessor().DelayHook = delayHook;
 
-        var goToBase = (GoToBaseCommandHandler)commandHandlers.Single(handler => handler.Metadata.Name == PredefinedCommandHandlerNames.GoToBase).Value;
+        var goToBase = componentModelService.DefaultExportProvider.GetExportedValue<GoToBaseNavigationService>();
         goToBase.GetTestAccessor().DelayHook = delayHook;
     }
 
@@ -1058,15 +1063,11 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
         return TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.FORMATSELECTION, cancellationToken);
     }
 
-    private async Task WaitForSignatureHelpAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SignatureHelp, cancellationToken);
-    }
+    private Task WaitForSignatureHelpAsync(CancellationToken cancellationToken)
+        => TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SignatureHelp, cancellationToken);
 
-    private async Task WaitForCompletionSetAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
-    }
+    private Task WaitForCompletionSetAsync(CancellationToken cancellationToken)
+        => TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
 
     public async Task AddWinFormButtonAsync(string buttonName, CancellationToken cancellationToken)
     {

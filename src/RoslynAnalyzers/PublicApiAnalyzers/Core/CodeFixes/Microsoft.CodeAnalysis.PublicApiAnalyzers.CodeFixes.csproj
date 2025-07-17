@@ -1,0 +1,27 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <!--
+      PackageId is used by Restore. If we set it to DotNetAnalyzers.PublicApiAnalyzer.CodeFixes,
+      Restore would conclude that there is a cyclic dependency between us and the DotNetAnalyzers.PublicApiAnalyzer.CodeFixes package.
+    -->
+    <PackageId>*$(MSBuildProjectFile)*</PackageId>
+    <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.PublicApiAnalyzers.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\..\..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />
+</Project>

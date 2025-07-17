@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -31,7 +27,6 @@ internal interface IRemoteRenamerService
         SerializableSymbolAndProjectId symbolAndProjectId,
         string replacementText,
         SymbolRenameOptions options,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken);
 
     ValueTask<SerializableRenameLocations?> FindRenameLocationsAsync(
@@ -45,7 +40,6 @@ internal interface IRemoteRenamerService
         SerializableSymbolAndProjectId symbolAndProjectId,
         SerializableRenameLocations renameLocationSet,
         string replacementText,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken);
 }
 

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking;
 [Order(Before = PredefinedCommandHandlerNames.FormatDocument)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class PasteTrackingPasteCommandHandler(PasteTrackingService pasteTrackingService) : IChainedCommandHandler<PasteCommandArgs>
+internal sealed class PasteTrackingPasteCommandHandler(PasteTrackingService pasteTrackingService) : IChainedCommandHandler<PasteCommandArgs>
 {
     public string DisplayName => EditorFeaturesResources.Paste_Tracking;
 

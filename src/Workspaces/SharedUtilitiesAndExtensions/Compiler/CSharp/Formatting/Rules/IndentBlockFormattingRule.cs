@@ -109,7 +109,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         var switchStatement = (SwitchStatementSyntax)node.Parent;
         var lastSection = switchStatement.Sections.Last() == node;
 
-        if (section.Statements.Count == 0)
+        if (section.Statements is not ([var firstStatement, ..] and [.., var lastStatement]))
         {
             // even if there is no statement under section, we still want indent operation
             var lastTokenOfLabel = section.Labels.Last().GetLastToken(includeZeroWidth: true);
@@ -121,8 +121,8 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
             return;
         }
 
-        var startToken = section.Statements.First().GetFirstToken(includeZeroWidth: true);
-        var endToken = section.Statements.Last().GetLastToken(includeZeroWidth: true);
+        var startToken = firstStatement.GetFirstToken(includeZeroWidth: true);
+        var endToken = lastStatement.GetLastToken(includeZeroWidth: true);
 
         // see whether we are the last statement
         var span = CommonFormattingHelpers.GetSpanIncludingTrailingAndLeadingTriviaOfAdjacentTokens(startToken, endToken);
@@ -136,11 +136,11 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         // label statement
         if (node is LabeledStatementSyntax labeledStatement)
         {
-            if (_options.LabelPositioning == LabelPositionOptions.OneLess)
+            if (_options.LabelPositioning == LabelPositionOptionsInternal.OneLess)
             {
                 AddUnindentBlockOperation(list, labeledStatement.Identifier, labeledStatement.ColonToken);
             }
-            else if (_options.LabelPositioning == LabelPositionOptions.LeftMost)
+            else if (_options.LabelPositioning == LabelPositionOptionsInternal.LeftMost)
             {
                 AddAbsoluteZeroIndentBlockOperation(list, labeledStatement.Identifier, labeledStatement.ColonToken);
             }
@@ -252,6 +252,13 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
     private static void AddBracketIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
+        // Indentation inside the pattern of a switch statement is handled by AddBlockIndentationOperation. This continue ensures that bracket-specific
+        // operations are skipped for switch patterns, as they are not formatted like blocks.
+        if (node.Parent is SwitchExpressionArmSyntax arm && arm.Pattern == node)
+        {
+            return;
+        }
+
         var bracketPair = node.GetBracketPair();
 
         if (!bracketPair.IsValidBracketOrBracePair())
@@ -259,7 +266,6 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
         if (node.Parent != null && node.Kind() is SyntaxKind.ListPattern or SyntaxKind.CollectionExpression)
         {
-            // Brackets in list patterns are formatted like blocks, so align close bracket with open bracket
             AddIndentBlockOperation(list, bracketPair.openBracket.GetNextToken(includeZeroWidth: true), bracketPair.closeBracket.GetPreviousToken(includeZeroWidth: true));
 
             // If we have:
@@ -322,13 +328,13 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
             return;
         }
 
-        if (node is UsingStatementSyntax usingStatement && usingStatement.Statement != null && !(usingStatement.Statement is BlockSyntax || usingStatement.Statement is UsingStatementSyntax))
+        if (node is UsingStatementSyntax usingStatement && usingStatement.Statement != null && !(usingStatement.Statement is BlockSyntax or UsingStatementSyntax))
         {
             AddEmbeddedStatementsIndentationOperation(list, usingStatement.Statement);
             return;
         }
 
-        if (node is FixedStatementSyntax fixedStatement && fixedStatement.Statement != null && !(fixedStatement.Statement is BlockSyntax || fixedStatement.Statement is FixedStatementSyntax))
+        if (node is FixedStatementSyntax fixedStatement && fixedStatement.Statement != null && !(fixedStatement.Statement is BlockSyntax or FixedStatementSyntax))
         {
             AddEmbeddedStatementsIndentationOperation(list, fixedStatement.Statement);
             return;

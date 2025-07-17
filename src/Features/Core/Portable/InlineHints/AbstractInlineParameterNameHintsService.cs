@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineHints;
 
@@ -27,7 +26,7 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
         SemanticModel semanticModel,
         ISyntaxFactsService syntaxFacts,
         SyntaxNode node,
-        ArrayBuilder<(int position, string? identifierArgument, IParameterSymbol? parameter, HintKind kind)> buffer,
+        ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> buffer,
         CancellationToken cancellationToken);
 
     protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
@@ -61,7 +60,7 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
         using var _1 = ArrayBuilder<InlineHint>.GetInstance(out var result);
-        using var _2 = ArrayBuilder<(int position, string? identifierArgument, IParameterSymbol? parameter, HintKind kind)>.GetInstance(out var buffer);
+        using var _2 = ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)>.GetInstance(out var buffer);
 
         foreach (var node in root.DescendantNodes(textSpan, n => n.Span.IntersectsWith(textSpan)))
         {
@@ -82,15 +81,22 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
             if (suppressForParametersThatDifferOnlyBySuffix && ParametersDifferOnlyBySuffix(buffer))
                 return;
 
-            foreach (var (position, identifierArgument, parameter, kind) in buffer)
+            foreach (var (position, argument, parameter, kind) in buffer)
             {
+                // We get hints on *nodes* that intersect the passed in text span.  However, while the full node may
+                // intersect the span, the positions of the all the sub-nodes in it that we make hints for (like the
+                // positions of the arguments in an invocation) may not.  So, filter out any hints that aren't actually
+                // in the span we care about here.
+                if (!textSpan.IntersectsWith(position))
+                    continue;
+
                 if (string.IsNullOrEmpty(parameter?.Name))
                     continue;
 
                 if (suppressForParametersThatMatchMethodIntent && MatchesMethodIntent(parameter))
                     continue;
 
-                if (suppressForParametersThatMatchArgumentName && ParameterMatchesArgumentName(identifierArgument, parameter, syntaxFacts))
+                if (suppressForParametersThatMatchArgumentName && ParameterMatchesArgumentName(argument, parameter, syntaxFacts))
                     continue;
 
                 if (!indexerParameters && IsIndexer(node, parameter))
@@ -119,7 +125,7 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
     }
 
     private static bool ParametersDifferOnlyBySuffix(
-        ArrayBuilder<(int position, string? identifierArgument, IParameterSymbol? parameter, HintKind kind)> parameterHints)
+        ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> parameterHints)
     {
         // Only relevant if we have two or more parameters.
         if (parameterHints.Count <= 1)
@@ -129,7 +135,7 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
                ParametersDifferOnlyByNumericSuffix(parameterHints);
 
         static bool ParametersDifferOnlyByAlphaSuffix(
-            ArrayBuilder<(int position, string? identifierArgument, IParameterSymbol? parameter, HintKind kind)> parameterHints)
+            ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> parameterHints)
         {
             if (!HasAlphaSuffix(parameterHints[0].parameter, out var firstPrefix))
                 return false;
@@ -147,7 +153,7 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
         }
 
         static bool ParametersDifferOnlyByNumericSuffix(
-            ArrayBuilder<(int position, string? identifierArgument, IParameterSymbol? parameter, HintKind kind)> parameterHints)
+            ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> parameterHints)
         {
             if (!HasNumericSuffix(parameterHints[0].parameter, out var firstPrefix))
                 return false;
@@ -273,8 +279,11 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
         }
     }
 
-    private static bool ParameterMatchesArgumentName(string? identifierArgument, IParameterSymbol parameter, ISyntaxFactsService syntaxFacts)
-    => syntaxFacts.StringComparer.Compare(parameter.Name, identifierArgument) == 0;
+    private static bool ParameterMatchesArgumentName(SyntaxNode argument, IParameterSymbol parameter, ISyntaxFactsService syntaxFacts)
+    {
+        var argumentName = GetIdentifierNameFromArgument(argument, syntaxFacts);
+        return syntaxFacts.StringComparer.Compare(parameter.Name, argumentName) == 0;
+    }
 
     protected static string GetIdentifierNameFromArgument(SyntaxNode argument, ISyntaxFactsService syntaxFacts)
     {
@@ -282,10 +291,16 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
             syntaxFacts.IsArgument(argument) ? syntaxFacts.GetExpressionOfArgument(argument) :
             syntaxFacts.IsAttributeArgument(argument) ? syntaxFacts.GetExpressionOfAttributeArgument(argument) : null;
 
+        if (syntaxFacts.IsMemberAccessExpression(identifierNameSyntax))
+        {
+            identifierNameSyntax = syntaxFacts.GetNameOfMemberAccessExpression(identifierNameSyntax);
+        }
+
         if (!syntaxFacts.IsIdentifierName(identifierNameSyntax))
             return string.Empty;
 
         var identifier = syntaxFacts.GetIdentifierOfIdentifierName(identifierNameSyntax);
+
         return identifier.ValueText;
     }
 }

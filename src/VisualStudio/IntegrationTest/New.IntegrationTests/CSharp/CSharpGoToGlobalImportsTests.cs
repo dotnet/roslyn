@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
-public class CSharpGoToGlobalImportsTests : AbstractEditorTest
+public sealed class CSharpGoToGlobalImportsTests : AbstractEditorTest
 {
     protected override string LanguageName => LanguageNames.CSharp;
 

@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
@@ -23,16 +24,27 @@ internal sealed partial class CSharpSpellCheckCodeFixProvider : AbstractSpellChe
     private const string CS0426 = nameof(CS0426); // The type name '0' does not exist in the type '1'
     private const string CS1520 = nameof(CS1520); // Method must have a return type
 
+    private const string CS0539 = nameof(CS0539); // error CS0539: 'A.Goo<T>()' in explicit interface declaration is not a member of interface
+
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
     public CSharpSpellCheckCodeFixProvider()
     {
     }
 
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-        AddImportDiagnosticIds.FixableDiagnosticIds.Concat(
-        GenerateMethodDiagnosticIds.FixableDiagnosticIds).Concat(
-            ImmutableArray.Create(CS0426, CS1520));
+    private static ImmutableArray<string> GetFixableDiagnosticIds()
+    {
+        var generateMethodFixable = GenerateMethodDiagnosticIds.FixableDiagnosticIds.Except([CS0539]);
+        return
+        [
+            .. AddImportDiagnosticIds.FixableDiagnosticIds,
+            .. generateMethodFixable,
+            CS0426,
+            CS1520,
+        ];
+    }
+
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = GetFixableDiagnosticIds();
 
     protected override bool ShouldSpellCheck(SimpleNameSyntax name)
         => !name.IsVar;

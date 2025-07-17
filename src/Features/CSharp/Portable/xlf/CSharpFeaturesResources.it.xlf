@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../CSharpFeaturesResources.resx">
     <body>
-      <trans-unit id="Add_await">
-        <source>Add 'await'</source>
-        <target state="translated">Aggiungi 'await'</target>
-        <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Add_await_and_ConfigureAwaitFalse">
         <source>Add 'await' and 'ConfigureAwait(false)'</source>
         <target state="translated">Aggiungi 'await' e 'ConfigureAwait(false)'</target>
@@ -137,11 +132,6 @@
         <target state="translated">La selezione automatica è disabilitata a causa di una potenziale dichiarazione della variabile di criterio.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
-        <source>Cannot determine valid range of statements to extract</source>
-        <target state="translated">Non è possibile determinare l'intervallo valido di istruzioni da estrarre</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">Cambia in espressione 'as'</target>
@@ -152,10 +142,20 @@
         <target state="translated">Cambia in cast</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_0_extension_methods_to_extension">
+        <source>Convert '{0}' extension methods to extension</source>
+        <target state="new">Convert '{0}' extension methods to extension</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_0_to_record">
         <source>Convert '{0}' to record</source>
         <target state="translated">Convertire '{0}' in record</target>
         <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_all_extension_methods_in_0_to_extension">
+        <source>Convert all extension methods in '{0}' to extension</source>
+        <target state="new">Convert all extension methods in '{0}' to extension</target>
+        <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
@@ -205,11 +205,6 @@
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">Direttive globali 'using'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Conflict_s_detected">
-        <source>Conflict(s) detected.</source>
-        <target state="translated">Sono stati rilevati conflitti.</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
@@ -327,24 +322,9 @@
         <target state="translated">La selezione automatica è disabilitata a causa di una potenziale dichiarazione della variabile di intervallo.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_name_0">
-        <source>Simplify name '{0}'</source>
-        <target state="translated">Semplifica il nome '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_member_access_0">
-        <source>Simplify member access '{0}'</source>
-        <target state="translated">Semplifica l'accesso dei membri '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_this_qualification">
         <source>Remove 'this' qualification</source>
         <target state="translated">Rimuove la qualificazione 'this'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_all_code_paths_return">
-        <source>Not all code paths return</source>
-        <target state="translated">Non vengono restituiti tutti i percorsi del codice</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_node">
@@ -392,11 +372,6 @@
         <target state="translated">Il codice selezionato è all'interno di un contesto unsafe.</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_valid_statement_range_to_extract">
-        <source>No valid statement range to extract</source>
-        <target state="translated">Non esiste alcun intervallo di istruzioni valido per l'estrazione</target>
-        <note />
-      </trans-unit>
       <trans-unit id="deprecated">
         <source>deprecated</source>
         <target state="translated">deprecato</target>
@@ -434,7 +409,7 @@
       </trans-unit>
       <trans-unit id="required_property">
         <source>required property</source>
-        <target state="new">required property</target>
+        <target state="translated">proprietà obbligatoria</target>
         <note />
       </trans-unit>
       <trans-unit id="reversed_for_loop">
@@ -592,11 +567,6 @@
         <target state="translated">tupla</target>
         <note />
       </trans-unit>
-      <trans-unit id="local_function">
-        <source>local function</source>
-        <target state="translated">funzione locale</target>
-        <note />
-      </trans-unit>
       <trans-unit id="out_var">
         <source>out variable</source>
         <target state="translated">variabile out</target>
@@ -662,19 +632,9 @@
         <target state="translated">Il nome '{0}' non esiste nel contesto corrente.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Properties">
-        <source>Properties</source>
-        <target state="translated">Proprietà</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_namespace_declaration">
         <source>Autoselect disabled due to namespace declaration.</source>
         <target state="translated">La selezione automatica è disabilitata a causa della dichiarazione dello spazio dei nomi.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="namespace_name">
-        <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt;nome spazio dei nomi&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_type_declaration">
@@ -685,16 +645,6 @@
       <trans-unit id="Autoselect_disabled_due_to_possible_deconstruction_declaration">
         <source>Autoselect disabled due to possible deconstruction declaration.</source>
         <target state="translated">La selezione automatica è disabilitata a causa di una possibile dichiarazione di decostruzione.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="class_name">
-        <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;nome classe&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="interface_name">
-        <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt;nome dell'interfaccia&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="designation_name">

@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            var localFunction = node.Symbol;
+            var localFunction = (LocalFunctionSymbol)node.Symbol;
             var analysis = new RefSafetyAnalysis(_compilation, localFunction, _inUnsafeRegion || localFunction.IsUnsafe, _useUpdatedEscapeRules, _diagnostics);
             analysis.Visit(node.BlockBody);
             analysis.Visit(node.ExpressionBody);
@@ -548,6 +548,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
             base.VisitCompoundAssignmentOperator(node);
+
+            if (!node.HasErrors && node.Operator.Method is { } compoundMethod)
+            {
+                if (compoundMethod.IsStatic)
+                {
+                    CheckInvocationArgMixing(
+                        node.Syntax,
+                        MethodInfo.Create(compoundMethod),
+                        receiverOpt: null,
+                        receiverIsSubjectToCloning: ThreeState.Unknown,
+                        compoundMethod.Parameters,
+                        argsOpt: [node.Left, node.Right],
+                        argRefKindsOpt: default,
+                        argsToParamsOpt: default,
+                        _localScopeDepth,
+                        _diagnostics);
+                }
+                else
+                {
+                    CheckInvocationArgMixing(
+                        node.Syntax,
+                        MethodInfo.Create(compoundMethod),
+                        receiverOpt: node.Left,
+                        receiverIsSubjectToCloning: ThreeState.False,
+                        compoundMethod.Parameters,
+                        argsOpt: [node.Right],
+                        argRefKindsOpt: default,
+                        argsToParamsOpt: default,
+                        _localScopeDepth,
+                        _diagnostics);
+
+                    return null;
+                }
+            }
+
             ValidateAssignment(node.Syntax, node.Left, node, isRef: false, _diagnostics);
             return null;
         }
@@ -585,7 +620,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitRecursivePattern(BoundRecursivePattern node)
         {
             SetPatternLocalScopes(node);
+
+            // If the equivalent `Deconstruct` call has unscoped receiver,
+            // we narrow the escape scope of the pattern input
+            // which flows as the escape scope of all ref-struct declaration subpatterns
+            // and so the ref safety of the pattern is equivalent to a `Deconstruct(out var ...)` invocation
+            // where "safe-context inference of declaration expressions" would have the same effect.
+            if (node.DeconstructMethod is { } m &&
+                tryGetReceiverParameter(m)?.EffectiveScope == ScopedKind.None)
+            {
+                using (new PatternInput(this, _localScopeDepth))
+                {
+                    return base.VisitRecursivePattern(node);
+                }
+            }
+
             return base.VisitRecursivePattern(node);
+
+            static ParameterSymbol? tryGetReceiverParameter(MethodSymbol method)
+            {
+                if (method.IsExtensionMethod)
+                {
+                    return method.Parameters is [{ } firstParameter, ..] ? firstParameter : null;
+                }
+                else if (method.GetIsNewExtensionMember())
+                {
+                    return method.ContainingType.ExtensionParameter;
+                }
+
+                return method.TryGetThisParameter(out var thisParameter) ? thisParameter : null;
+            }
         }
 
         public override BoundNode? VisitPositionalSubpattern(BoundPositionalSubpattern node)
@@ -687,6 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (argIndex)
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
+                    case BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver:
                         Debug.Assert(receiver != null);
                         if (receiver is null)
                         {

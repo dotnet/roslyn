@@ -2,23 +2,22 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Remote.Testing
-Imports Microsoft.CodeAnalysis.FindUsages
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.FindUsages
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-    Public Class GoToImplementationTests
-
+    Public NotInheritable Class GoToImplementationTests
         Private Shared Async Function TestAsync(workspaceDefinition As XElement, host As TestHost, Optional shouldSucceed As Boolean = True, Optional metadataDefinitions As String() = Nothing) As Task
             Await GoToHelpers.TestAsync(
                 workspaceDefinition,
                 host,
                 Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext) As Task
                     Dim findUsagesService = document.GetLanguageService(Of IFindUsagesService)
-                    Dim options = New TestOptionsProvider(Of ClassificationOptions)(ClassificationOptions.Default)
+                    Dim options = TestOptionsProvider.Create(ClassificationOptions.Default)
                     Await findUsagesService.FindImplementationsAsync(context, document, position, options, CancellationToken.None).ConfigureAwait(False)
                 End Function,
                 shouldSucceed,
@@ -40,6 +39,7 @@ $$
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithSingleClass(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -59,7 +59,7 @@ class [|$$C|] { }
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-abstract class [|$$C|]
+abstract class $$C
 {
 }
 
@@ -138,12 +138,13 @@ enum [|$$C|]
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithNonAbstractClass(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-class [|$$C|]
+class $$C
 {
 }
 
@@ -189,6 +190,7 @@ interface $$I { }
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithOneMethodImplementation_01(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -204,13 +206,14 @@ interface I { void $$M(); }
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithOneMethodImplementation_02(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
 class C : I { public void [|M|]() { } }
-interface I { void [|$$M|]() {} }
+interface I { void $$M() {} }
         </Document>
     </Project>
 </Workspace>
@@ -219,13 +222,14 @@ interface I { void [|$$M|]() {} }
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithOneMethodImplementation_03(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
 class C : I { void I.[|M|]() { } }
-interface I { void [|$$M|]() {} }
+interface I { void $$M() {} }
         </Document>
     </Project>
 </Workspace>
@@ -253,6 +257,7 @@ interface I { void $$M(); }
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithOneMethodImplementation_05(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -263,7 +268,7 @@ interface C : I
     void I.[|M|]() { }
     void M();
 }
-interface I { void [|$$M|]() {} }
+interface I { void $$M() {} }
         </Document>
     </Project>
 </Workspace>
@@ -429,6 +434,7 @@ class C
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithOverridableMethodOnBase(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -436,12 +442,56 @@ class C
         <Document>
 class C 
 {
-    public virtual void [|$$M|]() { }
+    public virtual void $$M() { }
 }
 
 class D : C
 {
     public override void [|M|]() { }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory(Skip:="Yes"), CombinatorialData>
+        Public Async Function TestWithOverridableInstanceIncrementOperatorsOnBase(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C 
+{
+    public virtual void $$<%= op %>() { }
+}
+
+class D : C
+{
+    public override void [|<%= op %>|]() { }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory(Skip:="Yes"), CombinatorialData>
+        Public Async Function TestWithOverridableInstanceCompoundAssignmentOperatorsOnBase(host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C 
+{
+    public virtual void $$<%= op %>(int x) { }
+}
+
+class D : C
+{
+    public override void [|<%= op %>|](int x) { }
 }
         </Document>
     </Project>
@@ -474,15 +524,62 @@ class D : C
             Await TestAsync(workspace, host)
         End Function
 
+        <Theory(Skip:="Yes"), CombinatorialData>
+        Public Async Function TestWithOverridableInstanceIncrementOperatorsOnImplementation(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
+            ' Our philosophy is to only show derived in this case
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C 
+{
+    public virtual void <%= op %>() { }
+}
+
+class D : C
+{
+    public override void [|$$<%= op %>|]() { }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory(Skip:="Yes"), CombinatorialData>
+        Public Async Function TestWithOverridableInstanceCompoundAssignmentOperatorsOnImplementation(host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
+            ' Our philosophy is to only show derived in this case
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C 
+{
+    public virtual void <%= op %>(int x) { }
+}
+
+class D : C
+{
+    public override void [|$$<%= op %>|](int x) { }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
         <Theory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/19700")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithIntermediateAbstractOverrides(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
     abstract class A {
-        public virtual void $$[|M|]() { }
+        public virtual void $$M() { }
     }
     abstract class B : A {
         public abstract override void M();
@@ -722,6 +819,51 @@ interface I&lt;T&gt; { static abstract T operator $$>>>(T x, int y); }
         End Function
 
         <Theory, CombinatorialData>
+        Public Async Function TestInstanceIncrementOperatorsImplementation_01(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C : I&lt;C&gt; { public void operator [|<%= op %>|]() {} }
+interface I&lt;T&gt; { abstract void operator $$<%= op %>(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestInstanceIncrementOperatorsImplementation_01_Checked(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C : I&lt;C&gt; { public void operator checked [|<%= op %>|]() {} }
+interface I&lt;T&gt; { abstract void operator checked $$<%= op %>(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory(Skip:="Yes"), CombinatorialData>
+        Public Async Function TestInstanceCompoundAssignmentOperatorsImplementation_01(host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C : I&lt;C&gt; { public void operator [|<%= op %>|](int x) {} }
+interface I&lt;T&gt; { abstract void operator $$<%= op %>(int x); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
         Public Async Function TestUnsignedRightShiftImplementation_02(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -729,6 +871,51 @@ interface I&lt;T&gt; { static abstract T operator $$>>>(T x, int y); }
         <Document>
 class C : I&lt;C&gt; { static C I&lt;C&gt;.operator [|>>>|](C x, int y) { return x; } }
 interface I&lt;T&gt; { static abstract T operator $$>>>(T x, int y); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestInstanceIncrementOperatorsImplementation_02(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C : I&lt;C&gt; { void I&lt;C&gt;.operator [|<%= op %>|]() {} }
+interface I&lt;T&gt; { abstract void operator $$<%= op %>(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestInstanceIncrementOperatorsImplementation_02_Checked(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C : I&lt;C&gt; { void I&lt;C&gt;.operator checked [|<%= op %>|]() {} }
+interface I&lt;T&gt; { abstract void operator checked $$<%= op %>(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory(Skip:="Yes"), CombinatorialData>
+        Public Async Function TestInstanceCompoundAssignmentOperatorsImplementation_02(host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C : I&lt;C&gt; { void I&lt;C&gt;.operator [|<%= op %>|](int x) {} }
+interface I&lt;T&gt; { abstract void operator $$<%= op %>(int x); }
         </Document>
     </Project>
 </Workspace>
@@ -781,6 +968,196 @@ class C : I { public abstract void M() { } }
         </DocumentFromSourceGenerator>
         <Document>
 class D : C { public override void [|M|]() { } }}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/26167")>
+        Public Async Function FindLooseMatch1(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    public abstract void $$Foo() { }
+}
+
+class D : C
+{
+    public override void [|Foo|](int i)
+    {
+        base.Foo();
+    }
+}        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77916")>
+        Public Async Function TestPartialMethod(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                partial void M();
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                void Goo()
+                {
+                    var t = new Test();
+                    t.M$$();
+                }
+
+                partial void [|M|]()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77916")>
+        Public Async Function TestExtendedPartialMethod(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                public partial void M();
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                void Goo()
+                {
+                    var t = new Test();
+                    t.M$$();
+                }
+
+                public partial void [|M|]()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77916")>
+        Public Async Function TestPartialProperty(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                public partial int Prop { get; set; }
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                void Goo()
+                {
+                    var t = new Test();
+                    int i = t.Prop$$;
+                }
+
+                public partial void [|Prop|]
+                {
+                    get => throw new NotImplementedException();
+                    set => throw new NotImplementedException();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77916")>
+        Public Async Function TestPartialEvent(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                public partial event System.Action E;
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                void Goo()
+                {
+                    var t = new Test();
+                    int i = t.E$$;
+                }
+
+                public partial event System.Action [|E|]
+                {
+                    add { }
+                    remove { }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77916")>
+        Public Async Function TestPartialConstructor(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+            partial class Test
+            {
+                public partial Test();
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                void Goo()
+                {
+                    var t = new Te$$st();
+                }
+
+                public partial [|Test|]()
+                {
+                }
+            }
         </Document>
     </Project>
 </Workspace>

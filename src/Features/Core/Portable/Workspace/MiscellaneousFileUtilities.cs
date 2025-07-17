@@ -27,7 +27,11 @@ internal static class MiscellaneousFileUtilities
         var fileExtension = PathUtilities.GetExtension(filePath);
         var fileName = PathUtilities.GetFileName(filePath);
 
-        var languageServices = services.GetLanguageServices(languageInformation.LanguageName);
+        // For Razor files we need to override the language name to C# as thats what code is generated
+        var isRazor = languageInformation.LanguageName == "Razor";
+        var languageName = isRazor ? LanguageNames.CSharp : languageInformation.LanguageName;
+
+        var languageServices = services.GetLanguageServices(languageName);
         var compilationOptions = languageServices.GetService<ICompilationFactoryService>()?.GetDefaultCompilationOptions();
 
         // Use latest language version which is more permissive, as we cannot find out language version of the project which the file belongs to
@@ -40,6 +44,12 @@ internal static class MiscellaneousFileUtilities
         {
             parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
             compilationOptions = GetCompilationOptionsWithScriptReferenceResolvers(services, compilationOptions, filePath);
+        }
+
+        if (parseOptions != null && fileExtension != languageInformation.ScriptExtension)
+        {
+            // Any non-script misc file should not complain about usage of '#:' ignored directives.
+            parseOptions = parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "true")]);
         }
 
         var projectId = ProjectId.CreateNewId(debugName: $"{workspace.GetType().Name} Files Project for {filePath}");
@@ -63,7 +73,7 @@ internal static class MiscellaneousFileUtilities
                 version: VersionStamp.Create(),
                 name: FeaturesResources.Miscellaneous_Files,
                 assemblyName: assemblyName,
-                language: languageInformation.LanguageName,
+                language: languageName,
                 compilationOutputInfo: default,
                 checksumAlgorithm: checksumAlgorithm,
                 // Miscellaneous files projects are never fully loaded since, by definition, it won't know
@@ -71,7 +81,8 @@ internal static class MiscellaneousFileUtilities
                 hasAllInformation: sourceCodeKind == SourceCodeKind.Script),
             compilationOptions: compilationOptions,
             parseOptions: parseOptions,
-            documents: [documentInfo],
+            documents: isRazor ? null : [documentInfo],
+            additionalDocuments: isRazor ? [documentInfo] : null,
             metadataReferences: metadataReferences);
 
         return projectInfo;

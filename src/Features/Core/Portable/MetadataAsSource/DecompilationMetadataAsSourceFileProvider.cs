@@ -15,7 +15,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
@@ -171,34 +170,26 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
             var timeout = TimeSpan.FromSeconds(5);
             var firstAttempt = true;
             var skipWritingFile = false;
-            while (!Directory.Exists(directoryToCreate))
+
+            while (!IOUtilities.PerformIO(() => Directory.Exists(directoryToCreate)))
             {
-                if (stopwatch.Elapsed > TimeSpan.FromSeconds(5))
+                if (stopwatch.Elapsed > timeout)
                 {
                     // If we still can't create the folder after 5 seconds, assume we will not be able to create it.
                     skipWritingFile = true;
                     break;
                 }
 
-                try
+                if (firstAttempt)
                 {
-                    if (firstAttempt)
-                    {
-                        firstAttempt = false;
-                    }
-                    else
-                    {
-                        await Task.Delay(DelayTimeSpan.Short, cancellationToken).ConfigureAwait(false);
-                    }
+                    firstAttempt = false;
+                }
+                else
+                {
+                    await Task.Delay(DelayTimeSpan.Short, cancellationToken).ConfigureAwait(false);
+                }
 
-                    Directory.CreateDirectory(directoryToCreate);
-                }
-                catch (DirectoryNotFoundException)
-                {
-                }
-                catch (UnauthorizedAccessException)
-                {
-                }
+                IOUtilities.PerformIO(() => Directory.CreateDirectory(directoryToCreate));
             }
 
             if (!skipWritingFile)

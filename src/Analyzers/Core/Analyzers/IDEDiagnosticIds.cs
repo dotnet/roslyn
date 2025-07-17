@@ -63,7 +63,7 @@ internal static class IDEDiagnosticIds
 
     public const string UseLocalFunctionDiagnosticId = "IDE0039";
 
-    public const string AddAccessibilityModifiersDiagnosticId = "IDE0040";
+    public const string AddOrRemoveAccessibilityModifiersDiagnosticId = "IDE0040";
 
     public const string UseIsNullCheckDiagnosticId = "IDE0041";
 
@@ -153,6 +153,7 @@ internal static class IDEDiagnosticIds
     public const string RemoveUnnecessaryDiscardDesignationDiagnosticId = "IDE0110";
 
     public const string SimplifyLinqExpressionDiagnosticId = "IDE0120";
+    public const string SimplifyLinqTypeCheckAndCastDiagnosticId = "IDE0121";
 
     public const string MatchFolderAndNamespaceDiagnosticId = "IDE0130";
 
@@ -198,10 +199,15 @@ internal static class IDEDiagnosticIds
     public const string UseCollectionExpressionForCreateDiagnosticId = "IDE0303";
     public const string UseCollectionExpressionForBuilderDiagnosticId = "IDE0304";
     public const string UseCollectionExpressionForFluentDiagnosticId = "IDE0305";
+    public const string UseCollectionExpressionForNewDiagnosticId = "IDE0306";
 
     public const string MakeAnonymousFunctionStaticDiagnosticId = "IDE0320";
 
     public const string UseSystemThreadingLockDiagnosticId = "IDE0330";
+
+    public const string UseUnboundGenericTypeInNameOfDiagnosticId = "IDE0340";
+
+    public const string UseImplicitlyTypedLambdaExpressionDiagnosticId = "IDE0350";
 
     // Analyzer error Ids
     public const string AnalyzerChangedId = "IDE1001";
@@ -224,4 +230,7 @@ internal static class IDEDiagnosticIds
     public const string ConstructorInitializerPlacementDiagnosticId = "IDE2004";
     public const string ConditionalExpressionPlacementDiagnosticId = "IDE2005";
     public const string ArrowExpressionClausePlacementDiagnosticId = "IDE2006";
+
+    // 3000 range for copilot features.
+    public const string CopilotImplementNotImplementedExceptionDiagnosticId = "IDE3000";
 }

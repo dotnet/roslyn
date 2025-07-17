@@ -46,8 +46,8 @@ internal sealed class SimpleFileChangeWatcher : IFileChangeWatcher
                     var watcher = new FileSystemWatcher(watchedDirectory.Path);
                     watcher.IncludeSubdirectories = true;
 
-                    if (watchedDirectory.ExtensionFilter != null)
-                        watcher.Filter = '*' + watchedDirectory.ExtensionFilter;
+                    foreach (var filter in watchedDirectory.ExtensionFilters)
+                        watcher.Filters.Add('*' + filter);
 
                     watcher.Changed += RaiseEvent;
                     watcher.Created += RaiseEvent;
@@ -89,7 +89,7 @@ internal sealed class SimpleFileChangeWatcher : IFileChangeWatcher
                 directoryWatcher.Dispose();
         }
 
-        private class IndividualWatchedFile : IWatchedFile
+        private sealed class IndividualWatchedFile : IWatchedFile
         {
             private readonly FileChangeContext _context;
             private readonly FileSystemWatcher? _watcher;

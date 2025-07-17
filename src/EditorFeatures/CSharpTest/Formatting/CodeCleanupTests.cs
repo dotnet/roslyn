@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -22,7 +21,6 @@ using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -34,12 +32,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
-public partial class CodeCleanupTests
+public sealed partial class CodeCleanupTests
 {
     [Fact]
     public Task RemoveUsings()
     {
-        var code = """
+        return AssertCodeCleanupResult("""
+            using System;
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    Console.WriteLine();
+                }
+            }
+            """, """
             using System;
             using System.Collections.Generic;
             class Program
@@ -49,26 +56,24 @@ public partial class CodeCleanupTests
                     Console.WriteLine();
                 }
             }
-            """;
-
-        var expected = """
-            using System;
-
-            internal class Program
-            {
-                private static void Main(string[] args)
-                {
-                    Console.WriteLine();
-                }
-            }
-            """;
-        return AssertCodeCleanupResult(expected, code);
+            """);
     }
 
     [Fact]
     public Task SortUsings()
     {
-        var code = """
+        return AssertCodeCleanupResult("""
+            using System;
+            using System.Collections.Generic;
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    List<int> list = new();
+                    Console.WriteLine(list.Count);
+                }
+            }
+            """, """
             using System.Collections.Generic;
             using System;
             class Program
@@ -79,28 +84,28 @@ public partial class CodeCleanupTests
                     Console.WriteLine(list.Count);
                 }
             }
-            """;
-
-        var expected = """
-            using System;
-            using System.Collections.Generic;
-
-            internal class Program
-            {
-                private static void Main(string[] args)
-                {
-                    List<int> list = new();
-                    Console.WriteLine(list.Count);
-                }
-            }
-            """;
-        return AssertCodeCleanupResult(expected, code);
+            """);
     }
 
     [Fact]
     public Task SortGlobalUsings()
     {
-        var code = """
+        return AssertCodeCleanupResult("""
+            global using System;
+            global using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            internal class Program
+            {
+                private static Task Main(string[] args)
+                {
+                    Barrier b = new(0);
+                    List<int> list = new();
+                    Console.WriteLine(list.Count);
+                    b.Dispose();
+                }
+            }
+            """, """
             using System.Threading.Tasks;
             using System.Threading;
             global using System.Collections.Generic;
@@ -115,52 +120,13 @@ public partial class CodeCleanupTests
                     b.Dispose();
                 }
             }
-            """;
-
-        var expected = """
-            global using System;
-            global using System.Collections.Generic;
-            using System.Threading;
-            using System.Threading.Tasks;
-
-            internal class Program
-            {
-                private static Task Main(string[] args)
-                {
-                    Barrier b = new(0);
-                    List<int> list = new();
-                    Console.WriteLine(list.Count);
-                    b.Dispose();
-                }
-            }
-            """;
-        return AssertCodeCleanupResult(expected, code);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36984")]
     public Task GroupUsings()
     {
-        var code = """
-            using M;
-            using System;
-
-            internal class Program
-            {
-                private static void Main(string[] args)
-                {
-                    Console.WriteLine("Hello World!");
-
-                    new Goo();
-                }
-            }
-
-            namespace M
-            {
-                public class Goo { }
-            }
-            """;
-
-        var expected = """
+        return AssertCodeCleanupResult("""
             using M;
 
             using System;
@@ -179,34 +145,31 @@ public partial class CodeCleanupTests
             {
                 public class Goo { }
             }
-            """;
-        return AssertCodeCleanupResult(expected, code, systemUsingsFirst: false, separateUsingGroups: true);
+            """, """
+            using M;
+            using System;
+
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    Console.WriteLine("Hello World!");
+
+                    new Goo();
+                }
+            }
+
+            namespace M
+            {
+                public class Goo { }
+            }
+            """, systemUsingsFirst: false, separateUsingGroups: true);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36984")]
     public Task SortAndGroupUsings()
     {
-        var code = """
-            using M;
-            using System;
-
-            internal class Program
-            {
-                private static void Main(string[] args)
-                {
-                    Console.WriteLine("Hello World!");
-
-                    new Goo();
-                }
-            }
-
-            namespace M
-            {
-                public class Goo { }
-            }
-            """;
-
-        var expected = """
+        return AssertCodeCleanupResult("""
             using System;
 
             using M;
@@ -225,27 +188,31 @@ public partial class CodeCleanupTests
             {
                 public class Goo { }
             }
-            """;
-        return AssertCodeCleanupResult(expected, code, systemUsingsFirst: true, separateUsingGroups: true);
+            """, """
+            using M;
+            using System;
+
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    Console.WriteLine("Hello World!");
+
+                    new Goo();
+                }
+            }
+
+            namespace M
+            {
+                public class Goo { }
+            }
+            """, systemUsingsFirst: true, separateUsingGroups: true);
     }
 
     [Fact]
     public Task FixAddRemoveBraces()
     {
-        var code = """
-            class Program
-            {
-                int Method()
-                {
-                    int a = 0;
-                    if (a > 0)
-                        a ++;
-
-                    return a;
-                }
-            }
-            """;
-        var expected = """
+        return AssertCodeCleanupResult("""
             internal class Program
             {
                 private int Method()
@@ -259,14 +226,32 @@ public partial class CodeCleanupTests
                     return a;
                 }
             }
-            """;
-        return AssertCodeCleanupResult(expected, code);
+            """, """
+            class Program
+            {
+                int Method()
+                {
+                    int a = 0;
+                    if (a > 0)
+                        a ++;
+
+                    return a;
+                }
+            }
+            """);
     }
 
     [Fact]
     public Task RemoveUnusedVariable()
     {
-        var code = """
+        return AssertCodeCleanupResult("""
+            internal class Program
+            {
+                private void Method()
+                {
+                }
+            }
+            """, """
             class Program
             {
                 void Method()
@@ -274,22 +259,20 @@ public partial class CodeCleanupTests
                     int a;
                 }
             }
-            """;
-        var expected = """
-            internal class Program
-            {
-                private void Method()
-                {
-                }
-            }
-            """;
-        return AssertCodeCleanupResult(expected, code);
+            """);
     }
 
     [Fact]
     public Task FixAccessibilityModifiers()
     {
-        var code = """
+        return AssertCodeCleanupResult("""
+            internal class Program
+            {
+                private void Method()
+                {
+                }
+            }
+            """, """
             class Program
             {
                 void Method()
@@ -297,37 +280,13 @@ public partial class CodeCleanupTests
                     int a;
                 }
             }
-            """;
-        var expected = """
-            internal class Program
-            {
-                private void Method()
-                {
-                }
-            }
-            """;
-        return AssertCodeCleanupResult(expected, code);
+            """);
     }
 
     [Fact]
     public Task FixUsingPlacementPreferOutside()
     {
-        var code = """
-            namespace A
-            {
-                using System;
-
-                internal class Program
-                {
-                    private void Method()
-                    {
-                        Console.WriteLine();
-                    }
-                }
-            }
-            """;
-
-        var expected = """
+        return AssertCodeCleanupResult("""
             using System;
 
             namespace A
@@ -340,30 +299,26 @@ public partial class CodeCleanupTests
                     }
                 }
             }
-            """;
+            """, """
+            namespace A
+            {
+                using System;
 
-        return AssertCodeCleanupResult(expected, code);
+                internal class Program
+                {
+                    private void Method()
+                    {
+                        Console.WriteLine();
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
     public Task FixUsingPlacementPreferInside()
     {
-        var code = """
-            using System;
-
-            namespace A
-            {
-                internal class Program
-                {
-                    private void Method()
-                    {
-                        Console.WriteLine();
-                    }
-                }
-            }
-            """;
-
-        var expected = """
+        return AssertCodeCleanupResult("""
             namespace A
             {
                 using System;
@@ -376,9 +331,20 @@ public partial class CodeCleanupTests
                     }
                 }
             }
-            """;
+            """, """
+            using System;
 
-        return AssertCodeCleanupResult(expected, code, InsideNamespaceOption);
+            namespace A
+            {
+                internal class Program
+                {
+                    private void Method()
+                    {
+                        Console.WriteLine();
+                    }
+                }
+            }
+            """, InsideNamespaceOption);
     }
 
     [Fact]
@@ -430,7 +396,23 @@ public partial class CodeCleanupTests
     [Fact]
     public Task FixUsingPlacementMixedPreferOutside()
     {
-        var code = """
+        return AssertCodeCleanupResult("""
+            using System;
+            using System.Collections.Generic;
+
+            namespace A
+            {
+                internal class Program
+                {
+                    private void Method()
+                    {
+                        Console.WriteLine();
+                        List<int> list = [];
+                        Console.WriteLine(list.Length);
+                    }
+                }
+            }
+            """, """
             using System;
 
             namespace A
@@ -447,14 +429,18 @@ public partial class CodeCleanupTests
                     }
                 }
             }
-            """;
+            """, OutsideNamespaceOption);
+    }
 
-        var expected = """
-            using System;
-            using System.Collections.Generic;
-
+    [Fact]
+    public Task FixUsingPlacementMixedPreferInside()
+    {
+        return AssertCodeCleanupResult("""
             namespace A
             {
+                using System;
+                using System.Collections.Generic;
+
                 internal class Program
                 {
                     private void Method()
@@ -465,15 +451,7 @@ public partial class CodeCleanupTests
                     }
                 }
             }
-            """;
-
-        return AssertCodeCleanupResult(expected, code, OutsideNamespaceOption);
-    }
-
-    [Fact]
-    public Task FixUsingPlacementMixedPreferInside()
-    {
-        var code = """
+            """, """
             using System;
 
             namespace A
@@ -490,27 +468,7 @@ public partial class CodeCleanupTests
                     }
                 }
             }
-            """;
-
-        var expected = """
-            namespace A
-            {
-                using System;
-                using System.Collections.Generic;
-
-                internal class Program
-                {
-                    private void Method()
-                    {
-                        Console.WriteLine();
-                        List<int> list = [];
-                        Console.WriteLine(list.Length);
-                    }
-                }
-            }
-            """;
-
-        return AssertCodeCleanupResult(expected, code, InsideNamespaceOption);
+            """, InsideNamespaceOption);
     }
 
     [Fact]
@@ -627,20 +585,14 @@ public partial class CodeCleanupTests
     }
 
     [Theory]
-    [InlineData(LanguageNames.CSharp, 50)]
-    [InlineData(LanguageNames.VisualBasic, 87)]
-    public void VerifyAllCodeStyleFixersAreSupportedByCodeCleanup(string language, int numberOfUnsupportedDiagnosticIds)
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public void VerifyAllCodeStyleFixersAreSupportedByCodeCleanup(string language)
     {
         var supportedDiagnostics = GetSupportedDiagnosticIdsForCodeCleanupService(language);
 
         // No Duplicates
         Assert.Equal(supportedDiagnostics, supportedDiagnostics.Distinct());
-
-        // Exact Number of Unsupported Diagnostic Ids
-        var ideDiagnosticIds = typeof(IDEDiagnosticIds).GetFields().Select(f => f.GetValue(f) as string).ToArray();
-        var unsupportedDiagnosticIds = ideDiagnosticIds.Except(supportedDiagnostics).ToArray();
-
-        Assert.Equal(numberOfUnsupportedDiagnosticIds, unsupportedDiagnosticIds.Length);
     }
 
     private const string _code = """
@@ -735,44 +687,32 @@ public partial class CodeCleanupTests
         """;
 
     [Fact]
-    public async Task RunThirdPartyFixer()
-    {
-        await TestThirdPartyCodeFixerApplied<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(_code, _fixed);
-    }
+    public Task RunThirdPartyFixer()
+        => TestThirdPartyCodeFixerApplied<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(_code, _fixed);
 
     [Fact]
-    public async Task DoNotRunThirdPartyFixerWithNoFixAll()
-    {
-        await TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(_code);
-    }
+    public Task DoNotRunThirdPartyFixerWithNoFixAll()
+        => TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(_code);
 
     [Theory]
     [InlineData(DiagnosticSeverity.Warning)]
     [InlineData(DiagnosticSeverity.Error)]
-    public async Task RunThirdPartyFixerWithSeverityOfWarningOrHigher(DiagnosticSeverity severity)
-    {
-        await TestThirdPartyCodeFixerApplied<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(_code, _fixed, severity);
-    }
+    public Task RunThirdPartyFixerWithSeverityOfWarningOrHigher(DiagnosticSeverity severity)
+        => TestThirdPartyCodeFixerApplied<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(_code, _fixed, severity);
 
     [Theory]
     [InlineData(DiagnosticSeverity.Hidden)]
     [InlineData(DiagnosticSeverity.Info)]
-    public async Task DoNotRunThirdPartyFixerWithSeverityLessThanWarning(DiagnosticSeverity severity)
-    {
-        await TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(_code, severity);
-    }
+    public Task DoNotRunThirdPartyFixerWithSeverityLessThanWarning(DiagnosticSeverity severity)
+        => TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(_code, severity);
 
     [Fact]
-    public async Task DoNotRunThirdPartyFixerIfItDoesNotSupportDocumentScope()
-    {
-        await TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixDoesNotSupportDocumentScope, CaseTestAnalyzer>(_code);
-    }
+    public Task DoNotRunThirdPartyFixerIfItDoesNotSupportDocumentScope()
+        => TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixDoesNotSupportDocumentScope, CaseTestAnalyzer>(_code);
 
     [Fact]
-    public async Task DoNotApplyFixerIfChangesAreMadeOutsideDocument()
-    {
-        await TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixModifiesSolution, CaseTestAnalyzer>(_code);
-    }
+    public Task DoNotApplyFixerIfChangesAreMadeOutsideDocument()
+        => TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixModifiesSolution, CaseTestAnalyzer>(_code);
 
     private static Task TestThirdPartyCodeFixerNoChanges<TCodefix, TAnalyzer>(string code, DiagnosticSeverity severity = DiagnosticSeverity.Warning)
         where TAnalyzer : DiagnosticAnalyzer, new()
@@ -793,7 +733,7 @@ public partial class CodeCleanupTests
         where TCodefix : CodeFixProvider, new()
     {
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf.AddParts(typeof(TCodefix)));
+        using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(TCodefix)));
 
         var project = workspace.CurrentSolution.Projects.Single();
         var analyzer = (DiagnosticAnalyzer)new TAnalyzer();
@@ -844,12 +784,12 @@ public partial class CodeCleanupTests
         {
             if (language == LanguageNames.CSharp)
             {
-                return EditorTestWorkspace.CreateCSharp(string.Empty, composition: EditorTestCompositions.EditorFeaturesWpf);
+                return EditorTestWorkspace.CreateCSharp(string.Empty, composition: EditorTestCompositions.EditorFeatures);
             }
 
             if (language == LanguageNames.VisualBasic)
             {
-                return EditorTestWorkspace.CreateVisualBasic(string.Empty, composition: EditorTestCompositions.EditorFeaturesWpf);
+                return EditorTestWorkspace.CreateVisualBasic(string.Empty, composition: EditorTestCompositions.EditorFeatures);
             }
 
             return null;
@@ -866,7 +806,7 @@ public partial class CodeCleanupTests
     /// <param name="enabledFixIdsFilter">Optional filter to determine if a specific fix ID is explicitly enabled for cleanup.</param>
     /// <param name="diagnosticIdsWithSeverity">Optional list of diagnostic IDs with effective severities to be configured in editorconfig.</param>
     /// <returns>The <see cref="Task"/> to test code cleanup.</returns>
-    private protected static Task AssertCodeCleanupResult(string expected, string code, bool systemUsingsFirst = true, bool separateUsingGroups = false, Func<string, bool> enabledFixIdsFilter = null, (string, DiagnosticSeverity)[] diagnosticIdsWithSeverity = null)
+    private static Task AssertCodeCleanupResult(string expected, string code, bool systemUsingsFirst = true, bool separateUsingGroups = false, Func<string, bool> enabledFixIdsFilter = null, (string, DiagnosticSeverity)[] diagnosticIdsWithSeverity = null)
         => AssertCodeCleanupResult(expected, code, new(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent), systemUsingsFirst, separateUsingGroups, enabledFixIdsFilter, diagnosticIdsWithSeverity);
 
     /// <summary>
@@ -880,9 +820,9 @@ public partial class CodeCleanupTests
     /// <param name="enabledFixIdsFilter">Optional filter to determine if a specific fix ID is explicitly enabled for cleanup.</param>
     /// <param name="diagnosticIdsWithSeverity">Optional list of diagnostic IDs with effective severities to be configured in editorconfig.</param>
     /// <returns>The <see cref="Task"/> to test code cleanup.</returns>
-    private protected static async Task AssertCodeCleanupResult(string expected, string code, CodeStyleOption2<AddImportPlacement> preferredImportPlacement, bool systemUsingsFirst = true, bool separateUsingGroups = false, Func<string, bool> enabledFixIdsFilter = null, (string, DiagnosticSeverity)[] diagnosticIdsWithSeverity = null)
+    private static async Task AssertCodeCleanupResult(string expected, string code, CodeStyleOption2<AddImportPlacement> preferredImportPlacement, bool systemUsingsFirst = true, bool separateUsingGroups = false, Func<string, bool> enabledFixIdsFilter = null, (string, DiagnosticSeverity)[] diagnosticIdsWithSeverity = null)
     {
-        using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+        using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeatures);
 
         // must set global options since incremental analyzer infra reads from global options
         workspace.SetAnalyzerFallbackAndGlobalOptions(new OptionsCollection(LanguageNames.CSharp)

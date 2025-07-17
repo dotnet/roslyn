@@ -20,18 +20,43 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
 
+internal enum CodeActionCleanup
+{
+    /// <summary>
+    /// No automatic cleanup will be performed on the solution after the code action is applied.
+    /// </summary>
+    None,
+
+    /// <summary>
+    /// Automatic syntax cleanup will be performed on the solution after the code action is applied.
+    /// </summary>
+    SyntaxOnly,
+
+    /// <summary>
+    /// Automatic syntax and semantics cleanup will be performed on the solution after the code action is applied.
+    /// </summary>
+    SyntaxAndSemantics,
+
+    Default = SyntaxAndSemantics,
+}
+
 public abstract partial class CodeAction
 {
+    private static readonly Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>> s_cleanupSyntaxPass =
+        static (document, options, cancellationToken) => CleanupSyntaxAsync(document, options, cancellationToken);
+
+    private static readonly ImmutableArray<Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>>> s_cleanupSyntaxPasses = [s_cleanupSyntaxPass];
+
     /// <summary>
     /// We do cleanup in N serialized passes.  This allows us to process all documents in parallel, while only forking
     /// the solution N times *total* (instead of N times *per* document).
     /// </summary>
-    private static readonly ImmutableArray<Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>>> s_cleanupPasses =
+    private static readonly ImmutableArray<Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>>> s_allCleanupPasses =
     [
         // First, ensure that everything is formatted as the feature asked for.  We want to do this prior to doing
         // semantic cleanup as the semantic cleanup passes may end up making changes that end up dropping some of
         // the formatting/elastic annotations that the feature wanted respected.
-        static (document, options, cancellationToken) => CleanupSyntaxAsync(document, options, cancellationToken),
+        s_cleanupSyntaxPass,
         // Then add all missing imports to all changed documents.
         static (document, options, cancellationToken) => ImportAdder.AddImportsFromSymbolAnnotationAsync(document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken),
         // Then simplify any expanded constructs.
@@ -41,10 +66,10 @@ public abstract partial class CodeAction
         // Finally, after doing the semantic cleanup, do another syntax cleanup pass to ensure that the tree is in a
         // good state. The semantic cleanup passes may have introduced new nodes with elastic trivia that have to be
         // cleaned.
-        static (document, options, cancellationToken) => CleanupSyntaxAsync(document, options, cancellationToken),
+        s_cleanupSyntaxPass,
     ];
 
-    private static async Task<Document> CleanupSyntaxAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
+    internal static async Task<Document> CleanupSyntaxAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(document.SupportsSyntaxTree);
 
@@ -65,22 +90,46 @@ public abstract partial class CodeAction
             .GetProjectChanges()
             .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Concat(p.GetAddedDocuments()))
             .Concat(solutionChanges.GetAddedProjects().SelectMany(p => p.DocumentIds))
-            .ToImmutableArray();
-        return documentIds;
+            .Concat(solutionChanges.GetExplicitlyChangedSourceGeneratedDocuments());
+
+        return [.. documentIds];
     }
 
-    internal static async Task<Solution> CleanSyntaxAndSemanticsAsync(
+    internal static async Task<Solution> PostProcessChangesAsync(
+        Solution? originalSolution,
+        Solution changedSolution,
+        IProgress<CodeAnalysisProgress> progress,
+        CodeActionCleanup cleanup,
+        CancellationToken cancellationToken)
+    {
+        if (cleanup is CodeActionCleanup.None)
+            return changedSolution;
+
+        // originalSolution is only null on backward compatible codepaths.  In that case, we get the workspace's
+        // current solution.  This is not ideal (as that is a mutable field that could be changing out from
+        // underneath us).  But it's the only option we have for the compat case with existing public extension
+        // points.
+        originalSolution ??= changedSolution.Workspace.CurrentSolution;
+
+        return await CleanSyntaxAndSemanticsAsync(
+            originalSolution, changedSolution, progress,
+            cleanup is CodeActionCleanup.SyntaxOnly ? s_cleanupSyntaxPasses : s_allCleanupPasses,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<Solution> CleanSyntaxAndSemanticsAsync(
         Solution originalSolution,
         Solution changedSolution,
         IProgress<CodeAnalysisProgress> progress,
+        ImmutableArray<Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>>> passes,
         CancellationToken cancellationToken)
     {
         var documentIds = GetAllChangedOrAddedDocumentIds(originalSolution, changedSolution);
         var documentIdsAndOptionsToClean = await GetDocumentIdsAndOptionsToCleanAsync().ConfigureAwait(false);
 
         // Then do a pass where we cleanup semantics.
-        var cleanedSolution = await RunAllCleanupPassesInOrderAsync(
-            changedSolution, documentIdsAndOptionsToClean, progress, cancellationToken).ConfigureAwait(false);
+        var cleanedSolution = await RunCleanupPassesInOrderAsync(
+            changedSolution, documentIdsAndOptionsToClean, progress, passes, cancellationToken).ConfigureAwait(false);
 
         return cleanedSolution;
 
@@ -89,7 +138,10 @@ public abstract partial class CodeAction
             using var _ = ArrayBuilder<(DocumentId documentId, CodeCleanupOptions options)>.GetInstance(documentIds.Length, out var documentIdsAndOptions);
             foreach (var documentId in documentIds)
             {
-                var document = changedSolution.GetRequiredDocument(documentId);
+                // We include source generated documents here for Razor, which uses them. In that scenario the cleaned document is compared to the
+                // original to create a set of changes for the LSP client, and part of that will include mapping the changes back to the Razor document,
+                // so whilst it would seem like cleaning source generated documents is a waste of time, it's sometimes not.
+                var document = await changedSolution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
                 // Only care about documents that support syntax.  Non-C#/VB files can't be cleaned.
                 if (document.SupportsSyntaxTree)
@@ -108,26 +160,28 @@ public abstract partial class CodeAction
         if (!document.SupportsSyntaxTree)
             return document;
 
-        var cleanedSolution = await RunAllCleanupPassesInOrderAsync(
+        var cleanedSolution = await RunCleanupPassesInOrderAsync(
             document.Project.Solution,
             [(document.Id, options)],
             CodeAnalysisProgress.None,
+            s_allCleanupPasses,
             cancellationToken).ConfigureAwait(false);
 
-        return cleanedSolution.GetRequiredDocument(document.Id);
+        return await cleanedSolution.GetRequiredDocumentAsync(document.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<Solution> RunAllCleanupPassesInOrderAsync(
+    private static async Task<Solution> RunCleanupPassesInOrderAsync(
         Solution solution,
         ImmutableArray<(DocumentId documentId, CodeCleanupOptions options)> documentIdsAndOptions,
         IProgress<CodeAnalysisProgress> progress,
+        ImmutableArray<Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>>> passes,
         CancellationToken cancellationToken)
     {
         // One item per document per cleanup pass.
-        progress.AddItems(documentIdsAndOptions.Length * s_cleanupPasses.Length);
+        progress.AddItems(documentIdsAndOptions.Length * passes.Length);
 
         var currentSolution = solution;
-        foreach (var cleanupPass in s_cleanupPasses)
+        foreach (var cleanupPass in passes)
             currentSolution = await RunParallelCleanupPassAsync(currentSolution, cleanupPass).ConfigureAwait(false);
 
         return currentSolution;
@@ -152,7 +206,7 @@ public abstract partial class CodeAction
                     var (documentId, options) = documentIdAndOptions;
 
                     // Fetch the current state of the document from this fork of the solution.
-                    var document = solution.GetRequiredDocument(documentId);
+                    var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfFalse(document.SupportsSyntaxTree, "GetDocumentIdsAndOptionsAsync should only be returning documents that support syntax");
 
                     // Now, perform the requested cleanup pass on it.

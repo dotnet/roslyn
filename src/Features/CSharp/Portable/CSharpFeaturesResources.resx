@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Conflict_s_detected" xml:space="preserve">
-    <value>Conflict(s) detected.</value>
-  </data>
   <data name="Invert_if" xml:space="preserve">
     <value>Invert if</value>
   </data>
@@ -151,20 +148,8 @@
   <data name="Autoselect_disabled_due_to_potential_range_variable_declaration" xml:space="preserve">
     <value>Autoselect disabled due to potential range variable declaration.</value>
   </data>
-  <data name="Simplify_name_0" xml:space="preserve">
-    <value>Simplify name '{0}'</value>
-  </data>
-  <data name="Simplify_member_access_0" xml:space="preserve">
-    <value>Simplify member access '{0}'</value>
-  </data>
   <data name="Remove_this_qualification" xml:space="preserve">
     <value>Remove 'this' qualification</value>
-  </data>
-  <data name="Cannot_determine_valid_range_of_statements_to_extract" xml:space="preserve">
-    <value>Cannot determine valid range of statements to extract</value>
-  </data>
-  <data name="Not_all_code_paths_return" xml:space="preserve">
-    <value>Not all code paths return</value>
   </data>
   <data name="Selection_does_not_contain_a_valid_node" xml:space="preserve">
     <value>Selection does not contain a valid node</value>
@@ -192,9 +177,6 @@
   </data>
   <data name="The_selected_code_is_inside_an_unsafe_context" xml:space="preserve">
     <value>The selected code is inside an unsafe context.</value>
-  </data>
-  <data name="No_valid_statement_range_to_extract" xml:space="preserve">
-    <value>No valid statement range to extract</value>
   </data>
   <data name="deprecated" xml:space="preserve">
     <value>deprecated</value>
@@ -324,9 +306,6 @@
   <data name="tuple" xml:space="preserve">
     <value>tuple</value>
   </data>
-  <data name="local_function" xml:space="preserve">
-    <value>local function</value>
-  </data>
   <data name="out_var" xml:space="preserve">
     <value>out variable</value>
     <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
@@ -350,10 +329,6 @@
   </data>
   <data name="using_directive" xml:space="preserve">
     <value>using directive</value>
-  </data>
-  <data name="struct_" xml:space="preserve">
-    <value>struct</value>
-    <comment>{Locked}</comment>
   </data>
   <data name="event_field" xml:space="preserve">
     <value>event field</value>
@@ -385,26 +360,14 @@
   <data name="The_name_0_does_not_exist_in_the_current_context" xml:space="preserve">
     <value>The name '{0}' does not exist in the current context.</value>
   </data>
-  <data name="Properties" xml:space="preserve">
-    <value>Properties</value>
-  </data>
   <data name="Autoselect_disabled_due_to_namespace_declaration" xml:space="preserve">
     <value>Autoselect disabled due to namespace declaration.</value>
-  </data>
-  <data name="namespace_name" xml:space="preserve">
-    <value>&lt;namespace name&gt;</value>
   </data>
   <data name="Autoselect_disabled_due_to_type_declaration" xml:space="preserve">
     <value>Autoselect disabled due to type declaration.</value>
   </data>
   <data name="Autoselect_disabled_due_to_possible_deconstruction_declaration" xml:space="preserve">
     <value>Autoselect disabled due to possible deconstruction declaration.</value>
-  </data>
-  <data name="class_name" xml:space="preserve">
-    <value>&lt;class name&gt;</value>
-  </data>
-  <data name="interface_name" xml:space="preserve">
-    <value>&lt;interface name&gt;</value>
   </data>
   <data name="designation_name" xml:space="preserve">
     <value>&lt;designation name&gt;</value>
@@ -564,10 +527,6 @@
   <data name="Apply_var_preferences" xml:space="preserve">
     <value>Apply 'var' preferences</value>
   </data>
-  <data name="Add_await" xml:space="preserve">
-    <value>Add 'await'</value>
-    <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
-  </data>
   <data name="Global_using_directives" xml:space="preserve">
     <value>Global 'using' directives</value>
   </data>
@@ -621,5 +580,11 @@
   </data>
   <data name="required_property" xml:space="preserve">
     <value>required property</value>
+  </data>
+  <data name="Convert_0_extension_methods_to_extension" xml:space="preserve">
+    <value>Convert '{0}' extension methods to extension</value>
+  </data>
+  <data name="Convert_all_extension_methods_in_0_to_extension" xml:space="preserve">
+    <value>Convert all extension methods in '{0}' to extension</value>
   </data>
 </root>

@@ -10,7 +10,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-internal class RequestContextFactory : AbstractRequestContextFactory<RequestContext>, ILspService
+internal sealed class RequestContextFactory : AbstractRequestContextFactory<RequestContext>, ILspService
 {
     private readonly ILspServices _lspServices;
 
@@ -41,12 +41,12 @@ internal class RequestContextFactory : AbstractRequestContextFactory<RequestCont
         {
             textDocumentIdentifier = nullHandler.GetTextDocumentIdentifier(requestParam);
         }
-        else if (textDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestParam, Uri> uHandler)
+        else if (textDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestParam, TextDocumentItem> uHandler)
         {
-            var uri = uHandler.GetTextDocumentIdentifier(requestParam);
+            var textDocumentItem = uHandler.GetTextDocumentIdentifier(requestParam);
             textDocumentIdentifier = new TextDocumentIdentifier
             {
-                Uri = uri,
+                DocumentUri = textDocumentItem.DocumentUri,
             };
         }
         else if (textDocumentIdentifierHandler is null)

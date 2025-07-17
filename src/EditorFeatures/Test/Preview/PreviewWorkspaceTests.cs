@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview;
 
 [UseExportProvider]
 [Trait(Traits.Editor, Traits.Editors.Preview), Trait(Traits.Feature, Traits.Features.Tagging)]
-public class PreviewWorkspaceTests
+public sealed class PreviewWorkspaceTests
 {
     [Fact]
     public void TestPreviewCreationDefault()
@@ -162,7 +162,7 @@ public class PreviewWorkspaceTests
 
     private static void ExecuteAnalyzers(PreviewWorkspace previewWorkspace, ImmutableArray<DiagnosticAnalyzer> analyzers)
     {
-        var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty);
+        var analyzerOptions = new AnalyzerOptions(additionalFiles: []);
         var project = previewWorkspace.CurrentSolution.Projects.Single();
         var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(analyzerOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false);
         var compilation = project.GetRequiredCompilationAsync(CancellationToken.None).Result;

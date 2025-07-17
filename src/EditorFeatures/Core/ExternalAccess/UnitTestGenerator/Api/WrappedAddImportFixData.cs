@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTestGenerator.Api;
 
@@ -24,39 +23,39 @@ internal sealed class WrappedAddImportFixData
 
     public ImmutableArray<TextChange> TextChanges => Underlying.TextChanges;
 
-    public string Title => Underlying.Title;
+    public string? Title => Underlying.Title;
 
     public ImmutableArray<string> Tags => Underlying.Tags;
 
     #region When adding P2P references.
 
-    public ProjectId ProjectReferenceToAdd => Underlying.ProjectReferenceToAdd;
+    public ProjectId? ProjectReferenceToAdd => Underlying.ProjectReferenceToAdd;
 
     #endregion
 
     #region When adding a metadata reference
 
-    public ProjectId PortableExecutableReferenceProjectId => Underlying.PortableExecutableReferenceProjectId;
+    public ProjectId? PortableExecutableReferenceProjectId => Underlying.PortableExecutableReferenceProjectId;
 
-    public string PortableExecutableReferenceFilePathToAdd => Underlying.PortableExecutableReferenceFilePathToAdd;
+    public string? PortableExecutableReferenceFilePathToAdd => Underlying.PortableExecutableReferenceFilePathToAdd;
 
     #endregion
 
     #region When adding an assembly reference
 
-    public string AssemblyReferenceAssemblyName => Underlying.AssemblyReferenceAssemblyName;
+    public string? AssemblyReferenceAssemblyName => Underlying.AssemblyReferenceAssemblyName;
 
-    public string AssemblyReferenceFullyQualifiedTypeName => Underlying.AssemblyReferenceFullyQualifiedTypeName;
+    public string? AssemblyReferenceFullyQualifiedTypeName => Underlying.AssemblyReferenceFullyQualifiedTypeName;
 
     #endregion
 
     #region When adding a package reference
 
-    public string PackageSource => Underlying.PackageSource;
+    public string? PackageSource => Underlying.PackageSource;
 
-    public string PackageName => Underlying.PackageName;
+    public string? PackageName => Underlying.PackageName;
 
-    public string PackageVersionOpt => Underlying.PackageVersionOpt;
+    public string? PackageVersionOpt => Underlying.PackageVersionOpt;
 
     #endregion
 

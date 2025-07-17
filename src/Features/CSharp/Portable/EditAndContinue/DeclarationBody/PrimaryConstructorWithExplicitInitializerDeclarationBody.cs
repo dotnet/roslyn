@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -32,8 +33,11 @@ internal sealed class PrimaryConstructorWithExplicitInitializerDeclarationBody(T
     public override SyntaxNode? MatchRoot
         => Initializer;
 
-    public override IEnumerable<SyntaxToken>? GetActiveTokens()
-        => BreakpointSpans.GetActiveTokensForExplicitPrimaryConstructorInitializer(Initializer);
+    public override IEnumerable<SyntaxToken>? GetActiveTokens(Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
+        => BreakpointSpans.GetActiveTokensForExplicitPrimaryConstructorInitializer(Initializer, getDescendantTokens);
+
+    public override IEnumerable<SyntaxToken> GetUserCodeTokens(Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
+        => getDescendantTokens(Initializer);
 
     public sealed override SyntaxNode EncompassingAncestor
         => Initializer;

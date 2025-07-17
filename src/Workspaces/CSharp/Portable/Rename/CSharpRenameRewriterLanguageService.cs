@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -30,13 +31,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Rename;
 
 [ExportLanguageService(typeof(IRenameRewriterLanguageService), LanguageNames.CSharp), Shared]
-internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLanguageService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewriterLanguageService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpRenameConflictLanguageService()
-    {
-    }
     #region "Annotation"
 
     public override SyntaxNode AnnotateAndRename(RenameRewriterParameters parameters)
@@ -45,7 +43,7 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
         return renameAnnotationRewriter.Visit(parameters.SyntaxRoot)!;
     }
 
-    private class RenameRewriter : CSharpSyntaxRewriter
+    private sealed class RenameRewriter : CSharpSyntaxRewriter
     {
         private readonly DocumentId _documentId;
         private readonly RenameAnnotation _renameRenamableSymbolDeclaration;
@@ -241,8 +239,7 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
 
             if (tokenNeedsConflictCheck)
             {
-                newToken = RenameAndAnnotateAsync(token, newToken, isRenameLocation, isOldText).WaitAndGetResult_CanCallOnBackground(_cancellationToken);
-
+                newToken = RenameAndAnnotate(token, newToken, isRenameLocation, isOldText);
                 if (!_isProcessingComplexifiedSpans)
                 {
                     _invocationExpressionsNeedingConflictChecks.AddRange(token.GetAncestors<InvocationExpressionSyntax>());
@@ -322,7 +319,7 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
             return newNode;
         }
 
-        private async Task<SyntaxToken> RenameAndAnnotateAsync(SyntaxToken token, SyntaxToken newToken, bool isRenameLocation, bool isOldText)
+        private SyntaxToken RenameAndAnnotate(SyntaxToken token, SyntaxToken newToken, bool isRenameLocation, bool isOldText)
         {
             try
             {
@@ -362,7 +359,9 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
                         symbol = symbol.ContainingSymbol;
                     }
 
-                    var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(symbol, _solution, _cancellationToken).ConfigureAwait(false);
+                    // We cannot make this containing method async since it's being used in a rewriter. FindSourceDefinitionAsync will only yield in cross-language cases
+                    // when the compilation is not already available, so this is expected to not really cause any significant blocking.
+                    var sourceDefinition = SymbolFinder.FindSourceDefinitionAsync(symbol, _solution, _cancellationToken).WaitAndGetResult_CanCallOnBackground(_cancellationToken);
                     symbol = sourceDefinition ?? symbol;
 
                     if (symbol is INamedTypeSymbol namedTypeSymbol)
@@ -392,8 +391,8 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
                     AddModifiedSpan(oldSpan, newToken.Span);
                 }
 
-                var renameDeclarationLocations = await
-                    ConflictResolver.CreateDeclarationLocationAnnotationsAsync(_solution, symbols, _cancellationToken).ConfigureAwait(false);
+                var renameDeclarationLocations = ConflictResolver.CreateDeclarationLocationAnnotations(
+                    _solution, symbols, _cancellationToken);
 
                 var isNamespaceDeclarationReference = false;
                 if (isRenameLocation && token.GetPreviousToken().IsKind(SyntaxKind.NamespaceKeyword))
@@ -403,17 +402,16 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
 
                 var isMemberGroupReference = _semanticFactsService.IsInsideNameOfExpression(_semanticModel, token.Parent, _cancellationToken);
 
-                var renameAnnotation =
-                        new RenameActionAnnotation(
-                            token.Span,
-                            isRenameLocation,
-                            prefix,
-                            suffix,
-                            renameDeclarationLocations: renameDeclarationLocations,
-                            isOriginalTextLocation: isOldText,
-                            isNamespaceDeclarationReference: isNamespaceDeclarationReference,
-                            isInvocationExpression: false,
-                            isMemberGroupReference: isMemberGroupReference);
+                var renameAnnotation = new RenameActionAnnotation(
+                    token.Span,
+                    isRenameLocation,
+                    prefix,
+                    suffix,
+                    renameDeclarationLocations: renameDeclarationLocations,
+                    isOriginalTextLocation: isOldText,
+                    isNamespaceDeclarationReference: isNamespaceDeclarationReference,
+                    isInvocationExpression: false,
+                    isMemberGroupReference: isMemberGroupReference);
 
                 newToken = _renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = token.Span });
 
@@ -478,23 +476,19 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
                     symbols = [symbolInfo.Symbol];
                 }
 
-                var renameDeclarationLocations =
-                    ConflictResolver.CreateDeclarationLocationAnnotationsAsync(
-                        _solution,
-                        symbols,
-                        _cancellationToken)
-                            .WaitAndGetResult_CanCallOnBackground(_cancellationToken);
+                var renameDeclarationLocations = ConflictResolver.CreateDeclarationLocationAnnotations(
+                    _solution, symbols, _cancellationToken);
 
                 var renameAnnotation = new RenameActionAnnotation(
-                                            identifierToken.Span,
-                                            isRenameLocation: false,
-                                            prefix: null,
-                                            suffix: null,
-                                            renameDeclarationLocations: renameDeclarationLocations,
-                                            isOriginalTextLocation: false,
-                                            isNamespaceDeclarationReference: false,
-                                            isInvocationExpression: true,
-                                            isMemberGroupReference: false);
+                    identifierToken.Span,
+                    isRenameLocation: false,
+                    prefix: null,
+                    suffix: null,
+                    renameDeclarationLocations: renameDeclarationLocations,
+                    isOriginalTextLocation: false,
+                    isNamespaceDeclarationReference: false,
+                    isInvocationExpression: true,
+                    isMemberGroupReference: false);
 
                 return renameAnnotation;
             }
@@ -932,34 +926,6 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
         }
     }
 
-    private static async Task<ISymbol?> GetVBPropertyFromAccessorOrAnOverrideAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-    {
-        try
-        {
-            if (symbol.IsPropertyAccessor())
-            {
-                var property = ((IMethodSymbol)symbol).AssociatedSymbol!;
-
-                return property.Language == LanguageNames.VisualBasic ? property : null;
-            }
-
-            if (symbol.IsOverride && symbol.GetOverriddenMember() != null)
-            {
-                var originalSourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol.GetOverriddenMember(), solution, cancellationToken).ConfigureAwait(false);
-                if (originalSourceSymbol != null)
-                {
-                    return await GetVBPropertyFromAccessorOrAnOverrideAsync(originalSourceSymbol, solution, cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            return null;
-        }
-        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-    }
-
     private static void AddSymbolSourceSpans(
         ArrayBuilder<Location> conflicts, IEnumerable<ISymbol> symbols,
         IDictionary<Location, Location> reverseMappedLocations)
@@ -1076,14 +1042,14 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
                             }
                         }
                     }
-                    else if (symbol.Kind == SymbolKind.Property && symbol.Name == "Current")
+                    else if (symbol is IPropertySymbol
                     {
-                        var property = (IPropertySymbol)symbol;
-
-                        if (!property.Parameters.Any() && !property.IsWriteOnly)
-                        {
-                            return [originalDeclarationLocation];
-                        }
+                        Name: "Current",
+                        Parameters.Length: 0,
+                        IsWriteOnly: false,
+                    })
+                    {
+                        return [originalDeclarationLocation];
                     }
                 }
             }
@@ -1128,10 +1094,8 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
         else
         {
             var name = SyntaxFactory.ParseName(replacementText);
-            if (name.Kind() == SyntaxKind.IdentifierName)
-            {
-                valueText = ((IdentifierNameSyntax)name).Identifier.ValueText;
-            }
+            if (name is IdentifierNameSyntax identifierName)
+                valueText = identifierName.Identifier.ValueText;
         }
 
         // this also covers the case of an escaped replacementText
@@ -1147,7 +1111,6 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
     /// statement of this lambda.
     /// </summary>
     /// <param name="token">The token to get the complexification target for.</param>
-    /// <returns></returns>
     public override SyntaxNode? GetExpansionTargetForLocation(SyntaxToken token)
         => GetExpansionTarget(token);
 

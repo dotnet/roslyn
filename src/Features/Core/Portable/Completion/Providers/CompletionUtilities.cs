@@ -45,6 +45,6 @@ internal static class CompletionUtilities
         }
 
         Contract.ThrowIfNull(solution);
-        return projectIds.Select(solution.GetProject).WhereNotNull().ToImmutableArray();
+        return [.. projectIds.Select(solution.GetProject).WhereNotNull()];
     }
 }

@@ -6,13 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Completion.Log;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -140,30 +135,14 @@ internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider
             return CompletionChange.Create(new TextChange(completionItem.Span, completionText));
         }
 
-        // Find context node so we can use it to decide where to insert using/imports.
-        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-        var addImportContextNode = root.FindToken(completionItem.Span.Start, findInsideTrivia: true).Parent;
+        var completionItemPosition = completionItem.Span.Start;
 
-        // Add required using/imports directive.
-        var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
-        var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
-
-        var addImportsOptions = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-        var importNode = CreateImport(document, containingNamespace);
-
-        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-        var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode!, importNode, generator, addImportsOptions, cancellationToken);
-        var documentWithImport = document.WithSyntaxRoot(rootWithImport);
-        // This only formats the annotated import we just added, not the entire document.
-        var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
+        var importChanges = await ImportCompletionProviderHelpers.GetAddImportTextChangesAsync(
+            document, completionItemPosition, containingNamespace, cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<TextChange>.GetInstance(out var builder);
 
         // Get text change for add import
-        var importChanges = await formattedDocumentWithImport.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
         builder.AddRange(importChanges);
 
         // Create text change for complete type name.
@@ -235,12 +214,6 @@ internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider
         // Certain documents, e.g. Razor document, don't support adding imports
         return completionOptions?.CanAddImportStatement != false &&
             document.Project.Solution.Services.GetRequiredService<IDocumentSupportsFeatureService>().SupportsRefactorings(document);
-    }
-
-    private static SyntaxNode CreateImport(Document document, string namespaceName)
-    {
-        var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-        return syntaxGenerator.NamespaceImportDeclaration(namespaceName).WithAdditionalAnnotations(Formatter.Annotation);
     }
 
     internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)

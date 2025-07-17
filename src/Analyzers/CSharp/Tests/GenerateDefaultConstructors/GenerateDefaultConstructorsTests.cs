@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.GenerateConstructors;
 using Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
@@ -20,34 +21,41 @@ using VerifyCodeFix = CSharpCodeFixVerifier<
 
 #if !CODE_STYLE
 using VerifyRefactoring = CSharpCodeRefactoringVerifier<
-    GenerateDefaultConstructorsCodeRefactoringProvider>;
+    CSharpGenerateConstructorsCodeRefactoringProvider>;
 #endif
 
 [UseExportProvider]
-public class GenerateDefaultConstructorsTests
+[Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+public sealed class GenerateDefaultConstructorsTests
 {
 #if !CODE_STYLE
-    private static async Task TestRefactoringAsync(string source, string fixedSource, int index = 0)
+    private static async Task TestRefactoringAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedSource,
+        int index = 0)
     {
         await TestRefactoringOnlyAsync(source, fixedSource, index);
         await TestCodeFixMissingAsync(source);
     }
 
-    private static async Task TestRefactoringOnlyAsync(string source, string fixedSource, int index = 0)
-    {
-        await new VerifyRefactoring.Test
+    private static Task TestRefactoringOnlyAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedSource,
+        int index = 0)
+        => new VerifyRefactoring.Test
         {
             TestCode = source,
             FixedCode = fixedSource,
             CodeActionIndex = index,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 #endif
 
-    private static async Task TestCodeFixAsync(string source, string fixedSource, int index = 0)
-    {
-        await new VerifyCodeFix.Test
+    private static Task TestCodeFixAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedSource,
+        int index = 0)
+        => new VerifyCodeFix.Test
         {
             TestCode = source.Replace("[||]", ""),
             FixedCode = fixedSource,
@@ -56,37 +64,30 @@ public class GenerateDefaultConstructorsTests
         }.RunAsync();
 
 #if !CODE_STYLE
-        await TestRefactoringMissingAsync(source);
-#endif
-    }
 
-#if !CODE_STYLE
-    private static async Task TestRefactoringMissingAsync(string source)
-    {
-        await new VerifyRefactoring.Test
+    private static Task TestRefactoringMissingAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source)
+        => new VerifyRefactoring.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 #endif
 
-    private static async Task TestCodeFixMissingAsync(string source)
+    private static async Task TestCodeFixMissingAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source)
     {
         source = source.Replace("[||]", "");
         await new VerifyCodeFix.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    public async Task TestProtectedBase()
-    {
-        await TestCodeFixAsync(
+    [Fact]
+    public Task TestProtectedBase()
+        => TestCodeFixAsync(
             """
             class {|CS7036:C|} : [||]B
             {
@@ -114,12 +115,10 @@ public class GenerateDefaultConstructorsTests
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    public async Task TestPublicBase()
-    {
-        await TestCodeFixAsync(
+    [Fact]
+    public Task TestPublicBase()
+        => TestCodeFixAsync(
             """
             class {|CS7036:C|} : [||]B
             {
@@ -147,12 +146,10 @@ public class GenerateDefaultConstructorsTests
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    public async Task TestInternalBase()
-    {
-        await TestCodeFixAsync(
+    [Fact]
+    public Task TestInternalBase()
+        => TestCodeFixAsync(
             """
             class {|CS7036:C|} : [||]B
             {
@@ -180,12 +177,10 @@ public class GenerateDefaultConstructorsTests
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    public async Task TestRefOutParams()
-    {
-        await TestCodeFixAsync(
+    [Fact]
+    public Task TestRefOutParams()
+        => TestCodeFixAsync(
             """
             class {|CS7036:C|} : [||]B
             {
@@ -215,12 +210,10 @@ public class GenerateDefaultConstructorsTests
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    public async Task TestFix1()
-    {
-        await TestCodeFixAsync(
+    [Fact]
+    public Task TestFix1()
+        => TestCodeFixAsync(
             """
             class {|CS1729:C|} : [||]B
             {
@@ -264,12 +257,10 @@ public class GenerateDefaultConstructorsTests
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    public async Task TestFix2()
-    {
-        await TestCodeFixAsync(
+    [Fact]
+    public Task TestFix2()
+        => TestCodeFixAsync(
             """
             class {|CS1729:C|} : [||]B
             {
@@ -313,13 +304,11 @@ public class GenerateDefaultConstructorsTests
                 }
             }
             """,
-index: 1);
-    }
+            index: 1);
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    public async Task TestRefactoring1()
-    {
-        await TestCodeFixAsync(
+    [Fact]
+    public Task TestRefactoring1()
+        => TestCodeFixAsync(
             """
             class {|CS1729:C|} : [||]B
             {
@@ -363,13 +352,11 @@ index: 1);
                 }
             }
             """,
-index: 2);
-    }
+            index: 2);
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    public async Task TestFixAll1()
-    {
-        await TestCodeFixAsync(
+    [Fact]
+    public Task TestFixAll1()
+        => TestCodeFixAsync(
             """
             class {|CS1729:C|} : [||]B
             {
@@ -421,13 +408,11 @@ index: 2);
                 }
             }
             """,
-index: 3);
-    }
+            index: 3);
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), CompilerTrait(CompilerFeature.Tuples)]
-    public async Task Tuple()
-    {
-        await TestCodeFixAsync(
+    [Fact, CompilerTrait(CompilerFeature.Tuples)]
+    public Task Tuple()
+        => TestCodeFixAsync(
             """
             class {|CS7036:C|} : [||]B
             {
@@ -455,12 +440,10 @@ index: 3);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), CompilerTrait(CompilerFeature.Tuples)]
-    public async Task TupleWithNames()
-    {
-        await TestCodeFixAsync(
+    [Fact, CompilerTrait(CompilerFeature.Tuples)]
+    public Task TupleWithNames()
+        => TestCodeFixAsync(
             """
             class {|CS7036:C|} : [||]B
             {
@@ -488,13 +471,10 @@ index: 3);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-    [WorkItem("https://github.com/dotnet/Roslyn/issues/6541")]
-    public async Task TestGenerateFromDerivedClass()
-    {
-        await TestCodeFixAsync(
+    [Fact, WorkItem("https://github.com/dotnet/Roslyn/issues/6541")]
+    public Task TestGenerateFromDerivedClass()
+        => TestCodeFixAsync(
             """
             class Base
             {
@@ -522,13 +502,10 @@ index: 3);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-    [WorkItem("https://github.com/dotnet/Roslyn/issues/6541")]
-    public async Task TestGenerateFromDerivedClass2()
-    {
-        await TestCodeFixAsync(
+    [Fact, WorkItem("https://github.com/dotnet/Roslyn/issues/6541")]
+    public Task TestGenerateFromDerivedClass2()
+        => TestCodeFixAsync(
             """
             class Base
             {
@@ -556,13 +533,10 @@ index: 3);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
-    public async Task TestGenerateConstructorFromProtectedConstructor()
-    {
-        await TestCodeFixAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
+    public Task TestGenerateConstructorFromProtectedConstructor()
+        => TestCodeFixAsync(
             """
             abstract class {|CS7036:C|} : [||]B
             {
@@ -590,13 +564,10 @@ index: 3);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
-    public async Task TestGenerateConstructorFromProtectedConstructor2()
-    {
-        await TestCodeFixAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
+    public Task TestGenerateConstructorFromProtectedConstructor2()
+        => TestCodeFixAsync(
             """
             class {|CS7036:C|} : [||]B
             {
@@ -624,14 +595,11 @@ index: 3);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/35208")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35208")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
-    public async Task TestGenerateConstructorInAbstractClassFromPublicConstructor()
-    {
-        await TestCodeFixAsync(
+    public Task TestGenerateConstructorInAbstractClassFromPublicConstructor()
+        => TestCodeFixAsync(
             """
             abstract class {|CS7036:C|} : [||]B
             {
@@ -659,13 +627,10 @@ index: 3);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
-    public async Task TestGenerateConstructorFromPublicConstructor2()
-    {
-        await TestCodeFixAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
+    public Task TestGenerateConstructorFromPublicConstructor2()
+        => TestCodeFixAsync(
             """
             class {|CS7036:C|} : [||]B
             {
@@ -693,13 +658,10 @@ index: 3);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
-    public async Task TestGenerateConstructorFromInternalConstructor()
-    {
-        await TestCodeFixAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
+    public Task TestGenerateConstructorFromInternalConstructor()
+        => TestCodeFixAsync(
             """
             abstract class {|CS7036:C|} : [||]B
             {
@@ -727,13 +689,10 @@ index: 3);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
-    public async Task TestGenerateConstructorFromInternalConstructor2()
-    {
-        await TestCodeFixAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
+    public Task TestGenerateConstructorFromInternalConstructor2()
+        => TestCodeFixAsync(
             """
             class {|CS7036:C|} : [||]B
             {
@@ -761,13 +720,10 @@ index: 3);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
-    public async Task TestGenerateConstructorFromProtectedInternalConstructor()
-    {
-        await TestCodeFixAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
+    public Task TestGenerateConstructorFromProtectedInternalConstructor()
+        => TestCodeFixAsync(
             """
             abstract class {|CS7036:C|} : [||]B
             {
@@ -795,13 +751,10 @@ index: 3);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
-    public async Task TestGenerateConstructorFromProtectedInternalConstructor2()
-    {
-        await TestCodeFixAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
+    public Task TestGenerateConstructorFromProtectedInternalConstructor2()
+        => TestCodeFixAsync(
             """
             class {|CS7036:C|} : [||]B
             {
@@ -829,13 +782,10 @@ index: 3);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
-    public async Task TestGenerateConstructorFromPrivateProtectedConstructor()
-    {
-        await TestCodeFixAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
+    public Task TestGenerateConstructorFromPrivateProtectedConstructor()
+        => TestCodeFixAsync(
             """
             abstract class {|CS7036:C|} : [||]B
             {
@@ -863,13 +813,10 @@ index: 3);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
-    public async Task TestGenerateConstructorFromPrivateProtectedConstructor2()
-    {
-        await TestCodeFixAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
+    public Task TestGenerateConstructorFromPrivateProtectedConstructor2()
+        => TestCodeFixAsync(
             """
             class {|CS7036:C|} : [||]B
             {
@@ -897,12 +844,10 @@ index: 3);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    public async Task TestRecord()
-    {
-        await TestCodeFixAsync(
+    [Fact]
+    public Task TestRecord()
+        => TestCodeFixAsync(
             """
             record {|CS1729:C|} : [||]B
             {
@@ -930,10 +875,8 @@ index: 3);
                 }
             }
             """, index: 1);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/58593")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58593")]
     public async Task TestStructWithFieldInitializer()
     {
         var source = """
@@ -942,7 +885,10 @@ index: 3);
                 object X = 1;
             }
             """;
-        var fixedSource = """
+        await new VerifyCodeFix.Test
+        {
+            TestCode = source.Replace("[||]", ""),
+            FixedCode = """
             struct S
             {
                 object X = 1;
@@ -951,12 +897,7 @@ index: 3);
                 {
                 }
             }
-            """;
-
-        await new VerifyCodeFix.Test
-        {
-            TestCode = source.Replace("[||]", ""),
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
 
@@ -965,8 +906,7 @@ index: 3);
 #endif
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/58593")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58593")]
     public async Task TestMissingInStructWithoutFieldInitializer()
     {
         var source = """
@@ -975,7 +915,6 @@ index: 3);
                 object X;
             }
             """;
-
         await TestCodeFixMissingAsync(source);
 
 #if !CODE_STYLE
@@ -983,12 +922,125 @@ index: 3);
 #endif
     }
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/19611")]
+    [InlineData("public")]
+    [InlineData("protected")]
+    public Task TestAttributeReferenceInBaseType1(string accessibility)
+        => TestCodeFixAsync(
+            $$"""
+            using System;
+
+            namespace TestApp.Data
+            {
+                public class Base
+                {
+                    public Base([Bar] string goo)
+                    {
+
+                    }
+
+                    [AttributeUsage(AttributeTargets.Parameter)]
+                    {{accessibility}} class BarAttribute : Attribute
+                    {
+
+                    }
+                }
+
+                public class {|CS7036:Derived|} : [||]Base
+                {
+
+                }
+            }
+            """,
+            $$"""
+            using System;
+            
+            namespace TestApp.Data
+            {
+                public class Base
+                {
+                    public Base([Bar] string goo)
+                    {
+            
+                    }
+            
+                    [AttributeUsage(AttributeTargets.Parameter)]
+                    {{accessibility}} class BarAttribute : Attribute
+                    {
+            
+                    }
+                }
+            
+                public class Derived : Base
+                {
+                    public Derived([Bar] string goo) : base(goo)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19611")]
+    public Task TestAttributeReferenceInBaseType2()
+        => TestCodeFixAsync(
+            """
+            using System;
+
+            namespace TestApp.Data
+            {
+                public class Base
+                {
+                    public Base([Bar] string goo)
+                    {
+
+                    }
+
+                    [AttributeUsage(AttributeTargets.Parameter)]
+                    private class BarAttribute : Attribute
+                    {
+
+                    }
+                }
+
+                public class {|CS7036:Derived|} : [||]Base
+                {
+
+                }
+            }
+            """,
+            """
+            using System;
+            
+            namespace TestApp.Data
+            {
+                public class Base
+                {
+                    public Base([Bar] string goo)
+                    {
+            
+                    }
+            
+                    [AttributeUsage(AttributeTargets.Parameter)]
+                    private class BarAttribute : Attribute
+                    {
+            
+                    }
+                }
+            
+                public class Derived : Base
+                {
+                    public Derived(string goo) : base(goo)
+                    {
+                    }
+                }
+            }
+            """);
+
 #if !CODE_STYLE
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    public async Task TestPrivateBase()
-    {
-        await TestRefactoringMissingAsync(
+    [Fact]
+    public Task TestPrivateBase()
+        => TestRefactoringMissingAsync(
             """
             class {|CS1729:C|} : [||]B
             {
@@ -1001,12 +1053,10 @@ index: 3);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    public async Task TestFixAll2()
-    {
-        await TestRefactoringAsync(
+    [Fact]
+    public Task TestFixAll2()
+        => TestRefactoringAsync(
             """
             class C : [||]B
             {
@@ -1061,13 +1111,11 @@ index: 3);
                 }
             }
             """,
-index: 2);
-    }
+            index: 2);
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    public async Task TestFixAll_WithTuples()
-    {
-        await TestRefactoringAsync(
+    [Fact]
+    public Task TestFixAll_WithTuples()
+        => TestRefactoringAsync(
             """
             class C : [||]B
             {
@@ -1122,13 +1170,11 @@ index: 2);
                 }
             }
             """,
-index: 2);
-    }
+            index: 2);
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    public async Task TestMissing1()
-    {
-        await TestRefactoringMissingAsync(
+    [Fact]
+    public Task TestMissing1()
+        => TestRefactoringMissingAsync(
             """
             class C : [||]B
             {
@@ -1144,13 +1190,10 @@ index: 2);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
-    public async Task TestDefaultConstructorGeneration_1()
-    {
-        await TestRefactoringAsync(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
+    public Task TestDefaultConstructorGeneration_1()
+        => TestRefactoringAsync(
             """
             class C : [||]B
             {
@@ -1185,13 +1228,10 @@ index: 2);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
-    public async Task TestDefaultConstructorGeneration_2()
-    {
-        await TestRefactoringAsync(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
+    public Task TestDefaultConstructorGeneration_2()
+        => TestRefactoringAsync(
             """
             class C : [||]B
             {
@@ -1226,13 +1266,10 @@ index: 2);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544070")]
-    public async Task TestException1()
-    {
-        await TestRefactoringAsync(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544070")]
+    public Task TestException1()
+        => TestRefactoringAsync(
             """
             using System;
             class Program : Excep[||]tion
@@ -1261,13 +1298,11 @@ index: 2);
                 }
             }
             """,
-index: 4);
-    }
+            index: 4);
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    public async Task TestException2()
-    {
-        await TestRefactoringAsync(
+    [Fact]
+    public Task TestException2()
+        => TestRefactoringAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1313,13 +1348,11 @@ index: 4);
                 }
             }
             """,
-index: 3);
-    }
+            index: 3);
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    public async Task TestException3()
-    {
-        await TestRefactoringAsync(
+    [Fact]
+    public Task TestException3()
+        => TestRefactoringAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1372,12 +1405,10 @@ index: 3);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    public async Task TestException4()
-    {
-        await TestRefactoringAsync(
+    [Fact]
+    public Task TestException4()
+        => TestRefactoringAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1426,26 +1457,20 @@ index: 3);
                 }
             }
             """,
-index: 2);
-    }
+            index: 2);
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/19953")]
-    public async Task TestNotOnEnum()
-    {
-        await TestRefactoringMissingAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19953")]
+    public Task TestNotOnEnum()
+        => TestRefactoringMissingAsync(
             """
             enum [||]E
             {
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/48318")]
-    public async Task TestGenerateConstructorFromProtectedConstructorCursorAtTypeOpening()
-    {
-        await TestRefactoringOnlyAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48318")]
+    public Task TestGenerateConstructorFromProtectedConstructorCursorAtTypeOpening()
+        => TestRefactoringOnlyAsync(
             """
             class {|CS7036:C|} : B
             {
@@ -1476,13 +1501,10 @@ index: 2);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/48318")]
-    public async Task TestGenerateConstructorFromProtectedConstructorCursorBetweenTypeMembers()
-    {
-        await TestRefactoringOnlyAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48318")]
+    public Task TestGenerateConstructorFromProtectedConstructorCursorBetweenTypeMembers()
+        => TestRefactoringOnlyAsync(
             """
             class {|CS7036:C|} : B
             {
@@ -1516,14 +1538,12 @@ index: 2);
                 {
                 }
             }
-            """);
-    }
+            """,
+            index: 1);
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/40586")]
-    public async Task TestGenerateInternalConstructorInSealedClassForProtectedOrInternalBase()
-    {
-        await TestRefactoringAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40586")]
+    public Task TestGenerateInternalConstructorInSealedClassForProtectedOrInternalBase()
+        => TestRefactoringAsync(
             """
             class Base
             {
@@ -1551,13 +1571,10 @@ index: 2);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/40586")]
-    public async Task TestGenerateInternalConstructorInSealedClassForProtectedAndInternalBase()
-    {
-        await TestRefactoringAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40586")]
+    public Task TestGenerateInternalConstructorInSealedClassForProtectedAndInternalBase()
+        => TestRefactoringAsync(
             """
             class Base
             {
@@ -1585,13 +1602,10 @@ index: 2);
                 }
             }
             """);
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/40586")]
-    public async Task TestGeneratePublicConstructorInSealedClassForProtectedBase()
-    {
-        await TestRefactoringAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40586")]
+    public Task TestGeneratePublicConstructorInSealedClassForProtectedBase()
+        => TestRefactoringAsync(
             """
             class Base
             {
@@ -1619,7 +1633,89 @@ index: 2);
                 }
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51049")]
+    public Task TestGenerateDefaultConstructorPreserveBinaryCompat1()
+        => TestRefactoringAsync(
+            """
+            class Base
+            {
+                protected Base()
+                {
+                }
+
+                protected Base(int i)
+                {
+                }
+            }
+
+            sealed class Program : [||]Base
+            {
+            }
+            """,
+            """
+            class Base
+            {
+                protected Base()
+                {
+                }
+            
+                protected Base(int i)
+                {
+                }
+            }
+
+            sealed class Program : Base
+            {
+                public Program()
+                {
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51049")]
+    public Task TestGenerateDefaultConstructorPreserveBinaryCompat2()
+        => TestRefactoringAsync(
+            """
+            class Base
+            {
+                protected Base()
+                {
+                }
+
+                protected Base(int i)
+                {
+                }
+            }
+
+            sealed class Program : [||]Base
+            {
+            }
+            """,
+            """
+            class Base
+            {
+                protected Base()
+                {
+                }
+            
+                protected Base(int i)
+                {
+                }
+            }
+
+            sealed class Program : Base
+            {
+                public Program()
+                {
+                }
+
+                public Program(int i) : base(i)
+                {
+                }
+            }
+            """,
+            index: 1);
 
 #endif
 }

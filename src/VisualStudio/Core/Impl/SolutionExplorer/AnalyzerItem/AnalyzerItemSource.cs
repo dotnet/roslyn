@@ -5,7 +5,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +15,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SourceGeneration;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
@@ -37,6 +37,8 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource
     private Workspace Workspace => _analyzersFolder.Workspace;
     private ProjectId ProjectId => _analyzersFolder.ProjectId;
 
+    private WorkspaceEventRegistration? _workspaceChangedDisposer;
+
     public AnalyzerItemSource(
         AnalyzersFolderItem analyzersFolder,
         IAnalyzersCommandHandler commandHandler,
@@ -51,7 +53,7 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource
             listenerProvider.GetListener(FeatureAttribute.SourceGenerators),
             _cancellationTokenSource.Token);
 
-        this.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _workspaceChangedDisposer = this.Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
 
         // Kick off the initial work to determine the starting set of items.
         _workQueue.AddWork();
@@ -64,7 +66,7 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource
 
     public IEnumerable Items => _items;
 
-    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         switch (e.Kind)
         {
@@ -93,7 +95,8 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource
         var project = this.Workspace.CurrentSolution.GetProject(this.ProjectId);
         if (project is null)
         {
-            this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+            _workspaceChangedDisposer?.Dispose();
+            _workspaceChangedDisposer = null;
 
             _cancellationTokenSource.Cancel();
 
@@ -145,7 +148,7 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource
 
             // If we can't make a remote call.  Fall back to processing in the VS host.
             if (client is null)
-                return project.AnalyzerReferences.Where(r => r is not AnalyzerFileReference || r.HasAnalyzersOrSourceGenerators(project.Language)).ToImmutableArray();
+                return [.. project.AnalyzerReferences.Where(r => r is not AnalyzerFileReference || r.HasAnalyzersOrSourceGenerators(project.Language))];
 
             using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
 

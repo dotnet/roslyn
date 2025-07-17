@@ -4,8 +4,6 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -150,13 +148,13 @@ internal sealed class RemoteSolutionCache<TChecksum, TSolution>
 
     public void ReportTelemetry()
     {
-        Logger.Log(FunctionId.RemoteWorkspace_SolutionCachingStatistics, KeyValueLogMessage.Create(m =>
+        Logger.Log(FunctionId.RemoteWorkspace_SolutionCachingStatistics, KeyValueLogMessage.Create(static (m, @this) =>
         {
-            m.Add(nameof(_cacheHits), _cacheHits);
-            m.Add(nameof(_cacheMissesInHistory), _cacheMissesInHistory);
-            m.Add(nameof(_cacheMissesNotInHistory), _cacheMissesNotInHistory);
-            _cacheHitIndexHistogram.WriteTelemetryPropertiesTo(m, prefix: nameof(_cacheHitIndexHistogram));
-        }));
+            m.Add(nameof(_cacheHits), @this._cacheHits);
+            m.Add(nameof(_cacheMissesInHistory), @this._cacheMissesInHistory);
+            m.Add(nameof(_cacheMissesNotInHistory), @this._cacheMissesNotInHistory);
+            @this._cacheHitIndexHistogram.WriteTelemetryPropertiesTo(m, prefix: nameof(_cacheHitIndexHistogram));
+        }, this));
     }
 
     public void AddAllTo(HashSet<TSolution> solutions)

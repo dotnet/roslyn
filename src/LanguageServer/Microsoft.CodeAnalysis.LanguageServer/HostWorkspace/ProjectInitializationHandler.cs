@@ -4,6 +4,7 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.BrokeredServices;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.Definitions;
@@ -11,7 +12,6 @@ using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
-using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [Export, Shared]
 internal sealed class ProjectInitializationHandler : IDisposable
 {
-    private const string ProjectInitializationCompleteName = "workspace/projectInitializationComplete";
+    internal const string ProjectInitializationCompleteName = "workspace/projectInitializationComplete";
 
     private readonly IServiceBroker _serviceBroker;
     private readonly ServiceBrokerClient _serviceBrokerClient;
@@ -87,7 +87,7 @@ internal sealed class ProjectInitializationHandler : IDisposable
         _serviceBrokerClient.Dispose();
     }
 
-    internal class ProjectInitializationCompleteObserver : IObserver<ProjectInitializationCompletionState>
+    internal sealed class ProjectInitializationCompleteObserver : IObserver<ProjectInitializationCompletionState>
     {
         private readonly ILogger _logger;
 

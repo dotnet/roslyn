@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;

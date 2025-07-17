@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -17,12 +16,11 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionExpressionForStackAllocCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionExpression)]
-public class UseCollectionExpressionForStackAllocTests
+public sealed class UseCollectionExpressionForStackAllocTests
 {
     [Fact]
-    public async Task TestNotInCSharp11()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInCSharp11()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -38,12 +36,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInCSharp11_Implicit()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInCSharp11_Implicit()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -59,12 +55,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInCSharp12_Net70()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInCSharp12_Net70()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -80,12 +74,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInCSharp12_Net70_Implicit()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInCSharp12_Net70_Implicit()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -101,12 +93,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInCSharp12()
-    {
-        await new VerifyCS.Test
+    public Task TestInCSharp12()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -133,12 +123,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInCSharp12_Implicit()
-    {
-        await new VerifyCS.Test
+    public Task TestInCSharp12_Implicit()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -165,12 +153,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInCSharp12_Span()
-    {
-        await new VerifyCS.Test
+    public Task TestInCSharp12_Span()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -197,12 +183,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInCSharp12_Span_Implicit()
-    {
-        await new VerifyCS.Test
+    public Task TestInCSharp12_Span_Implicit()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -229,12 +213,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleArraySizes()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleArraySizes()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -250,12 +232,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMismatchedSize1()
-    {
-        await new VerifyCS.Test
+    public Task TestMismatchedSize1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -271,12 +251,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMismatchedSize2()
-    {
-        await new VerifyCS.Test
+    public Task TestMismatchedSize2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -292,12 +270,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNonConstSize()
-    {
-        await new VerifyCS.Test
+    public Task TestNonConstSize()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -313,12 +289,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConstSize()
-    {
-        await new VerifyCS.Test
+    public Task TestConstSize()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -347,12 +321,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithPointer()
-    {
-        await new VerifyCS.Test
+    public Task TestWithPointer()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -368,12 +340,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithPointer_Implicit()
-    {
-        await new VerifyCS.Test
+    public Task TestWithPointer_Implicit()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -389,12 +359,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithVar()
-    {
-        await new VerifyCS.Test
+    public Task TestWithVar()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -410,12 +378,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithVar_Implicit()
-    {
-        await new VerifyCS.Test
+    public Task TestWithVar_Implicit()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -431,12 +397,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithSpanArgument()
-    {
-        await new VerifyCS.Test
+    public Task TestWithSpanArgument()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -467,12 +431,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithSpanArgument_Implicit()
-    {
-        await new VerifyCS.Test
+    public Task TestWithSpanArgument_Implicit()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -503,12 +465,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEmpty()
-    {
-        await new VerifyCS.Test
+    public Task TestEmpty()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -535,12 +495,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCast()
-    {
-        await new VerifyCS.Test
+    public Task TestCast()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -567,12 +525,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestIdentifierCast()
-    {
-        await new VerifyCS.Test
+    public Task TestIdentifierCast()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -589,12 +545,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEmptyWithSize()
-    {
-        await new VerifyCS.Test
+    public Task TestEmptyWithSize()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -621,12 +575,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEmpty_Implicit()
-    {
-        await new VerifyCS.Test
+    public Task TestEmpty_Implicit()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -642,12 +594,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_ZeroSize()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_ZeroSize()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -674,12 +624,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_NotEnoughFollowingStatements()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_NotEnoughFollowingStatements()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -695,12 +643,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_WrongFollowingStatement()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_WrongFollowingStatement()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -717,12 +663,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_NotLocalStatementInitializer()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_NotLocalStatementInitializer()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -741,12 +685,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_ExpressionStatementNotAssignment()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_ExpressionStatementNotAssignment()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -763,12 +705,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_AssignmentNotElementAccess()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_AssignmentNotElementAccess()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -785,12 +725,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_ElementAccessNotToIdentifier()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_ElementAccessNotToIdentifier()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -809,12 +747,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_IdentifierNotEqualToVariableName()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_IdentifierNotEqualToVariableName()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -833,12 +769,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_ArgumentNotConstant()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_ArgumentNotConstant()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -855,12 +789,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_ConstantArgumentNotCorrect1()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_ConstantArgumentNotCorrect1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -877,12 +809,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_ConstantArgumentNotCorrect2()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_ConstantArgumentNotCorrect2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -900,12 +830,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_OneElement()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_OneElement()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -933,12 +861,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_OneElement_MultipleFollowingStatements()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_OneElement_MultipleFollowingStatements()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -968,12 +894,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_TwoElement2()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_TwoElement2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1002,12 +926,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_TwoElement2_Constant()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_TwoElement2_Constant()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1038,12 +960,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_TwoElement2_SecondWrongIndex()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_TwoElement2_SecondWrongIndex()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1061,12 +981,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_TwoElement2_SecondNonConstant()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_TwoElement2_SecondNonConstant()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1085,12 +1003,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_TwoElement2_SecondWrongDestination()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_TwoElement2_SecondWrongDestination()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1111,12 +1027,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTrivia1()
-    {
-        await new VerifyCS.Test
+    public Task TestTrivia1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1151,12 +1065,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTrivia2()
-    {
-        await new VerifyCS.Test
+    public Task TestTrivia2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1191,12 +1103,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExistingInitializer_MultiLine1()
-    {
-        await new VerifyCS.Test
+    public Task TestExistingInitializer_MultiLine1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1229,12 +1139,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExistingInitializer_MultiLine2()
-    {
-        await new VerifyCS.Test
+    public Task TestExistingInitializer_MultiLine2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1269,12 +1177,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExistingInitializer_MultiLine3()
-    {
-        await new VerifyCS.Test
+    public Task TestExistingInitializer_MultiLine3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1305,12 +1211,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExistingInitializer_MultiLine4()
-    {
-        await new VerifyCS.Test
+    public Task TestExistingInitializer_MultiLine4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1343,12 +1247,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExistingInitializer_MultiLine1_Implicit()
-    {
-        await new VerifyCS.Test
+    public Task TestExistingInitializer_MultiLine1_Implicit()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1381,12 +1283,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExistingInitializer_MultiLine2_Implicit()
-    {
-        await new VerifyCS.Test
+    public Task TestExistingInitializer_MultiLine2_Implicit()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1421,12 +1321,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExistingInitializer_MultiLine3_Implicit()
-    {
-        await new VerifyCS.Test
+    public Task TestExistingInitializer_MultiLine3_Implicit()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1457,12 +1355,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExistingInitializer_MultiLine4_Implicit()
-    {
-        await new VerifyCS.Test
+    public Task TestExistingInitializer_MultiLine4_Implicit()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1495,12 +1391,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_MultiLine1()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_MultiLine1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1533,12 +1427,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoInitializer_MultiLine2()
-    {
-        await new VerifyCS.Test
+    public Task TestNoInitializer_MultiLine2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1575,12 +1467,10 @@ public class UseCollectionExpressionForStackAllocTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGlobalStatement1()
-    {
-        await new VerifyCS.Test
+    public Task TestGlobalStatement1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1599,12 +1489,10 @@ public class UseCollectionExpressionForStackAllocTests
                 OutputKind = OutputKind.ConsoleApplication,
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGlobalStatement2()
-    {
-        await new VerifyCS.Test
+    public Task TestGlobalStatement2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1635,5 +1523,4 @@ public class UseCollectionExpressionForStackAllocTests
                 OutputKind = OutputKind.ConsoleApplication,
             },
         }.RunAsync();
-    }
 }

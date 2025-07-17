@@ -12,43 +12,34 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource;
 
 [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-public class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<DestructorDeclarationSyntax>
+public sealed class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<DestructorDeclarationSyntax>
 {
     protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
     internal override AbstractSyntaxStructureProvider CreateProvider() => new DestructorDeclarationStructureProvider();
 
     [Fact]
-    public async Task NoCommentsOrAttributes()
-    {
-        var code = """
+    public Task NoCommentsOrAttributes()
+        => VerifyNoBlockSpansAsync("""
                 class Goo
                 {
                     $$~Goo();
                 }
-                """;
-
-        await VerifyNoBlockSpansAsync(code);
-    }
+                """);
 
     [Fact]
-    public async Task WithAttributes()
-    {
-        var code = """
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:{|textspan:[Bar]
                     |}$$~Goo();|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task WithCommentsAndAttributes()
-    {
-        var code = """
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:{|textspan:// Summary:
@@ -56,9 +47,6 @@ public class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNodeStruc
                     [Bar]
                     |}$$~Goo();|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

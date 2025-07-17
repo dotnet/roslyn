@@ -8,16 +8,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls.Primitives;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class AddParameterDialogInProcess
+internal sealed partial class AddParameterDialogInProcess
 {
     private async Task<AddParameterDialog?> TryGetDialogAsync(CancellationToken cancellationToken)
     {
@@ -74,15 +74,11 @@ internal partial class AddParameterDialogInProcess
         return true;
     }
 
-    public async Task ClickOKAsync(CancellationToken cancellationToken)
-    {
-        await ClickAsync(dialog => dialog.GetTestAccessor().OKButton, cancellationToken);
-    }
+    public Task ClickOKAsync(CancellationToken cancellationToken)
+        => ClickAsync(dialog => dialog.GetTestAccessor().OKButton, cancellationToken);
 
-    public async Task ClickCancelAsync(CancellationToken cancellationToken)
-    {
-        await ClickAsync(dialog => dialog.GetTestAccessor().CancelButton, cancellationToken);
-    }
+    public Task ClickCancelAsync(CancellationToken cancellationToken)
+        => ClickAsync(dialog => dialog.GetTestAccessor().CancelButton, cancellationToken);
 
     public async Task FillCallSiteFieldAsync(string callsiteValue, CancellationToken cancellationToken)
     {
@@ -117,8 +113,6 @@ internal partial class AddParameterDialogInProcess
         dialog.TypeContentControl.Text = typeName;
     }
 
-    public async Task SetCallSiteTodoAsync(CancellationToken cancellationToken)
-    {
-        await ClickAsync(dialog => dialog.IntroduceErrorRadioButton, cancellationToken);
-    }
+    public Task SetCallSiteTodoAsync(CancellationToken cancellationToken)
+        => ClickAsync(dialog => dialog.IntroduceErrorRadioButton, cancellationToken);
 }

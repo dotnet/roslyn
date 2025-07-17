@@ -69,11 +69,11 @@ internal sealed class SerializableClassifiedSpans(ImmutableArray<string> classif
     [DataMember(Order = 1)]
     public readonly ImmutableArray<int> ClassificationTriples = classificationTriples;
 
-    internal static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans)
+    internal static SerializableClassifiedSpans Dehydrate(SegmentedList<ClassifiedSpan> classifiedSpans)
     {
         using var _1 = PooledDictionary<string, int>.GetInstance(out var classificationTypeToId);
         using var _2 = ArrayBuilder<string>.GetInstance(out var classificationTypes);
-        var classificationTriples = new FixedSizeArrayBuilder<int>(classifiedSpans.Length * 3);
+        var classificationTriples = new FixedSizeArrayBuilder<int>(classifiedSpans.Count * 3);
 
         foreach (var classifiedSpan in classifiedSpans)
         {

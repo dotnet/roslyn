@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -23,7 +22,7 @@ internal sealed partial class CSharpIntroduceVariableService
     private static bool IsAnyQueryClause(SyntaxNode node)
         => node is QueryClauseSyntax or SelectOrGroupClauseSyntax;
 
-    protected override Task<Document> IntroduceQueryLocalAsync(
+    protected override Document IntroduceQueryLocal(
         SemanticDocument document, ExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken)
     {
         var oldOutermostQuery = expression.GetAncestorsOrThis<QueryExpressionSyntax>().LastOrDefault();
@@ -37,7 +36,7 @@ internal sealed partial class CSharpIntroduceVariableService
             newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
             expression).WithAdditionalAnnotations(Formatter.Annotation);
 
-        var matches = FindMatches(document, expression, document, oldOutermostQuery, allOccurrences, cancellationToken);
+        var matches = FindMatches(document, expression, document, [oldOutermostQuery], allOccurrences, cancellationToken);
         var innermostClauses = new HashSet<SyntaxNode>(
             matches.Select(expr => expr.GetAncestorsOrThis<SyntaxNode>().First(IsAnyQueryClause)));
 
@@ -47,8 +46,8 @@ internal sealed partial class CSharpIntroduceVariableService
             // statement, then we want to place the declaration right above that
             // statement. Note: we special case this because the statement we are going
             // to go above might not be in a block and we may have to generate it
-            return Task.FromResult(IntroduceQueryLocalForSingleOccurrence(
-                document, expression, newLocalName, letClause, allOccurrences, cancellationToken));
+            return IntroduceQueryLocalForSingleOccurrence(
+                document, expression, newLocalName, letClause, allOccurrences, cancellationToken);
         }
 
         var oldInnerMostCommonQuery = matches.FindInnermostCommonNode<QueryExpressionSyntax>();
@@ -70,7 +69,7 @@ internal sealed partial class CSharpIntroduceVariableService
         var finalQuery = newInnerMostQuery.WithAllClauses(finalClauses);
         var newRoot = document.Root.ReplaceNode(oldInnerMostCommonQuery, finalQuery);
 
-        return Task.FromResult(document.Document.WithSyntaxRoot(newRoot));
+        return document.Document.WithSyntaxRoot(newRoot);
     }
 
     private Document IntroduceQueryLocalForSingleOccurrence(

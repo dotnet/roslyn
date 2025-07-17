@@ -46,6 +46,8 @@ internal readonly record struct SourceGeneratorExecutionVersion(
 
     public override string ToString()
         => $"{MajorVersion}.{MinorVersion}";
+
+    public Checksum Checksum => new(MajorVersion, MinorVersion);
 }
 
 /// <summary>

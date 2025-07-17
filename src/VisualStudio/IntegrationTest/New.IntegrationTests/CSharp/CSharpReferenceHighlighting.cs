@@ -34,15 +34,16 @@ public class CSharpReferenceHighlighting : AbstractEditorTest
     [IdeFact]
     public async Task Highlighting()
     {
-        var markup = @"
-class {|definition:C|}
-{
-    void M<T>({|reference:C|} c) where T : {|reference:C|}
-    {
-        {|reference:C|} c = new {|reference:C|}();
-    }
-}";
-        MarkupTestFile.GetSpans(markup, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+        MarkupTestFile.GetSpans("""
+
+            class {|definition:C|}
+            {
+                void M<T>({|reference:C|} c) where T : {|reference:C|}
+                {
+                    {|reference:C|} c = new {|reference:C|}();
+                }
+            }
+            """, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
         await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
         await VerifyAsync("C", spans, HangMitigatingCancellationToken);
 
@@ -53,16 +54,17 @@ class {|definition:C|}
     [IdeFact]
     public async Task WrittenReference()
     {
-        var markup = @"
-class C
-{
-    void M()
-    {
-        int {|definition:x|};
-        {|writtenreference:x|} = 3;
-    }
-}";
-        MarkupTestFile.GetSpans(markup, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+        MarkupTestFile.GetSpans("""
+
+            class C
+            {
+                void M()
+                {
+                    int {|definition:x|};
+                    {|writtenreference:x|} = 3;
+                }
+            }
+            """, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
         await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
         await VerifyAsync("x", spans, HangMitigatingCancellationToken);
 
@@ -73,16 +75,17 @@ class C
     [IdeFact]
     public async Task Navigation()
     {
-        var text = @"
-class C
-{
-   void M()
-    {
-        int x;
-        x = 3;
-    }
-}";
-        await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            class C
+            {
+               void M()
+                {
+                    int x;
+                    x = 3;
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("x", charsOffset: 0, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting, HangMitigatingCancellationToken);
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.NextHighlightedReference, HangMitigatingCancellationToken);
@@ -93,17 +96,18 @@ class C
     [IdeFact]
     public async Task HighlightBasedOnSelection()
     {
-        var text = @"
-class C
-{
-   void M()
-    {
-        int x = 0;
-        x++;
-        x = 3;
-    }
-}";
-        await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            class C
+            {
+               void M()
+                {
+                    int x = 0;
+                    x++;
+                    x = 3;
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("x", charsOffset: 0, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting, HangMitigatingCancellationToken);

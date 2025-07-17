@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>BD974609-C68B-4BE6-9682-EB132462B50D</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.Contracts</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CollectionBuilderAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CompilerFeatureRequiredAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Contract.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Contract.InterpolatedStringHandlers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExperimentalAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InterpolatedStringHandlerArgumentAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InterpolatedStringHandlerAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IReadOnlySet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IsExternalInit.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NonCopyableAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NonDefaultableAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NullableAttributes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RequiredMemberAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SetsRequiredMembersAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExceptionUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Index.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Range.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ErrorReporting\FatalError.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ErrorReporting\FailFast.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
+    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+</Project>

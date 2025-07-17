@@ -2,210 +2,196 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-internal abstract partial class SelectionValidator<
-    TSelectionResult,
-    TStatementSyntax>(
+internal abstract partial class AbstractExtractMethodService<
+    TStatementSyntax,
+    TExecutableStatementSyntax,
+    TExpressionSyntax>
+{
+    public abstract partial class SelectionValidator(
         SemanticDocument document,
         TextSpan textSpan)
-    where TSelectionResult : SelectionResult<TStatementSyntax>
-    where TStatementSyntax : SyntaxNode
-{
-    protected readonly SemanticDocument SemanticDocument = document;
-    protected readonly TextSpan OriginalSpan = textSpan;
-
-    public bool ContainsValidSelection => !OriginalSpan.IsEmpty;
-
-    public abstract Task<(TSelectionResult, OperationStatus)> GetValidSelectionAsync(CancellationToken cancellationToken);
-    public abstract IEnumerable<SyntaxNode> GetOuterReturnStatements(SyntaxNode commonRoot, IEnumerable<SyntaxNode> jumpsOutOfRegion);
-    public abstract bool IsFinalSpanSemanticallyValidSpan(SyntaxNode node, TextSpan textSpan, IEnumerable<SyntaxNode> returnStatements, CancellationToken cancellationToken);
-    public abstract bool ContainsNonReturnExitPointsStatements(IEnumerable<SyntaxNode> jumpsOutOfRegion);
-
-    protected bool IsFinalSpanSemanticallyValidSpan(
-        SemanticModel semanticModel, TextSpan textSpan, (SyntaxNode, SyntaxNode) range, CancellationToken cancellationToken)
     {
-        var controlFlowAnalysisData = semanticModel.AnalyzeControlFlow(range.Item1, range.Item2);
+        protected readonly SemanticDocument SemanticDocument = document;
+        protected readonly TextSpan OriginalSpan = textSpan;
 
-        // there must be no control in and out of given span
-        if (controlFlowAnalysisData.EntryPoints.Any())
-        {
-            return false;
-        }
+        public bool ContainsValidSelection => !OriginalSpan.IsEmpty;
 
-        // check something like continue, break, yield break, yield return, and etc
-        if (ContainsNonReturnExitPointsStatements(controlFlowAnalysisData.ExitPoints))
-        {
-            return false;
-        }
+        protected abstract TextSpan GetAdjustedSpan(TextSpan textSpan);
 
-        // okay, there is no branch out, check whether next statement can be executed normally
-        var returnStatements = GetOuterReturnStatements(range.Item1.GetCommonRoot(range.Item2), controlFlowAnalysisData.ExitPoints);
-        if (!returnStatements.Any())
+        protected abstract InitialSelectionInfo GetInitialSelectionInfo(CancellationToken cancellationToken);
+
+        protected abstract FinalSelectionInfo UpdateSelectionInfo(InitialSelectionInfo selectionInfo, CancellationToken cancellationToken);
+        protected abstract Task<SelectionResult> CreateSelectionResultAsync(FinalSelectionInfo selectionInfo, CancellationToken cancellationToken);
+
+        public async Task<(SelectionResult?, OperationStatus)> GetValidSelectionAsync(CancellationToken cancellationToken)
         {
-            if (!controlFlowAnalysisData.EndPointIsReachable)
+            if (!this.ContainsValidSelection)
+                return (null, OperationStatus.FailedWithUnknownReason);
+
+            var initialSelectionInfo = this.GetInitialSelectionInfo(cancellationToken);
+            if (initialSelectionInfo.Status.Failed)
+                return (null, initialSelectionInfo.Status);
+
+            var selectionInfo = UpdateSelectionInfo(initialSelectionInfo, cancellationToken);
+            if (selectionInfo.Status.Failed)
+                return (null, selectionInfo.Status);
+
+            if (!selectionInfo.SelectionInExpression &&
+                !IsValidStatementRange(SemanticDocument.Root, selectionInfo.FinalSpan, cancellationToken))
             {
-                // REVIEW: should we just do extract method regardless or show some warning to user?
-                // in dev10, looks like we went ahead and did the extract method even if selection contains
-                // unreachable code.
+                return (null, selectionInfo.Status.With(succeeded: false, FeaturesResources.Cannot_determine_valid_range_of_statements_to_extract));
             }
 
-            return true;
+            var selectionResult = await CreateSelectionResultAsync(selectionInfo, cancellationToken).ConfigureAwait(false);
+
+            var status = selectionInfo.Status.With(
+                selectionResult.ValidateSelectionResult(cancellationToken));
+
+            return (selectionResult, status);
         }
 
-        // okay, only branch was return. make sure we have all return in the selection.
-
-        // check for special case, if end point is not reachable, we don't care the selection
-        // actually contains all return statements. we just let extract method go through
-        // and work like we did in dev10
-        if (!controlFlowAnalysisData.EndPointIsReachable)
+        private static bool IsValidStatementRange(
+            SyntaxNode root, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            return true;
-        }
+            // use top-down approach to find largest statement range contained in the given span
+            // this method is a bit more expensive than bottom-up approach, but way more simpler than the other approach.
+            var token1 = root.FindToken(textSpan.Start);
+            var token2 = root.FindTokenFromEnd(textSpan.End);
 
-        // there is a return statement, and current position is reachable. let's check whether this is a case where that is okay
-        return IsFinalSpanSemanticallyValidSpan(semanticModel.SyntaxTree.GetRoot(cancellationToken), textSpan, returnStatements, cancellationToken);
-    }
+            var commonRoot = token1.GetCommonRoot(token2).GetAncestorOrThis<TStatementSyntax>() ?? root;
 
-    protected static (T, T)? GetStatementRangeContainingSpan<T>(
-        ISyntaxFacts syntaxFacts,
-        SyntaxNode root, TextSpan textSpan, CancellationToken cancellationToken) where T : SyntaxNode
-    {
-        // use top-down approach to find smallest statement range that contains given span.
-        // this approach is more expansive than bottom-up approach I used before but way simpler and easy to understand
-        var token1 = root.FindToken(textSpan.Start);
-        var token2 = root.FindTokenFromEnd(textSpan.End);
+            TStatementSyntax? firstStatement = null;
+            TStatementSyntax? lastStatement = null;
 
-        var commonRoot = token1.GetCommonRoot(token2).GetAncestorOrThis<T>() ?? root;
-
-        var firstStatement = (T)null;
-        var lastStatement = (T)null;
-
-        var spine = new List<T>();
-
-        foreach (var stmt in commonRoot.DescendantNodesAndSelf().OfType<T>())
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // quick skip check.
-            // - not containing at all
-            if (stmt.Span.End < textSpan.Start)
+            foreach (var statement in commonRoot.DescendantNodesAndSelf().OfType<TStatementSyntax>())
             {
-                continue;
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (firstStatement == null && statement.SpanStart >= textSpan.Start)
+                    firstStatement = statement;
+
+                if (firstStatement != null && statement.Span.End <= textSpan.End && statement.Parent == firstStatement.Parent)
+                    lastStatement = statement;
             }
 
-            // quick exit check
-            // - passed candidate statements
-            if (textSpan.End < stmt.SpanStart)
-            {
-                break;
-            }
-
-            if (stmt.SpanStart <= textSpan.Start)
-            {
-                // keep track spine
-                spine.Add(stmt);
-            }
-
-            if (textSpan.End <= stmt.Span.End && spine.Any(s => CanMergeExistingSpineWithCurrent(syntaxFacts, s, stmt)))
-            {
-                // malformed code or selection can make spine to have more than an elements
-                firstStatement = spine.First(s => CanMergeExistingSpineWithCurrent(syntaxFacts, s, stmt));
-                lastStatement = stmt;
-
-                spine.Clear();
-            }
+            return firstStatement != null && lastStatement != null;
         }
 
-        if (firstStatement == null || lastStatement == null)
+        protected FinalSelectionInfo AssignFinalSpan(
+             InitialSelectionInfo initialSelectionInfo, FinalSelectionInfo finalSelectionInfo)
         {
-            return null;
+            if (finalSelectionInfo.Status.Failed)
+                return finalSelectionInfo;
+
+            var adjustedSpan = GetAdjustedSpan(OriginalSpan);
+
+            // set final span
+            var start = initialSelectionInfo.FirstTokenInOriginalSpan == finalSelectionInfo.FirstTokenInFinalSpan
+                ? Math.Min(initialSelectionInfo.FirstTokenInOriginalSpan.SpanStart, adjustedSpan.Start)
+                : finalSelectionInfo.FirstTokenInFinalSpan.FullSpan.Start;
+
+            var end = initialSelectionInfo.LastTokenInOriginalSpan == finalSelectionInfo.LastTokenInFinalSpan
+                ? Math.Max(initialSelectionInfo.LastTokenInOriginalSpan.Span.End, adjustedSpan.End)
+                : finalSelectionInfo.LastTokenInFinalSpan.Span.End;
+
+            return finalSelectionInfo with
+            {
+                FinalSpan = GetAdjustedSpan(TextSpan.FromBounds(start, end)),
+            };
         }
 
-        return (firstStatement, lastStatement);
-
-        static bool CanMergeExistingSpineWithCurrent(ISyntaxFacts syntaxFacts, T existing, T current)
-            => syntaxFacts.AreStatementsInSameContainer(existing, current);
-    }
-
-    protected static (T, T)? GetStatementRangeContainedInSpan<T>(
-        SyntaxNode root, TextSpan textSpan, CancellationToken cancellationToken) where T : SyntaxNode
-    {
-        // use top-down approach to find largest statement range contained in the given span
-        // this method is a bit more expensive than bottom-up approach, but way more simpler than the other approach.
-        var token1 = root.FindToken(textSpan.Start);
-        var token2 = root.FindTokenFromEnd(textSpan.End);
-
-        var commonRoot = token1.GetCommonRoot(token2).GetAncestorOrThis<T>() ?? root;
-
-        T firstStatement = null;
-        T lastStatement = null;
-
-        foreach (var stmt in commonRoot.DescendantNodesAndSelf().OfType<T>())
+        protected InitialSelectionInfo CreateInitialSelectionInfo(
+            bool selectionInExpression,
+            SyntaxToken firstTokenInOriginalSpan,
+            SyntaxToken lastTokenInOriginalSpan,
+            CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            if (selectionInExpression)
+                return new(OperationStatus.SucceededStatus, firstTokenInOriginalSpan, lastTokenInOriginalSpan, firstStatement: null, lastStatement: null, selectionInExpression: true);
 
-            if (firstStatement == null && stmt.SpanStart >= textSpan.Start)
+            var statements = GetStatementRangeContainingSpan(firstTokenInOriginalSpan, lastTokenInOriginalSpan, cancellationToken);
+            if (statements is not var (firstStatement, lastStatement))
+                return InitialSelectionInfo.Failure(FeaturesResources.No_valid_statement_range_to_extract);
+
+            return new(OperationStatus.SucceededStatus, firstTokenInOriginalSpan, lastTokenInOriginalSpan, firstStatement, lastStatement, selectionInExpression: false);
+        }
+
+        private (TStatementSyntax firstStatement, TStatementSyntax lastStatement)? GetStatementRangeContainingSpan(
+            SyntaxToken firstTokenInOriginalSpan,
+            SyntaxToken lastTokenInOriginalSpan,
+            CancellationToken cancellationToken)
+        {
+            var document = this.SemanticDocument;
+            var blockFacts = document.GetRequiredLanguageService<IBlockFactsService>();
+
+            // use top-down approach to find smallest statement range that contains given span. this approach is more
+            // expansive than bottom-up approach I used before but way simpler and easy to understand
+            var textSpan = TextSpan.FromBounds(firstTokenInOriginalSpan.SpanStart, lastTokenInOriginalSpan.Span.End);
+
+            var root = document.Root;
+            var token1 = root.FindToken(textSpan.Start);
+            var token2 = root.FindTokenFromEnd(textSpan.End);
+
+            var commonRoot = token1.GetCommonRoot(token2).GetAncestorOrThis<TStatementSyntax>() ?? root;
+
+            TStatementSyntax? firstStatement = null;
+            TStatementSyntax? lastStatement = null;
+
+            var spine = new List<TStatementSyntax>();
+
+            foreach (var statement in commonRoot.DescendantNodesAndSelf().OfType<TStatementSyntax>())
             {
-                firstStatement = stmt;
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // quick skip check.
+                // - not containing at all
+                if (statement.Span.End < textSpan.Start)
+                    continue;
+
+                // quick exit check
+                // - passed candidate statements
+                if (textSpan.End < statement.SpanStart)
+                    break;
+
+                if (statement.SpanStart <= textSpan.Start)
+                {
+                    // keep track spine
+                    spine.Add(statement);
+                }
+
+                if (textSpan.End <= statement.Span.End && spine.Any(s => AreStatementsInSameContainer(s, statement)))
+                {
+                    // malformed code or selection can make spine to have more than an elements
+                    firstStatement = spine.First(s => AreStatementsInSameContainer(s, statement));
+                    lastStatement = statement;
+
+                    spine.Clear();
+                }
             }
 
-            if (firstStatement != null && stmt.Span.End <= textSpan.End && stmt.Parent == firstStatement.Parent)
+            if (firstStatement == null || lastStatement == null)
+                return null;
+
+            return (firstStatement, lastStatement);
+
+            bool AreStatementsInSameContainer(TStatementSyntax statement1, TStatementSyntax statement2)
             {
-                lastStatement = stmt;
+                var parent1 = blockFacts.GetImmediateParentExecutableBlockForStatement(statement1) ?? statement1.Parent;
+                var parent2 = blockFacts.GetImmediateParentExecutableBlockForStatement(statement2) ?? statement2.Parent;
+
+                return parent1 == parent2;
             }
         }
-
-        if (firstStatement == null || lastStatement == null)
-        {
-            return null;
-        }
-
-        return (firstStatement, lastStatement);
-    }
-
-    protected sealed class SelectionInfo
-    {
-        public OperationStatus Status { get; set; }
-
-        public TextSpan OriginalSpan { get; set; }
-        public TextSpan FinalSpan { get; set; }
-
-        public SyntaxNode CommonRootFromOriginalSpan { get; set; }
-
-        public SyntaxToken FirstTokenInOriginalSpan { get; set; }
-        public SyntaxToken LastTokenInOriginalSpan { get; set; }
-
-        public SyntaxToken FirstTokenInFinalSpan { get; set; }
-        public SyntaxToken LastTokenInFinalSpan { get; set; }
-
-        public bool SelectionInExpression { get; set; }
-        public bool SelectionInSingleStatement { get; set; }
-
-        public SelectionInfo WithStatus(Func<OperationStatus, OperationStatus> statusGetter)
-            => With(s => s.Status = statusGetter(s.Status));
-
-        public SelectionInfo With(Action<SelectionInfo> valueSetter)
-        {
-            var newInfo = Clone();
-            valueSetter(newInfo);
-            return newInfo;
-        }
-
-        public SelectionInfo Clone()
-            => (SelectionInfo)MemberwiseClone();
     }
 }

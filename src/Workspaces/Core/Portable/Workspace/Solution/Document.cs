@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -389,13 +388,33 @@ public class Document : TextDocument
     /// Creates a new instance of this document updated to have the text specified.
     /// </summary>
     public Document WithText(SourceText text)
-        => this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity).GetRequiredDocument(Id);
+    {
+        var solution = this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity);
+
+        if (Id.IsSourceGenerated)
+        {
+            // We just modified the text of the generated document, so it should be available synchronously, and throwing is appropriate if it isn't.
+            return solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(Id);
+        }
+
+        return solution.GetRequiredDocument(Id);
+    }
 
     /// <summary>
     /// Creates a new instance of this document updated to have a syntax tree rooted by the specified syntax node.
     /// </summary>
     public Document WithSyntaxRoot(SyntaxNode root)
-        => this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetRequiredDocument(Id);
+    {
+        var solution = this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity);
+
+        if (Id.IsSourceGenerated)
+        {
+            // We just modified the text of the generated document, so it should be available synchronously, and throwing is appropriate if it isn't.
+            return solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(Id);
+        }
+
+        return solution.GetRequiredDocument(Id);
+    }
 
     /// <summary>
     /// Creates a new instance of this document updated to have the specified name.
@@ -416,10 +435,28 @@ public class Document : TextDocument
         => this.Project.Solution.WithDocumentFilePath(this.Id, filePath).GetRequiredDocument(Id);
 
     /// <summary>
-    /// Get the text changes between this document and a prior version of the same document.
-    /// The changes, when applied to the text of the old document, will produce the text of the current document.
+    /// Get the text changes between this document and a prior version of the same document. The changes, when applied
+    /// to the text of the old document, will produce the text of the current document.
     /// </summary>
     public async Task<IEnumerable<TextChange>> GetTextChangesAsync(Document oldDocument, CancellationToken cancellationToken = default)
+    {
+        return await GetTextChangesAsync(useAsync: true, oldDocument, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Similar to <see cref="GetTextChangesAsync(Document, CancellationToken)"/>, but should be used when in a forced
+    /// synchronous context.
+    /// </summary>
+    internal ImmutableArray<TextChange> GetTextChangesSynchronously(
+        Document oldDocument, CancellationToken cancellationToken)
+    {
+        // Should always complete synchronously since we passed in 'useAsync: false'
+        var result = GetTextChangesAsync(useAsync: false, oldDocument, cancellationToken);
+        return result.VerifyCompleted();
+    }
+
+    private async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
+        bool useAsync, Document oldDocument, CancellationToken cancellationToken)
     {
         try
         {
@@ -443,10 +480,10 @@ public class Document : TextDocument
                     var container = text.Container;
                     if (container != null)
                     {
-                        var textChanges = text.GetTextChanges(oldText).ToList();
+                        var textChanges = text.GetTextChanges(oldText).ToImmutableArray();
 
                         // if changes are significant (not the whole document being replaced) then use these changes
-                        if (textChanges.Count > 1 || (textChanges.Count == 1 && textChanges[0].Span != new TextSpan(0, oldText.Length)))
+                        if (textChanges.Length > 1 || (textChanges.Length == 1 && textChanges[0].Span != new TextSpan(0, oldText.Length)))
                         {
                             return textChanges;
                         }
@@ -456,17 +493,18 @@ public class Document : TextDocument
                 // get changes by diffing the trees
                 if (this.SupportsSyntaxTree)
                 {
-                    var tree = (await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
-                    var oldTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    var tree = useAsync ? await GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false) : this.GetSyntaxTreeSynchronously(cancellationToken);
+                    var oldTree = useAsync ? await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false) : oldDocument.GetSyntaxTreeSynchronously(cancellationToken);
 
+                    RoslynDebug.Assert(tree is object);
                     RoslynDebug.Assert(oldTree is object);
-                    return tree.GetChanges(oldTree);
+                    return [.. tree.GetChanges(oldTree)];
                 }
 
-                text = await this.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                text = useAsync ? await this.GetTextAsync(cancellationToken).ConfigureAwait(false) : this.GetTextSynchronously(cancellationToken);
+                oldText = useAsync ? await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false) : oldDocument.GetTextSynchronously(cancellationToken);
 
-                return text.GetTextChanges(oldText).ToList();
+                return [.. text.GetTextChanges(oldText)];
             }
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

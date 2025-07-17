@@ -3,17 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -22,14 +21,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 
 [ExportLanguageService(typeof(IRemoveUnnecessaryImportsService), LanguageNames.CSharp), Shared]
-internal partial class CSharpRemoveUnnecessaryImportsService :
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class CSharpRemoveUnnecessaryImportsService() :
     AbstractRemoveUnnecessaryImportsService<UsingDirectiveSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpRemoveUnnecessaryImportsService()
-    {
-    }
+    private static readonly SyntaxAnnotation s_annotation = new();
 
     private static ISyntaxFormatting SyntaxFormatting
         => CSharpSyntaxFormatting.Instance;
@@ -54,13 +51,22 @@ internal partial class CSharpRemoveUnnecessaryImportsService :
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var oldRoot = (CompilationUnitSyntax)root;
-            var newRoot = (CompilationUnitSyntax)new Rewriter(unnecessaryImports, cancellationToken).Visit(oldRoot);
+            var newRoot = new Rewriter(unnecessaryImports, cancellationToken).Visit(root);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var spansToFormat = new List<TextSpan>();
-            AddFormattingSpans(newRoot, spansToFormat, cancellationToken);
+            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var spansToFormat);
+            foreach (var node in newRoot.GetAnnotatedNodes(s_annotation))
+            {
+                if (node is CompilationUnitSyntax { Members: [var firstMemberA, ..] })
+                {
+                    spansToFormat.Add(TextSpan.FromBounds(0, firstMemberA.SpanStart));
+                }
+                else if (node is BaseNamespaceDeclarationSyntax { Members: [var firstMemberB, ..] } baseNamespace)
+                {
+                    spansToFormat.Add(TextSpan.FromBounds(baseNamespace.Name.Span.End, firstMemberB.SpanStart));
+                }
+            }
 
             var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, cancellationToken).ConfigureAwait(false);
             var formattedRoot = SyntaxFormatting.GetFormattingResult(newRoot, spansToFormat, formattingOptions, rules: default, cancellationToken).GetFormattedRoot(cancellationToken);
@@ -68,31 +74,4 @@ internal partial class CSharpRemoveUnnecessaryImportsService :
             return document.WithSyntaxRoot(formattedRoot);
         }
     }
-
-    private static void AddFormattingSpans(
-        CompilationUnitSyntax compilationUnit,
-        List<TextSpan> spans,
-        CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        spans.Add(TextSpan.FromBounds(0, GetEndPosition(compilationUnit, compilationUnit.Members)));
-
-        foreach (var @namespace in compilationUnit.Members.OfType<BaseNamespaceDeclarationSyntax>())
-            AddFormattingSpans(@namespace, spans, cancellationToken);
-    }
-
-    private static void AddFormattingSpans(
-        BaseNamespaceDeclarationSyntax namespaceMember,
-        List<TextSpan> spans,
-        CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        spans.Add(TextSpan.FromBounds(namespaceMember.SpanStart, GetEndPosition(namespaceMember, namespaceMember.Members)));
-
-        foreach (var @namespace in namespaceMember.Members.OfType<BaseNamespaceDeclarationSyntax>())
-            AddFormattingSpans(@namespace, spans, cancellationToken);
-    }
-
-    private static int GetEndPosition(SyntaxNode container, SyntaxList<MemberDeclarationSyntax> list)
-        => list.Count > 0 ? list[0].SpanStart : container.Span.End;
 }

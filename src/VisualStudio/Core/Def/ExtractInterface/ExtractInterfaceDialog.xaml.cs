@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.PlatformUI;
 
@@ -20,13 +19,13 @@ internal partial class ExtractInterfaceDialog : DialogWindow
     public ExtractInterfaceDialogViewModel ViewModel { get; }
 
     // Expose localized strings for binding
-    public string ExtractInterfaceDialogTitle { get { return ServicesVSResources.Extract_Interface; } }
+    public string ExtractInterfaceDialogTitle { get { return EditorFeaturesResources.Extract_Interface; } }
     public string NewInterfaceName { get { return ServicesVSResources.New_interface_name_colon; } }
     public string SelectPublicMembersToFormInterface { get { return ServicesVSResources.Select_public_members_to_form_interface; } }
     public string SelectAll { get { return ServicesVSResources.Select_All; } }
     public string DeselectAll { get { return ServicesVSResources.Deselect_All; } }
     public string OK { get { return ServicesVSResources.OK; } }
-    public string Cancel { get { return ServicesVSResources.Cancel; } }
+    public string Cancel { get { return EditorFeaturesResources.Cancel; } }
 
     public MemberSelection MemberSelectionControl { get; }
 

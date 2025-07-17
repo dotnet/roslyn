@@ -21,7 +21,7 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
         AppendNamingStylePreferencesToEditorConfig(
             namingStylePreferences.SymbolSpecifications,
             namingStylePreferences.NamingStyles,
-            namingStylePreferences.NamingRules,
+            namingStylePreferences.Rules.NamingRules,
             language,
             editorconfig);
     }
@@ -29,45 +29,57 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
     public static void AppendNamingStylePreferencesToEditorConfig(
         ImmutableArray<SymbolSpecification> symbolSpecifications,
         ImmutableArray<NamingStyle> namingStyles,
-        ImmutableArray<SerializableNamingRule> serializableNamingRules,
+        ImmutableArray<NamingRule> namingRules,
         string language,
         StringBuilder builder)
     {
         WriteNamingStylePreferencesToEditorConfig(
             symbolSpecifications,
             namingStyles,
-            serializableNamingRules,
+            namingRules,
             language,
             entryWriter: (name, value) => builder.AppendLine($"{name} = {value}"),
-            triviaWriter: trivia => builder.AppendLine(trivia));
+            triviaWriter: trivia => builder.AppendLine(trivia),
+            setPrioritiesToPreserveOrder: false);
     }
 
     public static void WriteNamingStylePreferencesToEditorConfig(
         ImmutableArray<SymbolSpecification> symbolSpecifications,
         ImmutableArray<NamingStyle> namingStyles,
-        ImmutableArray<SerializableNamingRule> serializableNamingRules,
+        ImmutableArray<NamingRule> rules,
         string language,
         Action<string, string> entryWriter,
-        Action<string>? triviaWriter)
+        Action<string>? triviaWriter,
+        bool setPrioritiesToPreserveOrder)
     {
         triviaWriter?.Invoke($"#### {CompilerExtensionsResources.Naming_styles} ####");
 
         var serializedNameMap = AssignNamesToNamingStyleElements(symbolSpecifications, namingStyles);
-        var ruleNameMap = AssignNamesToNamingStyleRules(serializableNamingRules, serializedNameMap);
+        var ruleNameMap = AssignNamesToNamingStyleRules(rules, serializedNameMap);
         var referencedElements = new HashSet<Guid>();
 
         triviaWriter?.Invoke("");
         triviaWriter?.Invoke($"# {CompilerExtensionsResources.Naming_rules}");
 
-        foreach (var namingRule in serializableNamingRules)
+        var priority = 0;
+        foreach (var namingRule in rules)
         {
-            referencedElements.Add(namingRule.SymbolSpecificationID);
-            referencedElements.Add(namingRule.NamingStyleID);
+            referencedElements.Add(namingRule.SymbolSpecification.ID);
+            referencedElements.Add(namingRule.NamingStyle.ID);
 
             triviaWriter?.Invoke("");
-            entryWriter($"dotnet_naming_rule.{ruleNameMap[namingRule]}.severity", namingRule.EnforcementLevel.ToNotificationOption(defaultSeverity: DiagnosticSeverity.Hidden).ToEditorConfigString());
-            entryWriter($"dotnet_naming_rule.{ruleNameMap[namingRule]}.symbols", serializedNameMap[namingRule.SymbolSpecificationID]);
-            entryWriter($"dotnet_naming_rule.{ruleNameMap[namingRule]}.style", serializedNameMap[namingRule.NamingStyleID]);
+            var ruleName = ruleNameMap[namingRule];
+
+            if (setPrioritiesToPreserveOrder)
+            {
+                entryWriter($"dotnet_naming_rule.{ruleName}.priority", priority.ToString());
+            }
+
+            entryWriter($"dotnet_naming_rule.{ruleName}.severity", namingRule.EnforcementLevel.ToNotificationOption(defaultSeverity: DiagnosticSeverity.Hidden).ToEditorConfigString());
+            entryWriter($"dotnet_naming_rule.{ruleName}.symbols", serializedNameMap[namingRule.SymbolSpecification.ID]);
+            entryWriter($"dotnet_naming_rule.{ruleName}.style", serializedNameMap[namingRule.NamingStyle.ID]);
+
+            priority++;
         }
 
         triviaWriter?.Invoke("");
@@ -140,7 +152,7 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
 
         static string ToSnakeCaseName(string name)
         {
-            return new string(name
+            return new string([.. name
                 .Select(ch =>
                 {
                     if (char.IsLetterOrDigit(ch))
@@ -151,17 +163,16 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
                     {
                         return '_';
                     }
-                })
-                .ToArray());
+                })]);
         }
     }
 
-    private static ImmutableDictionary<SerializableNamingRule, string> AssignNamesToNamingStyleRules(ImmutableArray<SerializableNamingRule> namingRules, ImmutableDictionary<Guid, string> serializedNameMap)
+    private static ImmutableDictionary<NamingRule, string> AssignNamesToNamingStyleRules(ImmutableArray<NamingRule> namingRules, ImmutableDictionary<Guid, string> serializedNameMap)
     {
-        var builder = ImmutableDictionary.CreateBuilder<SerializableNamingRule, string>();
+        var builder = ImmutableDictionary.CreateBuilder<NamingRule, string>();
         foreach (var rule in namingRules)
         {
-            builder.Add(rule, $"{serializedNameMap[rule.SymbolSpecificationID]}_should_be_{serializedNameMap[rule.NamingStyleID]}");
+            builder.Add(rule, $"{serializedNameMap[rule.SymbolSpecification.ID]}_should_be_{serializedNameMap[rule.NamingStyle.ID]}");
         }
 
         return builder.ToImmutable();

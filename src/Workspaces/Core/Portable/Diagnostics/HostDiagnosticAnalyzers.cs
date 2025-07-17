@@ -133,7 +133,7 @@ internal sealed class HostDiagnosticAnalyzers
     /// Create <see cref="AnalyzerReference"/> identity and <see cref="DiagnosticAnalyzer"/>s map for given <paramref name="project"/> that
     /// has only project analyzers
     /// </summary>
-    public ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> CreateProjectDiagnosticAnalyzersPerReference(Project project)
+    public ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> CreateProjectDiagnosticAnalyzersPerReference(ProjectState project)
         => CreateProjectDiagnosticAnalyzersPerReference(project.AnalyzerReferences, project.Language);
 
     public ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> CreateProjectDiagnosticAnalyzersPerReference(IReadOnlyList<AnalyzerReference> projectAnalyzerReferences, string language)
@@ -231,7 +231,7 @@ internal sealed class HostDiagnosticAnalyzers
             }
 
             // input "analyzerReferencesMap" is a dictionary, so there will be no duplication here.
-            builder.Add(reference.Key, analyzers.WhereNotNull().ToImmutableArray());
+            builder.Add(reference.Key, [.. analyzers.WhereNotNull()]);
         }
 
         return builder.ToImmutable();
@@ -290,13 +290,13 @@ internal sealed class HostDiagnosticAnalyzers
                 continue;
             }
 
-            current = current.Add(referenceIdentity, analyzers.Where(seen.Add).ToImmutableArray());
+            current = current.Add(referenceIdentity, [.. analyzers.Where(seen.Add)]);
         }
 
         return current;
     }
 
-    public SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(Project project, DiagnosticAnalyzerInfoCache infoCache)
+    public SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(ProjectState project, DiagnosticAnalyzerInfoCache infoCache)
     {
         var box = _skippedHostAnalyzers.GetOrCreateValue(project.AnalyzerReferences);
 

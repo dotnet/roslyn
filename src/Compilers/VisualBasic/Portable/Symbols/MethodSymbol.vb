@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Source: Returns whether this method is an iterator; i.e., does it have the Iterator modifier?
         ''' Metadata: Returns False; methods from metadata cannot be an iterator.
         ''' </summary>
-        Public MustOverride ReadOnly Property IsIterator As Boolean
+        Public MustOverride ReadOnly Property IsIterator As Boolean Implements IMethodSymbol.IsIterator
 
         ''' <summary>
         ''' Indicates whether the accessor is marked with the 'init' modifier.
@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Build and add synthesized return type attributes for this method symbol.
         ''' </summary>
-        Friend Overridable Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overridable Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
         End Sub
 
         ''' <summary>
@@ -436,6 +436,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' This property will only return true if this method hides a base method by name and signature (Overloads keyword).
         ''' </remarks>
         Public MustOverride ReadOnly Property IsOverloads As Boolean
+
+        ''' <summary>
+        ''' Gets the resolution priority of this method, 0 if not set.
+        ''' </summary>
+        ''' <remarks>
+        ''' Do not call this method from early attribute binding, cycles will occur.
+        ''' </remarks>
+        Public ReadOnly Property OverloadResolutionPriority As Integer
+            Get
+                Return If(CanHaveOverloadResolutionPriority, GetOverloadResolutionPriority(), 0)
+            End Get
+        End Property
+
+        Public MustOverride Function GetOverloadResolutionPriority() As Integer
+
+        Public ReadOnly Property CanHaveOverloadResolutionPriority As Boolean
+            Get
+                Select Case MethodKind
+                    Case MethodKind.Ordinary,
+                         MethodKind.Constructor,
+                         MethodKind.UserDefinedOperator,
+                         MethodKind.ReducedExtension
+
+                        Return Not IsOverrides
+
+                    Case Else
+                        Return False
+                End Select
+            End Get
+        End Property
 
         ''' <summary>
         ''' True if the implementation of this method is supplied by the runtime.

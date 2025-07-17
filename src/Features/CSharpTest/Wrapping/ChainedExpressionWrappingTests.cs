@@ -11,12 +11,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-public class ChainedExpressionWrappingTests : AbstractWrappingTests
+public sealed class ChainedExpressionWrappingTests : AbstractWrappingTests
 {
     [Fact]
-    public async Task TestMissingWithSyntaxError()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithSyntaxError()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -24,12 +23,10 @@ public class ChainedExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithoutEnoughChunks()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithoutEnoughChunks()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -37,12 +34,10 @@ public class ChainedExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithEnoughChunks()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestWithEnoughChunks()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -66,12 +61,10 @@ public class ChainedExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestGenericNames()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestGenericNames()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -95,12 +88,10 @@ public class ChainedExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestElementAccess()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestElementAccess()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -124,12 +115,10 @@ public class ChainedExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUnwrap()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestUnwrap()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -153,12 +142,10 @@ public class ChainedExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWrapAndUnwrap()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestWrapAndUnwrap()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -191,12 +178,10 @@ public class ChainedExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestChunkMustHaveDottedSection()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestChunkMustHaveDottedSection()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -220,12 +205,10 @@ public class ChainedExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TrailingNonCallIsNotWrapped()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TrailingNonCallIsNotWrapped()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -249,12 +232,10 @@ public class ChainedExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TrailingLongWrapping1()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TrailingLongWrapping1()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -262,54 +243,52 @@ public class ChainedExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """,
-GetIndentionColumn(35),
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-            .jumped().over
-            .the()
-            .lazy()
-            .dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-                 .jumped().over
-                 .the()
-                 .lazy()
-                 .dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-            .jumped().over.the()
-            .lazy().dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-                 .jumped().over
-                 .the().lazy()
-                 .dog();
-    }
-}
-""");
-    }
+            GetIndentionColumn(35),
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                        .jumped().over
+                        .the()
+                        .lazy()
+                        .dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                             .jumped().over
+                             .the()
+                             .lazy()
+                             .dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                        .jumped().over.the()
+                        .lazy().dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                             .jumped().over
+                             .the().lazy()
+                             .dog();
+                }
+            }
+            """);
 
     [Fact]
-    public async Task TrailingLongWrapping2()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TrailingLongWrapping2()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -317,53 +296,51 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(40),
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-            .jumped().over
-            .the()
-            .lazy()
-            .dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-                 .jumped().over
-                 .the()
-                 .lazy()
-                 .dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-            .jumped().over.the().lazy()
-            .dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-                 .jumped().over.the()
-                 .lazy().dog();
-    }
-}
-""");
-    }
+            GetIndentionColumn(40),
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                        .jumped().over
+                        .the()
+                        .lazy()
+                        .dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                             .jumped().over
+                             .the()
+                             .lazy()
+                             .dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                        .jumped().over.the().lazy()
+                        .dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                             .jumped().over.the()
+                             .lazy().dog();
+                }
+            }
+            """);
 
     [Fact]
-    public async Task TrailingLongWrapping3()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TrailingLongWrapping3()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -371,51 +348,49 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(60),
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-            .jumped().over
-            .the()
-            .lazy()
-            .dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-                 .jumped().over
-                 .the()
-                 .lazy()
-                 .dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox.jumped().over.the().lazy()
-            .dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox.jumped().over.the().lazy()
-                 .dog();
-    }
-}
-""");
-    }
+            GetIndentionColumn(60),
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                        .jumped().over
+                        .the()
+                        .lazy()
+                        .dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                             .jumped().over
+                             .the()
+                             .lazy()
+                             .dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox.jumped().over.the().lazy()
+                        .dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox.jumped().over.the().lazy()
+                             .dog();
+                }
+            }
+            """);
 
     [Fact]
-    public async Task TestInConditionalAccess()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestInConditionalAccess()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -439,12 +414,10 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInConditionalAccess2()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestInConditionalAccess2()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -468,12 +441,10 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInConditionalAccess3()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestInConditionalAccess3()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -497,12 +468,10 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInConditionalAccess4()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestInConditionalAccess4()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -519,5 +488,4 @@ class C {
                 }
             }
             """);
-    }
 }

@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser;
 
-internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManager>
+internal sealed class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManager>
 {
     private readonly ObjectList _parentList;
     private readonly uint _flags;
@@ -396,7 +396,8 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         }
     }
 
-    protected override bool GetExpandable(uint index, uint listTypeExcluded)
+    protected override async Task<bool> GetExpandableAsync(
+        uint index, uint listTypeExcluded, CancellationToken cancellationToken)
     {
         switch (Kind)
         {
@@ -408,20 +409,21 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
 
             case ObjectListKind.BaseTypes:
             case ObjectListKind.Types:
-                return IsExpandableType(index);
+                return await IsExpandableTypeAsync(index, cancellationToken).ConfigureAwait(true);
         }
 
         return false;
     }
 
-    private bool IsExpandableType(uint index)
+    private async Task<bool> IsExpandableTypeAsync(uint index, CancellationToken cancellationToken)
     {
         if (GetListItem(index) is not TypeListItem typeListItem)
         {
             return false;
         }
 
-        var compilation = typeListItem.GetCompilation(this.LibraryManager.Workspace);
+        var compilation = await typeListItem.GetCompilationAsync(
+            this.LibraryManager.Workspace, cancellationToken).ConfigureAwait(true);
         if (compilation == null)
         {
             return false;
@@ -456,7 +458,8 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
     protected override uint GetItemCount()
         => (uint)_items.Length;
 
-    protected override IVsSimpleObjectList2 GetList(uint index, uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch)
+    protected override async Task<IVsSimpleObjectList2> GetListAsync(
+        uint index, uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, CancellationToken cancellationToken)
     {
         var listItem = GetListItem(index);
 
@@ -496,15 +499,16 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
 
             var lookInReferences = (flags & ((uint)_VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS | (uint)_VSOBSEARCHOPTIONS2.VSOBSO_LISTREFERENCES)) != 0;
 
-            var projectAndAssemblySet = this.LibraryManager.GetAssemblySet(project, lookInReferences, CancellationToken.None);
-            return this.LibraryManager.GetSearchList(listKind, flags, pobSrch, projectAndAssemblySet);
+            var projectAndAssemblySet = await this.LibraryManager.GetAssemblySetAsync(
+                project, lookInReferences, cancellationToken).ConfigureAwait(true);
+            return await this.LibraryManager.GetSearchListAsync(
+                listKind, flags, pobSrch, projectAndAssemblySet, cancellationToken).ConfigureAwait(true);
         }
 
-        var compilation = listItem.GetCompilation(this.LibraryManager.Workspace);
+        var compilation = await listItem.GetCompilationAsync(
+            this.LibraryManager.Workspace, cancellationToken).ConfigureAwait(true);
         if (compilation == null)
-        {
             return null;
-        }
 
         switch (listKind)
         {
@@ -525,14 +529,14 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         throw new NotImplementedException();
     }
 
-    protected override object GetBrowseObject(uint index)
+    protected override Task<object> GetBrowseObjectAsync(uint index, CancellationToken cancellationToken)
     {
         if (GetListItem(index) is SymbolListItem symbolListItem)
         {
-            return this.LibraryManager.Workspace.GetBrowseObject(symbolListItem);
+            return this.LibraryManager.Workspace.GetBrowseObjectAsync(symbolListItem, cancellationToken);
         }
 
-        return base.GetBrowseObject(index);
+        return base.GetBrowseObjectAsync(index, cancellationToken);
     }
 
     protected override bool SupportsNavInfo
@@ -540,7 +544,8 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         get { return true; }
     }
 
-    protected override IVsNavInfo GetNavInfo(uint index)
+    protected override async Task<IVsNavInfo> GetNavInfoAsync(
+        uint index, CancellationToken cancellationToken)
     {
         var listItem = GetListItem(index);
         if (listItem == null)
@@ -564,7 +569,8 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
 
         if (listItem is SymbolListItem symbolListItem)
         {
-            return this.LibraryManager.GetNavInfo(symbolListItem, useExpandedHierarchy: IsClassView());
+            return await this.LibraryManager.GetNavInfoAsync(
+                symbolListItem, useExpandedHierarchy: IsClassView(), cancellationToken).ConfigureAwait(true);
         }
 
         return null;
@@ -648,28 +654,26 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         get { return true; }
     }
 
-    protected override bool TryFillDescription(uint index, _VSOBJDESCOPTIONS options, IVsObjectBrowserDescription3 description)
+    protected override Task<bool> TryFillDescriptionAsync(
+        uint index, _VSOBJDESCOPTIONS options, IVsObjectBrowserDescription3 description, CancellationToken cancellationToken)
     {
         var listItem = GetListItem(index);
 
-        return this.LibraryManager.TryFillDescription(listItem, description, options);
+        return this.LibraryManager.TryFillDescriptionAsync(
+            listItem, description, options, cancellationToken);
     }
 
-    protected override bool TryGetProperty(uint index, _VSOBJLISTELEMPROPID propertyId, out object pvar)
+    protected override async Task<(bool success, object pvar)> TryGetPropertyAsync(
+        uint index, _VSOBJLISTELEMPROPID propertyId, CancellationToken cancellationToken)
     {
-        pvar = null;
-
         var listItem = GetListItem(index);
         if (listItem == null)
-        {
-            return false;
-        }
+            return default;
 
         switch (propertyId)
         {
             case _VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME:
-                pvar = listItem.FullNameText;
-                return true;
+                return (true, listItem.FullNameText);
 
             case _VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_HELPKEYWORD:
                 if (listItem is SymbolListItem symbolListItem)
@@ -677,25 +681,21 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
                     var project = this.LibraryManager.Workspace.CurrentSolution.GetProject(symbolListItem.ProjectId);
                     if (project != null)
                     {
-                        var compilation = project
-                            .GetCompilationAsync(CancellationToken.None)
-                            .WaitAndGetResult_ObjectBrowser(CancellationToken.None);
+                        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(true);
 
                         var symbol = symbolListItem.ResolveSymbol(compilation);
                         if (symbol != null)
                         {
                             var helpContextService = project.Services.GetService<IHelpContextService>();
-
-                            pvar = helpContextService.FormatSymbol(symbol);
-                            return true;
+                            return (true, helpContextService.FormatSymbol(symbol));
                         }
                     }
                 }
 
-                return false;
+                return default;
         }
 
-        return false;
+        return default;
     }
 
     protected override bool TryCountSourceItems(uint index, out IVsHierarchy hierarchy, out uint itemid, out uint items)
@@ -741,7 +741,7 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         {
             var operationExecutor = LibraryManager.ComponentModel.GetService<IUIThreadOperationExecutor>();
 
-            using var context = operationExecutor.BeginExecute(ServicesVSResources.IntelliSense, EditorFeaturesResources.Navigating, allowCancellation: true, showProgress: false);
+            using var context = operationExecutor.BeginExecute(EditorFeaturesResources.IntelliSense, EditorFeaturesResources.Navigating, allowCancellation: true, showProgress: false);
 
             var cancellationToken = context.UserCancellationToken;
             if (srcType == VSOBJGOTOSRCTYPE.GS_DEFINITION &&

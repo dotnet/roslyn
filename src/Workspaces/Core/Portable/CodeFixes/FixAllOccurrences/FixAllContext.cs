@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
 
@@ -73,8 +72,6 @@ public partial class FixAllContext : IFixAllContext
 
     #region IFixAllContext implementation
     IFixAllState IFixAllContext.State => this.State;
-
-    IFixAllProvider IFixAllContext.FixAllProvider => this.FixAllProvider;
 
     object IFixAllContext.Provider => this.CodeFixProvider;
 
@@ -248,8 +245,8 @@ public partial class FixAllContext : IFixAllContext
             var diagnostics = await getDiagnosticsTask.ConfigureAwait(false);
             if (diagnostics != null)
             {
-                return diagnostics.Where(d => d != null && diagnosticIds.Contains(d.Id)
-                    && (filterSpan == null || filterSpan.Value.Contains(d.Location.SourceSpan))).ToImmutableArray();
+                return [.. diagnostics.Where(d => d != null && diagnosticIds.Contains(d.Id)
+                    && (filterSpan == null || filterSpan.Value.Contains(d.Location.SourceSpan)))];
             }
         }
 

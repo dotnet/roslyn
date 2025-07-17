@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -40,7 +39,7 @@ internal sealed partial class FixAllState : CommonFixAllState<CodeFixProvider, F
         Debug.Assert(diagnosticSpan.HasValue || scope is not FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
         DiagnosticSpan = diagnosticSpan;
-        DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
+        DiagnosticIds = [.. diagnosticIds];
         DiagnosticProvider = fixAllDiagnosticProvider;
     }
 

@@ -10,9 +10,10 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
@@ -206,7 +207,7 @@ internal abstract class AbstractListItemFactory
         // Special case: System.Object doesn't have a base type
         if (namedTypeSymbol.SpecialType == SpecialType.System_Object)
         {
-            return ImmutableArray<ObjectListItem>.Empty;
+            return [];
         }
 
         var symbolBuilder = ImmutableArray.CreateBuilder<INamedTypeSymbol>();
@@ -233,7 +234,7 @@ internal abstract class AbstractListItemFactory
 
         if (parentListItem is not TypeListItem parentTypeItem)
         {
-            return ImmutableArray<ObjectListItem>.Empty;
+            return [];
         }
 
         var typeSymbol = parentTypeItem.ResolveTypedSymbol(compilation);
@@ -393,7 +394,7 @@ internal abstract class AbstractListItemFactory
 
         if (parentListItem is not TypeListItem parentTypeItem)
         {
-            return ImmutableArray<ObjectListItem>.Empty;
+            return [];
         }
 
         var typeSymbol = parentTypeItem.ResolveTypedSymbol(compilation);
@@ -452,16 +453,17 @@ internal abstract class AbstractListItemFactory
         return builder.ToImmutableAndClear();
     }
 
-    private class AssemblySymbolComparer : IEqualityComparer<Tuple<ProjectId, IAssemblySymbol>>
+    private sealed class AssemblySymbolComparer : IEqualityComparer<(ProjectId, IAssemblySymbol)>
     {
-        public bool Equals(Tuple<ProjectId, IAssemblySymbol> x, Tuple<ProjectId, IAssemblySymbol> y)
+        public bool Equals((ProjectId, IAssemblySymbol) x, (ProjectId, IAssemblySymbol) y)
             => x.Item2.Identity.Equals(y.Item2.Identity);
 
-        public int GetHashCode(Tuple<ProjectId, IAssemblySymbol> obj)
+        public int GetHashCode((ProjectId, IAssemblySymbol) obj)
             => obj.Item2.Identity.GetHashCode();
     }
 
-    public ImmutableHashSet<Tuple<ProjectId, IAssemblySymbol>> GetAssemblySet(Solution solution, string languageName, CancellationToken cancellationToken)
+    public async Task<ImmutableHashSet<(ProjectId, IAssemblySymbol)>> GetAssemblySetAsync(
+        Solution solution, string languageName, CancellationToken cancellationToken)
     {
         var set = ImmutableHashSet.CreateBuilder(new AssemblySymbolComparer());
 
@@ -480,14 +482,12 @@ internal abstract class AbstractListItemFactory
                 continue;
             }
 
-            var compilation = project
-                .GetCompilationAsync(cancellationToken)
-                .WaitAndGetResult(cancellationToken);
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(true);
 
             if (compilation != null &&
                 compilation.Assembly != null)
             {
-                set.Add(Tuple.Create(projectId, compilation.Assembly));
+                set.Add((projectId, compilation.Assembly));
 
                 foreach (var reference in project.MetadataReferences)
                 {
@@ -495,7 +495,7 @@ internal abstract class AbstractListItemFactory
 
                     if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol referenceAssembly)
                     {
-                        set.Add(Tuple.Create(projectId, referenceAssembly));
+                        set.Add((projectId, referenceAssembly));
                     }
                 }
             }
@@ -504,18 +504,16 @@ internal abstract class AbstractListItemFactory
         return set.ToImmutable();
     }
 
-    public ImmutableHashSet<Tuple<ProjectId, IAssemblySymbol>> GetAssemblySet(Project project, bool lookInReferences, CancellationToken cancellationToken)
+    public async Task<ImmutableHashSet<(ProjectId, IAssemblySymbol)>> GetAssemblySetAsync(Project project, bool lookInReferences, CancellationToken cancellationToken)
     {
         var set = ImmutableHashSet.CreateBuilder(new AssemblySymbolComparer());
 
-        var compilation = project
-            .GetCompilationAsync(cancellationToken)
-            .WaitAndGetResult(cancellationToken);
+        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(true);
 
         if (compilation != null &&
             compilation.Assembly != null)
         {
-            set.Add(Tuple.Create(project.Id, compilation.Assembly));
+            set.Add((project.Id, compilation.Assembly));
 
             if (lookInReferences)
             {
@@ -525,7 +523,7 @@ internal abstract class AbstractListItemFactory
 
                     if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol referenceAssembly)
                     {
-                        set.Add(Tuple.Create(project.Id, referenceAssembly));
+                        set.Add((project.Id, referenceAssembly));
                     }
                 }
             }
@@ -588,7 +586,7 @@ internal abstract class AbstractListItemFactory
         var projectIds = solution.ProjectIds;
         if (!projectIds.Any())
         {
-            return ImmutableArray<ObjectListItem>.Empty;
+            return [];
         }
 
         var projectListItemBuilder = ImmutableArray.CreateBuilder<ObjectListItem>();
@@ -645,7 +643,7 @@ internal abstract class AbstractListItemFactory
 
         if (!compilation.References.Any())
         {
-            return ImmutableArray<ObjectListItem>.Empty;
+            return [];
         }
 
         var builder = ArrayBuilder<ObjectListItem>.GetInstance();

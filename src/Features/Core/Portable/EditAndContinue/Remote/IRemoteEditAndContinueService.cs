@@ -6,10 +6,10 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -27,7 +27,7 @@ internal interface IRemoteEditAndContinueService
     }
 
     ValueTask<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken);
-    ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, IImmutableSet<ProjectId> runningProjects, CancellationToken cancellationToken);
+    ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects, CancellationToken cancellationToken);
 
     /// <summary>
     /// Returns ids of documents for which diagnostics need to be refreshed in-proc.

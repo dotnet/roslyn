@@ -70,19 +70,14 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             _document = document;
         }
 
-        public static async Task<State> GenerateAsync(
+        public static async ValueTask<State> GenerateAsync(
             TService service,
             SemanticDocument document,
             SyntaxNode interfaceNode,
             CancellationToken cancellationToken)
         {
             var state = new State(service, document);
-            if (!await state.TryInitializeAsync(interfaceNode, cancellationToken).ConfigureAwait(false))
-            {
-                return null;
-            }
-
-            return state;
+            return await state.TryInitializeAsync(interfaceNode, cancellationToken).ConfigureAwait(false) ? state : null;
         }
 
         public Accessibility DetermineMaximalAccessibility()
@@ -108,9 +103,8 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             return accessibility;
         }
 
-        private async Task<bool> TryInitializeAsync(
-            SyntaxNode node,
-            CancellationToken cancellationToken)
+        private async ValueTask<bool> TryInitializeAsync(
+            SyntaxNode node, CancellationToken cancellationToken)
         {
             if (_service.IsIdentifierNameGeneration(node))
             {
@@ -170,8 +164,8 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
 
         internal bool CanGeneratePropertyOrField()
         {
-            return ContainingType is { IsImplicitClass: false }
-                && ContainingType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).IsEmpty;
+            return this.TypeToGenerateIn is { IsImplicitClass: false }
+                && TypeToGenerateIn.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).IsEmpty;
         }
 
         internal bool CanGenerateLocal()
@@ -468,7 +462,9 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             // Substitute 'object' for all captured method type parameters.  Note: we may need to
             // do this for things like anonymous types, as well as captured type parameters that
             // aren't in scope in the destination type.
-            var capturedMethodTypeParameters = inferredType.GetReferencedMethodTypeParameters();
+            using var _1 = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var capturedMethodTypeParameters);
+            inferredType.AddReferencedMethodTypeParameters(capturedMethodTypeParameters);
+
             var mapping = capturedMethodTypeParameters.ToDictionary(tp => tp,
                 tp => compilation.ObjectType);
 
@@ -480,7 +476,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             var enclosingMethodSymbol = _document.SemanticModel.GetEnclosingSymbol<IMethodSymbol>(SimpleNameOrMemberAccessExpressionOpt.SpanStart, cancellationToken);
             if (enclosingMethodSymbol != null && enclosingMethodSymbol.TypeParameters != null && enclosingMethodSymbol.TypeParameters.Length != 0)
             {
-                using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var combinedTypeParameters);
+                using var _2 = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var combinedTypeParameters);
                 combinedTypeParameters.AddRange(availableTypeParameters);
                 combinedTypeParameters.AddRange(enclosingMethodSymbol.TypeParameters);
                 LocalType = inferredType.RemoveUnavailableTypeParameters(compilation, combinedTypeParameters);

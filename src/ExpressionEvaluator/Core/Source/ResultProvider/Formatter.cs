@@ -11,7 +11,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.MetadataReader;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
@@ -182,10 +181,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         string IDkmClrFullNameProvider2.GetClrNameForField(DkmInspectionContext inspectionContext, DkmClrModuleInstance moduleInstance, int fieldToken)
         {
-            var import = (IMetadataImport)moduleInstance.GetMetaDataImport();
+            using var importHolder = moduleInstance.GetMetaDataImportHolder();
 
             // Just get some of information about properties. Get rest later only if needed.
-            int hr = import.GetFieldProps(fieldToken, out _, null, 0, out var nameLength, out _, out _, out _, out _, out _, out _);
+            int hr = importHolder.Value.GetFieldProps(fieldToken, out _, null, 0, out var nameLength, out _, out _, out _, out _, out _, out _);
             const int S_OK = 0;
             if (hr != S_OK)
             {
@@ -193,7 +192,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             var sb = new StringBuilder(nameLength);
-            hr = import.GetFieldProps(fieldToken, out _, sb, sb.Capacity, out _, out _, out _, out _, out _, out _, out _);
+            hr = importHolder.Value.GetFieldProps(fieldToken, out _, sb, sb.Capacity, out _, out _, out _, out _, out _, out _, out _);
             if (hr != S_OK)
             {
                 throw new DkmException((DkmExceptionCode)hr);

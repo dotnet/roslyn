@@ -19,7 +19,7 @@ using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
 
 [Export(typeof(ITableColumnDefinition))]
 [Name(Severity)]
-internal class NamingStylesSeverityColumnDefinition : TableColumnDefinitionBase
+internal sealed class NamingStylesSeverityColumnDefinition : TableColumnDefinitionBase
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -48,10 +48,10 @@ internal class NamingStylesSeverityColumnDefinition : TableColumnDefinitionBase
             => severity switch
             {
                 ReportDiagnostic.Suppress => ServicesVSResources.Disabled,
-                ReportDiagnostic.Hidden => ServicesVSResources.Refactoring_Only,
-                ReportDiagnostic.Info => ServicesVSResources.Suggestion,
-                ReportDiagnostic.Warn => ServicesVSResources.Warning,
-                ReportDiagnostic.Error => ServicesVSResources.Error,
+                ReportDiagnostic.Hidden => WorkspacesResources.Refactoring_Only,
+                ReportDiagnostic.Info => WorkspacesResources.Suggestion,
+                ReportDiagnostic.Warn => WorkspacesResources.Warning,
+                ReportDiagnostic.Error => WorkspacesResources.Error,
                 _ => throw new InvalidOperationException(),
             };
     }

@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 internal partial class VisualStudioWorkspaceImpl
 {
-    private class AddAnalyzerConfigDocumentUndoUnit : AbstractAddDocumentUndoUnit
+    private sealed class AddAnalyzerConfigDocumentUndoUnit : AbstractAddDocumentUndoUnit
     {
         public AddAnalyzerConfigDocumentUndoUnit(
             VisualStudioWorkspaceImpl workspace,

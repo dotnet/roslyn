@@ -334,6 +334,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                        name).GetPublicSymbol();
         }
 
+        protected override IPreprocessingSymbol CommonCreatePreprocessingSymbol(string name)
+        {
+            return new Symbols.PublicModel.PreprocessingSymbol(name);
+        }
+
         #region Constructors and Factories
 
         private static readonly CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
@@ -1935,7 +1940,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return scriptClass.GetScriptEntryPoint();
                     }
 
-                    var mainTypeOrNamespace = globalNamespace.GetNamespaceOrTypeByQualifiedName(mainTypeName.Split('.')).OfMinimalArity();
+                    var nameParts = mainTypeName.Split('.');
+                    if (nameParts.Any(n => string.IsNullOrWhiteSpace(n)))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadCompilationOptionValue, NoLocation.Singleton, nameof(CSharpCompilationOptions.MainTypeName), mainTypeName);
+                        return null;
+                    }
+
+                    var mainTypeOrNamespace = globalNamespace.GetNamespaceOrTypeByQualifiedName(nameParts).OfMinimalArity();
                     if (mainTypeOrNamespace is null)
                     {
                         diagnostics.Add(ErrorCode.ERR_MainClassNotFound, NoLocation.Singleton, mainTypeName);
@@ -2152,6 +2164,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MethodSymbol> entryPointCandidates, IEnumerable<Symbol> members)
         {
             foreach (var member in members)
+            {
+                if (member.GetIsNewExtensionMember())
+                {
+                    // When candidates are collected by GetSymbolsWithName, skeleton members are found but not implementation methods.
+                    // We want to include the implementation for skeleton methods.
+                    if (member is MethodSymbol method && method.TryGetCorrespondingExtensionImplementationMethod() is { } implementationMethod)
+                    {
+                        addIfCandidate(entryPointCandidates, implementationMethod);
+                    }
+                }
+                else
+                {
+                    addIfCandidate(entryPointCandidates, member);
+                }
+            }
+
+            static void addIfCandidate(ArrayBuilder<MethodSymbol> entryPointCandidates, Symbol member)
             {
                 if (member is MethodSymbol method &&
                     method.IsEntryPointCandidate)
@@ -2422,16 +2451,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool InterceptorsDiscoveryComplete;
 
-        // NB: the 'Many' case for these dictionary values means there are duplicates. An error is reported for this after binding.
-        private ConcurrentDictionary<(string FilePath, int Position), OneOrMany<(Location AttributeLocation, MethodSymbol Interceptor)>>? _interceptions;
+        /// <remarks>Equals and GetHashCode on this type intentionally resemble corresponding methods on <see cref="InterceptableLocation1"/>.</remarks>
+        private sealed class InterceptorKeyComparer : IEqualityComparer<(ImmutableArray<byte> ContentHash, int Position)>
+        {
+            private InterceptorKeyComparer() { }
+            public static readonly InterceptorKeyComparer Instance = new InterceptorKeyComparer();
 
-        internal void AddInterception(string filePath, int position, Location attributeLocation, MethodSymbol interceptor)
+            public bool Equals((ImmutableArray<byte> ContentHash, int Position) x, (ImmutableArray<byte> ContentHash, int Position) y)
+            {
+                return x.ContentHash.SequenceEqual(y.ContentHash) && x.Position == y.Position;
+            }
+
+            public int GetHashCode((ImmutableArray<byte> ContentHash, int Position) obj)
+            {
+                return Hash.Combine(
+                    BinaryPrimitives.ReadInt32LittleEndian(obj.ContentHash.AsSpan()),
+                    obj.Position);
+            }
+        }
+
+        // NB: the 'Many' case for these dictionary values means there are duplicates. An error is reported for this after binding.
+        private ConcurrentDictionary<(ImmutableArray<byte> ContentHash, int Position), OneOrMany<(Location AttributeLocation, MethodSymbol Interceptor)>>? _interceptions;
+
+        internal void AddInterception(ImmutableArray<byte> contentHash, int position, Location attributeLocation, MethodSymbol interceptor)
         {
             Debug.Assert(!_declarationDiagnosticsFrozen);
             Debug.Assert(!InterceptorsDiscoveryComplete);
 
-            var dictionary = LazyInitializer.EnsureInitialized(ref _interceptions);
-            dictionary.AddOrUpdate((filePath, position),
+            var dictionary = LazyInitializer.EnsureInitialized(ref _interceptions,
+                () => new ConcurrentDictionary<(ImmutableArray<byte> ContentHash, int Position), OneOrMany<(Location AttributeLocation, MethodSymbol Interceptor)>>(comparer: InterceptorKeyComparer.Instance));
+            dictionary.AddOrUpdate((contentHash, position),
                 addValueFactory: static (key, newValue) => OneOrMany.Create(newValue),
                 updateValueFactory: static (key, existingValues, newValue) =>
                 {
@@ -2464,7 +2513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var key = (node.SyntaxTree.FilePath, node.Position);
+            var key = (node.SyntaxTree.GetText().GetContentHash(), node.Position);
             if (_interceptions.TryGetValue(key, out var interceptionsAtAGivenLocation) && interceptionsAtAGivenLocation is [var oneInterception])
             {
                 return oneInterception;
@@ -3478,6 +3527,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 SynthesizedMetadataCompiler.ProcessSynthesizedMembers(this, moduleBeingBuilt, cancellationToken);
+
+                if (moduleBeingBuilt.OutputKind.IsApplication())
+                {
+                    var entryPointDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+                    var entryPoint = MethodCompiler.GetEntryPoint(
+                        this,
+                        moduleBeingBuilt,
+                        hasDeclarationErrors: false,
+                        emitMethodBodies: false,
+                        entryPointDiagnostics,
+                        cancellationToken);
+                    diagnostics.AddRange(entryPointDiagnostics.DiagnosticBag!);
+                    bool shouldSetEntryPoint = entryPoint != null && !entryPointDiagnostics.HasAnyErrors();
+                    entryPointDiagnostics.Free();
+                    if (shouldSetEntryPoint)
+                    {
+                        moduleBeingBuilt.SetPEEntryPoint(entryPoint, diagnostics);
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
             }
             else
             {
@@ -3635,7 +3707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_moduleInitializerMethods is object)
             {
-                var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
+                var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), methodBodyDiagnosticBag, OptimizationLevel.Release, areLocalsZeroed: false);
 
                 foreach (MethodSymbol method in _moduleInitializerMethods.OrderBy<MethodSymbol>(LexicalOrderSymbolComparer.Instance))
                 {
@@ -3643,8 +3715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ilBuilder.EmitToken(
                         moduleBeingBuilt.Translate(method, methodBodyDiagnosticBag, needDeclaration: true),
-                        CSharpSyntaxTree.Dummy.GetRoot(),
-                        methodBodyDiagnosticBag);
+                        CSharpSyntaxTree.Dummy.GetRoot());
                 }
 
                 ilBuilder.EmitRet(isVoid: true);
@@ -3730,6 +3801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
+            EmitDifferenceOptions options,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -3741,6 +3813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 metadataStream,
                 ilStream,
                 pdbStream,
+                options,
                 testData,
                 cancellationToken);
         }

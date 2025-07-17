@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class VolatileKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class VolatileKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.VolatileKeyword)
 {
     private static readonly ISet<SyntaxKind> s_validMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
@@ -21,11 +21,6 @@ internal class VolatileKeywordRecommender : AbstractSyntacticSingleKeywordRecomm
             SyntaxKind.PrivateKeyword,
             SyntaxKind.StaticKeyword,
         };
-
-    public VolatileKeywordRecommender()
-        : base(SyntaxKind.VolatileKeyword)
-    {
-    }
 
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {

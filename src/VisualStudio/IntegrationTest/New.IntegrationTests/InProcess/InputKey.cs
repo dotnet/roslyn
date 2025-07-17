@@ -25,7 +25,7 @@ internal readonly struct InputKey
 
     public InputKey(char character)
     {
-        Modifiers = ImmutableArray<VirtualKeyCode>.Empty;
+        Modifiers = [];
         VirtualKeyCode = 0;
         Character = character;
         Text = null;
@@ -33,7 +33,7 @@ internal readonly struct InputKey
 
     public InputKey(string text)
     {
-        Modifiers = ImmutableArray<VirtualKeyCode>.Empty;
+        Modifiers = [];
         VirtualKeyCode = 0;
         Character = null;
         Text = text;
@@ -46,10 +46,10 @@ internal readonly struct InputKey
         => new(text);
 
     public static implicit operator InputKey(VirtualKeyCode virtualKeyCode)
-        => new(virtualKeyCode, ImmutableArray<VirtualKeyCode>.Empty);
+        => new(virtualKeyCode, []);
 
     public static implicit operator InputKey((VirtualKeyCode virtualKeyCode, VirtualKeyCode modifier) modifiedKey)
-        => new(modifiedKey.virtualKeyCode, ImmutableArray.Create(modifiedKey.modifier));
+        => new(modifiedKey.virtualKeyCode, [modifiedKey.modifier]);
 
     public void Apply(IInputSimulator simulator)
     {
