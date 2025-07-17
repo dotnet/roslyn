@@ -8702,6 +8702,59 @@ class C
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test").WithArguments("object", "0"));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79195")]
+        public void CS0518ERR_PredefinedTypeAmbiguous()
+        {
+            string code = """
+                var range = 1..2;
+                """;
+
+            CreateCompilation(code, targetFramework: TargetFramework.NetStandard20).VerifyDiagnostics(
+                // (1,13): error CS0518: Predefined type 'System.Range' is not defined or imported
+                // var range = 1..2;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1..2").WithArguments("System.Range").WithLocation(1, 13),
+                // (1,13): error CS0518: Predefined type 'System.Index' is not defined or imported
+                // var range = 1..2;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1").WithArguments("System.Index").WithLocation(1, 13),
+                // (1,16): error CS0518: Predefined type 'System.Index' is not defined or imported
+                // var range = 1..2;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "2").WithArguments("System.Index").WithLocation(1, 16));
+
+            CreateCompilation(code, [createReference("Ref0")], targetFramework: TargetFramework.NetStandard20).VerifyDiagnostics();
+
+            CreateCompilation(code, [createReference("Ref1"), createReference("Ref2")], targetFramework: TargetFramework.NetStandard20).VerifyDiagnostics(
+                // (1,13): error CS8356: Predefined type 'System.Range' is declared in multiple referenced assemblies: 'Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // var range = 1..2;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "1..2").WithArguments("System.Range", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 13),
+                // (1,13): error CS8356: Predefined type 'System.Index' is declared in multiple referenced assemblies: 'Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // var range = 1..2;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "1").WithArguments("System.Index", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 13),
+                // (1,16): error CS8356: Predefined type 'System.Index' is declared in multiple referenced assemblies: 'Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // var range = 1..2;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "2").WithArguments("System.Index", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 16));
+
+            static MetadataReference createReference(string name)
+            {
+                string code = """
+                    namespace System;
+                    public struct Index
+                    {
+                        public int GetOffset(int length) => 0;
+                        public static implicit operator Index(int value) => default;
+                    }
+                    public struct Range
+                    {
+                        public Range(Index start, Index end) { }
+                        public Index Start => default;
+                        public Index End => default;
+                    }
+                    """;
+                return CreateCompilation(code, assemblyName: name)
+                    .VerifyDiagnostics()
+                    .EmitToPortableExecutableReference();
+            }
+        }
+
         //[Fact(Skip = "Bad test case")]
         //public void CS0520ERR_PredefinedTypeBadType()
         //{
@@ -11298,9 +11351,9 @@ public class C
 }
 ";
             CreateCompilation(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (6,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (6,6): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport"),
-                // (9,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (9,6): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport"));
         }
 
@@ -14052,7 +14105,7 @@ public partial class C : Base
                 // (27,34): error CS0507: 'C.PartI()': cannot change access modifiers when overriding 'protected' inherited member 'Base.PartI()'
                 //     sealed override partial void PartI();
                 Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "PartI").WithArguments("C.PartI()", "protected", "Base.PartI()").WithLocation(27, 34),
-                // (28,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (28,6): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 //     [System.Runtime.InteropServices.DllImport("none")]
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "System.Runtime.InteropServices.DllImport").WithLocation(28, 6));
         }

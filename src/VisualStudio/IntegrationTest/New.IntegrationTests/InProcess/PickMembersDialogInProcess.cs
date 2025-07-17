@@ -88,8 +88,6 @@ internal sealed partial class PickMembersDialogInProcess
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, cancellationToken);
     }
 
-    public async Task ClickDownAsync(CancellationToken cancellationToken)
-    {
-        await ClickAsync(dialog => dialog.GetTestAccessor().DownButton, cancellationToken);
-    }
+    public Task ClickDownAsync(CancellationToken cancellationToken)
+        => ClickAsync(dialog => dialog.GetTestAccessor().DownButton, cancellationToken);
 }

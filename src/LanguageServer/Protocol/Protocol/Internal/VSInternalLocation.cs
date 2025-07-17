@@ -5,8 +5,8 @@
 namespace Roslyn.LanguageServer.Protocol;
 
 using System;
-using Roslyn.Text.Adornments;
 using System.Text.Json.Serialization;
+using Roslyn.Text.Adornments;
 
 /// <summary>
 /// Extension class for <see cref="Protocol.Location"/>.  Used to relay reference text information with colorization.

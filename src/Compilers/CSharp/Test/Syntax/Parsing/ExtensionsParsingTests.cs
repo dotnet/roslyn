@@ -19,7 +19,7 @@ public class ExtensionsParsingTests : ParsingTests
     [Fact]
     public void LangVer13()
     {
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider giving a LangVer error to trigger UpgradeProject
+        // Tracked by https://github.com/dotnet/roslyn/issues/78961 : consider giving a LangVer error to trigger UpgradeProject
         UsingTree("""
 class C
 {
@@ -3019,14 +3019,6 @@ static class C
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (5,39): error CS0563: One of the parameters of a binary operator must be the containing type
-            //         public static object operator +(object a, object b) => a;
-            Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(5, 39),
-            // (5,39): error CS9282: This member is not allowed in an extension block
-            //         public static object operator +(object a, object b) => a;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "+").WithLocation(5, 39));
 
         UsingTree(src, TestOptions.RegularPreview);
         N(SyntaxKind.CompilationUnit);
@@ -3118,9 +3110,6 @@ static class C
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,41): error CS0556: User-defined conversion must convert to or from the enclosing type
-            //         public static implicit operator int(object t) => 0;
-            Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(5, 41),
             // (5,41): error CS9282: This member is not allowed in an extension block
             //         public static implicit operator int(object t) => 0;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "int").WithLocation(5, 41));

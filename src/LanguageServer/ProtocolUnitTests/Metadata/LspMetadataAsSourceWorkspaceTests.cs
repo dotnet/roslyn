@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,17 +71,6 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
             }
             """;
 
-        var metadataSource =
-            """
-            namespace System
-            {
-                public class Console
-                {
-                    public static void WriteLine(string value) {}
-                }
-            }
-            """;
-
         // Create a server with LSP misc file workspace and metadata service.
         await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
@@ -94,7 +82,15 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
 
         // Open the metadata file and verify it gets added to the metadata workspace.
         // We don't have the real metadata source, so just populate it with our fake metadata source.
-        await testLspServer.OpenDocumentAsync(definition.Single().DocumentUri, text: metadataSource).ConfigureAwait(false);
+        await testLspServer.OpenDocumentAsync(definition.Single().DocumentUri, text: """
+            namespace System
+            {
+                public class Console
+                {
+                    public static void WriteLine(string value) {}
+                }
+            }
+            """).ConfigureAwait(false);
         var workspaceForDocument = await GetWorkspaceForDocument(testLspServer, definition.Single().DocumentUri);
         Assert.Equal(WorkspaceKind.MetadataAsSource, workspaceForDocument.Kind);
         AssertMiscFileWorkspaceEmpty(testLspServer);

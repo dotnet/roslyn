@@ -169,7 +169,7 @@ public sealed class FormatterTests
             Assert.True(formattingOptions.Spacing.HasFlag(SpacePlacement.AfterDot));
             Assert.True(formattingOptions.Spacing.HasFlag(SpacePlacement.BeforeDot));
 
-            Assert.Equal(BinaryOperatorSpacingOptions.Remove, formattingOptions.SpacingAroundBinaryOperator);
+            Assert.Equal(BinaryOperatorSpacingOptionsInternal.Remove, formattingOptions.SpacingAroundBinaryOperator);
 
             Assert.False(formattingOptions.NewLines.HasFlag(NewLinePlacement.BeforeMembersInObjectInitializers));
             Assert.False(formattingOptions.NewLines.HasFlag(NewLinePlacement.BeforeMembersInAnonymousTypes));
@@ -187,7 +187,7 @@ public sealed class FormatterTests
             Assert.False(formattingOptions.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInControlBlocks));
             Assert.False(formattingOptions.NewLines.HasFlag(NewLinePlacement.BetweenQueryExpressionClauses));
 
-            Assert.Equal(LabelPositionOptions.LeftMost, formattingOptions.LabelPositioning);
+            Assert.Equal(LabelPositionOptionsInternal.LeftMost, formattingOptions.LabelPositioning);
 
             Assert.True(formattingOptions.Indentation.HasFlag(IndentationPlacement.Braces));
             Assert.False(formattingOptions.Indentation.HasFlag(IndentationPlacement.BlockContents));

@@ -40,20 +40,12 @@ internal static partial class ITypeSymbolExtensions
         return isNullableValueType || isNonNullableReferenceType;
     }
 
-    public static IList<INamedTypeSymbol> GetAllInterfacesIncludingThis(this ITypeSymbol type)
+    public static ImmutableArray<INamedTypeSymbol> GetAllInterfacesIncludingThis(this ITypeSymbol type)
     {
         var allInterfaces = type.AllInterfaces;
-        if (type is INamedTypeSymbol namedType && namedType.TypeKind == TypeKind.Interface && !allInterfaces.Contains(namedType))
-        {
-            var result = new List<INamedTypeSymbol>(allInterfaces.Length + 1)
-            {
-                namedType
-            };
-            result.AddRange(allInterfaces);
-            return result;
-        }
-
-        return allInterfaces;
+        return type is INamedTypeSymbol { TypeKind: TypeKind.Interface } namedType && !allInterfaces.Contains(namedType)
+            ? [namedType, .. allInterfaces]
+            : allInterfaces;
     }
 
     public static bool IsAbstractClass([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
@@ -749,7 +741,7 @@ internal static partial class ITypeSymbolExtensions
     public static bool IsSpan([NotNullWhen(true)] this ITypeSymbol? type)
         => type is INamedTypeSymbol
         {
-            Name: nameof(Span<int>),
+            Name: nameof(Span<>),
             TypeArguments.Length: 1,
             ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
         };
@@ -757,7 +749,7 @@ internal static partial class ITypeSymbolExtensions
     public static bool IsReadOnlySpan([NotNullWhen(true)] this ISymbol? symbol)
         => symbol is INamedTypeSymbol
         {
-            Name: nameof(ReadOnlySpan<int>),
+            Name: nameof(ReadOnlySpan<>),
             TypeArguments.Length: 1,
             ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
         };

@@ -97,33 +97,27 @@ public sealed partial class FindAllDeclarationsTests : TestBase
     }
 
     [Fact]
-    public async Task FindDeclarationsAsync_Test_NullProject()
-    {
-        await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+    public Task FindDeclarationsAsync_Test_NullProject()
+        => Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
         {
             var declarations = await SymbolFinder.FindDeclarationsAsync(null, "Test", true);
         });
-    }
 
     [Fact]
-    public async Task FindDeclarationsAsync_Test_NullString()
-    {
-        await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+    public Task FindDeclarationsAsync_Test_NullString()
+        => Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
         {
             using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project);
             var declarations = await SymbolFinder.FindDeclarationsAsync(project, null, true);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindDeclarationsAsync_Test_Cancellation(TestHost testHost)
-    {
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+    public Task FindDeclarationsAsync_Test_Cancellation(TestHost testHost)
+        => Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
         {
             var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project, testHost);
             var declarations = await SymbolFinder.FindDeclarationsAsync(project, "Test", true, SymbolFilter.All, new CancellationToken(true));
         });
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094411")]
@@ -161,14 +155,14 @@ public sealed partial class FindAllDeclarationsTests : TestBase
         solution = solution
             .AddProject(submission0Id, submission0Name, submission0Name, LanguageNames.CSharp)
             .AddMetadataReference(submission0Id, MscorlibRef)
-            .AddDocument(submission0DocId, submission0Name, @"
-public class Outer
-{
-    public class Inner
-    {
-    }
-}
-");
+            .AddDocument(submission0DocId, submission0Name, """
+            public class Outer
+            {
+                public class Inner
+                {
+                }
+            }
+            """);
 
         var submission1Id = ProjectId.CreateNewId();
         var submission1DocId = DocumentId.CreateNewId(submission1Id);
@@ -177,9 +171,9 @@ public class Outer
             .AddProject(submission1Id, submission1Name, submission1Name, LanguageNames.CSharp)
             .AddMetadataReference(submission1Id, MscorlibRef)
             .AddProjectReference(submission1Id, new ProjectReference(submission0Id))
-            .AddDocument(submission1DocId, submission1Name, @"
-Inner i;
-");
+            .AddDocument(submission1DocId, submission1Name, """
+            Inner i;
+            """);
 
         var actualSymbol = (await SymbolFinder.FindDeclarationsAsync(solution.GetProject(submission1Id), "Inner", ignoreCase: false)).SingleOrDefault();
         var expectedSymbol = (await solution.GetProject(submission0Id).GetCompilationAsync()).GlobalNamespace.GetMembers("Outer").SingleOrDefault().GetMembers("Inner").SingleOrDefault();
@@ -263,33 +257,27 @@ Inner i;
     }
 
     [Fact]
-    public async Task FindSourceDeclarationsAsync_Project_Test_NullProject()
-    {
-        await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+    public Task FindSourceDeclarationsAsync_Project_Test_NullProject()
+        => Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
         {
             var declarations = await SymbolFinder.FindSourceDeclarationsAsync((Project)null, "Test", true);
         });
-    }
 
     [Fact]
-    public async Task FindSourceDeclarationsAsync_Project_Test_NullString()
-    {
-        await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+    public Task FindSourceDeclarationsAsync_Project_Test_NullString()
+        => Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
         {
             using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project);
             var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, null, true);
         });
-    }
 
     [Fact]
-    public async Task FindSourceDeclarationsAsync_Project_Test_Cancellation()
-    {
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+    public Task FindSourceDeclarationsAsync_Project_Test_Cancellation()
+        => Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
         {
             using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project);
             var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, "Test", true, SymbolFilter.All, new CancellationToken(true));
         });
-    }
 
     #endregion
 
@@ -368,33 +356,27 @@ Inner i;
     }
 
     [Fact]
-    public async Task FindSourceDeclarationsAsync_Solution_Test_NullProject()
-    {
-        await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+    public Task FindSourceDeclarationsAsync_Solution_Test_NullProject()
+        => Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
         {
             var declarations = await SymbolFinder.FindSourceDeclarationsAsync((Solution)null, "Test", true);
         });
-    }
 
     [Fact]
-    public async Task FindSourceDeclarationsAsync_Solution_Test_NullString()
-    {
-        await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+    public Task FindSourceDeclarationsAsync_Solution_Test_NullString()
+        => Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
         {
             using var workspace = CreateWorkspaceWithSolution(SolutionKind.SingleClass, out var solution);
             var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, null, true);
         });
-    }
 
     [Fact]
-    public async Task FindSourceDeclarationsAsync_Solution_Test_Cancellation()
-    {
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+    public Task FindSourceDeclarationsAsync_Solution_Test_Cancellation()
+        => Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
         {
             using var workspace = CreateWorkspaceWithSolution(SolutionKind.SingleClass, out var solution);
             var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, "Test", true, SymbolFilter.All, new CancellationToken(true));
         });
-    }
 
     #endregion
 
@@ -435,33 +417,27 @@ Inner i;
     }
 
     [Fact]
-    public async Task FindSourceDeclarationsAsync_Project_Func_Test_NullProject()
-    {
-        await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+    public Task FindSourceDeclarationsAsync_Project_Func_Test_NullProject()
+        => Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
         {
             var declarations = await SymbolFinder.FindSourceDeclarationsAsync((Project)null, str => str.Contains("Test"));
         });
-    }
 
     [Fact]
-    public async Task FindSourceDeclarationsAsync_Project_Func_Test_NullPredicate()
-    {
-        await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+    public Task FindSourceDeclarationsAsync_Project_Func_Test_NullPredicate()
+        => Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
         {
             using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project);
             var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, null);
         });
-    }
 
     [Fact]
-    public async Task FindSourceDeclarationsAsync_Project_Func_Test_Cancellation()
-    {
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+    public Task FindSourceDeclarationsAsync_Project_Func_Test_Cancellation()
+        => Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
         {
             using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project);
             var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, str => str.Contains("Test"), SymbolFilter.All, new CancellationToken(true));
         });
-    }
 
     #endregion
 
@@ -502,33 +478,27 @@ Inner i;
     }
 
     [Fact]
-    public async Task FindSourceDeclarationsAsync_Solution_Func_Test_NullSolution()
-    {
-        await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+    public Task FindSourceDeclarationsAsync_Solution_Func_Test_NullSolution()
+        => Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
         {
             await SymbolFinder.FindSourceDeclarationsAsync((Solution)null, str => str.Contains("Test"));
         });
-    }
 
     [Fact]
-    public async Task FindSourceDeclarationsAsync_Solution_Func_Test_NullPredicate()
-    {
-        await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+    public Task FindSourceDeclarationsAsync_Solution_Func_Test_NullPredicate()
+        => Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
         {
             using var workspace = CreateWorkspaceWithSolution(SolutionKind.SingleClass, out var solution);
             await SymbolFinder.FindSourceDeclarationsAsync(solution, null);
         });
-    }
 
     [Fact]
-    public async Task FindSourceDeclarationsAsync_Solution_Func_Test_Cancellation()
-    {
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+    public Task FindSourceDeclarationsAsync_Solution_Func_Test_Cancellation()
+        => Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
         {
             using var workspace = CreateWorkspaceWithSolution(SolutionKind.SingleClass, out var solution);
             await SymbolFinder.FindSourceDeclarationsAsync(solution, str => str.Contains("Test"), SymbolFilter.All, new CancellationToken(true));
         });
-    }
 
     #endregion
 
@@ -566,33 +536,27 @@ Inner i;
     }
 
     [Fact]
-    public async Task FindSourceDeclarationsWithPatternAsync_Project_Test_NullProject()
-    {
-        await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+    public Task FindSourceDeclarationsWithPatternAsync_Project_Test_NullProject()
+        => Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
         {
             var declarations = await SymbolFinder.FindSourceDeclarationsWithPatternAsync((Project)null, "test");
         });
-    }
 
     [Fact]
-    public async Task FindSourceDeclarationsWithPatternAsync_Project_Test_NullPattern()
-    {
-        await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+    public Task FindSourceDeclarationsWithPatternAsync_Project_Test_NullPattern()
+        => Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
         {
             using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project);
             var declarations = await SymbolFinder.FindSourceDeclarationsWithPatternAsync(project, null);
         });
-    }
 
     [Fact]
-    public async Task FindSourceDeclarationsWithPatternAsync_Project_Test_Cancellation()
-    {
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+    public Task FindSourceDeclarationsWithPatternAsync_Project_Test_Cancellation()
+        => Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
         {
             using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project);
             var declarations = await SymbolFinder.FindSourceDeclarationsWithPatternAsync(project, "test", SymbolFilter.All, new CancellationToken(true));
         });
-    }
 
     #endregion
 
@@ -630,33 +594,27 @@ Inner i;
     }
 
     [Fact]
-    public async Task FindSourceDeclarationsWithPatternAsync_Solution_Test_NullSolution()
-    {
-        await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+    public Task FindSourceDeclarationsWithPatternAsync_Solution_Test_NullSolution()
+        => Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
         {
             await SymbolFinder.FindSourceDeclarationsWithPatternAsync((Solution)null, "test");
         });
-    }
 
     [Fact]
-    public async Task FindSourceDeclarationsWithPatternAsync_Solution_Test_NullPattern()
-    {
-        await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+    public Task FindSourceDeclarationsWithPatternAsync_Solution_Test_NullPattern()
+        => Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
         {
             using var workspace = CreateWorkspaceWithSolution(SolutionKind.SingleClass, out var solution);
             await SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, null);
         });
-    }
 
     [Fact]
-    public async Task FindSourceDeclarationsWithPatternAsync_Solution_Test_Cancellation()
-    {
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+    public Task FindSourceDeclarationsWithPatternAsync_Solution_Test_Cancellation()
+        => Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
         {
             using var workspace = CreateWorkspaceWithSolution(SolutionKind.SingleClass, out var solution);
             await SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, "test", SymbolFilter.All, new CancellationToken(true));
         });
-    }
 
     #endregion
 
@@ -686,12 +644,6 @@ Inner i;
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/7941")]
     public async Task FindDeclarationsInErrorSymbolsDoesntCrash()
     {
-        var source = @"
-' missing `Class` keyword
-Public Class1
-    Public Event MyEvent(ByVal a As String)
-End Class
-";
 
         // create solution
         var pid = ProjectId.CreateNewId();
@@ -700,7 +652,12 @@ End Class
             .AddProject(pid, "VBProject", "VBProject", LanguageNames.VisualBasic)
             .AddMetadataReference(pid, MscorlibRef);
         var did = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did, "VBDocument.vb", SourceText.From(source));
+        solution = solution.AddDocument(did, "VBDocument.vb", SourceText.From("""
+            ' missing `Class` keyword
+            Public Class1
+                Public Event MyEvent(ByVal a As String)
+            End Class
+            """));
         var project = solution.Projects.Single();
 
         // perform the search

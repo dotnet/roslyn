@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
@@ -23,23 +22,15 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
     [Theory, CombinatorialData]
     public async Task DocumentChanges_EndToEnd(bool mutatingLspWorkspace)
     {
-        var source =
-@"class A
-{
-    void M()
-    {
-        {|type:|}
-    }
-}";
-        var expected =
-@"class A
-{
-    void M()
-    {
-        // hi there
-    }
-}";
-        var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
+        var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync("""
+            class A
+            {
+                void M()
+                {
+                    {|type:|}
+                }
+            }
+            """, mutatingLspWorkspace);
 
         await using (testLspServer)
         {
@@ -55,7 +46,15 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
             await DidChange(testLspServer, locationTyped.DocumentUri, (4, 8, "// hi there"));
 
             document = testLspServer.GetTrackedTexts().Single();
-            Assert.Equal(expected, document.ToString());
+            Assert.Equal("""
+                class A
+                {
+                    void M()
+                    {
+                        // hi there
+                    }
+                }
+                """, document.ToString());
 
             await DidClose(testLspServer, locationTyped.DocumentUri);
 
@@ -66,15 +65,15 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
     [Theory, CombinatorialData]
     public async Task DidOpen_DocumentIsTracked(bool mutatingLspWorkspace)
     {
-        var source =
-@"class A
-{
-    void M()
-    {
-        {|type:|}
-    }
-}";
-        var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
+        var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync("""
+            class A
+            {
+                void M()
+                {
+                    {|type:|}
+                }
+            }
+            """, mutatingLspWorkspace);
 
         await using (testLspServer)
         {
@@ -90,15 +89,15 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
     [Theory, CombinatorialData]
     public async Task MultipleDidOpen_Errors(bool mutatingLspWorkspace)
     {
-        var source =
-@"class A
-{
-    void M()
-    {
-        {|type:|}
-    }
-}";
-        var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
+        var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync("""
+            class A
+            {
+                void M()
+                {
+                    {|type:|}
+                }
+            }
+            """, mutatingLspWorkspace);
 
         await using (testLspServer)
         {
@@ -112,15 +111,15 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
     [Theory, CombinatorialData]
     public async Task DidCloseWithoutDidOpen_Errors(bool mutatingLspWorkspace)
     {
-        var source =
-@"class A
-{
-    void M()
-    {
-        {|type:|}
-    }
-}";
-        var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
+        var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync("""
+            class A
+            {
+                void M()
+                {
+                    {|type:|}
+                }
+            }
+            """, mutatingLspWorkspace);
 
         await using (testLspServer)
         {
@@ -132,15 +131,15 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
     [Theory, CombinatorialData]
     public async Task DidChangeWithoutDidOpen_Errors(bool mutatingLspWorkspace)
     {
-        var source =
-@"class A
-{
-    void M()
-    {
-        {|type:|}
-    }
-}";
-        var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
+        var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync("""
+            class A
+            {
+                void M()
+                {
+                    {|type:|}
+                }
+            }
+            """, mutatingLspWorkspace);
 
         await using (testLspServer)
         {
@@ -152,16 +151,15 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
     [Theory, CombinatorialData]
     public async Task DidClose_StopsTrackingDocument(bool mutatingLspWorkspace)
     {
-        var source =
-@"class A
-{
-    void M()
-    {
-        {|type:|}
-    }
-}";
-
-        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
+        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync("""
+            class A
+            {
+                void M()
+                {
+                    {|type:|}
+                }
+            }
+            """, mutatingLspWorkspace);
 
         await using (testLspServer)
         {
@@ -176,24 +174,15 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
     [Theory, CombinatorialData]
     public async Task DidChange_AppliesChanges(bool mutatingLspWorkspace)
     {
-        var source =
-@"class A
-{
-    void M()
-    {
-        {|type:|}
-    }
-}";
-        var expected =
-@"class A
-{
-    void M()
-    {
-        // hi there
-    }
-}";
-
-        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
+        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync("""
+            class A
+            {
+                void M()
+                {
+                    {|type:|}
+                }
+            }
+            """, mutatingLspWorkspace);
 
         await using (testLspServer)
         {
@@ -204,31 +193,30 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
             AssertEx.NotNull(document);
-            Assert.Equal(expected, document.ToString());
+            Assert.Equal("""
+                class A
+                {
+                    void M()
+                    {
+                        // hi there
+                    }
+                }
+                """, document.ToString());
         }
     }
 
     [Theory, CombinatorialData]
     public async Task DidChange_DoesntUpdateWorkspace(bool mutatingLspWorkspace)
     {
-        var source =
-@"class A
-{
-    void M()
-    {
-        {|type:|}
-    }
-}";
-        var expected =
-@"class A
-{
-    void M()
-    {
-        // hi there
-    }
-}";
-
-        var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
+        var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync("""
+            class A
+            {
+                void M()
+                {
+                    {|type:|}
+                }
+            }
+            """, mutatingLspWorkspace);
 
         await using (testLspServer)
         {
@@ -242,15 +230,22 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
             Assert.Equal(documentText, documentTextFromWorkspace);
 
             // Just to ensure this test breaks if didChange stops working for some reason
-            Assert.NotEqual(expected, documentTextFromWorkspace);
+            Assert.NotEqual("""
+                class A
+                {
+                    void M()
+                    {
+                        // hi there
+                    }
+                }
+                """, documentTextFromWorkspace);
         }
     }
 
     [Theory, CombinatorialData]
     public async Task DidChange_MultipleChanges_ForwardOrder(bool mutatingLspWorkspace)
     {
-        var source =
-            """
+        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync("""
             class A
             {
                 void M()
@@ -258,20 +253,7 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
                     {|type:|}
                 }
             }
-            """;
-        var expected =
-            """
-            class A
-            {
-                void M()
-                {
-                    // hi there
-                    // this builds on that
-                }
-            }
-            """;
-
-        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
+            """, mutatingLspWorkspace);
 
         await using (testLspServer)
         {
@@ -282,15 +264,23 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
             AssertEx.NotNull(document);
-            Assert.Equal(expected, document.ToString());
+            Assert.Equal("""
+            class A
+            {
+                void M()
+                {
+                    // hi there
+                    // this builds on that
+                }
+            }
+            """, document.ToString());
         }
     }
 
     [Theory, CombinatorialData]
     public async Task DidChange_MultipleChanges_Overlapping(bool mutatingLspWorkspace)
     {
-        var source =
-            """
+        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync("""
             class A
             {
                 void M()
@@ -298,19 +288,7 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
                     {|type:|}
                 }
             }
-            """;
-        var expected =
-            """
-            class A
-            {
-                void M()
-                {
-                    // hi there
-                }
-            }
-            """;
-
-        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
+            """, mutatingLspWorkspace);
 
         await using (testLspServer)
         {
@@ -321,15 +299,22 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
             AssertEx.NotNull(document);
-            Assert.Equal(expected, document.ToString());
+            Assert.Equal("""
+            class A
+            {
+                void M()
+                {
+                    // hi there
+                }
+            }
+            """, document.ToString());
         }
     }
 
     [Theory, CombinatorialData]
     public async Task DidChange_MultipleChanges_ReverseOrder(bool mutatingLspWorkspace)
     {
-        var source =
-            """
+        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync("""
             class A
             {
                 void M()
@@ -337,20 +322,7 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
                     {|type:|}
                 }
             }
-            """;
-        var expected =
-            """
-            class A
-            {
-                void M()
-                {
-                    // hi there
-                    // this builds on that
-                }
-            }
-            """;
-
-        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
+            """, mutatingLspWorkspace);
 
         await using (testLspServer)
         {
@@ -361,7 +333,16 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
             AssertEx.NotNull(document);
-            Assert.Equal(expected, document.ToString());
+            Assert.Equal("""
+            class A
+            {
+                void M()
+                {
+                    // hi there
+                    // this builds on that
+                }
+            }
+            """, document.ToString());
         }
     }
 
@@ -411,8 +392,7 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
     [Theory, CombinatorialData]
     public async Task DidChange_MultipleRequests(bool mutatingLspWorkspace)
     {
-        var source =
-            """
+        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync("""
             class A
             {
                 void M()
@@ -420,20 +400,7 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
                     {|type:|}
                 }
             }
-            """;
-        var expected =
-            """
-            class A
-            {
-                void M()
-                {
-                    // hi there
-                    // this builds on that
-                }
-            }
-            """;
-
-        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
+            """, mutatingLspWorkspace);
 
         await using (testLspServer)
         {
@@ -445,7 +412,16 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
             AssertEx.NotNull(document);
-            Assert.Equal(expected, document.ToString());
+            Assert.Equal("""
+            class A
+            {
+                void M()
+                {
+                    // hi there
+                    // this builds on that
+                }
+            }
+            """, document.ToString());
         }
     }
 

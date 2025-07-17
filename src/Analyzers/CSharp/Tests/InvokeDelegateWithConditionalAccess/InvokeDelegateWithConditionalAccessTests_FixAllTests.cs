@@ -12,9 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 public sealed partial class InvokeDelegateWithConditionalAccessTests
 {
     [Fact]
-    public async Task TestFixAllInDocument1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAllInDocument1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -48,12 +47,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAllInDocument2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAllInDocument2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -87,12 +84,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAllInDocument3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAllInDocument3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -126,12 +121,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAllInDocument4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAllInDocument4()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -165,12 +158,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAllInDocument5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAllInDocument5()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -204,12 +195,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAllInDocument6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAllInDocument6()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -243,5 +232,4 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests
                 }
             }
             """);
-    }
 }

@@ -61,7 +61,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
             expectedResults ??= Array.Empty<(int Line, int Column, string? MethodName, HazardousUsageEvaluationResult Result)>();
 
-            Project project = CreateProject(new string[] { source, TestTypeToTrackSource });
+            Project project = CreateProject([source, TestTypeToTrackSource]);
             Compilation? compilation = project.GetCompilationAsync().Result;
             Assert.NotNull(compilation);
             CompilationUtils.ValidateNoCompileErrors(compilation.GetDiagnostics());
@@ -224,7 +224,7 @@ public class OtherClass
                 new PropertyMapperCollection(
                     new PropertyMapper(    // Definitely null => unflagged, definitely non-null => flagged, otherwise => maybe.
                         "AString",
-                        (PointsToAbstractValue pointsToAbstractValue) =>
+                        pointsToAbstractValue =>
                         {
                             return pointsToAbstractValue.NullState switch
                             {
@@ -237,7 +237,7 @@ public class OtherClass
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
                         "Method",
-                        (IMethodSymbol methodSymbol, PropertySetAbstractValue abstractValue) =>
+                        (methodSymbol, abstractValue) =>
                         {
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
@@ -253,7 +253,7 @@ public class OtherClass
                         "OtherClass",
                         "OtherMethod",
                         "t",
-                        (IMethodSymbol methodSymbol, PropertySetAbstractValue abstractValue) =>
+                        (methodSymbol, abstractValue) =>
                         {
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
@@ -270,7 +270,7 @@ public class OtherClass
                         "OtherClass",
                         "StaticMethod",
                         "staticMethodParameter",
-                        (IMethodSymbol methodSymbol, PropertySetAbstractValue abstractValue) =>
+                        (methodSymbol, abstractValue) =>
                         {
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
@@ -399,7 +399,7 @@ class TestClass
             new(
                 "TestTypeToTrackWithConstructor",
                 new ConstructorMapper(
-                    (IMethodSymbol method, IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues) =>
+                    (method, argumentPointsToAbstractValues) =>
                     {
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
                         PropertySetAbstractValueKind kind = PropertySetAbstractValueKind.Unknown;
@@ -420,7 +420,7 @@ class TestClass
             new PropertyMapperCollection(
                 new PropertyMapper(    // Definitely null => unflagged, definitely non-null => flagged, otherwise => maybe.
                     "AString",
-                    (PointsToAbstractValue pointsToAbstractValue) =>
+                    pointsToAbstractValue =>
                     {
                         return pointsToAbstractValue.NullState switch
                         {
@@ -433,7 +433,7 @@ class TestClass
             new HazardousUsageEvaluatorCollection(
                 new HazardousUsageEvaluator(
                     "Method",
-                    (IMethodSymbol methodSymbol, PropertySetAbstractValue abstractValue) =>
+                    (methodSymbol, abstractValue) =>
                     {
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
@@ -525,14 +525,14 @@ class TestClass
                 new PropertyMapperCollection(
                     new PropertyMapper(
                         "AnEnum",
-                        (ValueContentAbstractValue valueContentAbstractValue) =>
+                        valueContentAbstractValue =>
                         {
                             return PropertySetCallbacks.EvaluateLiteralValues(valueContentAbstractValue, v => v is not null && v.Equals(0));
                         })),
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
                         "Method",
-                        (IMethodSymbol methodSymbol, PropertySetAbstractValue abstractValue) =>
+                        (methodSymbol, abstractValue) =>
                         {
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
@@ -586,7 +586,7 @@ class TestClass
             new(
                 "TestTypeToTrackWithConstructor",
                 new ConstructorMapper(
-                    (IMethodSymbol method, IReadOnlyList<ValueContentAbstractValue> argumentValueContentAbstractValues, IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues) =>
+                    (method, argumentValueContentAbstractValues, argumentPointsToAbstractValues) =>
                     {
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
@@ -598,14 +598,14 @@ class TestClass
                 new PropertyMapperCollection(
                     new PropertyMapper(
                         "AnEnum",
-                        (ValueContentAbstractValue valueContentAbstractValue) =>
+                        valueContentAbstractValue =>
                         {
                             return PropertySetCallbacks.EvaluateLiteralValues(valueContentAbstractValue, v => v is not null && v.Equals(0));
                         })),
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
                         "Method",
-                        (IMethodSymbol methodSymbol, PropertySetAbstractValue abstractValue) =>
+                        (methodSymbol, abstractValue) =>
                         {
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
@@ -663,7 +663,7 @@ class TestClass
             new PropertyMapperCollection(
                 new PropertyMapper(
                     "AString",
-                    (ValueContentAbstractValue valueContentAbstractValue) =>
+                    valueContentAbstractValue =>
                     {
                         return PropertySetCallbacks.EvaluateLiteralValues(
                             valueContentAbstractValue,
@@ -671,14 +671,14 @@ class TestClass
                     }),
                 new PropertyMapper(
                     "AnEnum",
-                    (ValueContentAbstractValue valueContentAbstractValue) =>
+                    valueContentAbstractValue =>
                     {
                         return PropertySetCallbacks.EvaluateLiteralValues(valueContentAbstractValue, v => v is not null && v.Equals(2));
                     })),
             new HazardousUsageEvaluatorCollection(
                 new HazardousUsageEvaluator(
                     "Method",
-                    (IMethodSymbol methodSymbol, PropertySetAbstractValue abstractValue) =>
+                    (methodSymbol, abstractValue) =>
                     {
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
@@ -823,7 +823,7 @@ class TestClass
             new(
                 "TestTypeToTrackWithConstructor",
                 new ConstructorMapper(
-                    (IMethodSymbol constructorMethodSymbol, IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues) =>
+                    (constructorMethodSymbol, argumentPointsToAbstractValues) =>
                     {
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
@@ -845,7 +845,7 @@ class TestClass
             new PropertyMapperCollection(
                 new PropertyMapper(
                     "AnObject",
-                    (PointsToAbstractValue pointsToAbstractValue) =>
+                    pointsToAbstractValue =>
                     {
                         // Better to compare LocationTypeOpt to INamedTypeSymbol, but for this demonstration, just using MetadataName.
                         PropertySetAbstractValueKind kind;
@@ -865,7 +865,7 @@ class TestClass
             new HazardousUsageEvaluatorCollection(
                 new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
                     "Method",
-                    (IMethodSymbol methodSymbol, PropertySetAbstractValue abstractValue) =>
+                    (methodSymbol, abstractValue) =>
                     {
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
@@ -946,9 +946,9 @@ class TestClass
             new(
                 "TestTypeToTrackWithConstructor",
                 new ConstructorMapper(
-                    (IMethodSymbol constructorMethodSymbol,
-                        IReadOnlyList<ValueContentAbstractValue> argumentValueContentAbstractValues,
-                        IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues) =>
+                    (constructorMethodSymbol,
+                        argumentValueContentAbstractValues,
+                        argumentPointsToAbstractValues) =>
                     {
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
@@ -960,7 +960,7 @@ class TestClass
             new PropertyMapperCollection(
                 new PropertyMapper(
                     "AString",
-                    (ValueContentAbstractValue valueContentAbstractValue) =>
+                    valueContentAbstractValue =>
                     {
                         return PropertySetCallbacks.EvaluateLiteralValues(
                             valueContentAbstractValue,
@@ -969,7 +969,7 @@ class TestClass
             new HazardousUsageEvaluatorCollection(
                 new HazardousUsageEvaluator(    // When TypeToTrackWithConstructor.Method() is invoked, need to evaluate its state.
                     "Method",
-                    (IMethodSymbol methodSymbol, PropertySetAbstractValue abstractValue) =>
+                    (methodSymbol, abstractValue) =>
                     {
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
@@ -1038,7 +1038,7 @@ class TestClass
                 new PropertyMapperCollection(
                     new PropertyMapper(    // Definitely null => unflagged, definitely non-null => flagged, otherwise => maybe.
                         "AString",
-                        (PointsToAbstractValue pointsToAbstractValue) =>
+                        pointsToAbstractValue =>
                         {
                             return pointsToAbstractValue.NullState switch
                             {
@@ -1051,7 +1051,7 @@ class TestClass
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(
                         HazardousUsageEvaluatorKind.Return,
-                        (PropertySetAbstractValue abstractValue) =>
+                        abstractValue =>
                         {
                             // With only one property being tracked, this is straightforward.
                             return abstractValue[0] switch
@@ -1142,7 +1142,7 @@ class TestClass
                 new PropertyMapperCollection(
                     new PropertyMapper(    // Definitely null => unflagged, definitely non-null => flagged, otherwise => maybe.
                         "AString",
-                        (PointsToAbstractValue pointsToAbstractValue) =>
+                        pointsToAbstractValue =>
                         {
                             return pointsToAbstractValue.NullState switch
                             {
@@ -1155,7 +1155,7 @@ class TestClass
                         propertyIndex: 0),    // Both AString and AnObject point to index 0.
                     new PropertyMapper(    // Definitely null => unflagged, definitely non-null => flagged, otherwise => maybe.
                         "AnObject",
-                        (PointsToAbstractValue pointsToAbstractValue) =>
+                        pointsToAbstractValue =>
                         {
                             return pointsToAbstractValue.NullState switch
                             {
@@ -1169,7 +1169,7 @@ class TestClass
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
                         "Method",
-                        (IMethodSymbol methodSymbol, PropertySetAbstractValue abstractValue) =>
+                        (methodSymbol, abstractValue) =>
                         {
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 

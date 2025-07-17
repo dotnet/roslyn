@@ -233,15 +233,15 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                 End Interface
                 """;
 
-            var source2 = @"
-Class SomeClass 
-    Implements IMyInterface 
-End Class
+            var source2 = """
+                Class SomeClass 
+                    Implements IMyInterface 
+                End Class
 
-Class SomeOtherClass
-    Implements IMyOtherInterface
-End Class
-";
+                Class SomeOtherClass
+                    Implements IMyOtherInterface
+                End Class
+                """;
 
             // Verify no diagnostic since interface is in a friend assembly.
             await new VerifyVB.Test

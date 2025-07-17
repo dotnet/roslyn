@@ -22,9 +22,8 @@ public sealed class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
     [InlineData("record struct")]
     [InlineData("interface")]
     [InlineData("enum")]
-    public async Task TestObsoleteTypeDefinition(string keyword)
-    {
-        await TestAsync(
+    public Task TestObsoleteTypeDefinition(string keyword)
+        => TestAsync(
             $$"""
             [System.Obsolete]
             {{keyword}} [|ObsoleteType|]
@@ -35,24 +34,20 @@ public sealed class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteDelegateTypeDefinition()
-    {
-        await TestAsync(
+    public Task TestObsoleteDelegateTypeDefinition()
+        => TestAsync(
             """
             [System.Obsolete]
             delegate void [|ObsoleteType|]();
 
             delegate void NonObsoleteType();
             """);
-    }
 
     [Fact]
-    public async Task TestDeclarationAndUseOfObsoleteAlias()
-    {
-        await TestAsync(
+    public Task TestDeclarationAndUseOfObsoleteAlias()
+        => TestAsync(
             """
             using [|ObsoleteAlias|] = [|ObsoleteType|];
 
@@ -66,12 +61,10 @@ public sealed class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
                 [|ObsoleteAlias|] field = new [|ObsoleteType|]();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParametersAndReturnTypes()
-    {
-        await TestAsync(
+    public Task TestParametersAndReturnTypes()
+        => TestAsync(
             """
             [System.Obsolete]
             class [|ObsoleteType|];
@@ -83,12 +76,10 @@ public sealed class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
                 System.Func<[|ObsoleteType|], [|ObsoleteType|]> field = [|ObsoleteType|] ([|ObsoleteType|] arg) => [|new|]();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestImplicitType()
-    {
-        await TestAsync(
+    public Task TestImplicitType()
+        => TestAsync(
             """
             [System.Obsolete]
             class [|ObsoleteType|]
@@ -128,12 +119,10 @@ public sealed class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExtensionMethods()
-    {
-        await TestAsync(
+    public Task TestExtensionMethods()
+        => TestAsync(
             """
             [System.Obsolete]
             static class [|ObsoleteType|]
@@ -155,12 +144,10 @@ public sealed class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestGenerics()
-    {
-        await TestAsync(
+    public Task TestGenerics()
+        => TestAsync(
             """
             [System.Obsolete]
             class [|ObsoleteType|];
@@ -196,5 +183,4 @@ public sealed class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
                 }
             }
             """);
-    }
 }

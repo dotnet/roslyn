@@ -145,6 +145,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsMoveType = "CodeActions.MoveType";
             public const string CodeActionsNameTupleElement = "CodeActions.NameTupleElement";
             public const string CodeActionsOrderModifiers = "CodeActions.OrderModifiers";
+            public const string CodeActionsOrganizeImports = "CodeActions.OrganizeImports";
             public const string CodeActionsPopulateSwitch = "CodeActions.PopulateSwitch";
             public const string CodeActionsPullMemberUp = "CodeActions.PullMemberUp";
             public const string CodeActionsQualifyMemberAccess = "CodeActions.QualifyMemberAccess";

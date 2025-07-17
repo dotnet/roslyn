@@ -51,7 +51,7 @@ internal static partial class ISolutionExtensions
         if (documentId is null)
             throw new ArgumentNullException(nameof(documentId));
 
-#if !CODE_STYLE
+#if WORKSPACE
         if (documentId.IsSourceGenerated)
         {
             // If we get a source-generated DocumentId, we can give a different exception to make it clear the type of failure this is; otherwise a failure of
@@ -64,7 +64,7 @@ internal static partial class ISolutionExtensions
         return solution.GetDocument(documentId) ?? throw CreateDocumentNotFoundException();
     }
 
-#if !CODE_STYLE
+#if WORKSPACE
     /// <summary>
     /// Returns the <see cref="SourceGeneratedDocument"/> for the given <see cref="DocumentId"/> if it exists and has been generated.
     /// </summary>
@@ -86,7 +86,10 @@ internal static partial class ISolutionExtensions
         return sourceGeneratedDocument;
     }
 
-    public static async ValueTask<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
+    public static ValueTask<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, CancellationToken cancellationToken)
+        => GetRequiredDocumentAsync(solution, documentId, includeSourceGenerated: false, cancellationToken);
+
+    public static async ValueTask<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, bool includeSourceGenerated, CancellationToken cancellationToken)
         => (await solution.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException();
 
     public static async ValueTask<TextDocument> GetRequiredTextDocumentAsync(this Solution solution, DocumentId documentId, CancellationToken cancellationToken = default)
@@ -105,7 +108,7 @@ internal static partial class ISolutionExtensions
     private static Exception CreateDocumentNotFoundException()
         => new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
 
-#if !CODE_STYLE
+#if WORKSPACE
     public static Solution WithUpToDateSourceGeneratorDocuments(this Solution solution, IEnumerable<ProjectId> projectIds)
     {
         // If the solution is already in automatic mode, then SG documents are already always up to date.

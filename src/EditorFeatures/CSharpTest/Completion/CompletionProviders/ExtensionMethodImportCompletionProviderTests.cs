@@ -1931,9 +1931,8 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
     [Theory]
     [InlineData('.')]
     [InlineData(';')]
-    public async Task TestCommitWithCustomizedCharForMethod(char commitChar)
-    {
-        var markup = """
+    public Task TestCommitWithCustomizedCharForMethod(char commitChar)
+        => VerifyProviderCommitAsync("""
             public class C
             {
             }
@@ -1957,9 +1956,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
                     }
                 }
             }
-            """;
-
-        var expected = $$"""
+            """, "ToInt", $$"""
         using AA;
 
         public class C
@@ -1985,9 +1982,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
                 }
             }
         }
-        """;
-        await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
-    }
+        """, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
 
     [Theory]
     [InlineData("int", true, "int a")]
@@ -2045,9 +2040,8 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
     }
 
     [Fact]
-    public async Task TestComplexConstraint_NotShownOnObject()
-    {
-        await VerifyItemIsAbsentAsync(
+    public Task TestComplexConstraint_NotShownOnObject()
+        => VerifyItemIsAbsentAsync(
              """
              interface I
              {
@@ -2072,12 +2066,10 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "<>",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact]
-    public async Task TestComplexConstraint_ShownOnExactInterfaceConstraintMatch()
-    {
-        await VerifyItemExistsAsync(
+    public Task TestComplexConstraint_ShownOnExactInterfaceConstraintMatch()
+        => VerifyItemExistsAsync(
              """
              interface I
              {
@@ -2102,12 +2094,10 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "<>",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact]
-    public async Task TestComplexConstraint_ShownOnInterfaceMatchThroughChainedTypeParameter()
-    {
-        await VerifyItemExistsAsync(
+    public Task TestComplexConstraint_ShownOnInterfaceMatchThroughChainedTypeParameter()
+        => VerifyItemExistsAsync(
              """
              interface I
              {
@@ -2132,12 +2122,10 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "<>",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact]
-    public async Task TestComplexConstraint_ShownOnInterfaceMatchThroughChainedTypeParameter_BaseInterface()
-    {
-        await VerifyItemExistsAsync(
+    public Task TestComplexConstraint_ShownOnInterfaceMatchThroughChainedTypeParameter_BaseInterface()
+        => VerifyItemExistsAsync(
              """
              interface I1
              {
@@ -2166,12 +2154,10 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "<>",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact]
-    public async Task TestComplexConstraint_ShownOnExactBaseTypeConstraintMatch()
-    {
-        await VerifyItemExistsAsync(
+    public Task TestComplexConstraint_ShownOnExactBaseTypeConstraintMatch()
+        => VerifyItemExistsAsync(
              """
              class C
              {
@@ -2196,12 +2182,10 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "<>",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact]
-    public async Task TestComplexConstraint_ShownOnBaseTypeMatchThroughChainedTypeParameter()
-    {
-        await VerifyItemExistsAsync(
+    public Task TestComplexConstraint_ShownOnBaseTypeMatchThroughChainedTypeParameter()
+        => VerifyItemExistsAsync(
              """
              class C
              {
@@ -2226,12 +2210,10 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "<>",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact]
-    public async Task TestComplexConstraint_ShownOnBaseTypeMatchThroughChainedTypeParameter_InheritedType()
-    {
-        await VerifyItemExistsAsync(
+    public Task TestComplexConstraint_ShownOnBaseTypeMatchThroughChainedTypeParameter_InheritedType()
+        => VerifyItemExistsAsync(
              """
              class C1
              {
@@ -2260,12 +2242,10 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "<>",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact]
-    public async Task TestComplexConstraint_ShownOnBaseTypeMatchThroughChainedTypeParameter_InheritedBaseTypeAndInterface()
-    {
-        await VerifyItemExistsAsync(
+    public Task TestComplexConstraint_ShownOnBaseTypeMatchThroughChainedTypeParameter_InheritedBaseTypeAndInterface()
+        => VerifyItemExistsAsync(
              """
              interface I1
              {
@@ -2298,7 +2278,6 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "<>",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     private Task VerifyImportItemExistsAsync(string markup, string expectedItem, string inlineDescription, Glyph? glyph = null, string displayTextSuffix = null, string expectedDescriptionOrNull = null, List<CompletionFilter> expectedFilters = null)
         => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, isComplexTextEdit: true, matchingFilters: expectedFilters);

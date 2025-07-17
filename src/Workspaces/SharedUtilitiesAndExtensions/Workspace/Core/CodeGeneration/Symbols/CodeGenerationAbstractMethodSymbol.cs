@@ -6,12 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
 using Microsoft.CodeAnalysis.Editing;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
@@ -104,7 +99,9 @@ internal abstract class CodeGenerationAbstractMethodSymbol : CodeGenerationSymbo
 
     public bool IsConditional => false;
 
+#if !ROSLYN_4_12_OR_LOWER
     public bool IsIterator => false;
+#endif
 
     public SignatureCallingConvention CallingConvention => SignatureCallingConvention.Default;
 

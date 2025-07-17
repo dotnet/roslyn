@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -3371,7 +3372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyGroup:
                     symbols = GetPropertyGroupSemanticSymbols((BoundPropertyGroup)boundNode, boundNodeForSyntacticParent, binderOpt, out resultKind, out memberGroup);
                     break;
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle BoundPropertyAccess (which now may have a member group)
+                // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, consider handling BoundPropertyAccess (which now may have a member group)
 
                 case BoundKind.BadExpression:
                     {

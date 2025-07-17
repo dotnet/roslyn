@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
@@ -162,7 +161,7 @@ public partial class AbstractLanguageServerClientTests
             {
                 var logger = _loggerFactory.CreateLogger($"LSP {method}");
 
-                return (int type, string message) =>
+                return (type, message) =>
                 {
                     var logLevel = (MessageType)type switch
                     {

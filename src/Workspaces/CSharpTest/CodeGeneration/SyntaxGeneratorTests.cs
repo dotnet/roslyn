@@ -118,8 +118,12 @@ public sealed class SyntaxGeneratorTests
 
         VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression('c'), "'c'");
 
-        VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression("str"), "\"str\"");
-        VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression("s\"t\"r"), "\"s\\\"t\\\"r\"");
+        VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression("str"), """
+            "str"
+            """);
+        VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression("s\"t\"r"), """
+            "s\"t\"r"
+            """);
 
         VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression(true), "true");
         VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression(false), "false");
@@ -167,57 +171,75 @@ public sealed class SyntaxGeneratorTests
     public void TestAttributeData()
     {
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
-public class MyAttribute : Attribute { }",
+            """
+            using System; 
+            public class MyAttribute : Attribute { }
+            """,
 @"[MyAttribute]")),
 @"[global::MyAttribute]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
-public class MyAttribute : Attribute { public MyAttribute(object value) { } }",
+            """
+            using System; 
+            public class MyAttribute : Attribute { public MyAttribute(object value) { } }
+            """,
 @"[MyAttribute(null)]")),
 @"[global::MyAttribute(null)]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
-public class MyAttribute : Attribute { public MyAttribute(int value) { } }",
+            """
+            using System; 
+            public class MyAttribute : Attribute { public MyAttribute(int value) { } }
+            """,
 @"[MyAttribute(123)]")),
 @"[global::MyAttribute(123)]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
-public class MyAttribute : Attribute { public MyAttribute(double value) { } }",
+            """
+            using System; 
+            public class MyAttribute : Attribute { public MyAttribute(double value) { } }
+            """,
 @"[MyAttribute(12.3)]")),
 @"[global::MyAttribute(12.3)]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
-public class MyAttribute : Attribute { public MyAttribute(string value) { } }",
+            """
+            using System; 
+            public class MyAttribute : Attribute { public MyAttribute(string value) { } }
+            """,
 @"[MyAttribute(""value"")]")),
 @"[global::MyAttribute(""value"")]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
-public enum E { A, B, C }
-public class MyAttribute : Attribute { public MyAttribute(E value) { } }",
+            """
+            using System; 
+            public enum E { A, B, C }
+            public class MyAttribute : Attribute { public MyAttribute(E value) { } }
+            """,
 @"[MyAttribute(E.A)]")),
 @"[global::MyAttribute(global::E.A)]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
-public class MyAttribute : Attribute { public MyAttribute(Type value) { } }",
+            """
+            using System; 
+            public class MyAttribute : Attribute { public MyAttribute(Type value) { } }
+            """,
 @"[MyAttribute(typeof (MyAttribute))]")),
 @"[global::MyAttribute(typeof(global::MyAttribute))]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
-public class MyAttribute : Attribute { public MyAttribute(int[] values) { } }",
+            """
+            using System; 
+            public class MyAttribute : Attribute { public MyAttribute(int[] values) { } }
+            """,
 @"[MyAttribute(new [] {1, 2, 3})]")),
 @"[global::MyAttribute(new[] { 1, 2, 3 })]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
-public class MyAttribute : Attribute { public int Value {get; set;} }",
+            """
+            using System; 
+            public class MyAttribute : Attribute { public int Value {get; set;} }
+            """,
 @"[MyAttribute(Value = 123)]")),
 @"[global::MyAttribute(Value = 123)]");
 
@@ -842,7 +864,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             "partial void m()\r\n{\r\n    y;\r\n}");
 
         VerifySyntax<MethodDeclarationSyntax>(
-               Generator.MethodDeclaration("m", modifiers: DeclarationModifiers.Partial | DeclarationModifiers.Async, statements: null),
+            Generator.MethodDeclaration("m", modifiers: DeclarationModifiers.Partial | DeclarationModifiers.Async, statements: null),
             "partial void m();");
     }
 
@@ -1592,11 +1614,12 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3928")]
     public void TestAsPrivateInterfaceImplementationRemovesConstraints()
     {
-        var code = @"
-public interface IFace
-{
-    void Method<T>() where T : class;
-}";
+        var code = """
+            public interface IFace
+            {
+                void Method<T>() where T : class;
+            }
+            """;
 
         var cu = ParseCompilationUnit(code);
         var iface = cu.Members[0];
@@ -2062,8 +2085,10 @@ public interface IFace
     [Fact]
     public void TestAddRemoveAttributesPerservesTrivia()
     {
-        var cls = ParseCompilationUnit(@"// comment
-public class C { } // end").Members[0];
+        var cls = ParseCompilationUnit("""
+            // comment
+            public class C { } // end
+            """).Members[0];
 
         var added = Generator.AddAttributes(cls, Generator.Attribute("a"));
         VerifySyntax<ClassDeclarationSyntax>(added, "// comment\r\n[a]\r\npublic class C\r\n{\r\n} // end\r\n");
@@ -2236,10 +2261,12 @@ public class C { } // end").Members[0];
     {
         VerifySyntax<InterfaceDeclarationSyntax>(
             Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged")),
-@"public interface INotifyPropertyChanged
-{
-    event global::System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-}");
+            """
+            public interface INotifyPropertyChanged
+            {
+                event global::System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
@@ -2248,9 +2275,11 @@ public class C { } // end").Members[0];
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.Declaration(
                 _emptyCompilation.GetTypeByMetadataName("System.IntPtr").GetMembers("ToPointer").Single()),
-@"public unsafe void* ToPointer()
-{
-}");
+            """
+            public unsafe void* ToPointer()
+            {
+            }
+            """);
     }
 
     [Fact]
@@ -2259,12 +2288,14 @@ public class C { } // end").Members[0];
         VerifySyntax<EnumDeclarationSyntax>(
                 Generator.Declaration(
                     _emptyCompilation.GetTypeByMetadataName("System.DateTimeKind")),
-@"public enum DateTimeKind
-{
-    Unspecified = 0,
-    Utc = 1,
-    Local = 2
-}");
+                """
+                public enum DateTimeKind
+                {
+                    Unspecified = 0,
+                    Utc = 1,
+                    Local = 2
+                }
+                """);
     }
 
     [Fact]
@@ -2273,12 +2304,14 @@ public class C { } // end").Members[0];
         VerifySyntax<EnumDeclarationSyntax>(
                 Generator.Declaration(
                     _emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
-@"public enum SecurityRuleSet : byte
-{
-    None = 0,
-    Level1 = 1,
-    Level2 = 2
-}");
+                """
+                public enum SecurityRuleSet : byte
+                {
+                    None = 0,
+                    Level1 = 1,
+                    Level2 = 2
+                }
+                """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66381")]
@@ -2733,11 +2766,12 @@ public class C { } // end").Members[0];
     [Fact]
     public void TestRemoveNodeInTrivia()
     {
-        var code = @"
-///<summary> ... </summary>
-public class C
-{
-}";
+        var code = """
+            ///<summary> ... </summary>
+            public class C
+            {
+            }
+            """;
 
         var cu = ParseCompilationUnit(code);
         var cls = cu.Members[0];
@@ -2747,21 +2781,23 @@ public class C
 
         VerifySyntaxRaw<CompilationUnitSyntax>(
             newCu,
-            @"
+            """
 
-public class C
-{
-}");
+            public class C
+            {
+            }
+            """);
     }
 
     [Fact]
     public void TestReplaceNodeInTrivia()
     {
-        var code = @"
-///<summary> ... </summary>
-public class C
-{
-}";
+        var code = """
+            ///<summary> ... </summary>
+            public class C
+            {
+            }
+            """;
 
         var cu = ParseCompilationUnit(code);
         var cls = cu.Members[0];
@@ -2772,21 +2808,23 @@ public class C
         var newCu = Generator.ReplaceNode(cu, summary, summary2);
 
         VerifySyntaxRaw<CompilationUnitSyntax>(
-            newCu, @"
-///<summary></summary>
-public class C
-{
-}");
+            newCu, """
+            ///<summary></summary>
+            public class C
+            {
+            }
+            """);
     }
 
     [Fact]
     public void TestInsertAfterNodeInTrivia()
     {
-        var code = @"
-///<summary> ... </summary>
-public class C
-{
-}";
+        var code = """
+            ///<summary> ... </summary>
+            public class C
+            {
+            }
+            """;
 
         var cu = ParseCompilationUnit(code);
         var cls = cu.Members[0];
@@ -2795,21 +2833,23 @@ public class C
         var newCu = Generator.InsertNodesAfter(cu, text, [text]);
 
         VerifySyntaxRaw<CompilationUnitSyntax>(
-            newCu, @"
-///<summary> ...  ... </summary>
-public class C
-{
-}");
+            newCu, """
+            ///<summary> ...  ... </summary>
+            public class C
+            {
+            }
+            """);
     }
 
     [Fact]
     public void TestInsertBeforeNodeInTrivia()
     {
-        var code = @"
-///<summary> ... </summary>
-public class C
-{
-}";
+        var code = """
+            ///<summary> ... </summary>
+            public class C
+            {
+            }
+            """;
 
         var cu = ParseCompilationUnit(code);
         var cls = cu.Members[0];
@@ -2818,11 +2858,12 @@ public class C
         var newCu = Generator.InsertNodesBefore(cu, text, [text]);
 
         VerifySyntaxRaw<CompilationUnitSyntax>(
-            newCu, @"
-///<summary> ...  ... </summary>
-public class C
-{
-}");
+            newCu, """
+            ///<summary> ...  ... </summary>
+            public class C
+            {
+            }
+            """);
     }
 
     [Fact]
@@ -3180,28 +3221,36 @@ public class C
     public void TestAddPublicToStaticConstructor()
     {
         var ctor = Generator.ConstructorDeclaration("C", modifiers: DeclarationModifiers.Static);
-        VerifySyntax<ConstructorDeclarationSyntax>(ctor, @"static C()
-{
-}");
+        VerifySyntax<ConstructorDeclarationSyntax>(ctor, """
+            static C()
+            {
+            }
+            """);
 
         var publicCtor = Generator.WithAccessibility(ctor, Accessibility.Public);
-        VerifySyntax<ConstructorDeclarationSyntax>(publicCtor, @"public C()
-{
-}");
+        VerifySyntax<ConstructorDeclarationSyntax>(publicCtor, """
+            public C()
+            {
+            }
+            """);
     }
 
     [Fact]
     public void TestAddStaticToPublicConstructor()
     {
         var ctor = Generator.ConstructorDeclaration("C", accessibility: Accessibility.Public);
-        VerifySyntax<ConstructorDeclarationSyntax>(ctor, @"public C()
-{
-}");
+        VerifySyntax<ConstructorDeclarationSyntax>(ctor, """
+            public C()
+            {
+            }
+            """);
 
         var staticCtor = Generator.WithModifiers(ctor, DeclarationModifiers.Static);
-        VerifySyntax<ConstructorDeclarationSyntax>(staticCtor, @"static C()
-{
-}");
+        VerifySyntax<ConstructorDeclarationSyntax>(staticCtor, """
+            static C()
+            {
+            }
+            """);
     }
 
     [Fact]
@@ -3209,9 +3258,11 @@ public class C
     {
         var fileClass = (ClassDeclarationSyntax)ParseMemberDeclaration("file class C { }");
         var fileAbstractClass = Generator.WithModifiers(fileClass, Generator.GetModifiers(fileClass).WithIsAbstract(true));
-        VerifySyntax<ClassDeclarationSyntax>(fileAbstractClass, @"file abstract class C
-{
-}");
+        VerifySyntax<ClassDeclarationSyntax>(fileAbstractClass, """
+            file abstract class C
+            {
+            }
+            """);
     }
 
     [Fact]
@@ -3219,9 +3270,11 @@ public class C
     {
         var fileClass = (ClassDeclarationSyntax)ParseMemberDeclaration("file class C { }");
         var filePublicClass = Generator.WithAccessibility(fileClass, Accessibility.Public);
-        VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"public class C
-{
-}");
+        VerifySyntax<ClassDeclarationSyntax>(filePublicClass, """
+            public class C
+            {
+            }
+            """);
     }
 
     [Fact]
@@ -3229,9 +3282,11 @@ public class C
     {
         var abstractClass = (ClassDeclarationSyntax)ParseMemberDeclaration("abstract class C { }");
         var fileAbstractClass = Generator.WithModifiers(abstractClass, Generator.GetModifiers(abstractClass).WithIsFile(true));
-        VerifySyntax<ClassDeclarationSyntax>(fileAbstractClass, @"file abstract class C
-{
-}");
+        VerifySyntax<ClassDeclarationSyntax>(fileAbstractClass, """
+            file abstract class C
+            {
+            }
+            """);
     }
 
     [Fact]
@@ -3239,9 +3294,11 @@ public class C
     {
         var publicClass = (ClassDeclarationSyntax)ParseMemberDeclaration("public class C { }");
         var filePublicClass = Generator.WithModifiers(publicClass, Generator.GetModifiers(publicClass).WithIsFile(true));
-        VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"file class C
-{
-}");
+        VerifySyntax<ClassDeclarationSyntax>(filePublicClass, """
+            file class C
+            {
+            }
+            """);
     }
 
     [Fact]
@@ -3466,9 +3523,11 @@ public class C
 
         var newNewGetAccessor = Generator.WithStatements(newGetAccessor, []);
         VerifySyntax<AccessorDeclarationSyntax>(newNewGetAccessor,
-@"get
-{
-}");
+            """
+            get
+            {
+            }
+            """);
 
         // change accessors
         var newProp = Generator.ReplaceNode(prop, getAccessor, Generator.WithAccessibility(getAccessor, Accessibility.Public));
@@ -3523,11 +3582,13 @@ public class C
     public void TestAccessorsOnSpecialProperties()
     {
         var root = ParseCompilationUnit(
-@"class C
-{
-   public int X { get; set; } = 100;
-   public int Y => 300;
-}");
+            """
+            class C
+            {
+               public int X { get; set; } = 100;
+               public int Y => 300;
+            }
+            """);
         var x = Generator.GetMembers(root.Members[0])[0];
         var y = Generator.GetMembers(root.Members[0])[1];
 
@@ -3544,11 +3605,13 @@ public class C
     public void TestAccessorsOnSpecialIndexers()
     {
         var root = ParseCompilationUnit(
-@"class C
-{
-   public int this[int p] { get { return p * 10; } set { } };
-   public int this[int p] => p * 10;
-}");
+            """
+            class C
+            {
+               public int this[int p] { get { return p * 10; } set { } };
+               public int this[int p] => p * 10;
+            }
+            """);
         var x = Generator.GetMembers(root.Members[0])[0];
         var y = Generator.GetMembers(root.Members[0])[1];
 
@@ -3566,12 +3629,14 @@ public class C
     {
         // you can get/set expression from both expression value property and initialized properties
         var root = ParseCompilationUnit(
-@"class C
-{
-   public int X { get; set; } = 100;
-   public int Y => 300;
-   public int Z { get; set; }
-}");
+            """
+            class C
+            {
+               public int X { get; set; } = 100;
+               public int Y => 300;
+               public int Z { get; set; }
+            }
+            """);
         var x = Generator.GetMembers(root.Members[0])[0];
         var y = Generator.GetMembers(root.Members[0])[1];
         var z = Generator.GetMembers(root.Members[0])[2];
@@ -3592,11 +3657,13 @@ public class C
     {
         // you can get/set expression from both expression value property and initialized properties
         var root = ParseCompilationUnit(
-@"class C
-{
-   public int this[int p] { get { return p * 10; } set { } };
-   public int this[int p] => p * 10;
-}");
+            """
+            class C
+            {
+               public int this[int p] { get { return p * 10; } set { } };
+               public int this[int p] => p * 10;
+            }
+            """);
         var x = Generator.GetMembers(root.Members[0])[0];
         var y = Generator.GetMembers(root.Members[0])[1];
 
@@ -3717,9 +3784,11 @@ public class C
     public void TestGetBaseAndInterfaceTypes()
     {
         var classBI = ParseCompilationUnit(
-@"class C : B, I
-{
-}").Members[0];
+            """
+            class C : B, I
+            {
+            }
+            """).Members[0];
 
         var baseListBI = Generator.GetBaseAndInterfaceTypes(classBI);
         Assert.NotNull(baseListBI);
@@ -3728,9 +3797,11 @@ public class C
         Assert.Equal("I", baseListBI[1].ToString());
 
         var classB = ParseCompilationUnit(
-@"class C : B
-{
-}").Members[0];
+            """
+            class C : B
+            {
+            }
+            """).Members[0];
 
         var baseListB = Generator.GetBaseAndInterfaceTypes(classB);
         Assert.NotNull(baseListB);
@@ -3738,9 +3809,11 @@ public class C
         Assert.Equal("B", baseListB[0].ToString());
 
         var classN = ParseCompilationUnit(
-@"class C
-{
-}").Members[0];
+            """
+            class C
+            {
+            }
+            """).Members[0];
 
         var baseListN = Generator.GetBaseAndInterfaceTypes(classN);
         Assert.NotNull(baseListN);
@@ -3751,115 +3824,149 @@ public class C
     public void TestRemoveBaseAndInterfaceTypes()
     {
         var classBI = ParseCompilationUnit(
-@"class C : B, I
-{
-}").Members[0];
+            """
+            class C : B, I
+            {
+            }
+            """).Members[0];
 
         var baseListBI = Generator.GetBaseAndInterfaceTypes(classBI);
         Assert.NotNull(baseListBI);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.RemoveNode(classBI, baseListBI[0]),
-@"class C : I
-{
-}");
+            """
+            class C : I
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.RemoveNode(classBI, baseListBI[1]),
-@"class C : B
-{
-}");
+            """
+            class C : B
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.RemoveNodes(classBI, baseListBI),
-@"class C
-{
-}");
+            """
+            class C
+            {
+            }
+            """);
     }
 
     [Fact]
     public void TestAddBaseType()
     {
         var classC = ParseCompilationUnit(
-@"class C
-{
-}").Members[0];
+            """
+            class C
+            {
+            }
+            """).Members[0];
 
         var classCI = ParseCompilationUnit(
-@"class C : I
-{
-}").Members[0];
+            """
+            class C : I
+            {
+            }
+            """).Members[0];
 
         var classCB = ParseCompilationUnit(
-@"class C : B
-{
-}").Members[0];
+            """
+            class C : B
+            {
+            }
+            """).Members[0];
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.AddBaseType(classC, Generator.IdentifierName("T")),
-@"class C : T
-{
-}");
+            """
+            class C : T
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.AddBaseType(classCI, Generator.IdentifierName("T")),
-@"class C : T, I
-{
-}");
+            """
+            class C : T, I
+            {
+            }
+            """);
 
         // TODO: find way to avoid this
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.AddBaseType(classCB, Generator.IdentifierName("T")),
-@"class C : T, B
-{
-}");
+            """
+            class C : T, B
+            {
+            }
+            """);
     }
 
     [Fact]
     public void TestAddInterfaceTypes()
     {
         var classC = ParseCompilationUnit(
-@"class C
-{
-}").Members[0];
+            """
+            class C
+            {
+            }
+            """).Members[0];
 
         var classCI = ParseCompilationUnit(
-@"class C : I
-{
-}").Members[0];
+            """
+            class C : I
+            {
+            }
+            """).Members[0];
 
         var classCB = ParseCompilationUnit(
-@"class C : B
-{
-}").Members[0];
+            """
+            class C : B
+            {
+            }
+            """).Members[0];
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.AddInterfaceType(classC, Generator.IdentifierName("T")),
-@"class C : T
-{
-}");
+            """
+            class C : T
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.AddInterfaceType(classCI, Generator.IdentifierName("T")),
-@"class C : I, T
-{
-}");
+            """
+            class C : I, T
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.AddInterfaceType(classCB, Generator.IdentifierName("T")),
-@"class C : B, T
-{
-}");
+            """
+            class C : B, T
+            {
+            }
+            """);
     }
 
     [Fact]
     public void TestMultiFieldDeclarations()
     {
         var comp = Compile(
-@"public class C
-{
-   public static int X, Y, Z;
-}");
+            """
+            public class C
+            {
+               public static int X, Y, Z;
+            }
+            """);
 
         var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
         var symbolX = (IFieldSymbol)symbolC.GetMembers("X").First();
@@ -3932,105 +4039,131 @@ public class C
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
-@"public class C
-{
-    T A;
-    public static int X, Y, Z;
-}");
+            """
+            public class C
+            {
+                T A;
+                public static int X, Y, Z;
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.InsertMembers(declC, 1, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
-@"public class C
-{
-    public static int X;
-    T A;
-    public static int Y, Z;
-}");
+            """
+            public class C
+            {
+                public static int X;
+                T A;
+                public static int Y, Z;
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.InsertMembers(declC, 2, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
-@"public class C
-{
-    public static int X, Y;
-    T A;
-    public static int Z;
-}");
+            """
+            public class C
+            {
+                public static int X, Y;
+                T A;
+                public static int Z;
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.InsertMembers(declC, 3, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
-@"public class C
-{
-    public static int X, Y, Z;
-    T A;
-}");
+            """
+            public class C
+            {
+                public static int X, Y, Z;
+                T A;
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.ClassDeclaration("C", members: [declX, declY]),
-@"class C
-{
-    public static int X;
-    public static int Y;
-}");
+            """
+            class C
+            {
+                public static int X;
+                public static int Y;
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.ReplaceNode(declC, declX, xTypedT),
-@"public class C
-{
-    public static T X;
-    public static int Y, Z;
-}");
+            """
+            public class C
+            {
+                public static T X;
+                public static int Y, Z;
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.ReplaceNode(declC, declY, Generator.WithType(declY, Generator.IdentifierName("T"))),
-@"public class C
-{
-    public static int X;
-    public static T Y;
-    public static int Z;
-}");
+            """
+            public class C
+            {
+                public static int X;
+                public static T Y;
+                public static int Z;
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.ReplaceNode(declC, declZ, Generator.WithType(declZ, Generator.IdentifierName("T"))),
-@"public class C
-{
-    public static int X, Y;
-    public static T Z;
-}");
+            """
+            public class C
+            {
+                public static int X, Y;
+                public static T Z;
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.ReplaceNode(declC, declX, Generator.WithAccessibility(declX, Accessibility.Private)),
-@"public class C
-{
-    private static int X;
-    public static int Y, Z;
-}");
+            """
+            public class C
+            {
+                private static int X;
+                public static int Y, Z;
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.ReplaceNode(declC, declX, Generator.WithModifiers(declX, DeclarationModifiers.None)),
-@"public class C
-{
-    public int X;
-    public static int Y, Z;
-}");
+            """
+            public class C
+            {
+                public int X;
+                public static int Y, Z;
+            }
+            """);
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.ReplaceNode(declC, declX, Generator.WithName(declX, "Q")),
-@"public class C
-{
-    public static int Q, Y, Z;
-}");
+            """
+            public class C
+            {
+                public static int Q, Y, Z;
+            }
+            """);
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.ReplaceNode(declC, declX.GetAncestorOrThis<VariableDeclaratorSyntax>(), VariableDeclarator("Q")),
-@"public class C
-{
-    public static int Q, Y, Z;
-}");
+            """
+            public class C
+            {
+                public static int Q, Y, Z;
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.ReplaceNode(declC, declX, Generator.WithExpression(declX, Generator.IdentifierName("e"))),
-@"public class C
-{
-    public static int X = e, Y, Z;
-}");
+            """
+            public class C
+            {
+                public static int X = e, Y, Z;
+            }
+            """);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/48789")]
@@ -4039,44 +4172,51 @@ public class C
     public void TestInsertMembersOnRecord_SemiColon(string typeKind)
     {
         var comp = Compile(
-$@"public {typeKind} C;
-");
+            $"""
+            public {typeKind} C;
+            """);
 
         var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
         var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
 
         VerifySyntax<RecordDeclarationSyntax>(
             Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
-$@"public {typeKind} C
-{{
-    T A;
-}}");
+            $$"""
+            public {{typeKind}} C
+            {
+                T A;
+            }
+            """);
     }
 
     [Fact]
     public void TestInsertMembersOnClass_SemiColon()
     {
         var comp = Compile(
-$@"public class C;
-");
+            $"""
+            public class C;
+            """);
 
         var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
         var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
-$@"public class C
-{{
-    T A;
-}}");
+            $$"""
+            public class C
+            {
+                T A;
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48789")]
     public void TestInsertMembersOnRecordStruct_SemiColon()
     {
         var src =
-@"public record struct C;
-";
+            """
+            public record struct C;
+            """;
         var comp = CSharpCompilation.Create("test")
             .AddReferences(NetFramework.mscorlib)
             .AddSyntaxTrees(ParseSyntaxTree(src, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)));
@@ -4086,128 +4226,150 @@ $@"public class C
 
         VerifySyntax<RecordDeclarationSyntax>(
             Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
-@"public record struct C
-{
-    T A;
-}");
+            """
+            public record struct C
+            {
+                T A;
+            }
+            """);
     }
 
     [Fact]
     public void TestInsertMembersOnStruct_SemiColon()
     {
         var comp = Compile(
-$@"public struct C;
-");
+            $"""
+            public struct C;
+            """);
 
         var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
         var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
 
         VerifySyntax<StructDeclarationSyntax>(
             Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
-$@"public struct C
-{{
-    T A;
-}}");
+            $$"""
+            public struct C
+            {
+                T A;
+            }
+            """);
     }
 
     [Fact]
     public void TestInsertMembersOnInterface_SemiColon_01()
     {
         var comp = Compile(
-$@"public interface C;
-");
+            $"""
+            public interface C;
+            """);
 
         var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
         var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
 
         VerifySyntax<InterfaceDeclarationSyntax>(
             Generator.InsertMembers(declC, 0, Generator.PropertyDeclaration("A", Generator.IdentifierName("T"))),
-$@"public interface C
-{{
-    T A {{ get; set; }}
-}}");
+            $$"""
+            public interface C
+            {
+                T A { get; set; }
+            }
+            """);
     }
 
     [Fact]
     public void TestInsertMembersOnInterface_SemiColon_02()
     {
         var comp = Compile(
-$@"public interface C();
-");
+            $"""
+            public interface C();
+            """);
 
         var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
         var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
 
         VerifySyntax<InterfaceDeclarationSyntax>(
             Generator.InsertMembers(declC, 0, Generator.PropertyDeclaration("A", Generator.IdentifierName("T"))),
-$@"public interface C()
-{{
-    T A {{ get; set; }}
-}}");
+            $$"""
+            public interface C()
+            {
+                T A { get; set; }
+            }
+            """);
     }
 
     [Fact]
     public void TestInsertMembersOnEnum_SemiColon()
     {
         var comp = Compile(
-$@"public enum C;
-");
+            $"""
+            public enum C;
+            """);
 
         var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
         var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
 
         VerifySyntax<EnumDeclarationSyntax>(
             Generator.InsertMembers(declC, 0, Generator.EnumMember("A")),
-$@"public enum C
-{{
-    A
-}}");
+            $$"""
+            public enum C
+            {
+                A
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48789")]
     public void TestInsertMembersOnRecord_Braces()
     {
         var comp = Compile(
-@"public record C { }
-");
+            """
+            public record C { }
+            """);
 
         var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
         var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
 
         VerifySyntax<RecordDeclarationSyntax>(
             Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
-@"public record C
-{
-    T A;
-}");
+            """
+            public record C
+            {
+                T A;
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48789")]
     public void TestInsertMembersOnRecord_BracesAndSemiColon()
     {
         var comp = Compile(
-@"public record C { };
-");
+            """
+            public record C { };
+            """);
 
         var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
         var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
 
         VerifySyntax<RecordDeclarationSyntax>(
             Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
-@"public record C
-{
-    T A;
-}");
+            """
+            public record C
+            {
+                T A;
+            }
+            """);
     }
 
     [Fact]
     public void TestMultiAttributeDeclarations()
     {
         var comp = Compile(
-@"[X, Y, Z]
-public class C
-{
-}");
+            """
+            [X, Y, Z]
+            public class C
+            {
+            }
+            """);
         var symbolC = comp.GlobalNamespace.GetMembers("C").First();
         var declC = symbolC.DeclaringSyntaxReferences.First().GetSyntax();
         var attrs = Generator.GetAttributes(declC);
@@ -4234,127 +4396,159 @@ public class C
         // Inserting new attributes
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.InsertAttributes(declC, 0, Generator.Attribute("A")),
-@"[A]
-[X, Y, Z]
-public class C
-{
-}");
+            """
+            [A]
+            [X, Y, Z]
+            public class C
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.InsertAttributes(declC, 1, Generator.Attribute("A")),
-@"[X]
-[A]
-[Y, Z]
-public class C
-{
-}");
+            """
+            [X]
+            [A]
+            [Y, Z]
+            public class C
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.InsertAttributes(declC, 2, Generator.Attribute("A")),
-@"[X, Y]
-[A]
-[Z]
-public class C
-{
-}");
+            """
+            [X, Y]
+            [A]
+            [Z]
+            public class C
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.InsertAttributes(declC, 3, Generator.Attribute("A")),
-@"[X, Y, Z]
-[A]
-public class C
-{
-}");
+            """
+            [X, Y, Z]
+            [A]
+            public class C
+            {
+            }
+            """);
 
         // Removing attributes
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.RemoveNodes(declC, [attrX]),
-@"[Y, Z]
-public class C
-{
-}");
+            """
+            [Y, Z]
+            public class C
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.RemoveNodes(declC, [attrY]),
-@"[X, Z]
-public class C
-{
-}");
+            """
+            [X, Z]
+            public class C
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.RemoveNodes(declC, [attrZ]),
-@"[X, Y]
-public class C
-{
-}");
+            """
+            [X, Y]
+            public class C
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.RemoveNodes(declC, [attrX, attrY]),
-@"[Z]
-public class C
-{
-}");
+            """
+            [Z]
+            public class C
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.RemoveNodes(declC, [attrX, attrZ]),
-@"[Y]
-public class C
-{
-}");
+            """
+            [Y]
+            public class C
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.RemoveNodes(declC, [attrY, attrZ]),
-@"[X]
-public class C
-{
-}");
+            """
+            [X]
+            public class C
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.RemoveNodes(declC, [attrX, attrY, attrZ]),
-@"public class C
-{
-}");
+            """
+            public class C
+            {
+            }
+            """);
 
         // Replacing attributes
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.ReplaceNode(declC, attrX, Generator.Attribute("A")),
-@"[A, Y, Z]
-public class C
-{
-}");
+            """
+            [A, Y, Z]
+            public class C
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.ReplaceNode(declC, attrY, Generator.Attribute("A")),
-@"[X, A, Z]
-public class C
-{
-}");
+            """
+            [X, A, Z]
+            public class C
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.ReplaceNode(declC, attrZ, Generator.Attribute("A")),
-@"[X, Y, A]
-public class C
-{
-}");
+            """
+            [X, Y, A]
+            public class C
+            {
+            }
+            """);
 
         VerifySyntax<ClassDeclarationSyntax>(
             Generator.ReplaceNode(declC, attrX, Generator.AddAttributeArguments(attrX, [Generator.AttributeArgument(Generator.IdentifierName("e"))])),
-@"[X(e), Y, Z]
-public class C
-{
-}");
+            """
+            [X(e), Y, Z]
+            public class C
+            {
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66376")]
     public void TestRefReturnType()
     {
         var comp = Compile(
-@"public class C<T>
-{
-    public ref T GetPinnableReference() { throw null; }
-    public ref readonly T this[int index] { get { throw null; } }
-    public ref int P => throw null;
-}");
+            """
+            public class C<T>
+            {
+                public ref T GetPinnableReference() { throw null; }
+                public ref readonly T this[int index] { get { throw null; } }
+                public ref int P => throw null;
+            }
+            """);
         var symbolC = comp.GlobalNamespace.GetMembers("C").First();
 
         var method = symbolC.GetMembers().OfType<IMethodSymbol>().Single(m => m.MethodKind == MethodKind.Ordinary);
@@ -4378,13 +4572,15 @@ public class C
     public void TestMultiReturnAttributeDeclarations()
     {
         var comp = Compile(
-@"public class C
-{
-    [return: X, Y, Z]
-    public void M()
-    {
-    }
-}");
+            """
+            public class C
+            {
+                [return: X, Y, Z]
+                public void M()
+                {
+                }
+            }
+            """);
         var symbolC = comp.GlobalNamespace.GetMembers("C").First();
         var declC = symbolC.DeclaringSyntaxReferences.First().GetSyntax();
         var declM = Generator.GetMembers(declC).First();
@@ -4414,69 +4610,83 @@ public class C
         // Inserting new attributes
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.InsertReturnAttributes(declM, 0, Generator.Attribute("A")),
-@"[return: A]
-[return: X, Y, Z]
-public void M()
-{
-}");
+            """
+            [return: A]
+            [return: X, Y, Z]
+            public void M()
+            {
+            }
+            """);
 
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.InsertReturnAttributes(declM, 1, Generator.Attribute("A")),
-@"[return: X]
-[return: A]
-[return: Y, Z]
-public void M()
-{
-}");
+            """
+            [return: X]
+            [return: A]
+            [return: Y, Z]
+            public void M()
+            {
+            }
+            """);
 
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.InsertReturnAttributes(declM, 2, Generator.Attribute("A")),
-@"[return: X, Y]
-[return: A]
-[return: Z]
-public void M()
-{
-}");
+            """
+            [return: X, Y]
+            [return: A]
+            [return: Z]
+            public void M()
+            {
+            }
+            """);
 
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.InsertReturnAttributes(declM, 3, Generator.Attribute("A")),
-@"[return: X, Y, Z]
-[return: A]
-public void M()
-{
-}");
+            """
+            [return: X, Y, Z]
+            [return: A]
+            public void M()
+            {
+            }
+            """);
 
         // replacing
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.ReplaceNode(declM, attrX, Generator.Attribute("Q")),
-@"[return: Q, Y, Z]
-public void M()
-{
-}");
+            """
+            [return: Q, Y, Z]
+            public void M()
+            {
+            }
+            """);
 
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.ReplaceNode(declM, attrX, Generator.AddAttributeArguments(attrX, [Generator.AttributeArgument(Generator.IdentifierName("e"))])),
-@"[return: X(e), Y, Z]
-public void M()
-{
-}");
+            """
+            [return: X(e), Y, Z]
+            public void M()
+            {
+            }
+            """);
     }
 
     [Fact]
     public void TestMixedAttributeDeclarations()
     {
         var comp = Compile(
-@"public class C
-{
-    [X]
-    [return: A]
-    [Y, Z]
-    [return: B, C, D]
-    [P]
-    public void M()
-    {
-    }
-}");
+            """
+            public class C
+            {
+                [X]
+                [return: A]
+                [Y, Z]
+                [return: B, C, D]
+                [P]
+                public void M()
+                {
+                }
+            }
+            """);
         var symbolC = comp.GlobalNamespace.GetMembers("C").First();
         var declC = symbolC.DeclaringSyntaxReferences.First().GetSyntax();
         var declM = Generator.GetMembers(declC).First();
@@ -4522,150 +4732,168 @@ public void M()
         // inserting
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.InsertAttributes(declM, 0, Generator.Attribute("Q")),
-@"[Q]
-[X]
-[return: A]
-[Y, Z]
-[return: B, C, D]
-[P]
-public void M()
-{
-}");
+            """
+            [Q]
+            [X]
+            [return: A]
+            [Y, Z]
+            [return: B, C, D]
+            [P]
+            public void M()
+            {
+            }
+            """);
 
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.InsertAttributes(declM, 1, Generator.Attribute("Q")),
-@"[X]
-[return: A]
-[Q]
-[Y, Z]
-[return: B, C, D]
-[P]
-public void M()
-{
-}");
+            """
+            [X]
+            [return: A]
+            [Q]
+            [Y, Z]
+            [return: B, C, D]
+            [P]
+            public void M()
+            {
+            }
+            """);
 
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.InsertAttributes(declM, 2, Generator.Attribute("Q")),
-@"[X]
-[return: A]
-[Y]
-[Q]
-[Z]
-[return: B, C, D]
-[P]
-public void M()
-{
-}");
+            """
+            [X]
+            [return: A]
+            [Y]
+            [Q]
+            [Z]
+            [return: B, C, D]
+            [P]
+            public void M()
+            {
+            }
+            """);
 
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.InsertAttributes(declM, 3, Generator.Attribute("Q")),
-@"[X]
-[return: A]
-[Y, Z]
-[return: B, C, D]
-[Q]
-[P]
-public void M()
-{
-}");
+            """
+            [X]
+            [return: A]
+            [Y, Z]
+            [return: B, C, D]
+            [Q]
+            [P]
+            public void M()
+            {
+            }
+            """);
 
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.InsertAttributes(declM, 4, Generator.Attribute("Q")),
-@"[X]
-[return: A]
-[Y, Z]
-[return: B, C, D]
-[P]
-[Q]
-public void M()
-{
-}");
+            """
+            [X]
+            [return: A]
+            [Y, Z]
+            [return: B, C, D]
+            [P]
+            [Q]
+            public void M()
+            {
+            }
+            """);
 
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.InsertReturnAttributes(declM, 0, Generator.Attribute("Q")),
-@"[X]
-[return: Q]
-[return: A]
-[Y, Z]
-[return: B, C, D]
-[P]
-public void M()
-{
-}");
+            """
+            [X]
+            [return: Q]
+            [return: A]
+            [Y, Z]
+            [return: B, C, D]
+            [P]
+            public void M()
+            {
+            }
+            """);
 
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.InsertReturnAttributes(declM, 1, Generator.Attribute("Q")),
-@"[X]
-[return: A]
-[Y, Z]
-[return: Q]
-[return: B, C, D]
-[P]
-public void M()
-{
-}");
+            """
+            [X]
+            [return: A]
+            [Y, Z]
+            [return: Q]
+            [return: B, C, D]
+            [P]
+            public void M()
+            {
+            }
+            """);
 
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.InsertReturnAttributes(declM, 2, Generator.Attribute("Q")),
-@"[X]
-[return: A]
-[Y, Z]
-[return: B]
-[return: Q]
-[return: C, D]
-[P]
-public void M()
-{
-}");
+            """
+            [X]
+            [return: A]
+            [Y, Z]
+            [return: B]
+            [return: Q]
+            [return: C, D]
+            [P]
+            public void M()
+            {
+            }
+            """);
 
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.InsertReturnAttributes(declM, 3, Generator.Attribute("Q")),
-@"[X]
-[return: A]
-[Y, Z]
-[return: B, C]
-[return: Q]
-[return: D]
-[P]
-public void M()
-{
-}");
+            """
+            [X]
+            [return: A]
+            [Y, Z]
+            [return: B, C]
+            [return: Q]
+            [return: D]
+            [P]
+            public void M()
+            {
+            }
+            """);
 
         VerifySyntax<MethodDeclarationSyntax>(
             Generator.InsertReturnAttributes(declM, 4, Generator.Attribute("Q")),
-@"[X]
-[return: A]
-[Y, Z]
-[return: B, C, D]
-[return: Q]
-[P]
-public void M()
-{
-}");
+            """
+            [X]
+            [return: A]
+            [Y, Z]
+            [return: B, C, D]
+            [return: Q]
+            [P]
+            public void M()
+            {
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/293")]
     [Trait(Traits.Feature, Traits.Features.Formatting)]
     public void IntroduceBaseList()
     {
-        var text = @"
-public class C
-{
-}
-";
-        var expected = @"
-public class C : IDisposable
-{
-}
-";
-
+        var text = """
+            public class C
+            {
+            }
+            """;
         var root = ParseCompilationUnit(text);
         var decl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
         var newDecl = Generator.AddInterfaceType(decl, Generator.IdentifierName("IDisposable"));
         var newRoot = root.ReplaceNode(decl, newDecl);
 
         var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).ToFullString();
-        Assert.Equal(expected, elasticOnlyFormatted);
+        Assert.Equal("""
+            public class C : IDisposable
+            {
+            }
+            """, elasticOnlyFormatted);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
@@ -4847,128 +5075,139 @@ public class C : IDisposable
     public void TestNamespaceModifiers()
     {
         TestModifiersAsync(DeclarationModifiers.None,
-            @"
-[|namespace N1
-{
-}|]");
+            """
+            [|namespace N1
+            {
+            }|]
+            """);
     }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestFileScopedNamespaceModifiers()
     {
         TestModifiersAsync(DeclarationModifiers.None,
-            @"
-[|namespace N1;|]");
+            """
+            [|namespace N1;|]
+            """);
     }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestClassModifiers1()
     {
         TestModifiersAsync(DeclarationModifiers.Static,
-            @"
-[|static class C
-{
-}|]");
+            """
+            [|static class C
+            {
+            }|]
+            """);
     }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestMethodModifiers()
     {
         TestModifiersAsync(DeclarationModifiers.Sealed | DeclarationModifiers.Override,
-            @"
-class C
-{
-    [|public sealed override void M() { }|]
-}");
+            """
+            class C
+            {
+                [|public sealed override void M() { }|]
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66170")]
     public void TestMethodModifiers2()
     {
         TestModifiersAsync(DeclarationModifiers.ReadOnly,
-            @"
-struct S
-{
-    [|public readonly void M() { }|]
-}");
+            """
+            struct S
+            {
+                [|public readonly void M() { }|]
+            }
+            """);
     }
 
     [Fact]
     public void TestAsyncMethodModifier()
     {
         TestModifiersAsync(DeclarationModifiers.Async,
-            @"
-using System.Threading.Tasks;
-class C
-{
-    [|public async Task DoAsync() { await Task.CompletedTask; }|]
-}
-");
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                [|public async Task DoAsync() { await Task.CompletedTask; }|]
+            }
+            """);
     }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestPropertyModifiers1()
     {
         TestModifiersAsync(DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly,
-            @"
-class C
-{
-    [|public virtual int X => 0;|]
-}");
+            """
+            class C
+            {
+                [|public virtual int X => 0;|]
+            }
+            """);
     }
 
     [Fact]
     public void TestPropertyModifiers2()
     {
         TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Required,
-            @"
-class C
-{
-    [|public required int X => 0;|]
-}");
+            """
+            class C
+            {
+                [|public required int X => 0;|]
+            }
+            """);
     }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestFieldModifiers1()
     {
         TestModifiersAsync(DeclarationModifiers.Static,
-            @"
-class C
-{
-    public static int [|X|];
-}");
+            """
+            class C
+            {
+                public static int [|X|];
+            }
+            """);
     }
 
     [Fact]
     public void TestFieldModifiers2()
     {
         TestModifiersAsync(DeclarationModifiers.Required,
-            @"
-class C
-{
-    public required int [|X|];
-}");
+            """
+            class C
+            {
+                public required int [|X|];
+            }
+            """);
     }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestEvent1()
     {
         TestModifiersAsync(DeclarationModifiers.Virtual,
-            @"
-class C
-{
-    public virtual event System.Action [|X|];
-}");
+            """
+            class C
+            {
+                public virtual event System.Action [|X|];
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65834")]
     public void TestStructModifiers1()
     {
         TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed,
-            @"
-public readonly struct [|S|]
-{
-}");
+            """
+            public readonly struct [|S|]
+            {
+            }
+            """);
     }
 
     [Fact]
