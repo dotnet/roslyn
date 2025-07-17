@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 static ParameterSymbol? makeExtensionParameter(PENamedTypeSymbol @this, ExtensionInfo uncommon)
                 {
-                    var methodSymbol = getMarkerMethodSymbol(@this, uncommon);
+                    var methodSymbol = GetMarkerMethodSymbol(@this, uncommon);
 
                     if (methodSymbol.DeclaredAccessibility != Accessibility.Private ||
                         methodSymbol.IsGenericMethod ||
@@ -417,22 +417,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     return new ReceiverParameterSymbol(@this, methodSymbol.Parameters[0]);
                 }
+            }
+        }
 
-                static MethodSymbol getMarkerMethodSymbol(PENamedTypeSymbol @this, ExtensionInfo uncommon)
+        internal MethodSymbol? GetMarkerMethodSymbol()
+        {
+            if (!this.IsExtension)
+            {
+                return null;
+            }
+
+            var uncommon = GetUncommonProperties().lazyExtensionInfo;
+            return GetMarkerMethodSymbol(this, uncommon);
+        }
+
+        private static MethodSymbol GetMarkerMethodSymbol(PENamedTypeSymbol @this, ExtensionInfo uncommon)
+        {
+            Debug.Assert(!uncommon.MarkerMethod.IsNil);
+
+            foreach (var member in @this.GetMembers(WellKnownMemberNames.ExtensionMarkerMethodName))
+            {
+                if (member is PEMethodSymbol candidate && candidate.Handle == uncommon.MarkerMethod)
                 {
-                    Debug.Assert(!uncommon.MarkerMethod.IsNil);
-
-                    foreach (var member in @this.GetMembers(WellKnownMemberNames.ExtensionMarkerMethodName))
-                    {
-                        if (member is PEMethodSymbol candidate && candidate.Handle == uncommon.MarkerMethod)
-                        {
-                            return candidate;
-                        }
-                    }
-
-                    throw ExceptionUtilities.Unreachable();
+                    return candidate;
                 }
             }
+
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override MethodSymbol? TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)

@@ -5819,26 +5819,26 @@ class C
                 int M3() => 0;
             }
             """,
-    $$"""
-    class C
-    {
-        int M(bool flag)
-        {
-            int x;
-            if ({{condition}})
-            {
-            }
-            else
-            {
-            }
+            $$"""
+                class C
+                {
+                    int M(bool flag)
+                    {
+                        int x;
+                        if ({{condition}})
+                        {
+                        }
+                        else
+                        {
+                        }
 
-            return x;
-        }
+                        return x;
+                    }
 
-        bool M2(out int x) { x = 0; return true; }
-        int M3() => 0;
-    }
-    """);
+                    bool M2(out int x) { x = 0; return true; }
+                    int M3() => 0;
+                }
+                """);
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
