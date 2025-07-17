@@ -1065,6 +1065,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal sealed override ScopedKind DeclaredScope => throw ExceptionUtilities.Unreachable();
+
         internal sealed override ScopedKind EffectiveScope => _packedFlags.Scope;
 
         internal override bool HasUnscopedRefAttribute => _packedFlags.HasUnscopedRefAttribute;

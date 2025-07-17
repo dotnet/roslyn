@@ -14,10 +14,10 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseAutoProperty;
 using Roslyn.Utilities;
@@ -59,7 +59,7 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
 
     protected override PropertyDeclarationSyntax RewriteFieldReferencesInProperty(
         PropertyDeclarationSyntax property,
-        LightweightRenameLocations fieldLocations,
+        ImmutableArray<ReferencedSymbol> fieldLocations,
         CancellationToken cancellationToken)
     {
         // We're going to walk this property body, converting most reference of the field to use the `field` keyword
@@ -67,8 +67,7 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
         // we update to point at the property instead.  So we grab that property name here to use in the rewriter.
         var propertyIdentifierName = IdentifierName(property.Identifier.WithoutTrivia());
 
-        var identifierNames = fieldLocations.Locations
-            .Select(loc => loc.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) as IdentifierNameSyntax)
+        var identifierNames = fieldLocations.SelectMany(loc => loc.Locations.Select(loc => loc.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) as IdentifierNameSyntax))
             .WhereNotNull()
             .ToSet();
 
