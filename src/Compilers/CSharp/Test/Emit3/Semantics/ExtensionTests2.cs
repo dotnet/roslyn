@@ -14419,5 +14419,383 @@ var x = int.M;
         comp = CreateCompilationWithIL(src, ilSrc);
         comp.VerifyEmitDiagnostics(expected);
     }
+
+    [Fact]
+    public void MemberNameSameAsType_01()
+    {
+        var src = """
+static class E
+{
+    extension(int)
+    {
+        public static void E() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,28): error CS0542: 'E': member names cannot be the same as their enclosing type
+            //         public static void E() { }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "E").WithArguments("E").WithLocation(5, 28));
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_02()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public void E() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,21): error CS0542: 'E': member names cannot be the same as their enclosing type
+            //         public void E() { }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "E").WithArguments("E").WithLocation(5, 21));
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_03()
+    {
+        var src = """
+static class E
+{
+    extension(object)
+    {
+        public static int E { get => 0; set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,27): error CS0542: 'E': member names cannot be the same as their enclosing type
+            //         public static int E { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "E").WithArguments("E").WithLocation(5, 27));
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_04()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public int E { get => 0; set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,20): error CS0542: 'E': member names cannot be the same as their enclosing type
+            //         public int E { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "E").WithArguments("E").WithLocation(5, 20));
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_05()
+    {
+        var src = """
+static class get_E
+{
+    extension(object)
+    {
+        public static int E => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,32): error CS0542: 'get_E': member names cannot be the same as their enclosing type
+            //         public static int E => 0;
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "0").WithArguments("get_E").WithLocation(5, 32));
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_07()
+    {
+        var src = """
+static class get_E
+{
+    extension(object)
+    {
+        public static int E => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,32): error CS0542: 'get_E': member names cannot be the same as their enclosing type
+            //         public static int E => 0;
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "0").WithArguments("get_E").WithLocation(5, 32));
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_08()
+    {
+        var src = """
+static class op_Addition
+{
+    extension(object)
+    {
+        public static object operator+(object o1, object o2) => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,38): error CS0542: 'op_Addition': member names cannot be the same as their enclosing type
+            //         public static object operator+(object o1, object o2) => throw null;
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "+").WithArguments("op_Addition").WithLocation(5, 38));
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_09()
+    {
+        var src = """
+extension(object)
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            // extension(object)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_10()
+    {
+        var src = """
+static class E1
+{
+    static class E2
+    {
+        extension(object)
+        {
+            public static void E1() { }
+            public static void E2() { }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //         extension(object)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(5, 9),
+            // (8,32): error CS0542: 'E2': member names cannot be the same as their enclosing type
+            //             public static void E2() { }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "E2").WithArguments("E2").WithLocation(8, 32));
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_01()
+    {
+        var src = """
+static class E
+{
+    extension(Name)
+    {
+        public static void Name() { }
+    }
+}
+
+class Name { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,28): error CS9326: 'Name': extension member names cannot be the same as their extended type
+            //         public static void Name() { }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "Name").WithArguments("Name").WithLocation(5, 28));
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_02()
+    {
+        var src = """
+static class E
+{
+    extension(get_P)
+    {
+        public static int P => 0;
+    }
+}
+
+class get_P { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,32): error CS9326: 'get_P': extension member names cannot be the same as their extended type
+            //         public static int P => 0;
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "0").WithArguments("get_P").WithLocation(5, 32));
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_03()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        void T() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_04()
+    {
+        var src = """
+static class E
+{
+    extension(op_Addition)
+    {
+        public static op_Addition operator+(op_Addition o1, op_Addition o2) => throw null;
+    }
+}
+
+class op_Addition { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,43): error CS9326: 'op_Addition': extension member names cannot be the same as their extended type
+            //         public static op_Addition operator+(op_Addition o1, op_Addition o2) => throw null;
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "+").WithArguments("op_Addition").WithLocation(5, 43));
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_05()
+    {
+        var src = """
+static class E
+{
+    extension(N.op_Addition)
+    {
+        public static N.op_Addition operator+(N.op_Addition o1, N.op_Addition o2) => throw null;
+    }
+}
+
+namespace N
+{
+    class op_Addition { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,45): error CS9326: 'op_Addition': extension member names cannot be the same as their extended type
+            //         public static N.op_Addition operator+(N.op_Addition o1, N.op_Addition o2) => throw null;
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "+").WithArguments("op_Addition").WithLocation(5, 45));
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_06()
+    {
+        var src = """
+static class E
+{
+    extension<T>(op_Addition<T>)
+    {
+        public static op_Addition<T> operator+(op_Addition<T> o1, op_Addition<T> o2) => throw null;
+    }
+}
+
+class op_Addition<T> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,46): error CS9326: 'op_Addition': extension member names cannot be the same as their extended type
+            //         public static op_Addition<T> operator+(op_Addition<T> o1, op_Addition<T> o2) => throw null;
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "+").WithArguments("op_Addition").WithLocation(5, 46));
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_07()
+    {
+        var src = """
+static class E
+{
+    extension((int, int))
+    {
+        public static void ValueTuple() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,28): error CS9326: 'ValueTuple': extension member names cannot be the same as their extended type
+            //         public static void ValueTuple() { }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "ValueTuple").WithArguments("ValueTuple").WithLocation(5, 28));
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_08()
+    {
+        var src = """
+#nullable enable
+
+static class E
+{
+    extension(string?)
+    {
+        public static void String() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,28): error CS9326: 'String': extension member names cannot be the same as their extended type
+            //         public static void String() { }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "String").WithArguments("String").WithLocation(7, 28));
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_09()
+    {
+        var src = """
+#nullable enable
+
+static class E
+{
+    extension(string?)
+    {
+        public static void @string() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_10()
+    {
+        var src = """
+static class E
+{
+    extension(C<int>)
+    {
+        public static void C() { }
+    }
+}
+
+public class C<T> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,28): error CS9326: 'C': extension member names cannot be the same as their extended type
+            //         public static void C() { }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "C").WithArguments("C").WithLocation(5, 28));
+    }
 }
 

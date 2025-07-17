@@ -3134,7 +3134,10 @@ public static class Extensions
         comp.VerifyEmitDiagnostics(
             // (3,15): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
             //     extension(T t)
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(3, 15));
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(3, 15),
+            // (5,14): error CS9326: 'T': extension member names cannot be the same as their extended type
+            //         void T() { }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "T").WithArguments("T").WithLocation(5, 14));
     }
 
     [Fact]
