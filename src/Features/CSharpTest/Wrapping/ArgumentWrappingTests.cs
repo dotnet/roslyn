@@ -300,93 +300,93 @@ public sealed class ArgumentWrappingTests : AbstractWrappingTests
             }
             """,
             GetIndentionColumn(30),
-"""
-class C {
-    void Goo() {
-        this.Goobar(i,
-                    j,
-                    k,
-                    l,
-                    m,
-                    n,
-                    o,
-                    p,
-                    n);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(
-            i,
-            j,
-            k,
-            l,
-            m,
-            n,
-            o,
-            p,
-            n);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(i,
-            j,
-            k,
-            l,
-            m,
-            n,
-            o,
-            p,
-            n);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(i, j, k, l, m, n, o, p, n);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(
-            i, j, k, l, m, n, o, p, n);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(i, j, k, l,
-                    m, n, o, p,
-                    n);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(
-            i, j, k, l, m, n,
-            o, p, n);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(i, j, k, l,
-            m, n, o, p, n);
-    }
-}
-""");
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(i,
+                                j,
+                                k,
+                                l,
+                                m,
+                                n,
+                                o,
+                                p,
+                                n);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(
+                        i,
+                        j,
+                        k,
+                        l,
+                        m,
+                        n,
+                        o,
+                        p,
+                        n);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(i,
+                        j,
+                        k,
+                        l,
+                        m,
+                        n,
+                        o,
+                        p,
+                        n);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(i, j, k, l, m, n, o, p, n);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(
+                        i, j, k, l, m, n, o, p, n);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(i, j, k, l,
+                                m, n, o, p,
+                                n);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(
+                        i, j, k, l, m, n,
+                        o, p, n);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(i, j, k, l,
+                        m, n, o, p, n);
+                }
+            }
+            """);
 
     [Fact]
     public Task Test_LongWrapping_VariadicLengthIds()
@@ -401,90 +401,90 @@ class C {
             }
             """,
             GetIndentionColumn(30),
-"""
-class C {
-    void Goo() {
-        this.Goobar(i,
-                    jj,
-                    kkkkk,
-                    llllllll,
-                    mmmmmmmmmmmmmmmmmm,
-                    nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(
-            i,
-            jj,
-            kkkkk,
-            llllllll,
-            mmmmmmmmmmmmmmmmmm,
-            nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(i,
-            jj,
-            kkkkk,
-            llllllll,
-            mmmmmmmmmmmmmmmmmm,
-            nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(i, jj, kkkkk, llllllll, mmmmmmmmmmmmmmmmmm, nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(
-            i, jj, kkkkk, llllllll, mmmmmmmmmmmmmmmmmm, nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(i, jj,
-                    kkkkk,
-                    llllllll,
-                    mmmmmmmmmmmmmmmmmm,
-                    nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(
-            i, jj, kkkkk,
-            llllllll,
-            mmmmmmmmmmmmmmmmmm,
-            nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(i, jj,
-            kkkkk, llllllll,
-            mmmmmmmmmmmmmmmmmm,
-            nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
-    }
-}
-""");
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(i,
+                                jj,
+                                kkkkk,
+                                llllllll,
+                                mmmmmmmmmmmmmmmmmm,
+                                nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(
+                        i,
+                        jj,
+                        kkkkk,
+                        llllllll,
+                        mmmmmmmmmmmmmmmmmm,
+                        nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(i,
+                        jj,
+                        kkkkk,
+                        llllllll,
+                        mmmmmmmmmmmmmmmmmm,
+                        nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(i, jj, kkkkk, llllllll, mmmmmmmmmmmmmmmmmm, nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(
+                        i, jj, kkkkk, llllllll, mmmmmmmmmmmmmmmmmm, nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(i, jj,
+                                kkkkk,
+                                llllllll,
+                                mmmmmmmmmmmmmmmmmm,
+                                nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(
+                        i, jj, kkkkk,
+                        llllllll,
+                        mmmmmmmmmmmmmmmmmm,
+                        nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(i, jj,
+                        kkkkk, llllllll,
+                        mmmmmmmmmmmmmmmmmm,
+                        nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
+                }
+            }
+            """);
 
     [Fact]
     public Task Test_DoNotOfferLongWrappingOptionThatAlreadyAppeared()
@@ -499,78 +499,78 @@ class C {
             }
             """,
             GetIndentionColumn(25),
-"""
-class C {
-    void Goo() {
-        this.Goobar(iiiii,
-                    jjjjj,
-                    kkkkk,
-                    lllll,
-                    mmmmm,
-                    nnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(
-            iiiii,
-            jjjjj,
-            kkkkk,
-            lllll,
-            mmmmm,
-            nnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(iiiii,
-            jjjjj,
-            kkkkk,
-            lllll,
-            mmmmm,
-            nnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(
-            iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(
-            iiiii, jjjjj,
-            kkkkk, lllll,
-            mmmmm, nnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        this.Goobar(iiiii,
-            jjjjj, kkkkk,
-            lllll, mmmmm,
-            nnnnn);
-    }
-}
-""");
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(iiiii,
+                                jjjjj,
+                                kkkkk,
+                                lllll,
+                                mmmmm,
+                                nnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(
+                        iiiii,
+                        jjjjj,
+                        kkkkk,
+                        lllll,
+                        mmmmm,
+                        nnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(iiiii,
+                        jjjjj,
+                        kkkkk,
+                        lllll,
+                        mmmmm,
+                        nnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(
+                        iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(
+                        iiiii, jjjjj,
+                        kkkkk, lllll,
+                        mmmmm, nnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    this.Goobar(iiiii,
+                        jjjjj, kkkkk,
+                        lllll, mmmmm,
+                        nnnnn);
+                }
+            }
+            """);
 
     [Fact]
     public Task Test_DoNotOfferAllLongWrappingOptionThatAlreadyAppeared()
@@ -585,58 +585,58 @@ class C {
             }
             """,
             GetIndentionColumn(20),
-"""
-class C {
-    void Bar() {
-        a.Goobar(iiiii,
-                 jjjjj,
-                 kkkkk,
-                 lllll,
-                 mmmmm,
-                 nnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(
-            iiiii,
-            jjjjj,
-            kkkkk,
-            lllll,
-            mmmmm,
-            nnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(iiiii,
-            jjjjj,
-            kkkkk,
-            lllll,
-            mmmmm,
-            nnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(
-            iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
-    }
-}
-""");
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(iiiii,
+                             jjjjj,
+                             kkkkk,
+                             lllll,
+                             mmmmm,
+                             nnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(
+                        iiiii,
+                        jjjjj,
+                        kkkkk,
+                        lllll,
+                        mmmmm,
+                        nnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(iiiii,
+                        jjjjj,
+                        kkkkk,
+                        lllll,
+                        mmmmm,
+                        nnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(
+                        iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
+                }
+            }
+            """);
 
     [Fact]
     public Task Test_LongWrapping_VariadicLengthIds2()
@@ -651,83 +651,83 @@ class C {
             }
             """,
             GetIndentionColumn(30),
-"""
-class C {
-    void Bar() {
-        a.Goobar(i,
-                 jj,
-                 kkkk,
-                 lll,
-                 mm,
-                 n) {
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(
-            i,
-            jj,
-            kkkk,
-            lll,
-            mm,
-            n) {
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(i,
-            jj,
-            kkkk,
-            lll,
-            mm,
-            n) {
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(i, jj, kkkk, lll, mm, n) {
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(
-            i, jj, kkkk, lll, mm, n) {
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(i, jj, kkkk,
-                 lll, mm, n) {
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(
-            i, jj, kkkk, lll,
-            mm, n) {
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(i, jj, kkkk,
-            lll, mm, n) {
-    }
-}
-""");
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(i,
+                             jj,
+                             kkkk,
+                             lll,
+                             mm,
+                             n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(
+                        i,
+                        jj,
+                        kkkk,
+                        lll,
+                        mm,
+                        n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(i,
+                        jj,
+                        kkkk,
+                        lll,
+                        mm,
+                        n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(i, jj, kkkk, lll, mm, n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(
+                        i, jj, kkkk, lll, mm, n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(i, jj, kkkk,
+                             lll, mm, n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(
+                        i, jj, kkkk, lll,
+                        mm, n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(i, jj, kkkk,
+                        lll, mm, n) {
+                }
+            }
+            """);
 
     [Fact]
     public Task Test_DoNotOfferExistingOption1()
@@ -745,74 +745,74 @@ class C {
             }
             """,
             GetIndentionColumn(30),
-"""
-class C {
-    void Bar() {
-        a.Goobar(
-            iiiii,
-            jjjjj,
-            kkkkk,
-            lllll,
-            mmmmm,
-            nnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(iiiii,
-            jjjjj,
-            kkkkk,
-            lllll,
-            mmmmm,
-            nnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(
-            iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(iiiii, jjjjj,
-                 kkkkk, lllll,
-                 mmmmm, nnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(
-            iiiii, jjjjj,
-            kkkkk, lllll,
-            mmmmm, nnnnn);
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(iiiii, jjjjj,
-            kkkkk, lllll,
-            mmmmm, nnnnn);
-    }
-}
-""");
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(
+                        iiiii,
+                        jjjjj,
+                        kkkkk,
+                        lllll,
+                        mmmmm,
+                        nnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(iiiii,
+                        jjjjj,
+                        kkkkk,
+                        lllll,
+                        mmmmm,
+                        nnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(
+                        iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(iiiii, jjjjj,
+                             kkkkk, lllll,
+                             mmmmm, nnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(
+                        iiiii, jjjjj,
+                        kkkkk, lllll,
+                        mmmmm, nnnnn);
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(iiiii, jjjjj,
+                        kkkkk, lllll,
+                        mmmmm, nnnnn);
+                }
+            }
+            """);
 
     [Fact]
     public Task Test_DoNotOfferExistingOption2()
@@ -831,70 +831,70 @@ class C {
             }
             """,
             GetIndentionColumn(30),
-"""
-class C {
-    void Bar() {
-        a.Goobar(i,
-                 jj,
-                 kkkk,
-                 lll,
-                 mm,
-                 n);
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(i,
-            jj,
-            kkkk,
-            lll,
-            mm,
-            n);
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(i, jj, kkkk, lll, mm, n);
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(
-            i, jj, kkkk, lll, mm, n);
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(i, jj, kkkk,
-                 lll, mm, n);
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(
-            i, jj, kkkk, lll,
-            mm, n);
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        a.Goobar(i, jj, kkkk,
-            lll, mm, n);
-    }
-}
-""");
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(i,
+                             jj,
+                             kkkk,
+                             lll,
+                             mm,
+                             n);
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(i,
+                        jj,
+                        kkkk,
+                        lll,
+                        mm,
+                        n);
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(i, jj, kkkk, lll, mm, n);
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(
+                        i, jj, kkkk, lll, mm, n);
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(i, jj, kkkk,
+                             lll, mm, n);
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(
+                        i, jj, kkkk, lll,
+                        mm, n);
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    a.Goobar(i, jj, kkkk,
+                        lll, mm, n);
+                }
+            }
+            """);
 
     [Fact]
     public Task TestInElementAccess1()

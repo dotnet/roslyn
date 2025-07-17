@@ -168,9 +168,15 @@ internal sealed class UnknownSourcePasteProcessor(
         if (mustBeMultiLine)
             edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.StartDelimiterSpan.End, 0), NewLine + IndentationWhitespace));
 
-        SourceText? textOfCurrentChange = null;
-        var commonIndentationPrefix = GetCommonIndentationPrefix(Changes) ?? "";
+        // Only if we're ending with a multi-line raw string do we want to consider the first line when determining
+        // the common indentation prefix to trim out.  If we don't have a multi-line raw string, then that means we
+        // pasted a boring single-line string into a single-line raw string, and in that case, we don't want to touch
+        // the contents at all.
+        var commonIndentationPrefix = SpansContainsNewLine(TextAfterPaste, TextContentsSpansAfterPaste)
+            ? GetCommonIndentationPrefix(Changes) ?? ""
+            : "";
 
+        SourceText? textOfCurrentChange = null;
         foreach (var change in Changes)
         {
             // Create a text object around the change text we're making.  This is a very simple way to get

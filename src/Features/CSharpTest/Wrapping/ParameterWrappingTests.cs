@@ -392,77 +392,77 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
             }
             """,
             GetIndentionColumn(30),
-"""
-class C {
-    void Goo(int i,
-             int j,
-             int k,
-             int l,
-             int m,
-             int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i,
-        int j,
-        int k,
-        int l,
-        int m,
-        int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i,
-        int j,
-        int k,
-        int l,
-        int m,
-        int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int j, int k, int l, int m, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int j, int k, int l, int m, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int j,
-             int k, int l,
-             int m, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int j, int k,
-        int l, int m, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int j,
-        int k, int l, int m,
-        int n) {
-    }
-}
-""");
+            """
+            class C {
+                void Goo(int i,
+                         int j,
+                         int k,
+                         int l,
+                         int m,
+                         int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i,
+                    int j,
+                    int k,
+                    int l,
+                    int m,
+                    int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i,
+                    int j,
+                    int k,
+                    int l,
+                    int m,
+                    int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int j, int k, int l, int m, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int j, int k, int l, int m, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int j,
+                         int k, int l,
+                         int m, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int j, int k,
+                    int l, int m, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int j,
+                    int k, int l, int m,
+                    int n) {
+                }
+            }
+            """);
 
     [Fact]
     public Task Test_LongWrapping_VariadicLengthIds()
@@ -476,82 +476,82 @@ class C {
             }
             """,
             GetIndentionColumn(30),
-"""
-class C {
-    void Goo(int i,
-             int jj,
-             int kkkk,
-             int llllllll,
-             int mmmmmmmmmmmmmmmm,
-             int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i,
-        int jj,
-        int kkkk,
-        int llllllll,
-        int mmmmmmmmmmmmmmmm,
-        int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i,
-        int jj,
-        int kkkk,
-        int llllllll,
-        int mmmmmmmmmmmmmmmm,
-        int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj, int kkkk, int llllllll, int mmmmmmmmmmmmmmmm, int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int jj, int kkkk, int llllllll, int mmmmmmmmmmmmmmmm, int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj,
-             int kkkk,
-             int llllllll,
-             int mmmmmmmmmmmmmmmm,
-             int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int jj,
-        int kkkk, int llllllll,
-        int mmmmmmmmmmmmmmmm,
-        int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj,
-        int kkkk, int llllllll,
-        int mmmmmmmmmmmmmmmm,
-        int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
-    }
-}
-""");
+            """
+            class C {
+                void Goo(int i,
+                         int jj,
+                         int kkkk,
+                         int llllllll,
+                         int mmmmmmmmmmmmmmmm,
+                         int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i,
+                    int jj,
+                    int kkkk,
+                    int llllllll,
+                    int mmmmmmmmmmmmmmmm,
+                    int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i,
+                    int jj,
+                    int kkkk,
+                    int llllllll,
+                    int mmmmmmmmmmmmmmmm,
+                    int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj, int kkkk, int llllllll, int mmmmmmmmmmmmmmmm, int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int jj, int kkkk, int llllllll, int mmmmmmmmmmmmmmmm, int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj,
+                         int kkkk,
+                         int llllllll,
+                         int mmmmmmmmmmmmmmmm,
+                         int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int jj,
+                    int kkkk, int llllllll,
+                    int mmmmmmmmmmmmmmmm,
+                    int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj,
+                    int kkkk, int llllllll,
+                    int mmmmmmmmmmmmmmmm,
+                    int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+                }
+            }
+            """);
 
     [Fact]
     public Task Test_DoNotOfferLongWrappingOptionThatAlreadyAppeared()
@@ -565,71 +565,71 @@ class C {
             }
             """,
             GetIndentionColumn(30),
-"""
-class C {
-    void Goo(int iiiii,
-             int jjjjj,
-             int kkkkk,
-             int lllll,
-             int mmmmm,
-             int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int iiiii,
-        int jjjjj,
-        int kkkkk,
-        int lllll,
-        int mmmmm,
-        int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int iiiii,
-        int jjjjj,
-        int kkkkk,
-        int lllll,
-        int mmmmm,
-        int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int iiiii, int jjjjj,
-        int kkkkk, int lllll,
-        int mmmmm, int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int iiiii,
-        int jjjjj, int kkkkk,
-        int lllll, int mmmmm,
-        int nnnnn) {
-    }
-}
-""");
+            """
+            class C {
+                void Goo(int iiiii,
+                         int jjjjj,
+                         int kkkkk,
+                         int lllll,
+                         int mmmmm,
+                         int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int iiiii,
+                    int jjjjj,
+                    int kkkkk,
+                    int lllll,
+                    int mmmmm,
+                    int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int iiiii,
+                    int jjjjj,
+                    int kkkkk,
+                    int lllll,
+                    int mmmmm,
+                    int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int iiiii, int jjjjj,
+                    int kkkkk, int lllll,
+                    int mmmmm, int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int iiiii,
+                    int jjjjj, int kkkkk,
+                    int lllll, int mmmmm,
+                    int nnnnn) {
+                }
+            }
+            """);
 
     [Fact]
     public Task Test_DoNotOfferAllLongWrappingOptionThatAlreadyAppeared()
@@ -643,53 +643,53 @@ class C {
             }
             """,
             GetIndentionColumn(20),
-"""
-class C {
-    void Goo(int iiiii,
-             int jjjjj,
-             int kkkkk,
-             int lllll,
-             int mmmmm,
-             int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int iiiii,
-        int jjjjj,
-        int kkkkk,
-        int lllll,
-        int mmmmm,
-        int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int iiiii,
-        int jjjjj,
-        int kkkkk,
-        int lllll,
-        int mmmmm,
-        int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
-    }
-}
-""");
+            """
+            class C {
+                void Goo(int iiiii,
+                         int jjjjj,
+                         int kkkkk,
+                         int lllll,
+                         int mmmmm,
+                         int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int iiiii,
+                    int jjjjj,
+                    int kkkkk,
+                    int lllll,
+                    int mmmmm,
+                    int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int iiiii,
+                    int jjjjj,
+                    int kkkkk,
+                    int lllll,
+                    int mmmmm,
+                    int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
+                }
+            }
+            """);
 
     [Fact]
     public Task Test_LongWrapping_VariadicLengthIds2()
@@ -703,78 +703,78 @@ class C {
             }
             """,
             GetIndentionColumn(30),
-"""
-class C {
-    void Goo(int i,
-             int jj,
-             int kkkk,
-             int lll,
-             int mm,
-             int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i,
-        int jj,
-        int kkkk,
-        int lll,
-        int mm,
-        int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i,
-        int jj,
-        int kkkk,
-        int lll,
-        int mm,
-        int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj, int kkkk, int lll, int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int jj, int kkkk, int lll, int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj,
-             int kkkk, int lll,
-             int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int jj,
-        int kkkk, int lll,
-        int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj,
-        int kkkk, int lll,
-        int mm, int n) {
-    }
-}
-""");
+            """
+            class C {
+                void Goo(int i,
+                         int jj,
+                         int kkkk,
+                         int lll,
+                         int mm,
+                         int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i,
+                    int jj,
+                    int kkkk,
+                    int lll,
+                    int mm,
+                    int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i,
+                    int jj,
+                    int kkkk,
+                    int lll,
+                    int mm,
+                    int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj, int kkkk, int lll, int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int jj, int kkkk, int lll, int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj,
+                         int kkkk, int lll,
+                         int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int jj,
+                    int kkkk, int lll,
+                    int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj,
+                    int kkkk, int lll,
+                    int mm, int n) {
+                }
+            }
+            """);
 
     [Fact]
     public Task Test_DoNotOfferExistingOption1()
@@ -791,67 +791,67 @@ class C {
             }
             """,
             GetIndentionColumn(30),
-"""
-class C {
-    void Goo(
-        int i,
-        int jj,
-        int kkkk,
-        int lll,
-        int mm,
-        int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i,
-        int jj,
-        int kkkk,
-        int lll,
-        int mm,
-        int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj, int kkkk, int lll, int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int jj, int kkkk, int lll, int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj,
-             int kkkk, int lll,
-             int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int jj,
-        int kkkk, int lll,
-        int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj,
-        int kkkk, int lll,
-        int mm, int n) {
-    }
-}
-""");
+            """
+            class C {
+                void Goo(
+                    int i,
+                    int jj,
+                    int kkkk,
+                    int lll,
+                    int mm,
+                    int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i,
+                    int jj,
+                    int kkkk,
+                    int lll,
+                    int mm,
+                    int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj, int kkkk, int lll, int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int jj, int kkkk, int lll, int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj,
+                         int kkkk, int lll,
+                         int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int jj,
+                    int kkkk, int lll,
+                    int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj,
+                    int kkkk, int lll,
+                    int mm, int n) {
+                }
+            }
+            """);
 
     [Fact]
     public Task Test_DoNotOfferExistingOption2()
@@ -869,66 +869,66 @@ class C {
             }
             """,
             GetIndentionColumn(30),
-"""
-class C {
-    void Goo(int i,
-             int jj,
-             int kkkk,
-             int lll,
-             int mm,
-             int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i,
-        int jj,
-        int kkkk,
-        int lll,
-        int mm,
-        int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj, int kkkk, int lll, int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int jj, int kkkk, int lll, int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj,
-             int kkkk, int lll,
-             int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int jj,
-        int kkkk, int lll,
-        int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj,
-        int kkkk, int lll,
-        int mm, int n) {
-    }
-}
-""");
+            """
+            class C {
+                void Goo(int i,
+                         int jj,
+                         int kkkk,
+                         int lll,
+                         int mm,
+                         int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i,
+                    int jj,
+                    int kkkk,
+                    int lll,
+                    int mm,
+                    int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj, int kkkk, int lll, int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int jj, int kkkk, int lll, int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj,
+                         int kkkk, int lll,
+                         int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int jj,
+                    int kkkk, int lll,
+                    int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj,
+                    int kkkk, int lll,
+                    int mm, int n) {
+                }
+            }
+            """);
 
     [Fact]
     public Task TestInConstructor()

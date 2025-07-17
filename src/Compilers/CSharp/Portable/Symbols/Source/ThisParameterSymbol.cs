@@ -178,6 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (Symbol?)_containingMethod ?? _containingType; }
         }
 
+        internal override ScopedKind DeclaredScope => throw ExceptionUtilities.Unreachable();
+
         internal override ScopedKind EffectiveScope
         {
             get
