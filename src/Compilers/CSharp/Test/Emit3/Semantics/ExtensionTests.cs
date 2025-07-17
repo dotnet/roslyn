@@ -34771,6 +34771,86 @@ static class E
     }
 
     [Fact]
+    public void Dynamic_07()
+    {
+        var src = """
+object.M();
+
+static class E
+{
+    extension(object o)
+    {
+        public static void M()
+        {
+            local(42);
+
+            static void local(dynamic d) { System.Console.Write(d); }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Dynamic_08()
+    {
+        var src = """
+object.M();
+
+static class E
+{
+    extension(object o)
+    {
+        public static void M()
+        {
+            M2(42);
+        }
+
+        static void M2(dynamic d) { System.Console.Write(d); }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2(42)");
+        Assert.Equal("void E.M2(dynamic d)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void Dynamic_09()
+    {
+        var src = """
+object.M();
+
+static class E
+{
+    extension(object o)
+    {
+        public static void M()
+        {
+            M2(42);
+        }
+    }
+
+    static void M2(dynamic d) { System.Console.Write(d); }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2(42)");
+        Assert.Equal("void E.M2(dynamic d)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
     public void ResolveExtension_01()
     {
         var src = """
