@@ -13,8 +13,9 @@ internal partial class TaggerEventSources
     {
         private WorkspaceEventRegistration? _documentActiveContextChangedDisposer;
 
+        // Require main thread on the callback as RaiseChanged implementors may have main thread dependencies.
         protected override void ConnectToWorkspace(Workspace workspace)
-            => _documentActiveContextChangedDisposer = workspace.RegisterDocumentActiveContextChangedHandler(OnDocumentActiveContextChanged);
+            => _documentActiveContextChangedDisposer = workspace.RegisterDocumentActiveContextChangedHandler(OnDocumentActiveContextChanged, WorkspaceEventOptions.RequiresMainThreadOptions);
 
         protected override void DisconnectFromWorkspace(Workspace workspace)
             => _documentActiveContextChangedDisposer?.Dispose();

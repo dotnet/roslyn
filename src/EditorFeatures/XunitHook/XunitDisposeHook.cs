@@ -18,7 +18,7 @@ internal sealed class XunitDisposeHook : MarshalByRefObject
         if (!AppDomain.CurrentDomain.IsDefaultAppDomain())
             throw new InvalidOperationException();
 
-        var xunitUtilities = AppDomain.CurrentDomain.GetAssemblies().Where(static assembly => assembly.GetName().Name.StartsWith("xunit.runner.utility")).ToArray();
+        var xunitUtilities = AppDomain.CurrentDomain.GetAssemblies().Where(static assembly => assembly.GetName().Name.StartsWith("xunit.runner.visualstudio")).ToArray();
         foreach (var xunitUtility in xunitUtilities)
         {
             var appDomainManagerType = xunitUtility.GetType("Xunit.AppDomainManager_AppDomain");

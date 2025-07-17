@@ -102,6 +102,32 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             }
             """, new TestParameters(TestOptions.RegularPreview));
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76813")]
+    public Task TestSingleGetterFromField_CommentBeforeField()
+        => TestInRegularAndScript1Async(
+            """
+            class Class
+            {
+                // Comment to preserve
+                [|int i|];
+
+                int P
+                {
+                    get
+                    {
+                        return i;
+                    }
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                // Comment to preserve
+                int P { get; }
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28511")]
     public Task TestNullable1()
         => TestMissingInRegularAndScriptAsync(
@@ -213,6 +239,39 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 }
             }
             struct MutableInt { public int Value; }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76815")]
+    [InlineData("DateTime")]
+    [InlineData("ArraySegment<int>")]
+    [InlineData("DateTimeOffset")]
+    [InlineData("Guid")]
+    [InlineData("Index")]
+    [InlineData("Range")]
+    [InlineData("ReadOnlyMemory<int>")]
+    [InlineData("ReadOnlySpan<int>")]
+    [InlineData("TimeSpan")]
+    public Task TestWellKnownImmutableValueType1(string typeName)
+        => TestInRegularAndScript1Async(
+            $$"""
+            class Class
+            {
+                [|System.{{typeName}} i|];
+
+                System.{{typeName}} P
+                {
+                    get
+                    {
+                        return i;
+                    }
+                }
+            }
+            """,
+            $$"""
+            class Class
+            {
+                System.{{typeName}} P { get; }
+            }
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28511")]

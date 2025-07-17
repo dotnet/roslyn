@@ -22,9 +22,6 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// <summary>
     /// Re-analyze all projects and documents.  This will cause an LSP diagnostic refresh request to be sent.
     /// </summary>
-    /// <remarks>
-    /// This implementation must be safe to call on any thread.
-    /// </remarks>
     void RequestDiagnosticRefresh();
 
     /// <summary>

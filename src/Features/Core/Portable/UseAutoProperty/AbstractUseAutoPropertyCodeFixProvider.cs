@@ -239,18 +239,18 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider
         // it. As long as something is above it, we keep the separation. However, if the
         // property becomes the first member in the type, the separation is now inappropriate
         // because there's nothing to actually separate it from.
+        var fieldDocumentSyntaxFacts = fieldDocument.GetRequiredLanguageService<ISyntaxFactsService>();
         if (fieldDocument == propertyDocument)
         {
-            var syntaxFacts = fieldDocument.GetRequiredLanguageService<ISyntaxFactsService>();
             var bannerService = fieldDocument.GetRequiredLanguageService<IFileBannerFactsService>();
-            if (WillRemoveFirstFieldInTypeDirectlyAboveProperty(syntaxFacts, propertyDeclaration, nodeToRemove) &&
+            if (WillRemoveFirstFieldInTypeDirectlyAboveProperty(fieldDocumentSyntaxFacts, propertyDeclaration, nodeToRemove) &&
                 bannerService.GetLeadingBlankLines(nodeToRemove).Length == 0)
             {
                 updatedProperty = bannerService.GetNodeWithoutLeadingBlankLines(updatedProperty);
             }
         }
 
-        var syntaxRemoveOptions = CreateSyntaxRemoveOptions(nodeToRemove);
+        var syntaxRemoveOptions = CreateSyntaxRemoveOptions(fieldDocumentSyntaxFacts, nodeToRemove);
         if (fieldDocument == propertyDocument)
         {
             // Same file.  Have to do this in a slightly complicated fashion.
@@ -326,15 +326,13 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider
         return (fieldSymbol, propertySymbol);
     }
 
-    private static SyntaxRemoveOptions CreateSyntaxRemoveOptions(SyntaxNode nodeToRemove)
+    private static SyntaxRemoveOptions CreateSyntaxRemoveOptions(
+        ISyntaxFacts syntaxFacts, SyntaxNode nodeToRemove)
     {
         var syntaxRemoveOptions = SyntaxGenerator.DefaultRemoveOptions;
-        var hasDirective = nodeToRemove.GetLeadingTrivia().Any(t => t.IsDirective);
 
-        if (hasDirective)
-        {
+        if (nodeToRemove.GetLeadingTrivia().Any(t => t.IsDirective || syntaxFacts.IsRegularComment(t)))
             syntaxRemoveOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
-        }
 
         return syntaxRemoveOptions;
     }
