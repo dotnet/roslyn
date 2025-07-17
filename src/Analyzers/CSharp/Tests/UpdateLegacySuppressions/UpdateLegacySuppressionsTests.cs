@@ -3,16 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UpdateLegacySuppressions;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions.CSharpRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.UpdateLegacySuppressions.UpdateLegacySuppressionsCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpdateLegacySuppressions;
+
+using VerifyCS = CSharpCodeFixVerifier<
+    CSharpRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer,
+    UpdateLegacySuppressionsCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUpdateLegacySuppressions)]
 [WorkItem("https://github.com/dotnet/roslyn/issues/44362")]

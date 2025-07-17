@@ -5901,4 +5901,26 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 public int B { get; set; }
             }
             """, index: 1);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49649")]
+    public Task TestInTopLevelProgram()
+        => TestInRegularAndScriptAsync(
+            """
+            var student = new [|Student|]("Youssef");
+            Console.WriteLine(student.Name);
+            """,
+            """
+            var student = new Student("Youssef");
+            Console.WriteLine(student.Name);
+
+            internal class Student
+            {
+                private string v;
+
+                public Student(string v)
+                {
+                    this.v = v;
+                }
+            }
+            """, index: 1);
 }

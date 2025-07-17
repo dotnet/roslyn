@@ -211,4 +211,27 @@ public sealed class UseExpressionBodyForIndexersRefactoringTests : AbstractCShar
             }|]
             """,
             parameters: new TestParameters(options: UseBlockBody));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38057")]
+    public Task TestCommentAfterConstructorName()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                int this[int i] // comment
+                {
+                    get
+                    {
+                        [||]return Bar();
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int this[int i] => Bar(); // comment
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
 }

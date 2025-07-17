@@ -42,17 +42,12 @@ internal static partial class ConflictResolver
     /// resolves them where possible.
     /// </summary>
     /// <param name="replacementText">The new name of the identifier</param>
-    /// <param name="nonConflictSymbolKeys">Used after renaming references. References that now bind to any of these
-    /// symbols are not considered to be in conflict. Useful for features that want to rename existing references to
-    /// point at some existing symbol. Normally this would be a conflict, but this can be used to override that
-    /// behavior.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A conflict resolution containing the new solution.</returns>
     internal static async Task<ConflictResolution> ResolveLightweightConflictsAsync(
         ISymbol symbol,
         LightweightRenameLocations lightweightRenameLocations,
         string replacementText,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -68,7 +63,8 @@ internal static partial class ConflictResolver
 
                 var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                     solution,
-                    (service, solutionInfo, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, serializableSymbol, serializableLocationSet, replacementText, nonConflictSymbolKeys, cancellationToken),
+                    (service, solutionInfo, cancellationToken) => service.ResolveConflictsAsync(
+                        solutionInfo, serializableSymbol, serializableLocationSet, replacementText, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (result.HasValue && result.Value != null)
@@ -83,7 +79,7 @@ internal static partial class ConflictResolver
             return new ConflictResolution(WorkspacesResources.Failed_to_resolve_rename_conflicts);
 
         return await ResolveSymbolicLocationConflictsInCurrentProcessAsync(
-            heavyweightLocations, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+            heavyweightLocations, replacementText, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -93,7 +89,6 @@ internal static partial class ConflictResolver
     internal static async Task<ConflictResolution> ResolveSymbolicLocationConflictsInCurrentProcessAsync(
         SymbolicRenameLocations renameLocations,
         string replacementText,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken)
     {
         // when someone e.g. renames a symbol from metadata through the API (IDE blocks this), we need to return
@@ -105,7 +100,7 @@ internal static partial class ConflictResolver
         }
 
         var resolution = await ResolveMutableConflictsAsync(
-            renameLocations, renameSymbolDeclarationLocation, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+            renameLocations, renameSymbolDeclarationLocation, replacementText, cancellationToken).ConfigureAwait(false);
 
         return resolution.ToConflictResolution();
     }
@@ -114,12 +109,11 @@ internal static partial class ConflictResolver
         SymbolicRenameLocations renameLocationSet,
         Location renameSymbolDeclarationLocation,
         string replacementText,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var session = new Session(
-            renameLocationSet, renameSymbolDeclarationLocation, replacementText, nonConflictSymbolKeys, cancellationToken);
+            renameLocationSet, renameSymbolDeclarationLocation, replacementText, cancellationToken);
         return session.ResolveConflictsAsync();
     }
 

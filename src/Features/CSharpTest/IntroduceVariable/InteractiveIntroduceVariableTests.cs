@@ -182,7 +182,7 @@ public class InteractiveIntroduceVariableTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546465")]
     public Task TestPreserveTrivia()

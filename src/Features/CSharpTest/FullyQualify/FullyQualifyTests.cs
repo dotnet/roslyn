@@ -74,7 +74,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                 }
             }
             """,
-index: 1, testHost: testHost);
+            index: 1, testHost: testHost);
 
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889385")]
@@ -178,7 +178,7 @@ index: 1, testHost: testHost);
                 }
             }
             """,
-"System.Collections.Generic.List", new TestParameters(testHost: testHost));
+            "System.Collections.Generic.List", new TestParameters(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestGenericWithWrongArgs(TestHost testHost)
@@ -372,7 +372,7 @@ index: 1, testHost: testHost);
                 }
             }
             """,
-count: 1, new TestParameters(testHost: testHost));
+            count: 1, new TestParameters(testHost: testHost));
 
         await TestInRegularAndScriptAsync(
             """
@@ -1045,7 +1045,7 @@ count: 1, new TestParameters(testHost: testHost));
                 Outer.C c;
             }
             """,
-index: 1, testHost: testHost);
+            index: 1, testHost: testHost);
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
     public Task BugFix5950(TestHost testHost)
