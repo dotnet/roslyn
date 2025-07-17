@@ -146,12 +146,6 @@ internal sealed class RoslynPackage : AbstractPackage
     {
         await TaskScheduler.Default;
 
-        await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(false);
-
         // we need to load it as early as possible since we can have errors from
         // package from each language very early
         await this.ComponentModel.GetService<VisualStudioSuppressionFixService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
