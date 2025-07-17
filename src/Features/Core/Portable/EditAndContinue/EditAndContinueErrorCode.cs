@@ -14,4 +14,13 @@ internal enum EditAndContinueErrorCode
     UnableToReadSourceFileOrPdb = 6,
     AddingTypeRuntimeCapabilityRequired = 7,
     UpdatingDocumentInStaleProject = 8,
+
+    ChangingMultiVersionReferences = 98,
+    ChangingReference = 99,
+
+    /// <summary>
+    /// Base code for project setting rude edits. 
+    /// <see cref="ProjectSettingKind"/> is added to this value.
+    /// </summary>
+    ChangingProjectSettingBase = 100,
 }

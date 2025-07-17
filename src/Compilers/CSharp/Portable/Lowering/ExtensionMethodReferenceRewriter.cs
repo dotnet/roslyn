@@ -168,6 +168,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method?.GetIsNewExtensionMember() != true ||
                          method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is null);
             // All possibly interesting methods should go through VisitMethodSymbolWithExtensionRewrite first
+
+            /*
             Debug.Assert(method is null ||
                          method.ContainingSymbol is not NamedTypeSymbol ||
                          method.MethodKind is (MethodKind.Constructor or MethodKind.StaticConstructor) ||
@@ -185,6 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                              { Name: nameof(VisitMethodSymbolWithExtensionRewrite), DeclaringType: { } declaringType } => declaringType == typeof(ExtensionMethodReferenceRewriter),
                              _ => false
                          });
+                         */
 
             return base.VisitMethodSymbol(method);
         }

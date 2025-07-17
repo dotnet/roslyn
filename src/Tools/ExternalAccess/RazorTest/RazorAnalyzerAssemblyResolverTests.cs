@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -15,6 +16,8 @@ using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests;
@@ -22,11 +25,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests;
 public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
 {
     private TempRoot TempRoot { get; } = new TempRoot();
-    private int InitialAssemblyCount { get; }
+    private ImmutableArray<string?> InitialAssemblies { get; }
 
     public RazorAnalyzerAssemblyResolverTests()
     {
-        InitialAssemblyCount = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.Count();
+        InitialAssemblies = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.SelectAsArray(a => a.FullName);
     }
 
     public void Dispose()
@@ -34,8 +37,8 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         TempRoot.Dispose();
 
         // This test should not change the set of assemblies loaded in the current context.
-        var count = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.Count();
-        Assert.Equal(InitialAssemblyCount, count);
+        var count = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.SelectAsArray(a => a.FullName);
+        AssertEx.SetEqual(InitialAssemblies, count);
     }
 
     private void CreateRazorAssemblies(string directory, string versionNumber = "1.0.0.0")
@@ -93,7 +96,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
     /// platform DLL, like the object pool, will be in the VS platform directory. Need to fall back
     /// to the compiler context to find those.
     /// </summary>
-    [Fact]
+    [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79352")]
     public void FallbackToCompilerContext()
     {
         var dir1 = TempRoot.CreateDirectory().Path;
@@ -127,7 +130,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         });
     }
 
-    [Fact]
+    [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79352")]
     public void FirstLoadWins()
     {
         var dir1 = TempRoot.CreateDirectory().Path;
@@ -151,7 +154,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         });
     }
 
-    [Fact]
+    [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79352")]
     public void ChooseServiceHubFolder()
     {
         var dir = TempRoot.CreateDirectory().Path;

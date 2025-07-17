@@ -49,7 +49,9 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
             _workspace = workspace;
             _diagnosticAnalyzerService = _workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
-            _ = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
+            // Main thread as OnWorkspaceChanged's call to IDiagnosticAnalyzerService.RequestDiagnosticRefresh isn't clear on
+            // threading requirements
+            _ = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged, WorkspaceEventOptions.RequiresMainThreadOptions);
         }
 
         private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
