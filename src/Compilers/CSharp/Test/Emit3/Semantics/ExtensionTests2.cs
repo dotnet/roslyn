@@ -14797,5 +14797,80 @@ public class C<T> { }
             //         public static void C() { }
             Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "C").WithArguments("C").WithLocation(5, 28));
     }
+
+    [Fact]
+    public void ExtractCastInvocation_01()
+    {
+        var src = """
+_ = /*<bind>*/ from int x in new C<int>()
+    from int y in new C<int>()
+    select x.ToString() + y.ToString() /*</bind>*/;
+
+static class E
+{
+    extension(C<int> source)
+    {
+        public C<string> SelectMany(System.Func<int, C<int>> collectionSelector, System.Func<int, int, string> resultSelector) => throw null;
+        public C<T> Cast<T>() => throw null;
+    }
+}
+
+class C<T> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var expectedOperationTree = """
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: C<System.String>) (Syntax: 'from int x  ... .ToString()')
+Expression:
+  IInvocationOperation ( C<System.String> E.<>E__0.SelectMany(System.Func<System.Int32, C<System.Int32>> collectionSelector, System.Func<System.Int32, System.Int32, System.String> resultSelector)) (OperationKind.Invocation, Type: C<System.String>, IsImplicit) (Syntax: 'from int y  ... ew C<int>()')
+    Instance Receiver:
+      IInvocationOperation ( C<System.Int32> E.<>E__0.Cast<System.Int32>()) (OperationKind.Invocation, Type: C<System.Int32>, IsImplicit) (Syntax: 'from int x  ... ew C<int>()')
+        Instance Receiver:
+          IObjectCreationOperation (Constructor: C<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: C<System.Int32>) (Syntax: 'new C<int>()')
+            Arguments(0)
+            Initializer:
+              null
+        Arguments(0)
+    Arguments(2):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: collectionSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new C<int>()')
+          IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Int32, C<System.Int32>>, IsImplicit) (Syntax: 'new C<int>()')
+            Target:
+              IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'new C<int>()')
+                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'new C<int>()')
+                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'new C<int>()')
+                    ReturnedValue:
+                      IInvocationOperation ( C<System.Int32> E.<>E__0.Cast<System.Int32>()) (OperationKind.Invocation, Type: C<System.Int32>, IsImplicit) (Syntax: 'new C<int>()')
+                        Instance Receiver:
+                          IObjectCreationOperation (Constructor: C<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: C<System.Int32>) (Syntax: 'new C<int>()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                        Arguments(0)
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: resultSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x.ToString( ... .ToString()')
+          IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Int32, System.Int32, System.String>, IsImplicit) (Syntax: 'x.ToString( ... .ToString()')
+            Target:
+              IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'x.ToString( ... .ToString()')
+                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x.ToString( ... .ToString()')
+                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x.ToString( ... .ToString()')
+                    ReturnedValue:
+                      IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: 'x.ToString( ... .ToString()')
+                        Left:
+                          IInvocationOperation (virtual System.String System.Int32.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'x.ToString()')
+                            Instance Receiver:
+                              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                            Arguments(0)
+                        Right:
+                          IInvocationOperation (virtual System.String System.Int32.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'y.ToString()')
+                            Instance Receiver:
+                              IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+                            Arguments(0)
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+""";
+        VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(src, expectedOperationTree, []);
+    }
 }
 
