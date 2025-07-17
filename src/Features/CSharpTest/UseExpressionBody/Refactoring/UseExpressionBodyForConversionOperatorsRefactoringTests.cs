@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody;
@@ -186,4 +187,24 @@ public sealed class UseExpressionBodyForConversionOperatorsRefactoringTests : Ab
             }|]
             """,
             parameters: new TestParameters(options: UseBlockBody));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38057")]
+    public Task TestCommentAfterConstructorName()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public static implicit operator bool(C c1) // comment
+                {
+                    [||]return Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public static implicit operator bool(C c1) => Bar(); // comment
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
 }
