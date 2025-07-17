@@ -12998,6 +12998,31 @@ public class Class1
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestStaticExtensionMethod_OnEnumType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                using System;
+
+                E.$$
+
+                enum E;
+
+                static class C
+                {
+                    extension(E)
+                    {
+                        public static void EM() { }
+                    }
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersionExtensions.CSharpNext)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("EM", displayTextSuffix:="")
+            End Using
+        End Function
+
         <WorkItem("https://github.com/dotnet/roslyn/issues/78284")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestOverrideInstanceAssignmentOperator(showCompletionInArgumentLists As Boolean) As Task

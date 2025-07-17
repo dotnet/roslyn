@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
@@ -23,10 +24,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(EnumAndCompletionListTagCompletionProvider), LanguageNames.CSharp)]
+[ExportCompletionProvider(nameof(EnumAndCompletionListTagCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(CSharpSuggestionModeCompletionProvider))]
-[Shared]
-internal sealed partial class EnumAndCompletionListTagCompletionProvider : LSPCompletionProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class EnumAndCompletionListTagCompletionProvider()
+    : LSPCompletionProvider
 {
     private static readonly CompletionItemRules s_enumTypeRules =
         CompletionItemRules.Default.WithCommitCharacterRules([CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.')])
@@ -34,12 +37,6 @@ internal sealed partial class EnumAndCompletionListTagCompletionProvider : LSPCo
                                    .WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
 
     private static readonly ImmutableHashSet<char> s_triggerCharacters = [' ', '[', '(', '~'];
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EnumAndCompletionListTagCompletionProvider()
-    {
-    }
 
     internal override string Language => LanguageNames.CSharp;
 
@@ -105,7 +102,12 @@ internal sealed partial class EnumAndCompletionListTagCompletionProvider : LSPCo
     }
 
     private static async Task HandleSingleTypeAsync(
-        CompletionContext context, SemanticModel semanticModel, SyntaxToken token, ITypeSymbol type, bool isParams, CancellationToken cancellationToken)
+        CompletionContext context,
+        SemanticModel semanticModel,
+        SyntaxToken token,
+        ITypeSymbol type,
+        bool isParams,
+        CancellationToken cancellationToken)
     {
         if (isParams && type is IArrayTypeSymbol arrayType)
             type = arrayType.ElementType;
