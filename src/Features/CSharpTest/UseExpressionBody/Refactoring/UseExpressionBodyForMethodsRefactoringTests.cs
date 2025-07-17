@@ -331,4 +331,24 @@ public sealed class UseExpressionBodyForMethodsRefactoringTests : AbstractCSharp
             }|]
             """,
             parameters: new TestParameters(options: UseExpressionBody));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38057")]
+    public Task TestCommentAfterMethodName()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                int Goo() // comment
+                {
+                    [||]return Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int Goo() => Bar(); // comment
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
 }

@@ -12,14 +12,9 @@ internal enum ProjectAnalysisSummary
     NoChanges,
 
     /// <summary>
-    /// Project contains syntax errors that block EnC analysis.
+    /// Project contains rude edits or a document whose analysis is blocked due to syntax error or rude edit in parse options.
     /// </summary>
-    SyntaxErrors,
-
-    /// <summary>
-    /// Project contains rude edits.
-    /// </summary>
-    RudeEdits,
+    InvalidChanges,
 
     /// <summary>
     /// The project only changed in comments, whitespaces, etc. that don't require compilation.

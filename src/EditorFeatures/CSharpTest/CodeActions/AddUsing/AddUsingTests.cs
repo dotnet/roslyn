@@ -158,7 +158,7 @@ public sealed partial class AddUsingTests(ITestOutputHelper logger) : AbstractAd
                 }
             }
             """,
-testHost, index: 1);
+            testHost, index: 1);
 
     [Theory, CombinatorialData]
     public Task TestGenericWithNoArgs(TestHost testHost)
@@ -383,7 +383,7 @@ testHost, index: 1);
                 }
             }
             """,
-count: 1);
+            count: 1);
 
     [Theory, CombinatorialData]
     public Task TestExistingUsing(TestHost testHost)
@@ -479,7 +479,7 @@ count: 1);
                 }
             }
             """,
-parseOptions: Options.Regular);
+            parseOptions: Options.Regular);
 
     [Theory, CombinatorialData]
     public Task TestOnEnum(TestHost testHost)
@@ -1434,7 +1434,7 @@ parseOptions: Options.Regular);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleSystemSortedUsings2(TestHost testHost)
@@ -1486,7 +1486,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleSystemSortedUsings3(TestHost testHost)
@@ -1516,7 +1516,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleSystemUnsortedUsings1(TestHost testHost)
@@ -1568,7 +1568,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleSystemUnsortedUsings2(TestHost testHost)
@@ -1620,7 +1620,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleSystemUnsortedUsings3(TestHost testHost)
@@ -1650,7 +1650,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleBogusSystemUsings1(TestHost testHost)
@@ -1678,7 +1678,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleBogusSystemUsings2(TestHost testHost)
@@ -1706,7 +1706,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestUsingsWithComments(TestHost testHost)
@@ -1734,7 +1734,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     // System Not on top cases
     [Theory, CombinatorialData]
@@ -1787,7 +1787,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleSystemSortedUsings5(TestHost testHost)
@@ -1837,7 +1837,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleSystemSortedUsings4(TestHost testHost)
@@ -1867,7 +1867,7 @@ testHost);
                 }
             }
             """,
-testHost, options: Option(GenerationOptions.PlaceSystemNamespaceFirst, false));
+            testHost, options: Option(GenerationOptions.PlaceSystemNamespaceFirst, false));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
@@ -2166,8 +2166,8 @@ parseOptions: GetScriptOptions());
 
             Expression
             """,
-GetScriptOptions(),
-TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
+            GetScriptOptions(),
+            TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
     }
 
     [Theory, CombinatorialData]
@@ -2399,7 +2399,7 @@ TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
                     Log }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858085")]
@@ -4963,7 +4963,7 @@ class C
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/19796")]
