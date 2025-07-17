@@ -11087,7 +11087,7 @@ struct S1
 
     public void Test()
     {
-        this[0] += Program.Get1();
+        this[Program.Get2()] += Program.Get1();
     }
 }
 
@@ -11110,10 +11110,16 @@ class Program
 
     static void Test()
     {
-        F[0] += Get1();
+        F[Get2()] += Get1();
     }
 
     public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+
+    public static int Get2()
     {
         Program.F.F1++;
         return 1;
@@ -11122,53 +11128,59 @@ class Program
 """;
 
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test",
 @"
 {
-  // Code size       39 (0x27)
+  // Code size       45 (0x2d)
   .maxstack  3
-  .locals init (int V_0)
+  .locals init (int V_0,
+                int V_1)
   IL_0000:  nop
   IL_0001:  ldsflda    ""S1 Program.F""
-  IL_0006:  dup
-  IL_0007:  ldobj      ""S1""
-  IL_000c:  ldc.i4.0
-  IL_000d:  call       ""int E.get_Item(S1, int)""
-  IL_0012:  call       ""int Program.Get1()""
-  IL_0017:  add
-  IL_0018:  stloc.0
-  IL_0019:  ldobj      ""S1""
-  IL_001e:  ldc.i4.0
-  IL_001f:  ldloc.0
-  IL_0020:  call       ""void E.set_Item(S1, int, int)""
-  IL_0025:  nop
-  IL_0026:  ret
+  IL_0006:  call       ""int Program.Get2()""
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  ldobj      ""S1""
+  IL_0012:  ldloc.0
+  IL_0013:  call       ""int E.get_Item(S1, int)""
+  IL_0018:  call       ""int Program.Get1()""
+  IL_001d:  add
+  IL_001e:  stloc.1
+  IL_001f:  ldobj      ""S1""
+  IL_0024:  ldloc.0
+  IL_0025:  ldloc.1
+  IL_0026:  call       ""void E.set_Item(S1, int, int)""
+  IL_002b:  nop
+  IL_002c:  ret
 }
 ");
 
         verifier.VerifyIL("S1.Test",
 @"
 {
-  // Code size       35 (0x23)
+  // Code size       41 (0x29)
   .maxstack  3
-  .locals init (int V_0)
+  .locals init (int V_0,
+                int V_1)
   IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  ldc.i4.0
-  IL_0008:  call       ""int E.get_Item(S1, int)""
-  IL_000d:  call       ""int Program.Get1()""
-  IL_0012:  add
-  IL_0013:  stloc.0
-  IL_0014:  ldarg.0
-  IL_0015:  ldobj      ""S1""
-  IL_001a:  ldc.i4.0
-  IL_001b:  ldloc.0
-  IL_001c:  call       ""void E.set_Item(S1, int, int)""
-  IL_0021:  nop
-  IL_0022:  ret
+  IL_0001:  call       ""int Program.Get2()""
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldobj      ""S1""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""int E.get_Item(S1, int)""
+  IL_0013:  call       ""int Program.Get1()""
+  IL_0018:  add
+  IL_0019:  stloc.1
+  IL_001a:  ldarg.0
+  IL_001b:  ldobj      ""S1""
+  IL_0020:  ldloc.0
+  IL_0021:  ldloc.1
+  IL_0022:  call       ""void E.set_Item(S1, int, int)""
+  IL_0027:  nop
+  IL_0028:  ret
 }
 ");
 
@@ -11233,7 +11245,7 @@ struct S1
 
     public void Test()
     {
-        this[0] += Program.Get1();
+        this[Program.Get2()] += Program.Get1();
     }
 }
 
@@ -11256,10 +11268,16 @@ class Program
 
     static void Test()
     {
-        F[0] += Get1();
+        F[Get2()] += Get1();
     }
 
     public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+
+    public static int Get2()
     {
         Program.F.F1++;
         return 1;
@@ -11268,46 +11286,52 @@ class Program
 """;
 
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test",
 @"
 {
-  // Code size       29 (0x1d)
+  // Code size       35 (0x23)
   .maxstack  4
-  .locals init (S1& V_0)
+  .locals init (S1& V_0,
+            int V_1)
   IL_0000:  nop
   IL_0001:  ldsflda    ""S1 Program.F""
   IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  ldc.i4.0
-  IL_0009:  ldloc.0
-  IL_000a:  ldc.i4.0
-  IL_000b:  call       ""int E.get_Item(" + refKind + @" S1, int)""
-  IL_0010:  call       ""int Program.Get1()""
-  IL_0015:  add
-  IL_0016:  call       ""void E.set_Item(" + refKind + @" S1, int, int)""
-  IL_001b:  nop
-  IL_001c:  ret
+  IL_0007:  call       ""int Program.Get2()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldloc.0
+  IL_0010:  ldloc.1
+  IL_0011:  call       ""int E.get_Item(" + refKind + @" S1, int)""
+  IL_0016:  call       ""int Program.Get1()""
+  IL_001b:  add
+  IL_001c:  call       ""void E.set_Item(" + refKind + @" S1, int, int)""
+  IL_0021:  nop
+  IL_0022:  ret
 }
 ");
 
         verifier.VerifyIL("S1.Test",
 @"
 {
-  // Code size       23 (0x17)
+  // Code size       29 (0x1d)
   .maxstack  4
+  .locals init (int V_0)
   IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldc.i4.0
-  IL_0003:  ldarg.0
-  IL_0004:  ldc.i4.0
-  IL_0005:  call       ""int E.get_Item(" + refKind + @" S1, int)""
-  IL_000a:  call       ""int Program.Get1()""
-  IL_000f:  add
-  IL_0010:  call       ""void E.set_Item(" + refKind + @" S1, int, int)""
-  IL_0015:  nop
-  IL_0016:  ret
+  IL_0001:  call       ""int Program.Get2()""
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldarg.0
+  IL_000a:  ldloc.0
+  IL_000b:  call       ""int E.get_Item(" + refKind + @" S1, int)""
+  IL_0010:  call       ""int Program.Get1()""
+  IL_0015:  add
+  IL_0016:  call       ""void E.set_Item(" + refKind + @" S1, int, int)""
+  IL_001b:  nop
+  IL_001c:  ret
 }
 ");
 
@@ -11381,10 +11405,16 @@ class Program
 
     static void Test()
     {
-        F[0] += Get1();
+        F[Get2()] += Get1();
     }
 
     static int Get1()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return 1;
+    }
+
+    static int Get2()
     {
         Program.F = new C1 { F1 = Program.F.F1 + 1 };
         return 1;
@@ -11393,27 +11423,30 @@ class Program
 """;
 
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123123125").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123126").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test",
 @"
 {
-  // Code size       29 (0x1d)
+  // Code size       35 (0x23)
   .maxstack  4
-  .locals init (C1 V_0)
+  .locals init (C1 V_0,
+                int V_1)
   IL_0000:  nop
   IL_0001:  ldsfld     ""C1 Program.F""
   IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  ldc.i4.0
-  IL_0009:  ldloc.0
-  IL_000a:  ldc.i4.0
-  IL_000b:  call       ""int E.get_Item(C1, int)""
-  IL_0010:  call       ""int Program.Get1()""
-  IL_0015:  add
-  IL_0016:  call       ""void E.set_Item(C1, int, int)""
-  IL_001b:  nop
-  IL_001c:  ret
+  IL_0007:  call       ""int Program.Get2()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldloc.0
+  IL_0010:  ldloc.1
+  IL_0011:  call       ""int E.get_Item(C1, int)""
+  IL_0016:  call       ""int Program.Get1()""
+  IL_001b:  add
+  IL_001c:  call       ""void E.set_Item(C1, int, int)""
+  IL_0021:  nop
+  IL_0022:  ret
 }
 ");
     }
