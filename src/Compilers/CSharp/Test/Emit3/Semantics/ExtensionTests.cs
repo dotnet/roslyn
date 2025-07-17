@@ -27203,7 +27203,36 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, """object.Method("")""");
         Assert.Equal("void E.<>E__0.Method<System.String>(System.String t)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(invocation)); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : need to fix the semantic model TODO2
+        Assert.Empty(model.GetMemberGroup(invocation));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Invocation_ZeroArityMatchesAny_FailedOverloadResolution()
+    {
+        var source = $$"""
+object.Method();
+
+static class E
+{
+    extension(object)
+    {
+        public static void Method(int i) => throw null;
+        public static void Method<T>(T t) { System.Console.Write("Method "); }
+        public static void Method<T1, T2>(T1 t1, T2 t2) => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS1501: No overload for method 'Method' takes 0 arguments
+            // object.Method();
+            Diagnostic(ErrorCode.ERR_BadArgCount, "Method").WithArguments("Method", "0").WithLocation(1, 8));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "object.Method()");
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -27994,6 +28023,8 @@ static class E
     {
         public string Extension() { return null; }
     }
+
+    public static string Extension2(this A a) { return null; }
 }
 public class Program
 {
@@ -28001,20 +28032,28 @@ public class Program
     {
         A a = null;
         _ = nameof(a.Extension);
+        _ = nameof(a.Extension2);
     }
 }
 """;
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (15,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+            // (17,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
             //         _ = nameof(a.Extension);
-            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "a.Extension").WithLocation(15, 20));
+            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "a.Extension").WithLocation(17, 20),
+            // (18,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+            //         _ = nameof(a.Extension2);
+            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "a.Extension2").WithLocation(18, 20));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "a.Extension");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Assert.Empty(model.GetMemberGroup(memberAccess)); TODO2
+        Assert.Equal(["System.String E.<>E__0.Extension()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+
+        memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "a.Extension2");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["System.String A.Extension2()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
