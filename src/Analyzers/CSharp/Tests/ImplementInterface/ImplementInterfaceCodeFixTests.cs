@@ -23,7 +23,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpImplementInterfaceCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-public sealed class ImplementInterfaceTests
+public sealed class ImplementInterfaceCodeFixTests
 {
     private readonly NamingStylesTestOptionSets _options = new(LanguageNames.CSharp);
 

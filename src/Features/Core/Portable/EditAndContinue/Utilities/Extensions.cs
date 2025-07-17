@@ -72,6 +72,26 @@ internal static partial class Extensions
         return true;
     }
 
+    /// <summary>
+    /// True if project settings are compatible with Edit and Continue.
+    /// </summary>
+    public static bool ProjectSettingsSupportEditAndContinue(this Project project, TraceLog? log = null)
+    {
+        Contract.ThrowIfFalse(project.SupportsEditAndContinue());
+        Contract.ThrowIfNull(project.CompilationOptions);
+
+        if (project.CompilationOptions.OptimizationLevel != OptimizationLevel.Debug)
+        {
+            LogReason(nameof(ProjectSettingKind.OptimizationLevel), project.CompilationOptions.OptimizationLevel.ToString());
+            return false;
+        }
+
+        void LogReason(string settingName, string value)
+            => log?.Write($"Project '{project.GetLogDisplay()}' setting '{settingName}' value '{value}' is not compatible with EnC");
+
+        return true;
+    }
+
     public static string GetLogDisplay(this Project project)
         => project.FilePath != null
             ? $"'{project.FilePath}'" + (project.State.NameAndFlavor.flavor is { } flavor ? $" ('{flavor}')" : "")
