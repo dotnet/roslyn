@@ -2345,4 +2345,33 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79384")]
+    public Task TestSpanFromInlineArray()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Runtime.CompilerServices;
+
+                public struct Example
+                {
+                    private Buffer _buffer;
+
+                    public void Set(int index, int value)
+                    {
+                        var bufferSpan = _buffer[..0];
+
+                        bufferSpan[0] = value;
+                    }
+                }
+
+                [InlineArray(1)]
+                public struct Buffer
+                {
+                    private int _element0;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
 }
