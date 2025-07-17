@@ -25,39 +25,42 @@ public class CSharpTyping : AbstractEditorTest
     [IdeFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/957250")]
     public async Task TypingInPartialType()
     {
-        await SetUpEditorAsync(@"
-public partial class Test
-{
-    private int f;
+        await SetUpEditorAsync("""
 
-    static void Main(string[] args) { }
-    public void Noop()
-    {
-        f = 1;$$
-    }
-}
-", HangMitigatingCancellationToken);
-        var secondPartialDecl = @"
-public partial class Test
-{
-    int val1 = 1, val2 = 2;
-    public void TestA()
-    {
-        TestB();
-    }
-}
-";
-        var thirdPartialDecl = @"
-public partial class Test
-{
-    public void TestB()
-    {
-        int val1x = this.val1, val2x = this.val2;
-    }
-}";
+            public partial class Test
+            {
+                private int f;
 
-        await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "PartialType2.cs", secondPartialDecl, open: false, HangMitigatingCancellationToken);
-        await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "PartialType3.cs", thirdPartialDecl, open: false, HangMitigatingCancellationToken);
+                static void Main(string[] args) { }
+                public void Noop()
+                {
+                    f = 1;$$
+                }
+            }
+
+            """, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "PartialType2.cs", """
+
+            public partial class Test
+            {
+                int val1 = 1, val2 = 2;
+                public void TestA()
+                {
+                    TestB();
+                }
+            }
+
+            """, open: false, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "PartialType3.cs", """
+
+            public partial class Test
+            {
+                public void TestB()
+                {
+                    int val1x = this.val1, val2x = this.val2;
+                }
+            }
+            """, open: false, HangMitigatingCancellationToken);
 
         // Typing intermixed with explicit Wait operations to ensure that
         // we trigger multiple open file analyses along with cancellations.
@@ -71,17 +74,19 @@ public partial class Test
         await TestServices.Input.SendAsync("2;", HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync(
-            @"
-public partial class Test
-{
-    private int f;
+            """
 
-    static void Main(string[] args) { }
-    public void Noop()
-    {
-        f = 1;
-        f = 2;
-    }
-}");
+            public partial class Test
+            {
+                private int f;
+
+                static void Main(string[] args) { }
+                public void Noop()
+                {
+                    f = 1;
+                    f = 2;
+                }
+            }
+            """);
     }
 }

@@ -25,9 +25,8 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
         => VerifyCS.VerifyStandardProperty(property);
 
     [Fact]
-    public async Task TestAllConstructs()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestAllConstructs()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             namespace Outer
@@ -150,12 +149,10 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRefStructs()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestRefStructs()
+        => VerifyCS.VerifyCodeFixAsync("""
             namespace Test
             {
                 ref struct [|S1|] { }
@@ -166,12 +163,13 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 internal ref struct S1 { }
             }
             """);
-    }
 
     [Fact]
     public async Task TestRecords()
     {
-        var source = """
+        var test = new VerifyCS.Test
+        {
+            TestCode = """
             record [|Record|]
             {
                 int [|field|];
@@ -182,8 +180,8 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 {
                 }
             }
-            """;
-        var fixedSource = """
+            """,
+            FixedCode = """
             internal record Record
             {
                 private int field;
@@ -194,12 +192,7 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 {
                 }
             }
-            """;
-
-        var test = new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         };
 
@@ -209,23 +202,20 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
     [Fact]
     public async Task TestRecordStructs()
     {
-        var source = """
+        var test = new VerifyCS.Test
+        {
+            TestCode = """
             record struct [|Record|]
             {
                 int [|field|];
             }
-            """;
-        var fixedSource = """
+            """,
+            FixedCode = """
             internal record struct Record
             {
                 private int field;
             }
-            """;
-
-        var test = new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         };
 
@@ -233,9 +223,8 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
     }
 
     [Fact]
-    public async Task TestReadOnlyStructs()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestReadOnlyStructs()
+        => VerifyCS.VerifyCodeFixAsync("""
             namespace Test
             {
                 readonly struct [|S1|] { }
@@ -246,12 +235,10 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 internal readonly struct S1 { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAllConstructsWithOmit()
-    {
-        await new VerifyCS.Test
+    public Task TestAllConstructsWithOmit()
+        => new VerifyCS.Test
         {
             TestState =
             {
@@ -394,12 +381,10 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault },
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRefStructsWithOmit()
-    {
-        await new VerifyCS.Test
+    public Task TestRefStructsWithOmit()
+        => new VerifyCS.Test
         {
             TestCode = """
             namespace Test
@@ -418,12 +403,10 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault },
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReadOnlyStructsWithOmit()
-    {
-        await new VerifyCS.Test
+    public Task TestReadOnlyStructsWithOmit()
+        => new VerifyCS.Test
         {
             TestCode = """
             namespace Test
@@ -442,12 +425,10 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault },
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestClassOutsideNamespace()
-    {
-        await new VerifyCS.Test
+    public Task TestClassOutsideNamespace()
+        => new VerifyCS.Test
         {
             TestCode = """
             internal class [|C1|] { }
@@ -460,12 +441,10 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault },
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExternMethod()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestExternMethod()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
             using System.Runtime.InteropServices;
 
@@ -485,12 +464,10 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 private static extern int [|MessageBox|](IntPtr h, string m, string c, int type);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestVolatile()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestVolatile()
+        => VerifyCS.VerifyCodeFixAsync("""
             internal class Program
             {
                 volatile int [|x|];
@@ -502,12 +479,10 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 private volatile int x;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48899")]
-    public async Task TestAbstractMethod()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestAbstractMethod()
+        => VerifyCS.VerifyCodeFixAsync("""
             public abstract class TestClass
             {
                 abstract string {|CS0621:[|Test|]|} { get; }
@@ -519,12 +494,10 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 protected abstract string Test { get; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48899")]
-    public async Task TestOverriddenMethod()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestOverriddenMethod()
+        => VerifyCS.VerifyCodeFixAsync("""
             public abstract class TestClass
             {
                 public abstract string Test { get; }
@@ -546,12 +519,10 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 public override string Test { get; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFileScopedNamespaces()
-    {
-        await new VerifyCS.Test
+    public Task TestFileScopedNamespaces()
+        => new VerifyCS.Test
         {
             TestCode = """
             namespace Test;
@@ -565,12 +536,13 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55703")]
     public async Task TestPartial_WithExistingModifier()
     {
-        var source = """
+        var test = new VerifyCS.Test
+        {
+            TestCode = """
             partial class [|C|]
             {
             }
@@ -578,8 +550,8 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
             public partial class C
             {
             }
-            """;
-        var fixedSource = """
+            """,
+            FixedCode = """
             public partial class C
             {
             }
@@ -587,12 +559,7 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
             public partial class C
             {
             }
-            """;
-
-        var test = new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         };
 
@@ -602,7 +569,9 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58914")]
     public async Task TestStaticOperatorInInterface()
     {
-        var source = """
+        var test = new VerifyCS.Test
+        {
+            TestCode = """
             internal interface I<T> where T : I<T>
             {
                 abstract static int operator +(T x);
@@ -615,11 +584,7 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        var test = new VerifyCS.Test
-        {
-            TestCode = source,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = Testing.ReferenceAssemblies.Net.Net60
         };
@@ -635,28 +600,20 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
     [InlineData("interface")]
     [InlineData("enum")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/62259")]
-    public async Task TestFileDeclaration(string declarationKind)
-    {
-        var source = $"file {declarationKind} C {{ }}";
-
-        await new VerifyCS.Test
+    public Task TestFileDeclaration(string declarationKind)
+        => new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = $"file {declarationKind} C {{ }}",
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62259")]
-    public async Task TestFileDelegate()
-    {
-        var source = "file delegate void M();";
-
-        await new VerifyCS.Test
+    public Task TestFileDelegate()
+        => new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = "file delegate void M();",
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("class")]
@@ -666,50 +623,41 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
     [InlineData("interface")]
     [InlineData("enum")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/62259")]
-    public async Task TestNestedFileDeclaration(string declarationKind)
-    {
-        var source = $$"""
+    public Task TestNestedFileDeclaration(string declarationKind)
+        => new VerifyCS.Test
+        {
+            TestCode = $$"""
             file class C1
             {
                 {{declarationKind}} [|C2|] { }
             }
-            """;
-
-        var fixedSource = $$"""
+            """,
+            FixedCode = $$"""
             file class C1
             {
                 private {{declarationKind}} C2 { }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29633")]
     public async Task TestTitle1()
     {
-        var source = """
+        var test = new VerifyCS.Test
+        {
+            TestCode = """
             internal class C
             {
                 int [|field|];
             }
-            """;
-        var fixedSource = """
+            """,
+            FixedCode = """
             internal class C
             {
                 private int field;
             }
-            """;
-
-        var test = new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
             CodeActionEquivalenceKey = nameof(AnalyzersResources.Add_accessibility_modifiers),
         };
@@ -718,25 +666,21 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29633")]
-    public async Task TestTitle2()
-    {
-        var source = """
+    public Task TestTitle2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 private int [|field|];
             }
-            """;
-        var fixedSource = """
+            """,
+            FixedCode = """
             class C
             {
                 int field;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
             CodeActionEquivalenceKey = nameof(AnalyzersResources.Remove_accessibility_modifiers),
             Options =
@@ -744,13 +688,10 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 { CodeStyleOptions2.AccessibilityModifiersRequired,AccessibilityModifiersRequired.OmitIfDefault }
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74244")]
-    public async Task TestAlwaysForInterfaceMembers()
-    {
-
-        await new VerifyCS.Test
+    public Task TestAlwaysForInterfaceMembers()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -793,12 +734,10 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Always }
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74244")]
-    public async Task TestOmitIfDefaultForInterfaceMembers()
-    {
-        await new VerifyCS.Test
+    public Task TestOmitIfDefaultForInterfaceMembers()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -841,12 +780,10 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault }
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74244")]
-    public async Task TestForNonInterfaceMembers()
-    {
-        await new VerifyCS.Test
+    public Task TestForNonInterfaceMembers()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -889,12 +826,10 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.ForNonInterfaceMembers }
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78395")]
-    public async Task TestOmitIfDefaultWithFixedField()
-    {
-        await new VerifyCS.Test
+    public Task TestOmitIfDefaultWithFixedField()
+        => new VerifyCS.Test
         {
             TestCode = """
                 unsafe struct MyStruct
@@ -915,5 +850,4 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
                 { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault }
             }
         }.RunAsync();
-    }
 }

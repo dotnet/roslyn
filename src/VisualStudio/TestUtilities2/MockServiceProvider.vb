@@ -55,6 +55,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 Case GetType(SVsFileChangeEx)
                     Return _fileChangeEx
 
+                Case GetType(SVsRunningDocumentTable)
+                    Dim mock = New Mock(Of IVsRunningDocumentTable)
+                    mock.As(Of IVsRunningDocumentTable4)()
+
+                    mock.Setup(Function(m) m.AdviseRunningDocTableEvents(It.IsAny(Of IVsRunningDocTableEvents), It.IsAny(Of UInteger))).Returns(VSConstants.S_OK)
+                    Return mock.Object
+
                 Case Else
                     Throw New Exception($"{NameOf(MockServiceProvider)} does not implement {serviceType.FullName}.")
             End Select

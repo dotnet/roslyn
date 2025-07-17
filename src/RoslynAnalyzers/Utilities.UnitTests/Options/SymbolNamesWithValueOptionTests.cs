@@ -71,19 +71,20 @@ namespace Analyzer.Utilities.UnitTests.Options
         public void QualifiedSymbolNamesWithoutPrefixAreIgnored()
         {
             // Arrange
-            var compilation = GetCompilation(@"
-using System;
+            var compilation = GetCompilation("""
+                using System;
 
-public namespace MyNamespace
-{
-    public class MyClass
-    {
-        public int MyField;
-        public int MyProperty { get; set; }
-        public event EventHandler<EventArgs> MyEvent;
-        public void MyMethod() {}
-    }
-}");
+                public namespace MyNamespace
+                {
+                    public class MyClass
+                    {
+                        public int MyField;
+                        public int MyProperty { get; set; }
+                        public event EventHandler<EventArgs> MyEvent;
+                        public void MyMethod() {}
+                    }
+                }
+                """);
             var symbolNames = ImmutableArray.Create(
                 "MyNamespace.MySubNamespace",
                 "MyNamespace.MyClass",
@@ -105,19 +106,20 @@ public namespace MyNamespace
         public void QualifiedSymbolNamesWithPrefixAreProcessedAsSymbols()
         {
             // Arrange
-            var compilation = GetCompilation(@"
-using System;
+            var compilation = GetCompilation("""
+                using System;
 
-public namespace MyNamespace
-{
-    public class MyClass
-    {
-        public int MyField;
-        public int MyProperty { get; set; }
-        public event EventHandler<EventArgs> MyEvent;
-        public void MyMethod() {}
-    }
-}");
+                public namespace MyNamespace
+                {
+                    public class MyClass
+                    {
+                        public int MyField;
+                        public int MyProperty { get; set; }
+                        public event EventHandler<EventArgs> MyEvent;
+                        public void MyMethod() {}
+                    }
+                }
+                """);
             var symbolNames = ImmutableArray.Create(
                 "N:MyNamespace",
                 "T:MyNamespace.MyClass",
@@ -238,13 +240,14 @@ public namespace MyNamespace
         public void ValueCanBeAssociatedWithAllSymbolNames()
         {
             // Arrange
-            var compilation = GetCompilation(@"
-using System;
+            var compilation = GetCompilation("""
+                using System;
 
-public namespace MyNamespace
-{
-    public class MyClass {}
-}");
+                public namespace MyNamespace
+                {
+                    public class MyClass {}
+                }
+                """);
             var symbolNames = ImmutableArray.Create(
                 "MyClass->SomeValue1",
                 "T:MyNamespace.MyClass->SomeValue2",
@@ -257,7 +260,7 @@ public namespace MyNamespace
             var options = SymbolNamesWithValueOption<string>.Create(symbolNames, compilation, null,
                 getSymbolNamePartsFunc: symbolName =>
                 {
-                    var split = symbolName.Split(new[] { "->" }, StringSplitOptions.RemoveEmptyEntries);
+                    var split = symbolName.Split(["->"], StringSplitOptions.RemoveEmptyEntries);
                     return new SymbolNamesWithValueOption<string>.NameParts(split[0], split[1]);
                 });
 
@@ -277,13 +280,14 @@ public namespace MyNamespace
         [WorkItem(1242125, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1242125")]
         public void FastPathDoesNotCache()
         {
-            var compilation = GetCompilation(@"
-using System;
+            var compilation = GetCompilation("""
+                using System;
 
-public namespace MyNamespace
-{
-    public class MyClass {}
-}");
+                public namespace MyNamespace
+                {
+                    public class MyClass {}
+                }
+                """);
 
             var namedTypeSymbol = (INamedTypeSymbol)compilation.GetSymbolsWithName("MyClass").Single();
 
@@ -335,33 +339,34 @@ public namespace MyNamespace
         public void WildcardMatch(string patternName, string symbolName)
         {
             // Arrange
-            var compilation = GetCompilation(@"
-public namespace MyCompany.MyProduct.MyFeature
-{
-    public class MyOuterClass
-    {
-        public class MyInnerClass
-        {
-            public int MyField;
-            public MyInnerClass() {}
-            public MyInnerClass(int i) {}
-            public int MyProperty { get; set; }
-            public int this[]
-            {
-                get { return 42; }
-                set {}
-            }
-            public int this[string s]
-            {
-                get { return 42; }
-                set {}
-            }
-            public event EventHandler<EventArgs> MyEvent;
-            public void MyMethod() {}
-            public void MyMethod2(string s) {}
-        }
-    }
-}");
+            var compilation = GetCompilation("""
+                public namespace MyCompany.MyProduct.MyFeature
+                {
+                    public class MyOuterClass
+                    {
+                        public class MyInnerClass
+                        {
+                            public int MyField;
+                            public MyInnerClass() {}
+                            public MyInnerClass(int i) {}
+                            public int MyProperty { get; set; }
+                            public int this[]
+                            {
+                                get { return 42; }
+                                set {}
+                            }
+                            public int this[string s]
+                            {
+                                get { return 42; }
+                                set {}
+                            }
+                            public event EventHandler<EventArgs> MyEvent;
+                            public void MyMethod() {}
+                            public void MyMethod2(string s) {}
+                        }
+                    }
+                }
+                """);
             var symbolNames = ImmutableArray.Create(patternName);
             var symbol = FindSymbol(compilation, symbolName);
             var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, static name => new SymbolNamesWithValueOption<Unit>.NameParts(name, Unit.Default));

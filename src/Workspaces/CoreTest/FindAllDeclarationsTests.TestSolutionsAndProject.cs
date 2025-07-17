@@ -156,121 +156,121 @@ public sealed partial class FindAllDeclarationsTests
     }
 
     private const string SingleClass =
-@"
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+        """
+        using System;
+        using System.Collections.Generic;
+        using System.Linq;
+        using System.Text;
+        using System.Threading.Tasks;
 
-namespace TestCases
-{
-    class TestCase
-    {
+        namespace TestCases
+        {
+            class TestCase
+            {
 
-    }
-}
-            ";
+            }
+        }
+        """;
     private const string SingleClassWithSingleMethod =
-@"
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+        """
+        using System;
+        using System.Collections.Generic;
+        using System.Linq;
+        using System.Text;
+        using System.Threading.Tasks;
 
-namespace TestCases
-{
-    class TestCase
-    {
-        static void Test(string[] args)
+        namespace TestCases
         {
+            class TestCase
+            {
+                static void Test(string[] args)
+                {
 
+                }
+            }
         }
-    }
-}
-            ";
+        """;
     private const string SingleClassWithSingleProperty =
-@"
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+        """
+        using System;
+        using System.Collections.Generic;
+        using System.Linq;
+        using System.Text;
+        using System.Threading.Tasks;
 
-namespace TestCases
-{
-    class TestCase
-    {
-        public int TestProperty{ get; set; }
-    }
-}
-            ";
-    private const string SingleClassWithSingleField =
-@"
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TestCases
-{
-    class TestCase
-    {
-        private int TestField = 0;
-    }
-}
-            ";
-    private const string NestedClass =
-@"
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TestCases
-{
-    class TestCase
-    {
-        class InnerTestCase
+        namespace TestCases
         {
-
+            class TestCase
+            {
+                public int TestProperty{ get; set; }
+            }
         }
-    }
-}
-            ";
+        """;
+    private const string SingleClassWithSingleField =
+        """
+        using System;
+        using System.Collections.Generic;
+        using System.Linq;
+        using System.Text;
+        using System.Threading.Tasks;
+
+        namespace TestCases
+        {
+            class TestCase
+            {
+                private int TestField = 0;
+            }
+        }
+        """;
+    private const string NestedClass =
+        """
+        using System;
+        using System.Collections.Generic;
+        using System.Linq;
+        using System.Text;
+        using System.Threading.Tasks;
+
+        namespace TestCases
+        {
+            class TestCase
+            {
+                class InnerTestCase
+                {
+
+                }
+            }
+        }
+        """;
 
     private const string Namespace1 =
-@"
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+        """
+        using System;
+        using System.Collections.Generic;
+        using System.Linq;
+        using System.Text;
+        using System.Threading.Tasks;
 
-namespace TestCase1
-{
-    class TestCase
-    {
-    }
-}
-            ";
+        namespace TestCase1
+        {
+            class TestCase
+            {
+            }
+        }
+        """;
 
     private const string Namespace2 =
-@"
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+        """
+        using System;
+        using System.Collections.Generic;
+        using System.Linq;
+        using System.Text;
+        using System.Threading.Tasks;
 
-namespace TestCase2
-{
-    class TestCase
-    {
-    }
-}
-            ";
+        namespace TestCase2
+        {
+            class TestCase
+            {
+            }
+        }
+        """;
 }

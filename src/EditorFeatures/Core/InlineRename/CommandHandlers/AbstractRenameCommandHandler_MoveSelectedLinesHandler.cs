@@ -15,21 +15,21 @@ internal abstract partial class AbstractRenameCommandHandler :
         => CommandState.Unspecified;
 
     public bool ExecuteCommand(MoveSelectedLinesUpCommandArgs args, CommandExecutionContext context)
-        => HandleMoveSelectLinesUpOrDownCommand(args, context);
+        => HandleMoveSelectLinesUpOrDownCommand();
 
     public CommandState GetCommandState(MoveSelectedLinesDownCommandArgs args)
         => CommandState.Unspecified;
 
     public bool ExecuteCommand(MoveSelectedLinesDownCommandArgs args, CommandExecutionContext context)
-        => HandleMoveSelectLinesUpOrDownCommand(args, context);
+        => HandleMoveSelectLinesUpOrDownCommand();
 
-    private bool HandleMoveSelectLinesUpOrDownCommand(EditorCommandArgs args, CommandExecutionContext context)
+    private bool HandleMoveSelectLinesUpOrDownCommand()
     {
         // When rename commit is in progress, swallow the command so it won't change the workspace
         if (IsRenameCommitInProgress())
             return true;
 
-        CommitIfSynchronousOrCancelIfAsynchronous(args, context.OperationContext, placeCaretAtTheEndOfIdentifier: true);
+        CancelRenameSession();
         return false;
     }
 }

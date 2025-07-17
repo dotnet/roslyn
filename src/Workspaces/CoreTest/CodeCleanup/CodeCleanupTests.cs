@@ -79,8 +79,10 @@ public sealed class CodeCleanupTests
     [Fact]
     public void DefaultVisualBasicCodeCleanups()
     {
-        var document = CreateDocument(@"Class C
-End Class", LanguageNames.VisualBasic);
+        var document = CreateDocument("""
+            Class C
+            End Class
+            """, LanguageNames.VisualBasic);
         var codeCleanups = CodeCleaner.GetDefaultProviders(document);
         Assert.NotEmpty(codeCleanups);
     }
@@ -88,8 +90,10 @@ End Class", LanguageNames.VisualBasic);
     [Fact]
     public async Task CodeCleanersVisualBasic_NoSpans()
     {
-        var document = CreateDocument(@"Class C
-End Class", LanguageNames.VisualBasic);
+        var document = CreateDocument("""
+            Class C
+            End Class
+            """, LanguageNames.VisualBasic);
         var cleanDocument = await CodeCleaner.CleanupAsync(document, [], await document.GetCodeCleanupOptionsAsync(CancellationToken.None));
 
         Assert.Equal(document, cleanDocument);
@@ -98,8 +102,10 @@ End Class", LanguageNames.VisualBasic);
     [Fact]
     public async Task CodeCleanersVisualBasic_Document()
     {
-        var document = CreateDocument(@"Class C
-End Class", LanguageNames.VisualBasic);
+        var document = CreateDocument("""
+            Class C
+            End Class
+            """, LanguageNames.VisualBasic);
         var cleanDocument = await CodeCleaner.CleanupAsync(document, await document.GetCodeCleanupOptionsAsync(CancellationToken.None));
 
         Assert.Equal(document, cleanDocument);
@@ -108,8 +114,10 @@ End Class", LanguageNames.VisualBasic);
     [Fact]
     public async Task CodeCleanersVisualBasic_Span()
     {
-        var document = CreateDocument(@"Class C
-End Class", LanguageNames.VisualBasic);
+        var document = CreateDocument("""
+            Class C
+            End Class
+            """, LanguageNames.VisualBasic);
         var root = await document.GetSyntaxRootAsync();
         var cleanDocument = await CodeCleaner.CleanupAsync(document, root.FullSpan, await document.GetCodeCleanupOptionsAsync(CancellationToken.None));
 
@@ -119,8 +127,10 @@ End Class", LanguageNames.VisualBasic);
     [Fact]
     public async Task CodeCleanersVisualBasic_Spans()
     {
-        var document = CreateDocument(@"Class C
-End Class", LanguageNames.VisualBasic);
+        var document = CreateDocument("""
+            Class C
+            End Class
+            """, LanguageNames.VisualBasic);
         var root = await document.GetSyntaxRootAsync();
         var cleanDocument = await CodeCleaner.CleanupAsync(document, [root.FullSpan], await document.GetCodeCleanupOptionsAsync(CancellationToken.None));
 
@@ -142,8 +152,10 @@ End Class", LanguageNames.VisualBasic);
     [Fact]
     public async Task CodeCleanersVisualBasic_Annotation()
     {
-        var document = CreateDocument(@"Class C
-End Class", LanguageNames.VisualBasic);
+        var document = CreateDocument("""
+            Class C
+            End Class
+            """, LanguageNames.VisualBasic);
         var annotation = new SyntaxAnnotation();
         document = document.WithSyntaxRoot((await document.GetSyntaxRootAsync()).WithAdditionalAnnotations(annotation));
 
@@ -261,41 +273,39 @@ End Class", LanguageNames.VisualBasic);
         => VerifyRange("namespace N { class C {|r:{ {|b:void Method() { }|} }|} class C2 {|r:{ {|b:void Method() { }|} }|} }");
 
     [Fact, WorkItem(12848, "DevDiv_Projects/Roslyn")]
-    public async Task DoNotCrash_VB()
-    {
-        var code = @"#If DEBUG OrElse TRACE Then
-Imports System.Diagnostics
-#ElseIf SILVERLIGHT Then
-Imports System.Diagnostics
-#Else
-Imports System.Diagnostics
-#End If
+    public Task DoNotCrash_VB()
+        => VerifyRange("""
+            #If DEBUG OrElse TRACE Then
+            Imports System.Diagnostics
+            #ElseIf SILVERLIGHT Then
+            Imports System.Diagnostics
+            #Else
+            Imports System.Diagnostics
+            #End If
 
-{|r:# {|b: |}
-    Region|} ""Region""
-#Region ""more""
-#End Region 
-#End Region";
-
-        await VerifyRange(code, LanguageNames.VisualBasic);
-    }
+            {|r:# {|b: |}
+                Region|} "Region"
+            #Region "more"
+            #End Region 
+            #End Region
+            """, LanguageNames.VisualBasic);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774295")]
     public async Task DoNotCrash_VB_2()
     {
-        var code = @"
-Public Class Class1
-    Public Custom Event Event2 As EventHandler
-        AddHandler(ByVal value As EventHandler)
-        End AddHandler
-        RemoveHandler(ByVal value As EventHandler)
-        End RemoveHandler
-        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
-            e
-    End Event
+        var code = """
+            Public Class Class1
+                Public Custom Event Event2 As EventHandler
+                    AddHandler(ByVal value As EventHandler)
+                    End AddHandler
+                    RemoveHandler(ByVal value As EventHandler)
+                    End RemoveHandler
+                    RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+                        e
+                End Event
 
-End Class
-";
+            End Class
+            """;
         var document = CreateDocument(code, LanguageNames.VisualBasic);
         var semanticModel = await document.GetSemanticModelAsync();
         var root = await document.GetSyntaxRootAsync();
@@ -319,24 +329,21 @@ End Class
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547075")]
-    public async Task TestCodeCleanupWithinNonStructuredTrivia()
-    {
-        var code = @"
-#Const ccConst = 0
-#If {|b:
-|}Then
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
- 
-Module Program
-    Sub Main(args As String())
- 
-    End Sub
-End Module";
+    public Task TestCodeCleanupWithinNonStructuredTrivia()
+        => VerifyRange("""
+            #Const ccConst = 0
+            #If {|b:
+            |}Then
+            Imports System
+            Imports System.Collections.Generic
+            Imports System.Linq
 
-        await VerifyRange(code, LanguageNames.VisualBasic);
-    }
+            Module Program
+                Sub Main(args As String())
+
+                End Sub
+            End Module
+            """, LanguageNames.VisualBasic);
 
     [Fact]
     public async Task RangeWithTransformation_OutsideOfRange()

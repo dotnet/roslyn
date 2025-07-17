@@ -154,7 +154,7 @@ public sealed class RemoteEditAndContinueServiceTests
 
         // BreakStateChanged
 
-        mockEncService.BreakStateOrCapabilitiesChangedImpl = (bool? inBreakState) =>
+        mockEncService.BreakStateOrCapabilitiesChangedImpl = inBreakState =>
         {
             Assert.True(inBreakState);
         };

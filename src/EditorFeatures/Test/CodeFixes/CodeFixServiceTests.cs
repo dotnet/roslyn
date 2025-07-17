@@ -39,9 +39,9 @@ public sealed class CodeFixServiceTests
     public async Task TestGetFirstDiagnosticWithFixAsync()
     {
         var fixers = CreateFixers();
-        var code = @"
-    a
-";
+        var code = """
+            a
+            """;
         using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
 
         var diagnosticService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
@@ -217,52 +217,36 @@ public sealed class CodeFixServiceTests
     }
 
     [Fact]
-    public async Task TestGetCodeFixWithExceptionInRegisterMethod_Diagnostic()
-    {
-        await GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethod());
-    }
+    public Task TestGetCodeFixWithExceptionInRegisterMethod_Diagnostic()
+        => GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethod());
 
     [Fact]
-    public async Task TestGetCodeFixWithExceptionInRegisterMethod_Fixes()
-    {
-        await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethod());
-    }
+    public Task TestGetCodeFixWithExceptionInRegisterMethod_Fixes()
+        => GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethod());
 
     [Fact]
-    public async Task TestGetCodeFixWithExceptionInRegisterMethodAsync_Diagnostic()
-    {
-        await GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
-    }
+    public Task TestGetCodeFixWithExceptionInRegisterMethodAsync_Diagnostic()
+        => GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
 
     [Fact]
-    public async Task TestGetCodeFixWithExceptionInRegisterMethodAsync_Fixes()
-    {
-        await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
-    }
+    public Task TestGetCodeFixWithExceptionInRegisterMethodAsync_Fixes()
+        => GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
 
     [Fact]
-    public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Diagnostic()
-    {
-        await GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
-    }
+    public Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Diagnostic()
+        => GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
 
     [Fact]
-    public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Fixes()
-    {
-        await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
-    }
+    public Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Fixes()
+        => GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21533")]
-    public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Diagnostic2()
-    {
-        await GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
-    }
+    public Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Diagnostic2()
+        => GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21533")]
-    public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Fixes2()
-    {
-        await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
-    }
+    public Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Fixes2()
+        => GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
 
     [Fact]
     public async Task TestGetCodeFixWithExceptionInGetFixAllProvider()
@@ -1012,15 +996,16 @@ public sealed class CodeFixServiceTests
         var expectDeprioritization = GetExpectDeprioritization(actionKind, diagnosticOnFixLineInPriorSnapshot, addNewLineWithEdit);
 
         var priorSnapshotFixLine = diagnosticOnFixLineInPriorSnapshot ? "int x1 = 0;" : "System.Console.WriteLine();";
-        var code = $@"
-#pragma warning disable CS0219
-class C
-{{
-    void M()
-    {{
-        {priorSnapshotFixLine}
-    }}
-}}";
+        var code = $$"""
+            #pragma warning disable CS0219
+            class C
+            {
+                void M()
+                {
+                    {{priorSnapshotFixLine}}
+                }
+            }
+            """;
 
         var codeFix = new FixerForDeprioritizedAnalyzer();
         var analyzer = new DeprioritizedAnalyzer(actionKind);

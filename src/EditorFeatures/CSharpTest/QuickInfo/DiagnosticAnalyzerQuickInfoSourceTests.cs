@@ -28,35 +28,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo;
 public sealed class DiagnosticAnalyzerQuickInfoSourceTests
 {
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
-    public async Task ErrorTitleIsShownOnDisablePragma()
-    {
-        await TestInMethodAsync(
+    public Task ErrorTitleIsShownOnDisablePragma()
+        => TestInMethodAsync(
             """
             #pragma warning disable CS0219$$
                         var i = 0;
             #pragma warning restore CS0219
             """, GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
-    public async Task ErrorTitleIsShownOnRestorePragma()
-    {
-        await TestInMethodAsync(
+    public Task ErrorTitleIsShownOnRestorePragma()
+        => TestInMethodAsync(
             """
             #pragma warning disable CS0219
                         var i = 0;
             #pragma warning restore CS0219$$
             """, GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
-    public async Task DisabledWarningNotExistingInCodeIsDisplayedByTitleWithoutCodeDetails()
-    {
-        await TestInMethodAsync(
+    public Task DisabledWarningNotExistingInCodeIsDisplayedByTitleWithoutCodeDetails()
+        => TestInMethodAsync(
             """
             #pragma warning disable CS0219$$
             """, GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
-    }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/49102")]
     [WpfTheory]
@@ -66,15 +60,11 @@ public sealed class DiagnosticAnalyzerQuickInfoSourceTests
     [InlineData("CS02$$19")]
     [InlineData("2$$19")]
     [InlineData("02$$19")]
-    public async Task PragmaWarningCompilerWarningSyntaxKinds(string warning)
-    {
-        // Reference: https://docs.microsoft.com/en-US/dotnet/csharp/language-reference/preprocessor-directives/preprocessor-pragma-warning
-        // "A comma-separated list of warning numbers. The "CS" prefix is optional."
-        await TestInMethodAsync(
+    public Task PragmaWarningCompilerWarningSyntaxKinds(string warning)
+        => TestInMethodAsync(
 @$"
 #pragma warning disable {warning}
 ", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
-    }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/49102")]
     [WpfTheory]
@@ -103,20 +93,17 @@ public sealed class DiagnosticAnalyzerQuickInfoSourceTests
     [InlineData("#pragma warning disable CS0162, CS0219$$", (int)ErrorCode.WRN_UnreferencedVarAssg)]
     [InlineData("#pragma warning $$disable CS0162, CS0219", (int)ErrorCode.WRN_UnreachableCode)]
     [InlineData("#pragma warning $$disable CS0219, CS0162", (int)ErrorCode.WRN_UnreferencedVarAssg)]
-    public async Task MultipleWarningsAreDisplayedDependingOnCursorPosition(string pragma, int errorCode)
-    {
-        await TestInMethodAsync(
+    public Task MultipleWarningsAreDisplayedDependingOnCursorPosition(string pragma, int errorCode)
+        => TestInMethodAsync(
 @$"
 {pragma}
         return;
         var i = 0;
 ", GetFormattedErrorTitle((ErrorCode)errorCode));
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
-    public async Task ErrorTitleIsShwonInSupressMessageAttribute()
-    {
-        await TestAsync(
+    public Task ErrorTitleIsShwonInSupressMessageAttribute()
+        => TestAsync(
             """
             using System.Diagnostics.CodeAnalysis;
             namespace T
@@ -128,7 +115,6 @@ public sealed class DiagnosticAnalyzerQuickInfoSourceTests
                 }
             }
             """, GetFormattedIDEAnalyzerTitle(51, nameof(AnalyzersResources.Remove_unused_private_members)), []);
-    }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
     [WpfTheory]

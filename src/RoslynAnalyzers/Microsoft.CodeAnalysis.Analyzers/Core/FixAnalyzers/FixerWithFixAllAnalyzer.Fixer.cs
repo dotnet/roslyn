@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Analyzers.FixAnalyzers;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
     [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
     public sealed class FixerWithFixAllFix() : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(DiagnosticIds.OverrideGetFixAllProviderRuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = [DiagnosticIds.OverrideGetFixAllProviderRuleId];
 
         public sealed override FixAllProvider GetFixAllProvider()
         {
@@ -34,15 +35,15 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            SyntaxNode root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            SyntaxToken token = root.FindToken(context.Span.Start);
+            var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(context.Span.Start);
             if (!token.Span.IntersectsWith(context.Span))
             {
                 return;
             }
 
-            SyntaxGenerator generator = SyntaxGenerator.GetGenerator(context.Document);
-            SyntaxNode? classDecl = generator.GetDeclaration(token.Parent);
+            var generator = SyntaxGenerator.GetGenerator(context.Document);
+            var classDecl = generator.GetDeclaration(token.Parent);
             if (classDecl == null)
             {
                 return;
@@ -61,8 +62,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var typeIsSealed = ((INamedTypeSymbol)model.GetDeclaredSymbol(classDecl, cancellationToken)!).IsSealed;
 
-            INamedTypeSymbol? codeFixProviderSymbol = model.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCodeFixesCodeFixProvider);
-            IMethodSymbol? getFixAllProviderMethod = codeFixProviderSymbol?.GetMembers(FixerWithFixAllAnalyzer.GetFixAllProviderMethodName).OfType<IMethodSymbol>().FirstOrDefault();
+            var codeFixProviderSymbol = model.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCodeFixesCodeFixProvider);
+            var getFixAllProviderMethod = codeFixProviderSymbol?.GetMembers(FixerWithFixAllAnalyzer.GetFixAllProviderMethodName).OfType<IMethodSymbol>().FirstOrDefault();
             if (getFixAllProviderMethod == null)
             {
                 return document;

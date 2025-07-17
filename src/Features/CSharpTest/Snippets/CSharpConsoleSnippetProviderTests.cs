@@ -15,9 +15,8 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
     protected override string SnippetIdentifier => "cw";
 
     [Fact]
-    public async Task InsertConsoleSnippetInMethodTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConsoleSnippetInMethodTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -36,12 +35,10 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertNormalConsoleSnippetInAsyncContextTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertNormalConsoleSnippetInAsyncContextTest()
+        => VerifySnippetAsync("""
             using System.Threading.Tasks;
 
             class Program
@@ -63,45 +60,37 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertConsoleSnippetInGlobalContextTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConsoleSnippetInGlobalContextTest()
+        => VerifySnippetAsync("""
             $$
             """, """
             using System;
 
             Console.WriteLine($$);
             """);
-    }
 
     [Fact]
-    public async Task NoConsoleSnippetInBlockNamespaceTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoConsoleSnippetInBlockNamespaceTest()
+        => VerifySnippetIsAbsentAsync("""
             namespace Namespace
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task NoConsoleSnippetInFileScopedNamespaceTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoConsoleSnippetInFileScopedNamespaceTest()
+        => VerifySnippetIsAbsentAsync("""
             namespace Namespace;
 
             $$
             """);
-    }
 
     [Fact]
-    public async Task InsertConsoleSnippetInConstructorTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConsoleSnippetInConstructorTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public Program()
@@ -122,12 +111,10 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertConsoleSnippetInLocalFunctionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConsoleSnippetInLocalFunctionTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -154,12 +141,10 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertConsoleSnippetInAnonymousFunctionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConsoleSnippetInAnonymousFunctionTest()
+        => VerifySnippetAsync("""
             public delegate void Print(int value);
 
             static void Main(string[] args)
@@ -184,12 +169,10 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
 
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertConsoleSnippetInParenthesizedLambdaExpressionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConsoleSnippetInParenthesizedLambdaExpressionTest()
+        => VerifySnippetAsync("""
             using System;
 
             Func<int, int, bool> testForEquality = (x, y) =>
@@ -206,12 +189,10 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
                 return x == y;
             };
             """);
-    }
 
     [Fact]
-    public async Task NoConsoleSnippetInSwitchExpressionTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoConsoleSnippetInSwitchExpressionTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -229,12 +210,10 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoConsoleSnippetInStringTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoConsoleSnippetInStringTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -243,12 +222,10 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoConsoleSnippetInConstructorArgumentsTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoConsoleSnippetInConstructorArgumentsTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -264,12 +241,10 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoConsoleSnippetInParameterListTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoConsoleSnippetInParameterListTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method(int x, $$)
@@ -277,12 +252,10 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoConsoleSnippetInRecordDeclarationTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoConsoleSnippetInRecordDeclarationTest()
+        => VerifySnippetIsAbsentAsync("""
             public record Person
             {
                 $$
@@ -290,12 +263,10 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
                 public string LastName { get; init; }
             };
             """);
-    }
 
     [Fact]
-    public async Task NoConsoleSnippetInVariableDeclarationTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoConsoleSnippetInVariableDeclarationTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -304,16 +275,14 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     /// <summary>
     /// We want to fix this case and insert the fully qualified namespace
     /// in a future fix.
     /// </summary>
     [Fact]
-    public async Task InsertConsoleSnippetWithPropertyNamedConsoleTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConsoleSnippetWithPropertyNamedConsoleTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public int Console { get; set; }
@@ -336,12 +305,10 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72266")]
-    public async Task InsertConsoleSnippetInVoidReturningLambdaTest1()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConsoleSnippetInVoidReturningLambdaTest1()
+        => VerifySnippetAsync("""
             using System;
 
             M(() => $$);
@@ -358,12 +325,10 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72266")]
-    public async Task InsertConsoleSnippetInVoidReturningLambdaTest2()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConsoleSnippetInVoidReturningLambdaTest2()
+        => VerifySnippetAsync("""
             using System;
 
             Action action = () => $$
@@ -372,12 +337,10 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
             
             Action action = () => Console.WriteLine($$)
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72266")]
-    public async Task InsertConsoleSnippetInVoidReturningLambdaTest_TypeInference()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertConsoleSnippetInVoidReturningLambdaTest_TypeInference()
+        => VerifySnippetAsync("""
             using System;
 
             var action = () => $$
@@ -386,12 +349,10 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
             
             var action = () => Console.WriteLine($$)
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72266")]
-    public async Task NoConsoleSnippetInNonVoidReturningLambdaTest1()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoConsoleSnippetInNonVoidReturningLambdaTest1()
+        => VerifySnippetIsAbsentAsync("""
             using System;
             
             M(() => $$);
@@ -400,15 +361,12 @@ public sealed class CSharpConsoleSnippetProviderTests : AbstractCSharpSnippetPro
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72266")]
-    public async Task NoConsoleSnippetInNonVoidReturningLambdaTest2()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoConsoleSnippetInNonVoidReturningLambdaTest2()
+        => VerifySnippetIsAbsentAsync("""
             using System;
             
             Func<int> f = () => $$
             """);
-    }
 }

@@ -107,27 +107,21 @@ internal sealed class MoveToNamespaceDialogViewModel : AbstractNotifyPropertyCha
         get => _icon;
         private set => SetProperty(ref _icon, value);
     }
-
-    private string? _message;
     public string? Message
     {
-        get => _message;
-        private set => SetProperty(ref _message, value);
+        get;
+        private set => SetProperty(ref field, value);
     }
-
-    private bool _showMessage = false;
     public bool ShowMessage
     {
-        get => _showMessage;
-        private set => SetProperty(ref _showMessage, value);
-    }
-
-    private bool _canSubmit = true;
+        get;
+        private set => SetProperty(ref field, value);
+    } = false;
     public bool CanSubmit
     {
-        get => _canSubmit;
-        private set => SetProperty(ref _canSubmit, value);
-    }
+        get;
+        private set => SetProperty(ref field, value);
+    } = true;
 
     public string Error => CanSubmit ? string.Empty : Message ?? string.Empty;
 

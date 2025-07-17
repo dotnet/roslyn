@@ -40,11 +40,13 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
     public async Task TestExternalAccessTypeScriptHandlerInvoked()
     {
         var workspaceXml =
-@$"<Workspace>
-    <Project Language=""TypeScript"" CommonReferences=""true"" AssemblyName=""TypeScriptProj"">
-        <Document FilePath=""C:\T.ts""></Document>
-    </Project>
-</Workspace>";
+            $"""
+            <Workspace>
+                <Project Language="TypeScript" CommonReferences="true" AssemblyName="TypeScriptProj">
+                    <Document FilePath="C:\T.ts"></Document>
+                </Project>
+            </Workspace>
+            """;
 
         await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
 
@@ -59,11 +61,13 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
     public async Task TestRoslynTypeScriptHandlerInvoked()
     {
         var workspaceXml =
-@$"<Workspace>
-    <Project Language=""TypeScript"" CommonReferences=""true"" AssemblyName=""TypeScriptProj"">
-        <Document FilePath=""C:\T.ts""></Document>
-    </Project>
-</Workspace>";
+            $"""
+            <Workspace>
+                <Project Language="TypeScript" CommonReferences="true" AssemblyName="TypeScriptProj">
+                    <Document FilePath="C:\T.ts"></Document>
+                </Project>
+            </Workspace>
+            """;
 
         await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml, new InitializationOptions());
 
@@ -81,11 +85,13 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
     public async Task TestGetSimplifierOptionsOnTypeScriptDocument()
     {
         var workspaceXml =
-@$"<Workspace>
-    <Project Language=""TypeScript"" CommonReferences=""true"" AssemblyName=""TypeScriptProj"">
-        <Document FilePath=""C:\T.ts""></Document>
-    </Project>
-</Workspace>";
+            $"""
+            <Workspace>
+                <Project Language="TypeScript" CommonReferences="true" AssemblyName="TypeScriptProj">
+                    <Document FilePath="C:\T.ts"></Document>
+                </Project>
+            </Workspace>
+            """;
 
         await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();

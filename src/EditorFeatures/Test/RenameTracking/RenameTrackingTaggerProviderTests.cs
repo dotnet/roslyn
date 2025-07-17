@@ -629,14 +629,13 @@ public sealed class RenameTrackingTaggerProviderTests
         using var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp);
         state.EditorOperations.InsertText("C");
         await state.AssertTag("ustomAttribute", "CustomAttribute", invokeAction: true);
-        var expectedCode = """
+        Assert.Equal("""
             using System;
 
             class CustomAttribute : Attribute
             {
             }
-            """;
-        Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
+            """, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
@@ -652,14 +651,13 @@ public sealed class RenameTrackingTaggerProviderTests
         using var state = RenameTrackingTestState.Create(code, LanguageNames.VisualBasic);
         state.EditorOperations.InsertText("C");
         await state.AssertTag("ustomAttribute", "CustomAttribute", invokeAction: true);
-        var expectedCode = """
+        Assert.Equal("""
             Import System;
 
             Public Class CustomAttribute 
                     Inherits Attribute
             End Class
-            """;
-        Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
+            """, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
@@ -675,14 +673,13 @@ public sealed class RenameTrackingTaggerProviderTests
         using var state = RenameTrackingTestState.Create(code, LanguageNames.VisualBasic);
         state.EditorOperations.InsertText("C");
         await state.AssertTag("ustomATTRIBUTE", "CustomATTRIBUTE", invokeAction: true);
-        var expectedCode = """
+        Assert.Equal("""
             Import System;
 
             Public Class CustomATTRIBUTE 
                     Inherits Attribute
             End Class
-            """;
-        Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
+            """, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
@@ -698,14 +695,13 @@ public sealed class RenameTrackingTaggerProviderTests
         using var state = RenameTrackingTestState.Create(code, LanguageNames.VisualBasic);
         state.EditorOperations.InsertText("C");
         await state.AssertTag("ustomattribute", "Customattribute", invokeAction: true);
-        var expectedCode = """
+        Assert.Equal("""
             Import System;
 
             Public Class Customattribute 
                     Inherits Attribute
             End Class
-            """;
-        Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
+            """, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
     }
 
     [WpfFact]
@@ -724,16 +720,14 @@ public sealed class RenameTrackingTaggerProviderTests
         await state.AssertTag("Cat", "Cats", invokeAction: true);
         Assert.Equal(1, state.RefactorNotifyService.OnBeforeSymbolRenamedCount);
         Assert.Equal(1, state.RefactorNotifyService.OnAfterSymbolRenamedCount);
-
-        var expectedCode = """
+        Assert.Equal("""
             class Cats
             {
                 public Cats()
                 {
                 }
             }
-            """;
-        Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
+            """, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
 
         state.AssertNoNotificationMessage();
         await state.AssertNoTag();
@@ -758,16 +752,14 @@ public sealed class RenameTrackingTaggerProviderTests
         // Make sure the rename didn't proceed
         Assert.Equal(0, state.RefactorNotifyService.OnAfterSymbolRenamedCount);
         await state.AssertNoTag();
-
-        var expectedCode = """
+        Assert.Equal("""
             class Cat
             {
                 public Cat()
                 {
                 }
             }
-            """;
-        Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
+            """, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
 
         state.AssertNotificationMessage();
     }
@@ -792,15 +784,14 @@ public sealed class RenameTrackingTaggerProviderTests
         state.AssertNotificationMessage();
 
         // Make sure the rename completed            
-        var expectedCode = """
+        Assert.Equal("""
             class Cats
             {
                 public Cats()
                 {
                 }
             }
-            """;
-        Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
+            """, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
         await state.AssertNoTag();
     }
 
@@ -1008,7 +999,7 @@ public sealed class RenameTrackingTaggerProviderTests
         await state.AssertTag("M", "Mat", invokeAction: true);
 
         // Make sure the rename completed            
-        var expectedCode = """
+        Assert.Equal("""
             class C
             {
                 void Mat()
@@ -1020,8 +1011,7 @@ public sealed class RenameTrackingTaggerProviderTests
                 {
                 }
             }
-            """;
-        Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
+            """, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
         await state.AssertNoTag();
     }
 
@@ -1043,7 +1033,7 @@ public sealed class RenameTrackingTaggerProviderTests
         await state.AssertTag("M", "Mat", invokeAction: true);
 
         // Make sure the rename completed            
-        var expectedCode = """
+        Assert.Equal("""
             class C
             {
                 void Mat()
@@ -1051,8 +1041,7 @@ public sealed class RenameTrackingTaggerProviderTests
                     nameof(Mat).ToString();
                 }
             }
-            """;
-        Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
+            """, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
         await state.AssertNoTag();
     }
 
@@ -1078,7 +1067,7 @@ public sealed class RenameTrackingTaggerProviderTests
         await state.AssertTag("M", "Mat", invokeAction: true);
 
         // Make sure the rename completed            
-        var expectedCode = """
+        Assert.Equal("""
             class C
             {
                 void Mat()
@@ -1090,8 +1079,7 @@ public sealed class RenameTrackingTaggerProviderTests
                 {
                 }
             }
-            """;
-        Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
+            """, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
         await state.AssertNoTag();
     }
 
@@ -1515,15 +1503,14 @@ public sealed class RenameTrackingTaggerProviderTests
         await state.AssertTag("unmanaged", "myunmanaged", invokeAction: true);
 
         // Make sure the rename completed            
-        var expectedCode = """
+        Assert.Equal("""
             interface myunmanaged
             {
             }
             class C<T> where T : myunmanaged
             {
             }
-            """;
-        Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
+            """, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
         await state.AssertNoTag();
     }
 }

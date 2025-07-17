@@ -14,9 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression;
 public sealed partial class UseThrowExpressionTests
 {
     [Fact]
-    public async Task FixAllInDocument1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -51,12 +50,10 @@ public sealed partial class UseThrowExpressionTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAllInDocument2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -91,12 +88,10 @@ public sealed partial class UseThrowExpressionTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAllInDocument3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -131,12 +126,10 @@ public sealed partial class UseThrowExpressionTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAllInDocument4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -171,12 +164,10 @@ public sealed partial class UseThrowExpressionTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAllInDocumentDoNotTouchOtherDocuments()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocumentDoNotTouchOtherDocuments()
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -248,12 +239,10 @@ public sealed partial class UseThrowExpressionTests
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
-    public async Task FixAllInProject1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInProject1()
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -320,5 +309,4 @@ public sealed partial class UseThrowExpressionTests
                 </Project>
             </Workspace>
             """);
-    }
 }

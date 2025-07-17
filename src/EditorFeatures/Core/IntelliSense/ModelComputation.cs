@@ -146,12 +146,21 @@ internal sealed class ModelComputation<TModel> where TModel : class
 
         async Task<TModel> TransformModelAsync(Task<TModel> lastTask)
         {
-            // Ensure we're on the BG before doing any model transformation work. Also, ensure we yield so that we don't
-            // end up with an enormously long chain of tasks unwinding.  That can otherwise cause a stack overflow if
-            // this chain gets too long.
-            await Task.Yield().ConfigureAwait(false);
-            var model = await lastTask.ConfigureAwait(false);
-            return await transformModelAsync(model, _stopCancellationToken).ConfigureAwait(false);
+            // Ensure we're on the BG before doing any model transformation work.
+            await TaskScheduler.Default;
+
+            try
+            {
+                var model = await lastTask.ConfigureAwait(false);
+                return await transformModelAsync(model, _stopCancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                // Also, ensure we yield during exception stack unwinding so that we don't end up with an enormously
+                // long chain of tasks unwinding.  That can otherwise cause a stack overflow if this chain gets too long.
+                await Task.Yield().ConfigureAwait(false);
+                throw;
+            }
         }
     }
 

@@ -19,20 +19,26 @@ public sealed class InteractiveCommandHandlerTests
     private const string Caret = "$$";
     private const string ExampleCode1 = @"var x = 1;";
     private const string ExampleCode2 =
-@"var x = 1;
-Task.Run(() => { return 1; });";
+        """
+        var x = 1;
+        Task.Run(() => { return 1; });
+        """;
     private const string ExampleCode2Line2 =
 @"Task.Run(() => { return 1; });";
     private const string ExampleMultiline =
-@"namespace N {
-    void goo() {
-        Console.WriteLine(
-            $$""LLL"");
-    }
-}";
+        """
+        namespace N {
+            void goo() {
+                Console.WriteLine(
+                    $$"LLL");
+            }
+        }
+        """;
     private const string ExpectedMultilineSelection =
-@"Console.WriteLine(
-            ""LLL"");";
+        """
+        Console.WriteLine(
+                    "LLL");
+        """;
 
     [WpfFact]
     public void TestExecuteInInteractiveWithoutSelection()
@@ -40,9 +46,11 @@ Task.Run(() => { return 1; });";
         AssertExecuteInInteractive(Caret, []);
 
         AssertExecuteInInteractive(
-@"var x = 1;
-$$
-var y = 2;", []);
+            """
+            var x = 1;
+            $$
+            var y = 2;
+            """, []);
 
         AssertExecuteInInteractive(ExampleCode1 + Caret, ExampleCode1);
         AssertExecuteInInteractive(ExampleCode1.Insert(3, Caret), ExampleCode1);
@@ -54,41 +62,55 @@ var y = 2;", []);
     public void TestExecuteInInteractiveWithEmptyBuffer()
     {
         AssertExecuteInInteractive(
-@"{|Selection:|}var x = 1;
-{|Selection:$$|}var y = 2;", []);
+            """
+            {|Selection:|}var x = 1;
+            {|Selection:$$|}var y = 2;
+            """, []);
 
         AssertExecuteInInteractive($@"{{|Selection:{ExampleCode1}$$|}}", ExampleCode1);
 
         AssertExecuteInInteractive($@"{{|Selection:{ExampleCode2}$$|}}", ExampleCode2);
 
         AssertExecuteInInteractive(
-$@"var o = new object[] {{ 1, 2, 3 }};
-Console.WriteLine(o);
-{{|Selection:{ExampleCode2}$$|}}
+            $$"""
+            var o = new object[] { 1, 2, 3 };
+            Console.WriteLine(o);
+            {|Selection:{{ExampleCode2}}$$|}
 
-Console.WriteLine(x);", ExampleCode2);
+            Console.WriteLine(x);
+            """, ExampleCode2);
     }
 
     [WpfFact]
     public void TestExecuteInInteractiveWithBoxSelection()
     {
-        var expectedBoxSubmissionResult = @"int x;
-int y;";
+        var expectedBoxSubmissionResult = """
+            int x;
+            int y;
+            """;
         AssertExecuteInInteractive(
-$@"some text {{|Selection:$$int x;|}} also here
-text some {{|Selection:int y;|}} here also", expectedBoxSubmissionResult);
+            $$"""
+            some text {|Selection:$$int x;|} also here
+            text some {|Selection:int y;|} here also
+            """, expectedBoxSubmissionResult);
 
         AssertExecuteInInteractive(
-$@"some text {{|Selection:int x;$$|}} also here
-text some {{|Selection:int y;|}} here also", expectedBoxSubmissionResult);
+            $$"""
+            some text {|Selection:int x;$$|} also here
+            text some {|Selection:int y;|} here also
+            """, expectedBoxSubmissionResult);
 
         AssertExecuteInInteractive(
-$@"some text {{|Selection:int x;|}} also here
-text some {{|Selection:$$int y;|}} here also", expectedBoxSubmissionResult);
+            $$"""
+            some text {|Selection:int x;|} also here
+            text some {|Selection:$$int y;|} here also
+            """, expectedBoxSubmissionResult);
 
         AssertExecuteInInteractive(
-$@"some text {{|Selection:int x;|}} also here
-text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
+            $$"""
+            some text {|Selection:int x;|} also here
+            text some {|Selection:int y;$$|} here also
+            """, expectedBoxSubmissionResult);
     }
 
     [WpfFact]
@@ -106,23 +128,25 @@ text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
     public void TestExecuteInInteractiveWithDefines()
     {
         var exampleWithIfDirective =
-@"#if DEF
-public void $$Run()
-{
-}
-#endif";
+            """
+            #if DEF
+            public void $$Run()
+            {
+            }
+            #endif
+            """;
 
         AssertExecuteInInteractive(exampleWithIfDirective,
 @"public void Run()");
-
-        var exampleWithDefine =
-$@"#define DEF
-{exampleWithIfDirective}";
-
-        AssertExecuteInInteractive(exampleWithDefine,
-@"public void Run()
-{
-}");
+        AssertExecuteInInteractive($"""
+            #define DEF
+            {exampleWithIfDirective}
+            """,
+            """
+            public void Run()
+            {
+            }
+            """);
     }
 
     [WpfFact]

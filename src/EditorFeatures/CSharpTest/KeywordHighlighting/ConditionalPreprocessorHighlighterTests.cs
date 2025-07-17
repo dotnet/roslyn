@@ -19,9 +19,8 @@ public sealed class ConditionalPreprocessorHighlighterTests : AbstractCSharpKeyw
         => typeof(ConditionalPreprocessorHighlighter);
 
     [Fact]
-    public async Task TestExample1_1()
-    {
-        await TestAsync(
+    public Task TestExample1_1()
+        => TestAsync(
             """
             class C
             {
@@ -49,12 +48,10 @@ public sealed class ConditionalPreprocessorHighlighterTests : AbstractCSharpKeyw
             }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample1_2()
-    {
-        await TestAsync(
+    public Task TestExample1_2()
+        => TestAsync(
             """
             class C
             {
@@ -82,12 +79,10 @@ public sealed class ConditionalPreprocessorHighlighterTests : AbstractCSharpKeyw
             }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample2_1()
-    {
-        await TestAsync(
+    public Task TestExample2_1()
+        => TestAsync(
             """
             class C
             {
@@ -115,12 +110,10 @@ public sealed class ConditionalPreprocessorHighlighterTests : AbstractCSharpKeyw
             }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample2_2()
-    {
-        await TestAsync(
+    public Task TestExample2_2()
+        => TestAsync(
             """
             class C
             {
@@ -148,12 +141,10 @@ public sealed class ConditionalPreprocessorHighlighterTests : AbstractCSharpKeyw
             }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample2_3()
-    {
-        await TestAsync(
+    public Task TestExample2_3()
+        => TestAsync(
             """
             class C
             {
@@ -181,12 +172,10 @@ public sealed class ConditionalPreprocessorHighlighterTests : AbstractCSharpKeyw
             }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample4_1()
-    {
-        await TestAsync(
+    public Task TestExample4_1()
+        => TestAsync(
             """
             class C
             {
@@ -205,12 +194,10 @@ public sealed class ConditionalPreprocessorHighlighterTests : AbstractCSharpKeyw
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample4_2()
-    {
-        await TestAsync(
+    public Task TestExample4_2()
+        => TestAsync(
             """
             class C
             {
@@ -229,12 +216,10 @@ public sealed class ConditionalPreprocessorHighlighterTests : AbstractCSharpKeyw
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample4_3()
-    {
-        await TestAsync(
+    public Task TestExample4_3()
+        => TestAsync(
             """
             class C
             {
@@ -253,12 +238,10 @@ public sealed class ConditionalPreprocessorHighlighterTests : AbstractCSharpKeyw
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample4_4()
-    {
-        await TestAsync(
+    public Task TestExample4_4()
+        => TestAsync(
             """
             class C
             {
@@ -277,5 +260,4 @@ public sealed class ConditionalPreprocessorHighlighterTests : AbstractCSharpKeyw
                 }
             }
             """);
-    }
 }

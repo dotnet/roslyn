@@ -117,12 +117,13 @@ internal sealed class RenameTrackingTestState : IDisposable
 
     private static EditorTestWorkspace CreateTestWorkspace(string code, string languageName)
     {
-        return CreateTestWorkspace(string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"">
-        <Document>{1}</Document>
-    </Project>
-</Workspace>", languageName, code));
+        return CreateTestWorkspace(string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true">
+                    <Document>{1}</Document>
+                </Project>
+            </Workspace>
+            """, languageName, code));
     }
 
     private static EditorTestWorkspace CreateTestWorkspace(string xml)
