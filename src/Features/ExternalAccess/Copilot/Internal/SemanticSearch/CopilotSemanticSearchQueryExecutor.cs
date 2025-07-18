@@ -22,13 +22,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.SemanticSearch;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CopilotSemanticSearchQueryExecutor(IHostWorkspaceProvider workspaceProvider) : ICopilotSemanticSearchQueryExecutor
 {
-    private sealed class ResultsObserver(CancellationTokenSource cancellationSource, int resultCountLimit) : ISemanticSearchResultsObserver
+    private sealed class ResultsObserver(CancellationTokenSource cancellationSource, int resultCountLimit) : ISemanticSearchResultsDefinitionObserver
     {
         private ImmutableList<string> _results = [];
         public string? RuntimeException { get; private set; }
         public bool LimitReached { get; private set; }
 
         public ImmutableList<string> Results => _results;
+
+        /// <summary>
+        /// We only use symbol display names, classification is not relevant.
+        /// </summary>
+        public ValueTask<ClassificationOptions> GetClassificationOptionsAsync(LanguageServices language, CancellationToken cancellationToken)
+            => new(ClassificationOptions.Default);
 
         public ValueTask AddItemsAsync(int itemCount, CancellationToken cancellationToken)
             => ValueTaskFactory.CompletedTask;
@@ -54,17 +60,6 @@ internal sealed class CopilotSemanticSearchQueryExecutor(IHostWorkspaceProvider 
 
             return ValueTaskFactory.CompletedTask;
         }
-    }
-
-    /// <summary>
-    /// We only use symbol display names, classification is not relevant.
-    /// </summary>
-    private sealed class DefaultClassificationOptionsProvider : OptionsProvider<ClassificationOptions>
-    {
-        public static readonly DefaultClassificationOptionsProvider Instance = new();
-
-        public ValueTask<ClassificationOptions> GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => new(ClassificationOptions.Default);
     }
 
     private readonly Workspace _workspace = workspaceProvider.Workspace;
@@ -111,7 +106,6 @@ internal sealed class CopilotSemanticSearchQueryExecutor(IHostWorkspaceProvider 
                 _workspace.CurrentSolution,
                 compileResult.Value.QueryId,
                 observer,
-                DefaultClassificationOptionsProvider.Instance,
                 cancellationSource.Token).ConfigureAwait(false);
 
             return new CopilotSemanticSearchQueryResults()
