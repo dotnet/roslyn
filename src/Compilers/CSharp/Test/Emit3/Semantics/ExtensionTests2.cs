@@ -14389,7 +14389,7 @@ public static class E
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        CompileAndVerify(comp, expectedOutput: "ran");
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("ran"), verify: Verification.FailsPEVerify);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79193")]
