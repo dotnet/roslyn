@@ -219,19 +219,6 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal static void EndDebuggingSession(DebuggingSession session)
         => session.EndSession(out _);
 
-    internal static async Task<(ModuleUpdates updates, ImmutableArray<DiagnosticData> diagnostics)> EmitSolutionUpdateAsyncOld(
-        DebuggingSession session,
-        Solution solution,
-        ActiveStatementSpanProvider? activeStatementSpanProvider = null)
-    {
-        var runningProjects = solution.ProjectIds.ToImmutableDictionary(
-            keySelector: id => id,
-            elementSelector: id => new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = false });
-
-        var result = await session.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
-        return (result.ModuleUpdates, result.Diagnostics.OrderBy(d => d.ProjectId.DebugName).ToImmutableArray().ToDiagnosticData(solution));
-    }
-
     internal static async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
         DebuggingSession session,
         Solution solution,
@@ -251,17 +238,11 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         return results;
     }
 
-    internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<DiagnosticData> actual)
-        => actual.Select(InspectDiagnostic);
-
-    internal static string InspectDiagnostic(DiagnosticData diagnostic)
-        => $"{(string.IsNullOrWhiteSpace(diagnostic.DataLocation.MappedFileSpan.Path) ? diagnostic.ProjectId.ToString() : diagnostic.DataLocation.MappedFileSpan.ToString())}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}";
-
     internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<ProjectDiagnostics> actual)
-        => actual.SelectMany(pd => pd.Diagnostics.Select(d => $"{pd.ProjectId.DebugName}: {InspectDiagnostic(d)}"));
+        => actual.SelectMany(pd => pd.Diagnostics.Select(d => $"{pd.ProjectId.DebugName}: {InspectDiagnostic(d)}")).Order();
 
     internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<(ProjectId project, ImmutableArray<Diagnostic> diagnostics)> diagnostics)
-        => diagnostics.SelectMany(pd => pd.diagnostics.Select(d => $"{pd.project.DebugName}: {InspectDiagnostic(d)}"));
+        => diagnostics.SelectMany(pd => pd.diagnostics.Select(d => $"{pd.project.DebugName}: {InspectDiagnostic(d)}")).Order();
 
     internal static string InspectDiagnostic(Diagnostic actual)
         => $"{Inspect(actual.Location)}: {actual.Severity} {actual.Id}: {actual.GetMessage()}";

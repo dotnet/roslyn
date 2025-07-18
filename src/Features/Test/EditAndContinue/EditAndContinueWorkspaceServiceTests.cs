@@ -415,7 +415,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentId), s_noActiveSpans, CancellationToken.None);
         AssertEx.Empty(diagnostics);
 
-        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
 
@@ -500,7 +500,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentId), s_noActiveSpans, CancellationToken.None);
         AssertEx.Empty(diagnostics);
 
-        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(isWarning ? ModuleUpdateStatus.None : ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
 
@@ -576,7 +576,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentId), s_noActiveSpans, CancellationToken.None);
         AssertEx.Empty(diagnostics);
 
-        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
 
@@ -680,7 +680,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentId), s_noActiveSpans, CancellationToken.None);
         AssertEx.Empty(diagnostics);
 
-        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
 
@@ -722,7 +722,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // remove dependency:
         solution = project.RemoveMetadataReference(libV1).Solution;
 
-        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.None, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
         Assert.Empty(results.Diagnostics);
@@ -730,7 +730,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // add newer version:
         solution = project.AddMetadataReference(libV2).Solution;
 
-        results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
 
@@ -770,7 +770,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // add dependency:
         solution = project.AddMetadataReference(libV1).Solution;
 
-        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.None, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
         Assert.Empty(results.Diagnostics);
@@ -805,7 +805,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // add version 3:
         solution = project.AddMetadataReference(libV3).Solution;
 
-        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
 
@@ -1778,6 +1778,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.Equal(ModuleUpdateStatus.None, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
 
+        // project is stale:
+        Assert.True(debuggingSession.LastCommittedSolution.StaleProjects.ContainsKey(projectId));
+
         // TODO: warning reported https://github.com/dotnet/roslyn/issues/78125
         // AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}"], InspectDiagnostics(results.Diagnostics));
 
@@ -1791,53 +1794,33 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         moduleId = EmitAndLoadLibraryToDebuggee(projectId, source0, sourceFilePath: sourceFile.Path);
 
         results = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+
+        // project has been unstaled:
+        Assert.False(debuggingSession.LastCommittedSolution.StaleProjects.ContainsKey(projectId));
+
+        Assert.Equal(ModuleUpdateStatus.None, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
-        AssertEx.SequenceEqual(["ENC0110"], InspectDiagnosticIds(results.Diagnostics));
-
-        // now we see the rude edit:
-        docDiagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
-        AssertEx.Equal(
-            [$"{document2.FilePath}: (0,11)-(0,22): Error ENC0110: {string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method)}"],
-            InspectDiagnostics(docDiagnostics));
-
-        debuggingSession.DiscardSolutionUpdate();
-
-        results = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
-        Assert.Empty(results.ModuleUpdates.Updates);
-        AssertEx.SequenceEqual(["ENC0110"], InspectDiagnosticIds(results.Diagnostics));
-
-        debuggingSession.DiscardSolutionUpdate();
+        Assert.Empty(results.Diagnostics);
 
         if (breakMode)
         {
             ExitBreakState(debuggingSession);
-            EndDebuggingSession(debuggingSession);
-        }
-        else
-        {
-            EndDebuggingSession(debuggingSession);
         }
 
-        AssertEx.SetEqual([moduleId], debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
+        EndDebuggingSession(debuggingSession);
 
         if (breakMode)
         {
             AssertEx.SequenceEqual(
             [
-                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=1|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=|ProjectIdsWithUpdatedBaselines=",
-                "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={6A6F7270-0000-4000-8000-000000000000}"
+                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=1|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2"
             ], _telemetryLog);
         }
         else
         {
             AssertEx.SequenceEqual(
             [
-                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=1",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=|ProjectIdsWithUpdatedBaselines=",
-                "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={6A6F7270-0000-4000-8000-000000000000}"
+                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1"
             ], _telemetryLog);
         }
     }
