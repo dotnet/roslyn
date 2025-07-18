@@ -23,7 +23,9 @@ internal class FileSystemMetadataDocumentPersister : IMetadataDocumentPersister
     /// We create a mutex so other processes can see if our directory is still alive.  As long as we own the mutex, no
     /// other VS instance will try to delete our _rootTemporaryPathWithGuid folder.
     /// </summary>
+#pragma warning disable IDE0052 // Remove unread private members
     private readonly Mutex _mutex;
+#pragma warning restore IDE0052 // Remove unread private members
     private readonly string _rootTemporaryPathWithGuid;
     private readonly string _rootTemporaryPath = Path.Combine(Path.GetTempPath(), MetadataAsSourceFileService.MetadataAsSource);
 
@@ -94,7 +96,9 @@ internal class FileSystemMetadataDocumentPersister : IMetadataDocumentPersister
                     // We should leave it alone.  If not, then it's a folder from a previous VS run.  Delete that
                     // now.
                     if (Mutex.TryOpenExisting(CreateMutexName(directoryInfo.Name), out var acquiredMutex))
+                    {
                         acquiredMutex.Dispose();
+                    }
                     else
                     {
                         TryDeleteFolderWhichContainsReadOnlyFiles(directoryInfo.FullName);

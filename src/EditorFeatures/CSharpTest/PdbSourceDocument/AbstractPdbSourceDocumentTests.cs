@@ -165,14 +165,13 @@ public abstract class AbstractPdbSourceDocumentTests
 
             var pdbService = (PdbSourceDocumentMetadataAsSourceFileProvider)workspace.ExportProvider.GetExportedValues<IMetadataAsSourceFileProvider>().Single(s => s is PdbSourceDocumentMetadataAsSourceFileProvider);
 
-            var info = pdbService.GetTestAccessor().Documents[file.FilePath];
-            var document = masWorkspace!.CurrentSolution.GetRequiredDocument(info.DocumentId);
+            var documentId = masWorkspace!.CurrentSolution.GetDocumentIdsWithFilePath(file.FilePath).Single();
+            var document = masWorkspace!.CurrentSolution.GetRequiredDocument(documentId);
 
             // Mapping the project from the generated document should map back to the original project
-            var provider = workspace.ExportProvider.GetExportedValues<IMetadataAsSourceFileProvider>().OfType<PdbSourceDocumentMetadataAsSourceFileProvider>().Single();
-            var mappedProject = provider.MapDocument(document);
-            Assert.NotNull(mappedProject);
-            Assert.Equal(project.Id, mappedProject!.Id);
+            var metadataFileMetadata = ((MetadataAsSourceFileService)service).GetTestAccessor().GetGeneratedFileMetadata(file.FilePath);
+            Assert.NotNull(metadataFileMetadata.SourceProjectId);
+            Assert.Equal(project.Id, metadataFileMetadata.SourceProjectId);
 
             var actual = await document.GetTextAsync();
 

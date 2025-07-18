@@ -89,20 +89,21 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
         var fileInfo = _keyToInformation.GetOrAdd(infoKey,
             _ => new MetadataAsSourceGeneratedFileInfo(sourceWorkspace, sourceProject, topLevelNamedType, signaturesOnly: !useDecompiler, persister));
 
-        DocumentId generatedDocumentId;
+        var generatedDocumentId = fileInfo.DocumentId;
         Location navigateLocation;
 
         // TODO - this can be simpler map.  main service holds info for collapse/map.
-        if (!_generatedFilenameToInformation.TryGetValue(fileInfo.TemporaryFilePath, out var existingDocumentId))
+        var existingDocument = metadataWorkspace.CurrentSolution.GetDocument(fileInfo.DocumentId);
+        if (existingDocument is null)
         {
             var sourceText = await persister.TryGetExistingTextAsync(fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding, MetadataAsSourceGeneratedFileInfo.ChecksumAlgorithm,
                 verifyExistingDocument: text => true, cancellationToken).ConfigureAwait(false);
 
             // We don't have this file in the workspace.  We need to create a project to put it in.
-            var (temporaryProjectInfo, temporaryDocumentId) = GenerateProjectAndDocumentInfo(fileInfo, metadataWorkspace.CurrentSolution.Services, sourceProject, topLevelNamedType);
+            var temporaryProjectInfo = GenerateProjectAndDocumentInfo(fileInfo, metadataWorkspace.CurrentSolution.Services, sourceProject, topLevelNamedType);
             metadataWorkspace.OnProjectAdded(temporaryProjectInfo);
             var temporaryDocument = metadataWorkspace.CurrentSolution
-                .GetRequiredDocument(temporaryDocumentId);
+                .GetRequiredDocument(generatedDocumentId);
 
             // Generate the file if it doesn't exist (we may still have it if there was a previous request for it that was then closed).
             if (sourceText is null)
@@ -160,16 +161,12 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
             var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, fileInfo.TemporaryFilePath);
             var textLoader = TextLoader.From(textAndVersion);
 
-            metadataWorkspace.OnDocumentTextLoaderChanged(temporaryDocumentId, textLoader);
-            _generatedFilenameToInformation.Add(fileInfo.TemporaryFilePath, (fileInfo, temporaryDocument.Id));
-            generatedDocumentId = temporaryDocument.Id;
+            metadataWorkspace.OnDocumentTextLoaderChanged(generatedDocumentId, textLoader);
         }
         else
         {
             // The file already exists in the workspace, so we can just use that.
-            generatedDocumentId = existingDocumentId.DocumentId;
-            var document = metadataWorkspace.CurrentSolution.GetRequiredDocument(generatedDocumentId);
-            navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, document, cancellationToken).ConfigureAwait(false);
+            navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, existingDocument, cancellationToken).ConfigureAwait(false);
         }
 
         var documentName = string.Format(
@@ -179,7 +176,7 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
 
         var documentTooltip = topLevelNamedType.ToDisplayString(new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 
-        return new MetadataAsSourceFile(fileInfo.TemporaryFilePath, navigateLocation, documentName, documentTooltip);
+        return (new MetadataAsSourceFile(fileInfo.TemporaryFilePath, navigateLocation, documentName, documentTooltip), new MetadataAsSourceFileMetadata(fileInfo.SignaturesOnly, fileInfo.Workspace, fileInfo.SourceProjectId));
     }
 
     private (MetadataReference? metadataReference, string? assemblyLocation, bool isReferenceAssembly) GetReferenceInfo(Compilation compilation, IAssemblySymbol containingAssembly)
@@ -211,69 +208,24 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
         return (metadataReference, assemblyLocation, isReferenceAssembly);
     }
 
-    public bool ShouldCollapseOnOpen(MetadataAsSourceWorkspace workspace, string filePath, BlockStructureOptions blockStructureOptions)
-    {
-        if (_generatedFilenameToInformation.TryGetValue(filePath, out var info))
-        {
-            return info.Metadata.SignaturesOnly
-                ? blockStructureOptions.CollapseEmptyMetadataImplementationsWhenFirstOpened
-                : blockStructureOptions.CollapseMetadataImplementationsWhenFirstOpened;
-        }
-
-        return false;
-    }
-
-    private bool RemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, MetadataAsSourceGeneratedFileInfo fileInfo)
-    {
-        // Serial access is guaranteed by the caller.
-        if (_generatedFilenameToInformation.TryRemove(fileInfo.TemporaryFilePath, out var documentIdInfo))
-        {
-            workspace.OnProjectRemoved(documentIdInfo.DocumentId.ProjectId);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public Project? MapDocument(Document document)
-    {
-        MetadataAsSourceGeneratedFileInfo? fileInfo;
-
-        if (document.FilePath is not null && _generatedFilenameToInformation.TryGetValue(document.FilePath, out var documentIdInfo))
-        {
-            fileInfo = documentIdInfo.Metadata;
-            var solution = fileInfo.Workspace.CurrentSolution;
-            var project = solution.GetProject(fileInfo.SourceProjectId);
-            return project;
-        }
-        else
-        {
-            // If we don't have the file in our cache, then we can't map it.
-            return null;
-        }
-    }
-
     public void CleanupGeneratedFiles(MetadataAsSourceWorkspace workspace)
     {
-        // Clone the list so we don't break our own enumeration
-        foreach (var generatedFileInfo in _generatedFilenameToInformation.Values.ToList())
+        foreach (var project in _keyToInformation.Values.Select(d => d.DocumentId.ProjectId).Distinct().ToList())
         {
-            RemoveDocumentFromWorkspace(workspace, generatedFileInfo.Metadata);
-
+            workspace.OnProjectRemoved(project);
         }
 
-        _generatedFilenameToInformation.Clear();
         _keyToInformation.Clear();
     }
 
-    private static (ProjectInfo, DocumentId) GenerateProjectAndDocumentInfo(
+    private static ProjectInfo GenerateProjectAndDocumentInfo(
         MetadataAsSourceGeneratedFileInfo fileInfo,
         SolutionServices services,
         Project sourceProject,
         INamedTypeSymbol topLevelNamedType)
     {
-        var projectId = ProjectId.CreateNewId();
+        var generatedDocumentId = fileInfo.DocumentId;
+        var projectId = generatedDocumentId.ProjectId;
 
         var parseOptions = sourceProject.Language == fileInfo.LanguageName
             ? sourceProject.ParseOptions
@@ -302,7 +254,6 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
             .WithDesignTimeOnly(true);
 
         var emptySourceText = SourceText.From(string.Empty, MetadataAsSourceGeneratedFileInfo.Encoding, MetadataAsSourceGeneratedFileInfo.ChecksumAlgorithm);
-        var generatedDocumentId = DocumentId.CreateNewId(projectId);
         var generatedDocument = DocumentInfo.Create(
             generatedDocumentId,
             Path.GetFileName(fileInfo.TemporaryFilePath),
@@ -326,7 +277,7 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
             documents: [assemblyInfoDocument, generatedDocument],
             metadataReferences: [.. sourceProject.MetadataReferences]);
 
-        return (projectInfo, generatedDocumentId);
+        return projectInfo;
 
     }
 

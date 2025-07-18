@@ -21,12 +21,17 @@ internal sealed class MetadataAsSourceGeneratedFileInfo
     public static Encoding Encoding => Encoding.UTF8;
     public static SourceHashAlgorithm ChecksumAlgorithm => SourceHashAlgorithms.Default;
 
+    public DocumentId DocumentId { get; }
+
     public MetadataAsSourceGeneratedFileInfo(Workspace sourceWorkspace, Project sourceProject, INamedTypeSymbol topLevelNamedType, bool signaturesOnly, IMetadataDocumentPersister persister)
     {
         this.SourceProjectId = sourceProject.Id;
         this.Workspace = sourceWorkspace;
         this.LanguageName = signaturesOnly ? sourceProject.Language : LanguageNames.CSharp;
         this.SignaturesOnly = signaturesOnly;
+
+        var projectId = ProjectId.CreateNewId();
+        this.DocumentId = DocumentId.CreateNewId(projectId);
 
         this.Extension = LanguageName == LanguageNames.CSharp ? ".cs" : ".vb";
 

@@ -111,7 +111,10 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
                 var provider = lazyProvider.Value;
                 var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject, symbol, signaturesOnly, options, telemetryMessage, persister, cancellationToken).ConfigureAwait(false);
                 if (result is not null)
+                {
+                    _generatedFilenameToInformation[result.Value.File.FilePath] = result.Value.FileMetadata;
                     return result.Value.File;
+                }
             }
         }
 
@@ -159,13 +162,11 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 
         AssertIsMainThread(_workspace);
 
-        foreach (var provider in _providers.Value)
+        if (_generatedFilenameToInformation.TryGetValue(filePath, out var metadata))
         {
-            if (!provider.IsValueCreated)
-                continue;
-
-            if (provider.Value.ShouldCollapseOnOpen(_workspace, filePath, blockStructureOptions))
-                return true;
+            return metadata.SignaturesOnly
+                ? blockStructureOptions.CollapseEmptyMetadataImplementationsWhenFirstOpened
+                : blockStructureOptions.CollapseMetadataImplementationsWhenFirstOpened;
         }
 
         return false;
@@ -175,31 +176,24 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
     {
         Contract.ThrowIfNull(document.FilePath);
 
-        Project? project = null;
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            foreach (var provider in _providers.Value)
+            if (_generatedFilenameToInformation.TryGetValue(document.FilePath, out var metadata))
             {
-                if (!provider.IsValueCreated)
-                    continue;
+                var solution = metadata.SourceWorkspace.CurrentSolution;
+                var project = solution.GetProject(metadata.SourceProjectId);
+                if (project is null)
+                    return null;
 
-                Contract.ThrowIfNull(_workspace);
-
-                project = provider.Value.MapDocument(document);
-                if (project is not null)
-                    break;
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var resolutionResult = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
+                return resolutionResult.Symbol == null ? null : new SymbolMappingResult(project, resolutionResult.Symbol);
+            }
+            else
+            {
+                return null;
             }
         }
-
-        if (project is null)
-            return null;
-
-        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-        var resolutionResult = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
-        if (resolutionResult.Symbol == null)
-            return null;
-
-        return new SymbolMappingResult(project, resolutionResult.Symbol);
     }
 
     public bool IsNavigableMetadataSymbol(ISymbol symbol)
@@ -226,4 +220,11 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
     }
 
     public Workspace? TryGetWorkspace() => _workspace;
+
+    internal TestAccessor GetTestAccessor() => new TestAccessor(this);
+
+    internal struct TestAccessor(MetadataAsSourceFileService service)
+    {
+        public readonly MetadataAsSourceFileMetadata GetGeneratedFileMetadata(string filePath) => service._generatedFilenameToInformation[filePath];
+    }
 }

@@ -774,8 +774,8 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
         });
     }
 
-    [Theory, CombinatorialData]
-    public async Task OptionTurnedOff_NullResult(bool useVirtualFiles)
+    [Fact]
+    public async Task OptionTurnedOff_NullResult()
     {
         var source = """
             public class C
