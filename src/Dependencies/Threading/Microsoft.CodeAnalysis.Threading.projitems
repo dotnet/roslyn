@@ -23,6 +23,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IAsynchronousOperationListenerProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IAsynchronousOperationListener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)YieldAwaitableExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ParallelExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ParallelExtensions.NetFramework.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />

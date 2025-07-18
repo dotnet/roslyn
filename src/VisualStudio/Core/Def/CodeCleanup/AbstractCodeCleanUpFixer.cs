@@ -211,7 +211,7 @@ internal abstract partial class AbstractCodeCleanUpFixer(
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // And for each project, process all the documents in parallel.
-                await RoslynParallel.ForEachAsync(
+                await Parallel.ForEachAsync(
                     source: project.Documents,
                     cancellationToken,
                     async (document, cancellationToken) =>

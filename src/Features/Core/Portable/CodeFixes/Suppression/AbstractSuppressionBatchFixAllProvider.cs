@@ -117,7 +117,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
         cancellationToken.ThrowIfCancellationRequested();
 
         var registerCodeFix = GetRegisterCodeFixAction(fixAllState, onItemFound);
-        await RoslynParallel.ForEachAsync(
+        await Parallel.ForEachAsync(
             source: diagnostics,
             cancellationToken,
             async (diagnostic, cancellationToken) =>

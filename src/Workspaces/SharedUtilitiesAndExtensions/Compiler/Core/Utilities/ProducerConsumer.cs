@@ -248,7 +248,7 @@ internal static class ProducerConsumer<TItem>
             // We're running in parallel, so we def have multiple writers
             ProducerConsumerOptions.SingleReaderOptions,
             produceItems: static (callback, args, cancellationToken) =>
-                RoslynParallel.ForEachAsync(
+                Parallel.ForEachAsync(
                     args.source,
                     cancellationToken,
                     async (source, cancellationToken) =>
@@ -310,7 +310,7 @@ internal static class ProducerConsumer<TItem>
     {
         return RunAsync(
             static (callback, args, cancellationToken) =>
-                RoslynParallel.ForEachAsync(
+                Parallel.ForEachAsync(
                     args.source, cancellationToken,
                     async (source, cancellationToken) => await args.produceItems(
                         source, callback, args.args, cancellationToken).ConfigureAwait(false)),

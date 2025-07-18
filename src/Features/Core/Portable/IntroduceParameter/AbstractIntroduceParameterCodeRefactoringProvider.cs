@@ -253,7 +253,7 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
             {
                 var (project, projectCallSites) = tuple;
                 var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                await RoslynParallel.ForEachAsync(
+                await Parallel.ForEachAsync(
                     projectCallSites,
                     cancellationToken,
                     async (tuple, cancellationToken) =>
