@@ -228,90 +228,34 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
 
             var resx = allResx.First();
             var cancellationToken = context.CancellationToken;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var resxSourceText = await resx.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var xdoc = XDocument.Parse(resxSourceText.ToString());
-            var updated = false;
-            var existingKeys = new HashSet<string>(
-                xdoc.Root.Elements("data").Select(e => (string)e.Attribute("name")),
-                StringComparer.OrdinalIgnoreCase);
-
-            // Collect all literal nodes to replace
-            var nodesToReplace = diagnostics
-                .Select(d => root.FindNode(d.Location.SourceSpan) as LiteralExpressionSyntax)
-                .Where(n => n != null)
-                .ToList();
-
-            var nodeToResourceAccess = new Dictionary<LiteralExpressionSyntax, ExpressionSyntax>();
-
-            foreach (var node in nodesToReplace)
-            {
-                var value = node.Token.ValueText;
-                var name = ToDeterministicResourceKey(value);
-
-                // Check if the value already exists in the .resx file (regardless of name)
-                var existingDataElement = xdoc.Root.Elements("data")
-                    .FirstOrDefault(e => e.Element("value")?.Value == value);
-
-                if (existingDataElement is not null)
-                {
-                    name = (string)existingDataElement.Attribute("name");
-                }
-                else
-                {
-                    if (!existingKeys.Contains(name))
-                    {
-                        var dataElement = new XElement("data",
-                            new XAttribute("name", name),
-                            new XAttribute(XNamespace.Xml + "space", "preserve"),
-                            new XElement("value", value));
-                        xdoc.Root.Add(dataElement);
-                        existingKeys.Add(name);
-                    }
-                    else
-                    {
-                        var dataElement = xdoc.Root.Elements("data")
-                            .FirstOrDefault(e => (string)e.Attribute("name") == name);
-                        if (dataElement != null && dataElement.Element("value")?.Value != value)
-                        {
-                            dataElement.Element("value")!.Value = value;
-                        }
-                    }
-                }
-
-                var resourceClass = Path.GetFileNameWithoutExtension(resx.Name);
-                var ns = project.DefaultNamespace;
-                string resourceAccessString = !string.IsNullOrEmpty(ns)
-                    ? $"{ns}.{resourceClass}.{name}"
-                    : $"{resourceClass}.{name}";
-
-                var resourceAccess = SyntaxFactory.ParseExpression(resourceAccessString).WithTriviaFrom(node);
-                nodeToResourceAccess[node] = resourceAccess;
-                updated = true;
-            }
-
-            if (!updated)
-                return null;
-
-            // Replace all nodes in one pass
-            var newRoot = root.ReplaceNodes(
-                nodeToResourceAccess.Keys,
-                (original, _) => nodeToResourceAccess[original]);
-
-            string updatedResxText;
-            using (var sw = new StringWriter())
-            {
-                xdoc.Save(sw);
-                updatedResxText = sw.ToString();
-            }
-            var newResxSourceText = SourceText.From(updatedResxText, resxSourceText.Encoding);
-            var newSolution = document.Project.Solution
-                .WithAdditionalDocumentText(resx.Id, newResxSourceText)
-                .WithDocumentSyntaxRoot(document.Id, newRoot);
 
             return CodeAction.Create(
                 "Move all strings to .resx resource",
-                ct => Task.FromResult(newSolution),
+                async ct =>
+                {
+                    var currentSolution = project.Solution;
+                    var currentDocument = document;
+
+                    // Process each diagnostic sequentially using the existing logic
+                    foreach (var diagnostic in diagnostics)
+                    {
+                        var root = await currentDocument.GetSyntaxRootAsync(ct).ConfigureAwait(false);
+                        var node = root?.FindNode(diagnostic.Location.SourceSpan) as LiteralExpressionSyntax;
+                        if (node is null)
+                            continue;
+
+                        // Apply the same logic as the single fix
+                        currentSolution = await MoveStringToResxAndReplaceLiteralAsync(currentDocument, node, resx, ct).ConfigureAwait(false);
+                        
+                        // Update current document from the new solution
+                        currentDocument = currentSolution.GetDocument(document.Id)!;
+                        
+                        // Update the resx reference to the latest version in the solution
+                        resx = currentSolution.GetAdditionalDocument(resx.Id)!;
+                    }
+
+                    return currentSolution;
+                },
                 nameof(CSharpMoveToResxFixAllProvider));
         }
     }
