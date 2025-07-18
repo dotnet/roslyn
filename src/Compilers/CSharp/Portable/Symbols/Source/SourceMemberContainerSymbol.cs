@@ -4682,11 +4682,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
 
                 case SymbolKind.Property:
-                    //if (!((PropertySymbol)member).IsIndexer)
+                    if (!((PropertySymbol)member).IsIndexer)
                     {
                         return true;
                     }
-                    //break;
+                    break;
 
                 case SymbolKind.Field:
                 case SymbolKind.Event:

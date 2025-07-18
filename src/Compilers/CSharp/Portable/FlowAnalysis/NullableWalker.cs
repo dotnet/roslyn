@@ -11378,68 +11378,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitIndexerAccess(BoundIndexerAccess node)
         {
+            var receiverOpt = node.ReceiverOpt;
+            var receiverType = VisitRvalueWithState(receiverOpt).Type;
+            // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
+            // after indices have been visited, and only if the receiver has not changed.
+            // Tracked by https://github.com/dotnet/roslyn/issues/78829: add support for indexers
+            _ = CheckPossibleNullReceiver(receiverOpt);
+
             var indexer = node.Indexer;
-
-            if (indexer.GetIsNewExtensionMember())
+            if (receiverType is object)
             {
-                Debug.Assert(node.ReceiverOpt is not null);
-                ImmutableArray<BoundExpression> arguments = [node.ReceiverOpt, ..node.Arguments];
-
-                var extensionParameter = indexer.ContainingType.ExtensionParameter;
-                Debug.Assert(extensionParameter is not null);
-                ImmutableArray<ParameterSymbol> parameters = [extensionParameter, ..indexer.Parameters];
-                RefKind receiverRefKind = extensionParameter.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.None;
-                var argumentRefKindsOpt = node.ArgumentRefKindsOpt;
-
-                if (argumentRefKindsOpt.IsDefault)
-                {
-                    if (receiverRefKind != RefKind.None)
-                    {
-                        var builder = ArrayBuilder<RefKind>.GetInstance(node.Arguments.Length + 1, fillWithValue: RefKind.None);
-                        builder[0] = receiverRefKind;
-                        argumentRefKindsOpt = builder.ToImmutableAndFree();
-                    }
-                }
-                else
-                {
-                    argumentRefKindsOpt = [receiverRefKind, .. argumentRefKindsOpt];
-                }
-
-                // Tracked by https://github.com/dotnet/roslyn/issues/37238 : properties/indexers should account for NotNullIfNotNull
-                bool returnNotNull;
-                (var updatedProperty, _, returnNotNull) = VisitArguments(node, arguments, argumentRefKindsOpt, parameters, default, defaultArguments: default,
-                    expanded: false, invokedAsExtensionMethod: false, indexer, firstArgumentResult: null);
-
-                Debug.Assert(updatedProperty is not null);
-
-                TypeWithAnnotations typeWithAnnotations = GetTypeOrReturnTypeWithAnnotations(updatedProperty);
-                FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(updatedProperty);
-                TypeWithState typeWithState = ApplyUnconditionalAnnotations(typeWithAnnotations.ToTypeWithState(), memberAnnotations);
-
-                SetResult(node, typeWithState, typeWithAnnotations);
-                SetUpdatedSymbol(node, node.Indexer, updatedProperty);
+                // Update indexer based on inferred receiver type.
+                indexer = (PropertySymbol)AsMemberOfType(receiverType, indexer);
             }
-            else
-            {
-                var receiverOpt = node.ReceiverOpt;
-                var receiverType = VisitRvalueWithState(receiverOpt).Type;
-                // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
-                // after indices have been visited, and only if the receiver has not changed.
-                // Tracked by https://github.com/dotnet/roslyn/issues/78829: add support for indexers
-                _ = CheckPossibleNullReceiver(receiverOpt);
 
-                if (receiverType is object)
-                {
-                    // Update indexer based on inferred receiver type.
-                    indexer = (PropertySymbol)AsMemberOfType(receiverType, indexer);
-                }
+            VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded);
 
-                VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded);
-
-                var resultType = ApplyUnconditionalAnnotations(indexer.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(indexer));
-                SetResult(node, resultType, indexer.TypeWithAnnotations);
-                SetUpdatedSymbol(node, node.Indexer, indexer);
-            }
+            var resultType = ApplyUnconditionalAnnotations(indexer.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(indexer));
+            SetResult(node, resultType, indexer.TypeWithAnnotations);
+            SetUpdatedSymbol(node, node.Indexer, indexer);
             return null;
         }
 
