@@ -34793,7 +34793,6 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
@@ -36994,10 +36993,11 @@ namespace N
         var src = """
 using N;
 var x = new object().M<int>;
+x();
 
 public static class E2
 {
-    public static void M<T>(this object o) { }
+    public static void M<T>(this object o) { System.Console.Write("ran"); }
 }
 """;
 
@@ -37007,20 +37007,21 @@ public static class E2
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)];
 
         var comp = CreateCompilation(src, references: [libRef]);
-        comp.VerifyDiagnostics(unnecessaryDirective);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics(unnecessaryDirective);
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
-        comp.VerifyDiagnostics(unnecessaryDirective);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics(unnecessaryDirective);
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
-        comp.VerifyDiagnostics(unnecessaryDirective);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics(unnecessaryDirective);
 
         // Note: in older LangVer, we look at all scopes to determine the unique signature
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         src = """
 var x = new object().M<int>;
+x();
 
 namespace N
 {
@@ -37032,20 +37033,20 @@ namespace N
 
 public static class E2
 {
-    public static void M<T>(this object o) { }
+    public static void M<T>(this object o) { System.Console.Write("ran"); }
 }
 """;
         comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, parseOptions: TestOptions.Regular12);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
     }
 
     [Fact]
@@ -37066,27 +37067,29 @@ public static class E1
 
         var src = """
 var x = new object().M<int>;
+x();
 
 public static class E2
 {
-    public static void M<T>(this object o) { }
+    public static void M<T>(this object o) { System.Console.Write("ran"); }
 }
 """;
 
         var comp = CreateCompilation(src, references: [libRef]);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         src = """
 var x = new object().M<int>;
+x();
 
 public static class E1
 {
@@ -37095,20 +37098,20 @@ public static class E1
 
 public static class E2
 {
-    public static void M<T>(this object o) { }
+    public static void M<T>(this object o) { System.Console.Write("ran"); }
 }
 """;
         comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, parseOptions: TestOptions.Regular12);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
     }
 
     [Fact]
@@ -37129,28 +37132,30 @@ public static class E1
 
         var src = """
 var x = new object().M<int>;
+x();
 
 public static class E2
 {
-    public static void M<T>(this object o) { }
+    public static void M<T>(this object o) { System.Console.Write("ran"); }
 }
 """;
 
         var comp = CreateCompilation(src, references: [libRef]);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         // Note: in older LangVer, we look at all scopes to determine the unique signature, but we apply stricter standards to new extension methods
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         src = """
 var x = new object().M<int>;
+x();
 
 public static class E1
 {
@@ -37159,17 +37164,17 @@ public static class E1
 
 public static class E2
 {
-    public static void M<T>(this object o) { }
+    public static void M<T>(this object o) { System.Console.Write("ran"); }
 }
 """;
         comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         // Note: in older LangVer, classic extension methods candidates with broken constraints are still considered for unique signature
         comp = CreateCompilation(src, parseOptions: TestOptions.Regular12);
@@ -37197,6 +37202,7 @@ public static class E
 
         var src = """
 var x = object.M;
+x();
 """;
 
         DiagnosticDescription[] expected = [
@@ -37307,10 +37313,11 @@ namespace N
         var src = """
 using N;
 var x = new object().M;
+x();
 
 public static class E2
 {
-    public static void M(this object o) { }
+    public static void M(this object o) { System.Console.Write("ran"); }
 }
 """;
 
@@ -37320,16 +37327,16 @@ public static class E2
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)];
 
         var comp = CreateCompilation(src, references: [libRef]);
-        comp.VerifyDiagnostics(unnecessaryDirective);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics(unnecessaryDirective);
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
-        comp.VerifyDiagnostics(unnecessaryDirective);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics(unnecessaryDirective);
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
-        comp.VerifyDiagnostics(unnecessaryDirective);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics(unnecessaryDirective);
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
     }
 
     [Fact]
