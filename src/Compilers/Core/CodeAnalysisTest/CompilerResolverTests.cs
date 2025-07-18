@@ -26,6 +26,9 @@ public sealed class CompilerResolverTests : IDisposable
 
     public CompilerResolverTests()
     {
+        // Ensure that Xunit dependencies are loaded.
+        Assert.True(true);
+
         TempRoot = new TempRoot();
         DefaultLoadContextAssemblies = AssemblyLoadContext.Default.Assemblies.SelectAsArray(a => a.FullName);
         CompilerContext = new AssemblyLoadContext(nameof(CompilerResolverTests), isCollectible: true);
