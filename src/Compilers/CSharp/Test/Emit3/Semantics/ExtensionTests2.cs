@@ -14366,6 +14366,8 @@ public static class E
     public void OverloadResolution_01()
     {
         var src = """
+new object().M(1);
+
 public static class E
 {
     extension(object @this)
@@ -14381,12 +14383,13 @@ public static class E
 
         private void M<T>(T x, System.ReadOnlySpan<object> span)
         {
+            System.Console.Write("ran");
         }
     }
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79193")]
