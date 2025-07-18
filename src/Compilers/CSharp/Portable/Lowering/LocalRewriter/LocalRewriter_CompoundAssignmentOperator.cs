@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // This will be filled in with the LHS that uses temporaries to prevent
             // double-evaluation of side effects.
-            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Left, isRegularCompoundAssignment: true, stores, temps, isDynamic);
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Left, stores, temps, isDynamic);
             var lhsRead = MakeRValue(transformedLHS);
             BoundExpression rewrittenAssignment;
 
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundDynamicMemberAccess(memberAccess.Syntax, receiverTemp, memberAccess.TypeArgumentsOpt, memberAccess.Name, memberAccess.Invoked, memberAccess.Indexed, memberAccess.Type);
         }
 
-        private BoundIndexerAccess TransformIndexerAccess(BoundIndexerAccess indexerAccess, bool isRegularCompoundAssignment, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
+        private BoundIndexerAccess TransformIndexerAccess(BoundIndexerAccess indexerAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
         {
             var receiverOpt = indexerAccess.ReceiverOpt;
             Debug.Assert(receiverOpt != null);
@@ -395,11 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                 ref transformedReceiver,
-                captureReceiverMode: CanChangeValueBetweenReads(receiverOpt) ?
-                                         (isRegularCompoundAssignment ?
-                                              ReceiverCaptureMode.CompoundAssignment :
-                                              ReceiverCaptureMode.UseTwiceComplex) :
-                                         ReceiverCaptureMode.Default,
+                forceReceiverCapturing: CanChangeValueBetweenReads(receiverOpt),
                 indexerAccess.Arguments,
                 indexerAccess.Indexer,
                 indexerAccess.ArgsToParamsOpt,
@@ -657,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A side-effect-free expression representing the LHS.
         /// The returned node needs to be lowered but its children are already lowered.
         /// </returns>
-        private BoundExpression TransformCompoundAssignmentLHS(BoundExpression originalLHS, bool isRegularCompoundAssignment, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment)
+        private BoundExpression TransformCompoundAssignmentLHS(BoundExpression originalLHS, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment)
         {
             // There are five possible cases.
             //
@@ -710,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var indexerAccess = (BoundIndexerAccess)originalLHS;
                         if (indexerAccess.GetRefKind() == RefKind.None)
                         {
-                            return TransformIndexerAccess((BoundIndexerAccess)originalLHS, isRegularCompoundAssignment, stores, temps);
+                            return TransformIndexerAccess((BoundIndexerAccess)originalLHS, stores, temps);
                         }
                     }
                     break;
