@@ -1885,6 +1885,10 @@ hello
 exception thrown
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -3098,6 +3102,10 @@ struct S
 }";
             CompileAndVerify(source, expectedOutput: "", options: TestOptions.ReleaseExe);
             CompileAndVerify(source, expectedOutput: "", options: TestOptions.DebugExe);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
@@ -3127,6 +3135,10 @@ class C
 ";
             CompileAndVerify(source, expectedOutput: "43", options: TestOptions.DebugExe);
             CompileAndVerify(source, expectedOutput: "43", options: TestOptions.ReleaseExe);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("43", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
@@ -3156,6 +3168,10 @@ class C
 ";
             CompileAndVerify(source, expectedOutput: "43", options: TestOptions.ReleaseExe);
             CompileAndVerify(source, expectedOutput: "43", options: TestOptions.DebugExe);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("43", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
@@ -3183,6 +3199,10 @@ struct S
 }";
             CompileAndVerify(source, expectedOutput: "", options: TestOptions.ReleaseExe);
             CompileAndVerify(source, expectedOutput: "", options: TestOptions.DebugExe);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -4013,6 +4033,10 @@ class Box<T>
 ";
             CompileAndVerify(source, expectedOutput: "42", options: TestOptions.DebugExe);
             CompileAndVerify(source, expectedOutput: "42", options: TestOptions.ReleaseExe);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("42", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -4051,6 +4075,10 @@ namespace RoslynFailFastReproduction
 ";
             CompileAndVerify(source, expectedOutput: "True", options: TestOptions.DebugExe);
             CompileAndVerify(source, expectedOutput: "True", options: TestOptions.ReleaseExe);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("True", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
