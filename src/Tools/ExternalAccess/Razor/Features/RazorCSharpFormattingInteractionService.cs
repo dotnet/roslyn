@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -23,6 +22,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     /// </summary>
     internal static class RazorCSharpFormattingInteractionService
     {
+        public static RazorCSharpSyntaxFormattingOptions GetRazorCSharpSyntaxFormattingOptions(SolutionServices services)
+        {
+            var legacyOptionsService = services.GetService<ILegacyGlobalOptionsWorkspaceService>();
+            var options = legacyOptionsService?.GetSyntaxFormattingOptions(services.GetLanguageServices(LanguageNames.CSharp))
+                ?? CSharpSyntaxFormattingOptions.Default;
+            return new RazorCSharpSyntaxFormattingOptions((CSharpSyntaxFormattingOptions)options);
+        }
+
         /// <summary>
         /// Returns the text changes necessary to format the document after the user enters a 
         /// character.  The position provided is the position of the caret in the document after
