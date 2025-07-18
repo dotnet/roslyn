@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -3028,8 +3028,9 @@ struct S
 
     static Task<int?> GetInt() => Task.FromResult((int?)1);
 }";
-            CompileAndVerify(source, expectedOutput: "", options: TestOptions.ReleaseExe);
-            CompileAndVerify(source, expectedOutput: "", options: TestOptions.DebugExe);
+            var expectedOutput = "";
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
         }
 
         [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
@@ -3057,8 +3058,9 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "43", options: TestOptions.DebugExe);
-            CompileAndVerify(source, expectedOutput: "43", options: TestOptions.ReleaseExe);
+            var expectedOutput = "43";
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
         }
 
         [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
@@ -3086,8 +3088,9 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "43", options: TestOptions.ReleaseExe);
-            CompileAndVerify(source, expectedOutput: "43", options: TestOptions.DebugExe);
+            var expectedOutput = "43";
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
         }
 
         [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
@@ -3113,8 +3116,9 @@ struct S
 
     static Task<int?> GetInt() => Task.FromResult((int?)1);
 }";
-            CompileAndVerify(source, expectedOutput: "", options: TestOptions.ReleaseExe);
-            CompileAndVerify(source, expectedOutput: "", options: TestOptions.DebugExe);
+            var expectedOutput = "";
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
         }
 
         [Fact]
@@ -3275,7 +3279,8 @@ public class AsyncBug {
 ";
 
             // See tracking issue https://github.com/dotnet/runtime/issues/96695
-            var verifier = CompileAndVerify(source, expectedOutput: "System.Int32",
+            var expectedOutput = "System.Int32";
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput,
                 verify: Verification.FailsILVerify with { ILVerifyMessage = "[MoveNext]: Unrecognized arguments for delegate .ctor. { Offset = 0x6d }" });
 
             verifier.VerifyIL("AsyncBug.<Boom>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
@@ -3502,30 +3507,33 @@ class Foo
         [WorkItem(27831, "https://github.com/dotnet/roslyn/issues/27831")]
         public void AwaitWithInParameter_NoArgModifier()
         {
-            CompileAndVerify(@"
-using System;
-using System.Threading.Tasks;
-class Foo
-{
-    static async Task Main()
-    {
-        await A(""test"", Task.FromResult(4));
-    }
-    
-    static async Task A(string s, Task<int> task)
-    {
-        B(s, await task);
-    }
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+                class Foo
+                {
+                    static async Task Main()
+                    {
+                        await A("test", Task.FromResult(4));
+                    }
 
-    static void B(in object obj, int v)
-    {
-        Console.WriteLine(obj);
-        Console.WriteLine(v);
-    }
-}", expectedOutput: @"
-test
-4
-");
+                    static async Task A(string s, Task<int> task)
+                    {
+                        B(s, await task);
+                    }
+
+                    static void B(in object obj, int v)
+                    {
+                        Console.WriteLine(obj);
+                        Console.WriteLine(v);
+                    }
+                }
+                """;
+            var expectedOutput = """
+                test
+                4
+                """;
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(36856, "https://github.com/dotnet/roslyn/issues/36856")]
@@ -3841,8 +3849,9 @@ struct F
     public bool P2 => _result;
 }
 ";
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "2");
-            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "2");
+            var expectedOutput = "2";
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3939,8 +3948,9 @@ class Box<T>
     public T Value;
 }
 ";
-            CompileAndVerify(source, expectedOutput: "42", options: TestOptions.DebugExe);
-            CompileAndVerify(source, expectedOutput: "42", options: TestOptions.ReleaseExe);
+            var expectedOutput = "42";
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
         }
 
         [Fact]
@@ -3977,8 +3987,9 @@ namespace RoslynFailFastReproduction
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "True", options: TestOptions.DebugExe);
-            CompileAndVerify(source, expectedOutput: "True", options: TestOptions.ReleaseExe);
+            var expectedOutput = "True";
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
         }
 
         [Fact]
@@ -4063,17 +4074,20 @@ class B
     public int x;
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"TestPropertyAccessThrows
-Before Assignment
-Caught NullReferenceException
-TestFieldAccessThrows
-Before Assignment
-RHS
-Caught NullReferenceException
-TestPropertyAccessSucceeds
-Before Assignment a.B.x is: 0
-RHS
-After Assignment a.B.x is: 42")
+            var expectedOutput = """
+                TestPropertyAccessThrows
+                Before Assignment
+                Caught NullReferenceException
+                TestFieldAccessThrows
+                Before Assignment
+                RHS
+                Caught NullReferenceException
+                TestPropertyAccessSucceeds
+                Before Assignment a.B.x is: 0
+                RHS
+                After Assignment a.B.x is: 42
+                """;
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      184 (0xb8)
@@ -4287,31 +4301,34 @@ class A
     public bool y;
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"TestIndexerThrows
-Before Assignment
-Caught IndexOutOfRangeException
-TestAssignmentThrows
-Before Assignment
-RHS
-Caught NullReferenceException
-TestIndexerSucceeds
-Before Assignment arr[0].x is: 0
-RHS
-After Assignment arr[0].x is: 42
-TestReassignsArrayAndIndexerDuringAwait
-Before Assignment arr.Length is: 1
-Before Assignment a.x is: 0
-RHS
-After Assignment arr.Length is: 0
-After Assignment a.x is: 42
-TestReassignsTargetDuringAwait
-Before Assignment arr[0].x is: 0
-Before Assignment arr[0].y is: False
-Before Assignment a.x is: 0
-RHS
-After Assignment arr[0].x is: 0
-After Assignment arr[0].y is: True
-After Assignment a.x is: 42")
+            var expectedOutput = """
+                TestIndexerThrows
+                Before Assignment
+                Caught IndexOutOfRangeException
+                TestAssignmentThrows
+                Before Assignment
+                RHS
+                Caught NullReferenceException
+                TestIndexerSucceeds
+                Before Assignment arr[0].x is: 0
+                RHS
+                After Assignment arr[0].x is: 42
+                TestReassignsArrayAndIndexerDuringAwait
+                Before Assignment arr.Length is: 1
+                Before Assignment a.x is: 0
+                RHS
+                After Assignment arr.Length is: 0
+                After Assignment a.x is: 42
+                TestReassignsTargetDuringAwait
+                Before Assignment arr[0].x is: 0
+                Before Assignment arr[0].y is: False
+                Before Assignment a.x is: 0
+                RHS
+                After Assignment arr[0].x is: 0
+                After Assignment arr[0].y is: True
+                After Assignment a.x is: 42
+                """;
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      181 (0xb5)
@@ -4506,25 +4523,28 @@ struct A
     public bool y;
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"TestIndexerThrows
-Before Assignment
-Caught IndexOutOfRangeException
-TestIndexerSucceeds
-Before Assignment arr[0].x is: 0
-RHS
-After Assignment arr[0].x is: 42
-TestReassignsArrayAndIndexerDuringAwait
-Before Assignment arr.Length is: 1
-Before Assignment arrCopy[0].x is: 0
-RHS
-After Assignment arr.Length is: 0
-After Assignment arrCopy[0].x is: 42
-TestReassignsTargetDuringAwait
-Before Assignment arr[0].x is: 0
-Before Assignment arr[0].y is: False
-RHS
-After Assignment arr[0].x is: 42
-Before Assignment arr[0].y is: True")
+            var expectedOutput = """
+                TestIndexerThrows
+                Before Assignment
+                Caught IndexOutOfRangeException
+                TestIndexerSucceeds
+                Before Assignment arr[0].x is: 0
+                RHS
+                After Assignment arr[0].x is: 42
+                TestReassignsArrayAndIndexerDuringAwait
+                Before Assignment arr.Length is: 1
+                Before Assignment arrCopy[0].x is: 0
+                RHS
+                After Assignment arr.Length is: 0
+                After Assignment arrCopy[0].x is: 42
+                TestReassignsTargetDuringAwait
+                Before Assignment arr[0].x is: 0
+                Before Assignment arr[0].y is: False
+                RHS
+                After Assignment arr[0].x is: 42
+                Before Assignment arr[0].y is: True
+                """;
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      198 (0xc6)
@@ -4696,20 +4716,23 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"TestIndexerThrows
-Before Assignment
-RHS
-Caught IndexOutOfRangeException
-TestIndexerSucceeds
-Before Assignment arr[0] is: 0
-RHS
-After Assignment arr[0] is: 42
-TestReassignsArrayAndIndexerDuringAwait
-Before Assignment arr.Length is: 1
-Before Assignment arrCopy[0] is: 0
-RHS
-After Assignment arr.Length is: 0
-After Assignment arrCopy[0] is: 42")
+            var expectedOutput = """
+                TestIndexerThrows
+                Before Assignment
+                RHS
+                Caught IndexOutOfRangeException
+                TestIndexerSucceeds
+                Before Assignment arr[0] is: 0
+                RHS
+                After Assignment arr[0] is: 42
+                TestReassignsArrayAndIndexerDuringAwait
+                Before Assignment arr.Length is: 1
+                Before Assignment arrCopy[0] is: 0
+                RHS
+                After Assignment arr.Length is: 0
+                After Assignment arrCopy[0] is: 42
+                """;
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      176 (0xb0)
@@ -4888,19 +4911,22 @@ struct C
     public int x;
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"TestAIsNull
-Before Assignment
-Caught NullReferenceException
-TestAIsNotNull
-Before Assignment a.b.c.x is: 0
-RHS
-After Assignment a.b.c.x is: 42
-ReassignADuringAssignment
-Before Assignment a is null == False
-Before Assignment aCopy.b.c.x is: 0
-RHS
-After Assignment a is null == True
-After Assignment aCopy.b.c.x is: 42")
+            var expectedOutput = """
+                TestAIsNull
+                Before Assignment
+                Caught NullReferenceException
+                TestAIsNotNull
+                Before Assignment a.b.c.x is: 0
+                RHS
+                After Assignment a.b.c.x is: 42
+                ReassignADuringAssignment
+                Before Assignment a is null == False
+                Before Assignment aCopy.b.c.x is: 0
+                RHS
+                After Assignment a is null == True
+                After Assignment aCopy.b.c.x is: 42
+                """;
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      201 (0xc9)
@@ -5081,23 +5107,26 @@ class B
     public int x { get { Console.WriteLine(""GetX""); return _x; } set { Console.WriteLine(""SetX""); _x = value; } }
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"TestAIsNull
-Before Assignment
-Caught NullReferenceException
-TestAIsNotNull
-Before Assignment a._b._x is: 0
-GetB
-RHS
-SetX
-After Assignment a._b._x is: 42
-ReassignADuringAssignment
-Before Assignment a is null == False
-Before Assignment aCopy._b._x is: 0
-GetB
-RHS
-SetX
-After Assignment a is null == True
-After Assignment aCopy._b._x is: 42")
+            var expectedOutput = """
+                TestAIsNull
+                Before Assignment
+                Caught NullReferenceException
+                TestAIsNotNull
+                Before Assignment a._b._x is: 0
+                GetB
+                RHS
+                SetX
+                After Assignment a._b._x is: 42
+                ReassignADuringAssignment
+                Before Assignment a is null == False
+                Before Assignment aCopy._b._x is: 0
+                GetB
+                RHS
+                SetX
+                After Assignment a is null == True
+                After Assignment aCopy._b._x is: 42
+                """;
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      184 (0xb8)
@@ -5266,20 +5295,23 @@ class A
     public int x;
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"TestAIsNull
-Before Assignment
-RHS
-Caught NullReferenceException
-TestAIsNotNull
-Before Assignment a.x is: 0
-RHS
-After Assignment a.x is: 42
-ReassignADuringAssignment
-Before Assignment a is null == False
-Before Assignment aCopy.x is: 0
-RHS
-After Assignment a is null == True
-After Assignment aCopy.x is: 42")
+            var expectedOutput = """
+                TestAIsNull
+                Before Assignment
+                RHS
+                Caught NullReferenceException
+                TestAIsNotNull
+                Before Assignment a.x is: 0
+                RHS
+                After Assignment a.x is: 42
+                ReassignADuringAssignment
+                Before Assignment a is null == False
+                Before Assignment aCopy.x is: 0
+                RHS
+                After Assignment a is null == True
+                After Assignment aCopy.x is: 42
+                """;
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      179 (0xb3)
@@ -5466,23 +5498,26 @@ class A
     public int x;
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"TestAIsNull
-Before Assignment
-Caught NullReferenceException
-TestAIsNotNull
-Before Assignment a.x is: 1
-RHS
-After Assignment a.x is: 43
-ReassignADuringAssignment
-Before Assignment a is null == False
-Before Assignment aCopy.x is: 1
-RHS
-After Assignment a is null == True
-After Assignment aCopy.x is: 43
-ReassignXDuringAssignment
-Before Assignment a.x is: 1
-RHS
-After Assignment a.x is: 43")
+            var expectedOutput = """
+                TestAIsNull
+                Before Assignment
+                Caught NullReferenceException
+                TestAIsNotNull
+                Before Assignment a.x is: 1
+                RHS
+                After Assignment a.x is: 43
+                ReassignADuringAssignment
+                Before Assignment a is null == False
+                Before Assignment aCopy.x is: 1
+                RHS
+                After Assignment a is null == True
+                After Assignment aCopy.x is: 43
+                ReassignXDuringAssignment
+                Before Assignment a.x is: 1
+                RHS
+                After Assignment a.x is: 43
+                """;
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      202 (0xca)
@@ -5680,29 +5715,32 @@ class A
     public int x { get { Console.WriteLine(""GetX""); return _x; } set { Console.WriteLine(""SetX""); _x = value; } }
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"TestAIsNull
-Before Assignment
-Caught NullReferenceException
-TestAIsNotNull
-Before Assignment a._x is: 1
-GetX
-RHS
-SetX
-After Assignment a._x is: 43
-ReassignADuringAssignment
-Before Assignment a is null == False
-Before Assignment aCopy._x is: 1
-GetX
-RHS
-SetX
-After Assignment a is null == True
-After Assignment aCopy._x is: 43
-ReassignXDuringAssignment
-Before Assignment a._x is: 1
-GetX
-RHS
-SetX
-After Assignment a._x is: 43")
+            var expectedOutput = """
+                TestAIsNull
+                Before Assignment
+                Caught NullReferenceException
+                TestAIsNotNull
+                Before Assignment a._x is: 1
+                GetX
+                RHS
+                SetX
+                After Assignment a._x is: 43
+                ReassignADuringAssignment
+                Before Assignment a is null == False
+                Before Assignment aCopy._x is: 1
+                GetX
+                RHS
+                SetX
+                After Assignment a is null == True
+                After Assignment aCopy._x is: 43
+                ReassignXDuringAssignment
+                Before Assignment a._x is: 1
+                GetX
+                RHS
+                SetX
+                After Assignment a._x is: 43
+                """;
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      202 (0xca)
@@ -5921,26 +5959,29 @@ class B
     public int x;
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"TestAIsNullBIsNull
-Before Assignment
-Caught NullReferenceException
-TestAIsNullBIsNotNull
-Before Assignment
-Caught NullReferenceException
-TestAIsNotNullBIsNull
-Before Assignment
-RHS
-Caught NullReferenceException
-TestADotBIsNullBIsNotNull
-Before Assignment
-RHS
-Caught NullReferenceException
-TestADotBIsNotNullBIsNotNull
-Before Assignment a.b.x is: 0
-Before Assignment b.x is: 0
-RHS
-After Assignment a.b.x is: 42
-After Assignment b.x is: 42")
+            var expectedOutput = """
+                TestAIsNullBIsNull
+                Before Assignment
+                Caught NullReferenceException
+                TestAIsNullBIsNotNull
+                Before Assignment
+                Caught NullReferenceException
+                TestAIsNotNullBIsNull
+                Before Assignment
+                RHS
+                Caught NullReferenceException
+                TestADotBIsNullBIsNotNull
+                Before Assignment
+                RHS
+                Caught NullReferenceException
+                TestADotBIsNotNullBIsNotNull
+                Before Assignment a.b.x is: 0
+                Before Assignment b.x is: 0
+                RHS
+                After Assignment a.b.x is: 42
+                After Assignment b.x is: 42
+                """;
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      219 (0xdb)
@@ -6166,32 +6207,35 @@ class B
     public int x {  get { Console.WriteLine(""GetX""); return _x; } set { Console.WriteLine(""SetX""); _x = value; } }
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"TestAIsNullBIsNull
-Before Assignment
-Caught NullReferenceException
-TestAIsNullBIsNotNull
-Before Assignment
-Caught NullReferenceException
-TestAIsNotNullBIsNull
-Before Assignment
-GetB
-RHS
-Caught NullReferenceException
-TestADotBIsNullBIsNotNull
-Before Assignment
-GetB
-RHS
-SetX
-Caught NullReferenceException
-TestADotBIsNotNullBIsNotNull
-Before Assignment a._b._x is: 0
-Before Assignment b._x is: 0
-GetB
-RHS
-SetX
-SetX
-After Assignment a._b._x is: 42
-After Assignment b._x is: 42")
+            var expectedOutput = """
+                TestAIsNullBIsNull
+                Before Assignment
+                Caught NullReferenceException
+                TestAIsNullBIsNotNull
+                Before Assignment
+                Caught NullReferenceException
+                TestAIsNotNullBIsNull
+                Before Assignment
+                GetB
+                RHS
+                Caught NullReferenceException
+                TestADotBIsNullBIsNotNull
+                Before Assignment
+                GetB
+                RHS
+                SetX
+                Caught NullReferenceException
+                TestADotBIsNotNullBIsNotNull
+                Before Assignment a._b._x is: 0
+                Before Assignment b._x is: 0
+                GetB
+                RHS
+                SetX
+                SetX
+                After Assignment a._b._x is: 42
+                After Assignment b._x is: 42
+                """;
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      219 (0xdb)
@@ -6332,9 +6376,12 @@ struct B
     public int x;
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"Before Assignment A.b.x is: 0
-RHS
-After Assignment A.b.x is: 42")
+            var expectedOutput = """
+                Before Assignment A.b.x is: 0
+                RHS
+                After Assignment A.b.x is: 42
+                """;
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      159 (0x9f)
@@ -6438,7 +6485,8 @@ public class C
         Console.Write(s1.Field);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            var expectedOutput = "1";
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
         }
 
@@ -6474,7 +6522,8 @@ public class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            var expectedOutput = "1";
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
         }
 
@@ -6505,7 +6554,8 @@ public class C
         Console.Write(c.s1.Field);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            var expectedOutput = "1";
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
         }
     }
