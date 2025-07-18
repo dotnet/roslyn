@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -42,6 +43,13 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
     /// A lock to ensure we initialize <see cref="_workspace"/> and cleanup stale data only once.
     /// </summary>
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
+
+    /// <summary>
+    /// Accessed both in <see cref="GetGeneratedFileAsync"/> and in UI thread operations.  Those should not
+    /// generally run concurrently.  However, to be safe, we make this a concurrent dictionary to be safe to that
+    /// potentially happening.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, MetadataAsSourceFileMetadata> _generatedFilenameToInformation = new(StringComparer.OrdinalIgnoreCase);
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -103,7 +111,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
                 var provider = lazyProvider.Value;
                 var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject, symbol, signaturesOnly, options, telemetryMessage, persister, cancellationToken).ConfigureAwait(false);
                 if (result is not null)
-                    return result;
+                    return result.Value.File;
             }
         }
 
