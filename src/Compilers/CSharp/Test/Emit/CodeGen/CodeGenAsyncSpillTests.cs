@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -23,6 +24,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
             return base.CompileAndVerify(source, expectedOutput: expectedOutput, references: references, options: options);
+        }
+
+        private static string ExpectedOutput(string output, bool isRuntimeAsync)
+        {
+            return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
+        }
+
+        private static CSharpCompilation CreateRuntimeAsyncCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
+        {
+            options = options ?? TestOptions.ReleaseExe;
+
+            IEnumerable<MetadataReference> asyncRefs = new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp };
+            references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
+
+            return CreateCompilationWithMscorlib461(source, options: options, references: references);
         }
 
         [Fact]
@@ -79,8 +95,8 @@ F(5)
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -133,8 +149,8 @@ F(4)
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -187,8 +203,8 @@ F(13)
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -243,8 +259,8 @@ F(c)
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -281,8 +297,8 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -335,8 +351,8 @@ class Test
 ";
             CompileAndVerify(source, expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -395,8 +411,8 @@ class Test
             //
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -454,8 +470,8 @@ class Test
 ";
             CompileAndVerify(source, expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -513,8 +529,8 @@ class Test
 ";
             CompileAndVerify(source, expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -562,8 +578,8 @@ class Test
 ";
             CompileAndVerify(source, expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -607,8 +623,8 @@ class Test
 ";
             CompileAndVerify(source, expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -1049,8 +1065,8 @@ True
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -1082,8 +1098,8 @@ True
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -1118,8 +1134,8 @@ hello
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -1166,8 +1182,8 @@ Not Valid!
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -1886,8 +1902,8 @@ exception thrown
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -2545,8 +2561,8 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -2609,8 +2625,8 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -3103,8 +3119,8 @@ struct S
             CompileAndVerify(source, expectedOutput: "", options: TestOptions.ReleaseExe);
             CompileAndVerify(source, expectedOutput: "", options: TestOptions.DebugExe);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -3136,8 +3152,8 @@ class C
             CompileAndVerify(source, expectedOutput: "43", options: TestOptions.DebugExe);
             CompileAndVerify(source, expectedOutput: "43", options: TestOptions.ReleaseExe);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("43", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("43", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -3169,8 +3185,8 @@ class C
             CompileAndVerify(source, expectedOutput: "43", options: TestOptions.ReleaseExe);
             CompileAndVerify(source, expectedOutput: "43", options: TestOptions.DebugExe);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("43", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("43", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -3200,8 +3216,8 @@ struct S
             CompileAndVerify(source, expectedOutput: "", options: TestOptions.ReleaseExe);
             CompileAndVerify(source, expectedOutput: "", options: TestOptions.DebugExe);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -3340,8 +3356,8 @@ class C
 ";
             CompileAndVerify(source, expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -3447,8 +3463,8 @@ public class AsyncBug {
 }
 """);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier2 = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("System.Int32", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier2 = CompileAndVerify(comp, expectedOutput: ExpectedOutput("System.Int32", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier2.VerifyDiagnostics();
         }
 
@@ -3622,6 +3638,13 @@ class Foo
 test
 4
 ");
+        
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(@"
+test
+4
+", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(36856, "https://github.com/dotnet/roslyn/issues/36856")]
@@ -3807,14 +3830,20 @@ public class P
                 compilation: comp,
                 expectedOutput: expectedOutput,
                 verify: Verification.Fails // localloc is not verifiable.
-                );
+                )
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
             comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
             v = CompileAndVerify(
                 compilation: comp,
                 expectedOutput: expectedOutput,
                 verify: Verification.Fails // localloc is not verifiable.
-                );
+                )
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(37461, "https://github.com/dotnet/roslyn/issues/37461")]
@@ -3849,14 +3878,20 @@ public class P
                 compilation: comp,
                 expectedOutput: expectedOutput,
                 verify: Verification.Fails // localloc is not verifiable.
-                );
+                )
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
             comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
             v = CompileAndVerify(
                 compilation: comp,
                 expectedOutput: expectedOutput,
                 verify: Verification.Fails // localloc is not verifiable.
-                );
+                )
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(37461, "https://github.com/dotnet/roslyn/issues/37461")]
@@ -3940,8 +3975,8 @@ struct F
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "2");
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "2");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("2", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("2", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -4042,8 +4077,8 @@ class Box<T>
             CompileAndVerify(source, expectedOutput: "42", options: TestOptions.DebugExe);
             CompileAndVerify(source, expectedOutput: "42", options: TestOptions.ReleaseExe);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("42", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("42", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -4084,8 +4119,8 @@ namespace RoslynFailFastReproduction
             CompileAndVerify(source, expectedOutput: "True", options: TestOptions.DebugExe);
             CompileAndVerify(source, expectedOutput: "True", options: TestOptions.ReleaseExe);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("True", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("True", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
         }
 
@@ -4266,6 +4301,20 @@ After Assignment a.B.x is: 42")
   IL_00b2:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00b7:  ret
 }");
+        
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(@"TestPropertyAccessThrows
+Before Assignment
+Caught NullReferenceException
+TestFieldAccessThrows
+Before Assignment
+RHS
+Caught NullReferenceException
+TestPropertyAccessSucceeds
+Before Assignment a.B.x is: 0
+RHS
+After Assignment a.B.x is: 42", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -4505,6 +4554,34 @@ After Assignment a.x is: 42")
   IL_00af:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00b4:  ret
 }");
+        
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(@"TestIndexerThrows
+Before Assignment
+Caught IndexOutOfRangeException
+TestAssignmentThrows
+Before Assignment
+RHS
+Caught NullReferenceException
+TestIndexerSucceeds
+Before Assignment arr[0].x is: 0
+RHS
+After Assignment arr[0].x is: 42
+TestReassignsArrayAndIndexerDuringAwait
+Before Assignment arr.Length is: 1
+Before Assignment a.x is: 0
+RHS
+After Assignment arr.Length is: 0
+After Assignment a.x is: 42
+TestReassignsTargetDuringAwait
+Before Assignment arr[0].x is: 0
+Before Assignment arr[0].y is: False
+Before Assignment a.x is: 0
+RHS
+After Assignment arr[0].x is: 0
+After Assignment arr[0].y is: True
+After Assignment a.x is: 42", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -4723,6 +4800,28 @@ Before Assignment arr[0].y is: True")
   IL_00c0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00c5:  ret
 }");
+        
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(@"TestIndexerThrows
+Before Assignment
+Caught IndexOutOfRangeException
+TestIndexerSucceeds
+Before Assignment arr[0].x is: 0
+RHS
+After Assignment arr[0].x is: 42
+TestReassignsArrayAndIndexerDuringAwait
+Before Assignment arr.Length is: 1
+Before Assignment arrCopy[0].x is: 0
+RHS
+After Assignment arr.Length is: 0
+After Assignment arrCopy[0].x is: 42
+TestReassignsTargetDuringAwait
+Before Assignment arr[0].x is: 0
+Before Assignment arr[0].y is: False
+RHS
+After Assignment arr[0].x is: 42
+Before Assignment arr[0].y is: True", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -4902,6 +5001,23 @@ After Assignment arrCopy[0] is: 42")
   IL_00aa:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00af:  ret
 }");
+        
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(@"TestIndexerThrows
+Before Assignment
+RHS
+Caught IndexOutOfRangeException
+TestIndexerSucceeds
+Before Assignment arr[0] is: 0
+RHS
+After Assignment arr[0] is: 42
+TestReassignsArrayAndIndexerDuringAwait
+Before Assignment arr.Length is: 1
+Before Assignment arrCopy[0] is: 0
+RHS
+After Assignment arr.Length is: 0
+After Assignment arrCopy[0] is: 42", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -5098,6 +5214,22 @@ After Assignment aCopy.b.c.x is: 42")
   IL_00c3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00c8:  ret
 }");
+        
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(@"TestAIsNull
+Before Assignment
+Caught NullReferenceException
+TestAIsNotNull
+Before Assignment a.b.c.x is: 0
+RHS
+After Assignment a.b.c.x is: 42
+ReassignADuringAssignment
+Before Assignment a is null == False
+Before Assignment aCopy.b.c.x is: 0
+RHS
+After Assignment a is null == True
+After Assignment aCopy.b.c.x is: 42", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -5290,6 +5422,26 @@ After Assignment aCopy._b._x is: 42")
   IL_00b2:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00b7:  ret
 }");
+        
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(@"TestAIsNull
+Before Assignment
+Caught NullReferenceException
+TestAIsNotNull
+Before Assignment a._b._x is: 0
+GetB
+RHS
+SetX
+After Assignment a._b._x is: 42
+ReassignADuringAssignment
+Before Assignment a is null == False
+Before Assignment aCopy._b._x is: 0
+GetB
+RHS
+SetX
+After Assignment a is null == True
+After Assignment aCopy._b._x is: 42", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")]
@@ -5471,6 +5623,23 @@ After Assignment aCopy.x is: 42")
   IL_00ad:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00b2:  ret
 }");
+        
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(@"TestAIsNull
+Before Assignment
+RHS
+Caught NullReferenceException
+TestAIsNotNull
+Before Assignment a.x is: 0
+RHS
+After Assignment a.x is: 42
+ReassignADuringAssignment
+Before Assignment a is null == False
+Before Assignment aCopy.x is: 0
+RHS
+After Assignment a is null == True
+After Assignment aCopy.x is: 42", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -5684,6 +5853,26 @@ After Assignment a.x is: 43")
   IL_00c4:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00c9:  ret
 }");
+        
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(@"TestAIsNull
+Before Assignment
+Caught NullReferenceException
+TestAIsNotNull
+Before Assignment a.x is: 1
+RHS
+After Assignment a.x is: 43
+ReassignADuringAssignment
+Before Assignment a is null == False
+Before Assignment aCopy.x is: 1
+RHS
+After Assignment a is null == True
+After Assignment aCopy.x is: 43
+ReassignXDuringAssignment
+Before Assignment a.x is: 1
+RHS
+After Assignment a.x is: 43", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -5904,6 +6093,32 @@ After Assignment a._x is: 43")
   IL_00c4:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00c9:  ret
 }");
+        
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(@"TestAIsNull
+Before Assignment
+Caught NullReferenceException
+TestAIsNotNull
+Before Assignment a._x is: 1
+GetX
+RHS
+SetX
+After Assignment a._x is: 43
+ReassignADuringAssignment
+Before Assignment a is null == False
+Before Assignment aCopy._x is: 1
+GetX
+RHS
+SetX
+After Assignment a is null == True
+After Assignment aCopy._x is: 43
+ReassignXDuringAssignment
+Before Assignment a._x is: 1
+GetX
+RHS
+SetX
+After Assignment a._x is: 43", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")]
@@ -6147,6 +6362,29 @@ After Assignment b.x is: 42")
   IL_00d5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00da:  ret
 }");
+        
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(@"TestAIsNullBIsNull
+Before Assignment
+Caught NullReferenceException
+TestAIsNullBIsNotNull
+Before Assignment
+Caught NullReferenceException
+TestAIsNotNullBIsNull
+Before Assignment
+RHS
+Caught NullReferenceException
+TestADotBIsNullBIsNotNull
+Before Assignment
+RHS
+Caught NullReferenceException
+TestADotBIsNotNullBIsNotNull
+Before Assignment a.b.x is: 0
+Before Assignment b.x is: 0
+RHS
+After Assignment a.b.x is: 42
+After Assignment b.x is: 42", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")]
@@ -6398,6 +6636,35 @@ After Assignment b._x is: 42")
   IL_00d5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00da:  ret
 }");
+        
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(@"TestAIsNullBIsNull
+Before Assignment
+Caught NullReferenceException
+TestAIsNullBIsNotNull
+Before Assignment
+Caught NullReferenceException
+TestAIsNotNullBIsNull
+Before Assignment
+GetB
+RHS
+Caught NullReferenceException
+TestADotBIsNullBIsNotNull
+Before Assignment
+GetB
+RHS
+SetX
+Caught NullReferenceException
+TestADotBIsNotNullBIsNotNull
+Before Assignment a._b._x is: 0
+Before Assignment b._x is: 0
+GetB
+RHS
+SetX
+SetX
+After Assignment a._b._x is: 42
+After Assignment b._x is: 42", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -6518,6 +6785,12 @@ After Assignment A.b.x is: 42")
   IL_0099:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_009e:  ret
 }");
+        
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(@"Before Assignment A.b.x is: 0
+RHS
+After Assignment A.b.x is: 42", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")]
@@ -6549,8 +6822,8 @@ public class C
             var verifier = CompileAndVerify(source, expectedOutput: "1");
             verifier.VerifyDiagnostics();
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var runtimeVerifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("1", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var runtimeVerifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("1", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             runtimeVerifier.VerifyDiagnostics();
         }
 
@@ -6589,8 +6862,8 @@ public class Program
             var verifier = CompileAndVerify(source, expectedOutput: "1");
             verifier.VerifyDiagnostics();
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var runtimeVerifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("1", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var runtimeVerifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("1", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             runtimeVerifier.VerifyDiagnostics();
         }
 
@@ -6624,8 +6897,8 @@ public class C
             var verifier = CompileAndVerify(source, expectedOutput: "1");
             verifier.VerifyDiagnostics();
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var runtimeVerifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("1", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var runtimeVerifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("1", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             runtimeVerifier.VerifyDiagnostics();
         }
     }
