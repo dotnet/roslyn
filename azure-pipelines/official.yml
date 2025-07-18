@@ -46,7 +46,7 @@ extends:
       codeSignValidation:
         enabled: true
         break: true
-        additionalTargetsGlobPattern: -|Variables-*\*.ps1;-|LocBin-*\**;-|APIScanInputs-*\**;-|test_symbols-*\**;-|MicroBuild\**
+        additionalTargetsGlobPattern: -|Variables-*\*.ps1;-|LocBin-*\**;-|APIScanInputs-*\**;-|test_symbols-*\**;-|MicroBuild\**;-f|**\EqualException*.dll
       policheck:
         enabled: true
         exclusionsFile: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
