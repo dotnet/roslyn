@@ -394,8 +394,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                             public Task(Action action) {}
                             
                             public static Task CompletedTask => null!;
+                            public static Task Delay(int millisecondsDelay) => null!;
                             public TaskAwaiter GetAwaiter() => default;
                             public static TaskFactory Factory => null!;
+                            public static Task Run(Action action) => null!;
+                            public static Task Run<TArg>(Action<TArg> action) => null!;
                             public void Wait() {}
                             public bool Wait(int millisecondsTimeout) => false;
                             public static YieldAwaitable Yield() => default;
