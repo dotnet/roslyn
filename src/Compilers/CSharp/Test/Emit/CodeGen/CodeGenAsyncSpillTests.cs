@@ -63,7 +63,7 @@ class Test
         Console.WriteLine(H(true, true));
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 F(2)
 F(10)
 10
@@ -77,7 +77,7 @@ F(4)
 F(5)
 5
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -121,13 +121,13 @@ class Test
         Console.WriteLine(H(false, true));
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 F(True)
 F(False)
 F(4)
 4
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -171,13 +171,13 @@ class Test
         Console.WriteLine(H(false, true));
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 F(True)
 F(False)
 F(13)
 13
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -217,7 +217,7 @@ class Test
         H(""c"", ""d"");
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 F(null)
 F(null)
  null
@@ -229,7 +229,7 @@ F(b)
 F(c)
  c
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -260,10 +260,10 @@ class Test
         Console.WriteLine(t.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 42
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -308,12 +308,12 @@ class Test
         WaitAndPrint(G3());
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 -1
 1
 -1
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -345,7 +345,7 @@ class Test
         Console.WriteLine(t.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 42
 ";
             // When the local 'c' gets hoisted, the statement:
@@ -369,7 +369,7 @@ class Test
             // So this case actually requires stack spilling, which is not yet implemented. This has the unfortunate
             // consequence of preventing await expressions from being assigned to hoisted locals.
             //
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -412,7 +412,7 @@ class Test
         t.Wait();
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 > 111
 > 222
 > 333
@@ -424,7 +424,7 @@ class Test
 444
 555
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -467,7 +467,7 @@ class Test
         t.Wait();
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 > 111
 > 222
 > 333
@@ -479,7 +479,7 @@ class Test
 444
 555
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -516,7 +516,7 @@ class Test
         t.Wait();
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 1
 2
 3
@@ -524,7 +524,7 @@ class Test
 5
 6
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -561,11 +561,11 @@ class Test
         t.Wait();
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 1
 2
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -999,11 +999,11 @@ namespace AsyncConditionalBug {
     }
   }
 }";
-            var expected = @"
+            var expectedOutput = @"
 False
 True
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(4628, "https://github.com/dotnet/roslyn/issues/4628")]
@@ -1028,11 +1028,11 @@ namespace AsyncConditionalBug {
     }
   }
 }";
-            var expected = @"
+            var expectedOutput = @"
 False
 True
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(4628, "https://github.com/dotnet/roslyn/issues/4628")]
@@ -1061,10 +1061,10 @@ namespace AsyncConditionalBug
         }
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 hello
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(4638, "https://github.com/dotnet/roslyn/issues/4638")]
@@ -1105,10 +1105,10 @@ namespace AsyncConditionalBug
         }
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 Not Valid!
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1218,10 +1218,10 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 0
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -1276,10 +1276,10 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 0
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -1336,10 +1336,10 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 0
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -1397,10 +1397,10 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 0
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -1457,10 +1457,10 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 0
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -1522,10 +1522,10 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 0
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -1582,10 +1582,10 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 0
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -1662,10 +1662,10 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 0
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -1749,10 +1749,10 @@ class TestCase
         Console.WriteLine(arr[0]);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 42
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")]
@@ -1815,7 +1815,7 @@ class Program
     }
 }";
 
-            var expected = @"
+            var expectedOutput = @"
 test not awaited
 hello
 exception thrown
@@ -1824,7 +1824,7 @@ test awaited
 hello
 exception thrown
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1881,10 +1881,10 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 0
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -1911,10 +1911,10 @@ class Driver
         Console.WriteLine(arr[0]);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 42
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -1941,10 +1941,10 @@ class Driver
         Console.WriteLine(arr[0]);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 42
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -1981,10 +1981,10 @@ class Driver
         Console.WriteLine(t.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 42
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -2021,10 +2021,10 @@ class Driver
         Console.WriteLine(t.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 42
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -2099,10 +2099,10 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 0
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -2168,10 +2168,10 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 0
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -2246,10 +2246,10 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 0
 ";
-            CompileAndVerify(source, expected, references: new[] { CSharpRef });
+            CompileAndVerify(source, expectedOutput, references: new[] { CSharpRef });
         }
 
         [Fact]
@@ -2278,12 +2278,12 @@ class Test
         }
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 1
 2
 42
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -2328,10 +2328,10 @@ class Test
         System.Console.WriteLine(t.Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 > 42
 42";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -2370,10 +2370,10 @@ class Driver
         Test.Run().Wait();
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 42
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -2411,10 +2411,10 @@ class Driver
         Test.Run().Wait();
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 42
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -2474,12 +2474,12 @@ class Driver
         Console.WriteLine(Result);
     }
 }";
-            var expected = ExecutionConditionUtil.IsDesktop ? @"
+            var expectedOutput = ExecutionConditionUtil.IsDesktop ? @"
 1
 2
 0
 " : null;
-            CompileAndVerify(source, targetFramework: TargetFramework.NetFramework, expectedOutput: expected, verify: Verification.FailsILVerify);
+            CompileAndVerify(source, targetFramework: TargetFramework.NetFramework, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
         }
 
         [Fact]
@@ -2536,10 +2536,10 @@ class Driver
         Console.WriteLine(Result);
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 0
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3248,13 +3248,13 @@ class C
         }
     }
 }";
-            var expected = @"
+            var expectedOutput = @"
 -1
 42
 42
 42
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
@@ -3402,8 +3402,8 @@ namespace AsyncBug
     }
 }
 ";
-            var expected = new bool[] { false, true, false, true, false }.Aggregate("", (str, next) => str += $"{next}{Environment.NewLine}");
-            var v = CompileAndVerify(source, expected);
+            var expectedOutput = new bool[] { false, true, false, true, false }.Aggregate("", (str, next) => str += $"{next}{Environment.NewLine}");
+            var v = CompileAndVerify(source, expectedOutput);
         }
 
         [Fact]
