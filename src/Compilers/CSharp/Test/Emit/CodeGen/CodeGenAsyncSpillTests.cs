@@ -3911,6 +3911,10 @@ struct F
 ";
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "2");
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "2");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("2", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -6508,6 +6512,10 @@ public class C
 }";
             var verifier = CompileAndVerify(source, expectedOutput: "1");
             verifier.VerifyDiagnostics();
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeVerifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("1", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            runtimeVerifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")]
@@ -6544,6 +6552,10 @@ public class Program
 ";
             var verifier = CompileAndVerify(source, expectedOutput: "1");
             verifier.VerifyDiagnostics();
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeVerifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("1", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            runtimeVerifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")]
@@ -6575,6 +6587,10 @@ public class C
 }";
             var verifier = CompileAndVerify(source, expectedOutput: "1");
             verifier.VerifyDiagnostics();
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeVerifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("1", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            runtimeVerifier.VerifyDiagnostics();
         }
     }
 }
