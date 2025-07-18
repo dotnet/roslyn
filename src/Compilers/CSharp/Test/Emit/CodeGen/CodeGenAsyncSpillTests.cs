@@ -606,6 +606,10 @@ class Test
 2
 ";
             CompileAndVerify(source, expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1044,6 +1048,10 @@ False
 True
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [WorkItem(4628, "https://github.com/dotnet/roslyn/issues/4628")]
@@ -1073,6 +1081,10 @@ False
 True
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [WorkItem(4628, "https://github.com/dotnet/roslyn/issues/4628")]
@@ -1105,6 +1117,10 @@ namespace AsyncConditionalBug
 hello
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [WorkItem(4638, "https://github.com/dotnet/roslyn/issues/4638")]
@@ -1149,6 +1165,10 @@ namespace AsyncConditionalBug
 Not Valid!
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2520,6 +2540,10 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2580,6 +2604,10 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
