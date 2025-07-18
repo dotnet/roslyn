@@ -78,6 +78,19 @@ F(5)
 5
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AsyncWithTernary0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AsyncWithTernary1
+                """);
         }
 
         [Fact]
@@ -128,6 +141,19 @@ F(4)
 4
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AsyncWithAnd0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AsyncWithAnd1
+                """);
         }
 
         [Fact]
@@ -178,6 +204,19 @@ F(13)
 13
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AsyncWithOr0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AsyncWithOr1
+                """);
         }
 
         [Fact]
@@ -230,6 +269,19 @@ F(c)
  c
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AsyncWithCoalesce0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AsyncWithCoalesce1
+                """);
         }
 
         [Fact]
@@ -264,6 +316,19 @@ class Test
 42
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AwaitInExpr0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AwaitInExpr1
+                """);
         }
 
         [Fact]
@@ -314,6 +379,19 @@ class Test
 -1
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillNestedUnary0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillNestedUnary1
+                """);
         }
 
         [Fact]
@@ -370,6 +448,19 @@ class Test
             // consequence of preventing await expressions from being assigned to hoisted locals.
             //
             CompileAndVerify(source, expectedOutput: expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AsyncWithParamsAndLocals_DoubleAwait_Spilling0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AsyncWithParamsAndLocals_DoubleAwait_Spilling1
+                """);
         }
 
         [Fact]
@@ -425,6 +516,19 @@ class Test
 555
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillCall0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillCall1
+                """);
         }
 
         [Fact]
@@ -480,6 +584,19 @@ class Test
 555
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillCall20
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillCall21
+                """);
         }
 
         [Fact]
@@ -525,6 +642,19 @@ class Test
 6
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillCall30
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillCall31
+                """);
         }
 
         [Fact]
@@ -566,6 +696,19 @@ class Test
 2
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillCall40
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillCall41
+                """);
         }
 
         [Fact]
@@ -729,6 +872,19 @@ public class Test
   IL_010f:  nop
   IL_0110:  ret
 }", sequencePoints: "Test+<F>d__2.MoveNext");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillSequences10
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillSequences11
+                """);
         }
 
         [Fact]
@@ -882,6 +1038,19 @@ public class Test
   IL_00f5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_00fa:  ret
 }", sequencePoints: "Test+<F>d__2.MoveNext");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillSequencesRelease0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillSequencesRelease1
+                """);
         }
 
         [Fact]
@@ -910,6 +1079,19 @@ public class Test
 }
 ";
             CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillSequencesInConditionalExpression10
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillSequencesInConditionalExpression11
+                """);
         }
 
         [Fact]
@@ -975,6 +1157,32 @@ public class C
                     "<>s__8"
                  }, module.GetFieldNames("C.<F>d__3"));
              });
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillSequencesInNullCoalescingOperator10
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillSequencesInNullCoalescingOperator11
+                """);
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillSequencesInNullCoalescingOperator12
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillSequencesInNullCoalescingOperator13
+                """);
         }
 
         [WorkItem(4628, "https://github.com/dotnet/roslyn/issues/4628")]
@@ -1004,6 +1212,19 @@ False
 True
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AsyncWithShortCircuiting0010
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AsyncWithShortCircuiting0011
+                """);
         }
 
         [WorkItem(4628, "https://github.com/dotnet/roslyn/issues/4628")]
@@ -1033,6 +1254,19 @@ False
 True
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AsyncWithShortCircuiting0020
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AsyncWithShortCircuiting0021
+                """);
         }
 
         [WorkItem(4628, "https://github.com/dotnet/roslyn/issues/4628")]
@@ -1065,6 +1299,19 @@ namespace AsyncConditionalBug
 hello
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AsyncWithShortCircuiting0030
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AsyncWithShortCircuiting0031
+                """);
         }
 
         [WorkItem(4638, "https://github.com/dotnet/roslyn/issues/4638")]
@@ -1109,6 +1356,19 @@ namespace AsyncConditionalBug
 Not Valid!
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AsyncWithShortCircuiting0040
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AsyncWithShortCircuiting0041
+                """);
         }
 
         [Fact]
@@ -1142,6 +1402,19 @@ public class Test
 }
 ";
             CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillSequencesInLogicalBinaryOperator10
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillSequencesInLogicalBinaryOperator11
+                """);
         }
 
         [Fact]
@@ -1222,6 +1495,19 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArray010
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArray011
+                """);
         }
 
         [Fact]
@@ -1280,6 +1566,19 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArray02_10
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArray02_11
+                """);
         }
 
         [Fact]
@@ -1340,6 +1639,19 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArray02_20
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArray02_21
+                """);
         }
 
         [Fact]
@@ -1401,6 +1713,19 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArray02_30
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArray02_31
+                """);
         }
 
         [Fact]
@@ -1461,6 +1786,19 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArray02_40
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArray02_41
+                """);
         }
 
         [Fact]
@@ -1526,6 +1864,19 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArray02_50
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArray02_51
+                """);
         }
 
         [Fact]
@@ -1586,6 +1937,19 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArray02_60
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArray02_61
+                """);
         }
 
         [Fact]
@@ -1666,6 +2030,19 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArray030
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArray031
+                """);
         }
 
         [Fact]
@@ -1724,6 +2101,19 @@ class Driver
     }
 }";
             CompileAndVerify(source, "");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArray040
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArray041
+                """);
         }
 
         [Fact]
@@ -1753,6 +2143,19 @@ class TestCase
 42
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArrayAssign0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArrayAssign1
+                """);
         }
 
         [WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")]
@@ -1825,6 +2228,19 @@ hello
 exception thrown
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArrayAssign20
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArrayAssign21
+                """);
         }
 
         [Fact]
@@ -1885,6 +2301,19 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArrayLocal0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArrayLocal1
+                """);
         }
 
         [Fact]
@@ -1915,6 +2344,19 @@ class Driver
 42
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArrayCompoundAssignmentLValue0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArrayCompoundAssignmentLValue1
+                """);
         }
 
         [Fact]
@@ -1945,6 +2387,19 @@ class Driver
 42
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArrayCompoundAssignmentLValueAwait0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArrayCompoundAssignmentLValueAwait1
+                """);
         }
 
         [Fact]
@@ -1985,6 +2440,19 @@ class Driver
 42
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArrayCompoundAssignmentLValueAwait20
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArrayCompoundAssignmentLValueAwait21
+                """);
         }
 
         [Fact]
@@ -2025,6 +2493,19 @@ class Driver
 42
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: DoubleSpillArrayCompoundAssignment0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: DoubleSpillArrayCompoundAssignment1
+                """);
         }
 
         [Fact]
@@ -2103,6 +2584,19 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArrayInitializers10
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArrayInitializers11
+                """);
         }
 
         [Fact]
@@ -2172,6 +2666,19 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArrayInitializers20
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArrayInitializers21
+                """);
         }
 
         [Fact]
@@ -2250,6 +2757,19 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput, references: new[] { CSharpRef });
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArrayInitializers30
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArrayInitializers31
+                """);
         }
 
         [Fact]
@@ -2284,6 +2804,19 @@ class Test
 42
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillNestedExpressionInArrayInitializer0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillNestedExpressionInArrayInitializer1
+                """);
         }
 
         [Fact]
@@ -2332,6 +2865,19 @@ class Test
 > 42
 42";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillConditionalAccess0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillConditionalAccess1
+                """);
         }
 
         [Fact]
@@ -2374,6 +2920,19 @@ class Driver
 42
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AssignToAwait0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AssignToAwait1
+                """);
         }
 
         [Fact]
@@ -2415,6 +2974,19 @@ class Driver
 42
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AssignAwaitToAwait0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AssignAwaitToAwait1
+                """);
         }
 
         [Fact]
@@ -2480,6 +3052,19 @@ class Driver
 0
 " : null;
             CompileAndVerify(source, targetFramework: TargetFramework.NetFramework, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillArglist0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillArglist1
+                """);
         }
 
         [Fact]
@@ -2540,6 +3125,19 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillObjectInitializer10
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillObjectInitializer11
+                """);
         }
 
         [Fact]
@@ -2606,6 +3204,19 @@ class Driver
     }
 }";
             CompileAndVerify(source, "0");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillWithByRefArguments010
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillWithByRefArguments011
+                """);
         }
 
         [Fact]
@@ -2662,6 +3273,19 @@ class Driver
     }
 }";
             CompileAndVerify(source, "0");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillOperator_Compound10
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillOperator_Compound11
+                """);
         }
 
         [Fact]
@@ -2718,6 +3342,19 @@ class Driver
     }
 }";
             CompileAndVerify(source, "0");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillOperator_Compound20
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillOperator_Compound21
+                """);
         }
 
         [Fact]
@@ -2748,6 +3385,19 @@ class Test
     }
 }";
             CompileAndVerify(source, "0", references: new[] { CSharpRef });
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: Async_StackSpill_Argument_Generic040
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: Async_StackSpill_Argument_Generic041
+                """);
         }
 
         [Fact]
@@ -2806,6 +3456,19 @@ class Driver
     }
 }";
             CompileAndVerify(source, "0");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AsyncStackSpill_assign010
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AsyncStackSpill_assign011
+                """);
         }
 
         [Fact]
@@ -2885,6 +3548,19 @@ class Driver
     }
 }";
             CompileAndVerify(source, "0");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillCollectionInitializer0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillCollectionInitializer1
+                """);
         }
 
         [Fact]
@@ -2924,6 +3600,19 @@ static class Driver
     }
 }";
             CompileAndVerify(source, "42");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillRefExpr0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillRefExpr1
+                """);
         }
 
         [Fact]
@@ -3008,6 +3697,19 @@ class Driver
     }
 }";
             CompileAndVerify(source, "0");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillManagedPointerAssign030
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillManagedPointerAssign031
+                """);
         }
 
         [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
@@ -3031,6 +3733,32 @@ struct S
             var expectedOutput = "";
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillCompoundAssignmentToNullableMemberOfLocal_010
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_011
+                """);
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillCompoundAssignmentToNullableMemberOfLocal_012
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_013
+                """);
         }
 
         [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
@@ -3061,6 +3789,32 @@ class C
             var expectedOutput = "43";
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillCompoundAssignmentToNullableMemberOfLocal_020
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_021
+                """);
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillCompoundAssignmentToNullableMemberOfLocal_022
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_023
+                """);
         }
 
         [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
@@ -3091,6 +3845,32 @@ class C
             var expectedOutput = "43";
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillCompoundAssignmentToNullableMemberOfLocal_030
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_031
+                """);
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillCompoundAssignmentToNullableMemberOfLocal_032
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_033
+                """);
         }
 
         [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
@@ -3119,6 +3899,32 @@ struct S
             var expectedOutput = "";
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillCompoundAssignmentToNullableMemberOfLocal_040
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_041
+                """);
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillCompoundAssignmentToNullableMemberOfLocal_042
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_043
+                """);
         }
 
         [Fact]
@@ -3166,6 +3972,19 @@ class C
     }
 }";
             CompileAndVerify(source, "0");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillSacrificialRead0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillSacrificialRead1
+                """);
         }
 
         [Fact]
@@ -3255,6 +4074,19 @@ class C
 42
 ";
             CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillRefThisStruct0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillRefThisStruct1
+                """);
         }
 
         [Fact]
@@ -3359,6 +4191,19 @@ public class AsyncBug {
   IL_00a8:  ret
 }
 """);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: MethodGroupConversionNoSpill0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: MethodGroupConversionNoSpill1
+                """);
         }
 
         [Fact]
@@ -3404,6 +4249,19 @@ namespace AsyncBug
 ";
             var expectedOutput = new bool[] { false, true, false, true, false }.Aggregate("", (str, next) => str += $"{next}{Environment.NewLine}");
             var v = CompileAndVerify(source, expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: MethodGroupConversionWithSpill0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: MethodGroupConversionWithSpill1
+                """);
         }
 
         [Fact]
@@ -3440,6 +4298,19 @@ public class C
 ";
 
             var v = CompileAndVerify(source, "42");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillAwaitBeforeRefReordered0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillAwaitBeforeRefReordered1
+                """);
         }
 
         [Fact]
@@ -3534,6 +4405,19 @@ class Foo
                 4
                 """;
             CompileAndVerify(source, expectedOutput: expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AwaitWithInParameter_NoArgModifier0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AwaitWithInParameter_NoArgModifier1
+                """);
         }
 
         [Fact, WorkItem(36856, "https://github.com/dotnet/roslyn/issues/36856")]
@@ -3685,6 +4569,19 @@ namespace System.Text.Json.Serialization
   IL_00b7:  ret
 }
 ");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: Crash368560
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: Crash368561
+                """);
         }
 
         [Fact, WorkItem(37461, "https://github.com/dotnet/roslyn/issues/37461")]
@@ -3727,6 +4624,32 @@ public class P
                 expectedOutput: expectedOutput,
                 verify: Verification.Fails // localloc is not verifiable.
                 );
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: ShouldNotSpillStackallocToField_010
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: ShouldNotSpillStackallocToField_011
+                """);
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: ShouldNotSpillStackallocToField_012
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: ShouldNotSpillStackallocToField_013
+                """);
         }
 
         [Fact, WorkItem(37461, "https://github.com/dotnet/roslyn/issues/37461")]
@@ -3769,6 +4692,32 @@ public class P
                 expectedOutput: expectedOutput,
                 verify: Verification.Fails // localloc is not verifiable.
                 );
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: ShouldNotSpillStackallocToField_020
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: ShouldNotSpillStackallocToField_021
+                """);
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: ShouldNotSpillStackallocToField_022
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: ShouldNotSpillStackallocToField_023
+                """);
         }
 
         [Fact, WorkItem(37461, "https://github.com/dotnet/roslyn/issues/37461")]
@@ -3852,6 +4801,32 @@ struct F
             var expectedOutput = "2";
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillStateMachineTemps0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillStateMachineTemps1
+                """);
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: SpillStateMachineTemps2
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: SpillStateMachineTemps3
+                """);
         }
 
         [Fact]
@@ -3951,6 +4926,32 @@ class Box<T>
             var expectedOutput = "42";
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: ExpressionLambdaWithObjectInitializer0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: ExpressionLambdaWithObjectInitializer1
+                """);
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: ExpressionLambdaWithObjectInitializer2
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: ExpressionLambdaWithObjectInitializer3
+                """);
         }
 
         [Fact]
@@ -3990,6 +4991,32 @@ namespace RoslynFailFastReproduction
             var expectedOutput = "True";
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: ExpressionLambdaWithUserDefinedControlFlow0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: ExpressionLambdaWithUserDefinedControlFlow1
+                """);
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: ExpressionLambdaWithUserDefinedControlFlow2
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: ExpressionLambdaWithUserDefinedControlFlow3
+                """);
         }
 
         [Fact]
@@ -4172,6 +5199,19 @@ class B
   IL_00b2:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00b7:  ret
 }");
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: KeepLtrSemantics_ClassFieldAccessOnProperty0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: KeepLtrSemantics_ClassFieldAccessOnProperty1
+                """);
         }
 
         [Fact]
@@ -4414,6 +5454,19 @@ class A
   IL_00af:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00b4:  ret
 }");
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: KeepLtrSemantics_ClassFieldAccessOnArray0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: KeepLtrSemantics_ClassFieldAccessOnArray1
+                """);
         }
 
         [Fact]
@@ -4635,6 +5688,19 @@ struct A
   IL_00c0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00c5:  ret
 }");
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: KeepLtrSemantics_StructFieldAccessOnArray0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: KeepLtrSemantics_StructFieldAccessOnArray1
+                """);
         }
 
         [Fact]
@@ -4817,6 +5883,19 @@ class Program
   IL_00aa:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00af:  ret
 }");
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: KeepLtrSemantics_AssignmentToArray0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: KeepLtrSemantics_AssignmentToArray1
+                """);
         }
 
         [Fact]
@@ -5016,6 +6095,19 @@ struct C
   IL_00c3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00c8:  ret
 }");
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: KeepLtrSemantics_StructFieldAccessOnStructFieldAccessOnClassField0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: KeepLtrSemantics_StructFieldAccessOnStructFieldAccessOnClassField1
+                """);
         }
 
         [Fact]
@@ -5211,6 +6303,19 @@ class B
   IL_00b2:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00b7:  ret
 }");
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: KeepLtrSemantics_ClassPropertyAssignmentOnClassProperty0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: KeepLtrSemantics_ClassPropertyAssignmentOnClassProperty1
+                """);
         }
 
         [WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")]
@@ -5395,6 +6500,19 @@ class A
   IL_00ad:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00b2:  ret
 }");
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: KeepLtrSemantics_FieldAccessOnClass0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: KeepLtrSemantics_FieldAccessOnClass1
+                """);
         }
 
         [Fact]
@@ -5611,6 +6729,19 @@ class A
   IL_00c4:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00c9:  ret
 }");
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: KeepLtrSemantics_CompoundAssignment0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: KeepLtrSemantics_CompoundAssignment1
+                """);
         }
 
         [Fact]
@@ -5834,6 +6965,19 @@ class A
   IL_00c4:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00c9:  ret
 }");
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: KeepLtrSemantics_CompoundAssignmentProperties0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: KeepLtrSemantics_CompoundAssignmentProperties1
+                """);
         }
 
         [WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")]
@@ -6080,6 +7224,19 @@ class B
   IL_00d5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00da:  ret
 }");
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: KeepLtrSemantics_AssignmentToAssignment0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: KeepLtrSemantics_AssignmentToAssignment1
+                """);
         }
 
         [WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")]
@@ -6334,6 +7491,19 @@ class B
   IL_00d5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00da:  ret
 }");
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: KeepLtrSemantics_AssignmentToAssignmentProperties0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: KeepLtrSemantics_AssignmentToAssignmentProperties1
+                """);
         }
 
         [Fact]
@@ -6457,6 +7627,19 @@ struct B
   IL_0099:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_009e:  ret
 }");
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AssignmentToFieldOfStaticFieldOfStruct0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AssignmentToFieldOfStaticFieldOfStruct1
+                """);
         }
 
         [Fact, WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")]
@@ -6488,6 +7671,19 @@ public class C
             var expectedOutput = "1";
             var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AssignStaticStructField0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AssignStaticStructField1
+                """);
         }
 
         [Fact, WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")]
@@ -6525,6 +7721,19 @@ public class Program
             var expectedOutput = "1";
             var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AssignStaticStructField_ViaUsingStatic0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AssignStaticStructField_ViaUsingStatic1
+                """);
         }
 
         [Fact, WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")]
@@ -6557,6 +7766,19 @@ public class C
             var expectedOutput = "1";
             var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    ILVerify: AssignInstanceStructField0
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Run()", """
+                Baseline IL: AssignInstanceStructField1
+                """);
         }
     }
 }
