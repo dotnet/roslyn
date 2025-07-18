@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [return: NotNullIfNotNull(nameof(method))]
-        private static MethodSymbol? VisitMethodSymbolWithExtensionRewrite(BoundTreeRewriter rewriter, MethodSymbol? method)
+        internal static MethodSymbol? VisitMethodSymbolWithExtensionRewrite(BoundTreeRewriter rewriter, MethodSymbol? method)
         {
             if (method?.GetIsNewExtensionMember() == true &&
                 method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is MethodSymbol implementationMethod)
@@ -195,7 +195,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
         {
             MethodSymbol method = node.Method;
-            Debug.Assert(method.IsDefinition); // Tracked by https://github.com/dotnet/roslyn/issues/78962 : From the code coverage and other instrumentations perspective, should we remap the index to the implementation symbol? 
+            Debug.Assert(method.IsDefinition);
+            // TODO2 Is it possible to have a MethodDef to extension method, from outside the method?
+
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(method, type);
         }

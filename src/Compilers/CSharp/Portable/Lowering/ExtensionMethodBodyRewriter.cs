@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class ExtensionMethodBodyRewriter : BoundTreeToDifferentEnclosingContextRewriter
     {
-        private readonly SourceExtensionImplementationMethodSymbol _implementationMethod;
-
         /// <summary>
         /// Maps parameters and local functions from original enclosing context to corresponding rewritten symbols for rewritten context.
         /// </summary>
@@ -37,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(implementationMethod is not null);
             Debug.Assert(sourceMethod == (object)implementationMethod.UnderlyingMethod);
 
-            _implementationMethod = implementationMethod;
             _symbolMap = ImmutableDictionary<Symbol, Symbol>.Empty.WithComparers(ReferenceEqualityComparer.Instance, ReferenceEqualityComparer.Instance);
 
             bool haveExtraParameter = sourceMethod.ParameterCount != implementationMethod.ParameterCount;
@@ -58,13 +55,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(symbol.Parameters.Length == rewrittenParameters.Length);
 
-            if (!rewrittenParameters.IsEmpty)
+            if (symbol.MethodKind is MethodKind.LambdaMethod || !rewrittenParameters.IsEmpty)
             {
                 var builder = _symbolMap.ToBuilder();
+                if (symbol.MethodKind is MethodKind.LambdaMethod)
+                {
+                    // BoundMethodDefIndex in instrumentation will refer to the lambda method symbol, so we need to map it.
+                    builder.Add(symbol, rewritten);
+                }
+
                 foreach (var parameter in symbol.Parameters)
                 {
-                    builder.Add(parameter, rewrittenParameters[parameter.Ordinal]);
+                    builder.Add(parameter, rewrittenParameters[parameter.Ordinal]); // TODO2
                 }
+
                 _symbolMap = builder.ToImmutable();
             }
 
@@ -150,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (symbol?.MethodKind)
             {
                 case MethodKind.LambdaMethod:
-                    throw ExceptionUtilities.Unreachable();
+                    return (MethodSymbol)_symbolMap[symbol];
 
                 case MethodKind.LocalFunction:
                     if (symbol.IsDefinition)
@@ -207,6 +211,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override BoundBinaryOperator.UncommonData? VisitBinaryOperatorData(BoundBinaryOperator node)
         {
             return ExtensionMethodReferenceRewriter.VisitBinaryOperatorData(this, node);
+        }
+
+        public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
+        {
+            MethodSymbol method = node.Method;
+            Debug.Assert(method.IsDefinition);
+
+            method = ExtensionMethodReferenceRewriter.VisitMethodSymbolWithExtensionRewrite(this, method);
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(method, type);
         }
     }
 }

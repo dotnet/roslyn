@@ -302,13 +302,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var prologueBuilder = ArrayBuilder<BoundStatement>.GetInstance(_factory.CurrentFunction.ParameterCount);
 
-            foreach (var parameter in _factory.CurrentFunction.Parameters)
+            foreach (var parameter in _factory.CurrentFunction.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: true))
             {
                 if (parameter.RefKind == RefKind.Out || parameter.IsDiscard)
                 {
                     continue;
                 }
 
+                // TODO2
                 var parameterLogger = GetLocalOrParameterStoreLogger(parameter.Type, parameter, refAssignmentSourceIsLocal: null, _factory.Syntax);
                 if (parameterLogger != null)
                 {
@@ -371,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (original.Right is BoundParameter rightParameter)
                 {
                     refAssignmentSourceIsLocal = false;
-                    refAssignmentSourceIndex = _factory.ParameterId(rightParameter.ParameterSymbol);
+                    refAssignmentSourceIndex = _factory.ParameterId(rightParameter.ParameterSymbol); // TODO2
                 }
                 else
                 {
@@ -422,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 symbol = parameterSymbol;
                 type = parameterSymbol.Type;
-                indexExpression = _factory.ParameterId(parameterSymbol);
+                indexExpression = _factory.ParameterId(parameterSymbol); // TODO2
                 return true;
             }
 
@@ -541,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundExpression InstrumentCall(BoundCall original, BoundExpression rewritten)
-            => InstrumentCall(base.InstrumentCall(original, rewritten), original.Arguments, original.ArgumentRefKindsOpt);
+            => InstrumentCall(base.InstrumentCall(original, rewritten), original.Arguments, original.ArgumentRefKindsOpt); // TODO2 adjust arguments?
 
         public override BoundExpression InstrumentObjectCreationExpression(BoundObjectCreationExpression original, BoundExpression rewritten)
             => InstrumentCall(base.InstrumentObjectCreationExpression(original, rewritten), original.Arguments, original.ArgumentRefKindsOpt);
@@ -551,6 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression InstrumentCall(BoundExpression invocation, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKinds)
         {
+            // TODO2
             Debug.Assert(refKinds.IsDefault || arguments.Length == refKinds.Length);
             Debug.Assert(invocation.Type is not null);
 

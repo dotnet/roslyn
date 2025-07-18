@@ -75,21 +75,29 @@ namespace Microsoft.CodeAnalysis.Runtime
             => Entry(methodId, lambdaId, stateMachineId);
 
         public void LogReturn()
-            => WriteLine($"{M.Name}: Returned");
+            => WriteLine($"{MethodDisplay(M)}: Returned");
 
         public static ulong GetNewStateMachineInstanceId()
             => unchecked((ulong)Interlocked.Increment(ref s_stateMachineId));
+
+        private static string MethodDisplay(MethodBase method)
+        {
+            bool includeContainingType = INCLUDE_CONTAINING_TYPE;
+            return includeContainingType
+                ? method.DeclaringType.FullName + "." + method.Name
+                : method.Name;
+        }
 
         private static LocalStoreTracker Entry(int methodId, int lambdaId, ulong stateMachineId)
         {
             var module = typeof(LocalStoreTracker).Assembly.Modules.Single();
             var method = module.ResolveMethod(methodId + 0x06000000);
-            var message = $"{method.Name}: Entered";
+            var message = $"{MethodDisplay(method)}: Entered";
 
             if (lambdaId > 0)
             {
                 var lambda = module.ResolveMethod(lambdaId + 0x06000000);
-                message += $" lambda '{lambda.Name}'";
+                message += $" lambda '{MethodDisplay(lambda)}'";
                 method = lambda;
             }
 
@@ -103,10 +111,10 @@ namespace Microsoft.CodeAnalysis.Runtime
         }
 
         private void WL(object value, int index)
-            => WriteLine($"{M.Name}: {L(index)} = {ConvertToString(value)}");
+            => WriteLine($"{MethodDisplay(M)}: {L(index)} = {ConvertToString(value)}");
 
         private void WP(object value, int index)
-            => WriteLine($"{M.Name}: {P(index)} = {ConvertToString(value)}");
+            => WriteLine($"{MethodDisplay(M)}: {P(index)} = {ConvertToString(value)}");
 
         private string L(int index)
             => (index >= 0x10000) ? $"L'{UnmangleFieldName(M.Module.ResolveField(index - 0x10000 + 0x04000000).Name)}'" : $"L{index}";
@@ -159,8 +167,11 @@ namespace Microsoft.CodeAnalysis.Runtime
     }
 }
 """;
-        private static string WithHelpers(string source)
-            => source + s_helpers;
+        /// <param name="displayContainingType">Set to true to include the containing type when displaying a method being entered.</param>
+        private static string WithHelpers(string source, bool displayContainingType = false)
+        {
+            return source + s_helpers.Replace("INCLUDE_CONTAINING_TYPE", displayContainingType ? "true" : "false");
+        }
 
         private const TargetFramework s_targetFramework = TargetFramework.Net70;
 
@@ -455,10 +466,10 @@ class C
   IL_0013:  dup
   IL_0014:  stloc.1
   IL_0015:  ldc.i4.1
-  IL_0016:  call       0x06000018
+  IL_0016:  call       0x06000019
   IL_001b:  nop
   IL_001c:  nop
-  IL_001d:  call       0x06000030
+  IL_001d:  call       0x06000031
   IL_0022:  nop
   IL_0023:  leave.s    IL_002e
   IL_0025:  ldloca.s   V_0
@@ -471,7 +482,7 @@ class C
   // Code size       45 (0x2d)
   .maxstack  3
   IL_0000:  ldc.i4     0x3
-  IL_0005:  ldc.i4     0x30
+  IL_0005:  ldc.i4     0x31
   IL_000a:  call       0x06000008
   IL_000f:  stloc.0
   IL_0010:  nop
@@ -480,7 +491,7 @@ class C
   IL_0018:  dup
   IL_0019:  stloc.1
   IL_001a:  ldc.i4.1
-  IL_001b:  call       0x06000018
+  IL_001b:  call       0x06000019
   IL_0020:  nop
   IL_0021:  leave.s    IL_002c
   IL_0023:  ldloca.s   V_0
@@ -6627,6 +6638,709 @@ static int F(Func<int, int, int> f) => f(1, 2);
 <<Main>$>g__F|0_2: Returned
 <Main>$: Returned
 ");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_01()
+        {
+            // non-static extension method
+            var source = WithHelpers("""
+42.M(43);
+
+static class E
+{
+    extension(int i1)
+    {
+        public void M(int i2) { }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+E.M: Entered
+E.M: P'i1'[0] = 42
+E.M: P'i1'[0] = 43
+E.M: Returned
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_02()
+        {
+            // classic extension
+            var source = WithHelpers("""
+42.M(43);
+
+static class E
+{
+    public static void M(this int i1, int i2) { }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+E.M: Entered
+E.M: P'i1'[0] = 42
+E.M: P'i2'[1] = 43
+E.M: Returned
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_04()
+        {
+            // static extension method
+            var source = WithHelpers("""
+int.M(42);
+
+static class E
+{
+    extension(int)
+    {
+        public static void M(int i) { }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+E.M: Entered
+E.M: P'i'[0] = 42
+E.M: Returned
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_05()
+        {
+            // non-static extension property
+            var source = WithHelpers("""
+_ = 42.P;
+
+int i = 43;
+i.P = 44;
+
+static class E
+{
+    extension(int i1)
+    {
+        public int P { get => 0; set { } }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+E.get_P: Entered
+E.get_P: P'i1'[0] = 42
+E.get_P: Returned
+Program.<Main>$: L1 = 43
+E.set_P: Entered
+E.set_P: P'i1'[0] = 43
+E.set_P: P'i1'[0] = 44
+E.set_P: Returned
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_06()
+        {
+            // static extension property
+            var source = WithHelpers("""
+_ = int.P;
+int.P = 42;
+
+static class E
+{
+    extension(int)
+    {
+        public static int P { get => 0; set { } }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+E.get_P: Entered
+E.get_P: Returned
+E.set_P: Entered
+E.set_P: P'value'[0] = 42
+E.set_P: Returned
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_07()
+        {
+            // local function in extension
+            var source = WithHelpers("""
+42.M();
+
+static class E
+{
+    extension(int i1)
+    {
+        public void M()
+        {
+            local(i1);
+
+            void local(int i2) { }
+        }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+E.M: Entered
+E.M: P'i1'[0] = 42
+E.M: Entered lambda 'E.<M>g__local|1_0'
+E.<M>g__local|1_0: P'i2'[0] = 42
+E.<M>g__local|1_0: Returned
+E.M: Returned
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_08()
+        {
+            // lambda in extension
+            var source = WithHelpers("""
+42.M();
+
+static class E
+{
+    extension(int i1)
+    {
+        public void M()
+        {
+            var x = (int i2) => { };
+            x(i1);
+        }
+    }
+}
+""", displayContainingType: true);
+
+            var verifier = CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+E.M: Entered
+E.M: P'i1'[0] = 42
+E.M: L1 = System.Action`1[System.Int32]
+E.M: Entered lambda 'E+<>c.<M>b__1_0'
+E+<>c.<M>b__1_0: P'i2'[0] = 42
+E+<>c.<M>b__1_0: Returned
+E.M: Returned
+Program.<Main>$: Returned
+""");
+
+            verifier.VerifyMethodBody("E.<>c.<M>b__1_0", """
+{
+  // Code size       38 (0x26)
+  .maxstack  3
+  .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0)
+  // sequence point: <hidden>
+  IL_0000:  ldtoken    "void E.M(int)"
+  IL_0005:  ldtoken    "void E.<>c.<M>b__1_0(int)"
+  IL_000a:  call       "Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLambdaEntry(int, int)"
+  IL_000f:  stloc.0
+  .try
+  {
+    // sequence point: {
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  ldarg.1
+    IL_0013:  ldc.i4.0
+    IL_0014:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)"
+    IL_0019:  nop
+    // sequence point: }
+    IL_001a:  leave.s    IL_0025
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_001c:  ldloca.s   V_0
+    IL_001e:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()"
+    IL_0023:  nop
+    IL_0024:  endfinally
+  }
+  // sequence point: }
+  IL_0025:  ret
+}
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_09()
+        {
+            // nested lambda in extension
+            var source = WithHelpers("""
+42.M();
+
+static class E
+{
+    extension(int i1)
+    {
+        public void M()
+        {
+            var f1 = (int i2) =>
+            {
+                var f2 = (int i3) => { };
+                f2(i2);
+            };
+
+            f1(i1);
+        }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+E.M: Entered
+E.M: P'i1'[0] = 42
+E.M: L1 = System.Action`1[System.Int32]
+E.M: Entered lambda 'E+<>c.<M>b__1_0'
+E+<>c.<M>b__1_0: P'i2'[0] = 42
+E+<>c.<M>b__1_0: L1 = System.Action`1[System.Int32]
+E.M: Entered lambda 'E+<>c.<M>b__1_1'
+E+<>c.<M>b__1_1: P'i3'[0] = 42
+E+<>c.<M>b__1_1: Returned
+E+<>c.<M>b__1_0: Returned
+E.M: Returned
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_10()
+        {
+            // local function parameter uses type parameter from extension block
+            var source = WithHelpers("""
+42.M();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public void M()
+        {
+            local(t);
+
+            void local(T t) { }
+        }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+E.M: Entered
+E.M: P't'[0] = 42
+E.M: Entered lambda 'E.<M>g__local|1_0'
+E.<M>g__local|1_0: P't'[0] = 42
+E.<M>g__local|1_0: Returned
+E.M: Returned
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_11()
+        {
+            // extension method local uses type parameter from extension block
+            var source = WithHelpers("""
+42.M();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public void M()
+        {
+            T t2 = t;
+            t2.ToString();
+        }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+E.M: Entered
+E.M: P't'[0] = 42
+E.M: L1 = 42
+E.M: Returned
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_12()
+        {
+            // anonymous function in extension
+            var source = WithHelpers("""
+42.M();
+
+static class E
+{
+    extension(int i1)
+    {
+        public void M()
+        {
+            System.Action<int> x = delegate { };
+            x(i1);
+        }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+E.M: Entered
+E.M: P'i1'[0] = 42
+E.M: L1 = System.Action`1[System.Int32]
+E.M: Entered lambda 'E+<>c.<M>b__1_0'
+E+<>c.<M>b__1_0: P'<p0>'[0] = 42
+E+<>c.<M>b__1_0: Returned
+E.M: Returned
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_13()
+        {
+            // iterator in extension
+            var source = WithHelpers("""
+foreach (var i in 42.M())
+{
+}
+
+static class E
+{
+    extension(int i)
+    {
+        public System.Collections.Generic.IEnumerable<int> M()
+        {
+            yield return i;
+        }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+E.M: Entered state machine #1
+E.M: P'i'[0] = 42
+E.M: Returned
+Program.<Main>$: L2 = 42
+E.M: Entered state machine #1
+E.M: Returned
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_14()
+        {
+            // iterator local function in extension
+            var source = WithHelpers("""
+42.M();
+
+static class E
+{
+    extension(int i)
+    {
+        public void M()
+        {
+            foreach (var j in local())
+            {
+                System.Console.WriteLine(j);
+            }
+            return;
+
+            System.Collections.Generic.IEnumerable<int> local()
+            {
+                yield return i;
+            }
+        }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+E.M: Entered
+E.M: P'i'[0] = 42
+E.M: Entered lambda 'E+<>c__DisplayClass1_0.<M>g__local|0' state machine #1
+E+<>c__DisplayClass1_0.<M>g__local|0: Returned
+E.M: L3 = 42
+42
+E.M: Entered lambda 'E+<>c__DisplayClass1_0.<M>g__local|0' state machine #1
+E+<>c__DisplayClass1_0.<M>g__local|0: Returned
+E.M: Returned
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_15()
+        {
+            // async lambda in extension
+            var source = WithHelpers("""
+await 42.M();
+
+static class E
+{
+    extension(int i)
+    {
+        public async System.Threading.Tasks.Task M()
+        {
+            var f = async () =>
+            {
+                await System.Threading.Tasks.Task.FromResult(0);
+            };
+
+            await f();
+        }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered state machine #1
+Program.<Main>$: P'args'[0] = System.String[]
+E.M: Entered state machine #2
+E.M: P'i'[0] = 42
+E.M: L'f' = System.Func`1[System.Threading.Tasks.Task]
+E.M: Entered lambda 'E+<>c.<M>b__1_0' state machine #3
+E+<>c.<M>b__1_0: Returned
+E.M: Returned
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_18()
+        {
+            // assignment to extension parameter
+            var source = WithHelpers("""
+int i = 42;
+i.M();
+
+static class E
+{
+    extension(ref int i)
+    {
+        public void M()
+        {
+            System.Console.WriteLine("ran");
+            i = 43;
+        }
+    }
+}
+""", displayContainingType: true);
+
+            // TODO2 why two assignments?
+            var verifier = CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+Program.<Main>$: L1 = 42
+E.M: Entered
+E.M: P'i'[0] = 42
+ran
+E.M: P'i'[0] = 43
+E.M: Returned
+Program.<Main>$: Returned
+""");
+
+            verifier.VerifyMethodBody("E.M", """
+{
+  // Code size       61 (0x3d)
+  .maxstack  4
+  .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
+                int V_1)
+  // sequence point: <hidden>
+  IL_0000:  ldtoken    "void E.M(ref int)"
+  IL_0005:  call       "Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)"
+  IL_000a:  stloc.0
+  .try
+  {
+    // sequence point: {
+    IL_000b:  ldloca.s   V_0
+    IL_000d:  ldarg.0
+    IL_000e:  ldind.i4
+    IL_000f:  ldc.i4.0
+    IL_0010:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)"
+    IL_0015:  nop
+    // sequence point: System.Console.WriteLine("ran");
+    IL_0016:  ldstr      "ran"
+    IL_001b:  call       "void System.Console.WriteLine(string)"
+    IL_0020:  nop
+    // sequence point: i = 43;
+    IL_0021:  ldloca.s   V_0
+    IL_0023:  ldarg.0
+    IL_0024:  ldc.i4.s   43
+    IL_0026:  dup
+    IL_0027:  stloc.1
+    IL_0028:  stind.i4
+    IL_0029:  ldloc.1
+    IL_002a:  ldc.i4.0
+    IL_002b:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)"
+    IL_0030:  nop
+    // sequence point: }
+    IL_0031:  leave.s    IL_003c
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_0033:  ldloca.s   V_0
+    IL_0035:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()"
+    IL_003a:  nop
+    IL_003b:  endfinally
+  }
+  // sequence point: <hidden>
+  IL_003c:  ret
+}
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_19()
+        {
+            // assignment to parameter, non-static extension method
+            var source = WithHelpers("""
+int i = 42;
+10.M(ref i);
+
+static class E
+{
+    extension(int i1)
+    {
+        public void M(ref int i2)
+        {
+            i2 = 43;
+        }
+    }
+}
+""", displayContainingType: true);
+
+            // TODO2 the parameter index is incorrect on second assignment
+            var verifier = CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+Program.<Main>$: L1 = 42
+E.M: Entered
+E.M: P'i1'[0] = 10
+E.M: P'i1'[0] = 42
+E.M: P'i2'[1] = 43
+E.M: Returned
+Program.<Main>$: L1 = 43
+Program.<Main>$: Returned
+""");
+
+            verifier.VerifyMethodBody("E.M", """
+{
+  // Code size       60 (0x3c)
+  .maxstack  4
+  .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
+                int V_1)
+  // sequence point: <hidden>
+  IL_0000:  ldtoken    "void E.M(int, ref int)"
+  IL_0005:  call       "Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)"
+  IL_000a:  stloc.0
+  .try
+  {
+    // sequence point: {
+    IL_000b:  ldloca.s   V_0
+    IL_000d:  ldarg.0
+    IL_000e:  ldc.i4.0
+    IL_000f:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)"
+    IL_0014:  nop
+    IL_0015:  ldloca.s   V_0
+    IL_0017:  ldarg.1
+    IL_0018:  ldind.i4
+    IL_0019:  ldc.i4.0
+    IL_001a:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)"
+    IL_001f:  nop
+    // sequence point: i2 = 43;
+    IL_0020:  ldloca.s   V_0
+    IL_0022:  ldarg.1
+    IL_0023:  ldc.i4.s   43
+    IL_0025:  dup
+    IL_0026:  stloc.1
+    IL_0027:  stind.i4
+    IL_0028:  ldloc.1
+    IL_0029:  ldc.i4.1
+    IL_002a:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)"
+    IL_002f:  nop
+    // sequence point: }
+    IL_0030:  leave.s    IL_003b
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_0032:  ldloca.s   V_0
+    IL_0034:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()"
+    IL_0039:  nop
+    IL_003a:  endfinally
+  }
+  // sequence point: <hidden>
+  IL_003b:  ret
+}
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_20()
+        {
+            // assignment to parameter, static extension method
+            var source = WithHelpers("""
+int i = 0;
+int.M(ref i);
+
+static class E
+{
+    extension(int)
+    {
+        public static void M(ref int i2)
+        {
+            i2 = 42;
+        }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+Program.<Main>$: L1 = 0
+E.M: Entered
+E.M: P'i2'[0] = 0
+E.M: P'i2'[0] = 42
+E.M: Returned
+Program.<Main>$: L1 = 42
+Program.<Main>$: Returned
+""");
         }
     }
 }
