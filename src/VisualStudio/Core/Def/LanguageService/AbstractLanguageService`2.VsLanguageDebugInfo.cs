@@ -221,6 +221,9 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
                 var document = breakpoint.Document;
                 var filePath = _languageService.Workspace.GetFilePath(document.Id);
+
+                // We're (unfortunately) blocking the UI thread here.  So avoid async io as we actually
+                // awant the IO to complete as quickly as possible, on this thread if necessary.
                 var text = document.GetTextSynchronously(cancellationToken);
                 var span = text.GetVsTextSpanForSpan(breakpoint.TextSpan);
                 // If we're inside an Venus code nugget, we need to map the span to the surface buffer.
