@@ -201,8 +201,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                         {
                             var breakpoints = await _breakpointService.ResolveBreakpointsAsync(
                                 solution, pszName, cancellationToken).ConfigureAwait(true);
-                            var debugNames = await breakpoints.SelectAsArrayAsync(
-                                bp => CreateDebugNameAsync(bp, cancellationToken)).ConfigureAwait(true);
+                            var debugNames = breakpoints.SelectAsArray(bp => CreateDebugName(bp, cancellationToken));
 
                             return new VsEnumDebugName(debugNames);
                         }
@@ -214,7 +213,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
             return ppNames != null ? VSConstants.S_OK : VSConstants.E_NOTIMPL;
 
-            async ValueTask<IVsDebugName> CreateDebugNameAsync(
+            IVsDebugName CreateDebugName(
                 BreakpointResolutionResult breakpoint, CancellationToken cancellationToken)
             {
                 // We're in a blocking jtf run.  So CA(true) all calls to ensure we're coming bac
@@ -226,8 +225,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                 var span = text.GetVsTextSpanForSpan(breakpoint.TextSpan);
                 // If we're inside an Venus code nugget, we need to map the span to the surface buffer.
                 // Otherwise, we'll just use the original span.
-                var mappedSpan = await span.MapSpanFromSecondaryBufferToPrimaryBufferAsync(
-                    this.ThreadingContext, document.Id, cancellationToken).ConfigureAwait(true);
+                var mappedSpan = span.MapSpanFromSecondaryBufferToPrimaryBuffer(this.ThreadingContext, document.Id);
                 if (mappedSpan != null)
                     span = mappedSpan.Value;
 
