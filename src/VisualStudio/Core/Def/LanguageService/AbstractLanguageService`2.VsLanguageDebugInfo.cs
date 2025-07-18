@@ -222,7 +222,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
                 var document = breakpoint.Document;
                 var filePath = _languageService.Workspace.GetFilePath(document.Id);
-                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(true);
+                var text = document.GetTextSynchronously(cancellationToken);
                 var span = text.GetVsTextSpanForSpan(breakpoint.TextSpan);
                 // If we're inside an Venus code nugget, we need to map the span to the surface buffer.
                 // Otherwise, we'll just use the original span.
