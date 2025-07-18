@@ -78,6 +78,10 @@ F(5)
 5
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -128,6 +132,10 @@ F(4)
 4
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -178,6 +186,10 @@ F(13)
 13
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -230,6 +242,10 @@ F(c)
  c
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -264,6 +280,10 @@ class Test
 42
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -314,6 +334,10 @@ class Test
 -1
 ";
             CompileAndVerify(source, expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -370,6 +394,10 @@ class Test
             // consequence of preventing await expressions from being assigned to hoisted locals.
             //
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -425,6 +453,10 @@ class Test
 555
 ";
             CompileAndVerify(source, expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -480,6 +512,10 @@ class Test
 555
 ";
             CompileAndVerify(source, expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -525,6 +561,10 @@ class Test
 6
 ";
             CompileAndVerify(source, expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
