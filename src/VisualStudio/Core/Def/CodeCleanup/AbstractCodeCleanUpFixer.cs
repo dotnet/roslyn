@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.CodeCleanup;
 using Microsoft.VisualStudio.Language.CodeCleanUp;
