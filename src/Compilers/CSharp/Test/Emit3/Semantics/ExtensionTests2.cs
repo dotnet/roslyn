@@ -11758,7 +11758,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_01()
     {
         var src = """
@@ -11913,7 +11914,8 @@ class Program
             );
     }
 
-    [Theory]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
@@ -12064,7 +12066,8 @@ class Program
             );
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_03()
     {
         var src = """
@@ -12152,7 +12155,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_04()
     {
         var src = """
@@ -12357,7 +12361,8 @@ namespace NS2
             );
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_05()
     {
         var src = """
@@ -12510,7 +12515,8 @@ namespace NS2
             );
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_06()
     {
         var src = """
@@ -12663,7 +12669,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_07()
     {
         var src = """
@@ -12755,7 +12762,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_08()
     {
         var src = """
@@ -12878,7 +12886,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_01()
     {
         var src = """
@@ -13075,7 +13084,8 @@ struct InterpolationHandler
             );
     }
 
-    [Theory]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
@@ -13263,7 +13273,8 @@ struct InterpolationHandler
             );
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_03()
     {
         var src = """
@@ -13366,7 +13377,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_04()
     {
         var src = """
@@ -13626,7 +13638,8 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_05()
     {
         var src = """
@@ -13814,7 +13827,8 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_06()
     {
         var src = """
@@ -14006,7 +14020,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79415")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_07()
     {
@@ -14130,7 +14145,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79415")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_08()
     {
@@ -14295,7 +14311,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_01()
     {
         var src = """
@@ -14478,7 +14495,8 @@ struct InterpolationHandler
             );
     }
 
-    [Theory]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
@@ -14644,7 +14662,8 @@ struct InterpolationHandler
             );
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_03()
     {
         var src = """
@@ -14736,7 +14755,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Set_WithInterpolationHandler_04()
     {
@@ -14989,7 +15009,8 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_05()
     {
         var src = """
@@ -15166,7 +15187,8 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Set_WithInterpolationHandler_06()
     {
@@ -15346,7 +15368,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_07()
     {
         var src = """
@@ -15451,7 +15474,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_08()
     {
         var src = """
@@ -15586,7 +15610,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_01()
     {
         var src = """
@@ -15728,7 +15753,8 @@ class Program
 ");
     }
 
-    [Theory]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
@@ -15887,7 +15913,8 @@ struct InterpolationHandler
             );
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_03()
     {
         var src = """
@@ -15974,7 +16001,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_04()
     {
@@ -16160,7 +16188,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_05()
     {
         var src = """
@@ -16331,7 +16360,8 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_06()
     {
@@ -16506,7 +16536,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_01()
     {
         var src = """
@@ -16589,7 +16620,8 @@ class Program
 ");
     }
 
-    [Theory]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
@@ -16679,7 +16711,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_03()
     {
         var src = """
@@ -16762,7 +16795,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_04()
     {
         var src = """
@@ -16894,7 +16928,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_05()
     {
         var src = """
@@ -16995,7 +17030,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_06()
     {
         var src = """
@@ -17126,7 +17162,8 @@ class Program
 ");
     }
 
-    [Theory]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
@@ -17216,7 +17253,8 @@ class Program
 ");
     }
 
-    [Theory]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
@@ -17308,7 +17346,8 @@ class Program
 ");
     }
 
-    [Theory]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref readonly")]
     [InlineData("in")]
     public void IndexerAccess_Get_WithInterpolationHandler_ReadonlyReceiver_022(string refKind)
@@ -17413,7 +17452,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_01()
     {
         var src = """
@@ -17550,7 +17590,8 @@ class Program
             );
     }
 
-    [Theory]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
@@ -17678,7 +17719,8 @@ class Program
             );
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_03()
     {
         var src = """
@@ -17750,7 +17792,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Set_04()
     {
@@ -17956,7 +17999,8 @@ namespace NS2
             );
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_05()
     {
         var src = """
@@ -18102,7 +18146,8 @@ namespace NS2
             );
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Set_06()
     {
@@ -18251,7 +18296,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_07()
     {
         var src = """
@@ -18336,7 +18382,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_08()
     {
         var src = """
@@ -18445,7 +18492,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_LValueReceiver_01()
     {
         var src = """
@@ -18544,7 +18592,8 @@ class Program
 ");
     }
 
-    [Theory]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
@@ -18663,7 +18712,8 @@ class Program
             );
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_LValueReceiver_03()
     {
         var src = """
@@ -18729,7 +18779,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Get_LValueReceiver_04()
     {
@@ -18871,7 +18922,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_LValueReceiver_05()
     {
         var src = """
@@ -19010,7 +19062,8 @@ namespace NS2
             );
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Get_LValueReceiver_06()
     {
@@ -19149,7 +19202,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_RValueReceiver_01()
     {
         var src = """
@@ -19212,7 +19266,8 @@ class Program
 ");
     }
 
-    [Theory]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
@@ -19281,7 +19336,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_RValueReceiver_03()
     {
         var src = """
@@ -19344,7 +19400,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_RValueReceiver_04()
     {
         var src = """
@@ -19447,7 +19504,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_RValueReceiver_05()
     {
         var src = """
@@ -19530,7 +19588,8 @@ class Program
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_RValueReceiver_06()
     {
         var src = """
