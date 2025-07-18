@@ -181,7 +181,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             // call is synchronous.  In the future it would be nice to make it async.
             ppNames = this.ThreadingContext.JoinableTaskFactory.Run(async () =>
             {
-                // We're in a blocking jtf run.  So CA(true) all calls to ensure we're coming bac
+                // We're in a blocking JTF run.  So ConfigureAwait(true) all calls to ensure we're coming back
                 // and using the blocked thread whenever possible.
 
                 using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_ResolveName, CancellationToken.None))
