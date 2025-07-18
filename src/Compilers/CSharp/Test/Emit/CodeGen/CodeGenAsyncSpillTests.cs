@@ -89,7 +89,37 @@ F(5)
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G(bool, bool)", """
-                Baseline IL: AsyncWithTernary1
+                {
+                  // Code size       54 (0x36)
+                  .maxstack  2
+                  .locals init (int V_0)
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  ldarg.0
+                  IL_0002:  brfalse.s  IL_0008
+                  IL_0004:  ldc.i4.1
+                  IL_0005:  stloc.0
+                  IL_0006:  br.s       IL_0014
+                  IL_0008:  ldc.i4.2
+                  IL_0009:  call       "System.Threading.Tasks.Task<int> Test.F<int>(int)"
+                  IL_000e:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldloc.0
+                  IL_0015:  add
+                  IL_0016:  ldarg.1
+                  IL_0017:  brfalse.s  IL_0027
+                  IL_0019:  ldc.i4.4
+                  IL_001a:  call       "System.Threading.Tasks.Task<int> Test.F<int>(int)"
+                  IL_001f:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0024:  stloc.0
+                  IL_0025:  br.s       IL_0029
+                  IL_0027:  ldc.i4.8
+                  IL_0028:  stloc.0
+                  IL_0029:  ldloc.0
+                  IL_002a:  add
+                  IL_002b:  call       "System.Threading.Tasks.Task<int> Test.F<int>(int)"
+                  IL_0030:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0035:  ret
+                }
                 """);
         }
 
@@ -152,7 +182,83 @@ F(4)
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G(bool, bool)", """
-                Baseline IL: AsyncWithAnd1
+                {
+                  // Code size      132 (0x84)
+                  .maxstack  3
+                  .locals init (bool V_0, //x1
+                                bool V_1, //x2
+                                bool V_2, //x3
+                                int V_3, //c
+                                bool V_4)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.s    V_4
+                  IL_0003:  ldloc.s    V_4
+                  IL_0005:  brfalse.s  IL_0014
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  call       "System.Threading.Tasks.Task<bool> Test.F<bool>(bool)"
+                  IL_000d:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0012:  stloc.s    V_4
+                  IL_0014:  ldloc.s    V_4
+                  IL_0016:  stloc.0
+                  IL_0017:  ldarg.0
+                  IL_0018:  stloc.s    V_4
+                  IL_001a:  ldloc.s    V_4
+                  IL_001c:  brfalse.s  IL_002b
+                  IL_001e:  ldc.i4.0
+                  IL_001f:  call       "System.Threading.Tasks.Task<bool> Test.F<bool>(bool)"
+                  IL_0024:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0029:  stloc.s    V_4
+                  IL_002b:  ldloc.s    V_4
+                  IL_002d:  stloc.1
+                  IL_002e:  ldarg.1
+                  IL_002f:  stloc.s    V_4
+                  IL_0031:  ldloc.s    V_4
+                  IL_0033:  brfalse.s  IL_0042
+                  IL_0035:  ldc.i4.1
+                  IL_0036:  call       "System.Threading.Tasks.Task<bool> Test.F<bool>(bool)"
+                  IL_003b:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0040:  stloc.s    V_4
+                  IL_0042:  ldloc.s    V_4
+                  IL_0044:  stloc.2
+                  IL_0045:  ldarg.1
+                  IL_0046:  stloc.s    V_4
+                  IL_0048:  ldloc.s    V_4
+                  IL_004a:  brfalse.s  IL_0059
+                  IL_004c:  ldc.i4.0
+                  IL_004d:  call       "System.Threading.Tasks.Task<bool> Test.F<bool>(bool)"
+                  IL_0052:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0057:  stloc.s    V_4
+                  IL_0059:  ldloc.s    V_4
+                  IL_005b:  ldc.i4.0
+                  IL_005c:  stloc.3
+                  IL_005d:  ldloc.0
+                  IL_005e:  brfalse.s  IL_0064
+                  IL_0060:  ldloc.3
+                  IL_0061:  ldc.i4.1
+                  IL_0062:  add
+                  IL_0063:  stloc.3
+                  IL_0064:  ldloc.1
+                  IL_0065:  brfalse.s  IL_006b
+                  IL_0067:  ldloc.3
+                  IL_0068:  ldc.i4.2
+                  IL_0069:  add
+                  IL_006a:  stloc.3
+                  IL_006b:  ldloc.2
+                  IL_006c:  brfalse.s  IL_0072
+                  IL_006e:  ldloc.3
+                  IL_006f:  ldc.i4.4
+                  IL_0070:  add
+                  IL_0071:  stloc.3
+                  IL_0072:  brfalse.s  IL_0078
+                  IL_0074:  ldloc.3
+                  IL_0075:  ldc.i4.8
+                  IL_0076:  add
+                  IL_0077:  stloc.3
+                  IL_0078:  ldloc.3
+                  IL_0079:  call       "System.Threading.Tasks.Task<int> Test.F<int>(int)"
+                  IL_007e:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0083:  ret
+                }
                 """);
         }
 
@@ -280,7 +386,34 @@ F(c)
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G(string, string)", """
-                Baseline IL: AsyncWithCoalesce1
+                {
+                  // Code size       56 (0x38)
+                  .maxstack  3
+                  .locals init (string V_0, //result
+                                string V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Threading.Tasks.Task<string> Test.F(string)"
+                  IL_0006:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
+                  IL_000b:  stloc.1
+                  IL_000c:  ldloc.1
+                  IL_000d:  brtrue.s   IL_001b
+                  IL_000f:  ldarg.1
+                  IL_0010:  call       "System.Threading.Tasks.Task<string> Test.F(string)"
+                  IL_0015:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
+                  IL_001a:  stloc.1
+                  IL_001b:  ldloc.1
+                  IL_001c:  stloc.0
+                  IL_001d:  ldstr      " "
+                  IL_0022:  ldloc.0
+                  IL_0023:  dup
+                  IL_0024:  brtrue.s   IL_002c
+                  IL_0026:  pop
+                  IL_0027:  ldstr      "null"
+                  IL_002c:  call       "string string.Concat(string, string)"
+                  IL_0031:  call       "void System.Console.WriteLine(string)"
+                  IL_0036:  ldloc.0
+                  IL_0037:  ret
+                }
                 """);
         }
 
@@ -329,7 +462,15 @@ class Test
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G()", """
-                Baseline IL: AwaitInExpr1
+                {
+                  // Code size       14 (0xe)
+                  .maxstack  2
+                  IL_0000:  call       "System.Threading.Tasks.Task<int> Test.F()"
+                  IL_0005:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000a:  ldc.i4.s   21
+                  IL_000c:  add
+                  IL_000d:  ret
+                }
                 """);
         }
 
@@ -469,7 +610,27 @@ class Test
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G(int)", """
-                Baseline IL: AsyncWithParamsAndLocals_DoubleAwait_Spilling1
+                {
+                  // Code size       32 (0x20)
+                  .maxstack  2
+                  .locals init (int V_0) //c
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldarg.0
+                  IL_0003:  call       "System.Threading.Tasks.Task<int> Test.F(int)"
+                  IL_0008:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000d:  ldloc.0
+                  IL_000e:  add
+                  IL_000f:  stloc.0
+                  IL_0010:  ldarg.0
+                  IL_0011:  call       "System.Threading.Tasks.Task<int> Test.F(int)"
+                  IL_0016:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_001b:  ldloc.0
+                  IL_001c:  add
+                  IL_001d:  stloc.0
+                  IL_001e:  ldloc.0
+                  IL_001f:  ret
+                }
                 """);
         }
 
@@ -539,7 +700,33 @@ class Test
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G()", """
-                Baseline IL: SpillCall1
+                {
+                  // Code size       69 (0x45)
+                  .maxstack  5
+                  .locals init (int V_0,
+                                int V_1,
+                                int V_2)
+                  IL_0000:  ldc.i4.s   111
+                  IL_0002:  call       "int Test.Get(int)"
+                  IL_0007:  ldc.i4     0xde
+                  IL_000c:  call       "int Test.Get(int)"
+                  IL_0011:  stloc.0
+                  IL_0012:  ldc.i4     0x14d
+                  IL_0017:  call       "int Test.Get(int)"
+                  IL_001c:  stloc.1
+                  IL_001d:  ldc.i4     0x1bc
+                  IL_0022:  call       "int Test.Get(int)"
+                  IL_0027:  call       "System.Threading.Tasks.Task<int> Test.F(int)"
+                  IL_002c:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0031:  stloc.2
+                  IL_0032:  ldloc.0
+                  IL_0033:  ldloc.1
+                  IL_0034:  ldloc.2
+                  IL_0035:  ldc.i4     0x22b
+                  IL_003a:  call       "int Test.Get(int)"
+                  IL_003f:  call       "void Test.Printer(int, int, int, int, int)"
+                  IL_0044:  ret
+                }
                 """);
         }
 
@@ -609,7 +796,35 @@ class Test
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G()", """
-                Baseline IL: SpillCall21
+                {
+                  // Code size       79 (0x4f)
+                  .maxstack  5
+                  .locals init (int V_0,
+                                int V_1,
+                                int V_2)
+                  IL_0000:  ldc.i4.s   111
+                  IL_0002:  call       "int Test.Get(int)"
+                  IL_0007:  ldc.i4     0xde
+                  IL_000c:  call       "int Test.Get(int)"
+                  IL_0011:  call       "System.Threading.Tasks.Task<int> Test.F(int)"
+                  IL_0016:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_001b:  stloc.0
+                  IL_001c:  ldc.i4     0x14d
+                  IL_0021:  call       "int Test.Get(int)"
+                  IL_0026:  stloc.1
+                  IL_0027:  ldc.i4     0x1bc
+                  IL_002c:  call       "int Test.Get(int)"
+                  IL_0031:  call       "System.Threading.Tasks.Task<int> Test.F(int)"
+                  IL_0036:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_003b:  stloc.2
+                  IL_003c:  ldloc.0
+                  IL_003d:  ldloc.1
+                  IL_003e:  ldloc.2
+                  IL_003f:  ldc.i4     0x22b
+                  IL_0044:  call       "int Test.Get(int)"
+                  IL_0049:  call       "void Test.Printer(int, int, int, int, int)"
+                  IL_004e:  ret
+                }
                 """);
         }
 
@@ -669,7 +884,39 @@ class Test
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G()", """
-                Baseline IL: SpillCall31
+                {
+                  // Code size       78 (0x4e)
+                  .maxstack  6
+                  .locals init (int V_0,
+                                int V_1,
+                                int V_2)
+                  IL_0000:  ldc.i4.2
+                  IL_0001:  call       "System.Threading.Tasks.Task<int> Test.F(int)"
+                  IL_0006:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000b:  stloc.0
+                  IL_000c:  ldc.i4.4
+                  IL_000d:  call       "System.Threading.Tasks.Task<int> Test.F(int)"
+                  IL_0012:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0017:  call       "System.Threading.Tasks.Task<int> Test.F(int)"
+                  IL_001c:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0021:  call       "System.Threading.Tasks.Task<int> Test.F(int)"
+                  IL_0026:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_002b:  call       "System.Threading.Tasks.Task<int> Test.F(int)"
+                  IL_0030:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0035:  stloc.1
+                  IL_0036:  ldc.i4.5
+                  IL_0037:  call       "System.Threading.Tasks.Task<int> Test.F(int)"
+                  IL_003c:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0041:  stloc.2
+                  IL_0042:  ldc.i4.1
+                  IL_0043:  ldloc.0
+                  IL_0044:  ldc.i4.3
+                  IL_0045:  ldloc.1
+                  IL_0046:  ldloc.2
+                  IL_0047:  ldc.i4.6
+                  IL_0048:  call       "void Test.Printer(int, int, int, int, int, int)"
+                  IL_004d:  ret
+                }
                 """);
         }
 
@@ -725,7 +972,21 @@ class Test
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G()", """
-                Baseline IL: SpillCall41
+                {
+                  // Code size       30 (0x1e)
+                  .maxstack  2
+                  .locals init (int V_0)
+                  IL_0000:  ldc.i4.2
+                  IL_0001:  call       "System.Threading.Tasks.Task<int> Test.F(int)"
+                  IL_0006:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000b:  call       "System.Threading.Tasks.Task<int> Test.F(int)"
+                  IL_0010:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0015:  stloc.0
+                  IL_0016:  ldc.i4.1
+                  IL_0017:  ldloc.0
+                  IL_0018:  call       "void Test.Printer(int, int)"
+                  IL_001d:  ret
+                }
                 """);
         }
 
@@ -901,7 +1162,12 @@ public class Test
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G()", """
-                Baseline IL: SpillSequences11
+                {
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldnull
+                  IL_0001:  ret
+                }
                 """);
         }
 
@@ -1067,7 +1333,12 @@ public class Test
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G()", """
-                Baseline IL: SpillSequencesRelease1
+                {
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldnull
+                  IL_0001:  ret
+                }
                 """);
         }
 
@@ -1108,7 +1379,12 @@ public class Test
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G()", """
-                Baseline IL: SpillSequencesInConditionalExpression11
+                {
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldnull
+                  IL_0001:  ret
+                }
                 """);
         }
 
@@ -1186,20 +1462,61 @@ public class C
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.F(int[])", """
-                Baseline IL: SpillSequencesInNullCoalescingOperator11
-                """);
-
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            verifier = CompileAndVerify(comp, verify: Verification.Fails with
-            {
-                ILVerifyMessage = $$"""
-                    ILVerify: SpillSequencesInNullCoalescingOperator12
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
-                Baseline IL: SpillSequencesInNullCoalescingOperator13
+                {
+                  // Code size       86 (0x56)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                int V_1,
+                                object V_2,
+                                int V_3,
+                                int V_4,
+                                int V_5)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  ldelema    "int"
+                  IL_0007:  dup
+                  IL_0008:  ldind.i4
+                  IL_0009:  stloc.0
+                  IL_000a:  call       "System.Threading.Tasks.Task<int> C.G()"
+                  IL_000f:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0014:  stloc.1
+                  IL_0015:  ldloc.0
+                  IL_0016:  ldloc.1
+                  IL_0017:  add
+                  IL_0018:  dup
+                  IL_0019:  stloc.3
+                  IL_001a:  stind.i4
+                  IL_001b:  ldloc.3
+                  IL_001c:  call       "object C.O(int)"
+                  IL_0021:  stloc.2
+                  IL_0022:  ldloc.2
+                  IL_0023:  brtrue.s   IL_004b
+                  IL_0025:  ldarg.0
+                  IL_0026:  ldc.i4.1
+                  IL_0027:  ldelema    "int"
+                  IL_002c:  dup
+                  IL_002d:  ldind.i4
+                  IL_002e:  stloc.3
+                  IL_002f:  call       "System.Threading.Tasks.Task<int> C.G()"
+                  IL_0034:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0039:  stloc.s    V_4
+                  IL_003b:  ldloc.3
+                  IL_003c:  ldloc.s    V_4
+                  IL_003e:  add
+                  IL_003f:  dup
+                  IL_0040:  stloc.s    V_5
+                  IL_0042:  stind.i4
+                  IL_0043:  ldloc.s    V_5
+                  IL_0045:  box        "int"
+                  IL_004a:  stloc.2
+                  IL_004b:  ldc.i4.0
+                  IL_004c:  ldloc.2
+                  IL_004d:  ldc.i4.4
+                  IL_004e:  call       "int C.H(int, object, int)"
+                  IL_0053:  pop
+                  IL_0054:  ldc.i4.1
+                  IL_0055:  ret
+                }
                 """);
         }
 
@@ -1241,7 +1558,26 @@ True
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("AsyncConditionalBug.Program.AsyncMethod()", """
-                Baseline IL: AsyncWithShortCircuiting0011
+                {
+                  // Code size       40 (0x28)
+                  .maxstack  1
+                  .locals init (bool V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "bool AsyncConditionalBug.Program.b"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloc.0
+                  IL_0008:  brfalse.s  IL_0016
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "System.Threading.Tasks.Task<bool> System.Threading.Tasks.Task.FromResult<bool>(bool)"
+                  IL_0010:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0015:  stloc.0
+                  IL_0016:  ldloc.0
+                  IL_0017:  call       "void System.Console.WriteLine(bool)"
+                  IL_001c:  ldarg.0
+                  IL_001d:  ldfld      "bool AsyncConditionalBug.Program.b"
+                  IL_0022:  call       "void System.Console.WriteLine(bool)"
+                  IL_0027:  ret
+                }
                 """);
         }
 
@@ -1283,7 +1619,24 @@ True
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("AsyncConditionalBug.Program.AsyncMethod()", """
-                Baseline IL: AsyncWithShortCircuiting0021
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (bool V_0)
+                  IL_0000:  ldsfld     "bool AsyncConditionalBug.Program.b"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloc.0
+                  IL_0007:  brfalse.s  IL_0015
+                  IL_0009:  ldc.i4.0
+                  IL_000a:  call       "System.Threading.Tasks.Task<bool> System.Threading.Tasks.Task.FromResult<bool>(bool)"
+                  IL_000f:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0014:  stloc.0
+                  IL_0015:  ldloc.0
+                  IL_0016:  call       "void System.Console.WriteLine(bool)"
+                  IL_001b:  ldsfld     "bool AsyncConditionalBug.Program.b"
+                  IL_0020:  call       "void System.Console.WriteLine(bool)"
+                  IL_0025:  ret
+                }
                 """);
         }
 
@@ -1328,7 +1681,26 @@ hello
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("AsyncConditionalBug.Program.AsyncMethod()", """
-                Baseline IL: AsyncWithShortCircuiting0031
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  1
+                  .locals init (string V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "string AsyncConditionalBug.Program.NULL"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloc.0
+                  IL_0008:  brtrue.s   IL_001a
+                  IL_000a:  ldstr      "hello"
+                  IL_000f:  call       "System.Threading.Tasks.Task<string> System.Threading.Tasks.Task.FromResult<string>(string)"
+                  IL_0014:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
+                  IL_0019:  stloc.0
+                  IL_001a:  ldloc.0
+                  IL_001b:  call       "void System.Console.WriteLine(string)"
+                  IL_0020:  ldarg.0
+                  IL_0021:  ldfld      "string AsyncConditionalBug.Program.NULL"
+                  IL_0026:  call       "void System.Console.WriteLine(string)"
+                  IL_002b:  ret
+                }
                 """);
         }
 
@@ -1431,7 +1803,12 @@ public class Test
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G()", """
-                Baseline IL: SpillSequencesInLogicalBinaryOperator11
+                {
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldnull
+                  IL_0001:  ret
+                }
                 """);
         }
 
@@ -1595,7 +1972,25 @@ class Driver
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("TestCase.Run<T>(T)", """
-                Baseline IL: SpillArray02_11
+                {
+                  // Code size       43 (0x2b)
+                  .maxstack  2
+                  .locals init (TestCase.<Run>d__1<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  call       "System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()"
+                  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1<T>.<>t__builder"
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  ldarg.0
+                  IL_000f:  stfld      "TestCase TestCase.<Run>d__1<T>.<>4__this"
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  ldc.i4.m1
+                  IL_0017:  stfld      "int TestCase.<Run>d__1<T>.<>1__state"
+                  IL_001c:  ldloca.s   V_0
+                  IL_001e:  ldflda     "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1<T>.<>t__builder"
+                  IL_0023:  ldloca.s   V_0
+                  IL_0025:  call       "void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Start<TestCase.<Run>d__1<T>>(ref TestCase.<Run>d__1<T>)"
+                  IL_002a:  ret
+                }
                 """);
         }
 
@@ -1668,7 +2063,25 @@ class Driver
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("TestCase.Run<T>(T)", """
-                Baseline IL: SpillArray02_21
+                {
+                  // Code size       43 (0x2b)
+                  .maxstack  2
+                  .locals init (TestCase.<Run>d__1<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  call       "System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()"
+                  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1<T>.<>t__builder"
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  ldarg.0
+                  IL_000f:  stfld      "TestCase TestCase.<Run>d__1<T>.<>4__this"
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  ldc.i4.m1
+                  IL_0017:  stfld      "int TestCase.<Run>d__1<T>.<>1__state"
+                  IL_001c:  ldloca.s   V_0
+                  IL_001e:  ldflda     "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1<T>.<>t__builder"
+                  IL_0023:  ldloca.s   V_0
+                  IL_0025:  call       "void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Start<TestCase.<Run>d__1<T>>(ref TestCase.<Run>d__1<T>)"
+                  IL_002a:  ret
+                }
                 """);
         }
 
@@ -1742,7 +2155,25 @@ class Driver
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("TestCase.Run<T>(T)", """
-                Baseline IL: SpillArray02_31
+                {
+                  // Code size       43 (0x2b)
+                  .maxstack  2
+                  .locals init (TestCase.<Run>d__1<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  call       "System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()"
+                  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1<T>.<>t__builder"
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  ldarg.0
+                  IL_000f:  stfld      "TestCase TestCase.<Run>d__1<T>.<>4__this"
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  ldc.i4.m1
+                  IL_0017:  stfld      "int TestCase.<Run>d__1<T>.<>1__state"
+                  IL_001c:  ldloca.s   V_0
+                  IL_001e:  ldflda     "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1<T>.<>t__builder"
+                  IL_0023:  ldloca.s   V_0
+                  IL_0025:  call       "void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Start<TestCase.<Run>d__1<T>>(ref TestCase.<Run>d__1<T>)"
+                  IL_002a:  ret
+                }
                 """);
         }
 
@@ -1815,7 +2246,25 @@ class Driver
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("TestCase.Run<T>(T)", """
-                Baseline IL: SpillArray02_41
+                {
+                  // Code size       43 (0x2b)
+                  .maxstack  2
+                  .locals init (TestCase.<Run>d__1<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  call       "System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()"
+                  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1<T>.<>t__builder"
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  ldarg.0
+                  IL_000f:  stfld      "TestCase TestCase.<Run>d__1<T>.<>4__this"
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  ldc.i4.m1
+                  IL_0017:  stfld      "int TestCase.<Run>d__1<T>.<>1__state"
+                  IL_001c:  ldloca.s   V_0
+                  IL_001e:  ldflda     "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1<T>.<>t__builder"
+                  IL_0023:  ldloca.s   V_0
+                  IL_0025:  call       "void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Start<TestCase.<Run>d__1<T>>(ref TestCase.<Run>d__1<T>)"
+                  IL_002a:  ret
+                }
                 """);
         }
 
@@ -1893,7 +2342,25 @@ class Driver
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("TestCase.Run<T>(T)", """
-                Baseline IL: SpillArray02_51
+                {
+                  // Code size       43 (0x2b)
+                  .maxstack  2
+                  .locals init (TestCase.<Run>d__1<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  call       "System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()"
+                  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1<T>.<>t__builder"
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  ldarg.0
+                  IL_000f:  stfld      "TestCase TestCase.<Run>d__1<T>.<>4__this"
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  ldc.i4.m1
+                  IL_0017:  stfld      "int TestCase.<Run>d__1<T>.<>1__state"
+                  IL_001c:  ldloca.s   V_0
+                  IL_001e:  ldflda     "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1<T>.<>t__builder"
+                  IL_0023:  ldloca.s   V_0
+                  IL_0025:  call       "void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Start<TestCase.<Run>d__1<T>>(ref TestCase.<Run>d__1<T>)"
+                  IL_002a:  ret
+                }
                 """);
         }
 
@@ -1966,7 +2433,25 @@ class Driver
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("TestCase.Run<T>(T)", """
-                Baseline IL: SpillArray02_61
+                {
+                  // Code size       43 (0x2b)
+                  .maxstack  2
+                  .locals init (TestCase.<Run>d__1<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  call       "System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()"
+                  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1<T>.<>t__builder"
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  ldarg.0
+                  IL_000f:  stfld      "TestCase TestCase.<Run>d__1<T>.<>4__this"
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  ldc.i4.m1
+                  IL_0017:  stfld      "int TestCase.<Run>d__1<T>.<>1__state"
+                  IL_001c:  ldloca.s   V_0
+                  IL_001e:  ldflda     "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1<T>.<>t__builder"
+                  IL_0023:  ldloca.s   V_0
+                  IL_0025:  call       "void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Start<TestCase.<Run>d__1<T>>(ref TestCase.<Run>d__1<T>)"
+                  IL_002a:  ret
+                }
                 """);
         }
 
@@ -2059,7 +2544,25 @@ class Driver
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("TestCase.Run<T>(T)", """
-                Baseline IL: SpillArray031
+                {
+                  // Code size       43 (0x2b)
+                  .maxstack  2
+                  .locals init (TestCase.<Run>d__1<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  call       "System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()"
+                  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1<T>.<>t__builder"
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  ldarg.0
+                  IL_000f:  stfld      "TestCase TestCase.<Run>d__1<T>.<>4__this"
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  ldc.i4.m1
+                  IL_0017:  stfld      "int TestCase.<Run>d__1<T>.<>1__state"
+                  IL_001c:  ldloca.s   V_0
+                  IL_001e:  ldflda     "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1<T>.<>t__builder"
+                  IL_0023:  ldloca.s   V_0
+                  IL_0025:  call       "void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Start<TestCase.<Run>d__1<T>>(ref TestCase.<Run>d__1<T>)"
+                  IL_002a:  ret
+                }
                 """);
         }
 
@@ -2172,7 +2675,29 @@ class TestCase
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("TestCase.Run()", """
-                Baseline IL: SpillArrayAssign1
+                {
+                  // Code size       56 (0x38)
+                  .maxstack  4
+                  .locals init (int V_0)
+                  IL_0000:  ldsfld     "int[] TestCase.arr"
+                  IL_0005:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_000a:  ldsfld     "System.Func<int> TestCase.<>c.<>9__1_0"
+                  IL_000f:  dup
+                  IL_0010:  brtrue.s   IL_0029
+                  IL_0012:  pop
+                  IL_0013:  ldsfld     "TestCase.<>c TestCase.<>c.<>9"
+                  IL_0018:  ldftn      "int TestCase.<>c.<Run>b__1_0()"
+                  IL_001e:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0023:  dup
+                  IL_0024:  stsfld     "System.Func<int> TestCase.<>c.<>9__1_0"
+                  IL_0029:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_002e:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0033:  stloc.0
+                  IL_0034:  ldc.i4.0
+                  IL_0035:  ldloc.0
+                  IL_0036:  stelem.i4
+                  IL_0037:  ret
+                }
                 """);
         }
 
@@ -2330,7 +2855,25 @@ class Driver
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("TestCase.Run<T>(T)", """
-                Baseline IL: SpillArrayLocal1
+                {
+                  // Code size       43 (0x2b)
+                  .maxstack  2
+                  .locals init (TestCase.<Run>d__1<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  call       "System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()"
+                  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1<T>.<>t__builder"
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  ldarg.0
+                  IL_000f:  stfld      "TestCase TestCase.<Run>d__1<T>.<>4__this"
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  ldc.i4.m1
+                  IL_0017:  stfld      "int TestCase.<Run>d__1<T>.<>1__state"
+                  IL_001c:  ldloca.s   V_0
+                  IL_001e:  ldflda     "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1<T>.<>t__builder"
+                  IL_0023:  ldloca.s   V_0
+                  IL_0025:  call       "void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Start<TestCase.<Run>d__1<T>>(ref TestCase.<Run>d__1<T>)"
+                  IL_002a:  ret
+                }
                 """);
         }
 
@@ -3559,7 +4102,32 @@ static class Driver
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("TestCase.Run()", """
-                Baseline IL: SpillRefExpr1
+                {
+                  // Code size       72 (0x48)
+                  .maxstack  4
+                  .locals init (int V_0)
+                  IL_0000:  newobj     "MyClass..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldc.i4.s   21
+                  IL_0008:  stfld      "int MyClass.Field"
+                  IL_000d:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_0012:  ldsfld     "System.Func<int> TestCase.<>c.<>9__1_0"
+                  IL_0017:  dup
+                  IL_0018:  brtrue.s   IL_0031
+                  IL_001a:  pop
+                  IL_001b:  ldsfld     "TestCase.<>c TestCase.<>c.<>9"
+                  IL_0020:  ldftn      "int TestCase.<>c.<Run>b__1_0()"
+                  IL_0026:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_002b:  dup
+                  IL_002c:  stsfld     "System.Func<int> TestCase.<>c.<>9__1_0"
+                  IL_0031:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_0036:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_003b:  stloc.0
+                  IL_003c:  ldflda     "int MyClass.Field"
+                  IL_0041:  ldloc.0
+                  IL_0042:  call       "int TestCase.Goo(ref int, int)"
+                  IL_0047:  ret
+                }
                 """);
         }
 
@@ -3739,7 +4307,28 @@ class C
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M()", """
-                Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_021
+                {
+                  // Code size       40 (0x28)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                int V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "int C.field"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldarg.0
+                  IL_0008:  call       "System.Threading.Tasks.Task<int> C.M2()"
+                  IL_000d:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0012:  stloc.1
+                  IL_0013:  ldarg.0
+                  IL_0014:  ldloc.0
+                  IL_0015:  ldloc.1
+                  IL_0016:  add
+                  IL_0017:  stfld      "int C.field"
+                  IL_001c:  ldarg.0
+                  IL_001d:  ldfld      "int C.field"
+                  IL_0022:  call       "void System.Console.Write(int)"
+                  IL_0027:  ret
+                }
                 """);
         }
 
@@ -3786,7 +4375,43 @@ class C
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M()", """
-                Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_031
+                {
+                  // Code size       90 (0x5a)
+                  .maxstack  3
+                  .locals init (int? V_0,
+                                int? V_1,
+                                int? V_2)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "int? C.field"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldarg.0
+                  IL_0008:  call       "System.Threading.Tasks.Task<int?> C.M2()"
+                  IL_000d:  call       "int? System.Runtime.CompilerServices.AsyncHelpers.Await<int?>(System.Threading.Tasks.Task<int?>)"
+                  IL_0012:  stloc.1
+                  IL_0013:  ldarg.0
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  call       "bool int?.HasValue.get"
+                  IL_001b:  ldloca.s   V_1
+                  IL_001d:  call       "bool int?.HasValue.get"
+                  IL_0022:  and
+                  IL_0023:  brtrue.s   IL_0030
+                  IL_0025:  ldloca.s   V_2
+                  IL_0027:  initobj    "int?"
+                  IL_002d:  ldloc.2
+                  IL_002e:  br.s       IL_0044
+                  IL_0030:  ldloca.s   V_0
+                  IL_0032:  call       "int int?.GetValueOrDefault()"
+                  IL_0037:  ldloca.s   V_1
+                  IL_0039:  call       "int int?.GetValueOrDefault()"
+                  IL_003e:  add
+                  IL_003f:  newobj     "int?..ctor(int)"
+                  IL_0044:  stfld      "int? C.field"
+                  IL_0049:  ldarg.0
+                  IL_004a:  ldfld      "int? C.field"
+                  IL_004f:  box        "int?"
+                  IL_0054:  call       "void System.Console.Write(object)"
+                  IL_0059:  ret
+                }
                 """);
         }
 
@@ -4200,7 +4825,18 @@ public class C
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M(System.Threading.Tasks.Task<int>)", """
-                Baseline IL: SpillAwaitBeforeRefReordered1
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  2
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0006:  stloc.0
+                  IL_0007:  call       "ref int C.P.get"
+                  IL_000c:  ldloc.0
+                  IL_000d:  call       "void C.Assign(ref int, int)"
+                  IL_0012:  ret
+                }
                 """);
         }
 
@@ -4471,7 +5107,17 @@ namespace System.Text.Json.Serialization
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Serialize()", """
-                Baseline IL: Crash368561
+                {
+                  // Code size       23 (0x17)
+                  .maxstack  2
+                  IL_0000:  call       "System.Threading.Tasks.Task<byte[]> Program.TestAsync()"
+                  IL_0005:  call       "byte[] System.Runtime.CompilerServices.AsyncHelpers.Await<byte[]>(System.Threading.Tasks.Task<byte[]>)"
+                  IL_000a:  call       "System.ReadOnlySpan<byte> System.ReadOnlySpan<byte>.op_Implicit(byte[])"
+                  IL_000f:  ldnull
+                  IL_0010:  call       "string System.Text.Json.Serialization.JsonSerializer.Parse<string>(System.ReadOnlySpan<byte>, System.Text.Json.Serialization.JsonSerializerOptions)"
+                  IL_0015:  pop
+                  IL_0016:  ret
+                }
                 """);
         }
 
@@ -4679,7 +5325,41 @@ struct F
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M1(object, System.Threading.Tasks.Task<bool>)", """
-                Baseline IL: SpillStateMachineTemps1
+                {
+                  // Code size       57 (0x39)
+                  .maxstack  1
+                  .locals init (int V_0,
+                                Q V_1,
+                                F V_2)
+                  IL_0000:  ldarg.0
+                  IL_0001:  isinst     "Q"
+                  IL_0006:  stloc.1
+                  IL_0007:  ldloc.1
+                  IL_0008:  brfalse.s  IL_0035
+                  IL_000a:  ldloc.1
+                  IL_000b:  callvirt   "F Q.F.get"
+                  IL_0010:  stloc.2
+                  IL_0011:  ldloca.s   V_2
+                  IL_0013:  call       "bool F.P1.get"
+                  IL_0018:  brtrue.s   IL_0025
+                  IL_001a:  ldloca.s   V_2
+                  IL_001c:  call       "bool F.P2.get"
+                  IL_0021:  brtrue.s   IL_0031
+                  IL_0023:  br.s       IL_0035
+                  IL_0025:  ldarg.1
+                  IL_0026:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_002b:  brfalse.s  IL_001a
+                  IL_002d:  ldc.i4.1
+                  IL_002e:  stloc.0
+                  IL_002f:  br.s       IL_0037
+                  IL_0031:  ldc.i4.2
+                  IL_0032:  stloc.0
+                  IL_0033:  br.s       IL_0037
+                  IL_0035:  ldc.i4.3
+                  IL_0036:  stloc.0
+                  IL_0037:  ldloc.0
+                  IL_0038:  ret
+                }
                 """);
         }
 
@@ -5061,7 +5741,20 @@ class B
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Assign(A)", """
-                Baseline IL: KeepLtrSemantics_ClassFieldAccessOnProperty1
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  2
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  callvirt   "B A.B.get"
+                  IL_0006:  ldstr      "RHS"
+                  IL_000b:  call       "System.Threading.Tasks.Task<int> Program.Write(string)"
+                  IL_0010:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0015:  stloc.0
+                  IL_0016:  ldloc.0
+                  IL_0017:  stfld      "int B.x"
+                  IL_001c:  ret
+                }
                 """);
         }
 
@@ -5969,7 +6662,24 @@ struct C
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Assign(A)", """
-                Baseline IL: KeepLtrSemantics_StructFieldAccessOnStructFieldAccessOnClassField1
+                {
+                  // Code size       41 (0x29)
+                  .maxstack  2
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  dup
+                  IL_0002:  ldfld      "B A.b"
+                  IL_0007:  pop
+                  IL_0008:  ldstr      "RHS"
+                  IL_000d:  call       "System.Threading.Tasks.Task<int> Program.Write(string)"
+                  IL_0012:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0017:  stloc.0
+                  IL_0018:  ldflda     "B A.b"
+                  IL_001d:  ldflda     "C B.c"
+                  IL_0022:  ldloc.0
+                  IL_0023:  stfld      "int C.x"
+                  IL_0028:  ret
+                }
                 """);
         }
 
@@ -6189,7 +6899,20 @@ class B
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Assign(A)", """
-                Baseline IL: KeepLtrSemantics_ClassPropertyAssignmentOnClassProperty1
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  2
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  callvirt   "B A.b.get"
+                  IL_0006:  ldstr      "RHS"
+                  IL_000b:  call       "System.Threading.Tasks.Task<int> Program.Write(string)"
+                  IL_0010:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0015:  stloc.0
+                  IL_0016:  ldloc.0
+                  IL_0017:  callvirt   "void B.x.set"
+                  IL_001c:  ret
+                }
                 """);
         }
 
@@ -6398,7 +7121,19 @@ class A
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Assign(A)", """
-                Baseline IL: KeepLtrSemantics_FieldAccessOnClass1
+                {
+                  // Code size       24 (0x18)
+                  .maxstack  2
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldstr      "RHS"
+                  IL_0006:  call       "System.Threading.Tasks.Task<int> Program.Write(string)"
+                  IL_000b:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0010:  stloc.0
+                  IL_0011:  ldloc.0
+                  IL_0012:  stfld      "int A.x"
+                  IL_0017:  ret
+                }
                 """);
         }
 
@@ -6635,7 +7370,28 @@ class A
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Assign(A)", """
-                Baseline IL: KeepLtrSemantics_CompoundAssignment1
+                {
+                  // Code size       35 (0x23)
+                  .maxstack  3
+                  .locals init (A V_0,
+                                int V_1,
+                                int V_2)
+                  IL_0000:  ldarg.0
+                  IL_0001:  dup
+                  IL_0002:  stloc.0
+                  IL_0003:  ldfld      "int A.x"
+                  IL_0008:  stloc.1
+                  IL_0009:  ldstr      "RHS"
+                  IL_000e:  call       "System.Threading.Tasks.Task<int> Program.Write(string)"
+                  IL_0013:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0018:  stloc.2
+                  IL_0019:  ldloc.0
+                  IL_001a:  ldloc.1
+                  IL_001b:  ldloc.2
+                  IL_001c:  add
+                  IL_001d:  stfld      "int A.x"
+                  IL_0022:  ret
+                }
                 """);
         }
 
@@ -6879,7 +7635,28 @@ class A
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Assign(A)", """
-                Baseline IL: KeepLtrSemantics_CompoundAssignmentProperties1
+                {
+                  // Code size       35 (0x23)
+                  .maxstack  3
+                  .locals init (A V_0,
+                                int V_1,
+                                int V_2)
+                  IL_0000:  ldarg.0
+                  IL_0001:  dup
+                  IL_0002:  stloc.0
+                  IL_0003:  callvirt   "int A.x.get"
+                  IL_0008:  stloc.1
+                  IL_0009:  ldstr      "RHS"
+                  IL_000e:  call       "System.Threading.Tasks.Task<int> Program.Write(string)"
+                  IL_0013:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0018:  stloc.2
+                  IL_0019:  ldloc.0
+                  IL_001a:  ldloc.1
+                  IL_001b:  ldloc.2
+                  IL_001c:  add
+                  IL_001d:  callvirt   "void A.x.set"
+                  IL_0022:  ret
+                }
                 """);
         }
 
@@ -7145,7 +7922,29 @@ class B
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Assign(A, B)", """
-                Baseline IL: KeepLtrSemantics_AssignmentToAssignment1
+                {
+                  // Code size       40 (0x28)
+                  .maxstack  4
+                  .locals init (B V_0,
+                                int V_1,
+                                int V_2)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "B A.b"
+                  IL_0006:  ldarg.1
+                  IL_0007:  stloc.0
+                  IL_0008:  ldstr      "RHS"
+                  IL_000d:  call       "System.Threading.Tasks.Task<int> Program.Write(string)"
+                  IL_0012:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0017:  stloc.1
+                  IL_0018:  ldloc.0
+                  IL_0019:  ldloc.1
+                  IL_001a:  dup
+                  IL_001b:  stloc.2
+                  IL_001c:  stfld      "int B.x"
+                  IL_0021:  ldloc.2
+                  IL_0022:  stfld      "int B.x"
+                  IL_0027:  ret
+                }
                 """);
         }
 
@@ -7419,7 +8218,26 @@ class B
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Assign(A, B)", """
-                Baseline IL: KeepLtrSemantics_AssignmentToAssignmentProperties1
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  4
+                  .locals init (int V_0,
+                                int V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  callvirt   "B A.b.get"
+                  IL_0006:  ldarg.1
+                  IL_0007:  ldstr      "RHS"
+                  IL_000c:  call       "System.Threading.Tasks.Task<int> Program.Write(string)"
+                  IL_0011:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0016:  stloc.0
+                  IL_0017:  ldloc.0
+                  IL_0018:  dup
+                  IL_0019:  stloc.1
+                  IL_001a:  callvirt   "void B.x.set"
+                  IL_001f:  ldloc.1
+                  IL_0020:  callvirt   "void B.x.set"
+                  IL_0025:  ret
+                }
                 """);
         }
 
@@ -7559,7 +8377,19 @@ struct B
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Assign()", """
-                Baseline IL: AssignmentToFieldOfStaticFieldOfStruct1
+                {
+                  // Code size       28 (0x1c)
+                  .maxstack  2
+                  .locals init (int V_0)
+                  IL_0000:  ldstr      "RHS"
+                  IL_0005:  call       "System.Threading.Tasks.Task<int> Program.Write(string)"
+                  IL_000a:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000f:  stloc.0
+                  IL_0010:  ldsflda    "B A.b"
+                  IL_0015:  ldloc.0
+                  IL_0016:  stfld      "int B.x"
+                  IL_001b:  ret
+                }
                 """);
         }
 
@@ -7605,7 +8435,18 @@ public class C
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M(System.Threading.Tasks.Task<int>)", """
-                Baseline IL: AssignStaticStructField1
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  2
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldsflda    "S1 C.s1"
+                  IL_000c:  ldloc.0
+                  IL_000d:  stfld      "int S1.Field"
+                  IL_0012:  ret
+                }
                 """);
         }
 
@@ -7657,7 +8498,18 @@ public class Program
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.M(System.Threading.Tasks.Task<int>)", """
-                Baseline IL: AssignStaticStructField_ViaUsingStatic1
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  2
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldsflda    "S1 C.s1"
+                  IL_000c:  ldloc.0
+                  IL_000d:  stfld      "int S1.Field"
+                  IL_0012:  ret
+                }
                 """);
         }
 
@@ -7704,7 +8556,22 @@ public class C
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M(System.Threading.Tasks.Task<int>)", """
-                Baseline IL: AssignInstanceStructField1
+                {
+                  // Code size       27 (0x1b)
+                  .maxstack  2
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "S1 C.s1"
+                  IL_0006:  pop
+                  IL_0007:  ldarg.1
+                  IL_0008:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000d:  stloc.0
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldflda     "S1 C.s1"
+                  IL_0014:  ldloc.0
+                  IL_0015:  stfld      "int S1.Field"
+                  IL_001a:  ret
+                }
                 """);
         }
     }
