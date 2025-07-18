@@ -82,13 +82,13 @@ F(5)
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: AsyncWithTernary0
+                ILVerifyMessage = $$"""
+                    [G]: Unexpected type on the stack. { Offset = 0x35, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G(bool, bool)", """
                 Baseline IL: AsyncWithTernary1
                 """);
         }
@@ -145,13 +145,13 @@ F(4)
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: AsyncWithAnd0
+                ILVerifyMessage = $$"""
+                    [G]: Unexpected type on the stack. { Offset = 0x83, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G(bool, bool)", """
                 Baseline IL: AsyncWithAnd1
                 """);
         }
@@ -208,13 +208,13 @@ F(13)
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: AsyncWithOr0
+                ILVerifyMessage = $$"""
+                    [G]: Unexpected type on the stack. { Offset = 0x83, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G(string, string)", """
                 Baseline IL: AsyncWithOr1
                 """);
         }
@@ -273,13 +273,13 @@ F(c)
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: AsyncWithCoalesce0
+                ILVerifyMessage = $$"""
+                    [G]: Unexpected type on the stack. { Offset = 0x37, Found = ref 'string', Expected = ref 'System.Threading.Tasks.Task`1<string>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G(string, string)", """
                 Baseline IL: AsyncWithCoalesce1
                 """);
         }
@@ -320,13 +320,15 @@ class Test
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: AwaitInExpr0
+                ILVerifyMessage = $$"""
+                    [F]: Unexpected type on the stack. { Offset = 0x2e, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+
+                    [G]: Unexpected type on the stack. { Offset = 0xd, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: AwaitInExpr1
                 """);
         }
@@ -383,13 +385,19 @@ class Test
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillNestedUnary0
+                ILVerifyMessage = $$"""
+                    [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+
+                    [G1]: Unexpected type on the stack. { Offset = 0xb, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+
+                    [G2]: Unexpected type on the stack. { Offset = 0xc, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+
+                    [G3]: Unexpected type on the stack. { Offset = 0xd, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillNestedUnary1
                 """);
         }
@@ -452,13 +460,15 @@ class Test
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: AsyncWithParamsAndLocals_DoubleAwait_Spilling0
+                ILVerifyMessage = $$"""
+                    [F]: Unexpected type on the stack. { Offset = 0x28, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+
+                    [G]: Unexpected type on the stack. { Offset = 0x1f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G(int)", """
                 Baseline IL: AsyncWithParamsAndLocals_DoubleAwait_Spilling1
                 """);
         }
@@ -520,13 +530,15 @@ class Test
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillCall0
+                ILVerifyMessage = $$"""
+                    [F]: Unexpected type on the stack. { Offset = 0x28, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+
+                    [G]: Return value missing on the stack. { Offset = 0x44 }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillCall1
                 """);
         }
@@ -588,13 +600,15 @@ class Test
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillCall20
+                ILVerifyMessage = $$"""
+                    [F]: Unexpected type on the stack. { Offset = 0x28, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+
+                    [G]: Return value missing on the stack. { Offset = 0x4e }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillCall21
                 """);
         }
@@ -646,13 +660,15 @@ class Test
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillCall30
+                ILVerifyMessage = $$"""
+                    [F]: Unexpected type on the stack. { Offset = 0x28, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+
+                    [G]: Return value missing on the stack. { Offset = 0x4d }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillCall31
                 """);
         }
@@ -700,13 +716,15 @@ class Test
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillCall40
+                ILVerifyMessage = $$"""
+                    [F]: Unexpected type on the stack. { Offset = 0x28, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+
+                    [G]: Return value missing on the stack. { Offset = 0x1d }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillCall41
                 """);
         }
@@ -876,13 +894,13 @@ public class Test
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillSequences10
+                ILVerifyMessage = $$"""
+                    [F]: Unexpected type on the stack. { Offset = 0x35, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillSequences11
                 """);
         }
@@ -1042,13 +1060,13 @@ public class Test
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillSequencesRelease0
+                ILVerifyMessage = $$"""
+                    [F]: Unexpected type on the stack. { Offset = 0x35, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillSequencesRelease1
                 """);
         }
@@ -1083,13 +1101,13 @@ public class Test
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillSequencesInConditionalExpression10
+                ILVerifyMessage = $$"""
+                    [F]: Unexpected type on the stack. { Offset = 0x3c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillSequencesInConditionalExpression11
                 """);
         }
@@ -1161,26 +1179,26 @@ public class C
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillSequencesInNullCoalescingOperator10
+                ILVerifyMessage = $$"""
+                    [F]: Unexpected type on the stack. { Offset = 0x55, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("C.F(int[])", """
                 Baseline IL: SpillSequencesInNullCoalescingOperator11
                 """);
 
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: SpillSequencesInNullCoalescingOperator12
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillSequencesInNullCoalescingOperator13
                 """);
         }
@@ -1216,13 +1234,13 @@ True
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: AsyncWithShortCircuiting0010
+                ILVerifyMessage = $$"""
+                    [AsyncMethod]: Return value missing on the stack. { Offset = 0x27 }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("AsyncConditionalBug.Program.AsyncMethod()", """
                 Baseline IL: AsyncWithShortCircuiting0011
                 """);
         }
@@ -1258,13 +1276,13 @@ True
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: AsyncWithShortCircuiting0020
+                ILVerifyMessage = $$"""
+                    [AsyncMethod]: Return value missing on the stack. { Offset = 0x25 }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("AsyncConditionalBug.Program.AsyncMethod()", """
                 Baseline IL: AsyncWithShortCircuiting0021
                 """);
         }
@@ -1303,13 +1321,13 @@ hello
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: AsyncWithShortCircuiting0030
+                ILVerifyMessage = $$"""
+                    [AsyncMethod]: Return value missing on the stack. { Offset = 0x2b }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("AsyncConditionalBug.Program.AsyncMethod()", """
                 Baseline IL: AsyncWithShortCircuiting0031
                 """);
         }
@@ -1360,13 +1378,13 @@ Not Valid!
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: AsyncWithShortCircuiting0040
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: AsyncWithShortCircuiting0041
                 """);
         }
@@ -1406,13 +1424,13 @@ public class Test
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillSequencesInLogicalBinaryOperator10
+                ILVerifyMessage = $$"""
+                    [F]: Unexpected type on the stack. { Offset = 0x55, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillSequencesInLogicalBinaryOperator11
                 """);
         }
@@ -1499,13 +1517,13 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: SpillArray010
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillArray011
                 """);
         }
@@ -1570,13 +1588,13 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillArray02_10
+                ILVerifyMessage = $$"""
+                    [GetVal]: Unexpected type on the stack. { Offset = 0xc, Found = value 'T', Expected = ref 'System.Threading.Tasks.Task`1<T0>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("TestCase.Run<T>(T)", """
                 Baseline IL: SpillArray02_11
                 """);
         }
@@ -1643,13 +1661,13 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillArray02_20
+                ILVerifyMessage = $$"""
+                    [GetVal]: Unexpected type on the stack. { Offset = 0xc, Found = value 'T', Expected = ref 'System.Threading.Tasks.Task`1<T0>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("TestCase.Run<T>(T)", """
                 Baseline IL: SpillArray02_21
                 """);
         }
@@ -1717,13 +1735,13 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillArray02_30
+                ILVerifyMessage = $$"""
+                    [GetVal]: Unexpected type on the stack. { Offset = 0xc, Found = value 'T', Expected = ref 'System.Threading.Tasks.Task`1<T0>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("TestCase.Run<T>(T)", """
                 Baseline IL: SpillArray02_31
                 """);
         }
@@ -1790,13 +1808,13 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillArray02_40
+                ILVerifyMessage = $$"""
+                    [GetVal]: Unexpected type on the stack. { Offset = 0xc, Found = value 'T', Expected = ref 'System.Threading.Tasks.Task`1<T0>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("TestCase.Run<T>(T)", """
                 Baseline IL: SpillArray02_41
                 """);
         }
@@ -1868,13 +1886,13 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillArray02_50
+                ILVerifyMessage = $$"""
+                    [GetVal]: Unexpected type on the stack. { Offset = 0xc, Found = value 'T', Expected = ref 'System.Threading.Tasks.Task`1<T0>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("TestCase.Run<T>(T)", """
                 Baseline IL: SpillArray02_51
                 """);
         }
@@ -1941,13 +1959,13 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillArray02_60
+                ILVerifyMessage = $$"""
+                    [GetVal]: Unexpected type on the stack. { Offset = 0xc, Found = value 'T', Expected = ref 'System.Threading.Tasks.Task`1<T0>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("TestCase.Run<T>(T)", """
                 Baseline IL: SpillArray02_61
                 """);
         }
@@ -2034,13 +2052,13 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillArray030
+                ILVerifyMessage = $$"""
+                    [GetVal]: Unexpected type on the stack. { Offset = 0xc, Found = value 'T', Expected = ref 'System.Threading.Tasks.Task`1<T0>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("TestCase.Run<T>(T)", """
                 Baseline IL: SpillArray031
                 """);
         }
@@ -2105,13 +2123,13 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: SpillArray040
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillArray041
                 """);
         }
@@ -2147,13 +2165,13 @@ class TestCase
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillArrayAssign0
+                ILVerifyMessage = $$"""
+                    [Run]: Return value missing on the stack. { Offset = 0x37 }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("TestCase.Run()", """
                 Baseline IL: SpillArrayAssign1
                 """);
         }
@@ -2232,13 +2250,13 @@ exception thrown
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: SpillArrayAssign20
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillArrayAssign21
                 """);
         }
@@ -2305,13 +2323,13 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillArrayLocal0
+                ILVerifyMessage = $$"""
+                    [GetVal]: Unexpected type on the stack. { Offset = 0xc, Found = value 'T', Expected = ref 'System.Threading.Tasks.Task`1<T0>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("TestCase.Run<T>(T)", """
                 Baseline IL: SpillArrayLocal1
                 """);
         }
@@ -2348,13 +2366,13 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillArrayCompoundAssignmentLValue0
+                ILVerifyMessage = $$"""
+                    [Run]: Return value missing on the stack. { Offset = 0x4c }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillArrayCompoundAssignmentLValue1
                 """);
         }
@@ -2391,13 +2409,13 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillArrayCompoundAssignmentLValueAwait0
+                ILVerifyMessage = $$"""
+                    [Run]: Return value missing on the stack. { Offset = 0x7b }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillArrayCompoundAssignmentLValueAwait1
                 """);
         }
@@ -2444,13 +2462,13 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillArrayCompoundAssignmentLValueAwait20
+                ILVerifyMessage = $$"""
+                    [Run]: Unexpected type on the stack. { Offset = 0xbb, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillArrayCompoundAssignmentLValueAwait21
                 """);
         }
@@ -2497,13 +2515,13 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: DoubleSpillArrayCompoundAssignment0
+                ILVerifyMessage = $$"""
+                    [Run]: Unexpected type on the stack. { Offset = 0x113, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: DoubleSpillArrayCompoundAssignment1
                 """);
         }
@@ -2588,13 +2606,15 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillArrayInitializers10
+                ILVerifyMessage = $$"""
+                    [GetVal]: Unexpected type on the stack. { Offset = 0xc, Found = value 'T', Expected = ref 'System.Threading.Tasks.Task`1<T0>' }
+
+                    [Goo]: Unexpected type on the stack. { Offset = 0x1d, Found = ref 'int32[]', Expected = ref 'System.Threading.Tasks.Task`1<int32[]>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("TestCase.Run<T>(T)", """
                 Baseline IL: SpillArrayInitializers11
                 """);
         }
@@ -2666,19 +2686,6 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput);
-
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
-            {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillArrayInitializers20
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
-                Baseline IL: SpillArrayInitializers21
-                """);
         }
 
         [Fact]
@@ -2757,19 +2764,6 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput, references: new[] { CSharpRef });
-
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
-            {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillArrayInitializers30
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
-                Baseline IL: SpillArrayInitializers31
-                """);
         }
 
         [Fact]
@@ -2808,13 +2802,13 @@ class Test
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: SpillNestedExpressionInArrayInitializer0
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillNestedExpressionInArrayInitializer1
                 """);
         }
@@ -2869,13 +2863,13 @@ class Test
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: SpillConditionalAccess0
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillConditionalAccess1
                 """);
         }
@@ -2913,7 +2907,7 @@ class Driver
 {
     static void Main()
     {
-        Test.Run().Wait();
+        Test.G().Wait();
     }
 }";
             var expectedOutput = @"
@@ -2924,13 +2918,15 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: AssignToAwait0
+                ILVerifyMessage = $$"""
+                    [GetS]: Unexpected type on the stack. { Offset = 0x2e, Found = ref 'S', Expected = ref 'System.Threading.Tasks.Task`1<S>' }
+
+                    [Run]: Return value missing on the stack. { Offset = 0x20 }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: AssignToAwait1
                 """);
         }
@@ -2967,7 +2963,7 @@ class Driver
 {
     static void Main()
     {
-        Test.Run().Wait();
+        Test.G().Wait();
     }
 }";
             var expectedOutput = @"
@@ -2978,13 +2974,15 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: AssignAwaitToAwait0
+                ILVerifyMessage = $$"""
+                    [GetS]: Unexpected type on the stack. { Offset = 0x2e, Found = ref 'S', Expected = ref 'System.Threading.Tasks.Task`1<S>' }
+
+                    [Run]: Return value missing on the stack. { Offset = 0x4e }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: AssignAwaitToAwait1
                 """);
         }
@@ -3056,13 +3054,13 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: SpillArglist0
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillArglist1
                 """);
         }
@@ -3129,13 +3127,15 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillObjectInitializer10
+                ILVerifyMessage = $$"""
+                    [Run]: Return value missing on the stack. { Offset = 0x47 }
+
+                    [Bar]: Unexpected type on the stack. { Offset = 0xc, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillObjectInitializer11
                 """);
         }
@@ -3208,13 +3208,13 @@ class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: SpillWithByRefArguments010
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillWithByRefArguments011
                 """);
         }
@@ -3273,19 +3273,6 @@ class Driver
     }
 }";
             CompileAndVerify(source, "0");
-
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
-            {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillOperator_Compound10
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
-                Baseline IL: SpillOperator_Compound11
-                """);
         }
 
         [Fact]
@@ -3342,19 +3329,6 @@ class Driver
     }
 }";
             CompileAndVerify(source, "0");
-
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
-            {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillOperator_Compound20
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
-                Baseline IL: SpillOperator_Compound21
-                """);
         }
 
         [Fact]
@@ -3389,13 +3363,13 @@ class Test
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: Async_StackSpill_Argument_Generic040
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: Async_StackSpill_Argument_Generic041
                 """);
         }
@@ -3456,19 +3430,6 @@ class Driver
     }
 }";
             CompileAndVerify(source, "0");
-
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
-            {
-                ILVerifyMessage = $"""
-                    ILVerify: AsyncStackSpill_assign010
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
-                Baseline IL: AsyncStackSpill_assign011
-                """);
         }
 
         [Fact]
@@ -3548,19 +3509,6 @@ class Driver
     }
 }";
             CompileAndVerify(source, "0");
-
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
-            {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillCollectionInitializer0
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
-                Baseline IL: SpillCollectionInitializer1
-                """);
         }
 
         [Fact]
@@ -3604,13 +3552,13 @@ static class Driver
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillRefExpr0
+                ILVerifyMessage = $$"""
+                    [Run]: Unexpected type on the stack. { Offset = 0x47, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("TestCase.Run()", """
                 Baseline IL: SpillRefExpr1
                 """);
         }
@@ -3697,19 +3645,6 @@ class Driver
     }
 }";
             CompileAndVerify(source, "0");
-
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
-            {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillManagedPointerAssign030
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
-                Baseline IL: SpillManagedPointerAssign031
-                """);
         }
 
         [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
@@ -3737,26 +3672,26 @@ struct S
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: SpillCompoundAssignmentToNullableMemberOfLocal_010
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_011
                 """);
 
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: SpillCompoundAssignmentToNullableMemberOfLocal_012
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_013
                 """);
         }
@@ -3793,27 +3728,18 @@ class C
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillCompoundAssignmentToNullableMemberOfLocal_020
+                ILVerifyMessage = $$"""
+                    [Main]: Return value missing on the stack. { Offset = 0xf }
+
+                    [M]: Return value missing on the stack. { Offset = 0x27 }
+
+                    [M2]: Unexpected type on the stack. { Offset = 0x26, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("C.M()", """
                 Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_021
-                """);
-
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
-            {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillCompoundAssignmentToNullableMemberOfLocal_022
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
-                Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_023
                 """);
         }
 
@@ -3849,27 +3775,18 @@ class C
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillCompoundAssignmentToNullableMemberOfLocal_030
+                ILVerifyMessage = $$"""
+                    [Main]: Return value missing on the stack. { Offset = 0xf }
+
+                    [M]: Return value missing on the stack. { Offset = 0x59 }
+
+                    [M2]: Unexpected type on the stack. { Offset = 0x2b, Found = value 'System.Nullable`1<int32>', Expected = ref 'System.Threading.Tasks.Task`1<System.Nullable`1<int32>>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("C.M()", """
                 Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_031
-                """);
-
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
-            {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillCompoundAssignmentToNullableMemberOfLocal_032
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
-                Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_033
                 """);
         }
 
@@ -3903,27 +3820,14 @@ struct S
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: SpillCompoundAssignmentToNullableMemberOfLocal_040
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("C.M(S)", """
                 Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_041
-                """);
-
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
-            {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillCompoundAssignmentToNullableMemberOfLocal_042
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
-                Baseline IL: SpillCompoundAssignmentToNullableMemberOfLocal_043
                 """);
         }
 
@@ -3976,13 +3880,13 @@ class C
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillSacrificialRead0
+                ILVerifyMessage = $$"""
+                    [F2]: Unexpected type on the stack. { Offset = 0x52, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("C.F2()", """
                 Baseline IL: SpillSacrificialRead1
                 """);
         }
@@ -4074,19 +3978,6 @@ class C
 42
 ";
             CompileAndVerify(source, expectedOutput);
-
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
-            {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillRefThisStruct0
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
-                Baseline IL: SpillRefThisStruct1
-                """);
         }
 
         [Fact]
@@ -4195,13 +4086,13 @@ public class AsyncBug {
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: MethodGroupConversionNoSpill0
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: MethodGroupConversionNoSpill1
                 """);
         }
@@ -4253,13 +4144,13 @@ namespace AsyncBug
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: MethodGroupConversionWithSpill0
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: MethodGroupConversionWithSpill1
                 """);
         }
@@ -4302,13 +4193,13 @@ public class C
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillAwaitBeforeRefReordered0
+                ILVerifyMessage = $$"""
+                    [M]: Return value missing on the stack. { Offset = 0x12 }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("C.M(System.Threading.Tasks.Task<int>)", """
                 Baseline IL: SpillAwaitBeforeRefReordered1
                 """);
         }
@@ -4381,7 +4272,7 @@ class Foo
             var source = """
                 using System;
                 using System.Threading.Tasks;
-                class Foo
+                class Goo
                 {
                     static async Task Main()
                     {
@@ -4409,13 +4300,13 @@ class Foo
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: AwaitWithInParameter_NoArgModifier0
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: AwaitWithInParameter_NoArgModifier1
                 """);
         }
@@ -4573,13 +4464,13 @@ namespace System.Text.Json.Serialization
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: Crash368560
+                ILVerifyMessage = $$"""
+                    [Serialize]: Return value missing on the stack. { Offset = 0x16 }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Program.Serialize()", """
                 Baseline IL: Crash368561
                 """);
         }
@@ -4628,27 +4519,14 @@ public class P
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: ShouldNotSpillStackallocToField_010
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: ShouldNotSpillStackallocToField_011
-                """);
-
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
-            {
-                ILVerifyMessage = $"""
-                    ILVerify: ShouldNotSpillStackallocToField_012
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
-                Baseline IL: ShouldNotSpillStackallocToField_013
                 """);
         }
 
@@ -4696,27 +4574,14 @@ public class P
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: ShouldNotSpillStackallocToField_020
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: ShouldNotSpillStackallocToField_021
-                """);
-
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
-            {
-                ILVerifyMessage = $"""
-                    ILVerify: ShouldNotSpillStackallocToField_022
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
-                Baseline IL: ShouldNotSpillStackallocToField_023
                 """);
         }
 
@@ -4805,27 +4670,16 @@ struct F
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillStateMachineTemps0
+                ILVerifyMessage = $$"""
+                    [M1]: Unexpected type on the stack. { Offset = 0x38, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+
+                    [SF]: Unexpected type on the stack. { Offset = 0xd, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("C.M1(object, System.Threading.Tasks.Task<bool>)", """
                 Baseline IL: SpillStateMachineTemps1
-                """);
-
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
-            {
-                ILVerifyMessage = $"""
-                    ILVerify: SpillStateMachineTemps2
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
-                Baseline IL: SpillStateMachineTemps3
                 """);
         }
 
@@ -4930,26 +4784,26 @@ class Box<T>
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: ExpressionLambdaWithObjectInitializer0
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: ExpressionLambdaWithObjectInitializer1
                 """);
 
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: ExpressionLambdaWithObjectInitializer2
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: ExpressionLambdaWithObjectInitializer3
                 """);
         }
@@ -4995,27 +4849,14 @@ namespace RoslynFailFastReproduction
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: ExpressionLambdaWithUserDefinedControlFlow0
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: ExpressionLambdaWithUserDefinedControlFlow1
-                """);
-
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
-            {
-                ILVerifyMessage = $"""
-                    ILVerify: ExpressionLambdaWithUserDefinedControlFlow2
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
-                Baseline IL: ExpressionLambdaWithUserDefinedControlFlow3
                 """);
         }
 
@@ -5203,13 +5044,23 @@ class B
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: KeepLtrSemantics_ClassFieldAccessOnProperty0
+                ILVerifyMessage = $$"""
+                    [Assign]: Return value missing on the stack. { Offset = 0x1c }
+
+                    [Main]: Return value missing on the stack. { Offset = 0x1e }
+
+                    [TestPropertyAccessThrows]: Return value missing on the stack. { Offset = 0x30 }
+
+                    [TestFieldAccessThrows]: Return value missing on the stack. { Offset = 0x34 }
+
+                    [TestPropertyAccessSucceeds]: Return value missing on the stack. { Offset = 0x70 }
+
+                    [Write]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Program.Assign(A)", """
                 Baseline IL: KeepLtrSemantics_ClassFieldAccessOnProperty1
                 """);
         }
@@ -5458,13 +5309,13 @@ class A
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: KeepLtrSemantics_ClassFieldAccessOnArray0
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: KeepLtrSemantics_ClassFieldAccessOnArray1
                 """);
         }
@@ -5692,13 +5543,13 @@ struct A
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: KeepLtrSemantics_StructFieldAccessOnArray0
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: KeepLtrSemantics_StructFieldAccessOnArray1
                 """);
         }
@@ -5887,13 +5738,13 @@ class Program
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
+                ILVerifyMessage = $$"""
                     ILVerify: KeepLtrSemantics_AssignmentToArray0
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Test.G()", """
                 Baseline IL: KeepLtrSemantics_AssignmentToArray1
                 """);
         }
@@ -6099,13 +5950,25 @@ struct C
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: KeepLtrSemantics_StructFieldAccessOnStructFieldAccessOnClassField0
+                ILVerifyMessage = $$"""
+                    [Assign]: Return value missing on the stack. { Offset = 0x28 }
+
+                    [Main]: Return value missing on the stack. { Offset = 0x1e }
+
+                    [TestAIsNull]: Return value missing on the stack. { Offset = 0x30 }
+
+                    [TestAIsNotNull]: Return value missing on the stack. { Offset = 0x6f }
+
+                    [ReassignADuringAssignment]: Return value missing on the stack. { Offset = 0xf0 }
+
+                    [Write]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+
+                    [<ReassignADuringAssignment>g__WriteAndReassign|0]: Unexpected type on the stack. { Offset = 0x33, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Program.Assign(A)", """
                 Baseline IL: KeepLtrSemantics_StructFieldAccessOnStructFieldAccessOnClassField1
                 """);
         }
@@ -6307,13 +6170,25 @@ class B
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: KeepLtrSemantics_ClassPropertyAssignmentOnClassProperty0
+                ILVerifyMessage = $$"""
+                    [Assign]: Return value missing on the stack. { Offset = 0x1c }
+
+                    [Main]: Return value missing on the stack. { Offset = 0x1e }
+
+                    [TestAIsNull]: Return value missing on the stack. { Offset = 0x30 }
+
+                    [TestAIsNotNull]: Return value missing on the stack. { Offset = 0x70 }
+
+                    [ReassignADuringAssignment]: Return value missing on the stack. { Offset = 0xe5 }
+
+                    [Write]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+
+                    [<ReassignADuringAssignment>g__WriteAndReassign|0]: Unexpected type on the stack. { Offset = 0x33, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Program.Assign(A)", """
                 Baseline IL: KeepLtrSemantics_ClassPropertyAssignmentOnClassProperty1
                 """);
         }
@@ -6504,13 +6379,25 @@ class A
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: KeepLtrSemantics_FieldAccessOnClass0
+                ILVerifyMessage = $$"""
+                    [Assign]: Return value missing on the stack. { Offset = 0x17 }
+
+                    [Main]: Return value missing on the stack. { Offset = 0x1e }
+
+                    [TestAIsNull]: Return value missing on the stack. { Offset = 0x30 }
+
+                    [TestAIsNotNull]: Return value missing on the stack. { Offset = 0x5b }
+
+                    [ReassignADuringAssignment]: Return value missing on the stack. { Offset = 0xcb }
+
+                    [Write]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+
+                    [<ReassignADuringAssignment>g__WriteAndReassign|0]: Unexpected type on the stack. { Offset = 0x33, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Program.Assign(A)", """
                 Baseline IL: KeepLtrSemantics_FieldAccessOnClass1
                 """);
         }
@@ -6733,13 +6620,21 @@ class A
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: KeepLtrSemantics_CompoundAssignment0
+                ILVerifyMessage = $$"""
+                    [Assign]: Return value missing on the stack. { Offset = 0x22 }
+                    [Main]: Return value missing on the stack. { Offset = 0x28 }
+                    [TestAIsNull]: Return value missing on the stack. { Offset = 0x30 }
+                    [TestAIsNotNull]: Return value missing on the stack. { Offset = 0x62 }
+                    [ReassignADuringAssignment]: Return value missing on the stack. { Offset = 0xe1 }
+                    [ReassignXDuringAssignment]: Return value missing on the stack. { Offset = 0x94 }
+                    [Write]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [<ReassignADuringAssignment>g__WriteAndReassign|0]: Unexpected type on the stack. { Offset = 0x33, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [<ReassignXDuringAssignment>g__WriteAndReassign|0]: Unexpected type on the stack. { Offset = 0x39, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Program.Assign(A)", """
                 Baseline IL: KeepLtrSemantics_CompoundAssignment1
                 """);
         }
@@ -6969,13 +6864,21 @@ class A
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: KeepLtrSemantics_CompoundAssignmentProperties0
+                ILVerifyMessage = $$"""
+                    [Assign]: Return value missing on the stack. { Offset = 0x22 }
+                    [Main]: Return value missing on the stack. { Offset = 0x28 }
+                    [TestAIsNull]: Return value missing on the stack. { Offset = 0x30 }
+                    [TestAIsNotNull]: Return value missing on the stack. { Offset = 0x62 }
+                    [ReassignADuringAssignment]: Return value missing on the stack. { Offset = 0xe1 }
+                    [ReassignXDuringAssignment]: Return value missing on the stack. { Offset = 0x94 }
+                    [Write]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [<ReassignADuringAssignment>g__WriteAndReassign|0]: Unexpected type on the stack. { Offset = 0x33, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [<ReassignXDuringAssignment>g__WriteAndReassign|0]: Unexpected type on the stack. { Offset = 0x39, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Program.Assign(A)", """
                 Baseline IL: KeepLtrSemantics_CompoundAssignmentProperties1
                 """);
         }
@@ -7228,13 +7131,20 @@ class B
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: KeepLtrSemantics_AssignmentToAssignment0
+                ILVerifyMessage = $$"""
+                    [Assign]: Return value missing on the stack. { Offset = 0x27 }
+                    [Main]: Return value missing on the stack. { Offset = 0x32 }
+                    [TestAIsNullBIsNull]: Return value missing on the stack. { Offset = 0x33 }
+                    [TestAIsNullBIsNotNull]: Return value missing on the stack. { Offset = 0x37 }
+                    [TestAIsNotNullBIsNull]: Return value missing on the stack. { Offset = 0x42 }
+                    [TestADotBIsNullBIsNotNull]: Return value missing on the stack. { Offset = 0x3b }
+                    [TestADotBIsNotNullBIsNotNull]: Return value missing on the stack. { Offset = 0xb7 }
+                    [Write]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Program.Assign(A, B)", """
                 Baseline IL: KeepLtrSemantics_AssignmentToAssignment1
                 """);
         }
@@ -7495,13 +7405,20 @@ class B
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: KeepLtrSemantics_AssignmentToAssignmentProperties0
+                ILVerifyMessage = $$"""
+                    [Assign]: Return value missing on the stack. { Offset = 0x25 }
+                    [Main]: Return value missing on the stack. { Offset = 0x32 }
+                    [TestAIsNullBIsNull]: Return value missing on the stack. { Offset = 0x33 }
+                    [TestAIsNullBIsNotNull]: Return value missing on the stack. { Offset = 0x37 }
+                    [TestAIsNotNullBIsNull]: Return value missing on the stack. { Offset = 0x42 }
+                    [TestADotBIsNullBIsNotNull]: Return value missing on the stack. { Offset = 0x3b }
+                    [TestADotBIsNotNullBIsNotNull]: Return value missing on the stack. { Offset = 0xb7 }
+                    [Write]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Program.Assign(A, B)", """
                 Baseline IL: KeepLtrSemantics_AssignmentToAssignmentProperties1
                 """);
         }
@@ -7631,13 +7548,17 @@ struct B
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: AssignmentToFieldOfStaticFieldOfStruct0
+                ILVerifyMessage = $$"""
+                    [Assign]: Return value missing on the stack. { Offset = 0x1b }
+
+                    [Write]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+
+                    [Main]: Return value missing on the stack. { Offset = 0x52 }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Program.Assign()", """
                 Baseline IL: AssignmentToFieldOfStaticFieldOfStruct1
                 """);
         }
@@ -7675,13 +7596,15 @@ public class C
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: AssignStaticStructField0
+                ILVerifyMessage = $$"""
+                    [M]: Return value missing on the stack. { Offset = 0x12 }
+
+                    [Main]: Return value missing on the stack. { Offset = 0x1f }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("C.M(System.Threading.Tasks.Task<int>)", """
                 Baseline IL: AssignStaticStructField1
                 """);
         }
@@ -7725,13 +7648,15 @@ public class Program
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: AssignStaticStructField_ViaUsingStatic0
+                ILVerifyMessage = $$"""
+                    [M]: Return value missing on the stack. { Offset = 0x12 }
+
+                    [Main]: Return value missing on the stack. { Offset = 0x1f }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("Program.M(System.Threading.Tasks.Task<int>)", """
                 Baseline IL: AssignStaticStructField_ViaUsingStatic1
                 """);
         }
@@ -7770,13 +7695,15 @@ public class C
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = $"""
-                    ILVerify: AssignInstanceStructField0
+                ILVerifyMessage = $$"""
+                    [M]: Return value missing on the stack. { Offset = 0x1a }
+
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.Run()", """
+            verifier.VerifyIL("C.M(System.Threading.Tasks.Task<int>)", """
                 Baseline IL: AssignInstanceStructField1
                 """);
         }
