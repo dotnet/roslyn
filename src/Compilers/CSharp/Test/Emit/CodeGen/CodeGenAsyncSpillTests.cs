@@ -3339,6 +3339,10 @@ class C
 42
 ";
             CompileAndVerify(source, expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -3442,6 +3446,10 @@ public class AsyncBug {
   IL_00a8:  ret
 }
 """);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier2 = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("System.Int32", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier2.VerifyDiagnostics();
         }
 
         [Fact]

@@ -23,6 +23,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
         }
 
+        internal static string ExpectedOutput(string output, bool isRuntimeAsync)
+        {
+            return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
+        }
+
+        internal static CSharpCompilation CreateRuntimeAsyncCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
+        {
+            options = options ?? TestOptions.ReleaseExe;
+
+            IEnumerable<MetadataReference> asyncRefs = new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp };
+            references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
+
+            return CreateCompilationWithMscorlib461(source, options: options, references: references);
+        }
+
         private static CSharpCompilation CreateCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
             options = options ?? TestOptions.ReleaseExe;
