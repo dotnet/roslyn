@@ -644,6 +644,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Visits all arguments of a method, doing any necessary rewriting for interpolated string handler conversions that
         /// might be present in the arguments and creating temps for any discard parameters.
+        /// 
+        /// When <paramref name="forceReceiverCapturing"/> is true (which means the receiver must be captured regardless of
+        /// interpolated string handler conversions needs), <paramref name="storesOpt"/> must be not null.
+        /// 
+        /// If receiver is captured by this method:
+        /// - If <paramref name="storesOpt"/> is not null, the sideeffect of capturing is added to <paramref name="storesOpt"/>
+        ///   and <paramref name="rewrittenReceiver"/> is changed to the captured value;
+        /// - Otherwise, <paramref name="rewrittenReceiver"/> is changed to a <see cref="BoundSequence"/> node with no locals,
+        ///   the sideeffects of capturing are the sifeeffects of the sequence and its result is the captured value.
+        ///   
+        /// All temps introduced by this function for capturing purposes (including the temp capturing the receiver) are appended
+        /// to <paramref name="tempsOpt"/>, which is allocated, if 'null' on input.
         /// </summary>
         private ImmutableArray<BoundExpression> VisitArgumentsAndCaptureReceiverIfNeeded(
             [NotNullIfNotNull(nameof(rewrittenReceiver))] ref BoundExpression? rewrittenReceiver,
@@ -674,44 +686,48 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 RefKind refKind;
 
-                if (forceReceiverCapturing)
+                if (methodOrIndexer.GetIsNewExtensionMember())
                 {
-                    // SPEC VIOLATION: It is not very clear when receiver of constrained callvirt is dereferenced - when pushed (in lexical order),
-                    // SPEC VIOLATION: or when actual call is executed. The actual behavior seems to be implementation specific in different JITs.
-                    // SPEC VIOLATION: To not depend on that, the right thing to do here is to store the value of the variable 
-                    // SPEC VIOLATION: when variable has reference type (regular temp), and store variable's location when it has a value type. (ref temp)
-                    // SPEC VIOLATION: in a case of unconstrained generic type parameter a runtime test (default(T) == null) would be needed
-                    // SPEC VIOLATION: However, for compatibility with Dev12 we will continue treating all generic type parameters, constrained or not,
-                    // SPEC VIOLATION: as value types.
-
-                    refKind = (methodOrIndexer.GetIsNewExtensionMember() ?
-                                   !rewrittenReceiver.Type.IsReferenceType :
-                                   rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter) ?
-                              RefKind.Ref : RefKind.None;
+                    refKind = GetNewExtensionMemberReceiverCaptureRefKind(rewrittenReceiver, methodOrIndexer);
                 }
                 else
                 {
-                    if (rewrittenReceiver.Type.IsReferenceType) // IsNewExtensionMemberAccessWithByValPossiblyStructReceiver
+                    if (forceReceiverCapturing)
                     {
-                        refKind = RefKind.None;
+                        // SPEC VIOLATION: It is not very clear when receiver of constrained callvirt is dereferenced - when pushed (in lexical order),
+                        // SPEC VIOLATION: or when actual call is executed. The actual behavior seems to be implementation specific in different JITs.
+                        // SPEC VIOLATION: To not depend on that, the right thing to do here is to store the value of the variable 
+                        // SPEC VIOLATION: when variable has reference type (regular temp), and store variable's location when it has a value type. (ref temp)
+                        // SPEC VIOLATION: in a case of unconstrained generic type parameter a runtime test (default(T) == null) would be needed
+                        // SPEC VIOLATION: However, for compatibility with Dev12 we will continue treating all generic type parameters, constrained or not,
+                        // SPEC VIOLATION: as value types.
+
+                        refKind = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter ? RefKind.Ref : RefKind.None;
                     }
                     else
                     {
-                        refKind = rewrittenReceiver.GetRefKind();
-
-                        if (refKind == RefKind.None &&
-                            CodeGenerator.HasHome(rewrittenReceiver,
-                                           CodeGenerator.AddressKind.Constrained,
-                                           _factory.CurrentFunction,
-                                           peVerifyCompatEnabled: false,
-                                           stackLocalsOpt: null))
+                        if (rewrittenReceiver.Type.IsReferenceType)
                         {
-                            refKind = RefKind.Ref;
+                            refKind = RefKind.None;
+                        }
+                        else
+                        {
+                            refKind = rewrittenReceiver.GetRefKind();
+
+                            if (refKind == RefKind.None &&
+                                CodeGenerator.HasHome(rewrittenReceiver,
+                                               CodeGenerator.AddressKind.Constrained,
+                                               _factory.CurrentFunction,
+                                               peVerifyCompatEnabled: false,
+                                               stackLocalsOpt: null))
+                            {
+                                refKind = RefKind.Ref;
+                            }
                         }
                     }
                 }
 
-                receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind);
+                receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, (refKind is RefKind.RefReadOnlyParameter or RefKind.In) ? RefKindExtensions.StrictIn : refKind);
 
                 tempsOpt ??= ArrayBuilder<LocalSymbol>.GetInstance();
                 tempsOpt.Add(receiverTemp.LocalSymbol);
@@ -929,6 +945,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private RefKind GetNewExtensionMemberReceiverCaptureRefKind(BoundExpression rewrittenReceiver, Symbol methodOrIndexer)
+        {
+            Debug.Assert(rewrittenReceiver.Type is { });
+            Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is { });
+
+            RefKind receiverRefKind = methodOrIndexer.ContainingType.ExtensionParameter.RefKind;
+            bool isReceiverTakenByValue = receiverRefKind == RefKind.None;
+
+            if (rewrittenReceiver.Type.IsReferenceType ||
+                (isReceiverTakenByValue && methodOrIndexer is MethodSymbol)) // Extension methods with by-value receivers capture by value as classic extension methods do.
+            {
+                return RefKind.None;
+            }
+
+            if (isReceiverTakenByValue)
+            {
+                if (CodeGenerator.HasHome(rewrittenReceiver,
+                                    CodeGenerator.AddressKind.ReadOnlyStrict,
+                                    _factory.CurrentFunction,
+                                    peVerifyCompatEnabled: false,
+                                    stackLocalsOpt: null))
+                {
+                    return RefKindExtensions.StrictIn;
+                }
+
+                return RefKind.None;
+            }
+
+            RefKind refKind = ExtensionMethodReferenceRewriter.ReceiverArgumentRefKindFromReceiverRefKind(receiverRefKind);
+
+            if (CodeGenerator.HasHome(rewrittenReceiver,
+                                CodeGenerator.GetArgumentAddressKind(refKind),
+                                _factory.CurrentFunction,
+                                peVerifyCompatEnabled: false,
+                                stackLocalsOpt: null))
+            {
+                return refKind;
+            }
+
+            return RefKind.None;
+        }
+
         private void ReferToTempIfReferenceTypeReceiver(BoundLocal receiverTemp, ref BoundAssignmentOperator assignmentToTemp, out BoundAssignmentOperator? extraRefInitialization, ArrayBuilder<LocalSymbol> temps)
         {
             Debug.Assert(assignmentToTemp.IsRef);
@@ -950,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!receiverType.IsReferenceType)
             {
                 // Store receiver ref to a different ref local - intermediate ref
-                var intermediateRef = _factory.Local(_factory.SynthesizedLocal(receiverType, refKind: RefKind.Ref));
+                var intermediateRef = _factory.Local(_factory.SynthesizedLocal(receiverType, refKind: receiverTemp.LocalSymbol.RefKind));
                 temps.Add(intermediateRef.LocalSymbol);
                 extraRefInitialization = assignmentToTemp.Update(intermediateRef, assignmentToTemp.Right, assignmentToTemp.IsRef, assignmentToTemp.Type);
 

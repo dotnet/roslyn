@@ -21730,38 +21730,34 @@ static class E
             int Increment() => E.field.i++;
             """;
 
-        // Should be 0033, https://github.com/dotnet/roslyn/issues/79379
-        var expectedOutput = "1033";
+        var expectedOutput = "0033";
         var verifier = CompileAndVerify([exeSource, src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], expectedOutput: expectedOutput)
             .VerifyDiagnostics();
 
         verifier.VerifyIL("<top-level-statements-entry-point>", """
             {
-              // Code size       61 (0x3d)
+              // Code size       51 (0x33)
               .maxstack  5
-              .locals init (MyStruct& V_0,
-                            MyStruct V_1)
-              IL_0000:  ldsflda    "MyStruct E.field"
+              .locals init (MyStruct V_0)
+              IL_0000:  ldsfld     "MyStruct E.field"
               IL_0005:  stloc.0
               IL_0006:  ldloc.0
-              IL_0007:  ldobj      "MyStruct"
-              IL_000c:  call       "int Program.<<Main>$>g__Increment|0_0()"
-              IL_0011:  ldc.i4.0
-              IL_0012:  ldc.i4.0
-              IL_0013:  ldloc.0
-              IL_0014:  ldobj      "MyStruct"
-              IL_0019:  newobj     "InterpolationHandler..ctor(int, int, MyStruct)"
-              IL_001e:  call       "void E.M(MyStruct, int, InterpolationHandler)"
-              IL_0023:  ldsfld     "MyStruct E.field"
-              IL_0028:  stloc.1
-              IL_0029:  ldloc.1
-              IL_002a:  call       "int Program.<<Main>$>g__Increment|0_0()"
-              IL_002f:  ldc.i4.0
-              IL_0030:  ldc.i4.0
-              IL_0031:  ldloc.1
-              IL_0032:  newobj     "InterpolationHandler..ctor(int, int, MyStruct)"
-              IL_0037:  call       "void E.M(MyStruct, int, InterpolationHandler)"
-              IL_003c:  ret
+              IL_0007:  call       "int Program.<<Main>$>g__Increment|0_0()"
+              IL_000c:  ldc.i4.0
+              IL_000d:  ldc.i4.0
+              IL_000e:  ldloc.0
+              IL_000f:  newobj     "InterpolationHandler..ctor(int, int, MyStruct)"
+              IL_0014:  call       "void E.M(MyStruct, int, InterpolationHandler)"
+              IL_0019:  ldsfld     "MyStruct E.field"
+              IL_001e:  stloc.0
+              IL_001f:  ldloc.0
+              IL_0020:  call       "int Program.<<Main>$>g__Increment|0_0()"
+              IL_0025:  ldc.i4.0
+              IL_0026:  ldc.i4.0
+              IL_0027:  ldloc.0
+              IL_0028:  newobj     "InterpolationHandler..ctor(int, int, MyStruct)"
+              IL_002d:  call       "void E.M(MyStruct, int, InterpolationHandler)"
+              IL_0032:  ret
             }
             """);
 
@@ -21847,46 +21843,11 @@ static class E
             }
             """;
 
-        var expectedOutput = "10337699";
+        var expectedOutput = "00336699";
         var verifier = CompileAndVerify([exeSource, src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], expectedOutput: expectedOutput)
             .VerifyDiagnostics();
 
-        verifier.VerifyIL("Porgram.Test1<T>", """
-            {
-              // Code size       65 (0x41)
-              .maxstack  5
-              .locals init (T& V_0,
-                            T V_1,
-                            T& V_2,
-                            T V_3)
-              IL_0000:  ldsflda    "T E<T>.field"
-              IL_0005:  stloc.2
-              IL_0006:  ldloca.s   V_3
-              IL_0008:  initobj    "T"
-              IL_000e:  ldloc.3
-              IL_000f:  box        "T"
-              IL_0014:  brtrue.s   IL_0021
-              IL_0016:  ldloc.2
-              IL_0017:  ldobj      "T"
-              IL_001c:  stloc.1
-              IL_001d:  ldloca.s   V_1
-              IL_001f:  br.s       IL_0022
-              IL_0021:  ldloc.2
-              IL_0022:  stloc.0
-              IL_0023:  ldloc.0
-              IL_0024:  ldobj      "T"
-              IL_0029:  call       "int Porgram.Increment()"
-              IL_002e:  ldc.i4.0
-              IL_002f:  ldc.i4.0
-              IL_0030:  ldloc.0
-              IL_0031:  ldobj      "T"
-              IL_0036:  newobj     "InterpolationHandler<T>..ctor(int, int, T)"
-              IL_003b:  call       "void E.M<T>(T, int, InterpolationHandler<T>)"
-              IL_0040:  ret
-            }
-            """);
-
-        verifier.VerifyIL("Porgram.Test2<T>", """
+        var expectedIL = """
             {
               // Code size       26 (0x1a)
               .maxstack  5
@@ -21902,45 +21863,15 @@ static class E
               IL_0014:  call       "void E.M<T>(T, int, InterpolationHandler<T>)"
               IL_0019:  ret
             }
-            """);
+            """;
 
-        verifier.VerifyIL("Porgram.Test3<T>", """
-            {
-              // Code size       36 (0x24)
-              .maxstack  5
-              .locals init (T& V_0)
-              IL_0000:  ldsflda    "T E<T>.field"
-              IL_0005:  stloc.0
-              IL_0006:  ldloc.0
-              IL_0007:  ldobj      "T"
-              IL_000c:  call       "int Porgram.Increment()"
-              IL_0011:  ldc.i4.0
-              IL_0012:  ldc.i4.0
-              IL_0013:  ldloc.0
-              IL_0014:  ldobj      "T"
-              IL_0019:  newobj     "InterpolationHandler<T>..ctor(int, int, T)"
-              IL_001e:  call       "void E.M<T>(T, int, InterpolationHandler<T>)"
-              IL_0023:  ret
-            }
-            """);
+        verifier.VerifyIL("Porgram.Test1<T>", expectedIL);
 
-        verifier.VerifyIL("Porgram.Test4<T>", """
-            {
-              // Code size       26 (0x1a)
-              .maxstack  5
-              .locals init (T V_0)
-              IL_0000:  ldsfld     "T E<T>.field"
-              IL_0005:  stloc.0
-              IL_0006:  ldloc.0
-              IL_0007:  call       "int Porgram.Increment()"
-              IL_000c:  ldc.i4.0
-              IL_000d:  ldc.i4.0
-              IL_000e:  ldloc.0
-              IL_000f:  newobj     "InterpolationHandler<T>..ctor(int, int, T)"
-              IL_0014:  call       "void E.M<T>(T, int, InterpolationHandler<T>)"
-              IL_0019:  ret
-            }
-            """);
+        verifier.VerifyIL("Porgram.Test2<T>", expectedIL);
+
+        verifier.VerifyIL("Porgram.Test3<T>", expectedIL);
+
+        verifier.VerifyIL("Porgram.Test4<T>", expectedIL);
 
         var comp1 = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
 
@@ -22012,31 +21943,11 @@ static class E
             }
             """;
 
-        var expectedOutput = "1033";
+        var expectedOutput = "0033";
         var verifier = CompileAndVerify([exeSource, src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], expectedOutput: expectedOutput)
             .VerifyDiagnostics();
 
-        verifier.VerifyIL("Porgram.Test3<T>", """
-            {
-              // Code size       36 (0x24)
-              .maxstack  5
-              .locals init (T& V_0)
-              IL_0000:  ldsflda    "T E<T>.field"
-              IL_0005:  stloc.0
-              IL_0006:  ldloc.0
-              IL_0007:  ldobj      "T"
-              IL_000c:  call       "int Porgram.Increment()"
-              IL_0011:  ldc.i4.0
-              IL_0012:  ldc.i4.0
-              IL_0013:  ldloc.0
-              IL_0014:  ldobj      "T"
-              IL_0019:  newobj     "InterpolationHandler<T>..ctor(int, int, T)"
-              IL_001e:  call       "void E.M<T>(T, int, InterpolationHandler<T>)"
-              IL_0023:  ret
-            }
-            """);
-
-        verifier.VerifyIL("Porgram.Test4<T>", """
+        var expectedIL = """
             {
               // Code size       26 (0x1a)
               .maxstack  5
@@ -22052,7 +21963,11 @@ static class E
               IL_0014:  call       "void E.M<T>(T, int, InterpolationHandler<T>)"
               IL_0019:  ret
             }
-            """);
+            """;
+
+        verifier.VerifyIL("Porgram.Test3<T>", expectedIL);
+
+        verifier.VerifyIL("Porgram.Test4<T>", expectedIL);
 
         var comp1 = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
 
@@ -22141,42 +22056,7 @@ static class E
         var verifier = CompileAndVerify([exeSource, src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], expectedOutput: expectedOutput)
             .VerifyDiagnostics();
 
-        verifier.VerifyIL("Porgram.Test1<T>", """
-            {
-              // Code size       65 (0x41)
-              .maxstack  5
-              .locals init (T& V_0,
-                            T V_1,
-                            T& V_2,
-                            T V_3)
-              IL_0000:  ldsflda    "T E<T>.field"
-              IL_0005:  stloc.2
-              IL_0006:  ldloca.s   V_3
-              IL_0008:  initobj    "T"
-              IL_000e:  ldloc.3
-              IL_000f:  box        "T"
-              IL_0014:  brtrue.s   IL_0021
-              IL_0016:  ldloc.2
-              IL_0017:  ldobj      "T"
-              IL_001c:  stloc.1
-              IL_001d:  ldloca.s   V_1
-              IL_001f:  br.s       IL_0022
-              IL_0021:  ldloc.2
-              IL_0022:  stloc.0
-              IL_0023:  ldloc.0
-              IL_0024:  ldobj      "T"
-              IL_0029:  call       "int Porgram.Increment()"
-              IL_002e:  ldc.i4.0
-              IL_002f:  ldc.i4.0
-              IL_0030:  ldloc.0
-              IL_0031:  ldobj      "T"
-              IL_0036:  newobj     "InterpolationHandler<T>..ctor(int, int, T)"
-              IL_003b:  call       "void E.M<T>(T, int, InterpolationHandler<T>)"
-              IL_0040:  ret
-            }
-            """);
-
-        verifier.VerifyIL("Porgram.Test2<T>", """
+        var expectedIL = """
             {
               // Code size       26 (0x1a)
               .maxstack  5
@@ -22192,43 +22072,15 @@ static class E
               IL_0014:  call       "void E.M<T>(T, int, InterpolationHandler<T>)"
               IL_0019:  ret
             }
-            """);
+            """;
 
-        verifier.VerifyIL("Porgram.Test3<T>", """
-            {
-              // Code size       26 (0x1a)
-              .maxstack  5
-              .locals init (T V_0)
-              IL_0000:  ldsfld     "T E<T>.field"
-              IL_0005:  stloc.0
-              IL_0006:  ldloc.0
-              IL_0007:  call       "int Porgram.Increment()"
-              IL_000c:  ldc.i4.0
-              IL_000d:  ldc.i4.0
-              IL_000e:  ldloc.0
-              IL_000f:  newobj     "InterpolationHandler<T>..ctor(int, int, T)"
-              IL_0014:  call       "void E.M<T>(T, int, InterpolationHandler<T>)"
-              IL_0019:  ret
-            }
-            """);
+        verifier.VerifyIL("Porgram.Test1<T>", expectedIL);
 
-        verifier.VerifyIL("Porgram.Test4<T>", """
-            {
-              // Code size       26 (0x1a)
-              .maxstack  5
-              .locals init (T V_0)
-              IL_0000:  ldsfld     "T E<T>.field"
-              IL_0005:  stloc.0
-              IL_0006:  ldloc.0
-              IL_0007:  call       "int Porgram.Increment()"
-              IL_000c:  ldc.i4.0
-              IL_000d:  ldc.i4.0
-              IL_000e:  ldloc.0
-              IL_000f:  newobj     "InterpolationHandler<T>..ctor(int, int, T)"
-              IL_0014:  call       "void E.M<T>(T, int, InterpolationHandler<T>)"
-              IL_0019:  ret
-            }
-            """);
+        verifier.VerifyIL("Porgram.Test2<T>", expectedIL);
+
+        verifier.VerifyIL("Porgram.Test3<T>", expectedIL);
+
+        verifier.VerifyIL("Porgram.Test4<T>", expectedIL);
 
         var comp1 = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
 

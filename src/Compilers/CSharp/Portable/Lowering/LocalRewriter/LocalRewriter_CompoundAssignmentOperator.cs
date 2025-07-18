@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(node.LeftConversion is null);
 
-            return MakeInstanceCompoundAssignmentOperatorResult(node.Syntax, node.Left, node.Right, node.Operator.Method, node.Operator.Kind.IsChecked());
+            return MakeInstanceCompoundAssignmentOperatorResult(node.Syntax, node.Left, node.Right, node.Operator.Method, node.Operator.Kind.IsChecked(), AssignmentKind.CompoundAssignment);
         }
 
         private BoundExpression VisitBuiltInOrStaticCompoundAssignmentOperator(BoundCompoundAssignmentOperator node, bool used)
@@ -231,12 +231,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We need to create a tree that ensures that receiver of 'set' is evaluated after the binary operation
                     BoundLocal binaryResult = _factory.StoreToTemp(opFinal, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
-                    BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, binaryResult, used: used, isChecked: isChecked, isCompoundAssignment: true);
+                    BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, binaryResult, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment);
                     Debug.Assert(assignment.Type is { });
                     return new BoundSequence(syntax, [binaryResult.LocalSymbol], [assignmentToTemp], assignment, assignment.Type);
                 }
 
-                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, isCompoundAssignment: true);
+                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment);
             }
         }
 
@@ -245,17 +245,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (transformedLHS)
             {
                 case BoundPropertyAccess { PropertySymbol: { } property }:
-                    return checkProperty(property);
+                    return IsNewExtensionMemberWithByValPossiblyStructReceiver(property);
                 case BoundIndexerAccess { Indexer: { } indexer }:
-                    return checkProperty(indexer);
+                    return IsNewExtensionMemberWithByValPossiblyStructReceiver(indexer);
                 default:
                     return false;
             }
+        }
 
-            static bool checkProperty(PropertySymbol property)
-            {
-                return property.GetIsNewExtensionMember() && !property.IsStatic && property.ContainingType.ExtensionParameter is { RefKind: RefKind.None, Type.IsReferenceType: false };
-            }
+        static bool IsNewExtensionMemberWithByValPossiblyStructReceiver(Symbol symbol)
+        {
+            return symbol.GetIsNewExtensionMember() && !symbol.IsStatic && symbol.ContainingType.ExtensionParameter is { RefKind: RefKind.None, Type.IsReferenceType: false };
         }
 
         private BoundExpression? TransformPropertyOrEventReceiver(Symbol propertyOrEvent, BoundExpression? receiverOpt, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
@@ -289,31 +289,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiverOpt.Kind != BoundKind.TypeExpression);
 
             BoundExpression rewrittenReceiver = VisitExpression(receiverOpt);
+            Debug.Assert(rewrittenReceiver.Type is { });
 
             BoundAssignmentOperator assignmentToTemp;
+            RefKind refKind;
+            bool isKnownToReferToTempIfReferenceType = false;
 
-            // SPEC VIOLATION: It is not very clear when receiver of constrained callvirt is dereferenced - when pushed (in lexical order),
-            // SPEC VIOLATION: or when actual call is executed. The actual behavior seems to be implementation specific in different JITs.
-            // SPEC VIOLATION: To not depend on that, the right thing to do here is to store the value of the variable 
-            // SPEC VIOLATION: when variable has reference type (regular temp), and store variable's location when it has a value type. (ref temp)
-            // SPEC VIOLATION: in a case of unconstrained generic type parameter a runtime test (default(T) == null) would be needed
-            // SPEC VIOLATION: However, for compatibility with Dev12 we will continue treating all generic type parameters, constrained or not,
-            // SPEC VIOLATION: as value types.
-            Debug.Assert(rewrittenReceiver.Type is { });
-            var variableRepresentsLocation = propertyOrEvent.GetIsNewExtensionMember() ?
-                                                 !rewrittenReceiver.Type.IsReferenceType :
-                                                 (rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter);
+            if (propertyOrEvent.GetIsNewExtensionMember())
+            {
+                refKind = GetNewExtensionMemberReceiverCaptureRefKind(rewrittenReceiver, propertyOrEvent);
+            }
+            else
+            {
+                // SPEC VIOLATION: It is not very clear when receiver of constrained callvirt is dereferenced - when pushed (in lexical order),
+                // SPEC VIOLATION: or when actual call is executed. The actual behavior seems to be implementation specific in different JITs.
+                // SPEC VIOLATION: To not depend on that, the right thing to do here is to store the value of the variable 
+                // SPEC VIOLATION: when variable has reference type (regular temp), and store variable's location when it has a value type. (ref temp)
+                // SPEC VIOLATION: in a case of unconstrained generic type parameter a runtime test (default(T) == null) would be needed
+                // SPEC VIOLATION: However, for compatibility with Dev12 we will continue treating all generic type parameters, constrained or not,
+                // SPEC VIOLATION: as value types.
+
+                var variableRepresentsLocation = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
+                refKind = variableRepresentsLocation ? RefKind.Ref : RefKind.None;
+
+                isKnownToReferToTempIfReferenceType = !variableRepresentsLocation || rewrittenReceiver.Type.IsValueType ||
+                                                      !CodeGenerator.HasHome(rewrittenReceiver,
+                                                                            CodeGenerator.AddressKind.Constrained,
+                                                                            _factory.CurrentFunction,
+                                                                            peVerifyCompatEnabled: false,
+                                                                            stackLocalsOpt: null);
+            }
 
             var receiverTemp = _factory.StoreToTemp(
                 rewrittenReceiver,
                 out assignmentToTemp,
-                refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None,
-                isKnownToReferToTempIfReferenceType: !variableRepresentsLocation || rewrittenReceiver.Type.IsValueType ||
-                                                     !CodeGenerator.HasHome(rewrittenReceiver,
-                                                                            CodeGenerator.AddressKind.Constrained,
-                                                                            _factory.CurrentFunction,
-                                                                            peVerifyCompatEnabled: false,
-                                                                            stackLocalsOpt: null));
+                refKind: refKind,
+                isKnownToReferToTempIfReferenceType: isKnownToReferToTempIfReferenceType);
+
             temps.Add(receiverTemp.LocalSymbol);
 
             if (receiverTemp.LocalSymbol.IsRef &&
@@ -433,7 +445,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             PropertySymbol indexer = indexerAccess.Indexer;
 
             bool expanded = indexerAccess.Expanded;
+            rewrittenArguments = ExtractSideEffectsFromArguments(rewrittenArguments, indexer, expanded, argsToParamsOpt, ref argumentRefKinds, stores, temps);
 
+            // This is a temporary object that will be rewritten away before the lowering completes.
+            return new BoundIndexerAccess(
+                syntax,
+                transformedReceiver,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                indexer,
+                rewrittenArguments,
+                argumentNamesOpt: default(ImmutableArray<string?>),
+                argumentRefKinds,
+                expanded: false,
+                accessorKind: indexerAccess.AccessorKind,
+                argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
+                indexerAccess.Type);
+        }
+
+        /// <summary>
+        /// Store everything that is non-trivial into a temporary; record the
+        /// stores in <paramref name="stores"/> and make the actual argument a reference to the temp.
+        /// Return resulting arguments.
+        /// </summary>
+        private ImmutableArray<BoundExpression> ExtractSideEffectsFromArguments(
+            ImmutableArray<BoundExpression> rewrittenArguments,
+            PropertySymbol indexer,
+            bool expanded,
+            ImmutableArray<int> argsToParamsOpt,
+            ref ImmutableArray<RefKind> argumentRefKinds,
+            ArrayBuilder<BoundExpression> stores,
+            ArrayBuilder<LocalSymbol> temps)
+        {
             ImmutableArray<ParameterSymbol> parameters = indexer.Parameters;
             BoundExpression[] actualArguments = new BoundExpression[parameters.Length]; // The actual arguments that will be passed; one actual argument per formal parameter.
             ArrayBuilder<BoundAssignmentOperator> storesToTemps = ArrayBuilder<BoundAssignmentOperator>.GetInstance(rewrittenArguments.Length);
@@ -463,15 +506,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundAssignmentOperator storeToTemp;
                 var boundTemp = _factory.StoreToTemp(array, out storeToTemp);
-                stores.Add(storeToTemp);
-                temps.Add(boundTemp.LocalSymbol);
+                storesToTemps.Add(storeToTemp);
                 actualArguments[actualArguments.Length - 1] = boundTemp;
             }
-
-            // Step three: Now fill in the optional arguments. (Dev11 uses the getter for optional arguments in
-            // compound assignments, but for deconstructions we use the setter if the getter is missing.)
-            var accessor = indexer.GetOwnOrInheritedGetMethod() ?? indexer.GetOwnOrInheritedSetMethod();
-            Debug.Assert(accessor is not null);
 
             // For a call, step four would be to optimize away some of the temps.  However, we need them all to prevent
             // duplicate side-effects, so we'll skip that step.
@@ -494,20 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             argumentRefKinds = GetRefKindsOrNull(refKinds);
             refKinds.Free();
 
-            // This is a temporary object that will be rewritten away before the lowering completes.
-            return new BoundIndexerAccess(
-                syntax,
-                transformedReceiver,
-                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
-                indexer,
-                rewrittenArguments,
-                argumentNamesOpt: default(ImmutableArray<string?>),
-                argumentRefKinds,
-                expanded: false,
-                accessorKind: indexerAccess.AccessorKind,
-                argsToParamsOpt: default(ImmutableArray<int>),
-                defaultArguments: default(BitVector),
-                indexerAccess.Type);
+            return rewrittenArguments;
         }
 
         private BoundExpression TransformImplicitIndexerAccess(

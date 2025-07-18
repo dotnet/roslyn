@@ -5629,34 +5629,41 @@ class Program
 """;
 
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124", verify: Verification.Skipped).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124", verify: Verification.Skipped).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test",
 @"
 {
-  // Code size       18 (0x12)
+  // Code size       25 (0x19)
   .maxstack  2
+  .locals init (int V_0)
   IL_0000:  nop
-  IL_0001:  ldsfld     ""S1 Program.F""
+  IL_0001:  ldsflda    ""S1 Program.F""
   IL_0006:  call       ""int Program.Get1()""
-  IL_000b:  call       ""void E.set_P1(S1, int)""
-  IL_0010:  nop
-  IL_0011:  ret
+  IL_000b:  stloc.0
+  IL_000c:  ldobj      ""S1""
+  IL_0011:  ldloc.0
+  IL_0012:  call       ""void E.set_P1(S1, int)""
+  IL_0017:  nop
+  IL_0018:  ret
 }
 ");
 
         verifier.VerifyIL("S1.Test",
 @"
 {
-  // Code size       19 (0x13)
+  // Code size       21 (0x15)
   .maxstack  2
+  .locals init (int V_0)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  call       ""int Program.Get1()""
-  IL_000c:  call       ""void E.set_P1(S1, int)""
-  IL_0011:  nop
-  IL_0012:  ret
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  stloc.0
+  IL_0008:  ldobj      ""S1""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""void E.set_P1(S1, int)""
+  IL_0013:  nop
+  IL_0014:  ret
 }
 ");
 
@@ -6002,35 +6009,56 @@ class Program
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
 {
-  // Code size       19 (0x13)
+  // Code size       50 (0x32)
   .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""T""
-  IL_0007:  call       ""int Program.Get1()""
-  IL_000c:  call       ""void E.set_P1<T>(T, int)""
-  IL_0011:  nop
-  IL_0012:  ret
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""int Program.Get1()""
+  IL_0024:  stloc.2
+  IL_0025:  ldobj      ""T""
+  IL_002a:  ldloc.2
+  IL_002b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0030:  nop
+  IL_0031:  ret
 }
 ");
 
         verifier.VerifyIL("Program.Test2<T>(ref T)",
 @"
 {
-  // Code size       19 (0x13)
+  // Code size       21 (0x15)
   .maxstack  2
+  .locals init (int V_0)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""T""
-  IL_0007:  call       ""int Program.Get1()""
-  IL_000c:  call       ""void E.set_P1<T>(T, int)""
-  IL_0011:  nop
-  IL_0012:  ret
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  stloc.0
+  IL_0008:  ldobj      ""T""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""void E.set_P1<T>(T, int)""
+  IL_0013:  nop
+  IL_0014:  ret
 }
 ");
 
@@ -6329,15 +6357,33 @@ class Program
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
 {
-  // Code size       19 (0x13)
+  // Code size       50 (0x32)
   .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""T""
-  IL_0007:  call       ""int Program.Get1()""
-  IL_000c:  call       ""void E.set_P1<T>(T, int)""
-  IL_0011:  nop
-  IL_0012:  ret
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""int Program.Get1()""
+  IL_0024:  stloc.2
+  IL_0025:  ldobj      ""T""
+  IL_002a:  ldloc.2
+  IL_002b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0030:  nop
+  IL_0031:  ret
 }
 ");
 
@@ -6544,6 +6590,328 @@ class Program
   IL_000b:  call       ""void E.set_P1<T>(T, int)""
   IL_0010:  nop
   IL_0011:  ret
+}
+");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
+    public void PropertyAccess_Set_ReadonlyReceiver_040()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program.Increment();
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static readonly T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Initialize();
+        Test1<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Initialize();
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static unsafe void Initialize()
+    {
+        fixed (int* f1 = &Program<S1>.F.F1)
+        {
+            *f1 = 123;
+        }
+    }
+
+    public static unsafe void Increment()
+    {
+        fixed (int* f1 = &Program<S1>.F.F1)
+        {
+            (*f1)++;
+        }
+    }
+
+    static void Test1<T>()
+    {
+        Program<T>.F.P1 = Get1();
+    }
+
+    static int Get1()
+    {
+        Increment();
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        Program<T>.F.P1 = await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Increment();
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       54 (0x36)
+  .maxstack  2
+  .locals init (T V_0,
+            T& V_1,
+            int V_2,
+            T V_3)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""T Program<T>.F""
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_3
+  IL_0009:  initobj    ""T""
+  IL_000f:  ldloc.3
+  IL_0010:  box        ""T""
+  IL_0015:  brtrue.s   IL_0022
+  IL_0017:  ldloc.1
+  IL_0018:  ldobj      ""T""
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  br.s       IL_0023
+  IL_0022:  ldloc.1
+  IL_0023:  call       ""int Program.Get1()""
+  IL_0028:  stloc.2
+  IL_0029:  ldobj      ""T""
+  IL_002e:  ldloc.2
+  IL_002f:  call       ""void E.set_P1<T>(T, int)""
+  IL_0034:  nop
+  IL_0035:  ret
+}
+");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_Set_ReadonlyReceiver_041(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1({{{(refKind == "ref" ? "ref" : "in")}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f.P1 = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124").VerifyDiagnostics();
+
+        verifier.VerifyIL($"Program.Test1<T>({refKind} T)",
+@"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""int Program.Get1()""
+  IL_0024:  stloc.2
+  IL_0025:  ldobj      ""T""
+  IL_002a:  ldloc.2
+  IL_002b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0030:  nop
+  IL_0031:  ret
+}
+");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_Set_ReadonlyReceiver_061(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test1({{{(refKind == "ref" ? "ref" : "in")}}} Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f.P1 = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics();
+
+        verifier.VerifyIL($"Program.Test1<T>({refKind} T)",
+@"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""int Program.Get1()""
+  IL_0024:  stloc.2
+  IL_0025:  ldobj      ""T""
+  IL_002a:  ldloc.2
+  IL_002b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0030:  nop
+  IL_0031:  ret
 }
 ");
     }
@@ -7330,6 +7698,339 @@ class Program
   IL_0013:  call       ""void E.set_P1<T>(T, int)""
   IL_0018:  nop
   IL_0019:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_CompoundAssignment_ReadonlyReceiver_040()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program.Increment();
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static readonly T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Initialize();
+        Test1<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Initialize();
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static unsafe void Initialize()
+    {
+        fixed (int* f1 = &Program<S1>.F.F1)
+        {
+            *f1 = 123;
+        }
+    }
+
+    public static unsafe void Increment()
+    {
+        fixed (int* f1 = &Program<S1>.F.F1)
+        {
+            (*f1)++;
+        }
+    }
+
+    static void Test1<T>()
+    {
+        Program<T>.F.P1 += Get1();
+    }
+
+    static int Get1()
+    {
+        Increment();
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        Program<T>.F.P1 += await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Increment();
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       66 (0x42)
+  .maxstack  3
+  .locals init (T V_0,
+            T& V_1,
+            T V_2,
+            int V_3)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""T Program<T>.F""
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  initobj    ""T""
+  IL_000f:  ldloc.2
+  IL_0010:  box        ""T""
+  IL_0015:  brtrue.s   IL_0022
+  IL_0017:  ldloc.1
+  IL_0018:  ldobj      ""T""
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  br.s       IL_0023
+  IL_0022:  ldloc.1
+  IL_0023:  dup
+  IL_0024:  ldobj      ""T""
+  IL_0029:  call       ""int E.get_P1<T>(T)""
+  IL_002e:  call       ""int Program.Get1()""
+  IL_0033:  add
+  IL_0034:  stloc.3
+  IL_0035:  ldobj      ""T""
+  IL_003a:  ldloc.3
+  IL_003b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0040:  nop
+  IL_0041:  ret
+}
+");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_CompoundAssignment_ReadonlyReceiver_041(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1({{{(refKind == "ref" ? "ref" : "in")}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f.P1 += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL($"Program.Test1<T>({refKind} T)",
+@"
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                T V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.2
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldobj      ""T""
+  IL_0025:  call       ""int E.get_P1<T>(T)""
+  IL_002a:  call       ""int Program.Get1()""
+  IL_002f:  add
+  IL_0030:  stloc.3
+  IL_0031:  ldobj      ""T""
+  IL_0036:  ldloc.3
+  IL_0037:  call       ""void E.set_P1<T>(T, int)""
+  IL_003c:  nop
+  IL_003d:  ret
+}
+");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_CompoundAssignment_ReadonlyReceiver_061(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test1({{{(refKind == "ref" ? "ref" : "in")}}} Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f.P1 += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123125").VerifyDiagnostics();
+
+        verifier.VerifyIL($"Program.Test1<T>({refKind} T)",
+@"
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                T V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.2
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldobj      ""T""
+  IL_0025:  call       ""int E.get_P1<T>(T)""
+  IL_002a:  call       ""int Program.Get1()""
+  IL_002f:  add
+  IL_0030:  stloc.3
+  IL_0031:  ldobj      ""T""
+  IL_0036:  ldloc.3
+  IL_0037:  call       ""void E.set_P1<T>(T, int)""
+  IL_003c:  nop
+  IL_003d:  ret
 }
 ");
     }
@@ -11963,7 +12664,6 @@ class Program
     }
 
     [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/79415")]
     public void IndexerAccess_CompoundAssignment_07()
     {
         var src = """
@@ -11995,16 +12695,13 @@ struct S1
 
 class Program
 {
-// https://github.com/dotnet/roslyn/issues/79415 - remove the pragma once fixed
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     static async Task Main()
     {
         Test1<S1>();
 
-        // https://github.com/dotnet/roslyn/issues/79415 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //await Test3<S1>();
+        await Test3<S1>();
     }
 
     static T GetT<T>() => (T)(object)new S1 { F1 = 123 };
@@ -12019,68 +12716,46 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79415 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    GetT<T>()[0] += await Get1Async();
-    //}
+    static async Task Test3<T>()
+    {
+        GetT<T>()[0] += await Get1Async();
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123123").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>()",
 @"
 {
-  // Code size       73 (0x49)
+  // Code size       29 (0x1d)
   .maxstack  3
-  .locals init (T V_0,
-            T& V_1,
-            T V_2,
-            T V_3,
-            int V_4)
+  .locals init (int V_0)
   IL_0000:  nop
   IL_0001:  call       ""T Program.GetT<T>()""
-  IL_0006:  stloc.2
-  IL_0007:  ldloca.s   V_2
-  IL_0009:  stloc.1
-  IL_000a:  ldloca.s   V_3
-  IL_000c:  initobj    ""T""
-  IL_0012:  ldloc.3
-  IL_0013:  box        ""T""
-  IL_0018:  brtrue.s   IL_0025
-  IL_001a:  ldloc.1
-  IL_001b:  ldobj      ""T""
-  IL_0020:  stloc.0
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  br.s       IL_0026
-  IL_0025:  ldloc.1
-  IL_0026:  dup
-  IL_0027:  ldobj      ""T""
-  IL_002c:  ldc.i4.0
-  IL_002d:  call       ""int E.get_Item<T>(T, int)""
-  IL_0032:  call       ""int Program.Get1()""
-  IL_0037:  add
-  IL_0038:  stloc.s    V_4
-  IL_003a:  ldobj      ""T""
-  IL_003f:  ldc.i4.0
-  IL_0040:  ldloc.s    V_4
-  IL_0042:  call       ""void E.set_Item<T>(T, int, int)""
-  IL_0047:  nop
-  IL_0048:  ret
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  call       ""int E.get_Item<T>(T, int)""
+  IL_000d:  call       ""int Program.Get1()""
+  IL_0012:  add
+  IL_0013:  stloc.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldloc.0
+  IL_0016:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_001b:  nop
+  IL_001c:  ret
 }
 ");
     }
 
     [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/79415")]
     public void IndexerAccess_CompoundAssignment_08()
     {
         var src = """
@@ -12112,8 +12787,6 @@ class C1
 
 class Program
 {
-// https://github.com/dotnet/roslyn/issues/79415 - remove the pragma once fixed
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     static async Task Main()
     {
         Test1<C1>();
@@ -12122,10 +12795,9 @@ class Program
 
         Test2<C1>();
 
-        // https://github.com/dotnet/roslyn/issues/79415 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //await Test3<C1>();
+        await Test3<C1>();
     }
 
     static T GetT<T>() => (T)(object)new C1 { F1 = 123 };
@@ -12145,62 +12817,41 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79415 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    GetT<T>()[0] += await Get1Async();
-    //}
+    static async Task Test3<T>()
+    {
+        GetT<T>()[0] += await Get1Async();
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123:123123").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>()",
 @"
 {
-  // Code size       73 (0x49)
+  // Code size       29 (0x1d)
   .maxstack  3
-  .locals init (T V_0,
-            T& V_1,
-            T V_2,
-            T V_3,
-            int V_4)
+  .locals init (int V_0)
   IL_0000:  nop
   IL_0001:  call       ""T Program.GetT<T>()""
-  IL_0006:  stloc.2
-  IL_0007:  ldloca.s   V_2
-  IL_0009:  stloc.1
-  IL_000a:  ldloca.s   V_3
-  IL_000c:  initobj    ""T""
-  IL_0012:  ldloc.3
-  IL_0013:  box        ""T""
-  IL_0018:  brtrue.s   IL_0025
-  IL_001a:  ldloc.1
-  IL_001b:  ldobj      ""T""
-  IL_0020:  stloc.0
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  br.s       IL_0026
-  IL_0025:  ldloc.1
-  IL_0026:  dup
-  IL_0027:  ldobj      ""T""
-  IL_002c:  ldc.i4.0
-  IL_002d:  call       ""int E.get_Item<T>(T, int)""
-  IL_0032:  call       ""int Program.Get1()""
-  IL_0037:  add
-  IL_0038:  stloc.s    V_4
-  IL_003a:  ldobj      ""T""
-  IL_003f:  ldc.i4.0
-  IL_0040:  ldloc.s    V_4
-  IL_0042:  call       ""void E.set_Item<T>(T, int, int)""
-  IL_0047:  nop
-  IL_0048:  ret
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  call       ""int E.get_Item<T>(T, int)""
+  IL_000d:  call       ""int Program.Get1()""
+  IL_0012:  add
+  IL_0013:  stloc.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldloc.0
+  IL_0016:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_001b:  nop
+  IL_001c:  ret
 }
 ");
 
@@ -13445,57 +14096,36 @@ class Program
         verifier.VerifyIL("Program.Test1<T>()",
 @"
 {
-  // Code size      102 (0x66)
+  // Code size       48 (0x30)
   .maxstack  4
-  .locals init (T& V_0,
-            T V_1,
-            T& V_2,
-            int V_3,
-            InterpolationHandler<T> V_4,
-            T V_5,
-            T V_6,
-            int V_7)
+  .locals init (T V_0,
+                int V_1,
+                InterpolationHandler<T> V_2,
+                int V_3)
   IL_0000:  nop
   IL_0001:  call       ""T Program.GetT<T>()""
-  IL_0006:  stloc.s    V_5
-  IL_0008:  ldloca.s   V_5
-  IL_000a:  stloc.2
-  IL_000b:  ldloca.s   V_6
-  IL_000d:  initobj    ""T""
-  IL_0013:  ldloc.s    V_6
-  IL_0015:  box        ""T""
-  IL_001a:  brtrue.s   IL_0027
-  IL_001c:  ldloc.2
-  IL_001d:  ldobj      ""T""
-  IL_0022:  stloc.1
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  br.s       IL_0028
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>)""
+  IL_001e:  call       ""int Program.Get1()""
+  IL_0023:  add
+  IL_0024:  stloc.3
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
   IL_0027:  ldloc.2
-  IL_0028:  stloc.0
-  IL_0029:  call       ""int Program.Get1()""
-  IL_002e:  stloc.3
-  IL_002f:  ldc.i4.0
-  IL_0030:  ldc.i4.0
-  IL_0031:  ldloc.0
-  IL_0032:  ldobj      ""T""
-  IL_0037:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
-  IL_003c:  stloc.s    V_4
-  IL_003e:  ldloc.0
-  IL_003f:  ldobj      ""T""
-  IL_0044:  ldloc.3
-  IL_0045:  ldloc.s    V_4
-  IL_0047:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>)""
-  IL_004c:  call       ""int Program.Get1()""
-  IL_0051:  add
-  IL_0052:  stloc.s    V_7
-  IL_0054:  ldloc.0
-  IL_0055:  ldobj      ""T""
-  IL_005a:  ldloc.3
-  IL_005b:  ldloc.s    V_4
-  IL_005d:  ldloc.s    V_7
-  IL_005f:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
-  IL_0064:  nop
-  IL_0065:  ret
+  IL_0028:  ldloc.3
+  IL_0029:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_002e:  nop
+  IL_002f:  ret
 }
 ");
     }
@@ -13598,57 +14228,36 @@ class Program
         verifier.VerifyIL("Program.Test1<T>()",
 @"
 {
-  // Code size      102 (0x66)
+  // Code size       48 (0x30)
   .maxstack  4
-  .locals init (T& V_0,
-            T V_1,
-            T& V_2,
-            int V_3,
-            InterpolationHandler<T> V_4,
-            T V_5,
-            T V_6,
-            int V_7)
+  .locals init (T V_0,
+                int V_1,
+                InterpolationHandler<T> V_2,
+                int V_3)
   IL_0000:  nop
   IL_0001:  call       ""T Program.GetT<T>()""
-  IL_0006:  stloc.s    V_5
-  IL_0008:  ldloca.s   V_5
-  IL_000a:  stloc.2
-  IL_000b:  ldloca.s   V_6
-  IL_000d:  initobj    ""T""
-  IL_0013:  ldloc.s    V_6
-  IL_0015:  box        ""T""
-  IL_001a:  brtrue.s   IL_0027
-  IL_001c:  ldloc.2
-  IL_001d:  ldobj      ""T""
-  IL_0022:  stloc.1
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  br.s       IL_0028
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>)""
+  IL_001e:  call       ""int Program.Get1()""
+  IL_0023:  add
+  IL_0024:  stloc.3
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
   IL_0027:  ldloc.2
-  IL_0028:  stloc.0
-  IL_0029:  call       ""int Program.Get1()""
-  IL_002e:  stloc.3
-  IL_002f:  ldc.i4.0
-  IL_0030:  ldc.i4.0
-  IL_0031:  ldloc.0
-  IL_0032:  ldobj      ""T""
-  IL_0037:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
-  IL_003c:  stloc.s    V_4
-  IL_003e:  ldloc.0
-  IL_003f:  ldobj      ""T""
-  IL_0044:  ldloc.3
-  IL_0045:  ldloc.s    V_4
-  IL_0047:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>)""
-  IL_004c:  call       ""int Program.Get1()""
-  IL_0051:  add
-  IL_0052:  stloc.s    V_7
-  IL_0054:  ldloc.0
-  IL_0055:  ldobj      ""T""
-  IL_005a:  ldloc.3
-  IL_005b:  ldloc.s    V_4
-  IL_005d:  ldloc.s    V_7
-  IL_005f:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
-  IL_0064:  nop
-  IL_0065:  ret
+  IL_0028:  ldloc.3
+  IL_0029:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_002e:  nop
+  IL_002f:  ret
 }
 ");
 
@@ -13762,53 +14371,71 @@ class Program
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "124123126:124123126", verify: Verification.Skipped).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126", verify: Verification.Skipped).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test",
 @"
 {
-  // Code size       43 (0x2b)
-  .maxstack  5
-  .locals init (S1& V_0)
+  // Code size       49 (0x31)
+  .maxstack  4
+  .locals init (S1& V_0,
+                int V_1,
+                InterpolationHandler V_2,
+                int V_3)
   IL_0000:  nop
   IL_0001:  ldsflda    ""S1 Program.F""
   IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  ldobj      ""S1""
-  IL_000d:  call       ""int Program.Get1()""
-  IL_0012:  ldc.i4.0
-  IL_0013:  ldc.i4.0
-  IL_0014:  ldloc.0
-  IL_0015:  ldobj      ""S1""
-  IL_001a:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
-  IL_001f:  call       ""int Program.Get1()""
-  IL_0024:  call       ""void E.set_Item(S1, int, InterpolationHandler, int)""
-  IL_0029:  nop
-  IL_002a:  ret
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  ldobj      ""S1""
+  IL_0015:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
+  IL_001a:  stloc.2
+  IL_001b:  call       ""int Program.Get1()""
+  IL_0020:  stloc.3
+  IL_0021:  ldloc.0
+  IL_0022:  ldobj      ""S1""
+  IL_0027:  ldloc.1
+  IL_0028:  ldloc.2
+  IL_0029:  ldloc.3
+  IL_002a:  call       ""void E.set_Item(S1, int, InterpolationHandler, int)""
+  IL_002f:  nop
+  IL_0030:  ret
 }
 ");
 
         verifier.VerifyIL("S1.Test",
 @"
 {
-  // Code size       39 (0x27)
-  .maxstack  5
-  .locals init (S1& V_0)
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (S1& V_0,
+            int V_1,
+            InterpolationHandler V_2,
+            int V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  ldobj      ""S1""
-  IL_0009:  call       ""int Program.Get1()""
-  IL_000e:  ldc.i4.0
-  IL_000f:  ldc.i4.0
-  IL_0010:  ldloc.0
-  IL_0011:  ldobj      ""S1""
-  IL_0016:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
-  IL_001b:  call       ""int Program.Get1()""
-  IL_0020:  call       ""void E.set_Item(S1, int, InterpolationHandler, int)""
-  IL_0025:  nop
-  IL_0026:  ret
+  IL_0003:  call       ""int Program.Get1()""
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      ""S1""
+  IL_0011:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
+  IL_0016:  stloc.2
+  IL_0017:  call       ""int Program.Get1()""
+  IL_001c:  stloc.3
+  IL_001d:  ldloc.0
+  IL_001e:  ldobj      ""S1""
+  IL_0023:  ldloc.1
+  IL_0024:  ldloc.2
+  IL_0025:  ldloc.3
+  IL_0026:  call       ""void E.set_Item(S1, int, InterpolationHandler, int)""
+  IL_002b:  nop
+  IL_002c:  ret
 }
 ");
 
@@ -14216,68 +14843,86 @@ class Program
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "124123126:124123126").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
 {
-  // Code size       68 (0x44)
-  .maxstack  5
+  // Code size       79 (0x4f)
+  .maxstack  4
   .locals init (T& V_0,
                 T V_1,
                 T& V_2,
-                T V_3)
+                int V_3,
+                InterpolationHandler<T> V_4,
+                int V_5,
+                T V_6)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.2
-  IL_0003:  ldloca.s   V_3
+  IL_0003:  ldloca.s   V_6
   IL_0005:  initobj    ""T""
-  IL_000b:  ldloc.3
-  IL_000c:  box        ""T""
-  IL_0011:  brtrue.s   IL_001e
-  IL_0013:  ldloc.2
-  IL_0014:  ldobj      ""T""
-  IL_0019:  stloc.1
-  IL_001a:  ldloca.s   V_1
-  IL_001c:  br.s       IL_001f
-  IL_001e:  ldloc.2
-  IL_001f:  stloc.0
-  IL_0020:  ldloc.0
-  IL_0021:  ldobj      ""T""
-  IL_0026:  call       ""int Program.Get1()""
-  IL_002b:  ldc.i4.0
-  IL_002c:  ldc.i4.0
-  IL_002d:  ldloc.0
-  IL_002e:  ldobj      ""T""
-  IL_0033:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
-  IL_0038:  call       ""int Program.Get1()""
-  IL_003d:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
-  IL_0042:  nop
-  IL_0043:  ret
+  IL_000b:  ldloc.s    V_6
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.2
+  IL_0020:  stloc.0
+  IL_0021:  call       ""int Program.Get1()""
+  IL_0026:  stloc.3
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  call       ""int Program.Get1()""
+  IL_003b:  stloc.s    V_5
+  IL_003d:  ldloc.0
+  IL_003e:  ldobj      ""T""
+  IL_0043:  ldloc.3
+  IL_0044:  ldloc.s    V_4
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_004d:  nop
+  IL_004e:  ret
 }
 ");
 
         verifier.VerifyIL("Program.Test2<T>(ref T)",
 @"
 {
-  // Code size       39 (0x27)
-  .maxstack  5
-  .locals init (T& V_0)
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (T& V_0,
+                int V_1,
+                InterpolationHandler<T> V_2,
+                int V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  ldobj      ""T""
-  IL_0009:  call       ""int Program.Get1()""
-  IL_000e:  ldc.i4.0
-  IL_000f:  ldc.i4.0
-  IL_0010:  ldloc.0
-  IL_0011:  ldobj      ""T""
-  IL_0016:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
-  IL_001b:  call       ""int Program.Get1()""
-  IL_0020:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
-  IL_0025:  nop
-  IL_0026:  ret
+  IL_0003:  call       ""int Program.Get1()""
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      ""T""
+  IL_0011:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0016:  stloc.2
+  IL_0017:  call       ""int Program.Get1()""
+  IL_001c:  stloc.3
+  IL_001d:  ldloc.0
+  IL_001e:  ldobj      ""T""
+  IL_0023:  ldloc.1
+  IL_0024:  ldloc.2
+  IL_0025:  ldloc.3
+  IL_0026:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_002b:  nop
+  IL_002c:  ret
 }
 ");
 
@@ -14632,39 +15277,48 @@ class Program
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
 {
-  // Code size       68 (0x44)
-  .maxstack  5
+  // Code size       79 (0x4f)
+  .maxstack  4
   .locals init (T& V_0,
                 T V_1,
                 T& V_2,
-                T V_3)
+                int V_3,
+                InterpolationHandler<T> V_4,
+                int V_5,
+                T V_6)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.2
-  IL_0003:  ldloca.s   V_3
+  IL_0003:  ldloca.s   V_6
   IL_0005:  initobj    ""T""
-  IL_000b:  ldloc.3
-  IL_000c:  box        ""T""
-  IL_0011:  brtrue.s   IL_001e
-  IL_0013:  ldloc.2
-  IL_0014:  ldobj      ""T""
-  IL_0019:  stloc.1
-  IL_001a:  ldloca.s   V_1
-  IL_001c:  br.s       IL_001f
-  IL_001e:  ldloc.2
-  IL_001f:  stloc.0
-  IL_0020:  ldloc.0
-  IL_0021:  ldobj      ""T""
-  IL_0026:  call       ""int Program.Get1()""
-  IL_002b:  ldc.i4.0
-  IL_002c:  ldc.i4.0
-  IL_002d:  ldloc.0
-  IL_002e:  ldobj      ""T""
-  IL_0033:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
-  IL_0038:  call       ""int Program.Get1()""
-  IL_003d:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
-  IL_0042:  nop
-  IL_0043:  ret
+  IL_000b:  ldloc.s    V_6
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.2
+  IL_0020:  stloc.0
+  IL_0021:  call       ""int Program.Get1()""
+  IL_0026:  stloc.3
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  call       ""int Program.Get1()""
+  IL_003b:  stloc.s    V_5
+  IL_003d:  ldloc.0
+  IL_003e:  ldobj      ""T""
+  IL_0043:  ldloc.3
+  IL_0044:  ldloc.s    V_4
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_004d:  nop
+  IL_004e:  ret
 }
 ");
 
@@ -15005,53 +15659,71 @@ class Program
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "124123126:124123126", verify: Verification.Skipped).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126", verify: Verification.Skipped).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test",
 @"
 {
-  // Code size       43 (0x2b)
-  .maxstack  5
-  .locals init (S1& V_0)
+  // Code size       49 (0x31)
+  .maxstack  4
+  .locals init (S1& V_0,
+                int V_1,
+                InterpolationHandler V_2,
+                int V_3)
   IL_0000:  nop
   IL_0001:  ldsflda    ""S1 Program.F""
   IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  ldobj      ""S1""
-  IL_000d:  call       ""int Program.Get1()""
-  IL_0012:  ldc.i4.0
-  IL_0013:  ldc.i4.0
-  IL_0014:  ldloc.0
-  IL_0015:  ldobj      ""S1""
-  IL_001a:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
-  IL_001f:  call       ""int Program.Get1()""
-  IL_0024:  call       ""int E.get_Item(S1, int, InterpolationHandler, int)""
-  IL_0029:  pop
-  IL_002a:  ret
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  ldobj      ""S1""
+  IL_0015:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
+  IL_001a:  stloc.2
+  IL_001b:  call       ""int Program.Get1()""
+  IL_0020:  stloc.3
+  IL_0021:  ldloc.0
+  IL_0022:  ldobj      ""S1""
+  IL_0027:  ldloc.1
+  IL_0028:  ldloc.2
+  IL_0029:  ldloc.3
+  IL_002a:  call       ""int E.get_Item(S1, int, InterpolationHandler, int)""
+  IL_002f:  pop
+  IL_0030:  ret
 }
 ");
 
         verifier.VerifyIL("S1.Test",
 @"
 {
-  // Code size       39 (0x27)
-  .maxstack  5
-  .locals init (S1& V_0)
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (S1& V_0,
+                int V_1,
+                InterpolationHandler V_2,
+                int V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  ldobj      ""S1""
-  IL_0009:  call       ""int Program.Get1()""
-  IL_000e:  ldc.i4.0
-  IL_000f:  ldc.i4.0
-  IL_0010:  ldloc.0
-  IL_0011:  ldobj      ""S1""
-  IL_0016:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
-  IL_001b:  call       ""int Program.Get1()""
-  IL_0020:  call       ""int E.get_Item(S1, int, InterpolationHandler, int)""
-  IL_0025:  pop
-  IL_0026:  ret
+  IL_0003:  call       ""int Program.Get1()""
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      ""S1""
+  IL_0011:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
+  IL_0016:  stloc.2
+  IL_0017:  call       ""int Program.Get1()""
+  IL_001c:  stloc.3
+  IL_001d:  ldloc.0
+  IL_001e:  ldobj      ""S1""
+  IL_0023:  ldloc.1
+  IL_0024:  ldloc.2
+  IL_0025:  ldloc.3
+  IL_0026:  call       ""int E.get_Item(S1, int, InterpolationHandler, int)""
+  IL_002b:  pop
+  IL_002c:  ret
 }
 ");
     }
@@ -15404,68 +16076,86 @@ class Program
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "124123126:124123126").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
 {
-  // Code size       68 (0x44)
-  .maxstack  5
+  // Code size       79 (0x4f)
+  .maxstack  4
   .locals init (T& V_0,
-                T V_1,
-                T& V_2,
-                T V_3)
+            T V_1,
+            T& V_2,
+            int V_3,
+            InterpolationHandler<T> V_4,
+            int V_5,
+            T V_6)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.2
-  IL_0003:  ldloca.s   V_3
+  IL_0003:  ldloca.s   V_6
   IL_0005:  initobj    ""T""
-  IL_000b:  ldloc.3
-  IL_000c:  box        ""T""
-  IL_0011:  brtrue.s   IL_001e
-  IL_0013:  ldloc.2
-  IL_0014:  ldobj      ""T""
-  IL_0019:  stloc.1
-  IL_001a:  ldloca.s   V_1
-  IL_001c:  br.s       IL_001f
-  IL_001e:  ldloc.2
-  IL_001f:  stloc.0
-  IL_0020:  ldloc.0
-  IL_0021:  ldobj      ""T""
-  IL_0026:  call       ""int Program.Get1()""
-  IL_002b:  ldc.i4.0
-  IL_002c:  ldc.i4.0
-  IL_002d:  ldloc.0
-  IL_002e:  ldobj      ""T""
-  IL_0033:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
-  IL_0038:  call       ""int Program.Get1()""
-  IL_003d:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>, int)""
-  IL_0042:  pop
-  IL_0043:  ret
+  IL_000b:  ldloc.s    V_6
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.2
+  IL_0020:  stloc.0
+  IL_0021:  call       ""int Program.Get1()""
+  IL_0026:  stloc.3
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  call       ""int Program.Get1()""
+  IL_003b:  stloc.s    V_5
+  IL_003d:  ldloc.0
+  IL_003e:  ldobj      ""T""
+  IL_0043:  ldloc.3
+  IL_0044:  ldloc.s    V_4
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_004d:  pop
+  IL_004e:  ret
 }
 ");
 
         verifier.VerifyIL("Program.Test2<T>(ref T)",
 @"
 {
-  // Code size       39 (0x27)
-  .maxstack  5
-  .locals init (T& V_0)
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (T& V_0,
+                int V_1,
+                InterpolationHandler<T> V_2,
+                int V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  ldobj      ""T""
-  IL_0009:  call       ""int Program.Get1()""
-  IL_000e:  ldc.i4.0
-  IL_000f:  ldc.i4.0
-  IL_0010:  ldloc.0
-  IL_0011:  ldobj      ""T""
-  IL_0016:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
-  IL_001b:  call       ""int Program.Get1()""
-  IL_0020:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>, int)""
-  IL_0025:  pop
-  IL_0026:  ret
+  IL_0003:  call       ""int Program.Get1()""
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      ""T""
+  IL_0011:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0016:  stloc.2
+  IL_0017:  call       ""int Program.Get1()""
+  IL_001c:  stloc.3
+  IL_001d:  ldloc.0
+  IL_001e:  ldobj      ""T""
+  IL_0023:  ldloc.1
+  IL_0024:  ldloc.2
+  IL_0025:  ldloc.3
+  IL_0026:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_002b:  pop
+  IL_002c:  ret
 }
 ");
     }
@@ -15747,39 +16437,48 @@ class Program
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
 {
-  // Code size       68 (0x44)
-  .maxstack  5
+  // Code size       79 (0x4f)
+  .maxstack  4
   .locals init (T& V_0,
-                T V_1,
-                T& V_2,
-                T V_3)
+            T V_1,
+            T& V_2,
+            int V_3,
+            InterpolationHandler<T> V_4,
+            int V_5,
+            T V_6)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.2
-  IL_0003:  ldloca.s   V_3
+  IL_0003:  ldloca.s   V_6
   IL_0005:  initobj    ""T""
-  IL_000b:  ldloc.3
-  IL_000c:  box        ""T""
-  IL_0011:  brtrue.s   IL_001e
-  IL_0013:  ldloc.2
-  IL_0014:  ldobj      ""T""
-  IL_0019:  stloc.1
-  IL_001a:  ldloca.s   V_1
-  IL_001c:  br.s       IL_001f
-  IL_001e:  ldloc.2
-  IL_001f:  stloc.0
-  IL_0020:  ldloc.0
-  IL_0021:  ldobj      ""T""
-  IL_0026:  call       ""int Program.Get1()""
-  IL_002b:  ldc.i4.0
-  IL_002c:  ldc.i4.0
-  IL_002d:  ldloc.0
-  IL_002e:  ldobj      ""T""
-  IL_0033:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
-  IL_0038:  call       ""int Program.Get1()""
-  IL_003d:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>, int)""
-  IL_0042:  pop
-  IL_0043:  ret
+  IL_000b:  ldloc.s    V_6
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.2
+  IL_0020:  stloc.0
+  IL_0021:  call       ""int Program.Get1()""
+  IL_0026:  stloc.3
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  call       ""int Program.Get1()""
+  IL_003b:  stloc.s    V_5
+  IL_003d:  ldloc.0
+  IL_003e:  ldobj      ""T""
+  IL_0043:  ldloc.3
+  IL_0044:  ldloc.s    V_4
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_004d:  pop
+  IL_004e:  ret
 }
 ");
 
@@ -16427,6 +17126,293 @@ class Program
 ");
     }
 
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Get_WithInterpolationHandler_ReadonlyReceiver_020(string refKind)
+    {
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h, int j]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test({{{(refKind == "ref" ? "ref" : "in")}}} F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test({{{refKind}}} S1 x)
+    {
+        _ = x[Program.Get1(), $"", Get1()];
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  5
+  .locals init (S1& V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""int Program.Get1()""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  newobj     ""InterpolationHandler..ctor(int, int, " + refKind + @" S1)""
+  IL_0011:  call       ""int Program.Get1()""
+  IL_0016:  call       ""int E.get_Item(" + refKind + @" S1, int, InterpolationHandler, int)""
+  IL_001b:  pop
+  IL_001c:  ret
+}
+");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Get_WithInterpolationHandler_ReadonlyReceiver_021(string refKind)
+    {
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h, int j]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        _ = GetS1()[Program.Get1(), $"", Get1()];
+    }
+
+    static {{{(refKind == "ref" ? "ref" : "ref readonly")}}} S1 GetS1() => ref Program.F;
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (S1& V_0)
+  IL_0000:  nop
+  IL_0001:  call       """ + (refKind == "ref" ? "ref" : "ref readonly") + @" S1 Program.GetS1()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler..ctor(int, int, " + refKind + @" S1)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""int E.get_Item(" + refKind + @" S1, int, InterpolationHandler, int)""
+  IL_001f:  pop
+  IL_0020:  ret
+}
+");
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Get_WithInterpolationHandler_ReadonlyReceiver_022(string refKind)
+    {
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.Increment();
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h, int j]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static readonly S1 F;
+
+    static void Main()
+    {
+        Initialize();
+        Test();
+        System.Console.Write(F.F1);
+    }
+
+    static unsafe void Initialize()
+    {
+        fixed (int* f1 = &F.F1)
+        {
+            *f1 = 123;
+        }
+    }
+
+    public static unsafe void Increment()
+    {
+        fixed (int* f1 = &F.F1)
+        {
+            (*f1)++;
+        }
+    }
+
+    static void Test()
+    {
+        _ = F[Program.Get1(), $"", Get1()];
+    }
+
+    public static int Get1()
+    {
+        Increment();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (S1& V_0)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler..ctor(int, int, " + refKind + @" S1)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""int E.get_Item(" + refKind + @" S1, int, InterpolationHandler, int)""
+  IL_001f:  pop
+  IL_0020:  ret
+}
+");
+    }
+
     [Fact]
     public void IndexerAccess_Set_01()
     {
@@ -16490,36 +17476,49 @@ class Program
 """;
 
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123125:123125", verify: Verification.Skipped).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "125125:125125", verify: Verification.Skipped).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test",
 @"
 {
-  // Code size       23 (0x17)
+  // Code size       32 (0x20)
   .maxstack  3
+  .locals init (int V_0,
+                int V_1)
   IL_0000:  nop
-  IL_0001:  ldsfld     ""S1 Program.F""
+  IL_0001:  ldsflda    ""S1 Program.F""
   IL_0006:  call       ""int Program.Get1()""
-  IL_000b:  call       ""int Program.Get1()""
-  IL_0010:  call       ""void E.set_Item(S1, int, int)""
-  IL_0015:  nop
-  IL_0016:  ret
+  IL_000b:  stloc.0
+  IL_000c:  call       ""int Program.Get1()""
+  IL_0011:  stloc.1
+  IL_0012:  ldobj      ""S1""
+  IL_0017:  ldloc.0
+  IL_0018:  ldloc.1
+  IL_0019:  call       ""void E.set_Item(S1, int, int)""
+  IL_001e:  nop
+  IL_001f:  ret
 }
 ");
 
         verifier.VerifyIL("S1.Test",
 @"
 {
-  // Code size       24 (0x18)
+  // Code size       28 (0x1c)
   .maxstack  3
+  .locals init (int V_0,
+                int V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  call       ""int Program.Get1()""
-  IL_000c:  call       ""int Program.Get1()""
-  IL_0011:  call       ""void E.set_Item(S1, int, int)""
-  IL_0016:  nop
-  IL_0017:  ret
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  stloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  stloc.1
+  IL_000e:  ldobj      ""S1""
+  IL_0013:  ldloc.0
+  IL_0014:  ldloc.1
+  IL_0015:  call       ""void E.set_Item(S1, int, int)""
+  IL_001a:  nop
+  IL_001b:  ret
 }
 ");
 
@@ -16844,37 +17843,64 @@ class Program
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123125:123125").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "125125:125125").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
 {
-  // Code size       24 (0x18)
+  // Code size       58 (0x3a)
   .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                T V_4)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""T""
-  IL_0007:  call       ""int Program.Get1()""
-  IL_000c:  call       ""int Program.Get1()""
-  IL_0011:  call       ""void E.set_Item<T>(T, int, int)""
-  IL_0016:  nop
-  IL_0017:  ret
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_4
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.s    V_4
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.1
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.0
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.1
+  IL_0020:  call       ""int Program.Get1()""
+  IL_0025:  stloc.2
+  IL_0026:  call       ""int Program.Get1()""
+  IL_002b:  stloc.3
+  IL_002c:  ldobj      ""T""
+  IL_0031:  ldloc.2
+  IL_0032:  ldloc.3
+  IL_0033:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_0038:  nop
+  IL_0039:  ret
 }
 ");
 
         verifier.VerifyIL("Program.Test2<T>(ref T)",
 @"
 {
-  // Code size       24 (0x18)
+  // Code size       28 (0x1c)
   .maxstack  3
+  .locals init (int V_0,
+                int V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""T""
-  IL_0007:  call       ""int Program.Get1()""
-  IL_000c:  call       ""int Program.Get1()""
-  IL_0011:  call       ""void E.set_Item<T>(T, int, int)""
-  IL_0016:  nop
-  IL_0017:  ret
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  stloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  stloc.1
+  IL_000e:  ldobj      ""T""
+  IL_0013:  ldloc.0
+  IL_0014:  ldloc.1
+  IL_0015:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_001a:  nop
+  IL_001b:  ret
 }
 ");
 
@@ -17174,16 +18200,37 @@ class Program
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
 {
-  // Code size       24 (0x18)
+  // Code size       58 (0x3a)
   .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                T V_4)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""T""
-  IL_0007:  call       ""int Program.Get1()""
-  IL_000c:  call       ""int Program.Get1()""
-  IL_0011:  call       ""void E.set_Item<T>(T, int, int)""
-  IL_0016:  nop
-  IL_0017:  ret
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_4
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.s    V_4
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.1
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.0
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.1
+  IL_0020:  call       ""int Program.Get1()""
+  IL_0025:  stloc.2
+  IL_0026:  call       ""int Program.Get1()""
+  IL_002b:  stloc.3
+  IL_002c:  ldobj      ""T""
+  IL_0031:  ldloc.2
+  IL_0032:  ldloc.3
+  IL_0033:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_0038:  nop
+  IL_0039:  ret
 }
 ");
 
@@ -17458,34 +18505,41 @@ class Program
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124", verify: Verification.Skipped).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124", verify: Verification.Skipped).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test",
 @"
 {
-  // Code size       18 (0x12)
+  // Code size       25 (0x19)
   .maxstack  2
+  .locals init (int V_0)
   IL_0000:  nop
-  IL_0001:  ldsfld     ""S1 Program.F""
+  IL_0001:  ldsflda    ""S1 Program.F""
   IL_0006:  call       ""int Program.Get1()""
-  IL_000b:  call       ""int E.get_Item(S1, int)""
-  IL_0010:  pop
-  IL_0011:  ret
+  IL_000b:  stloc.0
+  IL_000c:  ldobj      ""S1""
+  IL_0011:  ldloc.0
+  IL_0012:  call       ""int E.get_Item(S1, int)""
+  IL_0017:  pop
+  IL_0018:  ret
 }
 ");
 
         verifier.VerifyIL("S1.Test",
 @"
 {
-  // Code size       19 (0x13)
+  // Code size       21 (0x15)
   .maxstack  2
+  .locals init (int V_0)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  call       ""int Program.Get1()""
-  IL_000c:  call       ""int E.get_Item(S1, int)""
-  IL_0011:  pop
-  IL_0012:  ret
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  stloc.0
+  IL_0008:  ldobj      ""S1""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""int E.get_Item(S1, int)""
+  IL_0013:  pop
+  IL_0014:  ret
 }
 ");
     }
@@ -17763,35 +18817,56 @@ class Program
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
 {
-  // Code size       19 (0x13)
+  // Code size       50 (0x32)
   .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""T""
-  IL_0007:  call       ""int Program.Get1()""
-  IL_000c:  call       ""int E.get_Item<T>(T, int)""
-  IL_0011:  pop
-  IL_0012:  ret
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""int Program.Get1()""
+  IL_0024:  stloc.2
+  IL_0025:  ldobj      ""T""
+  IL_002a:  ldloc.2
+  IL_002b:  call       ""int E.get_Item<T>(T, int)""
+  IL_0030:  pop
+  IL_0031:  ret
 }
 ");
 
         verifier.VerifyIL("Program.Test2<T>(ref T)",
 @"
 {
-  // Code size       19 (0x13)
+  // Code size       21 (0x15)
   .maxstack  2
+  .locals init (int V_0)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""T""
-  IL_0007:  call       ""int Program.Get1()""
-  IL_000c:  call       ""int E.get_Item<T>(T, int)""
-  IL_0011:  pop
-  IL_0012:  ret
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  stloc.0
+  IL_0008:  ldobj      ""T""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""int E.get_Item<T>(T, int)""
+  IL_0013:  pop
+  IL_0014:  ret
 }
 ");
     }
@@ -18028,15 +19103,33 @@ class Program
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
 {
-  // Code size       19 (0x13)
+  // Code size       50 (0x32)
   .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""T""
-  IL_0007:  call       ""int Program.Get1()""
-  IL_000c:  call       ""int E.get_Item<T>(T, int)""
-  IL_0011:  pop
-  IL_0012:  ret
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""int Program.Get1()""
+  IL_0024:  stloc.2
+  IL_0025:  ldobj      ""T""
+  IL_002a:  ldloc.2
+  IL_002b:  call       ""int E.get_Item<T>(T, int)""
+  IL_0030:  pop
+  IL_0031:  ret
 }
 ");
 
