@@ -14810,15 +14810,114 @@ static class E
 {
     extension(C<int> source)
     {
-        public C<string> SelectMany(System.Func<int, C<int>> collectionSelector, System.Func<int, int, string> resultSelector) => throw null;
-        public C<T> Cast<T>() => throw null;
+        public C<string> SelectMany(System.Func<int, C<int>> collectionSelector, System.Func<int, int, string> resultSelector) { System.Console.Write("SelectMany"); return new C<string>(); }
+        public C<T> Cast<T>() { System.Console.Write("Cast "); return new C<T>(); }
     }
 }
 
 class C<T> { }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "Cast SelectMany").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var q = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Single();
+
+        var info0 = model.GetQueryClauseInfo(q.FromClause);
+        Assert.Equal("Cast", info0.CastInfo.Symbol.Name);
+        Assert.Null(info0.OperationInfo.Symbol);
+        Assert.Equal("x", model.GetDeclaredSymbol(q.FromClause).Name);
+
+        var info1 = model.GetQueryClauseInfo(q.Body.Clauses[0]);
+        Assert.Equal("Cast", info1.CastInfo.Symbol.Name);
+        Assert.Equal("SelectMany", info1.OperationInfo.Symbol.Name);
+        Assert.Equal("y", model.GetDeclaredSymbol(q.Body.Clauses[0]).Name);
+
+        verifier.VerifyTypeIL("E", """
+.class private auto ansi abstract sealed beforefieldinit E
+    extends [netstandard]System.Object
+{
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [netstandard]System.Object
+    {
+        // Methods
+        .method private hidebysig specialname static
+            void '<Extension>$' (
+                class C`1<int32> source
+            ) cil managed
+        {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x212c
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
+        .method public hidebysig
+            instance class C`1<string> SelectMany (
+                class [netstandard]System.Func`2<int32, class C`1<int32>> collectionSelector,
+                class [netstandard]System.Func`3<int32, int32, string> resultSelector
+            ) cil managed
+        {
+            // Method begins at RVA 0x212e
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::SelectMany
+        .method public hidebysig
+            instance class C`1<!!T> Cast<T> () cil managed
+        {
+            // Method begins at RVA 0x212e
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::Cast
+    } // end of class <>E__0
+    // Methods
+    .method public hidebysig static
+        class C`1<string> SelectMany (
+            class C`1<int32> source,
+            class [netstandard]System.Func`2<int32, class C`1<int32>> collectionSelector,
+            class [netstandard]System.Func`3<int32, int32, string> resultSelector
+        ) cil managed
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x20cb
+        // Code size 16 (0x10)
+        .maxstack 8
+        IL_0000: ldstr "SelectMany"
+        IL_0005: call void [netstandard]System.Console::Write(string)
+        IL_000a: newobj instance void class C`1<string>::.ctor()
+        IL_000f: ret
+    } // end of method E::SelectMany
+    .method public hidebysig static
+        class C`1<!!T> Cast<T> (
+            class C`1<int32> source
+        ) cil managed
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x20dc
+        // Code size 16 (0x10)
+        .maxstack 8
+        IL_0000: ldstr "Cast "
+        IL_0005: call void [netstandard]System.Console::Write(string)
+        IL_000a: newobj instance void class C`1<!!T>::.ctor()
+        IL_000f: ret
+    } // end of method E::Cast
+} // end of class E
+""");
 
         var expectedOperationTree = """
 ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: C<System.String>) (Syntax: 'from int x  ... .ToString()')
