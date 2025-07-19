@@ -34,6 +34,9 @@ public sealed class RemoteEditAndContinueServiceTests
             (!string.IsNullOrWhiteSpace(d.DataLocation.UnmappedFileSpan.Path) ? $" {d.DataLocation.UnmappedFileSpan.Path}({d.DataLocation.UnmappedFileSpan.StartLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.StartLinePosition.Character}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Character}):" : "") +
             $" {d.Message}";
 
+    private static IEnumerable<string> Inspect(ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> projects)
+        => projects.Select(kvp => $"{kvp.Key}: [{string.Join(", ", kvp.Value.Select(p => p.ToString()))}]");
+
     [Theory, CombinatorialData]
     public async Task Proxy(TestHost testHost)
     {
@@ -244,7 +247,7 @@ public sealed class RemoteEditAndContinueServiceTests
         Assert.Equal(span1, activeStatements.NewSpan.ToLinePositionSpan());
 
         AssertEx.SequenceEqual([projectId], results.ProjectsToRebuild);
-        AssertEx.SequenceEqual([KeyValuePair.Create<ProjectId, ImmutableArray<ProjectId>>(projectId, [projectId])], results.ProjectsToRestart);
+        AssertEx.SequenceEqual([$"{projectId}: [{projectId}]"], Inspect(results.ProjectsToRestart));
         AssertEx.SequenceEqual([projectId], results.ProjectsToRedeploy);
 
         // CommitSolutionUpdate

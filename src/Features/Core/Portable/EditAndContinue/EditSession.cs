@@ -447,8 +447,11 @@ internal sealed class EditSession
     /// </summary>
     internal static bool HasProjectLevelDifferences(Project oldProject, Project newProject, ProjectDifferences? differences)
     {
+        Debug.Assert(oldProject.CompilationOptions != null);
+        Debug.Assert(newProject.CompilationOptions != null);
+
         if (oldProject.ParseOptions != newProject.ParseOptions ||
-            oldProject.CompilationOptions != newProject.CompilationOptions ||
+            HasDifferences(oldProject.CompilationOptions, newProject.CompilationOptions) ||
             oldProject.AssemblyName != newProject.AssemblyName)
         {
             if (differences != null)
@@ -476,6 +479,16 @@ internal sealed class EditSession
 
         return false;
     }
+
+    /// <summary>
+    /// True if given compilation options differ in a way that might affect EnC.
+    /// </summary>
+    internal static bool HasDifferences(CompilationOptions oldOptions, CompilationOptions newOptions)
+        => !oldOptions
+            .WithSyntaxTreeOptionsProvider(newOptions.SyntaxTreeOptionsProvider)
+            .WithStrongNameProvider(newOptions.StrongNameProvider)
+            .WithXmlReferenceResolver(newOptions.XmlReferenceResolver)
+            .Equals(newOptions);
 
     internal static async Task GetProjectDifferencesAsync(TraceLog log, Project? oldProject, Project newProject, ProjectDifferences documentDifferences, ArrayBuilder<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
@@ -1005,8 +1018,6 @@ internal sealed class EditSession
                     var oldProject = oldSolution.GetProject(newProject.Id);
                     Debug.Assert(oldProject == null || oldProject.SupportsEditAndContinue());
 
-                    projectDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
-
                     await GetProjectDifferencesAsync(Log, oldProject, newProject, projectDifferences, projectDiagnostics, cancellationToken).ConfigureAwait(false);
                     projectDifferences.Log(Log, newProject);
 
@@ -1344,9 +1355,9 @@ internal sealed class EditSession
                 }
                 finally
                 {
-                    if (projectSummaryToReport.HasValue)
+                    if (projectSummaryToReport.HasValue || !projectDiagnostics.IsEmpty)
                     {
-                        Telemetry.LogProjectAnalysisSummary(projectSummaryToReport.Value, newProject.State.ProjectInfo.Attributes.TelemetryId, projectDiagnostics);
+                        Telemetry.LogProjectAnalysisSummary(projectSummaryToReport, newProject.State.ProjectInfo.Attributes.TelemetryId, projectDiagnostics);
                     }
 
                     if (!projectDiagnostics.IsEmpty)
