@@ -7,7 +7,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
@@ -45,11 +44,6 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
     private readonly IPdbSourceDocumentLogger? _logger = logger;
 
     /// <summary>
-    /// Lock to guard access to workspace updates when opening / closing documents.
-    /// </summary>
-    private readonly object _gate = new();
-
-    /// <summary>
     /// Accessed only in <see cref="GetGeneratedFileAsync"/> and <see cref="CleanupGeneratedFiles"/>, both of which
     /// are called under a lock in <see cref="MetadataAsSourceFileService"/>.  So this is safe as a plain
     /// dictionary.
@@ -63,27 +57,15 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
     /// </summary>
     private readonly HashSet<ProjectId> _sourceLinkEnabledProjects = [];
 
-    /// <summary>
-    /// Accessed both in <see cref="GetGeneratedFileAsync"/> and in UI thread operations.  Those should not
-    /// generally run concurrently.  However, to be safe, we make this a concurrent dictionary to be safe to that
-    /// potentially happening.
-    /// </summary>
-    private readonly ConcurrentDictionary<string, SourceDocumentInfo> _fileToDocumentInfoMap = new(StringComparer.OrdinalIgnoreCase);
-
-    /// <summary>
-    /// Only accessed and mutated in serial calls either from the UI thread or LSP queue.
-    /// </summary>
-    private readonly HashSet<DocumentId> _openedDocumentIds = [];
-
-    public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(
+    public async Task<(MetadataAsSourceFile File, MetadataAsSourceFileMetadata FileMetadata)?> GetGeneratedFileAsync(
         MetadataAsSourceWorkspace metadataWorkspace,
         Workspace sourceWorkspace,
         Project sourceProject,
         ISymbol symbol,
         bool signaturesOnly,
         MetadataAsSourceOptions options,
-        string tempPath,
         TelemetryMessage? telemetryMessage,
+        IMetadataDocumentPersister persister,
         CancellationToken cancellationToken)
     {
         // Check if the user wants to look for PDB source documents at all
@@ -234,52 +216,21 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
             _assemblyToProjectMap.Add(assemblyName, projectId);
         }
 
-        var tempFilePath = Path.Combine(tempPath, projectId.Id.ToString());
-
-        // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
-        // to retry this a few times.
-        var loopCount = 0;
-        while (!Directory.Exists(tempFilePath))
-        {
-            // Protect against infinite loops.
-            if (loopCount++ > 10)
-            {
-                _logger?.Log(FeaturesResources.Unable_to_create_0, tempFilePath);
-                return null;
-            }
-
-            IOUtilities.PerformIO(() => Directory.CreateDirectory(tempFilePath));
-        }
-
         // Get text loaders for our documents. We do this here because if we can't load any of the files, then
         // we can't provide any results, so there is no point adding a project to the workspace etc.
         var useExtendedTimeout = _sourceLinkEnabledProjects.Contains(projectId);
         var encoding = defaultEncoding ?? Encoding.UTF8;
-        var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, telemetryMessage, useExtendedTimeout, cancellationToken)).ToArray();
+        var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(sd, encoding, telemetryMessage, useExtendedTimeout, projectId, persister, cancellationToken)).ToArray();
         var sourceFileInfos = await Task.WhenAll(sourceFileInfoTasks).ConfigureAwait(false);
         if (sourceFileInfos is null || sourceFileInfos.Where(t => t is null).Any())
             return null;
 
         var symbolId = SymbolKey.Create(symbol, cancellationToken);
 
-        // Get a view of the solution with the document added, but do not actually update the workspace.
-        // TryAddDocumentToWorkspace is responsible for actually updating the solution with the new document(s).
-        // We just need a view with the document added so we can find the right location in the generated source.
-        var pendingSolution = metadataWorkspace.CurrentSolution;
-        var documentInfos = CreateDocumentInfos(sourceFileInfos, encoding, projectId, sourceWorkspace, sourceProject);
-        if (documentInfos.Length > 0)
-        {
-            foreach (var documentInfo in documentInfos)
-            {
-                // The document might have already been added by a previous go to definition call.
-                if (!pendingSolution.ContainsDocument(documentInfo.Id))
-                {
-                    pendingSolution = pendingSolution.AddDocument(documentInfo);
-                }
-            }
-        }
-
-        var navigateProject = pendingSolution.GetRequiredProject(projectId);
+        var navigateProject = metadataWorkspace.CurrentSolution.GetRequiredProject(projectId);
+        AddDocumentInfosToWorkspace(sourceFileInfos, projectId, metadataWorkspace);
+        // Get a new view of the project with the documents added.
+        navigateProject = metadataWorkspace.CurrentSolution.GetRequiredProject(projectId);
 
         // If MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync can't find the actual document to navigate to, it will fall back
         // to the document passed in, which we just use the first document for.
@@ -300,7 +251,7 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
             sourceDescription);
         var documentTooltip = navigateDocument.FilePath + Environment.NewLine + dllPath;
 
-        return new MetadataAsSourceFile(navigateDocument.FilePath!, navigateLocation, documentName, documentTooltip);
+        return (new MetadataAsSourceFile(navigateDocument.FilePath!, navigateLocation, documentName, documentTooltip), new MetadataAsSourceFileMetadata(SignaturesOnly: false, sourceWorkspace, sourceProject.Id));
     }
 
     private ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, ImmutableDictionary<string, string> pdbCompilationOptions, string assemblyName, string assemblyVersion, SourceHashAlgorithm checksumAlgorithm)
@@ -334,8 +285,8 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
             metadataReferences: project.MetadataReferences.ToImmutableArray()); // TODO: Read references from PDB info: https://github.com/dotnet/roslyn/issues/55834
     }
 
-    private ImmutableArray<DocumentInfo> CreateDocumentInfos(
-        SourceFileInfo?[] sourceFileInfos, Encoding encoding, ProjectId projectId, Workspace sourceWorkspace, Project sourceProject)
+    private void AddDocumentInfosToWorkspace(
+        SourceFileInfo?[] sourceFileInfos, ProjectId projectId, Workspace metadataWorkspace)
     {
         using var _ = ArrayBuilder<DocumentInfo>.GetInstance(out var documents);
 
@@ -347,18 +298,22 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
             }
 
             // If a document has multiple symbols then we might already know about it
-            if (_fileToDocumentInfoMap.TryGetValue(info.FilePath, out var sourceDocumentInfo))
+            var existingDocumentIds = metadataWorkspace.CurrentSolution.GetDocumentIdsWithFilePath(info.FilePath);
+            if (existingDocumentIds.Any())
             {
-                documents.Add(sourceDocumentInfo.DocumentInfo);
                 continue;
             }
 
             var documentId = DocumentId.CreateNewId(projectId);
 
+            // Update the workspace to pull the text we just generated.
+            var textAndVersion = TextAndVersion.Create(info.SourceText, VersionStamp.Default, info.FilePath);
+            var textLoader = TextLoader.From(textAndVersion);
+
             var documentInfo = DocumentInfo.Create(
                 documentId,
                 name: Path.GetFileName(info.FilePath),
-                loader: info.Loader,
+                loader: textLoader,
                 filePath: info.FilePath,
                 isGenerated: true)
                 .WithDesignTimeOnly(true);
@@ -371,86 +326,8 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
                 _sourceLinkEnabledProjects.Add(projectId);
             }
 
-            // In order to open documents in VS we need to understand the link from temp file to document and its encoding etc.
-            _fileToDocumentInfoMap[info.FilePath] = new(documentId, encoding, info.ChecksumAlgorithm, sourceProject.Id, sourceWorkspace, documentInfo);
+            metadataWorkspace.OnDocumentAdded(documentInfo);
         }
-
-        return documents.ToImmutableAndClear();
-    }
-
-    public bool ShouldCollapseOnOpen(MetadataAsSourceWorkspace workspace, string filePath, BlockStructureOptions blockStructureOptions)
-    {
-        return _fileToDocumentInfoMap.TryGetValue(filePath, out _) && blockStructureOptions.CollapseMetadataImplementationsWhenFirstOpened;
-    }
-
-    public bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, SourceTextContainer sourceTextContainer, [NotNullWhen(true)] out DocumentId? documentId)
-    {
-        lock (_gate)
-        {
-            if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
-            {
-                Contract.ThrowIfTrue(_openedDocumentIds.Contains(info.DocumentId));
-
-                workspace.OnDocumentAdded(info.DocumentInfo);
-                workspace.OnDocumentOpened(info.DocumentId, sourceTextContainer);
-                documentId = info.DocumentId;
-                _openedDocumentIds.Add(documentId);
-                return true;
-            }
-
-            documentId = null;
-            return false;
-        }
-    }
-
-    public bool TryRemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, string filePath)
-    {
-        lock (_gate)
-        {
-            if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
-            {
-                // In LSP, while calls to TryAddDocumentToWorkspace and TryRemoveDocumentFromWorkspace are handled
-                // serially, it is possible that TryRemoveDocumentFromWorkspace called without TryAddDocumentToWorkspace first.
-                // This can happen if the document is immediately closed after opening - only feature requests that force us
-                // to materialize a solution will trigger TryAddDocumentToWorkspace, if none are made it is never called.
-                // However TryRemoveDocumentFromWorkspace is always called on close.
-                if (_openedDocumentIds.Contains(info.DocumentId))
-                {
-                    workspace.OnDocumentClosed(info.DocumentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, filePath, info.Encoding));
-                    workspace.OnDocumentRemoved(info.DocumentId);
-                    _openedDocumentIds.Remove(info.DocumentId);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-    }
-
-    public Project? MapDocument(Document document)
-    {
-        if (document.FilePath is not null &&
-            _fileToDocumentInfoMap.TryGetValue(document.FilePath, out var info))
-        {
-            // We always want to do symbol look ups in the context of the source project, not in
-            // our temporary project. This is so that source symbols in our source project don't
-            // get incorrectly found, as they might not represent the whole picture. For example
-            // given the following in two different files:
-            //
-            // File1.cs
-            // public partial class C { void M1(); }
-            // File2.cs
-            // public partial class C { void M2(); }
-            //
-            // A go-to-def on M1() would find File1.cs. If a subsequent go-to-def is done on C
-            // it would find the source definition from the downloaded File1.cs, and use that
-            // rather than doing a probably symbol search to find both possible locations for C
-
-            var solution = info.SourceWorkspace.CurrentSolution;
-            return solution.GetProject(info.SourceProjectId);
-        }
-
-        return null;
     }
 
     public void CleanupGeneratedFiles(MetadataAsSourceWorkspace workspace)
@@ -461,27 +338,8 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
         _assemblyToProjectMap.Clear();
 
         // The MetadataAsSourceFileService will clean up the entire temp folder so no need to do anything here
-        _fileToDocumentInfoMap.Clear();
-        _openedDocumentIds.Clear();
         _sourceLinkEnabledProjects.Clear();
         _implementationAssemblyLookupService.Clear();
-    }
-
-    internal TestAccessor GetTestAccessor()
-    {
-        return new TestAccessor(this);
-    }
-
-    internal readonly struct TestAccessor
-    {
-        private readonly PdbSourceDocumentMetadataAsSourceFileProvider _instance;
-
-        internal TestAccessor(PdbSourceDocumentMetadataAsSourceFileProvider instance)
-        {
-            _instance = instance;
-        }
-
-        public ImmutableDictionary<string, SourceDocumentInfo> Documents => _instance._fileToDocumentInfoMap.ToImmutableDictionary();
     }
 }
 

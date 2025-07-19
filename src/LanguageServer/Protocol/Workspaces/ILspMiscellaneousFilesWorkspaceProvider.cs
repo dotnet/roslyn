@@ -36,5 +36,5 @@ internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
     /// Note that the implementation of this method should not depend on anything expensive such as RPC calls.
     /// async is used here to allow taking locks asynchronously and "relatively fast" stuff like that.
     /// </summary>
-    ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri, bool removeFromMetadataWorkspace);
+    ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri);
 }
