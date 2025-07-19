@@ -61,8 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
                 keepVoid As Boolean,
                 methodSymbolOpt As IMethodSymbol,
                 node As SyntaxNode,
-                knownTypes As KnownTaskTypes,
-                cancellationToken As CancellationToken) As SyntaxNode
+                knownTypes As KnownTaskTypes) As SyntaxNode
 
             If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression) OrElse
                node.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) Then

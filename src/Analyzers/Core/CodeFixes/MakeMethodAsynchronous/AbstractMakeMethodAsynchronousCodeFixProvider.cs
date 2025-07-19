@@ -25,7 +25,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     protected abstract bool IsAsyncReturnType(ITypeSymbol type, KnownTaskTypes knownTypes);
 
     protected abstract SyntaxNode AddAsyncTokenAndFixReturnType(
-        bool keepVoid, IMethodSymbol methodSymbol, SyntaxNode node, KnownTaskTypes knownTypes, CancellationToken cancellationToken);
+        bool keepVoid, IMethodSymbol methodSymbol, SyntaxNode node, KnownTaskTypes knownTypes);
 
     public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -188,7 +188,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         SyntaxNode node,
         CancellationToken cancellationToken)
     {
-        var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbol, node, knownTypes, cancellationToken);
+        var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbol, node, knownTypes);
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var newRoot = root.ReplaceNode(node, newNode);

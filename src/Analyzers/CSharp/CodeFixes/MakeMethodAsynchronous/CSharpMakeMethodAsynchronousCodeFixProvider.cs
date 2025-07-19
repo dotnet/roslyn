@@ -71,13 +71,12 @@ internal sealed class CSharpMakeMethodAsynchronousCodeFixProvider() : AbstractMa
         bool keepVoid,
         IMethodSymbol methodSymbol,
         SyntaxNode node,
-        KnownTaskTypes knownTypes,
-        CancellationToken cancellationToken)
+        KnownTaskTypes knownTypes)
     {
         return node switch
         {
-            MethodDeclarationSyntax method => FixMethod(keepVoid, methodSymbol, method, knownTypes, cancellationToken),
-            LocalFunctionStatementSyntax localFunction => FixLocalFunction(keepVoid, methodSymbol, localFunction, knownTypes, cancellationToken),
+            MethodDeclarationSyntax method => FixMethod(keepVoid, methodSymbol, method, knownTypes),
+            LocalFunctionStatementSyntax localFunction => FixLocalFunction(keepVoid, methodSymbol, localFunction, knownTypes),
             AnonymousFunctionExpressionSyntax anonymous => FixAnonymousFunction(anonymous),
             _ => node,
         };
@@ -87,12 +86,11 @@ internal sealed class CSharpMakeMethodAsynchronousCodeFixProvider() : AbstractMa
         bool keepVoid,
         IMethodSymbol methodSymbol,
         MethodDeclarationSyntax method,
-        KnownTaskTypes knownTypes,
-        CancellationToken cancellationToken)
+        KnownTaskTypes knownTypes)
     {
         var (newModifiers, newReturnType) = AddAsyncModifierWithCorrectedTrivia(
             method.Modifiers,
-            FixMethodReturnType(keepVoid, methodSymbol, method.ReturnType, knownTypes, cancellationToken));
+            FixMethodReturnType(keepVoid, methodSymbol, method.ReturnType, knownTypes));
         return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
     }
 
@@ -100,12 +98,11 @@ internal sealed class CSharpMakeMethodAsynchronousCodeFixProvider() : AbstractMa
         bool keepVoid,
         IMethodSymbol methodSymbol,
         LocalFunctionStatementSyntax localFunction,
-        KnownTaskTypes knownTypes,
-        CancellationToken cancellationToken)
+        KnownTaskTypes knownTypes)
     {
         var (newModifiers, newReturnType) = AddAsyncModifierWithCorrectedTrivia(
             localFunction.Modifiers,
-            FixMethodReturnType(keepVoid, methodSymbol, localFunction.ReturnType, knownTypes, cancellationToken));
+            FixMethodReturnType(keepVoid, methodSymbol, localFunction.ReturnType, knownTypes));
         return localFunction.WithReturnType(newReturnType).WithModifiers(newModifiers);
     }
 
@@ -113,8 +110,7 @@ internal sealed class CSharpMakeMethodAsynchronousCodeFixProvider() : AbstractMa
         bool keepVoid,
         IMethodSymbol methodSymbol,
         TypeSyntax returnTypeSyntax,
-        KnownTaskTypes knownTypes,
-        CancellationToken cancellationToken)
+        KnownTaskTypes knownTypes)
     {
         var newReturnType = returnTypeSyntax.WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -128,13 +124,13 @@ internal sealed class CSharpMakeMethodAsynchronousCodeFixProvider() : AbstractMa
         else
         {
             var returnType = methodSymbol.ReturnType;
-            if (IsIEnumerable(returnType, knownTypes) && IsIterator(methodSymbol, cancellationToken))
+            if (IsIEnumerable(returnType, knownTypes) && methodSymbol.IsIterator)
             {
                 newReturnType = knownTypes.IAsyncEnumerableOfTType is null
                     ? MakeGenericType(nameof(IAsyncEnumerable<>), methodSymbol.ReturnType)
                     : knownTypes.IAsyncEnumerableOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
             }
-            else if (IsIEnumerator(returnType, knownTypes) && IsIterator(methodSymbol, cancellationToken))
+            else if (IsIEnumerator(returnType, knownTypes) && methodSymbol.IsIterator)
             {
                 newReturnType = knownTypes.IAsyncEnumeratorOfTType is null
                     ? MakeGenericType(nameof(IAsyncEnumerator<>), methodSymbol.ReturnType)
@@ -163,9 +159,6 @@ internal sealed class CSharpMakeMethodAsynchronousCodeFixProvider() : AbstractMa
             return result.WithAdditionalAnnotations(Simplifier.Annotation);
         }
     }
-
-    private static bool IsIterator(IMethodSymbol method, CancellationToken cancellationToken)
-        => method.Locations.Any(static (loc, cancellationToken) => loc.FindNode(cancellationToken).ContainsYield(), cancellationToken);
 
     private static bool IsIAsyncEnumerableOrEnumerator(ITypeSymbol returnType, KnownTaskTypes knownTypes)
         => returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumerableOfTType) ||
