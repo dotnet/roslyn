@@ -793,7 +793,6 @@ internal sealed partial class ProjectSystemProject
         // loader.  This is fine as we're just creating these to pass into CreateIsolatedAnalyzerReferencesAsync which
         // will properly give them an isolated ALC to use instead.
         var assemblyLoaderProvider = solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-        var sharedShadowCopyLoader = assemblyLoaderProvider.SharedShadowCopyLoader;
 
         var project = solution.GetRequiredProject(projectId);
 
@@ -817,7 +816,11 @@ internal sealed partial class ProjectSystemProject
 
         // Now, create an initial analyzer file reference for all the analyzers being added.
         foreach (var analyzer in analyzersAdded)
-            initialReferenceList.Add(new AnalyzerFileReference(analyzer, sharedShadowCopyLoader));
+#if NET
+            initialReferenceList.Add(new AnalyzerFileReference(analyzer, assemblyLoaderProvider.FailingLoader));
+#else
+            initialReferenceList.Add(new AnalyzerFileReference(analyzer, assemblyLoaderProvider.SharedShadowCopyLoader));
+#endif
 
         // We are only updating this state object so that we can ensure we unregister any file watchers for
         // analyzers that are removed, and register new watches for analyzers that are added.  Note that those file
@@ -841,7 +844,7 @@ internal sealed partial class ProjectSystemProject
         return (newSolution, newProjectUpdateState);
     }
 
-    #endregion
+#endregion
 
     #region Source File Addition/Removal
 
