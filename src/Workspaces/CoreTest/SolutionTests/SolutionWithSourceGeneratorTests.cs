@@ -1430,7 +1430,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
 
         _ = await client.TryInvokeAsync<IRemoteInitializationService, (int, string?)>(
-            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options with { SourceGeneratorExecution = executionPreference }, TempRoot.Root, cancellationToken),
+            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options with { SourceGeneratorExecution = executionPreference }, TempRoot.Root, [], cancellationToken),
             CancellationToken.None).ConfigureAwait(false);
 
         var solution = workspace.CurrentSolution;

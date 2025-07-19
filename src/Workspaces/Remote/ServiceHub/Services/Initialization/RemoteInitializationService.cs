@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,11 +21,11 @@ internal sealed class RemoteInitializationService(
             => new RemoteInitializationService(arguments);
     }
 
-    public async ValueTask<(int processId, string? errorMessage)> InitializeAsync(WorkspaceConfigurationOptions options, string localSettingsDirectory, CancellationToken cancellationToken)
+    public async ValueTask<(int processId, string? errorMessage)> InitializeAsync(WorkspaceConfigurationOptions options, string localSettingsDirectory, ImmutableArray<string> oopMefComponentPaths, CancellationToken cancellationToken)
     {
         // Performed before RunServiceAsync to ensure that the export provider is initialized before the RemoteWorkspaceManager is created
         // as part of the RunServiceAsync call.
-        var errorMessage = await RemoteExportProviderBuilder.InitializeAsync(localSettingsDirectory, cancellationToken).ConfigureAwait(false);
+        var errorMessage = await RemoteExportProviderBuilder.InitializeAsync(localSettingsDirectory, oopMefComponentPaths, cancellationToken).ConfigureAwait(false);
 
         var processId = await RunServiceAsync(cancellationToken =>
         {
