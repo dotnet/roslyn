@@ -5,12 +5,13 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 internal abstract partial class VisualStudioWorkspaceImpl
 {
-    private void SubscribeToSourceGeneratorImpactingEvents()
+    protected virtual void SubscribeToSourceGeneratorImpactingEvents()
     {
         // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
         KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
