@@ -73,7 +73,7 @@ internal readonly struct EmitSolutionUpdateResults
             return builder.ToImmutableAndClear();
         }
 
-        public static Data CreateFromInternalError(Solution solution, string errorMessage, ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects)
+        public static Data CreateFromInternalError(Solution solution, string errorMessage, ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects)
         {
             ImmutableArray<DiagnosticData> diagnostics = [];
             var firstProject = solution.GetProject(runningProjects.FirstOrDefault().Key) ?? solution.Projects.First();
@@ -183,7 +183,7 @@ internal readonly struct EmitSolutionUpdateResults
         Solution solution,
         ImmutableArray<ManagedHotReloadUpdate> moduleUpdates,
         ImmutableArray<ProjectDiagnostics> diagnostics,
-        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
         out ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> projectsToRestart,
         out ImmutableArray<ProjectId> projectsToRebuild)
     {
@@ -249,26 +249,7 @@ internal readonly struct EmitSolutionUpdateResults
         // At this point the restart set contains all running projects transitively affected by rude edits.
         // Next, find projects that were successfully updated and affect running projects.
 
-        // Remove once https://github.com/dotnet/roslyn/issues/78244 is implemented.
-        if (!runningProjects.Any(static p => p.Value.AllowPartialUpdate))
-        {
-            // Partial solution update not supported.
-            if (projectsToRestartBuilder.Any())
-            {
-                foreach (var update in moduleUpdates)
-                {
-                    AddImpactedRunningProjects(impactedRunningProjects, update.ProjectId, isBlocking: true);
-
-                    foreach (var impactedRunningProject in impactedRunningProjects)
-                    {
-                        projectsToRestartBuilder.TryAdd(impactedRunningProject, []);
-                    }
-
-                    impactedRunningProjects.Clear();
-                }
-            }
-        }
-        else if (!moduleUpdates.IsEmpty && projectsToRestartBuilder.Count > 0)
+        if (!moduleUpdates.IsEmpty && projectsToRestartBuilder.Count > 0)
         {
             // The set of updated projects is usually much smaller than the number of all projects in the solution.
             // We iterate over this set updating the reset set until no new project is added to the reset set.

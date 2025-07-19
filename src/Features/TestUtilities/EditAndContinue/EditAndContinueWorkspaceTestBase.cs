@@ -219,14 +219,14 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal static void EndDebuggingSession(DebuggingSession session)
         => session.EndSession(out _);
 
-    internal static async Task<(ModuleUpdates updates, ImmutableArray<DiagnosticData> diagnostics)> EmitSolutionUpdateAsync(
+    internal static async Task<(ModuleUpdates updates, ImmutableArray<DiagnosticData> diagnostics)> EmitSolutionUpdateAsyncOld(
         DebuggingSession session,
         Solution solution,
         ActiveStatementSpanProvider? activeStatementSpanProvider = null)
     {
         var runningProjects = solution.ProjectIds.ToImmutableDictionary(
             keySelector: id => id,
-            elementSelector: id => new RunningProjectInfo() { AllowPartialUpdate = false, RestartWhenChangesHaveNoEffect = false });
+            elementSelector: id => new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = false });
 
         var result = await session.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
         return (result.ModuleUpdates, result.Diagnostics.OrderBy(d => d.ProjectId.DebugName).ToImmutableArray().ToDiagnosticData(solution));
@@ -235,12 +235,11 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal static async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
         DebuggingSession session,
         Solution solution,
-        bool allowPartialUpdate,
         ActiveStatementSpanProvider? activeStatementSpanProvider = null)
     {
         var runningProjects = solution.ProjectIds.ToImmutableDictionary(
             keySelector: id => id,
-            elementSelector: id => new RunningProjectInfo() { AllowPartialUpdate = allowPartialUpdate, RestartWhenChangesHaveNoEffect = false });
+            elementSelector: id => new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = false });
 
         var results = await session.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
 
@@ -248,12 +247,6 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
 
         Assert.Equal(hasTransientError, results.ProjectsToRestart.Any());
         Assert.Equal(hasTransientError, results.ProjectsToRebuild.Any());
-
-        if (!allowPartialUpdate)
-        {
-            // No updates should be produced if transient error is reported:
-            Assert.True(!hasTransientError || results.ModuleUpdates.Updates.IsEmpty);
-        }
 
         return results;
     }
