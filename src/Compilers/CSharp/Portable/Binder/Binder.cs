@@ -749,19 +749,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static bool IsDisallowedExtensionInOlderLangVer(MethodSymbol symbol)
-        {
-            return symbol.GetIsNewExtensionMember() && (symbol.IsStatic || symbol.MethodKind != MethodKind.Ordinary);
-        }
-
-        internal static void ReportDiagnosticsIfDisallowedExtension(BindingDiagnosticBag diagnostics, MethodSymbol method, SyntaxNode syntax)
-        {
-            if (IsDisallowedExtensionInOlderLangVer(method))
-            {
-                MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, syntax);
-            }
-        }
-
         internal static void ReportDiagnosticsIfUnmanagedCallersOnly(BindingDiagnosticBag diagnostics, MethodSymbol symbol, SyntaxNodeOrToken syntax, bool isDelegateConversion)
         {
             var unmanagedCallersOnlyAttributeData = symbol.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);

@@ -8041,7 +8041,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression GetExtensionMemberAccess(SyntaxNode syntax, BoundExpression? receiver, Symbol extensionMember, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, syntax);
             receiver = ReplaceTypeOrValueReceiver(receiver, useType: extensionMember.IsStatic, diagnostics);
 
             switch (extensionMember)
