@@ -1341,21 +1341,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
 
-            var currentOffset = TextWindow.Offset;
-            var characterWindow = TextWindow.CharacterWindow;
-            var characterWindowCount = TextWindow.CharacterWindowCount;
-
-            var startOffset = currentOffset;
+            var textWindowCharSpan = this.TextWindow.CurrentWindowSpan;
+            var currentIndex = 0;
 
             while (true)
             {
-                if (currentOffset == characterWindowCount)
-                {
-                    // no more contiguous characters.  Fall back to slow path
+                // If we do not not have any more contiguous characters within the char span that we can look at,
+                // then fall back to slow path
+                if (currentIndex == textWindowCharSpan.Length)
                     return false;
-                }
 
-                switch (characterWindow[currentOffset])
+                switch (textWindowCharSpan[currentIndex])
                 {
                     case '&':
                         // CONSIDER: This method is performance critical, so
@@ -1405,13 +1401,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // All of the following characters are not valid in an 
                         // identifier.  If we see any of them, then we know we're
                         // done.
-                        var length = currentOffset - startOffset;
+                        var length = currentIndex;
                         TextWindow.AdvanceChar(length);
-                        info.Text = info.StringValue = TextWindow.Intern(characterWindow, startOffset, length);
+                        info.Text = info.StringValue = TextWindow.Intern(textWindowCharSpan[..length]);
                         info.IsVerbatim = false;
                         return true;
                     case >= '0' and <= '9':
-                        if (currentOffset == startOffset)
+                        if (currentIndex == 0)
                         {
                             return false;
                         }
@@ -1423,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case '_':
                         // All of these characters are valid inside an identifier.
                         // consume it and keep processing.
-                        currentOffset++;
+                        currentIndex++;
                         continue;
 
                     // case '@':  verbatim identifiers are handled in the slow path
@@ -2293,6 +2289,8 @@ LoopExit:
         /// <returns>A trivia node with the whitespace text</returns>
         private SyntaxTrivia ScanWhitespace()
         {
+            Debug.Assert(SyntaxFacts.IsWhitespace(TextWindow.PeekChar()));
+
             int hashCode = Hash.FnvOffsetBias;  // FNV base
             bool onlySpaces = true;
 
@@ -2326,6 +2324,8 @@ top:
                     break;
             }
 
+            Debug.Assert(this.CurrentLexemeWidth > 0);
+
             if (this.CurrentLexemeWidth == 1 && onlySpaces)
             {
                 return SyntaxFactory.Space;
@@ -2336,22 +2336,16 @@ top:
 
                 if (width < MaxCachedTokenSize)
                 {
-                    return _cache.LookupTrivia(
-                        TextWindow.CharacterWindow.AsSpan(TextWindow.LexemeRelativeStart, width),
-                        hashCode,
-                        CreateWhitespaceTrivia,
-                        TextWindow);
+                    return _cache.LookupWhitespaceTrivia(
+                        TextWindow,
+                        this.LexemeStartPosition,
+                        hashCode);
                 }
                 else
                 {
-                    return CreateWhitespaceTrivia(TextWindow);
+                    return SyntaxFactory.Whitespace(this.GetInternedLexemeText());
                 }
             }
-        }
-
-        private static SyntaxTrivia CreateWhitespaceTrivia(SlidingTextWindow textWindow)
-        {
-            return SyntaxFactory.Whitespace(textWindow.GetText(intern: true));
         }
 
         private void LexDirectiveAndExcludedTrivia(
