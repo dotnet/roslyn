@@ -1161,20 +1161,6 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
 
-                // System_Threading_Thread__CurrentThread
-                (byte)(MemberFlags.Property | MemberFlags.Static),                                                          // Flags
-                (byte)WellKnownType.System_Threading_Thread,                                                                // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Threading_Thread, // Return Type
-
-                // System_Threading_Thread__ManagedThreadId
-                (byte)MemberFlags.Property,                                                                                 // Flags
-                (byte)WellKnownType.System_Threading_Thread,                                                                // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32, // Return Type
-
                 // Microsoft_CSharp_RuntimeBinder_Binder__BinaryOperation
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.Microsoft_CSharp_RuntimeBinder_Binder,                                                  // DeclaringTypeId
@@ -2589,13 +2575,6 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Windows_Forms_Form,
-
-                // System_Environment__CurrentManagedThreadId
-                (byte)(MemberFlags.Property | MemberFlags.Static),                                                          // Flags
-                (byte)WellKnownType.System_Environment,                                                                     // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32, // Return Type
 
                 // System_ComponentModel_EditorBrowsableAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
@@ -5341,8 +5320,6 @@ namespace Microsoft.CodeAnalysis
                 "Enter",                                    // System_Threading_Monitor__Enter
                 "Enter",                                    // System_Threading_Monitor__Enter2
                 "Exit",                                     // System_Threading_Monitor__Exit
-                "CurrentThread",                            // System_Threading_Thread__CurrentThread
-                "ManagedThreadId",                          // System_Threading_Thread__ManagedThreadId
                 "BinaryOperation",                          // Microsoft_CSharp_RuntimeBinder_Binder__BinaryOperation
                 "Convert",                                  // Microsoft_CSharp_RuntimeBinder_Binder__Convert
                 "GetIndex",                                 // Microsoft_CSharp_RuntimeBinder_Binder__GetIndex
@@ -5501,7 +5478,6 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Xml_Linq_XElement__ctor2
                 "Get",                                      // System_Xml_Linq_XNamespace__Get
                 "Run",                                      // System_Windows_Forms_Application__RunForm
-                "CurrentManagedThreadId",                   // System_Environment__CurrentManagedThreadId
                 ".ctor",                                    // System_ComponentModel_EditorBrowsableAttribute__ctor
                 "SustainedLowLatency",                      // System_Runtime_GCLatencyMode__SustainedLowLatency
 
