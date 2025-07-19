@@ -93,6 +93,65 @@ public sealed partial class SettingsUpdaterTests : TestBase
             (CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.TrueWithSuggestionEnforcement));
 
     [Fact]
+    public Task TestAddParameterWrappingOptionAsync()
+        => TestAsync(
+            string.Empty,
+            "[*.cs]\r\ncsharp_parameter_wrapping = wrap_every_parameter",
+            (CSharpFormattingOptions2.ParameterWrapping, ParameterWrappingOptionsInternal.WrapEveryParameter));
+
+    [Fact]
+    public Task TestAddParameterFirstPlacementOptionAsync()
+        => TestAsync(
+            string.Empty,
+            "[*.cs]\r\ncsharp_parameter_first_placement = new_line",
+            (CSharpFormattingOptions2.ParameterFirstPlacement, ParameterFirstPlacementOptionsInternal.NewLine));
+
+    [Fact]
+    public Task TestAddParameterAlignmentOptionAsync()
+        => TestAsync(
+            string.Empty,
+            "[*.cs]\r\ncsharp_parameter_alignment = indent",
+            (CSharpFormattingOptions2.ParameterAlignment, ParameterAlignmentOptionsInternal.Indent));
+
+    [Fact]
+    public Task TestUpdateParameterWrappingOptionAsync()
+        => TestAsync(
+            "[*.cs]\r\ncsharp_parameter_wrapping = do_not_wrap",
+            "[*.cs]\r\ncsharp_parameter_wrapping = wrap_long_parameters",
+            (CSharpFormattingOptions2.ParameterWrapping, ParameterWrappingOptionsInternal.WrapLongParameters));
+
+    [Fact]
+    public Task TestAddMultipleParameterWrappingOptionsAsync()
+        => TestAsync(
+            string.Empty,
+            "[*.cs]\r\ncsharp_parameter_wrapping = wrap_every_parameter\r\ncsharp_parameter_first_placement = new_line\r\ncsharp_parameter_alignment = indent",
+            (CSharpFormattingOptions2.ParameterWrapping, ParameterWrappingOptionsInternal.WrapEveryParameter),
+            (CSharpFormattingOptions2.ParameterFirstPlacement, ParameterFirstPlacementOptionsInternal.NewLine),
+            (CSharpFormattingOptions2.ParameterAlignment, ParameterAlignmentOptionsInternal.Indent));
+
+    [Fact]
+    public Task TestAddBinaryExpressionWrappingOptionAsync()
+        => TestAsync(
+            string.Empty,
+            "[*.cs]\r\ncsharp_binary_expression_wrapping = wrap_every_operator",
+            (CSharpFormattingOptions2.BinaryExpressionWrapping, BinaryExpressionWrappingOptionsInternal.WrapEveryOperator));
+
+    [Fact]
+    public Task TestUpdateBinaryExpressionWrappingOptionAsync()
+        => TestAsync(
+            "[*.cs]\r\ncsharp_binary_expression_wrapping = do_not_wrap",
+            "[*.cs]\r\ncsharp_binary_expression_wrapping = wrap_long_expressions",
+            (CSharpFormattingOptions2.BinaryExpressionWrapping, BinaryExpressionWrappingOptionsInternal.WrapLongExpressions));
+
+    [Fact]
+    public Task TestAddMultipleBinaryExpressionWrappingOptionsAsync()
+        => TestAsync(
+            string.Empty,
+            "[*.cs]\r\ncsharp_binary_expression_wrapping = wrap_every_operator\r\ncsharp_parameter_wrapping = wrap_every_parameter",
+            (CSharpFormattingOptions2.BinaryExpressionWrapping, BinaryExpressionWrappingOptionsInternal.WrapEveryOperator),
+            (CSharpFormattingOptions2.ParameterWrapping, ParameterWrappingOptionsInternal.WrapEveryParameter));
+
+    [Fact]
     public async Task TestAddNewEnumCodeStyleOptionWithSeverityAsync()
     {
         var option = new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Warning);
