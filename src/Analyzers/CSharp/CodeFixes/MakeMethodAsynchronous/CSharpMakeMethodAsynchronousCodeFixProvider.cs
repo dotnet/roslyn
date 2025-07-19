@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -67,15 +68,20 @@ internal sealed class CSharpMakeMethodAsynchronousCodeFixProvider() : AbstractMa
         => IsIAsyncEnumerableOrEnumerator(type, knownTypes) ||
            knownTypes.IsTaskLike(type);
 
-    protected override SyntaxNode AddAsyncTokenAndFixReturnType(
+    protected override SyntaxNode FixMethodSignature(
+        bool addAsyncModifier,
         bool keepVoid,
         IMethodSymbol methodSymbol,
         SyntaxNode node,
         KnownTaskTypes knownTypes)
     {
+        // We currently fix signature without adding 'async' modifier
+        // only for a partial definitions part of partial methods
+        Debug.Assert(addAsyncModifier || node is MethodDeclarationSyntax);
+
         return node switch
         {
-            MethodDeclarationSyntax method => FixMethod(keepVoid, methodSymbol, method, knownTypes),
+            MethodDeclarationSyntax method => FixMethod(addAsyncModifier, keepVoid, methodSymbol, method, knownTypes),
             LocalFunctionStatementSyntax localFunction => FixLocalFunction(keepVoid, methodSymbol, localFunction, knownTypes),
             AnonymousFunctionExpressionSyntax anonymous => FixAnonymousFunction(anonymous),
             _ => node,
@@ -83,15 +89,23 @@ internal sealed class CSharpMakeMethodAsynchronousCodeFixProvider() : AbstractMa
     }
 
     private static MethodDeclarationSyntax FixMethod(
+        bool addAsyncModifier,
         bool keepVoid,
         IMethodSymbol methodSymbol,
         MethodDeclarationSyntax method,
         KnownTaskTypes knownTypes)
     {
-        var (newModifiers, newReturnType) = AddAsyncModifierWithCorrectedTrivia(
-            method.Modifiers,
-            FixMethodReturnType(keepVoid, methodSymbol, method.ReturnType, knownTypes));
-        return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
+        var fixedReturnType = FixMethodReturnType(keepVoid, methodSymbol, method.ReturnType, knownTypes);
+
+        if (addAsyncModifier)
+        {
+            var (newModifiers, newReturnType) = AddAsyncModifierWithCorrectedTrivia(method.Modifiers, fixedReturnType);
+            return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
+        }
+        else
+        {
+            return method.WithReturnType(fixedReturnType);
+        }
     }
 
     private static LocalFunctionStatementSyntax FixLocalFunction(
