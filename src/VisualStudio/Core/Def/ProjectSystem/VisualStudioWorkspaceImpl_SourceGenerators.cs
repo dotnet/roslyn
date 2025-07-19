@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -12,20 +11,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 internal abstract partial class VisualStudioWorkspaceImpl
 {
-    private bool _isSubscribedToSourceGeneratorImpactingEvents;
-
-    public void SubscribeToSourceGeneratorImpactingEvents()
+    private void SubscribeToSourceGeneratorImpactingEvents()
     {
-        _threadingContext.ThrowIfNotOnUIThread();
-        if (_isSubscribedToSourceGeneratorImpactingEvents)
-            return;
-
-        // UIContextImpl requires IVsMonitorSelection service:
-        if (ServiceProvider.GlobalProvider.GetService(typeof(IVsMonitorSelection)) == null)
-            return;
-
-        _isSubscribedToSourceGeneratorImpactingEvents = true;
-
         // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
         KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
         {
@@ -58,6 +45,12 @@ internal abstract partial class VisualStudioWorkspaceImpl
         workspaceStatusService.StatusChanged += (_, _) => EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
 
         // Now kick off at least the initial work to run generators.
+
+        // HACK: don't run this in unit tests as this will break CodeModel
+        if (ServiceProvider.GlobalProvider.GetService(typeof(IVsMonitorSelection)) == null)
+            return;
+        // END HACK
+
         this.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
     }
 
