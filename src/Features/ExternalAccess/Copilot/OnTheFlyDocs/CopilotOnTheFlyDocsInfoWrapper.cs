@@ -10,22 +10,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
 internal sealed class CopilotOnTheFlyDocsInfoWrapper
 {
     private readonly OnTheFlyDocsInfo _onTheFlyDocsInfo;
-    private readonly ImmutableArray<CopilotOnTheFlyDocsRelevantFileInfoWrapper?> _wrappedDeclarationCode;
-    private readonly ImmutableArray<CopilotOnTheFlyDocsRelevantFileInfoWrapper?> _wrappedAdditionalContext;
+    private readonly ImmutableArray<CopilotOnTheFlyDocsRelevantFileInfoWrapper> _wrappedDeclarationCode;
+    private readonly ImmutableArray<CopilotOnTheFlyDocsRelevantFileInfoWrapper> _wrappedAdditionalContext;
 
     public CopilotOnTheFlyDocsInfoWrapper(OnTheFlyDocsInfo onTheFlyDocsInfo)
     {
         _onTheFlyDocsInfo = onTheFlyDocsInfo;
-        _wrappedDeclarationCode = _onTheFlyDocsInfo.DeclarationCode.SelectAsArray(c => c is not null ? new CopilotOnTheFlyDocsRelevantFileInfoWrapper(c) : null);
-        _wrappedAdditionalContext = _onTheFlyDocsInfo.AdditionalContext.SelectAsArray(c => c is not null ? new CopilotOnTheFlyDocsRelevantFileInfoWrapper(c) : null);
+        _wrappedDeclarationCode = _onTheFlyDocsInfo.DeclarationCode.SelectAsArray(c => new CopilotOnTheFlyDocsRelevantFileInfoWrapper(c));
+        _wrappedAdditionalContext = _onTheFlyDocsInfo.AdditionalContext.SelectAsArray(c => new CopilotOnTheFlyDocsRelevantFileInfoWrapper(c));
 
     }
 
     public string SymbolSignature => _onTheFlyDocsInfo.SymbolSignature;
-    public ImmutableArray<CopilotOnTheFlyDocsRelevantFileInfoWrapper?> DeclarationCode => _wrappedDeclarationCode;
+    public ImmutableArray<CopilotOnTheFlyDocsRelevantFileInfoWrapper> DeclarationCode => _wrappedDeclarationCode;
     public string Language => _onTheFlyDocsInfo.Language;
     public bool IsContentExcluded => _onTheFlyDocsInfo.IsContentExcluded;
-    public ImmutableArray<CopilotOnTheFlyDocsRelevantFileInfoWrapper?> AdditionalContext => _wrappedAdditionalContext;
+    public ImmutableArray<CopilotOnTheFlyDocsRelevantFileInfoWrapper> AdditionalContext => _wrappedAdditionalContext;
     public bool HasComments => _onTheFlyDocsInfo.HasComments;
 }
 
