@@ -257,7 +257,7 @@ namespace GenerateDocumentationAndConfigFiles
                 return HandleAsync(commandLineArgs, cancellationToken);
             });
 
-            return rootCommand.Parse(args).InvokeAsync(CancellationToken.None);
+            return rootCommand.Parse(args).InvokeAsync(null, CancellationToken.None);
         }
 
         private static async Task<int> HandleAsync(CommandLineArgs args, CancellationToken cancellationToken)
