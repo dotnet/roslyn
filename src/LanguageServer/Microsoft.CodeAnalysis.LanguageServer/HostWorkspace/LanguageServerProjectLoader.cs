@@ -174,7 +174,12 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    protected sealed record RemoteProjectLoadResult(RemoteProjectFile ProjectFile, ProjectSystemProjectFactory ProjectFactory, bool IsMiscellaneousFile, BuildHostProcessKind Preferred, BuildHostProcessKind Actual);
+    /// <param name="HasLoadErrors">
+    /// Whether there were errors in the process of loading the project file itself.
+    /// When this is true, we may still want to proceed with design-time build in order to provide partial information about the project.
+    /// When this is false, <see cref="RemoteProjectFile.GetDiagnosticLogItemsAsync"/> also needs to be separately checked, to decide if evaluation was successful.
+    /// </param>
+    protected sealed record RemoteProjectLoadResult(RemoteProjectFile ProjectFile, ProjectSystemProjectFactory ProjectFactory, bool IsMiscellaneousFile, BuildHostProcessKind Preferred, BuildHostProcessKind Actual, bool HasLoadErrors);
 
     /// <summary>Loads a project in the MSBuild host.</summary>
     /// <remarks>Caller needs to catch exceptions to avoid bringing down the project loader queue.</remarks>
@@ -209,7 +214,7 @@ internal abstract class LanguageServerProjectLoader
                 return false;
             }
 
-            (RemoteProjectFile remoteProjectFile, ProjectSystemProjectFactory projectFactory, bool isMiscellaneousFile, BuildHostProcessKind preferredBuildHostKind, BuildHostProcessKind actualBuildHostKind) = remoteProjectLoadResult;
+            (RemoteProjectFile remoteProjectFile, ProjectSystemProjectFactory projectFactory, bool isMiscellaneousFile, BuildHostProcessKind preferredBuildHostKind, BuildHostProcessKind actualBuildHostKind, bool hasLoadErrors) = remoteProjectLoadResult;
             if (preferredBuildHostKind != actualBuildHostKind)
                 preferredBuildHostKindThatWeDidNotGet = preferredBuildHostKind;
 
@@ -289,7 +294,7 @@ internal abstract class LanguageServerProjectLoader
             }
 
             diagnosticLogItems = await remoteProjectFile.GetDiagnosticLogItemsAsync(cancellationToken);
-            if (diagnosticLogItems.Any())
+            if (hasLoadErrors || diagnosticLogItems.Any())
             {
                 await LogDiagnosticsAsync(diagnosticLogItems);
             }
