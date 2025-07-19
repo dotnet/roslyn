@@ -56,7 +56,6 @@
     <PackageReference Include="System.IO.Hashing" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.IO.Pipelines" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Memory" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
-    <PackageReference Include="System.Buffers" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Numerics.Vectors" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Reflection.Metadata" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Resources.Extensions" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
