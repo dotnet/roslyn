@@ -3689,7 +3689,7 @@ static class Program
         _ = new S1() { S2 = { 3, 4 } };
     }
 }";
-            var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = base.CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "1234");
         }
 
@@ -3728,7 +3728,7 @@ static class Program
         _ = F<S>();
     }
 }";
-            var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = base.CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "12");
         }
 

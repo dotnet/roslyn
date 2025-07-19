@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public class InterpolationTests : CompilingTestBase
+    public class InterpolationTests() : CompilingTestBase(TargetFramework.Standard)
     {
         [Fact]
         public void TestSimpleInterp()

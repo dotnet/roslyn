@@ -794,7 +794,7 @@ class Enumerable
   } // end of method Enumerator::op_Implicit
 } // end of class Enumerator";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il, TargetFramework.Mscorlib40);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             // We specifically ignore user-defined conversions to interfaces, even from metadata.
             CompileAndVerify(compilation).VerifyIL("C.Test", @"{
