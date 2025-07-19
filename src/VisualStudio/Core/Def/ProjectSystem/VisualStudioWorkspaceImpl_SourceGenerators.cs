@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
@@ -44,6 +45,12 @@ internal abstract partial class VisualStudioWorkspaceImpl
         workspaceStatusService.StatusChanged += (_, _) => EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
 
         // Now kick off at least the initial work to run generators.
+
+        // HACK: don't run this in unit tests as this will break CodeModel
+        if (ServiceProvider.GlobalProvider.GetService(typeof(IVsMonitorSelection)) == null)
+            return;
+        // END HACK
+
         this.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
     }
 
