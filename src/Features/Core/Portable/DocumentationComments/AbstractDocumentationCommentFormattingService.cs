@@ -142,11 +142,14 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             {
                 // Mark the end of the previous list item
                 Builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
+                _pendingSingleSpace = false; // Clear pending whitespace After ListItem
             }
-
+            else
+            {
+                MarkLineBreak();
+            }
             // The next list item has an incremented index, and has not yet been rendered to Builder.
             _listStack[^1] = (type, index + 1, renderedItem: false);
-            MarkLineBreak();
         }
 
         public void PopList()
