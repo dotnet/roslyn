@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
@@ -143,6 +142,7 @@ public sealed class EmitSolutionUpdateResultsTests
             ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, Updates: []),
             ProjectsToRebuild = [],
             ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
+            ProjectsToRedeploy = [],
         };
 
         var actual = data.GetAllDiagnostics();
@@ -172,6 +172,7 @@ public sealed class EmitSolutionUpdateResultsTests
             solution,
             CreateValidUpdates(c, d),
             CreateProjectRudeEdits(blocking: [], noEffect: []),
+            addedUnbuiltProjects: [],
             CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);
@@ -195,6 +196,7 @@ public sealed class EmitSolutionUpdateResultsTests
             solution,
             CreateValidUpdates(),
             CreateProjectRudeEdits(blocking: [d], noEffect: []),
+            addedUnbuiltProjects: [],
             CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);
@@ -220,6 +222,7 @@ public sealed class EmitSolutionUpdateResultsTests
             solution,
             CreateValidUpdates(),
             CreateProjectRudeEdits(blocking: [c], noEffect: []),
+            addedUnbuiltProjects: [],
             CreateRunningProjects([(a, noEffectRestarts: true), (b, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);
@@ -250,6 +253,7 @@ public sealed class EmitSolutionUpdateResultsTests
             solution,
             CreateValidUpdates(),
             CreateProjectRudeEdits(blocking: [d], noEffect: []),
+            addedUnbuiltProjects: [],
             CreateRunningProjects([(a, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);
@@ -276,6 +280,7 @@ public sealed class EmitSolutionUpdateResultsTests
             solution,
             CreateValidUpdates(c),
             CreateProjectRudeEdits(blocking: [], noEffect: [c]),
+            addedUnbuiltProjects: [],
             CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: true)]),
             out var projectsToRestart,
             out var projectsToRebuild);
@@ -309,6 +314,7 @@ public sealed class EmitSolutionUpdateResultsTests
             solution,
             CreateValidUpdates(c),
             CreateProjectRudeEdits(blocking: [], noEffect: [c]),
+            addedUnbuiltProjects: [],
             CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);
@@ -336,6 +342,7 @@ public sealed class EmitSolutionUpdateResultsTests
             solution,
             CreateValidUpdates(d),
             CreateProjectRudeEdits(blocking: [], noEffect: [d]),
+            addedUnbuiltProjects: [],
             CreateRunningProjects([(a, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);
@@ -359,6 +366,7 @@ public sealed class EmitSolutionUpdateResultsTests
             solution,
             CreateValidUpdates(),
             CreateProjectRudeEdits(blocking: [c], noEffect: [c]),
+            addedUnbuiltProjects: [],
             CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);
@@ -393,6 +401,7 @@ public sealed class EmitSolutionUpdateResultsTests
             solution,
             CreateValidUpdates(p0, q),
             CreateProjectRudeEdits(blocking: [p1, p2], noEffect: [q]),
+            addedUnbuiltProjects: [],
             CreateRunningProjects([(r0, noEffectRestarts: false), (r1, noEffectRestarts: false), (r2, noEffectRestarts: false)], allowPartialUpdate),
             out var projectsToRestart,
             out var projectsToRebuild);
@@ -427,7 +436,7 @@ public sealed class EmitSolutionUpdateResultsTests
     }
 
     [Fact]
-    public void RunningProjects_RudeEditAndUpdate_Dependent()
+    public void RunningProjects_RudeEditAndUpdate_DependentOnRunningProject()
     {
         using var _ = CreateWorkspace(out var solution);
 
@@ -441,6 +450,7 @@ public sealed class EmitSolutionUpdateResultsTests
             solution,
             CreateValidUpdates(c),
             CreateProjectRudeEdits(blocking: [d], noEffect: []),
+            addedUnbuiltProjects: [],
             CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);
@@ -454,6 +464,96 @@ public sealed class EmitSolutionUpdateResultsTests
         ], Inspect(projectsToRestart));
 
         AssertEx.SetEqual([a, b], projectsToRebuild);
+    }
+
+    [Fact]
+    public void RunningProjects_RudeEditAndUpdate_DependentOnRebuiltProject()
+    {
+        using var _ = CreateWorkspace(out var solution);
+
+        solution = solution
+            .AddTestProject("C", out var c).Solution
+            .AddTestProject("D", out var d).Solution
+            .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
+            .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
+
+        EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+            solution,
+            CreateValidUpdates(c),
+            CreateProjectRudeEdits(blocking: [b], noEffect: []),
+            addedUnbuiltProjects: [],
+            CreateRunningProjects([(a, noEffectRestarts: false)], allowPartialUpdate: true),
+            out var projectsToRestart,
+            out var projectsToRebuild);
+
+        // B has rude edit ==> B has to rebuild
+        // B -> C and C has change ==> C has to rebuild
+        // A -> C and A is running ==> A has to restart
+        AssertEx.Equal(
+        [
+            "A: [B]",
+        ], Inspect(projectsToRestart));
+
+        AssertEx.SetEqual([a, b], projectsToRebuild);
+    }
+
+    [Fact]
+    public void RunningProjects_AddedProject_NotImpactingRunningProject()
+    {
+        using var _ = CreateWorkspace(out var solution);
+
+        solution = solution
+            .AddTestProject("C", out var c).Solution
+            .AddTestProject("D", out var d).Solution
+            .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
+            .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
+
+        EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+            solution,
+            CreateValidUpdates(c),
+            CreateProjectRudeEdits(blocking: [], noEffect: []),
+            addedUnbuiltProjects: [b],
+            CreateRunningProjects([(a, noEffectRestarts: false)], allowPartialUpdate: true),
+            out var projectsToRestart,
+            out var projectsToRebuild);
+
+        // B isn't built, but doesn't impact a running project ==> does not need to be rebuilt
+        // B will be considered stale until rebuilt.
+        Assert.Empty(projectsToRestart);
+        Assert.Empty(projectsToRebuild);
+    }
+
+    [Fact]
+    public void RunningProjects_AddedProject_ImpactingRunningProject()
+    {
+        using var _ = CreateWorkspace(out var solution);
+
+        solution = solution
+            .AddTestProject("C", out var c).Solution
+            .AddTestProject("D", out var d).Solution
+            .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
+            .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution
+            .AddTestProject("E", out var e).AddProjectReferences([new(b)]).Solution;
+
+        EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+            solution,
+            CreateValidUpdates(c),
+            CreateProjectRudeEdits(blocking: [], noEffect: []),
+            addedUnbuiltProjects: [b],
+            CreateRunningProjects([(a, noEffectRestarts: false), (e, noEffectRestarts: false)], allowPartialUpdate: true),
+            out var projectsToRestart,
+            out var projectsToRebuild);
+
+        // B isn't built ==> B has to rebuild
+        // B -> C and C has change ==> C has to rebuild
+        // A -> C and A is running ==> A has to restart
+        AssertEx.Equal(
+        [
+            "A: [B]",
+            "E: [B]",
+        ], Inspect(projectsToRestart));
+
+        AssertEx.SetEqual([a, b, e], projectsToRebuild);
     }
 
     [Theory]
@@ -472,6 +572,7 @@ public sealed class EmitSolutionUpdateResultsTests
             solution,
             CreateValidUpdates(c),
             CreateProjectRudeEdits(blocking: [d], noEffect: []),
+            addedUnbuiltProjects: [],
             CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: false)], allowPartialUpdate),
             out var projectsToRestart,
             out var projectsToRebuild);
@@ -510,6 +611,7 @@ public sealed class EmitSolutionUpdateResultsTests
             solution,
             CreateValidUpdates(c, d),
             CreateProjectRudeEdits(blocking: [], noEffect: [d]),
+            addedUnbuiltProjects: [],
             CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: true)], allowPartialUpdate),
             out var projectsToRestart,
             out var projectsToRebuild);
@@ -558,6 +660,7 @@ public sealed class EmitSolutionUpdateResultsTests
             solution,
             CreateValidUpdates(reverse ? [p4, p3, p2] : [p2, p3, p4]),
             CreateProjectRudeEdits(blocking: [p1], noEffect: []),
+            addedUnbuiltProjects: [],
             CreateRunningProjects([(r1, noEffectRestarts: false), (r2, noEffectRestarts: false), (r3, noEffectRestarts: false), (r4, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);

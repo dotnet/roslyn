@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -41,12 +42,23 @@ internal static class PooledBuilderExtensions
 
     public static ImmutableDictionary<K, ImmutableArray<V>> ToImmutableMultiDictionaryAndFree<K, V>(this PooledDictionary<K, ArrayBuilder<V>> builders)
         where K : notnull
+         => ToImmutableMultiDictionaryAndFree(builders, where: null, whereArg: 0);
+
+    public static ImmutableDictionary<K, ImmutableArray<V>> ToImmutableMultiDictionaryAndFree<K, V, TArg>(this PooledDictionary<K, ArrayBuilder<V>> builders, Func<K, TArg, bool>? where, TArg whereArg)
+        where K : notnull
     {
         var result = ImmutableDictionary.CreateBuilder<K, ImmutableArray<V>>();
 
         foreach (var (key, items) in builders)
         {
-            result.Add(key, items.ToImmutableAndFree());
+            if (where == null || where(key, whereArg))
+            {
+                result.Add(key, items.ToImmutableAndFree());
+            }
+            else
+            {
+                items.Free();
+            }
         }
 
         builders.Free();

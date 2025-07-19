@@ -210,8 +210,9 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
                         ])
                 ],
                 SyntaxError = syntaxError,
-                ProjectsToRebuild = [project.Id],
-                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(project.Id, [])
+                ProjectsToRebuild = [projectId],
+                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(projectId, []),
+                ProjectsToRedeploy = [projectId],
             };
         };
 
@@ -276,6 +277,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
                 SyntaxError = null,
                 ProjectsToRebuild = [],
                 ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
+                ProjectsToRedeploy = [],
             };
         };
 
