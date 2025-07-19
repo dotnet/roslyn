@@ -8218,4 +8218,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InterpolatedStringHandlerArgumentDisallowed" xml:space="preserve">
     <value>Interpolated string handler arguments are not allowed in this context.</value>
   </data>
+  <data name="ERR_MemberNameSameAsExtendedType" xml:space="preserve">
+    <value>'{0}': extension member names cannot be the same as their extended type</value>
+  </data>
 </root>

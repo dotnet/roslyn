@@ -92,9 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var setMethod = replace(SetMethod);
                 Symbol symbol = ReferenceEquals(Symbol, Method) && method is not null ? method : Symbol;
 
+                Debug.Assert(SetMethod?.GetIsNewExtensionMember() != true);
                 wasError = (Method is not null && method is null) || (SetMethod is not null && setMethod is null);
 
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test in compound assignment (ie. "setMethod")
                 return new MethodInfo(symbol, method, setMethod);
 
                 static MethodSymbol? replace(MethodSymbol? method)
@@ -110,8 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ConstructIfGeneric(method.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(method.TypeArgumentsWithAnnotations));
                     }
 
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
-                    return null;
+                    throw ExceptionUtilities.Unreachable(); // we don't bind to extension methods with unsupported metadata
                 }
             }
 
@@ -616,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var methodGroup = (BoundMethodGroup)expr;
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None);
-                Debug.Assert(!resolution.IsNonMethodExtensionMember(out _));
+                Debug.Assert(!resolution.IsNonMethodExtensionMember(out _)); // expr wouldn't be a method group in the first place if it resolved to a non-method extension member
                 diagnostics.Add(expr.Syntax, useSiteInfo);
                 Symbol otherSymbol = null;
                 bool resolvedToMethodGroup = resolution.MethodGroup != null;

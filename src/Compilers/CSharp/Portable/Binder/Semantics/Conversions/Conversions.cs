@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resolution = binder.ResolveMethodGroup(source, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.IsMethodGroupConversion);
             }
 
-            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _));
+            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _)); // we wouldn't be looking at a method group conversion in the first place if the source resolved to a non-method extension member
             return resolution;
         }
 

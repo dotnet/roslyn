@@ -1391,17 +1391,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Class:
                 case TypeKind.Struct:
-                    if (member.Name == this.Name)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_MemberNameSameAsType, member.GetFirstLocation(), this.Name);
-                    }
+                    checkContainingTypeName(member, this.Name, diagnostics);
                     break;
                 case TypeKind.Interface:
                     if (member.IsStatic)
                     {
-                        goto case TypeKind.Class;
+                        checkContainingTypeName(member, this.Name, diagnostics);
                     }
+
                     break;
+                case TypeKind.Extension:
+                    // Since implementation methods have the same name as the extension method, we don't need to report the problem twice
+                    if (member.Kind != SymbolKind.Method && this.ContainingType is { } containingType)
+                    {
+                        checkContainingTypeName(member, containingType.Name, diagnostics);
+                    }
+
+                    if (this.ExtensionParameter is { Type: NamedTypeSymbol { Name: var extendedTypeName } })
+                    {
+                        checkExtendedTypeName(member, extendedTypeName, diagnostics);
+                    }
+
+                    break;
+            }
+
+            static void checkContainingTypeName(Symbol member, string typeName, BindingDiagnosticBag diagnostics)
+            {
+                if (member.Name == typeName)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MemberNameSameAsType, member.GetFirstLocation(), typeName);
+                }
+            }
+
+            static void checkExtendedTypeName(Symbol member, string typeName, BindingDiagnosticBag diagnostics)
+            {
+                if (member.Name == typeName)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MemberNameSameAsExtendedType, member.GetFirstLocation(), typeName);
+                }
             }
         }
 
@@ -1812,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckExtensionMembers(this.GetMembers(), diagnostics);
             }
 
-            CheckMemberNamesDistinctFromType(diagnostics); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Should this check "see through" extensions?
+            CheckMemberNamesDistinctFromType(diagnostics);
             CheckMemberNameConflictsAndUnmatchedOperators(diagnostics);
             CheckRecordMemberNames(diagnostics);
             CheckSpecialMemberErrors(diagnostics);

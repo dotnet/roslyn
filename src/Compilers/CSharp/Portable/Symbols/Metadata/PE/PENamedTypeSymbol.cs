@@ -2577,7 +2577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         internal override string ExtensionName
-            => Name; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Confirm implementation
+            => Name; // Tracked by https://github.com/dotnet/roslyn/issues/78963 : Revisit when adopting new metadata design with content-based type names
 
         public override bool IsReadOnly
         {
