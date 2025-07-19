@@ -31,7 +31,7 @@
     <SystemValueTupleVersion>4.6.1</SystemValueTupleVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
-    <MicrosoftIORedistVersion>6.0.1</MicrosoftIORedistVersion>
+    <MicrosoftIORedistVersion>6.1.0</MicrosoftIORedistVersion>
     <SystemBuffersVersion>4.6.1</SystemBuffersVersion>
     <!--
     Microsoft.TeamFoundationServer.Client is referencing System.Data.SqlClient causing CG alert
@@ -41,7 +41,7 @@
     <SystemMemoryVersion>4.6.3</SystemMemoryVersion>
     <SystemNumericsVectorsVersion>4.6.1</SystemNumericsVectorsVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>6.1.2</SystemRuntimeCompilerServicesUnsafeVersion>
-    <SystemThreadingTasksExtensionsVersion>4.5.4</SystemThreadingTasksExtensionsVersion>
+    <SystemThreadingTasksExtensionsVersion>4.6.0</SystemThreadingTasksExtensionsVersion>
     <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
   </PropertyGroup>
   <!--
