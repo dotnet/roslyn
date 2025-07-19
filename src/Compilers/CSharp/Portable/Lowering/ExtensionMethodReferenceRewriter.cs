@@ -109,13 +109,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (receiverRefKind != RefKind.None)
                         {
                             var builder = ArrayBuilder<RefKind>.GetInstance(method.ParameterCount, RefKind.None);
-                            builder[0] = argumentRefKindFromReceiverRefKind(receiverRefKind);
+                            builder[0] = ReceiverArgumentRefKindFromReceiverRefKind(receiverRefKind);
                             argumentRefKinds = builder.ToImmutableAndFree();
                         }
                     }
                     else
                     {
-                        argumentRefKinds = argumentRefKinds.Insert(0, argumentRefKindFromReceiverRefKind(receiverRefKind));
+                        argumentRefKinds = argumentRefKinds.Insert(0, ReceiverArgumentRefKindFromReceiverRefKind(receiverRefKind));
                     }
 
                     invokedAsExtensionMethod = true;
@@ -141,12 +141,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundCall.ResultKind,
                     originalMethodsOpt,
                     type);
-
-                static RefKind argumentRefKindFromReceiverRefKind(RefKind receiverRefKind)
-                {
-                    return SyntheticBoundNodeFactory.ArgumentRefKindFromParameterRefKind(receiverRefKind, useStrictArgumentRefKinds: false);
-                }
             }
+        }
+
+        public static RefKind ReceiverArgumentRefKindFromReceiverRefKind(RefKind receiverRefKind)
+        {
+            return SyntheticBoundNodeFactory.ArgumentRefKindFromParameterRefKind(receiverRefKind, useStrictArgumentRefKinds: false);
         }
 
         [return: NotNullIfNotNull(nameof(method))]
