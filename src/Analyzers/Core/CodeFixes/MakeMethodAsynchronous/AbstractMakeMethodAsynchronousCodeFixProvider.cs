@@ -201,9 +201,9 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
         mainDocumentEditor.ReplaceNode(node, newNode);
 
-        if (!keepVoid && methodSymbol.PartialDefinitionPart is { } partialDefinition)
+        if (!keepVoid && methodSymbol.PartialDefinitionPart is { Locations: [{ } partialDefinitionLocation] })
         {
-            var partialDefinitionNode = partialDefinition.Locations[0].FindNode(cancellationToken);
+            var partialDefinitionNode = partialDefinitionLocation.FindNode(cancellationToken);
             var fixedPartialDefinitionNode = FixMethodSignature(addAsyncModifier: false, keepVoid, methodSymbol, partialDefinitionNode, knownTypes);
 
             var partialDefinitionDocument = solution.GetDocument(partialDefinitionNode.SyntaxTree);
