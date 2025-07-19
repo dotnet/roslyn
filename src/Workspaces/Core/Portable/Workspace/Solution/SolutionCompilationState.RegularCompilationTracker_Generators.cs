@@ -69,6 +69,7 @@ internal sealed partial class SolutionCompilationState
                     generatorInfo.Documents,
                     generatorInfo.Driver,
                     compilationWithStaleGeneratedTrees,
+                    creationPolicy.GeneratedDocumentCreationPolicy,
                     cancellationToken).ConfigureAwait(false);
                 return (compilationWithGeneratedFiles, new(nextGeneratedDocuments, nextGeneratorDriver));
             }
@@ -233,6 +234,7 @@ internal sealed partial class SolutionCompilationState
             TextDocumentStates<SourceGeneratedDocumentState> oldGeneratedDocuments,
             GeneratorDriver? generatorDriver,
             Compilation? compilationWithStaleGeneratedTrees,
+            GeneratedDocumentCreationPolicy creationPolicy,
             CancellationToken cancellationToken)
         {
             // If we don't have any source generators.  Trivially bail out.
@@ -265,7 +267,7 @@ internal sealed partial class SolutionCompilationState
             var compilationToRunGeneratorsOn = compilationWithoutGeneratedFiles.RemoveSyntaxTrees(treesToRemove);
             // END HACK HACK HACK HACK.
 
-            generatorDriver = generatorDriver.RunGenerators(compilationToRunGeneratorsOn, cancellationToken);
+            generatorDriver = generatorDriver.RunGenerators(compilationToRunGeneratorsOn, GeneratorFilter, cancellationToken);
 
             Contract.ThrowIfNull(generatorDriver);
 
@@ -418,6 +420,16 @@ internal sealed partial class SolutionCompilationState
                 var additionalTexts = (ImmutableArray<AdditionalText>)additionalTextsMember.GetValue(state)!;
 
                 Contract.ThrowIfFalse(additionalTexts.Length == projectState.AdditionalDocumentStates.Count);
+            }
+
+            bool GeneratorFilter(GeneratorFilterContext context)
+            {
+                if (creationPolicy is GeneratedDocumentCreationPolicy.Create)
+                    return true;
+
+                // For now, we hard code the required generator list to Razor.
+                // In the future we might want to expand this to e.g. run any generators with open generated files
+                return context.Generator.GetGeneratorType().FullName == "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
             }
         }
     }
