@@ -37,8 +37,12 @@ internal sealed partial class SolutionState
 {
     public static readonly IEqualityComparer<string> FilePathComparer = CachingFilePathComparer.Instance;
 
-    // the version of the workspace this solution is from
-    public int WorkspaceVersion { get; }
+    /// <summary>
+    /// Monotonically incrementing version number each time the solution state is modified and forked
+    /// into a new instance.
+    /// </summary>
+    public int ContentVersion { get; }
+
     public string? WorkspaceKind { get; }
     public SolutionServices Services { get; }
     public SolutionOptionSet Options { get; }
@@ -65,7 +69,7 @@ internal sealed partial class SolutionState
 
     private SolutionState(
         string? workspaceKind,
-        int workspaceVersion,
+        int contentVersion,
         SolutionServices services,
         SolutionInfo.SolutionAttributes solutionAttributes,
         IReadOnlyList<ProjectId> projectIds,
@@ -78,7 +82,7 @@ internal sealed partial class SolutionState
         Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers)
     {
         WorkspaceKind = workspaceKind;
-        WorkspaceVersion = workspaceVersion;
+        ContentVersion = contentVersion;
         SolutionAttributes = solutionAttributes;
         Services = services;
         ProjectIds = projectIds;
@@ -111,7 +115,7 @@ internal sealed partial class SolutionState
         ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(
             workspaceKind,
-            workspaceVersion: 0,
+            contentVersion: 0,
             services,
             solutionAttributes,
             projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
@@ -208,7 +212,7 @@ internal sealed partial class SolutionState
 
         return new SolutionState(
             WorkspaceKind,
-            WorkspaceVersion,
+            ContentVersion,
             Services,
             solutionAttributes,
             projectIds,
@@ -222,17 +226,17 @@ internal sealed partial class SolutionState
     }
 
     /// <summary>
-    /// Updates the solution with specified workspace kind, workspace version and services.
+    /// Updates the solution with specified workspace kind, content version and services.
     /// This implicitly also changes the value of <see cref="Solution.Workspace"/> for this solution,
     /// since that is extracted from <see cref="SolutionServices"/> for backwards compatibility.
     /// </summary>
     public SolutionState WithNewWorkspace(
         string? workspaceKind,
-        int workspaceVersion,
+        int contentVersion,
         SolutionServices services)
     {
         if (workspaceKind == WorkspaceKind &&
-            workspaceVersion == WorkspaceVersion &&
+            contentVersion == ContentVersion &&
             services == Services)
         {
             return this;
@@ -242,7 +246,7 @@ internal sealed partial class SolutionState
         // get locked-in by document states and project states when first constructed.
         return new SolutionState(
             workspaceKind,
-            workspaceVersion,
+            contentVersion,
             services,
             SolutionAttributes,
             ProjectIds,

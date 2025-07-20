@@ -178,7 +178,8 @@ public abstract partial class Workspace : IDisposable
     /// This method does not guarantee that linked files will have the same contents. Callers
     /// should enforce that policy before passing in the new solution.
     /// </remarks>
-    private protected (Solution oldSolution, Solution newSolution) SetCurrentSolutionEx(Solution solution)
+    private protected (Solution oldSolution, Solution newSolution) SetCurrentSolutionEx(
+        Solution solution, bool contentChanged = true)
     {
         if (solution is null)
             throw new ArgumentNullException(nameof(solution));
@@ -192,7 +193,10 @@ public abstract partial class Workspace : IDisposable
                 return (solution, solution);
             }
 
-            _latestSolution = solution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
+            _latestSolution = solution.WithNewWorkspace(
+                oldSolution.WorkspaceKind,
+                contentChanged ? oldSolution.WorkspaceVersion + 1 : oldSolution.WorkspaceVersion,
+                oldSolution.Services);
             return (oldSolution, _latestSolution);
         }
     }
@@ -252,6 +256,7 @@ public abstract partial class Workspace : IDisposable
         Func<Solution, Solution, (WorkspaceChangeKind changeKind, ProjectId? projectId, DocumentId? documentId)> changeKind,
         Action<Solution, Solution>? onBeforeUpdate,
         Action<Solution, Solution>? onAfterUpdate,
+        bool contentChanged,
         CancellationToken cancellationToken)
     {
         var (oldSolution, newSolution) = await SetCurrentSolutionAsync(
@@ -502,6 +507,7 @@ public abstract partial class Workspace : IDisposable
         bool mayRaiseEvents,
         Action<Solution, Solution, TData>? onBeforeUpdate,
         Action<Solution, Solution, TData>? onAfterUpdate,
+        bool contentChanged,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(transformation);
@@ -536,7 +542,10 @@ public abstract partial class Workspace : IDisposable
                         continue;
                     }
 
-                    newSolution = newSolution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
+                    newSolution = newSolution.WithNewWorkspace(
+                        oldSolution.WorkspaceKind,
+                        contentChanged ? oldSolution.ContentVersion + 1 : oldSolution.ContentVersion,
+                        oldSolution.Services);
 
                     // Prior to updating the latest solution, let the caller do any other state updates they want.
                     onBeforeUpdate?.Invoke(oldSolution, newSolution, data);

@@ -71,7 +71,8 @@ public partial class Solution
 
     internal SolutionCompilationState CompilationState { get; }
 
-    internal int WorkspaceVersion => this.SolutionState.WorkspaceVersion;
+    /// <inheritdoc cref="SolutionState.ContentVersion"/>
+    internal int ContentVersion => this.SolutionState.ContentVersion;
 
     internal bool PartialSemanticsEnabled => CompilationState.PartialSemanticsEnabled;
 
@@ -1588,8 +1589,8 @@ public partial class Solution
     internal DocumentId? GetFirstRelatedDocumentId(DocumentId documentId, ProjectId? relatedProjectIdHint)
         => this.SolutionState.GetFirstRelatedDocumentId(documentId, relatedProjectIdHint);
 
-    internal Solution WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
-        => WithCompilationState(CompilationState.WithNewWorkspace(workspaceKind, workspaceVersion, services));
+    internal Solution WithNewWorkspace(string? workspaceKind, int contentVersion, SolutionServices services)
+        => WithCompilationState(CompilationState.WithNewWorkspace(workspaceKind, contentVersion, services));
 
     /// <summary>
     /// Formerly, returned a copy of the solution isolated from the original so that they do not share computed state. It now does nothing.
