@@ -387,7 +387,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         var (key, (documentState, version)) = sourceTextProvider.GetTestAccessor().GetDocumentsWithChangedLoaderByPath().Single();
         Assert.Equal(sourceFile.Path, key);
-        Assert.Equal(solution.WorkspaceVersion, version);
+        Assert.Equal(solution.ContentVersion, version);
         Assert.Equal(source1, (await documentState.GetTextAsync(CancellationToken.None)).ToString());
 
         // check committed document status:

@@ -399,7 +399,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             }
 
             // Step 4: See if we can reuse a previously forked solution.
-            if (cachedSolution != default && cachedSolution.forkedFromVersion == workspaceCurrentSolution.WorkspaceVersion)
+            if (cachedSolution != default && cachedSolution.forkedFromVersion == workspaceCurrentSolution.ContentVersion)
                 return (cachedSolution.solution, IsForked: true);
 
             // Step 5: Fork a new solution from the workspace with the LSP text applied.
@@ -418,7 +418,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             }
 
             // Remember this forked solution and the workspace version it was forked from.
-            _cachedLspSolutions[workspace] = (workspaceCurrentSolution.WorkspaceVersion, lspSolution);
+            _cachedLspSolutions[workspace] = (workspaceCurrentSolution.ContentVersion, lspSolution);
             return (lspSolution, IsForked: true);
         }
 

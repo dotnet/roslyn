@@ -84,7 +84,7 @@ internal sealed class PdbMatchingSourceTextProvider() : IEventListener, IPdbMatc
         // The file checksum is no longer available from the latter, so capture it at this moment.
         if (oldDocument.State.TextAndVersionSource.CanReloadText && !newDocument.State.TextAndVersionSource.CanReloadText)
         {
-            var oldSolutionVersion = oldDocument.Project.Solution.WorkspaceVersion;
+            var oldSolutionVersion = oldDocument.Project.Solution.ContentVersion;
 
             lock (_guard)
             {
@@ -104,7 +104,7 @@ internal sealed class PdbMatchingSourceTextProvider() : IEventListener, IPdbMatc
     {
         lock (_guard)
         {
-            _baselineSolutionVersion = solution.WorkspaceVersion;
+            _baselineSolutionVersion = solution.ContentVersion;
         }
     }
 

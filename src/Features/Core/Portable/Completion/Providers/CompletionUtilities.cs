@@ -33,12 +33,12 @@ internal static class CompletionUtilities
         Solution? solution = null;
         using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIds);
 
-        // Use WorkspaceVersion to decide which solution snapshot is latest among projects in list.
+        // Use ContentVersion to decide which solution snapshot is latest among projects in list.
         // Dedupe and return corresponding projects from this snapshot.
         foreach (var project in projects)
         {
             projectIds.Add(project.Id);
-            if (solution is null || project.Solution.WorkspaceVersion > solution.WorkspaceVersion)
+            if (solution is null || project.Solution.ContentVersion > solution.ContentVersion)
             {
                 solution = project.Solution;
             }

@@ -119,7 +119,7 @@ internal static class ITextViewWindowVerifierInProcessExtensions
                 {
                     foreach (var e in events)
                     {
-                        codeActionLogger.Messages.Add($"{e.OldSolution.WorkspaceVersion} to {e.NewSolution.WorkspaceVersion}: {e.Kind} {e.DocumentId}");
+                        codeActionLogger.Messages.Add($"{e.OldSolution.ContentVersion} to {e.NewSolution.ContentVersion}: {e.Kind} {e.DocumentId}");
                     }
                 }
 
