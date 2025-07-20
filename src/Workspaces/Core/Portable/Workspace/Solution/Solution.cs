@@ -1589,9 +1589,6 @@ public partial class Solution
     internal DocumentId? GetFirstRelatedDocumentId(DocumentId documentId, ProjectId? relatedProjectIdHint)
         => this.SolutionState.GetFirstRelatedDocumentId(documentId, relatedProjectIdHint);
 
-    internal Solution WithNewWorkspace(string? workspaceKind, int contentVersion, SolutionServices services)
-        => WithCompilationState(CompilationState.WithNewWorkspace(workspaceKind, contentVersion, services));
-
     /// <summary>
     /// Formerly, returned a copy of the solution isolated from the original so that they do not share computed state. It now does nothing.
     /// </summary>

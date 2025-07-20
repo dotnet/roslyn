@@ -212,7 +212,7 @@ internal sealed partial class SolutionState
 
         return new SolutionState(
             WorkspaceKind,
-            ContentVersion,
+            ContentVersion + 1,
             Services,
             solutionAttributes,
             projectIds,
@@ -223,40 +223,6 @@ internal sealed partial class SolutionState
             projectStates.Value,
             dependencyGraph,
             analyzerReferencesEqual ? _lazyAnalyzers : null);
-    }
-
-    /// <summary>
-    /// Updates the solution with specified workspace kind, content version and services.
-    /// This implicitly also changes the value of <see cref="Solution.Workspace"/> for this solution,
-    /// since that is extracted from <see cref="SolutionServices"/> for backwards compatibility.
-    /// </summary>
-    public SolutionState WithNewWorkspace(
-        string? workspaceKind,
-        int contentVersion,
-        SolutionServices services)
-    {
-        if (workspaceKind == WorkspaceKind &&
-            contentVersion == ContentVersion &&
-            services == Services)
-        {
-            return this;
-        }
-
-        // Note: this will potentially have problems if the workspace services are different, as some services
-        // get locked-in by document states and project states when first constructed.
-        return new SolutionState(
-            workspaceKind,
-            contentVersion,
-            services,
-            SolutionAttributes,
-            ProjectIds,
-            Options,
-            AnalyzerReferences,
-            FallbackAnalyzerOptions,
-            ProjectCountByLanguage,
-            SortedProjectStates,
-            _dependencyGraph,
-            _lazyAnalyzers);
     }
 
     /// <summary>

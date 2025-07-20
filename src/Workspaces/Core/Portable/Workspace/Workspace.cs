@@ -178,8 +178,7 @@ public abstract partial class Workspace : IDisposable
     /// This method does not guarantee that linked files will have the same contents. Callers
     /// should enforce that policy before passing in the new solution.
     /// </remarks>
-    private protected (Solution oldSolution, Solution newSolution) SetCurrentSolutionEx(
-        Solution solution, bool contentChanged = true)
+    private protected (Solution oldSolution, Solution newSolution) SetCurrentSolutionEx(Solution solution)
     {
         if (solution is null)
             throw new ArgumentNullException(nameof(solution));
@@ -187,16 +186,8 @@ public abstract partial class Workspace : IDisposable
         using (_serializationLock.DisposableWait())
         {
             var oldSolution = this.CurrentSolution;
-            if (solution == oldSolution)
-            {
-                // No change
-                return (solution, solution);
-            }
 
-            _latestSolution = solution.WithNewWorkspace(
-                oldSolution.WorkspaceKind,
-                contentChanged ? oldSolution.WorkspaceVersion + 1 : oldSolution.WorkspaceVersion,
-                oldSolution.Services);
+            _latestSolution = solution;
             return (oldSolution, _latestSolution);
         }
     }
@@ -256,7 +247,6 @@ public abstract partial class Workspace : IDisposable
         Func<Solution, Solution, (WorkspaceChangeKind changeKind, ProjectId? projectId, DocumentId? documentId)> changeKind,
         Action<Solution, Solution>? onBeforeUpdate,
         Action<Solution, Solution>? onAfterUpdate,
-        bool contentChanged,
         CancellationToken cancellationToken)
     {
         var (oldSolution, newSolution) = await SetCurrentSolutionAsync(
@@ -470,14 +460,10 @@ public abstract partial class Workspace : IDisposable
     /// events.</param>
     /// <param name="onBeforeUpdate">Action to perform immediately prior to updating <see cref="CurrentSolution"/>.
     /// The action will be passed the old <see cref="CurrentSolution"/> that will be replaced and the exact solution
-    /// it will be replaced with. The latter may be different than the solution returned by <paramref
-    /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
-    /// accordingly.  This will only be run once.</param>
+    /// it will be replaced with. This will only be run once.</param>
     /// <param name="onAfterUpdate">Action to perform once <see cref="CurrentSolution"/> has been updated.  The
     /// action will be passed the old <see cref="CurrentSolution"/> that was just replaced and the exact solution it
-    /// was replaced with. The latter may be different than the solution returned by <paramref
-    /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
-    /// accordingly.  This will only be run once.</param>
+    /// was replaced with. This will only be run once.</param>
     private protected (Solution oldSolution, Solution newSolution) SetCurrentSolution<TData>(
         TData data,
         Func<Solution, TData, Solution> transformation,
@@ -507,7 +493,6 @@ public abstract partial class Workspace : IDisposable
         bool mayRaiseEvents,
         Action<Solution, Solution, TData>? onBeforeUpdate,
         Action<Solution, Solution, TData>? onAfterUpdate,
-        bool contentChanged,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(transformation);
@@ -541,11 +526,6 @@ public abstract partial class Workspace : IDisposable
                         oldSolution = _latestSolution;
                         continue;
                     }
-
-                    newSolution = newSolution.WithNewWorkspace(
-                        oldSolution.WorkspaceKind,
-                        contentChanged ? oldSolution.ContentVersion + 1 : oldSolution.ContentVersion,
-                        oldSolution.Services);
 
                     // Prior to updating the latest solution, let the caller do any other state updates they want.
                     onBeforeUpdate?.Invoke(oldSolution, newSolution, data);
@@ -1576,7 +1556,7 @@ public abstract partial class Workspace : IDisposable
             var oldSolution = this.CurrentSolution;
 
             // If the workspace has already accepted an update, then fail
-            if (newSolution.WorkspaceVersion != oldSolution.WorkspaceVersion)
+            if (newSolution.ContentVersion != oldSolution.ContentVersion)
             {
                 Logger.Log(
                     FunctionId.Workspace_ApplyChanges,
@@ -1584,8 +1564,8 @@ public abstract partial class Workspace : IDisposable
                     {
                         // 'oldSolution' is the current workspace solution; if we reach this point we know
                         // 'oldSolution' is newer than the expected workspace solution 'newSolution'.
-                        var oldWorkspaceVersion = oldSolution.WorkspaceVersion;
-                        var newWorkspaceVersion = newSolution.WorkspaceVersion;
+                        var oldWorkspaceVersion = oldSolution.ContentVersion;
+                        var newWorkspaceVersion = newSolution.ContentVersion;
                         return $"Apply Failed: Workspace has already been updated (from version '{newWorkspaceVersion}' to '{oldWorkspaceVersion}')";
                     },
                     oldSolution,
