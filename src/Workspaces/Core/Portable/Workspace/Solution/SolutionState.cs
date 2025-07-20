@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -35,13 +36,21 @@ internal readonly record struct StateChange(
 /// </summary>
 internal sealed partial class SolutionState
 {
+    /// <summary>
+    /// Used to ensure that all SolutionState instances have a unique content version.
+    /// That way we don't end up in a situation where we take an initial snapshot S,
+    /// and fork it into two different snapshots S1 and S2, but both of them have the
+    /// same new content version.
+    /// </summary>
+    private static long s_contentVersion = 1;
+
     public static readonly IEqualityComparer<string> FilePathComparer = CachingFilePathComparer.Instance;
 
     /// <summary>
     /// Monotonically incrementing version number each time the solution state is modified and forked
     /// into a new instance.
     /// </summary>
-    public int ContentVersion { get; }
+    public long ContentVersion { get; }
 
     public string? WorkspaceKind { get; }
     public SolutionServices Services { get; }
@@ -69,7 +78,7 @@ internal sealed partial class SolutionState
 
     private SolutionState(
         string? workspaceKind,
-        int contentVersion,
+        long contentVersion,
         SolutionServices services,
         SolutionInfo.SolutionAttributes solutionAttributes,
         IReadOnlyList<ProjectId> projectIds,
@@ -212,7 +221,7 @@ internal sealed partial class SolutionState
 
         return new SolutionState(
             WorkspaceKind,
-            ContentVersion + 1,
+            Interlocked.Increment(ref s_contentVersion),
             Services,
             solutionAttributes,
             projectIds,

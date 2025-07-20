@@ -15,6 +15,10 @@ internal static class SolutionExtensions
     public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
         => LanguageServer.Extensions.GetDocumentIds(solution, new(documentUri));
 
+    [Obsolete("Use GetWorkspaceVersionLong instead.", error: true)]
     public static int GetWorkspaceVersion(this Solution solution)
+        => checked((int)solution.ContentVersion);
+
+    public static long GetWorkspaceVersionLong(this Solution solution)
         => solution.ContentVersion;
 }

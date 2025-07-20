@@ -29,8 +29,8 @@ internal sealed class PdbMatchingSourceTextProvider() : IEventListener, IPdbMatc
     private readonly object _guard = new();
 
     private bool _isActive;
-    private int _baselineSolutionVersion;
-    private readonly Dictionary<string, (DocumentState state, int solutionVersion)> _documentsWithChangedLoaderByPath = [];
+    private long _baselineSolutionVersion;
+    private readonly Dictionary<string, (DocumentState state, long solutionVersion)> _documentsWithChangedLoaderByPath = [];
     private WorkspaceEventRegistration? _workspaceChangedDisposer;
 
     public void StartListening(Workspace workspace)
@@ -162,7 +162,7 @@ internal sealed class PdbMatchingSourceTextProvider() : IEventListener, IPdbMatc
         internal TestAccessor(PdbMatchingSourceTextProvider instance)
             => _instance = instance;
 
-        public ImmutableDictionary<string, (DocumentState state, int solutionVersion)> GetDocumentsWithChangedLoaderByPath()
+        public ImmutableDictionary<string, (DocumentState state, long solutionVersion)> GetDocumentsWithChangedLoaderByPath()
         {
             lock (_instance._guard)
             {

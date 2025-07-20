@@ -53,7 +53,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// workspace).
     /// <para/> Access to this is guaranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    private readonly Dictionary<Workspace, (int? forkedFromVersion, Solution solution)> _cachedLspSolutions = [];
+    private readonly Dictionary<Workspace, (long? forkedFromVersion, Solution solution)> _cachedLspSolutions = [];
 
     /// <summary>
     /// Stores the current source text for each URI that is being tracked by LSP. Each time an LSP text sync

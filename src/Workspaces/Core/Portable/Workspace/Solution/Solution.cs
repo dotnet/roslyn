@@ -72,7 +72,7 @@ public partial class Solution
     internal SolutionCompilationState CompilationState { get; }
 
     /// <inheritdoc cref="SolutionState.ContentVersion"/>
-    internal int ContentVersion => this.SolutionState.ContentVersion;
+    internal long ContentVersion => this.SolutionState.ContentVersion;
 
     internal bool PartialSemanticsEnabled => CompilationState.PartialSemanticsEnabled;
 
