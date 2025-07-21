@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 [ProvideLanguageEditorOptionPage(typeof(Options.NamingStylesOptionPage), "CSharp", @"Code Style", "Naming", pageNameResourceId: "#115", keywordListResourceId: 314)]
 [ProvideLanguageEditorOptionPage(typeof(Options.IntelliSenseOptionPage), "CSharp", null, "IntelliSense", pageNameResourceId: "#103", keywordListResourceId: 312)]
 [ProvideSettingsManifest(PackageRelativeManifestFile = @"UnifiedSettings\csharpSettings.registration.json")]
-[ProvideService(typeof(ICSharpTempPECompilerService), IsAsyncQueryable = false, IsCacheable = true, IsFreeThreaded = true, ServiceName = nameof(ICSharpTempPECompilerService))]
+[ProvideService(typeof(ICSharpTempPECompilerService), IsAsyncQueryable = false, IsCacheable = true, IsFreeThreaded = true, ServiceName = "C# TempPE Compiler Service")]
 [Guid(Guids.CSharpPackageIdString)]
 internal sealed class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService>, IVsUserSettingsQuery
 {

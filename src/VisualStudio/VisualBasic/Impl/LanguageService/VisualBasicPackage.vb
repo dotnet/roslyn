@@ -38,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <ProvideLanguageEditorOptionPage(GetType(NamingStylesOptionPage), "Basic", "Code Style", "Naming", "#110", 10162)>
     <ProvideLanguageEditorOptionPage(GetType(IntelliSenseOptionPage), "Basic", Nothing, "IntelliSense", "#112", 312)>
     <ProvideSettingsManifest(PackageRelativeManifestFile:="UnifiedSettings\visualBasicSettings.registration.json")>
-    <ProvideService(GetType(IVbTempPECompilerFactory), IsAsyncQueryable:=False, IsCacheable:=True, IsFreeThreaded:=True, ServiceName:=NameOf(IVbTempPECompilerFactory))>
+    <ProvideService(GetType(IVbTempPECompilerFactory), IsAsyncQueryable:=False, IsCacheable:=True, IsFreeThreaded:=True, ServiceName:="Visual Basic TempPE Compiler Factory Service")>
     <Guid(Guids.VisualBasicPackageIdString)>
     Friend NotInheritable Class VisualBasicPackage
         Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService)
