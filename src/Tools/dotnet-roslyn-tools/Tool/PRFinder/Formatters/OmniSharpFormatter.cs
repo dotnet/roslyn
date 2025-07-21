@@ -11,6 +11,6 @@ public class OmniSharpFormatter : DefaultFormatter
         // Remove the PR Number from the comment
         comment = comment.Replace($"(#{prNumber})", "");
 
-        return $@"* {comment}(PR: [#{prNumber}]({prUrl}))";
+        return $@"* {comment} (PR: [#{prNumber}]({prUrl}))";
     }
 }
