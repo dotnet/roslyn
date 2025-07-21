@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (typeKind == TypeKind.Extension)
             {
-                _ = compilation.GetSpecialType(SpecialType.System_Object);
+                Binder.GetSpecialType(compilation, SpecialType.System_Object, this.GetFirstLocationOrNone(), diagnostics);
                 return null;
             }
             else

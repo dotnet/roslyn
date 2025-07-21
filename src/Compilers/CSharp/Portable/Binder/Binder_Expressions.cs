@@ -10867,7 +10867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (SingleLookupResult singleLookupResult in singleLookupResults)
                     {
                         Symbol extensionMember = singleLookupResult.Symbol;
-                        if (IsStaticInstanceMismatch(receiver, extensionMember))
+                        if (IsStaticInstanceMismatchForUniqueSignatureFromMethodGroup(receiver, extensionMember))
                         {
                             // Remove static/instance mismatches
                             continue;
@@ -10969,7 +10969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool IsStaticInstanceMismatch(BoundExpression receiver, Symbol extensionMember)
+        private static bool IsStaticInstanceMismatchForUniqueSignatureFromMethodGroup(BoundExpression receiver, Symbol extensionMember)
         {
             bool memberCountsAsStatic = extensionMember is MethodSymbol { IsExtensionMethod: true } ? false : extensionMember.IsStatic;
             return receiver switch
@@ -11080,7 +11080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (SingleLookupResult singleLookupResult in singleLookupResults)
                     {
                         Symbol extensionMember = singleLookupResult.Symbol;
-                        if (IsStaticInstanceMismatch(receiver, extensionMember))
+                        if (IsStaticInstanceMismatchForUniqueSignatureFromMethodGroup(receiver, extensionMember))
                         {
                             // Remove static/instance mismatches
                             continue;

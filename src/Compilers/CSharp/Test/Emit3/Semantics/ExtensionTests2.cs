@@ -14971,5 +14971,49 @@ Expression:
 """;
         VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(src, expectedOperationTree, []);
     }
+
+    [Fact]
+    public void MissingSystemObject()
+    {
+        var src = """
+static class E
+{
+    extension(object)
+    {
+    }
+}
+""";
+        var comp = CreateEmptyCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+            Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+            // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+            // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+            // error CS0518: Predefined type 'System.Int32' is not defined or imported
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Int32").WithLocation(1, 1),
+            // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+            // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+            // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
+            // (1,14): error CS0518: Predefined type 'System.Object' is not defined or imported
+            // static class E
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Object").WithLocation(1, 14),
+            // (3,5): error CS0518: Predefined type 'System.Object' is not defined or imported
+            //     extension(object)
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "extension").WithArguments("System.Object").WithLocation(3, 5),
+            // (3,5): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+            //     extension(object)
+            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 5),
+            // (3,14): error CS0518: Predefined type 'System.Void' is not defined or imported
+            //     extension(object)
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(").WithArguments("System.Void").WithLocation(3, 14),
+            // (3,15): error CS0518: Predefined type 'System.Object' is not defined or imported
+            //     extension(object)
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(3, 15));
+    }
 }
 

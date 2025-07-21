@@ -35606,6 +35606,27 @@ static class E
         Assert.Equal("System.Int32 i", symbol.ToTestDisplayString());
 
         Assert.Equal("E", model.GetEnclosingSymbol(extensionParameter.SpanStart).ToTestDisplayString());
+
+        src = """
+static class E
+{
+    static void M(int i2)
+    {
+    }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        tree = comp.SyntaxTrees.Single();
+        model = comp.GetSemanticModel(tree);
+        var parameter = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+
+        symbol = model.GetDeclaredSymbol(parameter);
+        Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+        Assert.Equal("System.Int32 i2", symbol.ToTestDisplayString());
+
+        Assert.Equal("E", model.GetEnclosingSymbol(parameter.SpanStart).ToTestDisplayString());
     }
 
     readonly string[] _objectMembers = [
