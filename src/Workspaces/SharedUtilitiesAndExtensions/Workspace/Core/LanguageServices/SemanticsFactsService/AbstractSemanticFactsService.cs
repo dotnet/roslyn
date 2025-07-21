@@ -71,12 +71,15 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
 
     public SyntaxToken GenerateUniqueName(
         SemanticModel semanticModel,
-        SyntaxNode location, SyntaxNode containerOpt,
-        string baseName, Func<ISymbol, bool> filter,
-        IEnumerable<string> usedNames, CancellationToken cancellationToken)
+        SyntaxNode location,
+        SyntaxNode containerOpt,
+        string baseName,
+        Func<ISymbol, bool> filter,
+        IEnumerable<string> usedNames,
+        CancellationToken cancellationToken)
     {
         var container = containerOpt ?? location.AncestorsAndSelf().FirstOrDefault(
-            a => BlockFacts.IsExecutableBlock(a) || SyntaxFacts.IsParameterList(a) || SyntaxFacts.IsMethodBody(a));
+            a => BlockFacts.IsExecutableBlock(a) || SyntaxFacts.IsParameterList(a) || SyntaxFacts.IsMethodBody(a) || SyntaxFacts.IsTypeDeclaration(a));
 
         var candidates = GetCollidableSymbols(semanticModel, location, container, cancellationToken);
         var filteredCandidates = filter != null ? candidates.Where(filter) : candidates;
