@@ -19,8 +19,8 @@ internal sealed class RemoteBuildHost
         _client = client;
     }
 
-    public Task<MSBuildLocation> FindUsableMSBuildAsync(string projectOrSolutionFilePath, CancellationToken cancellationToken)
-        => _client.InvokeAsync<MSBuildLocation>(BuildHostTargetObject, nameof(IBuildHost.FindUsableMSBuild), parameters: [projectOrSolutionFilePath], cancellationToken);
+    public Task<MSBuildLocation?> FindUsableMSBuildAsync(string projectOrSolutionFilePath, CancellationToken cancellationToken)
+        => _client.InvokeNullableAsync<MSBuildLocation>(BuildHostTargetObject, nameof(IBuildHost.FindUsableMSBuild), parameters: [projectOrSolutionFilePath], cancellationToken);
 
     public async Task<RemoteProjectFile> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken)
     {
