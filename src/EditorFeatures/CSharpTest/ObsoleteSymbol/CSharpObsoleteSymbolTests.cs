@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ObsoleteSymbol;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ObsoleteSymbol;
@@ -13,6 +15,9 @@ public sealed class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
 {
     protected override EditorTestWorkspace CreateWorkspace(string markup)
         => EditorTestWorkspace.CreateCSharp(markup);
+
+    private new Task TestAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup)
+        => base.TestAsync(markup);
 
     [Theory]
     [InlineData("class")]
@@ -181,6 +186,17 @@ public sealed class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
 
                     [|ObsoleteValueType|]? CreateNullableValueType() => new [|ObsoleteValueType|]();
                 }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79413")]
+    public Task TestObsoleteFeatureAttribute()
+        => TestAsync(
+            """
+            [System.Obsolete]
+            [System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute("This is an obsolete feature.")]
+            static class ObsoleteType
+            {
             }
             """);
 }
