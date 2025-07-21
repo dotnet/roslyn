@@ -900,8 +900,9 @@ internal sealed class EditSession
             using var _1 = ArrayBuilder<ManagedHotReloadUpdate>.GetInstance(out var deltas);
             using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
             using var _3 = ArrayBuilder<ProjectBaseline>.GetInstance(out var newProjectBaselines);
-            using var _4 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToStale);
-            using var _5 = PooledDictionary<ProjectId, ArrayBuilder<Diagnostic>>.GetInstance(out var diagnosticBuilders);
+            using var _4 = ArrayBuilder<(ProjectId id, Guid mvid)>.GetInstance(out var projectsToStale);
+            using var _5 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToUnstale);
+            using var _6 = PooledDictionary<ProjectId, ArrayBuilder<Diagnostic>>.GetInstance(out var diagnosticBuilders);
             using var projectDifferences = new ProjectDifferences();
 
             // After all projects have been analyzed "true" value indicates changed document that is only included in stale projects.
@@ -931,6 +932,7 @@ internal sealed class EditSession
             ProjectAnalysisSummary? projectSummaryToReport = null;
 
             var oldSolution = DebuggingSession.LastCommittedSolution;
+            var staleProjects = oldSolution.StaleProjects;
 
             var hasPersistentErrors = false;
             foreach (var newProject in solution.Projects)
@@ -978,17 +980,23 @@ internal sealed class EditSession
                         Log.Write($"Found {projectDifferences.ChangedOrAddedDocuments.Count} potentially changed, {projectDifferences.DeletedDocuments.Count} deleted document(s) in project {newProject.GetLogDisplay()}");
                     }
 
-                    var isStaleProject = oldSolution.IsStaleProject(newProject.Id);
+                    var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
 
                     // We don't consider document changes in stale projects until they are rebuilt (removed from stale set).
-                    if (isStaleProject)
+                    if (staleProjects.TryGetValue(newProject.Id, out var staleModuleId))
                     {
-                        Log.Write($"EnC state of {newProject.GetLogDisplay()} queried: project is stale");
-                        UpdateChangedDocumentsStaleness(isStale: true);
-                        continue;
+                        // The module hasn't been rebuilt or we are unable to read the MVID -- keep treating the project as stale.
+                        if (mvid == staleModuleId || mvidReadError != null)
+                        {
+                            Log.Write($"EnC state of {newProject.GetLogDisplay()} queried: project is stale");
+                            UpdateChangedDocumentsStaleness(isStale: true);
+
+                            continue;
+                        }
+
+                        staleProjects = staleProjects.Remove(newProject.Id);
                     }
 
-                    var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
                     if (mvidReadError != null)
                     {
                         // The error hasn't been reported by GetDocumentDiagnosticsAsync since it might have been intermittent.
@@ -1030,7 +1038,7 @@ internal sealed class EditSession
                         // Treat the project the same as if it hasn't been built. We won't produce delta for it until it gets rebuilt.
                         Log.Write($"Changes not applied to {newProject.GetLogDisplay()}: binaries not up-to-date");
 
-                        projectsToStale.Add(newProject.Id);
+                        staleProjects = staleProjects.Add(newProject.Id, mvid);
                         UpdateChangedDocumentsStaleness(isStale: true);
 
                         continue;
@@ -1318,7 +1326,7 @@ internal sealed class EditSession
 
             if (hasPersistentErrors)
             {
-                return SolutionUpdate.Empty(diagnostics, syntaxError, ModuleUpdateStatus.Blocked);
+                return SolutionUpdate.Empty(diagnostics, syntaxError, staleProjects, ModuleUpdateStatus.Blocked);
             }
 
             // syntax error is a persistent error
@@ -1338,7 +1346,7 @@ internal sealed class EditSession
 
             return new SolutionUpdate(
                 moduleUpdates,
-                projectsToStale.ToImmutable(),
+                staleProjects,
                 nonRemappableRegions.ToImmutable(),
                 newProjectBaselines.ToImmutable(),
                 diagnostics,

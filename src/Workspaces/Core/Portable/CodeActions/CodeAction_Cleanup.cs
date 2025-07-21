@@ -14,9 +14,8 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
 

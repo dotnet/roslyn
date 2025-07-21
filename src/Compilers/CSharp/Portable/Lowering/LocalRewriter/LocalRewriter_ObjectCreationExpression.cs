@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LocalSymbol>? tempsBuilder = null;
             ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                 ref receiverDiscard,
-                captureReceiverMode: ReceiverCaptureMode.Default,
+                forceReceiverCapturing: false,
                 node.Arguments,
                 constructor,
                 node.ArgsToParamsOpt,

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.LeftOperand.Type is { });
 
             // Rewrite LHS with temporaries to prevent double-evaluation of side effects, as we'll need to use it multiple times.
-            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.LeftOperand, isRegularCompoundAssignment: false, stores, temps, node.LeftOperand.HasDynamicType());
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.LeftOperand, stores, temps, node.LeftOperand.HasDynamicType());
             Debug.Assert(transformedLHS.Type is { });
             var lhsRead = MakeRValue(transformedLHS);
             BoundExpression loweredRight = VisitExpression(node.RightOperand);

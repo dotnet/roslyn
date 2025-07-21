@@ -23,6 +23,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IAsynchronousOperationListenerProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IAsynchronousOperationListener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)YieldAwaitableExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ParallelExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ParallelExtensions.NetFramework.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IAsyncEnumerableExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ChannelReaderExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ProducerConsumer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ProducerConsumerOptions.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
