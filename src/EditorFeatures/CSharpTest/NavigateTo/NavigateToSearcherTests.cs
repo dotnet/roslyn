@@ -136,7 +136,7 @@ public sealed class NavigateToSearcherTests
         var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
         callbackMock.Setup(c => c.ReportIncomplete());
         callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
-        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<Document>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         // Because we returned a result when not fully loaded, we should notify the user that data was not complete.
         callbackMock.Setup(c => c.Done(false));
@@ -175,7 +175,7 @@ public sealed class NavigateToSearcherTests
         var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
         callbackMock.Setup(c => c.ReportIncomplete());
         callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
-        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<CancellationToken>()))
+        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<Document>(), It.IsAny<CancellationToken>()))
                     .Returns(Task.CompletedTask);
 
         // Because the remote host wasn't fully loaded, we still notify that our results may be incomplete.
@@ -249,7 +249,7 @@ public sealed class NavigateToSearcherTests
 
         var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
         callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
-        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<CancellationToken>()))
+        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<Document>(), It.IsAny<CancellationToken>()))
                     .Returns(Task.CompletedTask);
 
         // Because we did a full search, we should let the user know it was totally accurate.
@@ -282,7 +282,7 @@ public sealed class NavigateToSearcherTests
         var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
         callbackMock.Setup(c => c.ReportIncomplete());
         callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
-        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<Document>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         callbackMock.Setup(c => c.Done(true));
 
@@ -340,7 +340,7 @@ public sealed class NavigateToSearcherTests
         var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
         callbackMock.Setup(c => c.ReportIncomplete());
         callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
-        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<Document>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         callbackMock.Setup(c => c.Done(true));
 
@@ -488,7 +488,7 @@ public sealed class NavigateToSearcherTests
         {
         }
 
-        public Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
+        public Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, Document? activeDocument, CancellationToken cancellationToken)
         {
             foreach (var result in results)
                 this.Results.Add(result);

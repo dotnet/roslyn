@@ -25,14 +25,15 @@ internal static class CodeRefactoringContextExtensions
         {
             foreach (var action in actions)
             {
+#if WORKSPACE
                 if (applicableToSpan != null)
                 {
                     context.RegisterRefactoring(action, applicableToSpan.Value);
+                    continue;
                 }
-                else
-                {
-                    context.RegisterRefactoring(action);
-                }
+#endif
+
+                context.RegisterRefactoring(action);
             }
         }
     }

@@ -6,20 +6,15 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using System.Runtime.Serialization;
-using System.Diagnostics;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-using Microsoft.CodeAnalysis.Editing;
-#endif
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
@@ -99,9 +94,9 @@ internal sealed class SymbolSpecification(
            ApplicableAccessibilityList.Contains(GetAccessibility(symbol));
 
     public bool AppliesTo(SymbolKind symbolKind, Accessibility accessibility)
-        => this.AppliesTo(new SymbolKindOrTypeKind(symbolKind), new DeclarationModifiers(), accessibility);
+        => this.AppliesTo(new SymbolKindOrTypeKind(symbolKind), Modifiers.None, accessibility);
 
-    public bool AppliesTo(SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility? accessibility)
+    public bool AppliesTo(SymbolKindOrTypeKind kind, Modifiers modifiers, Accessibility? accessibility)
     {
         if (!ApplicableSymbolKindList.Any(static (k, kind) => k.Equals(kind), kind))
         {
@@ -122,32 +117,32 @@ internal sealed class SymbolSpecification(
         return true;
     }
 
-    private static DeclarationModifiers CollapseModifiers(ImmutableArray<ModifierKind> requiredModifierList)
+    private static Modifiers CollapseModifiers(ImmutableArray<ModifierKind> requiredModifierList)
     {
         if (requiredModifierList == default)
         {
-            return new DeclarationModifiers();
+            return Modifiers.None;
         }
 
-        var result = new DeclarationModifiers();
+        var result = Modifiers.None;
         foreach (var modifier in requiredModifierList)
         {
             switch (modifier.ModifierKindWrapper)
             {
                 case ModifierKindEnum.IsAbstract:
-                    result = result.WithIsAbstract(true);
+                    result |= Modifiers.Abstract;
                     break;
                 case ModifierKindEnum.IsStatic:
-                    result = result.WithIsStatic(true);
+                    result |= Modifiers.Static;
                     break;
                 case ModifierKindEnum.IsAsync:
-                    result = result.WithAsync(true);
+                    result |= Modifiers.Async;
                     break;
                 case ModifierKindEnum.IsReadOnly:
-                    result = result.WithIsReadOnly(true);
+                    result |= Modifiers.ReadOnly;
                     break;
                 case ModifierKindEnum.IsConst:
-                    result = result.WithIsConst(true);
+                    result |= Modifiers.Const;
                     break;
             }
         }
@@ -456,29 +451,29 @@ internal sealed class SymbolSpecification(
         [DataMember(Order = 0)]
         public readonly ModifierKindEnum ModifierKindWrapper;
 
-        internal DeclarationModifiers Modifier { get; }
+        internal Modifiers Modifiers { get; }
 
-        public ModifierKind(DeclarationModifiers modifier)
+        public ModifierKind(Modifiers modifier)
         {
-            this.Modifier = modifier;
+            this.Modifiers = modifier;
 
-            if (modifier.IsAbstract)
+            if (modifier.HasFlag(Modifiers.Abstract))
             {
                 ModifierKindWrapper = ModifierKindEnum.IsAbstract;
             }
-            else if (modifier.IsStatic)
+            else if (modifier.HasFlag(Modifiers.Static))
             {
                 ModifierKindWrapper = ModifierKindEnum.IsStatic;
             }
-            else if (modifier.IsAsync)
+            else if (modifier.HasFlag(Modifiers.Async))
             {
                 ModifierKindWrapper = ModifierKindEnum.IsAsync;
             }
-            else if (modifier.IsReadOnly)
+            else if (modifier.HasFlag(Modifiers.ReadOnly))
             {
                 ModifierKindWrapper = ModifierKindEnum.IsReadOnly;
             }
-            else if (modifier.IsConst)
+            else if (modifier.HasFlag(Modifiers.Const))
             {
                 ModifierKindWrapper = ModifierKindEnum.IsConst;
             }
@@ -492,29 +487,29 @@ internal sealed class SymbolSpecification(
         {
             ModifierKindWrapper = modifierKind;
 
-            Modifier = new DeclarationModifiers(
-                isAbstract: ModifierKindWrapper == ModifierKindEnum.IsAbstract,
-                isStatic: ModifierKindWrapper == ModifierKindEnum.IsStatic,
-                isAsync: ModifierKindWrapper == ModifierKindEnum.IsAsync,
-                isReadOnly: ModifierKindWrapper == ModifierKindEnum.IsReadOnly,
-                isConst: ModifierKindWrapper == ModifierKindEnum.IsConst);
+            Modifiers =
+                (ModifierKindWrapper == ModifierKindEnum.IsAbstract ? Modifiers.Abstract : 0) |
+                (ModifierKindWrapper == ModifierKindEnum.IsStatic ? Modifiers.Static : 0) |
+                (ModifierKindWrapper == ModifierKindEnum.IsAsync ? Modifiers.Async : 0) |
+                (ModifierKindWrapper == ModifierKindEnum.IsReadOnly ? Modifiers.ReadOnly : 0) |
+                (ModifierKindWrapper == ModifierKindEnum.IsConst ? Modifiers.Const : 0);
         }
 
         public bool MatchesSymbol(ISymbol symbol)
         {
-            if ((Modifier.IsAbstract && symbol.IsAbstract) ||
-                (Modifier.IsStatic && symbol.IsStatic))
+            if ((Modifiers.HasFlag(Modifiers.Abstract) && symbol.IsAbstract) ||
+                (Modifiers.HasFlag(Modifiers.Static) && symbol.IsStatic))
             {
                 return true;
             }
 
             var kind = symbol.Kind;
-            if (Modifier.IsAsync && kind == SymbolKind.Method && ((IMethodSymbol)symbol).IsAsync)
+            if (Modifiers.HasFlag(Modifiers.Async) && kind == SymbolKind.Method && ((IMethodSymbol)symbol).IsAsync)
             {
                 return true;
             }
 
-            if (Modifier.IsReadOnly)
+            if (Modifiers.HasFlag(Modifiers.ReadOnly))
             {
                 if (kind == SymbolKind.Field && ((IFieldSymbol)symbol).IsReadOnly)
                 {
@@ -522,7 +517,7 @@ internal sealed class SymbolSpecification(
                 }
             }
 
-            if (Modifier.IsConst)
+            if (Modifiers.HasFlag(Modifiers.Const))
             {
                 if ((kind == SymbolKind.Field && ((IFieldSymbol)symbol).IsConst) ||
                     (kind == SymbolKind.Local && ((ILocalSymbol)symbol).IsConst))

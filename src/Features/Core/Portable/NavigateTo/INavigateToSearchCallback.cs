@@ -13,7 +13,7 @@ internal interface INavigateToSearchCallback
     void Done(bool isFullyLoaded);
     void ReportIncomplete();
 
-    Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken);
+    Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, Document? activeDocument, CancellationToken cancellationToken);
 
     void ReportProgress(int current, int maximum);
 }

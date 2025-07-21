@@ -38,10 +38,19 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             foreach (Diagnostic diagnostic in context.Diagnostics)
             {
-                string minimalSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.MinimalNamePropertyBagKey];
-                string publicSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNamePropertyBagKey];
-                string publicSymbolNameWithNullability = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNameWithNullabilityPropertyBagKey];
-                string fileName = diagnostic.Properties[DeclarePublicApiAnalyzer.FileName];
+                string? minimalSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.MinimalNamePropertyBagKey];
+                string? publicSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNamePropertyBagKey];
+                string? publicSymbolNameWithNullability = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNameWithNullabilityPropertyBagKey];
+                string? fileName = diagnostic.Properties[DeclarePublicApiAnalyzer.FileName];
+
+                if (minimalSymbolName is null ||
+                    publicSymbolName is null ||
+                    publicSymbolNameWithNullability is null ||
+                    fileName is null)
+                {
+                    // If any of the required properties are missing, we cannot register a fix.
+                    continue;
+                }
 
                 TextDocument? document = project.GetPublicApiDocument(fileName);
 
@@ -59,7 +68,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             return Task.CompletedTask;
 
-            static async Task<Solution> GetFixAsync(TextDocument publicSurfaceAreaDocument, string oldSymbolName, string newSymbolName, CancellationToken cancellationToken)
+            static async Task<Solution?> GetFixAsync(TextDocument publicSurfaceAreaDocument, string oldSymbolName, string newSymbolName, CancellationToken cancellationToken)
             {
                 SourceText sourceText = await publicSurfaceAreaDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 SourceText newSourceText = AnnotateSymbolNamesInSourceText(sourceText, new Dictionary<string, string> { [oldSymbolName] = newSymbolName });
@@ -111,24 +120,24 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                 foreach (var (project, diagnostics) in _diagnosticsToFix)
                 {
-                    IEnumerable<IGrouping<SyntaxTree, Diagnostic>> groupedDiagnostics =
+                    IEnumerable<IGrouping<SyntaxTree?, Diagnostic>> groupedDiagnostics =
                         diagnostics
                             .Where(d => d.Location.IsInSource)
                             .GroupBy(d => d.Location.SourceTree);
 
                     var allChanges = new Dictionary<string, Dictionary<string, string>>();
 
-                    foreach (IGrouping<SyntaxTree, Diagnostic> grouping in groupedDiagnostics)
+                    foreach (IGrouping<SyntaxTree?, Diagnostic> grouping in groupedDiagnostics)
                     {
-                        Document document = project.GetDocument(grouping.Key);
+                        Document? document = project.GetDocument(grouping.Key);
 
                         if (document is null)
                         {
                             continue;
                         }
 
-                        SyntaxNode root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                        SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        SyntaxNode? root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                        SemanticModel? semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                         foreach (Diagnostic diagnostic in grouping)
                         {
@@ -141,10 +150,17 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                     continue;
                             }
 
-                            string oldName = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNamePropertyBagKey];
-                            string newName = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNameWithNullabilityPropertyBagKey];
+                            string? oldName = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNamePropertyBagKey];
+                            string? newName = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNameWithNullabilityPropertyBagKey];
                             bool isShipped = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiIsShippedPropertyBagKey] == "true";
-                            string fileName = diagnostic.Properties[DeclarePublicApiAnalyzer.FileName];
+                            string? fileName = diagnostic.Properties[DeclarePublicApiAnalyzer.FileName];
+
+                            if (oldName is null ||
+                                newName is null ||
+                                fileName is null)
+                            {
+                                continue;
+                            }
 
                             if (!allChanges.TryGetValue(fileName, out var mapToUpdate))
                             {
@@ -190,9 +206,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 {
                     case FixAllScope.Document:
                         {
-                            ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false);
+                            Document document = fixAllContext.Document!;
+                            ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false);
                             diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
-                            title = string.Format(CultureInfo.InvariantCulture, PublicApiAnalyzerResources.AddAllItemsInDocumentToTheApiTitle, fixAllContext.Document.Name);
+                            title = string.Format(CultureInfo.InvariantCulture, PublicApiAnalyzerResources.AddAllItemsInDocumentToTheApiTitle, document.Name);
                             break;
                         }
 

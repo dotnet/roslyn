@@ -13,9 +13,9 @@ using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.Lightup;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
             }
 
-            private void CheckPropertyAccessor(SymbolAnalysisContext symbolContext, IMethodSymbol accessor)
+            private void CheckPropertyAccessor(SymbolAnalysisContext symbolContext, IMethodSymbol? accessor)
             {
                 if (accessor == null)
                 {
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     if (publicApiName.Name != publicApiName.NameWithNullability)
                     {
                         // '#nullable enable' would be useful and should be set
-                        reportDiagnosticAtLocations(GetDiagnostic(ShouldAnnotatePublicApiFilesRule, ShouldAnnotateInternalApiFilesRule), ImmutableDictionary<string, string>.Empty);
+                        reportDiagnosticAtLocations(GetDiagnostic(ShouldAnnotatePublicApiFilesRule, ShouldAnnotateInternalApiFilesRule), ImmutableDictionary<string, string?>.Empty);
                     }
                 }
 
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         !CanTypeBeExtended(method.ContainingType.BaseType))
                     {
                         string errorMessageName = GetErrorMessageName(method, isImplicitlyDeclaredConstructor);
-                        ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty;
+                        ImmutableDictionary<string, string?> propertyBag = ImmutableDictionary<string, string?>.Empty;
                         var locations = isImplicitlyDeclaredConstructor ? method.ContainingType.Locations : method.Locations;
                         reportDiagnostic(Diagnostic.Create(GetDiagnostic(ExposedNoninstantiableTypePublic, ExposedNoninstantiableTypeInternal), locations[0], propertyBag, errorMessageName));
                     }
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             {
                                 string errorMessageName = GetErrorMessageName(method, isImplicitlyDeclaredConstructor);
                                 var diagnostic = GetDiagnostic(AvoidMultipleOverloadsWithOptionalParametersPublic, AvoidMultipleOverloadsWithOptionalParametersInternal);
-                                reportDiagnosticAtLocations(diagnostic, ImmutableDictionary<string, string>.Empty, errorMessageName, diagnostic.HelpLinkUri);
+                                reportDiagnosticAtLocations(diagnostic, ImmutableDictionary<string, string?>.Empty, errorMessageName, diagnostic.HelpLinkUri);
                                 break;
                             }
 
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                 {
                                     string errorMessageName = GetErrorMessageName(method, isImplicitlyDeclaredConstructor);
                                     var diagnostic = GetDiagnostic(OverloadWithOptionalParametersShouldHaveMostParametersPublic, OverloadWithOptionalParametersShouldHaveMostParametersInternal);
-                                    reportDiagnosticAtLocations(diagnostic, ImmutableDictionary<string, string>.Empty, errorMessageName, diagnostic.HelpLinkUri);
+                                    reportDiagnosticAtLocations(diagnostic, ImmutableDictionary<string, string?>.Empty, errorMessageName, diagnostic.HelpLinkUri);
                                     break;
                                 }
                                 else if (!overloadHasOptionalParams)
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                     {
                                         string errorMessageName = GetErrorMessageName(method, isImplicitlyDeclaredConstructor);
                                         var diagnostic = GetDiagnostic(OverloadWithOptionalParametersShouldHaveMostParametersPublic, OverloadWithOptionalParametersShouldHaveMostParametersInternal);
-                                        reportDiagnosticAtLocations(diagnostic, ImmutableDictionary<string, string>.Empty, errorMessageName, diagnostic.HelpLinkUri);
+                                        reportDiagnosticAtLocations(diagnostic, ImmutableDictionary<string, string?>.Empty, errorMessageName, diagnostic.HelpLinkUri);
                                         break;
                                     }
                                 }
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 return;
 
                 // local functions
-                void reportDiagnosticAtLocations(DiagnosticDescriptor descriptor, ImmutableDictionary<string, string> propertyBag, params object[] args)
+                void reportDiagnosticAtLocations(DiagnosticDescriptor descriptor, ImmutableDictionary<string, string?> propertyBag, params object[] args)
                 {
                     foreach (var location in locationsToReport)
                     {
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     string errorMessageName = GetErrorMessageName(symbol, isImplicitlyDeclaredConstructor);
                     // Compute public API names for any stale siblings to remove from unshipped text (e.g. during signature change of unshipped public API).
                     var siblingPublicApiNamesToRemove = GetSiblingNamesToRemoveFromUnshippedText(symbol, cancellationToken);
-                    ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty
+                    ImmutableDictionary<string, string?> propertyBag = ImmutableDictionary<string, string?>.Empty
                         .Add(ApiNamePropertyBagKey, publicApiName)
                         .Add(MinimalNamePropertyBagKey, errorMessageName)
                         .Add(ApiNamesOfSiblingsToRemovePropertyBagKey, siblingPublicApiNamesToRemove);
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 {
                     // Public API missing annotations in public API file - report diagnostic.
                     string errorMessageName = GetErrorMessageName(symbol, isImplicitlyDeclaredConstructor);
-                    ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty
+                    ImmutableDictionary<string, string?> propertyBag = ImmutableDictionary<string, string?>.Empty
                         .Add(ApiNamePropertyBagKey, publicApiName.Name)
                         .Add(ApiNameWithNullabilityPropertyBagKey, withObliviousIfNeeded(publicApiName.NameWithNullability))
                         .Add(MinimalNamePropertyBagKey, errorMessageName)
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     // Public API using oblivious types in public API file - report diagnostic.
                     string errorMessageName = GetErrorMessageName(symbol, isImplicitlyDeclaredConstructor);
 
-                    reportDiagnosticAtLocations(GetDiagnostic(ObliviousPublicApiRule, ObliviousInternalApiRule), ImmutableDictionary<string, string>.Empty, errorMessageName);
+                    reportDiagnosticAtLocations(GetDiagnostic(ObliviousPublicApiRule, ObliviousInternalApiRule), ImmutableDictionary<string, string?>.Empty, errorMessageName);
                 }
 
                 bool lookupPublicApi(ApiName overloadPublicApiName, out ApiLine overloadPublicApiLine)
@@ -702,7 +702,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 {
                     foreach (var attribute in compilation.Assembly.GetAttributes(typeForwardedToAttribute))
                     {
-                        if (attribute.AttributeConstructor.Parameters.Length == 1 &&
+                        if (attribute.AttributeConstructor?.Parameters.Length == 1 &&
+                            attribute.ApplicationSyntaxReference != null &&
                             attribute.ConstructorArguments.Length == 1 &&
                             attribute.ConstructorArguments[0].Value is INamedTypeSymbol forwardedType)
                         {
@@ -759,7 +760,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     }
 
                     Location location = pair.Value.GetLocation(_additionalFiles);
-                    ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty.Add(ApiNamePropertyBagKey, pair.Value.Text);
+                    ImmutableDictionary<string, string?> propertyBag = ImmutableDictionary<string, string?>.Empty.Add(ApiNamePropertyBagKey, pair.Value.Text);
                     reportDiagnostic(Diagnostic.Create(GetDiagnostic(RemoveDeletedPublicApiRule, RemoveDeletedInternalApiRule), location, propertyBag, pair.Value.Text));
                 }
             }
@@ -802,7 +803,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     return false;
                 }
 
-                if (IsNamespaceSkipped(symbol, cancellationToken))
+                if (IsNamespaceSkipped(symbol))
                 {
                     return false;
                 }
@@ -810,7 +811,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 return IsTrackedApiCore(symbol, cancellationToken);
             }
 
-            private bool IsNamespaceSkipped(ISymbol symbol, CancellationToken cancellationToken)
+            private bool IsNamespaceSkipped(ISymbol symbol)
             {
                 var @namespace = symbol as INamespaceSymbol ?? symbol.ContainingNamespace;
 
@@ -845,7 +846,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
                 finally
                 {
-                    skippedNamespaces?.Free(cancellationToken);
+                    skippedNamespaces?.Free();
                 }
             }
 
@@ -968,7 +969,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 {
                     if (!_ignoreTopLevelNullability &&
                         symbol.IsReferenceType &&
-                        symbol.NullableAnnotation() == NullableAnnotation.None)
+                        symbol.NullableAnnotation == NullableAnnotation.None)
                     {
                         return true;
                     }
@@ -992,7 +993,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                 public override bool VisitArrayType(IArrayTypeSymbol symbol)
                 {
-                    if (symbol.NullableAnnotation() == NullableAnnotation.None)
+                    if (symbol.NullableAnnotation == NullableAnnotation.None)
                     {
                         return true;
                     }
@@ -1009,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 public override bool VisitTypeParameter(ITypeParameterSymbol symbol)
                 {
                     if (symbol.IsReferenceType &&
-                        symbol.NullableAnnotation() == NullableAnnotation.None)
+                        symbol.NullableAnnotation == NullableAnnotation.None)
                     {
                         // Example:
                         // I<TReferenceType~>
@@ -1036,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 private static bool CheckTypeParameterConstraints(ITypeParameterSymbol symbol)
                 {
                     if (symbol.HasReferenceTypeConstraint() &&
-                        symbol.ReferenceTypeConstraintNullableAnnotation() == NullableAnnotation.None)
+                        symbol.ReferenceTypeConstraintNullableAnnotation == NullableAnnotation.None)
                     {
                         // where T : class~
                         return true;

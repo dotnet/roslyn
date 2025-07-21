@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             // PERF: Avoid additional allocations by using the overload that takes a set argument
             // instead of IEnumerable argument.
-            return merge ? value1.AddRange(value2) : value1.IntersectSet(value2);
+            return merge ? ImmutableHashSetExtensions.AddRange(value1, value2) : value1.IntersectSet(value2);
         }
     }
 }

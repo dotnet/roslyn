@@ -19,21 +19,14 @@ internal sealed partial class RoslynSearchItemsSourceProvider
     /// A callback to be passed to the <see cref="NavigateToSearcher"/>.  Results it pushes into us will then be
     /// converted and pushed into <see cref="_searchCallback"/>.
     /// </summary>
-    private sealed class RoslynNavigateToSearchCallback : INavigateToSearchCallback
+    private sealed class RoslynNavigateToSearchCallback(
+        Solution solution,
+        RoslynSearchItemsSourceProvider provider,
+        ISearchCallback searchCallback) : INavigateToSearchCallback
     {
-        private readonly Solution _solution;
-        private readonly RoslynSearchItemsSourceProvider _provider;
-        private readonly ISearchCallback _searchCallback;
-
-        public RoslynNavigateToSearchCallback(
-            Solution solution,
-            RoslynSearchItemsSourceProvider provider,
-            ISearchCallback searchCallback)
-        {
-            _solution = solution;
-            _provider = provider;
-            _searchCallback = searchCallback;
-        }
+        private readonly Solution _solution = solution;
+        private readonly RoslynSearchItemsSourceProvider _provider = provider;
+        private readonly ISearchCallback _searchCallback = searchCallback;
 
         public void Done(bool isFullyLoaded)
         {
@@ -54,7 +47,8 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             _searchCallback.ReportIncomplete(IncompleteReason.Parsing);
         }
 
-        public Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
+        public Task AddResultsAsync(
+            ImmutableArray<INavigateToSearchResult> results, Document? activeDocument, CancellationToken cancellationToken)
         {
             // Convert roslyn pattern matches to the platform type.
             foreach (var result in results)
@@ -80,7 +74,8 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                     matches,
                     result.NavigableItem.Document.FilePath,
                     perProviderItemPriority,
-                    project.Language));
+                    project.Language,
+                    isActiveDocument: activeDocument != null && activeDocument.Id == result.NavigableItem.Document.Id));
             }
 
             return Task.CompletedTask;

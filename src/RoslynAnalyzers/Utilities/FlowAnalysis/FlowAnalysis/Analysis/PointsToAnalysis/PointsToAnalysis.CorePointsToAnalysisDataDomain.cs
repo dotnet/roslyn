@@ -99,8 +99,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
                         void stopTrackingAnalysisDataForChildren()
                         {
-                            var childEntities = getChildAnalysisEntities(forwardEdgeValue)
-                                .AddRange(getChildAnalysisEntities(backEdgeValue));
+                            var childEntities = ImmutableHashSetExtensions.AddRange(
+                                getChildAnalysisEntities(forwardEdgeValue),
+                                getChildAnalysisEntities(backEdgeValue));
                             foreach (var childEntity in childEntities)
                             {
                                 stopTrackingAnalysisDataForEntity(childEntity);

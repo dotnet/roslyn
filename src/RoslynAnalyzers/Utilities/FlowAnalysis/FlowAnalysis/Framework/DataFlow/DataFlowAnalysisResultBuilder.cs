@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public void Dispose()
         {
             _info.Values.Dispose();
-            _info.Dispose();
+            _info.Free();
         }
     }
 }

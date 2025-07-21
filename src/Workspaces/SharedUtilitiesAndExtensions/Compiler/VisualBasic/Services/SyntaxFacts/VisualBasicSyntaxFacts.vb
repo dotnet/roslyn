@@ -3,23 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
-Imports System.Diagnostics.CodeAnalysis
-
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.Internal.Editing
-Imports Microsoft.CodeAnalysis.Collections
-#Else
-Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.Collections
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
     Friend Class VisualBasicSyntaxFacts

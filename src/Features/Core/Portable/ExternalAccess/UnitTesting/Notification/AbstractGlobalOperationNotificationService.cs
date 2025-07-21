@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Notification;
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Notification;
 
 internal abstract partial class AbstractGlobalOperationNotificationService : IGlobalOperationNotificationService
 {

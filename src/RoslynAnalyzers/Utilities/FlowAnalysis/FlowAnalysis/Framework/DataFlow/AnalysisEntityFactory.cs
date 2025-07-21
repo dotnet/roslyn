@@ -10,10 +10,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 Debug.Assert(parentEntity.InstanceLocation == instanceLocation);
 
-                using var builder = ArrayBuilder<AnalysisEntity>.GetInstance(tupleType.TupleElements.Length);
+                using var _ = ArrayBuilder<AnalysisEntity>.GetInstance(tupleType.TupleElements.Length, out var builder);
                 foreach (var field in tupleType.TupleElements)
                 {
                     var tupleFieldName = field.CorrespondingTupleField!.Name;

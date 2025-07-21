@@ -414,8 +414,8 @@ public sealed class EditorConfigNamingStyleParserTests
         var csharpResult = OptionsTestHelpers.ParseNamingStylePreferences(charpRule);
         var vbResult = OptionsTestHelpers.ParseNamingStylePreferences(vbRule);
 
-        Assert.Equal(csharpResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.Modifier)),
-                     vbResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.Modifier)));
+        Assert.Equal(csharpResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.Modifiers)),
+                     vbResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.Modifiers)));
         Assert.Equal(csharpResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.ModifierKindWrapper)),
                      vbResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.ModifierKindWrapper)));
     }
