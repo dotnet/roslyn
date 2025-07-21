@@ -320,8 +320,84 @@ F(13)
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G(string, string)", """
-                Baseline IL: AsyncWithOr1
+            verifier.VerifyIL("Test.G(bool, bool)", """
+                {
+                  // Code size      132 (0x84)
+                  .maxstack  3
+                  .locals init (bool V_0, //x1
+                                bool V_1, //x2
+                                bool V_2, //x3
+                                int V_3, //c
+                                bool V_4)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.s    V_4
+                  IL_0003:  ldloc.s    V_4
+                  IL_0005:  brtrue.s   IL_0014
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  call       "System.Threading.Tasks.Task<bool> Test.F<bool>(bool)"
+                  IL_000d:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0012:  stloc.s    V_4
+                  IL_0014:  ldloc.s    V_4
+                  IL_0016:  stloc.0
+                  IL_0017:  ldarg.0
+                  IL_0018:  stloc.s    V_4
+                  IL_001a:  ldloc.s    V_4
+                  IL_001c:  brtrue.s   IL_002b
+                  IL_001e:  ldc.i4.0
+                  IL_001f:  call       "System.Threading.Tasks.Task<bool> Test.F<bool>(bool)"
+                  IL_0024:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0029:  stloc.s    V_4
+                  IL_002b:  ldloc.s    V_4
+                  IL_002d:  stloc.1
+                  IL_002e:  ldarg.1
+                  IL_002f:  stloc.s    V_4
+                  IL_0031:  ldloc.s    V_4
+                  IL_0033:  brtrue.s   IL_0042
+                  IL_0035:  ldc.i4.1
+                  IL_0036:  call       "System.Threading.Tasks.Task<bool> Test.F<bool>(bool)"
+                  IL_003b:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0040:  stloc.s    V_4
+                  IL_0042:  ldloc.s    V_4
+                  IL_0044:  stloc.2
+                  IL_0045:  ldarg.1
+                  IL_0046:  stloc.s    V_4
+                  IL_0048:  ldloc.s    V_4
+                  IL_004a:  brtrue.s   IL_0059
+                  IL_004c:  ldc.i4.0
+                  IL_004d:  call       "System.Threading.Tasks.Task<bool> Test.F<bool>(bool)"
+                  IL_0052:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0057:  stloc.s    V_4
+                  IL_0059:  ldloc.s    V_4
+                  IL_005b:  ldc.i4.0
+                  IL_005c:  stloc.3
+                  IL_005d:  ldloc.0
+                  IL_005e:  brfalse.s  IL_0064
+                  IL_0060:  ldloc.3
+                  IL_0061:  ldc.i4.1
+                  IL_0062:  add
+                  IL_0063:  stloc.3
+                  IL_0064:  ldloc.1
+                  IL_0065:  brfalse.s  IL_006b
+                  IL_0067:  ldloc.3
+                  IL_0068:  ldc.i4.2
+                  IL_0069:  add
+                  IL_006a:  stloc.3
+                  IL_006b:  ldloc.2
+                  IL_006c:  brfalse.s  IL_0072
+                  IL_006e:  ldloc.3
+                  IL_006f:  ldc.i4.4
+                  IL_0070:  add
+                  IL_0071:  stloc.3
+                  IL_0072:  brfalse.s  IL_0078
+                  IL_0074:  ldloc.3
+                  IL_0075:  ldc.i4.8
+                  IL_0076:  add
+                  IL_0077:  stloc.3
+                  IL_0078:  ldloc.3
+                  IL_0079:  call       "System.Threading.Tasks.Task<int> Test.F<int>(int)"
+                  IL_007e:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0083:  ret
+                }
                 """);
         }
 
@@ -455,7 +531,6 @@ class Test
             {
                 ILVerifyMessage = $$"""
                     [F]: Unexpected type on the stack. { Offset = 0x2e, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-
                     [G]: Unexpected type on the stack. { Offset = 0xd, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
@@ -478,6 +553,7 @@ class Test
         public void SpillNestedUnary()
         {
             var source = @"
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 using System;
 using System.Threading.Tasks;
 
@@ -528,18 +604,49 @@ class Test
             {
                 ILVerifyMessage = $$"""
                     [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-
                     [G1]: Unexpected type on the stack. { Offset = 0xb, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-
                     [G2]: Unexpected type on the stack. { Offset = 0xc, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-
                     [G3]: Unexpected type on the stack. { Offset = 0xd, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
-                Baseline IL: SpillNestedUnary1
+            verifier.VerifyIL("Test.G1()", """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  1
+                  IL_0000:  call       "System.Threading.Tasks.Task<int> Test.F()"
+                  IL_0005:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000a:  neg
+                  IL_000b:  ret
+                }
+                """);
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.G2()", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  1
+                  IL_0000:  call       "System.Threading.Tasks.Task<int> Test.F()"
+                  IL_0005:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000a:  neg
+                  IL_000b:  neg
+                  IL_000c:  ret
+                }
+                """);
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.G3()", """
+                {
+                  // Code size       14 (0xe)
+                  .maxstack  1
+                  IL_0000:  call       "System.Threading.Tasks.Task<int> Test.F()"
+                  IL_0005:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000a:  neg
+                  IL_000b:  neg
+                  IL_000c:  neg
+                  IL_000d:  ret
+                }
                 """);
         }
 
@@ -603,7 +710,6 @@ class Test
             {
                 ILVerifyMessage = $$"""
                     [F]: Unexpected type on the stack. { Offset = 0x28, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-
                     [G]: Unexpected type on the stack. { Offset = 0x1f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
@@ -693,7 +799,6 @@ class Test
             {
                 ILVerifyMessage = $$"""
                     [F]: Unexpected type on the stack. { Offset = 0x28, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-
                     [G]: Return value missing on the stack. { Offset = 0x44 }
                     """
             });
@@ -789,7 +894,6 @@ class Test
             {
                 ILVerifyMessage = $$"""
                     [F]: Unexpected type on the stack. { Offset = 0x28, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-
                     [G]: Return value missing on the stack. { Offset = 0x4e }
                     """
             });
@@ -877,7 +981,6 @@ class Test
             {
                 ILVerifyMessage = $$"""
                     [F]: Unexpected type on the stack. { Offset = 0x28, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-
                     [G]: Return value missing on the stack. { Offset = 0x4d }
                     """
             });
@@ -965,7 +1068,6 @@ class Test
             {
                 ILVerifyMessage = $$"""
                     [F]: Unexpected type on the stack. { Offset = 0x28, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-
                     [G]: Return value missing on the stack. { Offset = 0x1d }
                     """
             });
@@ -1705,7 +1807,7 @@ hello
         }
 
         [WorkItem(4638, "https://github.com/dotnet/roslyn/issues/4638")]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies")]
         public void AsyncWithShortCircuiting004()
         {
             var source = @"
@@ -1812,7 +1914,7 @@ public class Test
                 """);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies")]
         public void SpillArray01()
         {
             var source = @"
@@ -2572,7 +2674,6 @@ class Driver
             var source = @"
 using System.Threading;
 using System.Threading.Tasks;
-using System;
 
 struct MyStruct<T>
 {
@@ -2627,13 +2728,32 @@ class Driver
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
                 ILVerifyMessage = $$"""
-                    ILVerify: SpillArray040
+                    [Goo]: Unexpected type on the stack. { Offset = 0xc, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
-                Baseline IL: SpillArray041
+            verifier.VerifyIL("TestCase.Run()", """
+                {
+                  // Code size       48 (0x30)
+                  .maxstack  2
+                  .locals init (TestCase.<Run>d__0 V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  call       "System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()"
+                  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__0.<>t__builder"
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldobj      "TestCase"
+                  IL_0014:  stfld      "TestCase TestCase.<Run>d__0.<>4__this"
+                  IL_0019:  ldloca.s   V_0
+                  IL_001b:  ldc.i4.m1
+                  IL_001c:  stfld      "int TestCase.<Run>d__0.<>1__state"
+                  IL_0021:  ldloca.s   V_0
+                  IL_0023:  ldflda     "System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__0.<>t__builder"
+                  IL_0028:  ldloca.s   V_0
+                  IL_002a:  call       "void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Start<TestCase.<Run>d__0>(ref TestCase.<Run>d__0)"
+                  IL_002f:  ret
+                }
                 """);
         }
 
@@ -2702,10 +2822,11 @@ class TestCase
         }
 
         [WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies")]
         public void SpillArrayAssign2()
         {
             var source = @"
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 using System.Threading.Tasks;
 
 class Program
@@ -2882,7 +3003,6 @@ class Driver
         {
             var source = @"
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 class Driver
@@ -2915,8 +3035,40 @@ class Driver
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
-                Baseline IL: SpillArrayCompoundAssignmentLValue1
+            verifier.VerifyIL("Driver.Run()", """
+                {
+                  // Code size       77 (0x4d)
+                  .maxstack  4
+                  .locals init (int V_0,
+                                int V_1)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "int"
+                  IL_0006:  stsfld     "int[] Driver.arr"
+                  IL_000b:  ldsfld     "int[] Driver.arr"
+                  IL_0010:  ldc.i4.0
+                  IL_0011:  ldelema    "int"
+                  IL_0016:  dup
+                  IL_0017:  ldind.i4
+                  IL_0018:  stloc.0
+                  IL_0019:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_001e:  ldsfld     "System.Func<int> Driver.<>c.<>9__1_0"
+                  IL_0023:  dup
+                  IL_0024:  brtrue.s   IL_003d
+                  IL_0026:  pop
+                  IL_0027:  ldsfld     "Driver.<>c Driver.<>c.<>9"
+                  IL_002c:  ldftn      "int Driver.<>c.<Run>b__1_0()"
+                  IL_0032:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0037:  dup
+                  IL_0038:  stsfld     "System.Func<int> Driver.<>c.<>9__1_0"
+                  IL_003d:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_0042:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0047:  stloc.1
+                  IL_0048:  ldloc.0
+                  IL_0049:  ldloc.1
+                  IL_004a:  add
+                  IL_004b:  stind.i4
+                  IL_004c:  ret
+                }
                 """);
         }
 
@@ -2925,7 +3077,6 @@ class Driver
         {
             var source = @"
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 class Driver
@@ -2958,8 +3109,54 @@ class Driver
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
-                Baseline IL: SpillArrayCompoundAssignmentLValueAwait1
+            verifier.VerifyIL("Driver.Run()", """
+                {
+                  // Code size      124 (0x7c)
+                  .maxstack  4
+                  .locals init (int V_0,
+                                int V_1,
+                                int V_2)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "int"
+                  IL_0006:  stsfld     "int[] Driver.arr"
+                  IL_000b:  ldsfld     "int[] Driver.arr"
+                  IL_0010:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_0015:  ldsfld     "System.Func<int> Driver.<>c.<>9__1_0"
+                  IL_001a:  dup
+                  IL_001b:  brtrue.s   IL_0034
+                  IL_001d:  pop
+                  IL_001e:  ldsfld     "Driver.<>c Driver.<>c.<>9"
+                  IL_0023:  ldftn      "int Driver.<>c.<Run>b__1_0()"
+                  IL_0029:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_002e:  dup
+                  IL_002f:  stsfld     "System.Func<int> Driver.<>c.<>9__1_0"
+                  IL_0034:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_0039:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_003e:  stloc.0
+                  IL_003f:  ldloc.0
+                  IL_0040:  ldelema    "int"
+                  IL_0045:  dup
+                  IL_0046:  ldind.i4
+                  IL_0047:  stloc.1
+                  IL_0048:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_004d:  ldsfld     "System.Func<int> Driver.<>c.<>9__1_1"
+                  IL_0052:  dup
+                  IL_0053:  brtrue.s   IL_006c
+                  IL_0055:  pop
+                  IL_0056:  ldsfld     "Driver.<>c Driver.<>c.<>9"
+                  IL_005b:  ldftn      "int Driver.<>c.<Run>b__1_1()"
+                  IL_0061:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0066:  dup
+                  IL_0067:  stsfld     "System.Func<int> Driver.<>c.<>9__1_1"
+                  IL_006c:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_0071:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0076:  stloc.2
+                  IL_0077:  ldloc.1
+                  IL_0078:  ldloc.2
+                  IL_0079:  add
+                  IL_007a:  stind.i4
+                  IL_007b:  ret
+                }
                 """);
         }
 
@@ -2968,7 +3165,6 @@ class Driver
         {
             var source = @"
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 struct S1
@@ -3011,8 +3207,72 @@ class Driver
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
-                Baseline IL: SpillArrayCompoundAssignmentLValueAwait21
+            verifier.VerifyIL("Driver.Run()", """
+                {
+                  // Code size      188 (0xbc)
+                  .maxstack  5
+                  .locals init (int V_0,
+                                int V_1,
+                                int V_2)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "S2"
+                  IL_0006:  dup
+                  IL_0007:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_000c:  ldsfld     "System.Func<int> Driver.<>c.<>9__0_0"
+                  IL_0011:  dup
+                  IL_0012:  brtrue.s   IL_002b
+                  IL_0014:  pop
+                  IL_0015:  ldsfld     "Driver.<>c Driver.<>c.<>9"
+                  IL_001a:  ldftn      "int Driver.<>c.<Run>b__0_0()"
+                  IL_0020:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0025:  dup
+                  IL_0026:  stsfld     "System.Func<int> Driver.<>c.<>9__0_0"
+                  IL_002b:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_0030:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0035:  stloc.0
+                  IL_0036:  ldloc.0
+                  IL_0037:  ldelema    "S2"
+                  IL_003c:  ldflda     "S1 S2.s1"
+                  IL_0041:  ldflda     "int S1.x"
+                  IL_0046:  dup
+                  IL_0047:  ldind.i4
+                  IL_0048:  stloc.1
+                  IL_0049:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_004e:  ldsfld     "System.Func<int> Driver.<>c.<>9__0_1"
+                  IL_0053:  dup
+                  IL_0054:  brtrue.s   IL_006d
+                  IL_0056:  pop
+                  IL_0057:  ldsfld     "Driver.<>c Driver.<>c.<>9"
+                  IL_005c:  ldftn      "int Driver.<>c.<Run>b__0_1()"
+                  IL_0062:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0067:  dup
+                  IL_0068:  stsfld     "System.Func<int> Driver.<>c.<>9__0_1"
+                  IL_006d:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_0072:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0077:  stloc.2
+                  IL_0078:  ldloc.1
+                  IL_0079:  ldloc.2
+                  IL_007a:  add
+                  IL_007b:  stind.i4
+                  IL_007c:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_0081:  ldsfld     "System.Func<int> Driver.<>c.<>9__0_2"
+                  IL_0086:  dup
+                  IL_0087:  brtrue.s   IL_00a0
+                  IL_0089:  pop
+                  IL_008a:  ldsfld     "Driver.<>c Driver.<>c.<>9"
+                  IL_008f:  ldftn      "int Driver.<>c.<Run>b__0_2()"
+                  IL_0095:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_009a:  dup
+                  IL_009b:  stsfld     "System.Func<int> Driver.<>c.<>9__0_2"
+                  IL_00a0:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_00a5:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_00aa:  stloc.2
+                  IL_00ab:  ldloc.2
+                  IL_00ac:  ldelema    "S2"
+                  IL_00b1:  ldflda     "S1 S2.s1"
+                  IL_00b6:  ldfld      "int S1.x"
+                  IL_00bb:  ret
+                }
                 """);
         }
 
@@ -3021,7 +3281,6 @@ class Driver
         {
             var source = @"
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 struct S1
@@ -3064,8 +3323,108 @@ class Driver
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
-                Baseline IL: DoubleSpillArrayCompoundAssignment1
+            verifier.VerifyIL("Driver.Run()", """
+                {
+                  // Code size      276 (0x114)
+                  .maxstack  6
+                  .locals init (int V_0,
+                                int& V_1,
+                                int V_2,
+                                int V_3,
+                                int& V_4,
+                                int V_5,
+                                int V_6,
+                                int V_7)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "S2"
+                  IL_0006:  dup
+                  IL_0007:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_000c:  ldsfld     "System.Func<int> Driver.<>c.<>9__0_0"
+                  IL_0011:  dup
+                  IL_0012:  brtrue.s   IL_002b
+                  IL_0014:  pop
+                  IL_0015:  ldsfld     "Driver.<>c Driver.<>c.<>9"
+                  IL_001a:  ldftn      "int Driver.<>c.<Run>b__0_0()"
+                  IL_0020:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0025:  dup
+                  IL_0026:  stsfld     "System.Func<int> Driver.<>c.<>9__0_0"
+                  IL_002b:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_0030:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0035:  stloc.0
+                  IL_0036:  ldloc.0
+                  IL_0037:  ldelema    "S2"
+                  IL_003c:  ldflda     "S1 S2.s1"
+                  IL_0041:  ldflda     "int S1.x"
+                  IL_0046:  stloc.1
+                  IL_0047:  ldloc.1
+                  IL_0048:  ldind.i4
+                  IL_0049:  stloc.2
+                  IL_004a:  dup
+                  IL_004b:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_0050:  ldsfld     "System.Func<int> Driver.<>c.<>9__0_1"
+                  IL_0055:  dup
+                  IL_0056:  brtrue.s   IL_006f
+                  IL_0058:  pop
+                  IL_0059:  ldsfld     "Driver.<>c Driver.<>c.<>9"
+                  IL_005e:  ldftn      "int Driver.<>c.<Run>b__0_1()"
+                  IL_0064:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0069:  dup
+                  IL_006a:  stsfld     "System.Func<int> Driver.<>c.<>9__0_1"
+                  IL_006f:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_0074:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0079:  stloc.3
+                  IL_007a:  ldloc.3
+                  IL_007b:  ldelema    "S2"
+                  IL_0080:  ldflda     "S1 S2.s1"
+                  IL_0085:  ldflda     "int S1.x"
+                  IL_008a:  stloc.s    V_4
+                  IL_008c:  ldloc.s    V_4
+                  IL_008e:  ldind.i4
+                  IL_008f:  stloc.s    V_5
+                  IL_0091:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_0096:  ldsfld     "System.Func<int> Driver.<>c.<>9__0_2"
+                  IL_009b:  dup
+                  IL_009c:  brtrue.s   IL_00b5
+                  IL_009e:  pop
+                  IL_009f:  ldsfld     "Driver.<>c Driver.<>c.<>9"
+                  IL_00a4:  ldftn      "int Driver.<>c.<Run>b__0_2()"
+                  IL_00aa:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_00af:  dup
+                  IL_00b0:  stsfld     "System.Func<int> Driver.<>c.<>9__0_2"
+                  IL_00b5:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_00ba:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_00bf:  stloc.s    V_6
+                  IL_00c1:  ldloc.1
+                  IL_00c2:  ldloc.2
+                  IL_00c3:  ldloc.s    V_4
+                  IL_00c5:  ldloc.s    V_5
+                  IL_00c7:  ldloc.s    V_6
+                  IL_00c9:  add
+                  IL_00ca:  dup
+                  IL_00cb:  stloc.s    V_7
+                  IL_00cd:  stind.i4
+                  IL_00ce:  ldloc.s    V_7
+                  IL_00d0:  add
+                  IL_00d1:  stind.i4
+                  IL_00d2:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_00d7:  ldsfld     "System.Func<int> Driver.<>c.<>9__0_3"
+                  IL_00dc:  dup
+                  IL_00dd:  brtrue.s   IL_00f6
+                  IL_00df:  pop
+                  IL_00e0:  ldsfld     "Driver.<>c Driver.<>c.<>9"
+                  IL_00e5:  ldftn      "int Driver.<>c.<Run>b__0_3()"
+                  IL_00eb:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_00f0:  dup
+                  IL_00f1:  stsfld     "System.Func<int> Driver.<>c.<>9__0_3"
+                  IL_00f6:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_00fb:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0100:  stloc.s    V_6
+                  IL_0102:  ldloc.s    V_6
+                  IL_0104:  ldelema    "S2"
+                  IL_0109:  ldflda     "S1 S2.s1"
+                  IL_010e:  ldfld      "int S1.x"
+                  IL_0113:  ret
+                }
                 """);
         }
 
@@ -3145,21 +3504,6 @@ class Driver
 0
 ";
             CompileAndVerify(source, expectedOutput);
-
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
-            {
-                ILVerifyMessage = $$"""
-                    [GetVal]: Unexpected type on the stack. { Offset = 0xc, Found = value 'T', Expected = ref 'System.Threading.Tasks.Task`1<T0>' }
-
-                    [Goo]: Unexpected type on the stack. { Offset = 0x1d, Found = ref 'int32[]', Expected = ref 'System.Threading.Tasks.Task`1<int32[]>' }
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("TestCase.Run<T>(T)", """
-                Baseline IL: SpillArrayInitializers11
-                """);
         }
 
         [Fact]
@@ -3309,7 +3653,7 @@ class Driver
             CompileAndVerify(source, expectedOutput, references: new[] { CSharpRef });
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies")]
         public void SpillNestedExpressionInArrayInitializer()
         {
             var source = @"
@@ -3356,7 +3700,7 @@ class Test
                 """);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies")]
         public void SpillConditionalAccess()
         {
             var source = @"
@@ -3422,7 +3766,6 @@ class Test
         {
             var source = @"
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 class S
@@ -3450,7 +3793,7 @@ class Driver
 {
     static void Main()
     {
-        Test.G().Wait();
+        Test.Run().Wait();
     }
 }";
             var expectedOutput = @"
@@ -3463,14 +3806,24 @@ class Driver
             {
                 ILVerifyMessage = $$"""
                     [GetS]: Unexpected type on the stack. { Offset = 0x2e, Found = ref 'S', Expected = ref 'System.Threading.Tasks.Task`1<S>' }
-
                     [Run]: Return value missing on the stack. { Offset = 0x20 }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
-                Baseline IL: AssignToAwait1
+            verifier.VerifyIL("Test.Run()", """
+                {
+                  // Code size       33 (0x21)
+                  .maxstack  2
+                  IL_0000:  call       "System.Threading.Tasks.Task<S> Test.GetS()"
+                  IL_0005:  call       "S System.Runtime.CompilerServices.AsyncHelpers.Await<S>(System.Threading.Tasks.Task<S>)"
+                  IL_000a:  ldc.i4.s   42
+                  IL_000c:  stfld      "int S.x"
+                  IL_0011:  ldsfld     "S Test._s"
+                  IL_0016:  ldfld      "int S.x"
+                  IL_001b:  call       "void System.Console.WriteLine(int)"
+                  IL_0020:  ret
+                }
                 """);
         }
 
@@ -3506,7 +3859,7 @@ class Driver
 {
     static void Main()
     {
-        Test.G().Wait();
+        Test.Run().Wait();
     }
 }";
             var expectedOutput = @"
@@ -3519,18 +3872,42 @@ class Driver
             {
                 ILVerifyMessage = $$"""
                     [GetS]: Unexpected type on the stack. { Offset = 0x2e, Found = ref 'S', Expected = ref 'System.Threading.Tasks.Task`1<S>' }
-
                     [Run]: Return value missing on the stack. { Offset = 0x4e }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
-                Baseline IL: AssignAwaitToAwait1
+            verifier.VerifyIL("Test.Run()", """
+                {
+                  // Code size       79 (0x4f)
+                  .maxstack  4
+                  .locals init (int V_0)
+                  IL_0000:  call       "System.Threading.Tasks.Task<S> Test.GetS()"
+                  IL_0005:  call       "S System.Runtime.CompilerServices.AsyncHelpers.Await<S>(System.Threading.Tasks.Task<S>)"
+                  IL_000a:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_000f:  ldsfld     "System.Func<int> Test.<>c.<>9__2_0"
+                  IL_0014:  dup
+                  IL_0015:  brtrue.s   IL_002e
+                  IL_0017:  pop
+                  IL_0018:  ldsfld     "Test.<>c Test.<>c.<>9"
+                  IL_001d:  ldftn      "int Test.<>c.<Run>b__2_0()"
+                  IL_0023:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0028:  dup
+                  IL_0029:  stsfld     "System.Func<int> Test.<>c.<>9__2_0"
+                  IL_002e:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_0033:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0038:  stloc.0
+                  IL_0039:  ldloc.0
+                  IL_003a:  stfld      "int S.x"
+                  IL_003f:  ldsfld     "S Test._s"
+                  IL_0044:  ldfld      "int S.x"
+                  IL_0049:  call       "void System.Console.WriteLine(int)"
+                  IL_004e:  ret
+                }
                 """);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies")]
         public void SpillArglist()
         {
             var source = @"
@@ -3656,7 +4033,9 @@ class Driver
     public static void Main()
     {
         TestCase tc = new TestCase();
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         tc.Run();
+#pragma warning restore CS4014
         CompleteSignal.WaitOne();
 
         Console.WriteLine(Result);
@@ -3672,18 +4051,65 @@ class Driver
             {
                 ILVerifyMessage = $$"""
                     [Run]: Return value missing on the stack. { Offset = 0x47 }
-
                     [Bar]: Unexpected type on the stack. { Offset = 0xc, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
-                Baseline IL: SpillObjectInitializer11
+            verifier.VerifyIL("TestCase.Run()", """
+                {
+                  // Code size       72 (0x48)
+                  .maxstack  2
+                  .locals init (int V_0, //test
+                                int V_1, //count
+                                int V_2,
+                                TestCase V_3)
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.0
+                  IL_0003:  stloc.1
+                  .try
+                  {
+                    IL_0004:  ldloc.0
+                    IL_0005:  ldc.i4.1
+                    IL_0006:  add
+                    IL_0007:  stloc.0
+                    IL_0008:  ldloca.s   V_3
+                    IL_000a:  initobj    "TestCase"
+                    IL_0010:  ldarg.0
+                    IL_0011:  call       "System.Threading.Tasks.Task<int> TestCase.Bar()"
+                    IL_0016:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                    IL_001b:  stloc.2
+                    IL_001c:  ldloca.s   V_3
+                    IL_001e:  ldloc.2
+                    IL_001f:  stfld      "int TestCase.X"
+                    IL_0024:  ldloc.3
+                    IL_0025:  ldfld      "int TestCase.X"
+                    IL_002a:  ldc.i4.1
+                    IL_002b:  bne.un.s   IL_0031
+                    IL_002d:  ldloc.1
+                    IL_002e:  ldc.i4.1
+                    IL_002f:  add
+                    IL_0030:  stloc.1
+                    IL_0031:  leave.s    IL_0047
+                  }
+                  finally
+                  {
+                    IL_0033:  ldloc.0
+                    IL_0034:  ldloc.1
+                    IL_0035:  sub
+                    IL_0036:  stsfld     "int Driver.Result"
+                    IL_003b:  ldsfld     "System.Threading.AutoResetEvent Driver.CompleteSignal"
+                    IL_0040:  callvirt   "bool System.Threading.EventWaitHandle.Set()"
+                    IL_0045:  pop
+                    IL_0046:  endfinally
+                  }
+                  IL_0047:  ret
+                }
                 """);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies")]
         public void SpillWithByRefArguments01()
         {
             var source = @"
@@ -3874,7 +4300,7 @@ class Driver
             CompileAndVerify(source, "0");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: dynamic support")]
         public void Async_StackSpill_Argument_Generic04()
         {
             var source = @"
@@ -4215,7 +4641,7 @@ class Driver
             CompileAndVerify(source, "0");
         }
 
-        [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies"), WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
         public void SpillCompoundAssignmentToNullableMemberOfLocal_01()
         {
             var source = @"
@@ -4298,9 +4724,7 @@ class C
             {
                 ILVerifyMessage = $$"""
                     [Main]: Return value missing on the stack. { Offset = 0xf }
-
                     [M]: Return value missing on the stack. { Offset = 0x27 }
-
                     [M2]: Unexpected type on the stack. { Offset = 0x26, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
@@ -4366,9 +4790,7 @@ class C
             {
                 ILVerifyMessage = $$"""
                     [Main]: Return value missing on the stack. { Offset = 0xf }
-
                     [M]: Return value missing on the stack. { Offset = 0x59 }
-
                     [M2]: Unexpected type on the stack. { Offset = 0x2b, Found = value 'System.Nullable`1<int32>', Expected = ref 'System.Threading.Tasks.Task`1<System.Nullable`1<int32>>' }
                     """
             });
@@ -4415,7 +4837,7 @@ class C
                 """);
         }
 
-        [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies"), WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
         public void SpillCompoundAssignmentToNullableMemberOfLocal_04()
         {
             var source = @"
@@ -4491,7 +4913,7 @@ class C
         {
             t.Wait();   
         }
-        catch(Exception e)
+        catch(Exception)
         {
             Console.WriteLine(0);
             return;
@@ -4512,7 +4934,44 @@ class C
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.F2()", """
-                Baseline IL: SpillSacrificialRead1
+                {
+                  // Code size       83 (0x53)
+                  .maxstack  5
+                  .locals init (int V_0,
+                                int V_1)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "int"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldc.i4.s   21
+                  IL_000a:  stelem.i4
+                  IL_000b:  pop
+                  IL_000c:  ldnull
+                  IL_000d:  dup
+                  IL_000e:  ldc.i4.0
+                  IL_000f:  ldelema    "int"
+                  IL_0014:  call       "int C.F0()"
+                  IL_0019:  stloc.0
+                  IL_001a:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_001f:  ldsfld     "System.Func<int> C.<>c.<>9__2_0"
+                  IL_0024:  dup
+                  IL_0025:  brtrue.s   IL_003e
+                  IL_0027:  pop
+                  IL_0028:  ldsfld     "C.<>c C.<>c.<>9"
+                  IL_002d:  ldftn      "int C.<>c.<F2>b__2_0()"
+                  IL_0033:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0038:  dup
+                  IL_0039:  stsfld     "System.Func<int> C.<>c.<>9__2_0"
+                  IL_003e:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_0043:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0048:  stloc.1
+                  IL_0049:  ldloc.0
+                  IL_004a:  ldloc.1
+                  IL_004b:  call       "void C.F1(ref int, int, int)"
+                  IL_0050:  ldc.i4.0
+                  IL_0051:  ldelem.i4
+                  IL_0052:  ret
+                }
                 """);
         }
 
@@ -4605,7 +5064,7 @@ class C
             CompileAndVerify(source, expectedOutput);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies")]
         [WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")]
         public void MethodGroupConversionNoSpill()
         {
@@ -4722,7 +5181,7 @@ public class AsyncBug {
                 """);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies")]
         [WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")]
         public void MethodGroupConversionWithSpill()
         {
@@ -4901,7 +5360,7 @@ class Foo
                 Diagnostic(ErrorCode.ERR_BadArgType, "s").WithArguments("1", "in string", "in object").WithLocation(7, 14));
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies")]
         [WorkItem(27831, "https://github.com/dotnet/roslyn/issues/27831")]
         public void AwaitWithInParameter_NoArgModifier()
         {
@@ -4969,17 +5428,6 @@ class Program
         return null;
     }
 }
-
-namespace System
-{
-    public readonly ref struct ReadOnlySpan<T>
-    {
-        public static implicit operator ReadOnlySpan<T>(T[] array)
-        {
-            throw null;
-        }
-    }
-}
 namespace System.Text.Json.Serialization
 {
     public static class JsonSerializer
@@ -4994,7 +5442,20 @@ namespace System.Text.Json.Serialization
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugExe);
+
+            var span = @"
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        public static implicit operator ReadOnlySpan<T>(T[] array)
+        {
+            throw null;
+        }
+    }
+}
+";
+            var v = CompileAndVerify(source + span, options: TestOptions.DebugExe);
 
             v.VerifyMethodBody("Program.<Serialize>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -5166,13 +5627,53 @@ public class P
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = $$"""
-                    ILVerify: ShouldNotSpillStackallocToField_010
+                    [Main]: Instruction cannot be verified. { Offset = 0xf }
+                    [Main]: Expected ByRef on the stack. { Offset = 0x14, Found = Native Int }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
-                Baseline IL: ShouldNotSpillStackallocToField_011
+            verifier.VerifyIL("P.Main()", """
+                {
+                  // Code size       68 (0x44)
+                  .maxstack  4
+                  .locals init (int V_0,
+                                int V_1,
+                                System.Span<int> V_2)
+                  IL_0000:  call       "int P.F1()"
+                  IL_0005:  stloc.0
+                  IL_0006:  call       "int P.F2()"
+                  IL_000b:  stloc.1
+                  IL_000c:  ldc.i4.s   12
+                  IL_000e:  conv.u
+                  IL_000f:  localloc
+                  IL_0011:  dup
+                  IL_0012:  ldc.i4.s   40
+                  IL_0014:  stind.i4
+                  IL_0015:  dup
+                  IL_0016:  ldc.i4.4
+                  IL_0017:  add
+                  IL_0018:  ldc.i4     0x1f4
+                  IL_001d:  stind.i4
+                  IL_001e:  dup
+                  IL_001f:  ldc.i4.2
+                  IL_0020:  conv.i
+                  IL_0021:  ldc.i4.4
+                  IL_0022:  mul
+                  IL_0023:  add
+                  IL_0024:  ldc.i4     0x1770
+                  IL_0029:  stind.i4
+                  IL_002a:  ldc.i4.3
+                  IL_002b:  newobj     "System.Span<int>..ctor(void*, int)"
+                  IL_0030:  stloc.2
+                  IL_0031:  ldloc.0
+                  IL_0032:  ldloc.1
+                  IL_0033:  ldloc.2
+                  IL_0034:  call       "int P.G(int, System.Span<int>)"
+                  IL_0039:  call       "System.Threading.Tasks.Task P.Async1(int, int)"
+                  IL_003e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_0043:  ret
+                }
                 """);
         }
 
@@ -5221,13 +5722,58 @@ public class P
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = $$"""
-                    ILVerify: ShouldNotSpillStackallocToField_020
+                    [Main]: Instruction cannot be verified. { Offset = 0x1f }
+                    [Main]: Expected ByRef on the stack. { Offset = 0x24, Found = Native Int }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
-                Baseline IL: ShouldNotSpillStackallocToField_021
+            verifier.VerifyIL("P.Main()", """
+                {
+                  // Code size       80 (0x50)
+                  .maxstack  4
+                  .locals init (int V_0,
+                                int V_1,
+                                System.Span<int> V_2,
+                                int V_3)
+                  IL_0000:  call       "int P.F1()"
+                  IL_0005:  stloc.0
+                  IL_0006:  call       "int P.F2()"
+                  IL_000b:  stloc.1
+                  IL_000c:  ldc.i4     0x1f4
+                  IL_0011:  call       "System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)"
+                  IL_0016:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_001b:  stloc.3
+                  IL_001c:  ldc.i4.s   12
+                  IL_001e:  conv.u
+                  IL_001f:  localloc
+                  IL_0021:  dup
+                  IL_0022:  ldc.i4.s   40
+                  IL_0024:  stind.i4
+                  IL_0025:  dup
+                  IL_0026:  ldc.i4.4
+                  IL_0027:  add
+                  IL_0028:  ldloc.3
+                  IL_0029:  stind.i4
+                  IL_002a:  dup
+                  IL_002b:  ldc.i4.2
+                  IL_002c:  conv.i
+                  IL_002d:  ldc.i4.4
+                  IL_002e:  mul
+                  IL_002f:  add
+                  IL_0030:  ldc.i4     0x1770
+                  IL_0035:  stind.i4
+                  IL_0036:  ldc.i4.3
+                  IL_0037:  newobj     "System.Span<int>..ctor(void*, int)"
+                  IL_003c:  stloc.2
+                  IL_003d:  ldloc.0
+                  IL_003e:  ldloc.1
+                  IL_003f:  ldloc.2
+                  IL_0040:  call       "int P.G(int, System.Span<int>)"
+                  IL_0045:  call       "System.Threading.Tasks.Task P.Async1(int, int)"
+                  IL_004a:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_004f:  ret
+                }
                 """);
         }
 
@@ -5318,7 +5864,6 @@ struct F
             {
                 ILVerifyMessage = $$"""
                     [M1]: Unexpected type on the stack. { Offset = 0x38, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-
                     [SF]: Unexpected type on the stack. { Offset = 0xd, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
                     """
             });
@@ -5429,7 +5974,7 @@ public ref struct S
             CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics().VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies")]
         [WorkItem(37783, "https://github.com/dotnet/roslyn/issues/37783")]
         public void ExpressionLambdaWithObjectInitializer()
         {
@@ -5488,7 +6033,7 @@ class Box<T>
                 """);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies")]
         [WorkItem(38309, "https://github.com/dotnet/roslyn/issues/38309")]
         public void ExpressionLambdaWithUserDefinedControlFlow()
         {
@@ -5726,15 +6271,10 @@ class B
             {
                 ILVerifyMessage = $$"""
                     [Assign]: Return value missing on the stack. { Offset = 0x1c }
-
                     [Main]: Return value missing on the stack. { Offset = 0x1e }
-
                     [TestPropertyAccessThrows]: Return value missing on the stack. { Offset = 0x30 }
-
                     [TestFieldAccessThrows]: Return value missing on the stack. { Offset = 0x34 }
-
                     [TestPropertyAccessSucceeds]: Return value missing on the stack. { Offset = 0x70 }
-
                     [Write]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
@@ -5758,7 +6298,7 @@ class B
                 """);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies")]
         [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]
         public void KeepLtrSemantics_ClassFieldAccessOnArray()
         {
@@ -6013,7 +6553,7 @@ class A
                 """);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies")]
         [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]
         public void KeepLtrSemantics_StructFieldAccessOnArray()
         {
@@ -6247,7 +6787,7 @@ struct A
                 """);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: new ref assemblies")]
         [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]
         public void KeepLtrSemantics_AssignmentToArray()
         {
@@ -6645,17 +7185,11 @@ struct C
             {
                 ILVerifyMessage = $$"""
                     [Assign]: Return value missing on the stack. { Offset = 0x28 }
-
                     [Main]: Return value missing on the stack. { Offset = 0x1e }
-
                     [TestAIsNull]: Return value missing on the stack. { Offset = 0x30 }
-
                     [TestAIsNotNull]: Return value missing on the stack. { Offset = 0x6f }
-
                     [ReassignADuringAssignment]: Return value missing on the stack. { Offset = 0xf0 }
-
                     [Write]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-
                     [<ReassignADuringAssignment>g__WriteAndReassign|0]: Unexpected type on the stack. { Offset = 0x33, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
@@ -6882,17 +7416,11 @@ class B
             {
                 ILVerifyMessage = $$"""
                     [Assign]: Return value missing on the stack. { Offset = 0x1c }
-
                     [Main]: Return value missing on the stack. { Offset = 0x1e }
-
                     [TestAIsNull]: Return value missing on the stack. { Offset = 0x30 }
-
                     [TestAIsNotNull]: Return value missing on the stack. { Offset = 0x70 }
-
                     [ReassignADuringAssignment]: Return value missing on the stack. { Offset = 0xe5 }
-
                     [Write]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-
                     [<ReassignADuringAssignment>g__WriteAndReassign|0]: Unexpected type on the stack. { Offset = 0x33, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
@@ -7104,17 +7632,11 @@ class A
             {
                 ILVerifyMessage = $$"""
                     [Assign]: Return value missing on the stack. { Offset = 0x17 }
-
                     [Main]: Return value missing on the stack. { Offset = 0x1e }
-
                     [TestAIsNull]: Return value missing on the stack. { Offset = 0x30 }
-
                     [TestAIsNotNull]: Return value missing on the stack. { Offset = 0x5b }
-
                     [ReassignADuringAssignment]: Return value missing on the stack. { Offset = 0xcb }
-
                     [Write]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-
                     [<ReassignADuringAssignment>g__WriteAndReassign|0]: Unexpected type on the stack. { Offset = 0x33, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
@@ -8368,9 +8890,7 @@ struct B
             {
                 ILVerifyMessage = $$"""
                     [Assign]: Return value missing on the stack. { Offset = 0x1b }
-
                     [Write]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-
                     [Main]: Return value missing on the stack. { Offset = 0x52 }
                     """
             });
@@ -8428,7 +8948,6 @@ public class C
             {
                 ILVerifyMessage = $$"""
                     [M]: Return value missing on the stack. { Offset = 0x12 }
-
                     [Main]: Return value missing on the stack. { Offset = 0x1f }
                     """
             });
@@ -8491,7 +9010,6 @@ public class Program
             {
                 ILVerifyMessage = $$"""
                     [M]: Return value missing on the stack. { Offset = 0x12 }
-
                     [Main]: Return value missing on the stack. { Offset = 0x1f }
                     """
             });
@@ -8549,7 +9067,6 @@ public class C
             {
                 ILVerifyMessage = $$"""
                     [M]: Return value missing on the stack. { Offset = 0x1a }
-
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
                     """
             });

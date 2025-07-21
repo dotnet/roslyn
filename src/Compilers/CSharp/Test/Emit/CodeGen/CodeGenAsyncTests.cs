@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 public class Array
                 {
                     public int Length => throw null!;
+                    public static void Copy(Array sourceArray, int sourceIndex, Array destinationArray, int destinationIndex, int length) {}
                 }
                 public class Attribute {}
                 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
@@ -110,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 }
                 public struct Boolean {}
                 public struct Byte {}
+                public struct Char {}
                 public static class Console
                 {
                     public static void Write(object i) {}
@@ -161,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 }
                 public struct Int16 {}
                 public struct Int32 : IConvertible {}
+                public struct Int64 : IConvertible {}
                 public struct IntPtr {}
                 public class InvalidOperationException : Exception
                 {
@@ -226,6 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     public static string Concat(string str0, string str1, string str2, string str3) => null!;
                     public static string Concat(params string[] arr) => null!;
                     public static string Format(string format, params object[] args) => null!;
+                    public static bool IsNullOrEmpty(string value) => false;
+                    public char[] ToCharArray() => null!;
                 }
                 public class Type
                 {
@@ -242,7 +247,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     public T1 Item1 { get; }
                     public T2 Item2 { get; }
                 }
+                public struct UInt16 {}
                 public struct UInt32 {}
+                public struct UInt64 {}
+                public struct UIntPtr {}
                 public struct ValueTuple<T1, T2>
                 {
                     public ValueTuple(T1 item1, T2 item2) {}
@@ -319,6 +327,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     {
                         public static T First<T>(Collections.Generic.IEnumerable<T> source) => default!;
                         public static Collections.Generic.IEnumerable<TResult> Zip<TFirst, TSecond, TResult>(this Collections.Generic.IEnumerable<TFirst> first, Collections.Generic.IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> resultSelector) => default!;
+                    }
+                }
+                namespace Reflection
+                {
+                    public class DefaultMemberAttribute : Attribute
+                    {
+                        public DefaultMemberAttribute(string memberName) {}
+                        public string MemberName { get; }
                     }
                 }
                 namespace Text
@@ -505,12 +521,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 {
                     namespace InteropServices
                     {
+                        public sealed class InAttribute : Attribute
+                        {
+                            public InAttribute() {}
+                        }
                         public sealed class StructLayoutAttribute : Attribute
                         {
                             public StructLayoutAttribute(LayoutKind layoutKind) {}
                             public LayoutKind Value { get; }
                         }
-                        
                         public enum LayoutKind
                         {
                             Sequential = 0,
@@ -699,8 +718,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 runtimeAsyncAwaitHelpers,
                 AsyncStreamsTypes,
                 TestSources.Index,
-                TestSources.Range
-            ]);
+                TestSources.Range,
+                TestSources.Span
+            ], options: TestOptions.UnsafeDebugDll);
 
             var compilation = CreateEmptyCompilation(source, references: [.. references ?? [], corlib.EmitToImageReference()], options: options, parseOptions: parseOptions ?? WithRuntimeAsync(TestOptions.RegularPreview));
             return compilation;
