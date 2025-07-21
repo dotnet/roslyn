@@ -109,6 +109,65 @@ public sealed partial class CodeCleanupTests
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79463")]
+    public Task RemoveUsings_WithMergeMarker_NoSyntaxError()
+    {
+        return AssertCodeCleanupResult("""
+            using System;
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    Console.WriteLine();
+                }
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            internal class Program
+            {
+                static void Main(string[] args)
+                {
+            <<<<<<< 
+                    Console.WriteLine();
+            ======= 
+                    List<int> list = [];
+            >>>>>>> 
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79463")]
+    public Task RemoveUsings_WithMergeMarker_SyntaxError()
+    {
+        return AssertCodeCleanupResult("""
+            using System;
+            using System.Collections.Generic;
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    Console.WriteLine()
+                }
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            internal class Program
+            {
+                static void Main(string[] args)
+                {
+            <<<<<<< 
+                    Console.WriteLine()
+            ======= 
+                    List<int> list = [];
+            >>>>>>> 
+                }
+            }
+            """);
+    }
+
     [Fact]
     public Task SortUsings()
     {
@@ -924,18 +983,18 @@ public sealed partial class CodeCleanupTests
 
         var actual = await newDoc.GetTextAsync();
 
-        Assert.Equal(expected, actual.ToString());
+        AssertEx.Equal(expected, actual.ToString());
     }
 
     private static readonly CodeStyleOption2<AddImportPlacement> InsideNamespaceOption =
-        new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error);
+        new(AddImportPlacement.InsideNamespace, NotificationOption2.Error);
 
     private static readonly CodeStyleOption2<AddImportPlacement> OutsideNamespaceOption =
-        new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption2.Error);
+        new(AddImportPlacement.OutsideNamespace, NotificationOption2.Error);
 
     private static readonly CodeStyleOption2<AddImportPlacement> InsidePreferPreservationOption =
-        new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.None);
+        new(AddImportPlacement.InsideNamespace, NotificationOption2.None);
 
     private static readonly CodeStyleOption2<AddImportPlacement> OutsidePreferPreservationOption =
-        new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption2.None);
+        new(AddImportPlacement.OutsideNamespace, NotificationOption2.None);
 }
