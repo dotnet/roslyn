@@ -24,14 +24,15 @@ public sealed class SimplifyMethodTests : AbstractLanguageServerProtocolTests
     public async Task TestGetSimplifyMethodAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-using System;
-using System.Threading.Tasks;
-namespace test;
-class A
-{
-{|caret:|}
-}";
+            """
+            using System;
+            using System.Threading.Tasks;
+            namespace test;
+            class A
+            {
+            {|caret:|}
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var methodInsertionLocation = testLspServer.GetLocations("caret").First();
         var method = "private global::System.Threading.Tasks.Task test() => throw new global::System.NotImplementedException();";

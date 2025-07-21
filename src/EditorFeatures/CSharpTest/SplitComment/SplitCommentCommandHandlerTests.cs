@@ -309,23 +309,25 @@ public sealed class SplitCommentCommandHandlerTests : AbstractSplitCommentComman
     public void TestCommentWithMultipleLeadingSpaces(string commentValue)
     {
         TestHandled(
-@$"public class Program
-{{
-    public static void Main(string[] args) 
-    {{ 
-        //    {commentValue}
-    }}
-}}",
-"""
-public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        //    X
-        //    Test Comment
-    }
-}
-""");
+            $$"""
+            public class Program
+            {
+                public static void Main(string[] args) 
+                { 
+                    //    {{commentValue}}
+                }
+            }
+            """,
+            """
+            public class Program
+            {
+                public static void Main(string[] args) 
+                { 
+                    //    X
+                    //    Test Comment
+                }
+            }
+            """);
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
@@ -338,23 +340,25 @@ public class Program
     public void TestQuadCommentWithMultipleLeadingSpaces(string commentValue)
     {
         TestHandled(
-@$"public class Program
-{{
-    public static void Main(string[] args) 
-    {{ 
-        ////    {commentValue}
-    }}
-}}",
-"""
-public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        ////    X
-        ////    Test Comment
-    }
-}
-""");
+            $$"""
+            public class Program
+            {
+                public static void Main(string[] args) 
+                { 
+                    ////    {{commentValue}}
+                }
+            }
+            """,
+            """
+            public class Program
+            {
+                public static void Main(string[] args) 
+                { 
+                    ////    X
+                    ////    Test Comment
+                }
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]

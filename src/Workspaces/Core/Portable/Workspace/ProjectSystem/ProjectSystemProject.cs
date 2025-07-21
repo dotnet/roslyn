@@ -81,14 +81,6 @@ internal sealed partial class ProjectSystemProject
     private string? _filePath;
     private CompilationOptions? _compilationOptions;
     private ParseOptions? _parseOptions;
-    private SourceHashAlgorithm _checksumAlgorithm = SourceHashAlgorithms.Default;
-    private bool _hasAllInformation = true;
-    private string? _compilationOutputAssemblyFilePath;
-    private string? _outputFilePath;
-    private string? _outputRefFilePath;
-    private string? _generatedFilesOutputDirectory;
-    private string? _defaultNamespace;
-    private bool _hasSdkCodeStyleAnalyzers;
 
     /// <summary>
     /// If this project is the 'primary' project the project system cares about for a group of Roslyn projects that
@@ -96,11 +88,6 @@ internal sealed partial class ProjectSystemProject
     /// default.
     /// </summary>
     internal bool IsPrimary { get; set; } = true;
-
-    // Actual property values for 'RunAnalyzers' and 'RunAnalyzersDuringLiveAnalysis' properties from the project file.
-    // Both these properties can be used to configure running analyzers, with RunAnalyzers overriding RunAnalyzersDuringLiveAnalysis.
-    private bool? _runAnalyzersPropertyValue;
-    private bool? _runAnalyzersDuringLiveAnalysisPropertyValue;
 
     // Effective boolean value to determine if analyzers should be executed based on _runAnalyzersPropertyValue and _runAnalyzersDuringLiveAnalysisPropertyValue.
     private bool _runAnalyzers = true;
@@ -396,9 +383,9 @@ internal sealed partial class ProjectSystemProject
     /// </summary>
     internal string? CompilationOutputAssemblyFilePath
     {
-        get => _compilationOutputAssemblyFilePath;
+        get;
         set => ChangeProjectOutputPath(
-            ref _compilationOutputAssemblyFilePath,
+            ref field,
             value,
             s => s.WithProjectCompilationOutputInfo(Id, s.GetRequiredProject(Id).CompilationOutputInfo.WithAssemblyPath(value)));
     }
@@ -408,23 +395,23 @@ internal sealed partial class ProjectSystemProject
     /// </summary>
     internal string? GeneratedFilesOutputDirectory
     {
-        get => _generatedFilesOutputDirectory;
+        get;
         set => ChangeProjectOutputPath(
-            ref _generatedFilesOutputDirectory,
+            ref field,
             value,
             s => s.WithProjectCompilationOutputInfo(Id, s.GetRequiredProject(Id).CompilationOutputInfo.WithGeneratedFilesOutputDirectory(value)));
     }
 
     public string? OutputFilePath
     {
-        get => _outputFilePath;
-        set => ChangeProjectOutputPath(ref _outputFilePath, value, s => s.WithProjectOutputFilePath(Id, value));
+        get;
+        set => ChangeProjectOutputPath(ref field, value, s => s.WithProjectOutputFilePath(Id, value));
     }
 
     public string? OutputRefFilePath
     {
-        get => _outputRefFilePath;
-        set => ChangeProjectOutputPath(ref _outputRefFilePath, value, s => s.WithProjectOutputRefFilePath(Id, value));
+        get;
+        set => ChangeProjectOutputPath(ref field, value, s => s.WithProjectOutputRefFilePath(Id, value));
     }
 
     public string? FilePath
@@ -441,34 +428,37 @@ internal sealed partial class ProjectSystemProject
 
     public SourceHashAlgorithm ChecksumAlgorithm
     {
-        get => _checksumAlgorithm;
-        set => ChangeProjectProperty(ref _checksumAlgorithm, value, s => s.WithProjectChecksumAlgorithm(Id, value));
-    }
+        get;
+        set => ChangeProjectProperty(ref field, value, s => s.WithProjectChecksumAlgorithm(Id, value));
+    } = SourceHashAlgorithms.Default;
 
     // internal to match the visibility of the Workspace-level API -- this is something
     // we use but we haven't made officially public yet.
     internal bool HasAllInformation
     {
-        get => _hasAllInformation;
-        set => ChangeProjectProperty(ref _hasAllInformation, value, s => s.WithHasAllInformation(Id, value));
-    }
+        get;
+        set => ChangeProjectProperty(ref field, value, s => s.WithHasAllInformation(Id, value));
+    } = true;
+
+    // Actual property values for 'RunAnalyzers' and 'RunAnalyzersDuringLiveAnalysis' properties from the project file.
+    // Both these properties can be used to configure running analyzers, with RunAnalyzers overriding RunAnalyzersDuringLiveAnalysis.
 
     internal bool? RunAnalyzers
     {
-        get => _runAnalyzersPropertyValue;
+        get;
         set
         {
-            _runAnalyzersPropertyValue = value;
+            field = value;
             UpdateRunAnalyzers();
         }
     }
 
     internal bool? RunAnalyzersDuringLiveAnalysis
     {
-        get => _runAnalyzersDuringLiveAnalysisPropertyValue;
+        get;
         set
         {
-            _runAnalyzersDuringLiveAnalysisPropertyValue = value;
+            field = value;
             UpdateRunAnalyzers();
         }
     }
@@ -476,14 +466,14 @@ internal sealed partial class ProjectSystemProject
     private void UpdateRunAnalyzers()
     {
         // Property RunAnalyzers overrides RunAnalyzersDuringLiveAnalysis, and default when both properties are not set is 'true'.
-        var runAnalyzers = _runAnalyzersPropertyValue ?? _runAnalyzersDuringLiveAnalysisPropertyValue ?? true;
+        var runAnalyzers = RunAnalyzers ?? RunAnalyzersDuringLiveAnalysis ?? true;
         ChangeProjectProperty(ref _runAnalyzers, runAnalyzers, s => s.WithRunAnalyzers(Id, runAnalyzers));
     }
 
     internal bool HasSdkCodeStyleAnalyzers
     {
-        get => _hasSdkCodeStyleAnalyzers;
-        set => ChangeProjectProperty(ref _hasSdkCodeStyleAnalyzers, value, s => s.WithHasSdkCodeStyleAnalyzers(Id, value));
+        get;
+        set => ChangeProjectProperty(ref field, value, s => s.WithHasSdkCodeStyleAnalyzers(Id, value));
     }
 
     /// <summary>
@@ -499,8 +489,8 @@ internal sealed partial class ProjectSystemProject
     /// </remarks>
     internal string? DefaultNamespace
     {
-        get => _defaultNamespace;
-        set => ChangeProjectProperty(ref _defaultNamespace, value, s => s.WithProjectDefaultNamespace(Id, value));
+        get;
+        set => ChangeProjectProperty(ref field, value, s => s.WithProjectDefaultNamespace(Id, value));
     }
 
     /// <summary>
@@ -726,7 +716,7 @@ internal sealed partial class ProjectSystemProject
                 foreach (var (path, properties) in metadataReferencesAddedInBatch)
                 {
                     projectUpdateState = TryCreateConvertedProjectReference_NoLock(
-                        projectId, path, properties, projectUpdateState, solutionChanges.Solution, out var projectReference);
+                        projectBeforeMutation.State, path, properties, projectUpdateState, solutionChanges.Solution, out var projectReference);
 
                     if (projectReference != null)
                     {

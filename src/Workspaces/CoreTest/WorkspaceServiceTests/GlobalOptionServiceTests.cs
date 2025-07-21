@@ -37,13 +37,13 @@ public sealed class GlobalOptionServiceTests
 
         optionService.SetOptions(
             [],
-            [KeyValuePairUtil.Create(optionKey, (object?)2)]);
+            [KeyValuePair.Create(optionKey, (object?)2)]);
 
         Assert.Equal(2, optionService.GetExternallyDefinedOption(optionKey));
 
         optionService.SetOptions(
             [],
-            [KeyValuePairUtil.Create(optionKey, (object?)3)]);
+            [KeyValuePair.Create(optionKey, (object?)3)]);
 
         Assert.Equal(3, optionService.GetExternallyDefinedOption(optionKey));
     }
@@ -121,7 +121,7 @@ public sealed class GlobalOptionServiceTests
 
         // Update global option indirectly via legacy service updates current solutions.
         optionService.SetOptions(
-            [KeyValuePairUtil.Create(new OptionKey2(FormattingOptions2.NewLine, "lang"), (object?)"NEW_LINE")],
+            [KeyValuePair.Create(new OptionKey2(FormattingOptions2.NewLine, "lang"), (object?)"NEW_LINE")],
             []);
 
         Assert.Equal("NEW_LINE", workspace1.CurrentSolution.Options.GetOption<string>(perLanguageOptionKey));
@@ -180,9 +180,9 @@ public sealed class GlobalOptionServiceTests
 
         globalOptions.SetGlobalOptions(
         [
-            KeyValuePairUtil.Create(new OptionKey2(option1), (object?)5),
-            KeyValuePairUtil.Create(new OptionKey2(option2), (object?)6),
-            KeyValuePairUtil.Create(new OptionKey2(option3), (object?)3),
+            KeyValuePair.Create(new OptionKey2(option1), (object?)5),
+            KeyValuePair.Create(new OptionKey2(option2), (object?)6),
+            KeyValuePair.Create(new OptionKey2(option3), (object?)3),
         ]);
 
         AssertEx.Equal(

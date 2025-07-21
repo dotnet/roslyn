@@ -8,8 +8,8 @@ using System;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting;
 
@@ -20,90 +20,106 @@ internal sealed class SpacingViewModel : AbstractOptionPreviewViewModel
 {
     private static readonly Conversions<SpacePlacementWithinParentheses, int> s_spaceBetweenParenthesesConversions = new(v => (int)v, v => (SpacePlacementWithinParentheses)v);
 
-    private const string s_methodPreview = @"
-class C {
-//[
-    void Goo(){
-        Goo(1);
-    }
+    private const string s_methodPreview = """
+        class C {
+        //[
+            void Goo(){
+                Goo(1);
+            }
 
-    void Goo(int x){
-        Goo();
-    }
-//]
-    void Goo(int x, int y){
-        Goo();
-    }
-}";
-
-    private const string s_bracketPreview = @"class C {
-    void Goo(){
-//[
-        int[] x = new int[10];
-//]
-    }
-}";
-    private const string s_forDelimiterPreview = @"class C{
-    void Goo(int x, object y) {
-//[
-        for (int i; i < x; i++) {
+            void Goo(int x){
+                Goo();
+            }
+        //]
+            void Goo(int x, int y){
+                Goo();
+            }
         }
-//]
-    }
-}";
+        """;
 
-    private const string s_delimiterPreview = @"class C{
-    void Goo(int x, object y) {
-//[
-            this.Goo(x, y);
-//]
-    }
-}";
-
-    private const string s_castPreview = @"class C{
-    void Goo(object x) {
-//[
-        int y = (int)x;
-//]
-    }
-}";
-
-    private const string s_expressionPreview = @"class C{
-    void Goo(int x, object y) {
-//[
-        var x = 3;
-        var y = 4;
-        var z = (x * y) - ((y -x) * 3);
-//]
-    }
-}";
-
-    private const string s_expressionSpacingPreview = @"
-class c {
-    int Goo(int x, int y) {
-//[
-        return x   *   (x-y);
-//]
-    }
-}";
-    private const string s_declarationSpacingPreview = @"class MyClass {
-//[
-    int         index = 0;
-    string      text = ""Start"";
-
-    void        Method(){
-        int     i = 0;
-        string  s = ""Hello"";
+    private const string s_bracketPreview = """
+        class C {
+            void Goo(){
+        //[
+                int[] x = new int[10];
+        //]
+            }
+        }
+        """;
+    private const string s_forDelimiterPreview = """
+        class C{
+            void Goo(int x, object y) {
+        //[
+                for (int i; i < x; i++) {
                 }
-//]
-}";
-    private const string s_baseColonPreview = @"//[
-interface I {
-}
+        //]
+            }
+        }
+        """;
 
-class C : I {
-}
-//]";
+    private const string s_delimiterPreview = """
+        class C{
+            void Goo(int x, object y) {
+        //[
+                    this.Goo(x, y);
+        //]
+            }
+        }
+        """;
+
+    private const string s_castPreview = """
+        class C{
+            void Goo(object x) {
+        //[
+                int y = (int)x;
+        //]
+            }
+        }
+        """;
+
+    private const string s_expressionPreview = """
+        class C{
+            void Goo(int x, object y) {
+        //[
+                var x = 3;
+                var y = 4;
+                var z = (x * y) - ((y -x) * 3);
+        //]
+            }
+        }
+        """;
+
+    private const string s_expressionSpacingPreview = """
+        class c {
+            int Goo(int x, int y) {
+        //[
+                return x   *   (x-y);
+        //]
+            }
+        }
+        """;
+    private const string s_declarationSpacingPreview = """
+        class MyClass {
+        //[
+            int         index = 0;
+            string      text = "Start";
+
+            void        Method(){
+                int     i = 0;
+                string  s = "Hello";
+                        }
+        //]
+        }
+        """;
+    private const string s_baseColonPreview = """
+        //[
+        interface I {
+        }
+
+        class C : I {
+        }
+        //]
+        """;
 
     public SpacingViewModel(OptionStore optionStore, IServiceProvider serviceProvider) : base(optionStore, serviceProvider, LanguageNames.CSharp)
     {

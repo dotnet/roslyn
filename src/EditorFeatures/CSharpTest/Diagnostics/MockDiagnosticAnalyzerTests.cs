@@ -59,9 +59,6 @@ public sealed partial class MockDiagnosticAnalyzerTests : AbstractCSharpDiagnost
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/906919")]
-    public async Task Bug906919()
-    {
-        var source = "[|class C { }|]";
-        await VerifyDiagnosticsAsync(source);
-    }
+    public Task Bug906919()
+        => VerifyDiagnosticsAsync("[|class C { }|]");
 }

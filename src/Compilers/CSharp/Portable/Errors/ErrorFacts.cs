@@ -1868,7 +1868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_EscapeStackAlloc
                 or ErrorCode.ERR_RefReturnThis
                 or ErrorCode.ERR_OutAttrOnInParam
-                or ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3
+                or ErrorCode.ERR_PredefinedTypeAmbiguous
                 or ErrorCode.ERR_InvalidVersionFormatDeterministic
                 or ErrorCode.ERR_AttributeCtorInParameter
                 or ErrorCode.WRN_FilterIsConstantFalse
@@ -2531,6 +2531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind
                 or ErrorCode.ERR_InstanceOperatorExtensionWrongReceiverType
                 or ErrorCode.ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator
+                or ErrorCode.ERR_InterpolatedStringHandlerArgumentDisallowed
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

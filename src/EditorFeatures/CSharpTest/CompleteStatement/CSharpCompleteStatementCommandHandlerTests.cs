@@ -67,41 +67,33 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [InlineData("public interface C(int X, int Y$$)", "public interface C(int X, int Y)")]
     public void ParameterList_CouldBeHandled(string signature, string expectedSignature)
     {
-        var code = $$"""
+        VerifyTypingSemicolon($$"""
             public class Class1
             {
                 {{signature}}
             }
-            """;
-
-        var expected = $$"""
+            """, $$"""
             public class Class1
             {
                 {{expectedSignature}};$$
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ParameterList_InterfaceMethod()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public interface I
             {
                 public void M(object o$$)
             }
-            """;
-
-        var expected = """
+            """, """
             public interface I
             {
                 public void M(object o);$$
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfTheory]
@@ -112,14 +104,12 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [InlineData("partial void Method($$object o) { }")]
     public void ParameterList_NotHandled(string signature)
     {
-        var code = $$"""
+        VerifyNoSpecialSemicolonHandling($$"""
             public class Class1
             {
                 {{signature}}
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     #endregion
@@ -742,87 +732,66 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact]
     public void FieldInitializer_NoParens()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 int i = 4$$
                 int j = 5;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void FieldInitializer2()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 int i = Min(2$$,3)
                 int j = 5;
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 int i = Min(2,3);$$
                 int j = 5;
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void FieldInitializer2b_MissingParen()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 int i = Min(2$$,3
                 int j = 5;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void FieldInitializer3()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 int i = Min(Max(4,5$$),3)
                 int j = 5;
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 int i = Min(Max(4,5),3);$$
                 int j = 5;
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void FieldInitializer3b_MissingInner()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 int i = Min(Max(4,5$$,3)
                 int j = 5;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     #endregion
@@ -832,40 +801,33 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact]
     public void ForLoopSingleInitializer1()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main()
                 {
                     for (int i = 0$$ )
                     int j;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopSingleInitializer2()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main()
                 {
                     for (int i = 0$$ i < 5; i++)
                     int j;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopSingleInitializer3()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main()
@@ -877,224 +839,182 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     System.Console.Write("{0}", x);
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopSingleInitializer_MissingParen()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main()
                 {
                     for (int i = 0$$
                     int j;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopNoStatements()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main()
                 {
                     for ($$
                     int j;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopNoStatements2()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main()
                 {
                     for ( $$
                     int j;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopNoStatements3()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main()
                 {
                     for ( ; $$
                     int j;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopNoStatements4()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main()
                 {
                     for ( ; ;$$
                     int j;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopNoStatements5()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main()
                 {
                     for ( $$ ;)
                     int j;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopMultistatementInitializer1()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main()
                 {
                     for ( $$int i = 0, int j = 0)
                     int j;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopMultistatementInitializer2()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main()
                 {
                     for ( int$$ i = 0, int j = 0)
                     int j;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopMultistatementInitializer3()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main()
                 {
                     for ( int i$$ = 0, int j = 0)
                     int j;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopMultistatementInitializer4()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main()
                 {
                     for ( int i = 0, $$int j = 0)
                     int j;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopMultistatementInitializer5()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main()
                 {
                     for ( int i = 0, int j =$$ 0)
                     int j;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopMultistatementInitializer6()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main()
                 {
                     for ( int i = 0, int j = 0$$)
                     int j;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopMultistatementInitializer7()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main()
                 {
                     for ( int i = 0, int j = 0$$)
                     int j;
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopNewInInitializer1()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -1110,10 +1030,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     return obj;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -1129,16 +1046,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     return obj;
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ForLoopNewInInitializer_MissingOneParen()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main(string[] args)
@@ -1154,17 +1068,15 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     return obj;
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopNewInInitializer2_MissingBothParens()
     {
         // only adding one closing paren
-        var code =
-            """
+
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main(string[] args)
@@ -1180,146 +1092,113 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     return obj;
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopDeclaration()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
                 {
                     string s = "abcdefghij";
                     for (int i = s.IndexOf("bcd"$$) i < 10; i++)
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
                 {
                     string s = "abcdefghij";
                     for (int i = s.IndexOf("bcd");$$ i < 10; i++)
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ForLoopDeclaration2()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
                 {
                     string s = "abcdefghij";
                     for (int i = s.IndexOf("bcd"$$), j=1 i < 10; i++)
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
                 {
                     string s = "abcdefghij";
                     for (int i = s.IndexOf("bcd"), j=1;$$ i < 10; i++)
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ForLoopDeclaration3()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
                 {
                     string s = "abcdefghij";
                     for (int i = s.IndexOf("bcd"$$); i < 10; i++)
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
                 {
                     string s = "abcdefghij";
                     for (int i = s.IndexOf("bcd");$$ i < 10; i++)
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ForLoopDeclaration4()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
                 {
                     string s = "abcdefghij";
                     for (int i = s.IndexOf("bcd"$$), j=1; i < 10; i++)
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
                 {
                     string s = "abcdefghij";
                     for (int i = s.IndexOf("bcd"), j=1;$$ i < 10; i++)
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ForLoopDeclaration_MissingParen()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
                 {
                     string s = "abcdefghij";
                     for (int i = s.IndexOf("bcd"$$ i < 10; i++)
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
                 {
                     string s = "abcdefghij";
                     for (int i = s.IndexOf("bcd";$$ i < 10; i++)
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/32250")]
     public void ForLoopInitializers()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -1327,10 +1206,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     string s = "abcdefghij";
                     int i;
                     for (i = s.IndexOf("bcd"$$) i < 10; i++)
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -1338,16 +1214,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     string s = "abcdefghij";
                     int i;
                     for (i = s.IndexOf("bcd");$$ i < 10; i++)
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/32250")]
     public void ForLoopInitializers2()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -1356,10 +1229,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     int i;
                     int j;
                     for (i = s.IndexOf("bcd"$$), j=1 i < 10; i++)
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -1368,16 +1238,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     int i;
                     int j;
                     for (i = s.IndexOf("bcd"), j=1;$$ i < 10; i++)
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ForLoopInitializers3()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -1385,10 +1252,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     string s = "abcdefghij";
                     int i;
                     for (i = s.IndexOf("bcd"$$); i < 10; i++)
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -1396,16 +1260,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     string s = "abcdefghij";
                     int i;
                     for (i = s.IndexOf("bcd");$$ i < 10; i++)
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ForLoopInitializers4()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -1414,10 +1275,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     int i;
                     int j;
                     for (i = s.IndexOf("bcd"$$), j=1; i < 10; i++)
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -1426,15 +1284,12 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     int i;
                     int j;
                     for (i = s.IndexOf("bcd"), j=1;$$ i < 10; i++)
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
     [WpfFact]
     public void ForLoopInitializers_MissingParen()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -1442,10 +1297,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     string s = "abcdefghij";
                     int i;
                     for (i = s.IndexOf("bcd"$$ i < 10; i++)
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -1453,42 +1305,33 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     string s = "abcdefghij";
                     int i;
                     for (i = s.IndexOf("bcd";$$ i < 10; i++)
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ForLoopCondition()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
                 {
                     string s = "abcdefghij";
                     for (int i = s.IndexOf("bcd"); i < s.IndexOf("x"$$) i++)
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
                 {
                     string s = "abcdefghij";
                     for (int i = s.IndexOf("bcd"); i < s.IndexOf("x");$$ i++)
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ForLoopConditionIsNull()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main(string[] args)
@@ -1497,16 +1340,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     {
                         Console.WriteLine("test");
                     }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopConditionIsNull2()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -1515,9 +1355,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     {
                         Console.WriteLine("test");
                     }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -1526,41 +1364,33 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     {
                         Console.WriteLine("test");
                     }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ForLoopIncrement()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
                 {
                     string s = "abcdefghij";
                     for (int i = s.IndexOf("bcd"); i < s.IndexOf("x"); i = i.IndexOf("x"$$))
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
                 {
                     string s = "abcdefghij";
                     for (int i = s.IndexOf("bcd"); i < s.IndexOf("x"); i = i.IndexOf("x";$$))
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ForLoopBody()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -1570,10 +1400,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     {
                         i.ToString($$)
                     }
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -1583,16 +1410,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     {
                         i.ToString();$$
                     }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ForLoopObjectInitializer_MissingParen()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main(string[] args)
@@ -1605,16 +1429,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 public int i;
                 public string s;
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ForLoopObjectInitializer()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -1627,9 +1448,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 public int i;
                 public string s;
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -1642,16 +1461,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 public int i;
                 public string s;
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ForLoopObjectInitializer_MissingBrace()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main(string[] args)
@@ -1664,9 +1480,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 public int i;
                 public string s;
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     #endregion
@@ -1676,8 +1490,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact]
     public void Indexer()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class SampleCollection<T>
             {
                 private T[] arr = new T[100];
@@ -1688,9 +1501,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     set { arr[i] = value; }
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class SampleCollection<T>
             {
                 private T[] arr = new T[100];
@@ -1701,16 +1512,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     set { arr[i] = value; }
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void Indexer2()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class test
             {
                 int[] array = { 1, 2, 3 };
@@ -1720,9 +1528,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     var i = array[1$$]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class test
             {
                 int[] array = { 1, 2, 3 };
@@ -1732,16 +1538,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     var i = array[1];$$
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void Indexer3()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 int[] array = { 1, 2, 3 };
@@ -1751,9 +1554,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     var i = array[Math.Min(2,3$$)]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 int[] array = { 1, 2, 3 };
@@ -1763,16 +1564,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     var i = array[Math.Min(2,3)];$$
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void Indexer4()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 int[] array = { 1, 2, 3 };
@@ -1782,9 +1580,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     var i = array[Math.Min(2,3$$)
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 int[] array = { 1, 2, 3 };
@@ -1794,9 +1590,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     var i = array[Math.Min(2,3;$$)
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     #endregion
@@ -1806,8 +1600,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact]
     public void ArrayInitializer()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main(string[] args)
@@ -1816,16 +1609,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ArrayInitializer2()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -1834,9 +1624,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -1845,16 +1633,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ArrayInitializer3()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -1863,9 +1648,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -1874,16 +1657,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ArrayInitializer4()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -1892,9 +1672,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -1903,16 +1681,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ArrayInitializer_MissingBrace()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main(string[] args)
@@ -1921,9 +1696,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     #endregion
@@ -1933,8 +1706,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact]
     public void ImplicitTypeArrayInitializer()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main(string[] args)
@@ -1943,16 +1715,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ImplicitTypeArrayInitializer2()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -1961,9 +1730,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -1972,16 +1739,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ImplicitTypeArrayInitializer3()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -1990,9 +1754,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -2001,16 +1763,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ImplicitTypeArrayInitializer4()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -2019,9 +1778,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -2030,16 +1787,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ImplicitTypeArrayInitializer_MissingBrace()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main(string[] args)
@@ -2048,9 +1802,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     #endregion
@@ -2060,8 +1812,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact]
     public void CollectionExpression()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main(string[] args)
@@ -2070,16 +1821,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void CollectionExpression2()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -2088,9 +1836,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -2099,16 +1845,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void CollectionExpression3()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -2117,9 +1860,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -2128,16 +1869,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void CollectionExpression4()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -2146,9 +1884,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -2157,16 +1893,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void CollectionExpression_MissingBrace()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main(string[] args)
@@ -2175,9 +1908,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     #endregion
@@ -2187,8 +1918,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact]
     public void CollectionInitializer()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             using System.Collections.Generic;
             class C
             {
@@ -2198,16 +1928,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void CollectionInitializer2()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             using System.Collections.Generic;
             class C
             {
@@ -2217,9 +1944,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-        var expected =
-            """
+            """, """
             using System.Collections.Generic;
             class C
             {
@@ -2229,16 +1954,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void CollectionInitializer3()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             using System.Collections.Generic;
             class C
             {
@@ -2248,9 +1970,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-        var expected =
-            """
+            """, """
             using System.Collections.Generic;
             class C
             {
@@ -2260,16 +1980,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void CollectionInitializer4()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             using System.Collections.Generic;
             class C
             {
@@ -2279,9 +1996,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-        var expected =
-            """
+            """, """
             using System.Collections.Generic;
             class C
             {
@@ -2291,16 +2006,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void CollectionInitializer_MissingBrace()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             using System.Collections.Generic;
             class C
             {
@@ -2310,9 +2022,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 }
             }
 
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     #endregion
@@ -2322,8 +2032,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact]
     public void ObjectInitializer()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 static void Main(string[] args)
@@ -2337,16 +2046,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 public int i;
                 public string s;
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ObjectInitializer2()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -2360,9 +2066,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 public int i;
                 public string s;
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -2376,16 +2080,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 public int i;
                 public string s;
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ObjectInitializer3()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -2399,9 +2100,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 public int i;
                 public string s;
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -2415,16 +2114,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 public int i;
                 public string s;
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ObjectInitializer4()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -2438,9 +2134,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 public int i;
                 public string s;
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -2454,16 +2148,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 public int i;
                 public string s;
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ObjectInitializer_MissingBrace()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class C
             {
                 static void Main(string[] args)
@@ -2477,9 +2168,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 public int i;
                 public string s;
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -2493,9 +2182,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 public int i;
                 public string s;
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     #endregion
@@ -2505,7 +2192,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact]
     public void PropertyAccessors1()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class ClassC
             {
                 private int xValue = 7;
@@ -2517,9 +2204,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } 
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             public class ClassC
             {
                 private int xValue = 7;
@@ -2531,15 +2216,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } 
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void PropertyAccessors2()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class ClassC
             {
                 private int xValue = 7;
@@ -2551,9 +2234,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } 
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             public class ClassC
             {
                 private int xValue = 7;
@@ -2565,15 +2246,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } 
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void PropertyAccessors3()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             public class Person
             {
                private string firstName;
@@ -2587,15 +2266,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
 
                public string Name => $"{firstName} {lastName}"$$   
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void PropertyAccessors4()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             public class SaleItem
             {
                string name;
@@ -2605,15 +2282,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                   set => name = value$$
                }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void PropertyAccessors5()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             public class SaleItem
             {
                string name;
@@ -2623,15 +2298,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                   set => name = value;
                }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void PropertyAccessors6()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class SaleItem
             {
                string name;
@@ -2641,8 +2314,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                   set => name = value;
                }
             }
-            """;
-        var expected = """
+            """, """
             public class SaleItem
             {
                string name;
@@ -2652,49 +2324,41 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                   set => name = value;
                }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void PropertyAccessors7()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             public class SaleItem
             {
                public string Name 
                { get$$ set; }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void PropertyInitializer1()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class C
             {
                public static C MyProp { get; } = new C($$)
             }
-            """;
-
-        var expected = """
+            """, """
             public class C
             {
                public static C MyProp { get; } = new C();$$
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void PropertyAttribute1()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             public class C
             {
                 public int P
@@ -2706,9 +2370,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     #endregion
@@ -2718,7 +2380,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact]
     public void ParenthesizedExpression_Assignment1()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class Class1
             {
                 void M()
@@ -2726,9 +2388,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     int i = (6*5$$)
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             public class Class1
             {
                 void M()
@@ -2736,15 +2396,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     int i = (6*5);$$
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ParenthesizedExpression_Assignment2()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class Class1
             {
                 void M()
@@ -2752,9 +2410,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     int i = (6*Math.Min(4,5$$))
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             public class Class1
             {
                 void M()
@@ -2762,15 +2418,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     int i = (6*Math.Min(4,5));$$
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ParenthesizedExpression_Assignment3()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class Class1
             {
                 void M()
@@ -2779,9 +2433,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     int i = (6*array[2$$])
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             public class Class1
             {
                 void M()
@@ -2790,15 +2442,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     int i = (6*array[2]);$$
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ParenthesizedExpression_ForLoop()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class Class1
             {
                 void M()
@@ -2809,9 +2459,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             public class Class1
             {
                 void M()
@@ -2822,15 +2470,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ParenthesizedExpression_ForLoop2()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class Class1
             {
                 void M()
@@ -2841,9 +2487,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             public class Class1
             {
                 void M()
@@ -2854,15 +2498,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ParenthesizedExpression_ForLoop3()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class Class1
             {
                 void M()
@@ -2873,9 +2515,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             public class Class1
             {
                 void M()
@@ -2886,15 +2526,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ParenthesizedExpression_ForEach()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             public class Class1
             {
                 static void Main(string[] args)
@@ -2911,15 +2549,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     return value;
                 }
             }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ParenthesizedExpression_GoTo2()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             static void Main()
             {
                 int n = 1;
@@ -2933,10 +2569,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                         break;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             static void Main()
             {
                 int n = 1;
@@ -2950,15 +2583,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                         break;
                 }
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ParenthesizedExpression_Switch()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class Program
             {
                 static void Main()
@@ -2973,16 +2604,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ParenthesizedExpression_Switch2()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class Program
             {
                 static void Main()
@@ -2997,16 +2625,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ParenthesizedExpression_Switch3()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             class Program
             {
                 static void Main()
@@ -3022,9 +2647,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class Program
             {
                 static void Main()
@@ -3040,16 +2663,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void ParenthesizedExpression_While()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             using System;
             class Program
             {
@@ -3062,16 +2682,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ParenthesizedExpression_While2()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             using System;
             class Program
             {
@@ -3084,16 +2701,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ParenthesizedExpression_While3()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             using System;
             class Program
             {
@@ -3106,9 +2720,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -3121,9 +2733,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     #endregion
@@ -3133,7 +2743,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [InlineData("default($$object)", "default(object)")]
     public void DefaultExpression_Handled(string expression, string expectedExpression)
     {
-        var code = $$"""
+        VerifyTypingSemicolon($$"""
             public class Class1
             {
                 void M()
@@ -3141,9 +2751,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     int i = {{expression}}
                 }
             }
-            """;
-
-        var expected = $$"""
+            """, $$"""
             public class Class1
             {
                 void M()
@@ -3151,9 +2759,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     int i = {{expectedExpression}};$$
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/52137")]
@@ -3161,7 +2767,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [InlineData("typeof($$object)", "typeof(object)")]
     public void TypeOfExpression_Handled(string expression, string expectedExpression)
     {
-        var code = $$"""
+        VerifyTypingSemicolon($$"""
             public class Class1
             {
                 void M()
@@ -3169,9 +2775,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     var x = {{expression}}
                 }
             }
-            """;
-
-        var expected = $$"""
+            """, $$"""
             public class Class1
             {
                 void M()
@@ -3179,15 +2783,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     var x = {{expectedExpression}};$$
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/52365")]
     public void TupleExpression_Handled()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class Class1
             {
                 void M()
@@ -3195,9 +2797,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     var x = (0, 0$$)
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             public class Class1
             {
                 void M()
@@ -3205,9 +2805,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     var x = (0, 0);$$
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfTheory]
@@ -3217,7 +2815,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [InlineData("default($$object")]
     public void DefaultExpression_NotHandled(string expression)
     {
-        var code = $$"""
+        VerifyNoSpecialSemicolonHandling($$"""
             public class Class1
             {
                 void M()
@@ -3225,9 +2823,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     int i = {{expression}}
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfTheory]
@@ -3237,7 +2833,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [InlineData("unchecked($$3 + 3)", "unchecked(3 + 3)")]
     public void CheckedExpression_Handled(string expression, string expectedExpression)
     {
-        var code = $$"""
+        VerifyTypingSemicolon($$"""
             public class Class1
             {
                 void M()
@@ -3245,9 +2841,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     int i = {{expression}}
                 }
             }
-            """;
-
-        var expected = $$"""
+            """, $$"""
             public class Class1
             {
                 void M()
@@ -3255,9 +2849,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     int i = {{expectedExpression}};$$
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfTheory]
@@ -3271,7 +2863,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [InlineData("unchecked($$3 + 3")]
     public void CheckedExpression_NotHandled(string expression)
     {
-        var code = $$"""
+        VerifyNoSpecialSemicolonHandling($$"""
             public class Class1
             {
                 void M()
@@ -3279,15 +2871,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     int i = {{expression}}
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ThrowStatement_MissingBoth()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             public class Class1
             {
                 void M()
@@ -3297,15 +2887,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
 
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void ThrowStatement()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class Class1
             {
                 void M()
@@ -3315,9 +2903,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
 
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             public class Class1
             {
                 void M()
@@ -3327,44 +2913,35 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
 
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_SemicolonBeforeClassDeclaration()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             $$
             class C
             {
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotCompleteStatment_DocComments()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             /// Testing $$
             class C
             {
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_FormatString()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 void Main()
@@ -3372,16 +2949,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     Console.WriteLine(String.Format("{0:##;(##)$$**Zero**}", 0));
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_EmptyStatement()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 void Main()
@@ -3389,16 +2963,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     ;$$
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_EmptyStatement2()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 void Main()
@@ -3406,16 +2977,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     ; $$
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoWhile()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             public class C
             {
                 void M()
@@ -3428,9 +2996,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } while (n$$ < 5)
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             public class C
             {
                 void M()
@@ -3443,15 +3009,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } while (n < 5);$$
                 }
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void DoWhile2()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             public class C
             {
                 void M()
@@ -3464,16 +3028,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } while (n < 5)$$
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoWhile3()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             public class C
             {
                 void M()
@@ -3486,16 +3047,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } while $$(n < 5)
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoWhile4()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             public class C
             {
                 void M()
@@ -3508,10 +3066,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } while (n < Min(4,$$5))
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             public class C
             {
                 void M()
@@ -3524,16 +3079,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } while (n < Min(4,5));$$
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/35260")]
     public void DoWhile5()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             public class C
             {
                 void M()
@@ -3546,10 +3098,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } while ($$n < Min(4,5))
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             public class C
             {
                 void M()
@@ -3562,16 +3111,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } while (n < Min(4,5));$$
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/35260")]
     public void DoWhile6()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             public class C
             {
                 void M()
@@ -3584,10 +3130,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } while (n < Min(4,5)$$)
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             public class C
             {
                 void M()
@@ -3600,16 +3143,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } while (n < Min(4,5));$$
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void DoWhile_MissingParen()
     {
-        var code =
-            """
+        VerifyTypingSemicolon("""
             public class C
             {
                 void M()
@@ -3622,10 +3162,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } while (n < Min(4,$$5)
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             public class C
             {
                 void M()
@@ -3638,16 +3175,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } while (n < Min(4,;$$5)
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Break()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             public class C
             {
                 void M()
@@ -3661,16 +3195,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } while (n < 5);
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Break2()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             public class C
             {
                 void M()
@@ -3684,16 +3215,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } while (n < 5);
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Break3()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             public class C
             {
                 void M()
@@ -3707,16 +3235,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     } while (n < 5);
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Checked()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class Program
                {
                    static void Main(string[] args)
@@ -3739,16 +3264,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                        Console.ReadLine();
                    }
                }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Unchecked()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class Program
                {
                    static void Main(string[] args)
@@ -3771,16 +3293,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                        Console.ReadLine();
                    }
                }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Fixed()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class Program
             {
                 static void Main()
@@ -3801,16 +3320,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Continue()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class ContinueTest
             {
                 static void Main()
@@ -3825,16 +3341,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Continue2()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class ContinueTest
             {
                 static void Main()
@@ -3849,16 +3362,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Continue3()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class ContinueTest
             {
                 static void Main()
@@ -3873,16 +3383,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_GoTo()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             static void Main()
             {
                 int n = 1;
@@ -3897,16 +3404,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                         break;
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_IfStatement()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class Program
             {
                 void M()
@@ -3918,16 +3422,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Labeled()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class Program
             {
                 static void Main()
@@ -3937,16 +3438,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     labeled$$: return;
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_IfStatement2()
     {
-        var code =
-            """
+        VerifyNoSpecialSemicolonHandling("""
             class Program
             {
                 void M()
@@ -3958,9 +3456,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
@@ -4136,22 +3632,19 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34176")]
     public void DoNotComplete_VerbatimStringAsMethodArgument_EndOfLine_NotEndOfString()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
                         var code = Foo(@"$$
             ") ;
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34176")]
     public void DoNotComplete_VerbatimStringAsMethodArgument_EndOfString_NotEndOfLine()
     {
-
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
                         var code = Foo(@"  $$" //comments
             );
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
@@ -4167,7 +3660,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact]
     public void DoNotComplete_Attribute()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             using System;
 
             class Program
@@ -4183,26 +3676,24 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 {
                 }
             }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Attribute2()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             [assembly: System.Reflection.AssemblyVersionAttribute(null$$)]
             class Program
             {
             }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Attribute3()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             using System.Runtime.CompilerServices;
             using System;
 
@@ -4220,14 +3711,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 public void MyMethod() {
                 }
             }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Attribute4()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             using System;
             using System.Reflection;
 
@@ -4249,14 +3739,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     Console.Write($"B.Length={attr.B.Length}, B[0]={attr.B[0]}, B[1]={attr.B[1]}");
                 }
             }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Attribute5()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             using System;
             using System.Reflection;
 
@@ -4278,14 +3767,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     Console.Write($"B.Length={attr.B.Length}, B[0]={attr.B[0]}, B[1]={attr.B[1]}");
                 }
             }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Attribute6()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             using System;
 
             class Program
@@ -4301,42 +3789,38 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 {
                 }
             }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Using()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             using System.Linq$$
 
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Using2()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             using System.Linq$$;
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact]
     public void DoNotComplete_Using3()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             using System.$$Linq
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33851")]
     public void AtEndOfLineOutsideParens()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             public class Class1
             {
                 void M()
@@ -4347,14 +3831,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
 
                 }
             }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33851")]
     public void OutsideParensBeforeSpaceDot()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             public class Class1
             {
                 void M()
@@ -4364,14 +3847,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
 
                 }
             }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
     public void BeforeAttribute()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             public class C
             {
             private const string s = 
@@ -4382,14 +3864,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                         {
                         }
                     }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
     public void ElementBindingExpression()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             class C
             {
                 void M()
@@ -4398,8 +3879,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     var value = data?[0$$]
                 }
             }
-            """;
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4408,14 +3888,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     var value = data?[0];$$
                 }
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
     public void BeforeElementBindingExpression()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 void M()
@@ -4424,14 +3903,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     var value = data?$$[0]
                 }
             }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
     public void AfterElementBindingExpression()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 void M()
@@ -4440,15 +3918,14 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     var value = data?[0]$$
                 }
             }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
     public void ImplicitElementAccessSyntax()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             class C
             {
                 void M()
@@ -4459,8 +3936,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4471,14 +3947,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     };$$
                 }
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
     public void BeforeImplicitElementAccessSyntax()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             class C
             {
                 void M()
@@ -4489,8 +3964,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4501,14 +3975,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     };$$
                 }
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
     public void AfterImplicitElementAccessSyntax()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             class C
             {
                 void M()
@@ -4519,8 +3992,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4531,14 +4003,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     };$$
                 }
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
     public void AttributeParsedAsElementAccessExpression()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             using System;
             internal class TestMethodAttribute : Attribute
             {
@@ -4546,8 +4017,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
 
                 [Test]
             }
-            """;
-        var expected = """
+            """, """
             using System;
             internal class TestMethodAttribute : Attribute
             {
@@ -4555,14 +4025,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
 
                 [Test]
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
     public void MemberAccessOffOfMethod()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             class Program
             {
                 static void Main(string[] args)
@@ -4571,8 +4040,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     var t = s.ToLower($$).Substring(1);
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Program
             {
                 static void Main(string[] args)
@@ -4581,14 +4049,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     var t = s.ToLower();$$.Substring(1);
                 }
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
     public void LinqQuery()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             using System.Collections.Generic;
             using System.Linq;
             class Query
@@ -4602,8 +4069,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                         .Select(x2 => x1 + x2));
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class Query
@@ -4617,14 +4083,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                         .Select(x2 => x1 + x2));$$
                 }
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
     public void LinqQuery2()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             using System.Collections.Generic;
             using System.Linq;
             class Query
@@ -4637,8 +4102,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                         .Select(x => x + x);
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class Query
@@ -4651,14 +4115,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                         .Select(x => x + x);
                 }
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
     public void BinaryExpression()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             class D
             {
                 void M()
@@ -4671,8 +4134,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     return v;
                 }
             }
-            """;
-        var expected = """
+            """, """
             class D
             {
                 void M()
@@ -4685,14 +4147,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     return v;
                 }
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
     public void BinaryExpression2()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             class D
             {
                 void M()
@@ -4705,8 +4166,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     return v;
                 }
             }
-            """;
-        var expected = """
+            """, """
             class D
             {
                 void M()
@@ -4719,14 +4179,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     return v;
                 }
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
     public void AsOperator()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             class D
             {
                 void M()
@@ -4739,8 +4198,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     return v.ToString();
                 }
             }
-            """;
-        var expected = """
+            """, """
             class D
             {
                 void M()
@@ -4753,14 +4211,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     return v.ToString();
                 }
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
     public void TernaryOperator()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             class Query
             {
                 void Main(string[] args)
@@ -4774,8 +4231,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 {
                     return j;
                 }
-            """;
-        var expected = """
+            """, """
             class Query
             {
                 void Main(string[] args)
@@ -4789,14 +4245,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 {
                     return j;
                 }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
     public void SemicolonInCharacterLiteral()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             class D
             {
                 void Main(string[]args)
@@ -4808,8 +4263,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 {
                 }
             }
-            """;
-        var expected = """
+            """, """
             class D
             {
                 void Main(string[]args)
@@ -4821,14 +4275,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 {
                 }
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/35260")]
     public void IncompleteLambda()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             using System;
 
             class C
@@ -4843,8 +4296,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
 
                 private void M(Func<object, int> p) { }
             }
-            """;
-        var expected = """
+            """, """
             using System;
 
             class C
@@ -4859,8 +4311,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
 
                 private void M(Func<object, int> p) { }
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     internal override ICommandHandler GetCommandHandler(EditorTestWorkspace workspace)
@@ -4877,91 +4328,83 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
     public void ParameterList_DelegateDeclaration()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             class C
             {
                 delegate void Del(string str$$)
             }
-            """;
-        var expected = """
+            """, """
             class C
             {
                 delegate void Del(string str);$$
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
     public void ParameterList_DelegateDeclaration2()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             class C
             {
                 public delegate TResult Blah<in T, out TResult$$>(T arg)
             }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
     public void ParameterList_DelegateDeclaration3()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             class C
             {
                 public delegate TResult Blah<in T, out TResult>(T arg$$)
             }
-            """;
-        var expected = """
+            """, """
             class C
             {
                 public delegate TResult Blah<in T, out TResult>(T arg);$$
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
     public void ParameterList_MultilineDelegateDeclaration()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             class C
             {
                 delegate void Del(string str$$,
                     int i,
                     string str2)
             }
-            """;
-        var expected = """
+            """, """
             class C
             {
                 delegate void Del(string str,
                     int i,
                     string str2);$$
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
     public void ParameterList_Constructor()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             class D
             {
                 public D($$)
                 {
                 }
             }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
     public void ParameterList_Destructor()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             class D
             {
                 public D()
@@ -4972,28 +4415,26 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 {
                 }
             }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
     public void ParameterList_MethodDeclaration()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             class D
             {
                void M($$)
                 {
                 }
             }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/54709")]
     public void YieldReturn()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             class D
             {
                 private static IEnumerable<int> M()
@@ -5001,8 +4442,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     yield return GetNumber($$)
                 }
             }
-            """;
-        var expected = """
+            """, """
             class D
             {
                 private static IEnumerable<int> M()
@@ -5010,8 +4450,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     yield return GetNumber();$$
                 }
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/71933")]
@@ -5072,13 +4511,12 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/923157")]
     public void BrokenCode_ReturnIfCaretDoesNotMove()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             class D
             {
               public Delegate Task<int> Handles(int num)$$
             }
-            """;
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/pull/37874")]
@@ -5110,7 +4548,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact]
     public void TestSwitchExpression()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class Bar
             {
                 public void Test(string myString)
@@ -5123,9 +4561,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             public class Bar
             {
                 public void Test(string myString)
@@ -5138,14 +4574,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     };$$
                 }
             }
-            """;
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact]
     public void TestNotInBracesSwitchExpression()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             public class Bar
             {
                 public void Test(string myString)
@@ -5158,15 +4593,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/70224")]
     public void TestNotBeforeKeywordInSwitchExpression()
     {
-        var code = """
+        VerifyNoSpecialSemicolonHandling("""
             public class Bar
             {
                 public void Test(string myString)
@@ -5179,57 +4612,47 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     }
                 }
             }
-            """;
-
-        VerifyNoSpecialSemicolonHandling(code);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/54213")]
     public void AfterNewInField1()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class C
             {
                 public List<int> list = new$$
             }
-            """;
-
-        var expected = """
+            """, """
             public class C
             {
                 public List<int> list = new();$$
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/54213")]
     public void AfterNewInField2()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class C
             {
                 List<int> list1 = new$$
                 List<int> list2;
             }
-            """;
-
-        var expected = """
+            """, """
             public class C
             {
                 List<int> list1 = new();$$
                 List<int> list2;
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/54213")]
     public void AfterNewInLocalDeclaration1()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class C
             {
                 void M()
@@ -5237,9 +4660,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     List<int> list = new$$
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             public class C
             {
                 void M()
@@ -5247,15 +4668,13 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     List<int> list = new();$$
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/54213")]
     public void AfterNewInLocalDeclaration2()
     {
-        var code = """
+        VerifyTypingSemicolon("""
             public class C
             {
                 void M()
@@ -5264,9 +4683,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     List<int> list2;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             public class C
             {
                 void M()
@@ -5275,9 +4692,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                     List<int> list2;
                 }
             }
-            """;
-
-        VerifyTypingSemicolon(code, expected);
+            """);
     }
 
     protected override EditorTestWorkspace CreateTestWorkspace(string code)

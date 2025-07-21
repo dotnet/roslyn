@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -73,6 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static BoundExpression visitArgumentsAndFinishRewrite(BoundTreeRewriter rewriter, BoundCall node, BoundExpression? rewrittenReceiver)
             {
+                Debug.Assert(node.Method.MethodKind == MethodKind.LocalFunction || node.Method.IsStatic || node.ReceiverOpt is not null);
+
                 return updateCall(
                     node,
                     VisitMethodSymbolWithExtensionRewrite(rewriter, node.Method),
@@ -165,6 +168,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method?.GetIsNewExtensionMember() != true ||
                          method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is null);
             // All possibly interesting methods should go through VisitMethodSymbolWithExtensionRewrite first
+
+            /* Tracking issue: https://github.com/dotnet/roslyn/issues/79426
             Debug.Assert(method is null ||
                          method.ContainingSymbol is not NamedTypeSymbol ||
                          method.MethodKind is (MethodKind.Constructor or MethodKind.StaticConstructor) ||
@@ -182,6 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                              { Name: nameof(VisitMethodSymbolWithExtensionRewrite), DeclaringType: { } declaringType } => declaringType == typeof(ExtensionMethodReferenceRewriter),
                              _ => false
                          });
+                         */
 
             return base.VisitMethodSymbol(method);
         }
@@ -238,10 +244,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Local rewriter should have already rewritten interpolated strings into their final form of calls and gotos
             Debug.Assert(node.InterpolatedStringHandlerData is null);
 
+            MethodSymbol? method = VisitMethodSymbolWithExtensionRewrite(rewriter, node.Method);
+            TypeSymbol? constrainedToType = rewriter.VisitType(node.ConstrainedToType);
+
+            if (Symbol.Equals(method, node.Method, TypeCompareKind.AllIgnoreOptions) && TypeSymbol.Equals(constrainedToType, node.ConstrainedToType, TypeCompareKind.AllIgnoreOptions))
+            {
+                return node.Data;
+            }
+
             return BoundBinaryOperator.UncommonData.CreateIfNeeded(
                 node.ConstantValueOpt,
-                VisitMethodSymbolWithExtensionRewrite(rewriter, node.Method),
-                rewriter.VisitType(node.ConstrainedToType),
+                method,
+                constrainedToType,
                 node.OriginalUserDefinedOperatorsOpt);
         }
 

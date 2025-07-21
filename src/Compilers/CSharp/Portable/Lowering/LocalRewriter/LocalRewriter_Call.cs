@@ -147,6 +147,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (interceptor.GetIsNewExtensionMember())
+            {
+                if (interceptor.TryGetCorrespondingExtensionImplementationMethod() is { } implementationMethod)
+                {
+                    interceptor = implementationMethod;
+                }
+                else
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+            }
+
             Debug.Assert(nameSyntax != null);
             Debug.Assert(interceptor.IsDefinition);
             Debug.Assert(!interceptor.ContainingType.IsGenericType);
@@ -228,9 +240,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this._diagnostics.Add(ErrorCode.WRN_InterceptorSignatureMismatch, attributeLocation, method, interceptor);
             }
 
-            method.TryGetThisParameter(out var methodThisParameter);
-            var interceptorThisParameterForCompare = needToReduce ? interceptor.Parameters[0] :
+            ParameterSymbol? methodThisParameter;
+            _ = method.TryGetInstanceExtensionParameter(out methodThisParameter) || method.TryGetThisParameter(out methodThisParameter);
+
+            ParameterSymbol? interceptorThisParameterForCompare = needToReduce ? interceptor.Parameters[0] :
                 interceptor.TryGetThisParameter(out var interceptorThisParameter) ? interceptorThisParameter : null;
+
             switch (methodThisParameter, interceptorThisParameterForCompare)
             {
                 case (not null, null):
@@ -378,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<LocalSymbol>? temps = null;
                 var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                     ref rewrittenReceiver,
-                    captureReceiverMode: ReceiverCaptureMode.Default,
+                    forceReceiverCapturing: false,
                     arguments,
                     method,
                     argsToParamsOpt,
@@ -626,35 +641,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                    primaryCtor.GetCapturedParameters().ContainsKey(parameter);
         }
 
-        private enum ReceiverCaptureMode
-        {
-            /// <summary>
-            /// No special capture of the receiver, unless arguments need to refer to it.
-            /// For example, in case of a string interpolation handler.
-            /// </summary>
-            Default = 0,
-
-            /// <summary>
-            /// Used for a regular indexer compound assignment rewrite.
-            /// Everything is going to be in a single setter call with a getter call inside its value argument.
-            /// Only receiver and the indexes can be evaluated prior to evaluating the setter call. 
-            /// </summary>
-            CompoundAssignment,
-
-            /// <summary>
-            /// Used for situations when additional arbitrary side-effects are possibly involved.
-            /// Think about deconstruction, etc.
-            /// </summary>
-            UseTwiceComplex
-        }
-
         /// <summary>
         /// Visits all arguments of a method, doing any necessary rewriting for interpolated string handler conversions that
         /// might be present in the arguments and creating temps for any discard parameters.
         /// </summary>
         private ImmutableArray<BoundExpression> VisitArgumentsAndCaptureReceiverIfNeeded(
             [NotNullIfNotNull(nameof(rewrittenReceiver))] ref BoundExpression? rewrittenReceiver,
-            ReceiverCaptureMode captureReceiverMode,
+            bool forceReceiverCapturing,
             ImmutableArray<BoundExpression> arguments,
             Symbol methodOrIndexer,
             ImmutableArray<int> argsToParamsOpt,
@@ -666,12 +659,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(argumentRefKindsOpt.IsDefault || argumentRefKindsOpt.Length == arguments.Length);
             var requiresInstanceReceiver = methodOrIndexer.RequiresInstanceReceiver() && methodOrIndexer is not MethodSymbol { MethodKind: MethodKind.Constructor } and not FunctionPointerMethodSymbol;
             Debug.Assert(!requiresInstanceReceiver || rewrittenReceiver != null || _inExpressionLambda);
-            Debug.Assert(captureReceiverMode == ReceiverCaptureMode.Default || (requiresInstanceReceiver && rewrittenReceiver != null && storesOpt is object));
+            Debug.Assert(!forceReceiverCapturing || (requiresInstanceReceiver && rewrittenReceiver != null && storesOpt is object));
 
             BoundLocal? receiverTemp = null;
             BoundAssignmentOperator? assignmentToTemp = null;
 
-            if (captureReceiverMode != ReceiverCaptureMode.Default ||
+            if (forceReceiverCapturing ||
                 (requiresInstanceReceiver && arguments.Any(a => usesReceiver(a))))
             {
                 Debug.Assert(!_inExpressionLambda);
@@ -680,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 RefKind refKind;
 
-                if (captureReceiverMode != ReceiverCaptureMode.Default)
+                if (forceReceiverCapturing)
                 {
                     // SPEC VIOLATION: It is not very clear when receiver of constrained callvirt is dereferenced - when pushed (in lexical order),
                     // SPEC VIOLATION: or when actual call is executed. The actual behavior seems to be implementation specific in different JITs.
@@ -787,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (receiverTemp.LocalSymbol.IsRef &&
                     CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp) &&
                     !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp) &&
-                    (captureReceiverMode == ReceiverCaptureMode.UseTwiceComplex ||
+                    (forceReceiverCapturing ||
                      !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(rewrittenArguments)))
                 {
                     ReferToTempIfReferenceTypeReceiver(receiverTemp, ref assignmentToTemp, out extraRefInitialization, tempsOpt);
@@ -860,6 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             switch (argIndex)
                             {
                                 case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
+                                case BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver:
                                     Debug.Assert(usesReceiver(argument));
                                     Debug.Assert(requiresInstanceReceiver);
                                     Debug.Assert(receiverTemp is object);
@@ -917,7 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         foreach (var placeholder in interpolationData.ArgumentPlaceholders)
                         {
-                            if (placeholder.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.InstanceParameter)
+                            if (placeholder.ArgumentIndex is BoundInterpolatedStringArgumentPlaceholder.InstanceParameter or BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver)
                             {
                                 return true;
                             }

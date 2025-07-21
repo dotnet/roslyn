@@ -27,6 +27,8 @@ internal sealed class CSharpUseNullPropagationDiagnosticAnalyzer :
         IfStatementSyntax,
         ExpressionStatementSyntax>
 {
+    public static readonly CSharpUseNullPropagationDiagnosticAnalyzer Instance = new();
+
     protected override SyntaxKind IfStatementSyntaxKind
         => SyntaxKind.IfStatement;
 

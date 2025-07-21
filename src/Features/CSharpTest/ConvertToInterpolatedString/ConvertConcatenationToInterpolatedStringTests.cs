@@ -20,9 +20,8 @@ using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertConcatenationToInter
 public sealed class ConvertConcatenationToInterpolatedStringTests
 {
     [Fact]
-    public async Task TestMissingOnSimpleString()
-    {
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestMissingOnSimpleString()
+        => VerifyCS.VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -31,12 +30,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnConcatenatedStrings1()
-    {
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestMissingOnConcatenatedStrings1()
+        => VerifyCS.VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -45,12 +42,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnConcatenatedStrings2()
-    {
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestMissingOnConcatenatedStrings2()
+        => VerifyCS.VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -59,12 +54,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnConcatenatedStrings3()
-    {
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestMissingOnConcatenatedStrings3()
+        => VerifyCS.VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -73,12 +66,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithStringOnLeft()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithStringOnLeft()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -97,12 +88,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRightSideOfString()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestRightSideOfString()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -121,12 +110,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithStringOnRight()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithStringOnRight()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -145,12 +132,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithComplexExpressionOnLeft()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithComplexExpressionOnLeft()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -169,12 +154,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithTrivia1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithTrivia1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -197,12 +180,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithComplexExpressions()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithComplexExpressions()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -221,12 +202,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithEscapes1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithEscapes1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -245,12 +224,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithEscapes2()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithEscapes2()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -269,12 +246,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithVerbatimString1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithVerbatimString1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -293,12 +268,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMixedStringTypes1()
-    {
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestMissingWithMixedStringTypes1()
+        => VerifyCS.VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -307,12 +280,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMixedStringTypes2()
-    {
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestMissingWithMixedStringTypes2()
+        => VerifyCS.VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -321,12 +292,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMixedStringTypes3()
-    {
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestMissingWithMixedStringTypes3()
+        => VerifyCS.VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -335,12 +304,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithOverloadedOperator()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithOverloadedOperator()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class D
             {
@@ -373,12 +340,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithOverloadedOperator2()
-    {
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestWithOverloadedOperator2()
+        => VerifyCS.VerifyRefactoringAsync("""
             public class D
             {
                 public static int operator +(D d, string s) => 0;
@@ -394,12 +359,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16820")]
-    public async Task TestWithMultipleStringConcatenations()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithMultipleStringConcatenations()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -418,12 +381,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16820")]
-    public async Task TestWithMultipleStringConcatenations2()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithMultipleStringConcatenations2()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -442,12 +403,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16820")]
-    public async Task TestWithMultipleStringConcatenations3()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithMultipleStringConcatenations3()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -466,12 +425,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16820")]
-    public async Task TestWithMultipleStringConcatenations4()
-    {
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestWithMultipleStringConcatenations4()
+        => VerifyCS.VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -480,12 +437,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20943")]
-    public async Task TestMissingWithDynamic1()
-    {
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestMissingWithDynamic1()
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M()
@@ -495,12 +450,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20943")]
-    public async Task TestMissingWithDynamic2()
-    {
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestMissingWithDynamic2()
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M()
@@ -510,12 +463,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
-    public async Task TestWithStringLiteralWithBraces()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithStringLiteralWithBraces()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -534,12 +485,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
-    public async Task TestWithStringLiteralWithBraces2()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithStringLiteralWithBraces2()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -558,12 +507,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
-    public async Task TestWithStringLiteralWithDoubleBraces()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithStringLiteralWithDoubleBraces()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -582,12 +529,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
-    public async Task TestWithMultipleStringLiteralsWithBraces()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithMultipleStringLiteralsWithBraces()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -606,12 +551,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
-    public async Task TestWithVerbatimStringWithBraces()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithVerbatimStringWithBraces()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -630,12 +573,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
-    public async Task TestWithMultipleVerbatimStringsWithBraces()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithMultipleVerbatimStringsWithBraces()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -654,13 +595,11 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
-    public async Task TestWithSelectionOnEntireToBeInterpolatedString()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithSelectionOnEntireToBeInterpolatedString()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -679,13 +618,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
-    public async Task TestMissingWithSelectionOnPartOfToBeInterpolatedStringPrefix()
-    {
-        // see comment in AbstractConvertConcatenationToInterpolatedStringRefactoringProvider:ComputeRefactoringsAsync
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestMissingWithSelectionOnPartOfToBeInterpolatedStringPrefix()
+        => VerifyCS.VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -694,14 +630,11 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
-    public async Task TestMissingWithSelectionOnPartOfToBeInterpolatedStringSuffix()
-    {
-        // see comment in AbstractConvertConcatenationToInterpolatedStringRefactoringProvider:ComputeRefactoringsAsync
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestMissingWithSelectionOnPartOfToBeInterpolatedStringSuffix()
+        => VerifyCS.VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -710,14 +643,11 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
-    public async Task TestMissingWithSelectionOnMiddlePartOfToBeInterpolatedString()
-    {
-        // see comment in AbstractConvertConcatenationToInterpolatedStringRefactoringProvider:ComputeRefactoringsAsync
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestMissingWithSelectionOnMiddlePartOfToBeInterpolatedString()
+        => VerifyCS.VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -726,12 +656,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
-    public async Task TestWithSelectionExceedingToBeInterpolatedString()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithSelectionExceedingToBeInterpolatedString()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -750,12 +678,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
-    public async Task TestWithCaretBeforeNonStringToken()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithCaretBeforeNonStringToken()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -774,12 +700,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
-    public async Task TestWithCaretAfterNonStringToken()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithCaretAfterNonStringToken()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -798,12 +722,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
-    public async Task TestWithCaretBeforePlusToken()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithCaretBeforePlusToken()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -822,12 +744,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
-    public async Task TestWithCaretAfterPlusToken()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithCaretAfterPlusToken()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -846,12 +766,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
-    public async Task TestWithCaretBeforeLastPlusToken()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithCaretBeforeLastPlusToken()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -870,12 +788,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
-    public async Task TestWithCaretAfterLastPlusToken()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithCaretAfterLastPlusToken()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -894,12 +810,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32864")]
-    public async Task TestConcatenationWithNoStringLiterals()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestConcatenationWithNoStringLiterals()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -918,12 +832,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37324")]
-    public async Task TestConcatenationWithChar()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestConcatenationWithChar()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -946,12 +858,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37324")]
-    public async Task TestConcatenationWithCharAfterStringLiteral()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestConcatenationWithCharAfterStringLiteral()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -972,12 +882,10 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37324")]
-    public async Task TestConcatenationWithCharBeforeStringLiteral()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestConcatenationWithCharBeforeStringLiteral()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             public class C
             {
@@ -998,31 +906,25 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40413")]
-    public async Task TestConcatenationWithConstMemberCSharp9()
-    {
-        // lang=c#-test
-        var code = """
+    public Task TestConcatenationWithConstMemberCSharp9()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestCode = """
             class C
             {
                 const string Hello = "Hello";
                 const string World = "World";
                 const string Message = Hello + " " + [||]World;
             }
-            """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = LanguageVersion.CSharp9,
-            TestCode = code,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40413")]
-    public async Task TestConcatenationWithConstMember()
-    {
-        await new VerifyCS.Test
+    public Task TestConcatenationWithConstMember()
+        => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.Preview,
             TestCode = """
@@ -1042,7 +944,6 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40413")]
     public async Task TestConcatenationWithConstDeclaration()
@@ -1057,17 +958,6 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """;
-        var fixedCode = """
-            class C
-            {
-                void M() {
-                    const string Hello = "Hello";
-                    const string World = "World";
-                    const string Message = $"{Hello} {World}";
-                }
-            }
-            """;
-
         await new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp9,
@@ -1078,14 +968,22 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
         {
             LanguageVersion = LanguageVersion.Preview,
             TestCode = code,
-            FixedCode = fixedCode,
+            FixedCode = """
+            class C
+            {
+                void M() {
+                    const string Hello = "Hello";
+                    const string World = "World";
+                    const string Message = $"{Hello} {World}";
+                }
+            }
+            """,
         }.RunAsync();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40413")]
-    public async Task TestConcatenationWithInlineString()
-    {
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestConcatenationWithInlineString()
+        => VerifyCS.VerifyRefactoringAsync("""
             using System;
             class C
             {
@@ -1107,7 +1005,6 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/49229")]
     [InlineData(@"[|""a"" + $""{1:000}""|]",
@@ -1146,24 +1043,22 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                  """
                  $"a{@$"{1:000}"}"
                  """)]
-    public async Task TestInliningOfInterpolatedString(string before, string after)
-    {
-        var initialMarkup = $@"
-class C
-{{
-    void M() {{
-        _ = {before};
-    }}
-}}";
-        var expected = $@"
-class C
-{{
-    void M() {{
-        _ = {after};
-    }}
-}}";
-        await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
-    }
+    public Task TestInliningOfInterpolatedString(string before, string after)
+        => VerifyCS.VerifyRefactoringAsync($$"""
+            class C
+            {
+                void M() {
+                    _ = {{before}};
+                }
+            }
+            """, $$"""
+            class C
+            {
+                void M() {
+                    _ = {{after}};
+                }
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/49229")]
     [InlineData("""
@@ -1196,26 +1091,22 @@ class C
         """
         $"{{}}{1}"
         """)]
-    public async Task TestUnicodeAndEscapeHandling(string before, string after)
-    {
-        var initialMarkup = $$"""
+    public Task TestUnicodeAndEscapeHandling(string before, string after)
+        => VerifyCS.VerifyRefactoringAsync($$"""
             class C
             {
                 void M() {
                     _ = {{before}};
                 }
             }
-            """;
-        var expected = $$"""
+            """, $$"""
             class C
             {
                 void M() {
                     _ = {{after}};
                 }
             }
-            """;
-        await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
-    }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/49229")]
     [InlineData("""
@@ -1242,31 +1133,26 @@ class C
         """
         $"a{(1 + 1)}"
         """)]
-    public async Task TestRemovalOfSuperflousParenthesis(string before, string after)
-    {
-        var initialMarkup = $$"""
+    public Task TestRemovalOfSuperflousParenthesis(string before, string after)
+        => VerifyCS.VerifyRefactoringAsync($$"""
             class C
             {
                 void M() {
                     _ = {{before}};
                 }
             }
-            """;
-        var expected = $$"""
+            """, $$"""
             class C
             {
                 void M() {
                     _ = {{after}};
                 }
             }
-            """;
-        await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69721")]
-    public async Task TestToString1()
-    {
-        await new VerifyCS.Test
+    public Task TestToString1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct ValueTuple<T>
@@ -1293,12 +1179,10 @@ class C
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69721")]
-    public async Task TestToString1_Net6()
-    {
-        await new VerifyCS.Test
+    public Task TestToString1_Net6()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct ValueTuple<T>
@@ -1326,12 +1210,10 @@ class C
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69721")]
-    public async Task TestToString2()
-    {
-        await new VerifyCS.Test
+    public Task TestToString2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct ValueTuple<T>
@@ -1352,12 +1234,10 @@ class C
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69721")]
-    public async Task TestToString2_Net6()
-    {
-        await new VerifyCS.Test
+    public Task TestToString2_Net6()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct ValueTuple<T>
@@ -1379,12 +1259,10 @@ class C
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61256")]
-    public async Task TestWithRawString()
-    {
-        await new VerifyCS.Test
+    public Task TestWithRawString()
+        => new VerifyCS.Test
         {
             TestCode = """"
                 struct ValueTuple
@@ -1401,12 +1279,10 @@ class C
                 """",
             LanguageVersion = LanguageVersion.CSharp11,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68425")]
-    public async Task TestQuoteCharacter1()
-    {
-        await new VerifyCS.Test
+    public Task TestQuoteCharacter1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1428,12 +1304,10 @@ class C
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68425")]
-    public async Task TestQuoteCharacter2()
-    {
-        await new VerifyCS.Test
+    public Task TestQuoteCharacter2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1446,5 +1320,4 @@ class C
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 }

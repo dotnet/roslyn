@@ -76,20 +76,6 @@ public sealed class MapCodeTests : AbstractLanguageServerProtocolTests
             """;
 
         var codeBlock = @"Console.WriteLine(string.Join("", "", args));";
-
-        var expected = """
-            namespace ConsoleApp1
-            {
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        Console.WriteLine(string.Join(", ", args));
-                    }
-                }
-            }
-            """;
-
         await using var testLspServer = await CreateTestLspServerAsync(code, mutatingLspWorkspace, CreateClientCapabilities(supportDocumentChanges));
         var ranges = testLspServer.GetLocations("range").ToArray();
         var documentUri = ranges.Single().DocumentUri;
@@ -135,6 +121,17 @@ public sealed class MapCodeTests : AbstractLanguageServerProtocolTests
 
         var documentText = await document.GetTextAsync();
         var actualText = ApplyTextEdits(edits, documentText);
-        Assert.Equal(expected, actualText);
+        Assert.Equal("""
+            namespace ConsoleApp1
+            {
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Console.WriteLine(string.Join(", ", args));
+                    }
+                }
+            }
+            """, actualText);
     }
 }

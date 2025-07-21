@@ -31,6 +31,7 @@
       "Microsoft.Net.Compilers.Toolset.Arm64": "arcade",
       "Microsoft.Net.Compilers.Toolset.Framework": "arcade",
       "Microsoft.NETCore.Compilers": "arcade",
+      "Microsoft.CodeAnalysis.BuildClient": "arcade",
       "Microsoft.CodeAnalysis.Contracts": "arcade",
       "Microsoft.CodeAnalysis.Debugging": "arcade",
       "Microsoft.CodeAnalysis.PooledObjects": "arcade",
@@ -175,6 +176,15 @@
       "insertionTitlePrefix": "[d17.14]",
       "insertionCreateDraftPR": false
     },
+    "release/dev-next": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "insertionTitlePrefix": "[Validation]",
+      "insertionCreateDraftPR": true
+    },
     "main": {
       "nugetKind": [
         "Shipping",
@@ -191,7 +201,7 @@
       ],
       "vsBranch": "main",
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.15 P1]"
+      "insertionTitlePrefix": "[dNext]"
     }
   }
 }

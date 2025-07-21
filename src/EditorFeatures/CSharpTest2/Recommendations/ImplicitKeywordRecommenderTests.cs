@@ -13,252 +13,200 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class ImplicitKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestNotAtRoot_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestNotAfterClass_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalStatement_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInEmptyStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
     public async Task TestNotInCompilationUnit()
         => await VerifyAbsenceAsync(@"$$");
 
     [Fact]
-    public async Task TestNotAfterExtern()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterExtern()
+        => VerifyAbsenceAsync("""
             extern alias Goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterUsing()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterUsing()
+        => VerifyAbsenceAsync("""
             using Goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalUsing()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterGlobalUsing()
+        => VerifyAbsenceAsync("""
             global using Goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNamespace()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterNamespace()
+        => VerifyAbsenceAsync("""
             namespace N {}
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterTypeDeclaration()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterTypeDeclaration()
+        => VerifyAbsenceAsync("""
             class C {}
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterDelegateDeclaration()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterDelegateDeclaration()
+        => VerifyAbsenceAsync("""
             delegate void Goo();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterMethod()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterMethod()
+        => VerifyAbsenceAsync("""
             class C {
               void Goo() {}
               $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterMethodInPartialType()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterMethodInPartialType()
+        => VerifyAbsenceAsync(
             """
             partial class C {
               void Goo() {}
               $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterFieldInPartialClass()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterFieldInPartialClass()
+        => VerifyAbsenceAsync(
             """
             partial class C {
               int i;
               $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterPropertyInPartialClass()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterPropertyInPartialClass()
+        => VerifyAbsenceAsync(
             """
             partial class C {
               int i { get; }
               $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotBeforeUsing()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotBeforeUsing()
+        => VerifyAbsenceAsync(
             """
             $$
             using Goo;
             """);
-    }
 
     [Fact]
-    public async Task TestNotBeforeGlobalUsing()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotBeforeGlobalUsing()
+        => VerifyAbsenceAsync(
             """
             $$
             global using Goo;
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterAssemblyAttribute()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterAssemblyAttribute()
+        => VerifyAbsenceAsync("""
             [assembly: goo]
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterRootAttribute()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterRootAttribute()
+        => VerifyAbsenceAsync("""
             [goo]
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedAttributeInPartialClass()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterNestedAttributeInPartialClass()
+        => VerifyAbsenceAsync(
             """
             partial class C {
               [goo]
               $$
             """);
-    }
 
     // This will be fixed once we have accessibility for members
     [Fact]
-    public async Task TestNotInsideStruct()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotInsideStruct()
+        => VerifyAbsenceAsync("""
             struct S {
                $$
             """);
-    }
 
     // This will be fixed once we have accessibility for members
     [Fact]
-    public async Task TestNotInsidePartialStruct()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInsidePartialStruct()
+        => VerifyAbsenceAsync(
             """
             partial struct S {
                $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInsideInterface()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotInsideInterface()
+        => VerifyAbsenceAsync("""
             interface I {
                $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInsidePartialClass()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInsidePartialClass()
+        => VerifyAbsenceAsync(
             """
             partial class C {
                $$
             """);
-    }
 
     [Fact]
     public async Task TestNotAfterPartial()
@@ -281,138 +229,112 @@ public sealed class ImplicitKeywordRecommenderTests : KeywordRecommenderTests
         => await VerifyAbsenceAsync(@"static public $$");
 
     [Fact]
-    public async Task TestAfterNestedStaticPublicInClass()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedStaticPublicInClass()
+        => VerifyKeywordAsync(
             """
             class C {
                 static public $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedStaticPublicInInterface()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterNestedStaticPublicInInterface()
+        => VerifyAbsenceAsync(
             """
             interface C {
                 static public $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedAbstractPublicInInterface()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterNestedAbstractPublicInInterface()
+        => VerifyAbsenceAsync(
             """
             interface C {
                 abstract public $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterNestedStaticAbstractPublicInInterface()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedStaticAbstractPublicInInterface()
+        => VerifyKeywordAsync(
             """
             interface C {
                 static abstract public $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterNestedAbstractStaticPublicInInterface()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedAbstractStaticPublicInInterface()
+        => VerifyKeywordAsync(
             """
             interface C {
                 abstract static public $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterNestedStaticAbstractInInterface()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedStaticAbstractInInterface()
+        => VerifyKeywordAsync(
             """
             interface C {
                 static abstract $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterNestedAbstractStaticInInterface()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedAbstractStaticInInterface()
+        => VerifyKeywordAsync(
             """
             interface C {
                 abstract static $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedStaticInInterface()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterNestedStaticInInterface()
+        => VerifyAbsenceAsync(
             """
             interface C {
                 static $$
             """);
-    }
 
     [Fact]
     public async Task TestNotAfterPublicStatic()
         => await VerifyAbsenceAsync(@"public static $$");
 
     [Fact]
-    public async Task TestAfterNestedPublicStaticInClass()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedPublicStaticInClass()
+        => VerifyKeywordAsync(
             """
             class C {
                 public static $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedPublicStaticInInterface()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterNestedPublicStaticInInterface()
+        => VerifyAbsenceAsync(
             """
             interface C {
                 public static $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedPublicAbstractInInterface()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterNestedPublicAbstractInInterface()
+        => VerifyAbsenceAsync(
             """
             interface C {
                 public abstract $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterNestedPublicStaticAbstractInInterface()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedPublicStaticAbstractInInterface()
+        => VerifyKeywordAsync(
             """
             interface C {
                 public static abstract $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterNestedPublicAbstractStaticInInterface()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedPublicAbstractStaticInInterface()
+        => VerifyKeywordAsync(
             """
             interface C {
                 public abstract static $$
             """);
-    }
 
     [Fact]
     public async Task TestNotAfterInvalidPublic()
@@ -443,152 +365,120 @@ public sealed class ImplicitKeywordRecommenderTests : KeywordRecommenderTests
         => await VerifyAbsenceAsync(@"delegate $$");
 
     [Fact]
-    public async Task TestNotBetweenUsings()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotBetweenUsings()
+        => VerifyAbsenceAsync(
             """
             using Goo;
             $$
             using Bar;
             """);
-    }
 
     [Fact]
-    public async Task TestNotBetweenGlobalUsings_01()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotBetweenGlobalUsings_01()
+        => VerifyAbsenceAsync(
             """
             global using Goo;
             $$
             using Bar;
             """);
-    }
 
     [Fact]
-    public async Task TestNotBetweenGlobalUsings_02()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotBetweenGlobalUsings_02()
+        => VerifyAbsenceAsync(
             """
             global using Goo;
             $$
             global using Bar;
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedAbstractInClass()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterNestedAbstractInClass()
+        => VerifyAbsenceAsync("""
             class C {
                 abstract $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedVirtualInClass()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterNestedVirtualInClass()
+        => VerifyAbsenceAsync("""
             class C {
                 virtual $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedOverrideInClass()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterNestedOverrideInClass()
+        => VerifyAbsenceAsync("""
             class C {
                 override $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedSealedInClass()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterNestedSealedInClass()
+        => VerifyAbsenceAsync("""
             class C {
                 sealed $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedReadOnlyInClass()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterNestedReadOnlyInClass()
+        => VerifyAbsenceAsync("""
             class C {
                 readonly $$
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544103")]
-    public async Task TestAfterNestedUnsafeStaticPublicInClass()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestAfterNestedUnsafeStaticPublicInClass()
+        => VerifyKeywordAsync("""
             class C {
                  unsafe static public $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedAbstractInInterface()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterNestedAbstractInInterface()
+        => VerifyAbsenceAsync("""
             interface C {
                 abstract $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedVirtualInInterface()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterNestedVirtualInInterface()
+        => VerifyAbsenceAsync("""
             interface C {
                 virtual $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedOverrideInInterface()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterNestedOverrideInInterface()
+        => VerifyAbsenceAsync("""
             interface C {
                 override $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedSealedInInterface()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterNestedSealedInInterface()
+        => VerifyAbsenceAsync("""
             interface C {
                 sealed $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedReadOnlyInInterface()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterNestedReadOnlyInInterface()
+        => VerifyAbsenceAsync("""
             interface C {
                 readonly $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterUnsafeStaticAbstractInInterface()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestAfterUnsafeStaticAbstractInInterface()
+        => VerifyKeywordAsync("""
             interface C {
                  unsafe static abstract $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterExternStaticAbstractInInterface()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterExternStaticAbstractInInterface()
+        => VerifyAbsenceAsync("""
             interface C {
                  extern static abstract $$
             """);
-    }
 }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -462,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // This will be filled in with the LHS that uses temporaries to prevent
             // double-evaluation of side effects.
-            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(left, isRegularCompoundAssignment: true, tempInitializers, tempSymbols, isDynamicAssignment: false);
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(left, tempInitializers, tempSymbols, isDynamicAssignment: false);
             Debug.Assert(TypeSymbol.Equals(operandType, transformedLHS.Type, TypeCompareKind.AllIgnoreOptions));
 
             BoundAssignmentOperator tempAssignment;
@@ -581,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // This will be filled in with the LHS that uses temporaries to prevent
             // double-evaluation of side effects.
-            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Operand, isRegularCompoundAssignment: true, tempInitializers, tempSymbols, isDynamic);
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Operand, tempInitializers, tempSymbols, isDynamic);
             TypeSymbol? operandType = transformedLHS.Type; //type of the variable being incremented
             Debug.Assert(operandType is { });
             Debug.Assert(TypeSymbol.Equals(operandType, node.Type, TypeCompareKind.ConsiderEverything2));
@@ -620,6 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             if (isIndirectOrInstanceField(transformedLHS))
             {
+                Debug.Assert(transformedLHS is not BoundPropertyAccess);
                 return rewriteWithRefOperand(isPrefix, isChecked, tempSymbols, tempInitializers, syntax, transformedLHS, boundTemp, newValue);
             }
             else
@@ -659,16 +661,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // prefix:  temp = (X)(T.Increment((T)operand)));  operand = temp; 
                 // postfix: temp = operand;                        operand = (X)(T.Increment((T)temp)));
-                ImmutableArray<BoundExpression> assignments = ImmutableArray.Create<BoundExpression>(
-                    MakeAssignmentOperator(syntax, boundTemp, isPrefix ? newValue : MakeRValue(transformedLHS), used: false, isChecked: isChecked, isCompoundAssignment: false),
-                    MakeAssignmentOperator(syntax, transformedLHS, isPrefix ? boundTemp : newValue, used: false, isChecked: isChecked, isCompoundAssignment: false));
+                tempInitializers.Add(MakeAssignmentOperator(syntax, boundTemp, isPrefix ? newValue : MakeRValue(transformedLHS), used: false, isChecked: isChecked, isCompoundAssignment: false));
+
+                if (!isPrefix && IsNewExtensionMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
+                {
+                    // We need to create a tree that ensures that receiver of 'set' is evaluated after the increment operation
+                    BoundLocal incrementResult = _factory.StoreToTemp(newValue, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
+                    tempSymbols.Add(incrementResult.LocalSymbol);
+                    tempInitializers.Add(assignmentToTemp);
+                    tempInitializers.Add(MakeAssignmentOperator(syntax, transformedLHS, incrementResult, used: false, isChecked: isChecked, isCompoundAssignment: false));
+                }
+                else
+                {
+                    tempInitializers.Add(MakeAssignmentOperator(syntax, transformedLHS, isPrefix ? boundTemp : newValue, used: false, isChecked: isChecked, isCompoundAssignment: false));
+                }
 
                 // prefix:  Seq( operand initializers; temp = (T)(operand + 1); operand = temp;          result: temp)
                 // postfix: Seq( operand initializers; temp = operand;          operand = (T)(temp + 1); result: temp)
                 return new BoundSequence(
                     syntax: syntax,
                     locals: tempSymbols.ToImmutableAndFree(),
-                    sideEffects: tempInitializers.ToImmutableAndFree().Concat(assignments),
+                    sideEffects: tempInitializers.ToImmutableAndFree(),
                     value: boundTemp,
                     type: boundTemp.Type);
             }

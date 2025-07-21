@@ -232,40 +232,39 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTest
     [InlineData("class")]
     [InlineData("record class")]
     [InlineData("record struct")]
-    public async Task TestFullyQualifiedName(string typeKind)
-    {
-        var input = $@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""CurrentDocument.cs""><![CDATA[
-public {typeKind} A
-{{
-    {{|A.C: public void C()
-    {{
-        C();
-    }}|}}
+    public Task TestFullyQualifiedName(string typeKind)
+        => RunFullyQualifiedNameTest($$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                    <Document FilePath="CurrentDocument.cs"><![CDATA[
+            public {{typeKind}} A
+            {
+                {|A.C: public void C()
+                {
+                    C();
+                }|}
 
-    public {typeKind} B
-    {{
-        {{|A+B.C: public void C()
-        {{
-            C();
-        }}|}}
+                public {{typeKind}} B
+                {
+                    {|A+B.C: public void C()
+                    {
+                        C();
+                    }|}
 
-        public {typeKind} D
-        {{
-            {{|A+B+D.C: public void C()
-            {{
-                C();
-            }}|}}
-        }}
-    }}
-}}
-]]>
-        </Document>
-    </Project>
-</Workspace>";
-        await RunFullyQualifiedNameTest(input);
-    }
+                    public {{typeKind}} D
+                    {
+                        {|A+B+D.C: public void C()
+                        {
+                            C();
+                        }|}
+                    }
+                }
+            }
+            ]]>
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49636")]
     public async Task TestExplicitParameterlessConstructor()

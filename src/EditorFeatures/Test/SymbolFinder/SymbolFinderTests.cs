@@ -58,23 +58,23 @@ public sealed class SymbolFinderTests : TestBase
         var solution = workspace.CurrentSolution;
 
         // create portable assembly with an abstract base class
-        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
-namespace N
-{
-    public abstract class BaseClass { }
-}
-", Net40.References.mscorlib);
+        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, """
+            namespace N
+            {
+                public abstract class BaseClass { }
+            }
+            """, Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
         // create a normal assembly with a type derived from the portable abstract base
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
-using N;
-namespace M
-{
-    public class DerivedClass : BaseClass { }
-}
-", Net461.References.mscorlib, portableProject.Id);
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, """
+            using N;
+            namespace M
+            {
+                public class DerivedClass : BaseClass { }
+            }
+            """, Net461.References.mscorlib, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -99,23 +99,23 @@ namespace M
         var solution = workspace.CurrentSolution;
 
         // create portable assembly with an abstract base class
-        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
-namespace N
-{
-    public interface BaseInterface { }
-}
-", Net40.References.mscorlib);
+        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, """
+            namespace N
+            {
+                public interface BaseInterface { }
+            }
+            """, Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
         // create a normal assembly with a type derived from the portable abstract base
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
-using N;
-namespace M
-{
-    public interface DerivedInterface : BaseInterface { }
-}
-", Net461.References.mscorlib, portableProject.Id);
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, """
+            using N;
+            namespace M
+            {
+                public interface DerivedInterface : BaseInterface { }
+            }
+            """, Net461.References.mscorlib, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -146,27 +146,27 @@ namespace M
         var solution = workspace.CurrentSolution;
 
         // create portable assembly with an abstract base class
-        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
-namespace N
-{
-    public abstract class BaseClass { }
-}
-", Net40.References.mscorlib);
+        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, """
+            namespace N
+            {
+                public abstract class BaseClass { }
+            }
+            """, Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
         // create a normal assembly with a type derived from the portable abstract base
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
-using N;
-using Alias1 = N.BaseClass;
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, """
+            using N;
+            using Alias1 = N.BaseClass;
 
-namespace M
-{
-    using Alias2 = Alias1;
+            namespace M
+            {
+                using Alias2 = Alias1;
 
-    public class DerivedClass : Alias2 { }
-}
-", Net461.References.mscorlib, portableProject.Id);
+                public class DerivedClass : Alias2 { }
+            }
+            """, Net461.References.mscorlib, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -191,23 +191,23 @@ namespace M
         var solution = workspace.CurrentSolution;
 
         // create portable assembly with an abstract base class
-        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
-namespace N
-{
-    public abstract class BaseClass { }
-}
-", Net40.References.mscorlib);
+        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, """
+            namespace N
+            {
+                public abstract class BaseClass { }
+            }
+            """, Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
         // create a normal assembly with a type derived from the portable abstract base
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
-using N;
-namespace M
-{
-    public class DerivedClass : BaseClass { }
-}
-", SystemRuntimePP7Ref, portableProject.Id);
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, """
+            using N;
+            namespace M
+            {
+                public class DerivedClass : BaseClass { }
+            }
+            """, SystemRuntimePP7Ref, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -232,24 +232,24 @@ namespace M
         var solution = workspace.CurrentSolution;
 
         // create portable assembly with an abstract base class
-        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.VisualBasic, @"
-Namespace N
-    Public MustInherit Class BaseClass
-    End Class
-End Namespace
-", Net40.References.mscorlib);
+        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.VisualBasic, """
+            Namespace N
+                Public MustInherit Class BaseClass
+                End Class
+            End Namespace
+            """, Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
         // create a normal assembly with a type derived from the portable abstract base
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.VisualBasic, @"
-Imports N
-Namespace M
-    Public Class DerivedClass
-        Inherits BaseClass
-    End Class
-End Namespace
-", Net461.References.mscorlib, portableProject.Id);
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.VisualBasic, """
+            Imports N
+            Namespace M
+                Public Class DerivedClass
+                    Inherits BaseClass
+                End Class
+            End Namespace
+            """, Net461.References.mscorlib, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -274,24 +274,24 @@ End Namespace
         var solution = workspace.CurrentSolution;
 
         // create portable assembly with an abstract base class
-        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
-namespace N
-{
-    public abstract class BaseClass { }
-}
-", Net40.References.mscorlib);
+        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, """
+            namespace N
+            {
+                public abstract class BaseClass { }
+            }
+            """, Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
         // create a normal assembly with a type derived from the portable abstract base
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.VisualBasic, @"
-Imports N
-Namespace M
-    Public Class DerivedClass
-        Inherits BaseClass
-    End Class
-End Namespace
-", Net40.References.mscorlib, portableProject.Id);
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.VisualBasic, """
+            Imports N
+            Namespace M
+                Public Class DerivedClass
+                    Inherits BaseClass
+                End Class
+            End Namespace
+            """, Net40.References.mscorlib, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -316,23 +316,23 @@ End Namespace
         var solution = workspace.CurrentSolution;
 
         // create portable assembly with an interface
-        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
-namespace N
-{
-    public interface IBaseInterface { }
-}
-", Net40.References.mscorlib);
+        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, """
+            namespace N
+            {
+                public interface IBaseInterface { }
+            }
+            """, Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
         // create a normal assembly with a type implementing that interface
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
-using N;
-namespace M
-{
-    public class ImplementingClass : IBaseInterface { }
-}
-", Net461.References.mscorlib, portableProject.Id);
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, """
+            using N;
+            namespace M
+            {
+                public class ImplementingClass : IBaseInterface { }
+            }
+            """, Net461.References.mscorlib, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -356,24 +356,24 @@ namespace M
         var solution = workspace.CurrentSolution;
 
         // create portable assembly with an interface
-        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.VisualBasic, @"
-Namespace N
-    Public Interface IBaseInterface
-    End Interface
-End Namespace
-", Net40.References.mscorlib);
+        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.VisualBasic, """
+            Namespace N
+                Public Interface IBaseInterface
+                End Interface
+            End Namespace
+            """, Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
         // create a normal assembly with a type implementing that interface
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.VisualBasic, @"
-Imports N
-Namespace M
-    Public Class ImplementingClass
-        Implements IBaseInterface
-    End Class
-End Namespace
-", Net461.References.mscorlib, portableProject.Id);
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.VisualBasic, """
+            Imports N
+            Namespace M
+                Public Class ImplementingClass
+                    Implements IBaseInterface
+                End Class
+            End Namespace
+            """, Net461.References.mscorlib, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -397,23 +397,23 @@ End Namespace
         var solution = workspace.CurrentSolution;
 
         // create portable assembly with an interface
-        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.VisualBasic, @"
-Namespace N
-    Public Interface IBaseInterface
-    End Interface
-End Namespace
-", Net40.References.mscorlib);
+        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.VisualBasic, """
+            Namespace N
+                Public Interface IBaseInterface
+                End Interface
+            End Namespace
+            """, Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
         // create a normal assembly with a type implementing that interface
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
-using N;
-namespace M
-{
-    public class ImplementingClass : IBaseInterface { }
-}
-", Net40.References.mscorlib, portableProject.Id);
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, """
+            using N;
+            namespace M
+            {
+                public class ImplementingClass : IBaseInterface { }
+            }
+            """, Net40.References.mscorlib, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -468,21 +468,21 @@ namespace M
         var solution = workspace.CurrentSolution;
 
         // create a normal assembly with a type derived from the portable abstract base
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
-interface IA { }
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, """
+            interface IA { }
 
-interface IB1 : IA { }
-interface IB2 : IA { }
-interface IB3 : IEquatable<IB3>, IA { }
+            interface IB1 : IA { }
+            interface IB2 : IA { }
+            interface IB3 : IEquatable<IB3>, IA { }
 
-interface IC1 : IB1 { }
-interface IC2 : IA, IB2 { }
-interface IC3 : IB3 { }
+            interface IC1 : IB1 { }
+            interface IC2 : IA, IB2 { }
+            interface IC3 : IB3 { }
 
-interface ID1 : IC1 { }
+            interface ID1 : IC1 { }
 
-interface IOther { }
-", Net40.References.mscorlib);
+            interface IOther { }
+            """, Net40.References.mscorlib);
 
         // get symbols for types
         var compilation = await GetNormalProject(solution).GetCompilationAsync();
@@ -517,24 +517,24 @@ interface IOther { }
         var solution = workspace.CurrentSolution;
 
         // create a normal assembly with a type derived from the portable abstract base
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
-interface IA { }
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, """
+            interface IA { }
 
-class B1 : IA { }
-class B2 : IA { }
-class B3 : IEquatable<B3>, IA { }
+            class B1 : IA { }
+            class B2 : IA { }
+            class B3 : IEquatable<B3>, IA { }
 
-class C1 : B1 { }
-class C2 : B2, IA { }
-class C3 : B3 { }
+            class C1 : B1 { }
+            class C2 : B2, IA { }
+            class C3 : B3 { }
 
-struct S1 : IA { }
+            struct S1 : IA { }
 
-class D1 : C1 { }
+            class D1 : C1 { }
 
-class OtherClass { }
-struct OtherStruct { }
-", Net40.References.mscorlib);
+            class OtherClass { }
+            struct OtherStruct { }
+            """, Net40.References.mscorlib);
 
         // get symbols for types
         var compilation = await GetNormalProject(solution).GetCompilationAsync();
@@ -569,9 +569,9 @@ struct OtherStruct { }
         var solution = workspace.CurrentSolution;
 
         // create a normal assembly with a type derived from the portable abstract base
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
-delegate void D();
-", Net40.References.mscorlib);
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, """
+            delegate void D();
+            """, Net40.References.mscorlib);
 
         // get symbols for types
         var compilation = await GetNormalProject(solution).GetCompilationAsync();
@@ -596,12 +596,12 @@ delegate void D();
         var solution = workspace.CurrentSolution;
 
         // create a normal assembly with a type derived from the portable abstract base
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
-enum E
-{
-    A, B, C,
-}
-", Net40.References.mscorlib);
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, """
+            enum E
+            {
+                A, B, C,
+            }
+            """, Net40.References.mscorlib);
 
         // get symbols for types
         var compilation = await GetNormalProject(solution).GetCompilationAsync();
@@ -626,20 +626,21 @@ enum E
         var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(host);
 
         using var workspace = TestWorkspace.Create(
-@"
-<Workspace>
-    <Project Name=""TSProject"" Language=""TypeScript"">
-        <Document>
-            Dummy ts content
-        </Document>
-    </Project>
-    <Project Name=""CSProject"" Language=""C#"">
-        <Document>
-            public class Base { }
-            public class Derived : Base { } 
-        </Document>
-    </Project>
-</Workspace>", composition: composition);
+            """
+            <Workspace>
+                <Project Name="TSProject" Language="TypeScript">
+                    <Document>
+                        Dummy ts content
+                    </Document>
+                </Project>
+                <Project Name="CSProject" Language="C#">
+                    <Document>
+                        public class Base { }
+                        public class Derived : Base { } 
+                    </Document>
+                </Project>
+            </Workspace>
+            """, composition: composition);
         var solution = workspace.CurrentSolution;
 
         var csProject = solution.Projects.Single(p => p.Language == LanguageNames.CSharp);
@@ -669,35 +670,35 @@ enum E
         var solution = workspace.CurrentSolution;
 
         // create portable assembly with an interface
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject1", LanguageNames.CSharp, @"
-namespace N_Main
-{
-    // All these types should find T_DependProject_Class as a derived class,
-    // even if only searching the second project.
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject1", LanguageNames.CSharp, """
+            namespace N_Main
+            {
+                // All these types should find T_DependProject_Class as a derived class,
+                // even if only searching the second project.
 
-    abstract public class T_BaseProject_BaseClass
-    {
-    }
-    public abstract class T_BaseProject_DerivedClass1 : T_BaseProject_BaseClass
-    {
-    }
-    public abstract class T_BaseProject_DerivedClass2 : T_BaseProject_DerivedClass1
-    {
-    }
-}
-", Net40.References.mscorlib);
+                abstract public class T_BaseProject_BaseClass
+                {
+                }
+                public abstract class T_BaseProject_DerivedClass1 : T_BaseProject_BaseClass
+                {
+                }
+                public abstract class T_BaseProject_DerivedClass2 : T_BaseProject_DerivedClass1
+                {
+                }
+            }
+            """, Net40.References.mscorlib);
 
         var normalProject1 = solution.Projects.Single();
 
         // create a normal assembly with a type implementing that interface
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject2", LanguageNames.CSharp, @"
-namespace N_Main
-{
-    public class T_DependProject_Class : T_BaseProject_DerivedClass2
-    {
-    }
-}
-", Net40.References.mscorlib, normalProject1.Id);
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject2", LanguageNames.CSharp, """
+            namespace N_Main
+            {
+                public class T_DependProject_Class : T_BaseProject_DerivedClass2
+                {
+                }
+            }
+            """, Net40.References.mscorlib, normalProject1.Id);
 
         normalProject1 = solution.GetProject(normalProject1.Id);
         var normalProject2 = solution.Projects.Single(p => p != normalProject1);
@@ -732,28 +733,28 @@ namespace N_Main
         using var workspace = CreateWorkspace(host);
         var solution = workspace.CurrentSolution;
 
-        solution = AddProjectWithMetadataReferences(solution, "PortableProject1", LanguageNames.CSharp, @"
-namespace N
-{
-    public interface I
-    {
-        void M();
-    }
-}
-", Net40.References.mscorlib);
+        solution = AddProjectWithMetadataReferences(solution, "PortableProject1", LanguageNames.CSharp, """
+            namespace N
+            {
+                public interface I
+                {
+                    void M();
+                }
+            }
+            """, Net40.References.mscorlib);
 
         var portableProject1 = solution.Projects.Single(p => p.Name == "PortableProject1");
 
-        solution = AddProjectWithMetadataReferences(solution, "PortableProject2", LanguageNames.CSharp, @"
-using N;
-namespace M
-{
-    public class C : I
-    {
-        public void M() { }
-    }
-}
-", Net40.References.mscorlib, portableProject1.Id);
+        solution = AddProjectWithMetadataReferences(solution, "PortableProject2", LanguageNames.CSharp, """
+            using N;
+            namespace M
+            {
+                public class C : I
+                {
+                    public void M() { }
+                }
+            }
+            """, Net40.References.mscorlib, portableProject1.Id);
 
         // get symbols for types
         var compilation1 = await solution.Projects.Single(p => p.Name == "PortableProject1").GetCompilationAsync();
@@ -776,15 +777,15 @@ namespace M
         var solution = workspace.CurrentSolution;
 
         // create portable assembly with an abstract base class
-        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
-namespace N
-{
-    public interface I
-    {
-        void M();
-    }
-}
-", Net40.References.mscorlib);
+        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, """
+            namespace N
+            {
+                public interface I
+                {
+                    void M();
+                }
+            }
+            """, Net40.References.mscorlib);
 
         var portableProject1 = GetPortableProject(solution);
 
@@ -804,12 +805,12 @@ namespace N
         var solution = workspace.CurrentSolution;
 
         // Create a source assembly with a class in Visual Basic
-        solution = AddProjectWithMetadataReferences(solution, "ReferencedProject", LanguageNames.VisualBasic, @"
-Namespace N
-    Public Class ReferencedClass
-    End Class
-End Namespace
-", Net40.References.mscorlib);
+        solution = AddProjectWithMetadataReferences(solution, "ReferencedProject", LanguageNames.VisualBasic, """
+            Namespace N
+                Public Class ReferencedClass
+                End Class
+            End Namespace
+            """, Net40.References.mscorlib);
 
         var referencedProjectId = solution.Projects.Single(p => p.Name == "ReferencedProject").Id;
 
@@ -841,15 +842,15 @@ End Namespace
         using var workspace = CreateWorkspace(host);
         var solution = workspace.CurrentSolution;
 
-        var code = @"
-Namespace N
-    Public Class ReferencedClass
-        Public Sub M()
-            Dim x As Integer = 0
-        End Sub
-    End Class
-End Namespace
-";
+        var code = """
+            Namespace N
+                Public Class ReferencedClass
+                    Public Sub M()
+                        Dim x As Integer = 0
+                    End Sub
+                End Class
+            End Namespace
+            """;
 
         // Create a source assembly with a class in Visual Basic
         solution = AddProjectWithMetadataReferences(solution, "ReferencedProject", LanguageNames.VisualBasic, code, Net40.References.mscorlib);

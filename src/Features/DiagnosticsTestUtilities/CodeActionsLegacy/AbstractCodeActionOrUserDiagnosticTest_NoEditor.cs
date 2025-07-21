@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 #if CODE_STYLE
 using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.OptionsCollection;
 #else
-using OptionsCollectionAlias = OptionsCollection;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
+using OptionsCollectionAlias = OptionsCollection;
 #endif
 
 [UseExportProvider]
@@ -862,14 +862,17 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor
                 {
                     var messageSuffix = codeAction.EquivalenceKey != null
                         ? string.Empty
-                        : @"
-Consider using the title as the equivalence key instead of 'null'";
+                        : """
+                        Consider using the title as the equivalence key instead of 'null'
+                        """;
 
-                    Assert.False(true, @$"Expected different 'CodeAction.EquivalenceKey' for code actions registered for same diagnostic:
-- Name: '{provider.GetType().Name}'
-- Title 1: '{codeAction.Title}'
-- Title 2: '{existingTitle}'
-- Shared equivalence key: '{codeAction.EquivalenceKey ?? "<null>"}'{messageSuffix}");
+                    Assert.False(true, $"""
+                        Expected different 'CodeAction.EquivalenceKey' for code actions registered for same diagnostic:
+                        - Name: '{provider.GetType().Name}'
+                        - Title 1: '{codeAction.Title}'
+                        - Title 2: '{existingTitle}'
+                        - Shared equivalence key: '{codeAction.EquivalenceKey ?? "<null>"}'{messageSuffix}
+                        """);
                 }
             }
         }

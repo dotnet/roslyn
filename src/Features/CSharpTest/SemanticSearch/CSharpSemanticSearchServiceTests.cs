@@ -9,8 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -23,9 +21,6 @@ public sealed class CSharpSemanticSearchServiceTests
 {
     private static readonly string s_referenceAssembliesDir = Path.Combine(Path.GetDirectoryName(typeof(CSharpSemanticSearchServiceTests).Assembly.Location!)!, "SemanticSearchRefs");
     private static readonly char[] s_lineBreaks = ['\r', '\n'];
-
-    private static string Inspect(DefinitionItem def)
-        => string.Join("", def.DisplayParts.Select(p => p.Text));
 
     private static string InspectLine(int position, string text)
     {
@@ -68,88 +63,75 @@ public sealed class CSharpSemanticSearchServiceTests
         string query,
         string[] expectedItems)
     {
-        var items = new List<DefinitionItem>();
-        var observer = new MockSemanticSearchResultsObserver() { OnDefinitionFoundImpl = items.Add };
+        var symbols = new List<ISymbol>();
+        var observer = new MockSemanticSearchResultsObserver() { OnDefinitionFoundImpl = symbols.Add };
 
         var solution = workspace.CurrentSolution;
         var service = solution.Services.GetRequiredLanguageService<ISemanticSearchService>(LanguageNames.CSharp);
-        var options = workspace.GlobalOptions.GetClassificationOptionsProvider();
         var traceSource = new TraceSource("test");
 
         var compileResult = service.CompileQuery(solution.Services, query, s_referenceAssembliesDir, traceSource, CancellationToken.None);
         Assert.Equal(LanguageNames.CSharp, compileResult.QueryId.Language);
         Assert.Empty(compileResult.CompilationErrors);
 
-        var executeResult = await service.ExecuteQueryAsync(solution, compileResult.QueryId, observer, options, traceSource, CancellationToken.None);
+        var executeResult = await service.ExecuteQueryAsync(solution, compileResult.QueryId, observer, traceSource, CancellationToken.None);
         Assert.Null(executeResult.ErrorMessage);
 
-        AssertEx.Equal(expectedItems, items.Select(Inspect).OrderBy(s => s));
+        AssertEx.Equal(expectedItems, symbols.Select(s => s.ToTestDisplayString()).OrderBy(s => s));
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
     public async Task CompilationQuery()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static IEnumerable<ISymbol> Find(Compilation compilation)
         {
             return compilation.GlobalNamespace.GetMembers("N");
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query, ["namespace N"]);
+        """, ["N"]);
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
     public async Task NamespaceQuery()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static IEnumerable<ISymbol> Find(INamespaceSymbol n)
         {
             return n.GetMembers("C");
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query, ["class C"]);
+        """, ["N.C"]);
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
     public async Task NamedTypeQuery()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static IEnumerable<ISymbol> Find(INamedTypeSymbol type)
         {
             return type.GetMembers("F");
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query, ["int C.F"]);
+        """, ["System.Int32 N.C.F"]);
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
     public async Task MethodQuery()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static IEnumerable<ISymbol> Find(IMethodSymbol method)
         {
             return [method];
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query,
+        """,
         [
-            "C.C()",
-            "int C.P.get",
-            "void C.E.add",
-            "void C.E.remove",
-            "void C.VisibleMethod(int)",
+            "N.C..ctor()",
+            "System.Int32 N.C.P.get",
+            "void N.C.E.add",
+            "void N.C.E.remove",
+            "void N.C.VisibleMethod(System.Int32 param)"
         ]);
     }
 
@@ -157,18 +139,15 @@ public sealed class CSharpSemanticSearchServiceTests
     public async Task FieldQuery()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static IEnumerable<ISymbol> Find(IFieldSymbol field)
         {
             return [field];
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query,
+        """,
         [
-            "int C.F",
-            "readonly int C.P.field",
+            "System.Int32 N.C.<P>k__BackingField",
+            "System.Int32 N.C.F",
         ]);
     }
 
@@ -176,17 +155,14 @@ public sealed class CSharpSemanticSearchServiceTests
     public async Task PropertyQuery()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static IEnumerable<ISymbol> Find(IPropertySymbol prop)
         {
             return [prop];
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query,
+        """,
         [
-            "int C.P { get; }"
+            "System.Int32 N.C.P { get; }"
         ]);
     }
 
@@ -194,17 +170,14 @@ public sealed class CSharpSemanticSearchServiceTests
     public async Task EventQuery()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static IEnumerable<ISymbol> Find(IEventSymbol e)
         {
             return [e];
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query,
+        """,
         [
-            "event Action C.E"
+            "event System.Action N.C.E"
         ]);
     }
 
@@ -231,8 +204,7 @@ public sealed class CSharpSemanticSearchServiceTests
                 </Project>
             </Workspace>
         """, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static async IAsyncEnumerable<ISymbol> Find(IMethodSymbol e)
         {
             if (e.Name != "F")
@@ -246,9 +218,7 @@ public sealed class CSharpSemanticSearchServiceTests
                 yield return model.GetEnclosingSymbol(node.SpanStart);
             }
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query,
+        """,
         [
             "void D.R1()",
             "void D.R2()"
@@ -259,15 +229,12 @@ public sealed class CSharpSemanticSearchServiceTests
     public async Task NullReturn()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
-
-        var query = """
+        await VerifyCompileAndExecuteQueryAsync(workspace, """
         static IEnumerable<ISymbol> Find(Compilation compilation)
         {
             return null;
         }
-        """;
-
-        await VerifyCompileAndExecuteQueryAsync(workspace, query, expectedItems: []);
+        """, expectedItems: []);
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -302,13 +269,12 @@ public sealed class CSharpSemanticSearchServiceTests
         };
 
         var traceSource = new TraceSource("test");
-        var options = workspace.GlobalOptions.GetClassificationOptionsProvider();
 
         var compileResult = service.CompileQuery(solution.Services, query, s_referenceAssembliesDir, traceSource, CancellationToken.None);
         Assert.Empty(compileResult.CompilationErrors);
 
         await Assert.ThrowsAsync<TaskCanceledException>(
-            () => service.ExecuteQueryAsync(solution, compileResult.QueryId, observer, options, traceSource, cancellationSource.Token));
+            () => service.ExecuteQueryAsync(solution, compileResult.QueryId, observer, traceSource, cancellationSource.Token));
 
         Assert.Empty(exceptions);
     }
@@ -351,12 +317,11 @@ public sealed class CSharpSemanticSearchServiceTests
         };
 
         var traceSource = new TraceSource("test");
-        var options = workspace.GlobalOptions.GetClassificationOptionsProvider();
 
         var compileResult = service.CompileQuery(solution.Services, query, s_referenceAssembliesDir, traceSource, CancellationToken.None);
         Assert.Empty(compileResult.CompilationErrors);
 
-        var result = await service.ExecuteQueryAsync(solution, compileResult.QueryId, observer, options, traceSource, CancellationToken.None);
+        var result = await service.ExecuteQueryAsync(solution, compileResult.QueryId, observer, traceSource, CancellationToken.None);
         var expectedMessage = new InsufficientExecutionStackException().Message;
         AssertEx.Equal(string.Format(FeaturesResources.Semantic_search_query_terminated_with_exception, "CSharpAssembly1", expectedMessage), result.ErrorMessage);
 
@@ -420,12 +385,11 @@ public sealed class CSharpSemanticSearchServiceTests
         };
 
         var traceSource = new TraceSource("test");
-        var options = workspace.GlobalOptions.GetClassificationOptionsProvider();
 
         var compileResult = service.CompileQuery(solution.Services, query, s_referenceAssembliesDir, traceSource, CancellationToken.None);
         Assert.Empty(compileResult.CompilationErrors);
 
-        var result = await service.ExecuteQueryAsync(solution, compileResult.QueryId, observer, options, traceSource, CancellationToken.None);
+        var result = await service.ExecuteQueryAsync(solution, compileResult.QueryId, observer, traceSource, CancellationToken.None);
         var expectedMessage = new NullReferenceException().Message;
         AssertEx.Equal(string.Format(FeaturesResources.Semantic_search_query_terminated_with_exception, "CSharpAssembly1", expectedMessage), result.ErrorMessage);
 
@@ -477,18 +441,16 @@ public sealed class CSharpSemanticSearchServiceTests
         }
         """;
 
-        var results = new List<DefinitionItem>();
-        var observer = new MockSemanticSearchResultsObserver() { OnDefinitionFoundImpl = results.Add };
+        var symbols = new List<ISymbol>();
+        var observer = new MockSemanticSearchResultsObserver() { OnDefinitionFoundImpl = symbols.Add };
         var traceSource = new TraceSource("test");
-
-        var options = workspace.GlobalOptions.GetClassificationOptionsProvider();
 
         var compileResult = service.CompileQuery(solution.Services, query, s_referenceAssembliesDir, traceSource, CancellationToken.None);
         Assert.Empty(compileResult.CompilationErrors);
 
-        var result = await service.ExecuteQueryAsync(solution, compileResult.QueryId, observer, options, traceSource, CancellationToken.None);
+        var result = await service.ExecuteQueryAsync(solution, compileResult.QueryId, observer, traceSource, CancellationToken.None);
 
         Assert.Null(result.ErrorMessage);
-        AssertEx.Equal(["void C.VisibleMethod(int)"], results.Select(Inspect));
+        AssertEx.Equal(["void N.C.VisibleMethod(System.Int32 param)"], symbols.Select(s => s.ToTestDisplayString()));
     }
 }

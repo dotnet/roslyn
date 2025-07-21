@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal static class DiagnosticCategory
+internal static partial class DiagnosticCategory
 {
     public const string Style = nameof(Style);
     public const string CodeQuality = nameof(CodeQuality);

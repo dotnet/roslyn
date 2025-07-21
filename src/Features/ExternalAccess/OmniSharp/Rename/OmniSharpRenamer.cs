@@ -23,7 +23,7 @@ internal static class OmniSharpRenamer
         CancellationToken cancellationToken)
     {
         var nonConflictSymbolsKeys = nonConflictSymbols is null ? default : nonConflictSymbols.SelectAsArray(s => s.GetSymbolKey(cancellationToken));
-        var resolution = await Renamer.RenameSymbolAsync(solution, symbol, newName, options.ToRenameOptions(), nonConflictSymbolsKeys, cancellationToken).ConfigureAwait(false);
+        var resolution = await Renamer.RenameSymbolAsync(solution, symbol, newName, options.ToRenameOptions(), cancellationToken).ConfigureAwait(false);
         return new RenameResult(resolution.NewSolution, resolution.ErrorMessage);
     }
 }

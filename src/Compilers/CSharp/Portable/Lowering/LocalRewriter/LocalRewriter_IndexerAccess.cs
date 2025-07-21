@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<LocalSymbol>? temps = null;
                 ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                     ref rewrittenReceiver,
-                    captureReceiverMode: ReceiverCaptureMode.Default,
+                    forceReceiverCapturing: false,
                     arguments,
                     indexer,
                     argsToParamsOpt,
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression rewrittenIndexerAccess = GetUnderlyingIndexerOrSliceAccess(
                 node, isLeftOfAssignment,
-                isRegularAssignmentOrRegularCompoundAssignment: isLeftOfAssignment,
+                isRegularAssignment: isLeftOfAssignment,
                 cacheAllArgumentsOnly: false,
                 sideeffects, locals);
 
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression GetUnderlyingIndexerOrSliceAccess(
             BoundImplicitIndexerAccess node,
             bool isLeftOfAssignment,
-            bool isRegularAssignmentOrRegularCompoundAssignment,
+            bool isRegularAssignment,
             bool cacheAllArgumentsOnly,
             ArrayBuilder<BoundExpression> sideeffects,
             ArrayBuilder<LocalSymbol> locals)
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (receiverLocal.LocalSymbol.IsRef &&
                         CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal) &&
                         !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal) &&
-                        ((isLeftOfAssignment && !isRegularAssignmentOrRegularCompoundAssignment) ||
+                        ((isLeftOfAssignment && !isRegularAssignment) ||
                          !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(ImmutableArray.Create(makeOffsetInput))))
                     {
                         BoundAssignmentOperator? extraRefInitialization;
@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
                     ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                         ref receiver,
-                        captureReceiverMode: ReceiverCaptureMode.Default,
+                        forceReceiverCapturing: false,
                         indexerAccess.Arguments,
                         indexerAccess.Indexer,
                         indexerAccess.ArgsToParamsOpt,

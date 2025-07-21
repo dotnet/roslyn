@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SemanticModelReuse;
 
@@ -62,11 +62,10 @@ internal sealed partial class SemanticModelReuseWorkspaceServiceFactory : IWorks
         {
             _workspace = workspace;
 
-#pragma warning disable RS0030 // Do not use banned APIs
-#if WORKSPACE
-            _workspace.RegisterWorkspaceChangedHandler((e) =>
-#else
+#if ROSLYN_4_12_OR_LOWER
             _workspace.WorkspaceChanged += (sender, e) =>
+#else
+            _workspace.RegisterWorkspaceChangedHandler((e) =>
 #endif
             {
                 // if our map points at documents not in the current solution, then we want to clear things out.
@@ -85,12 +84,11 @@ internal sealed partial class SemanticModelReuseWorkspaceServiceFactory : IWorks
                     }
                 }
             }
-#if WORKSPACE
-            );
-#else
+#if ROSLYN_4_12_OR_LOWER
             ;
+#else
+            );
 #endif
-#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         public async ValueTask<SemanticModel> ReuseExistingSpeculativeModelAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
