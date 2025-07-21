@@ -187,7 +187,7 @@ internal static partial class ValueTracker
                 .Select(argument => (collector: Clone(), argument))
                 .ToImmutableArray();
 
-            await RoslynParallel.ForEachAsync(
+            await Parallel.ForEachAsync(
                 collectorsAndArgumentMap,
                 cancellationToken,
                 async (pair, cancellationToken) => await pair.collector.VisitAsync(pair.argument.Value, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);

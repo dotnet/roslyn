@@ -1406,7 +1406,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             
             public partial class C
             {
-                partial void MAsync();
+                partial Task MAsync();
             }
             
             public partial class C
@@ -1440,7 +1440,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             
             public partial class C
             {
-                public partial void MAsync();
+                public partial Task MAsync();
             }
             
             public partial class C

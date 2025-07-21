@@ -89,7 +89,7 @@ internal abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> 
         // Process all documents in parallel to get the change for each doc.
         var documentsAndSpansToFix = await fixAllContext.GetFixAllSpansAsync(cancellationToken).ConfigureAwait(false);
 
-        await RoslynParallel.ForEachAsync(
+        await Parallel.ForEachAsync(
             source: documentsAndSpansToFix,
             cancellationToken,
             async (tuple, cancellationToken) =>

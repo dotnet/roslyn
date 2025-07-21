@@ -18,13 +18,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class FullyQualifyTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public FullyQualifyTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpFullyQualifyCodeFixProvider());
 
@@ -1729,4 +1725,46 @@ class C
             """, new TestParameters(
             options: Option(MemberDisplayOptionsStorage.HideAdvancedMembers, true),
             testHost: testHost));
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79462")]
+    public async Task TestFullyQualifyWithSourceGeneratedFile(TestHost testHost)
+    {
+        const string InitialWorkspace = """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Console" CommonReferences="true">
+                    <Document FilePath="Program.cs">using Goo;
+
+            Something a;
+            [|PInvoke|].GetMessage();
+
+            namespace Goo
+            {
+                class Something { }
+            }</Document>
+                                    <DocumentFromSourceGenerator>
+            namespace Win32
+            {
+                public class PInvoke
+                {
+                }
+            }
+                                    </DocumentFromSourceGenerator>
+                </Project>
+            </Workspace>
+            """;
+
+        const string ExpectedDocumentText = """
+            using Goo;
+            
+            Something a;
+            Win32.PInvoke.GetMessage();
+            
+            namespace Goo
+            {
+                class Something { }
+            }
+            """;
+
+        await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
+    }
 }

@@ -367,7 +367,7 @@ internal sealed class NavigateToSearcher
             }
             else
             {
-                await RoslynParallel.ForEachAsync(
+                await Parallel.ForEachAsync(
                     source: groups,
                     cancellationToken,
                     SearchCoreAsync).ConfigureAwait(false);

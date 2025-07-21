@@ -17,11 +17,10 @@ using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports;
 

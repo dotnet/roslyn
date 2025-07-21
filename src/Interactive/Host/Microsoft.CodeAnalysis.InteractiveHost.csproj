@@ -55,6 +55,7 @@
     add an explicit reference to System.Threading.Tasks.Dataflow to ensure that the correct
      BindingRedirect is included in the app.config of InteractiveHost.exe -->
     <PackageReference Include="System.Threading.Tasks.Dataflow" />
+    <PackageReference Include="System.Threading.Channels" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="InteractiveHostResources.resx" GenerateSource="true" />

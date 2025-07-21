@@ -6646,4 +6646,46 @@ class C
 
             [assembly: NeutralResourcesLanguage("en")]
             """, testHost);
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79462")]
+    public async Task TestAddUsingsWithSourceGeneratedFile(TestHost testHost)
+    {
+        const string InitialWorkspace = """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Console" CommonReferences="true">
+                    <Document FilePath="Program.cs">using Goo;
+
+            Something a;
+            [|PInvoke|].GetMessage();
+
+            namespace Goo
+            {
+                class Something { }
+            }</Document>
+                                    <DocumentFromSourceGenerator>
+            namespace Win32
+            {
+                public class PInvoke
+                {
+                }
+            }
+                                    </DocumentFromSourceGenerator>
+                </Project>
+            </Workspace>
+            """;
+
+        const string ExpectedDocumentText = """
+            using Goo;
+            using Win32;
+            
+            Something a;
+            PInvoke.GetMessage();
+            
+            namespace Goo
+            {
+                class Something { }
+            }
+            """;
+        await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
+    }
 }
