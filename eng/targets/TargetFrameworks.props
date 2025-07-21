@@ -13,10 +13,10 @@
   -->
   <PropertyGroup>
     <NetRoslyn>net8.0</NetRoslyn>
-    <NetRoslynAll>net7.0;net8.0</NetRoslynAll>
+    <NetRoslynAll>net8.0</NetRoslynAll>
     <NetVS>net8.0</NetVS>
     <NetVSCode>net8.0</NetVSCode>
-    <NetVSShared>net7.0;net8.0</NetVSShared>
+    <NetVSShared>net8.0</NetVSShared>
     <NetRoslynBuildHostNetCoreVersion>net6.0</NetRoslynBuildHostNetCoreVersion>
     <NetRoslynNext>net9.0</NetRoslynNext>
   </PropertyGroup>
@@ -68,7 +68,7 @@
     <Otherwise>
       <PropertyGroup>
         <NetRoslyn>net8.0</NetRoslyn>
-        <NetRoslynSourceBuild>net7.0;net8.0</NetRoslynSourceBuild>
+        <NetRoslynSourceBuild>net8.0</NetRoslynSourceBuild>
       </PropertyGroup>
     </Otherwise>
   </Choose>
