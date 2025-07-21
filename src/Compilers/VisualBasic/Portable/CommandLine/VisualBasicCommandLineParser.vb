@@ -8,6 +8,7 @@ Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Security.Cryptography
 Imports System.Text
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -446,7 +447,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
                     Case "attachdebugger"
-                        Debugger.Launch()
+                        If RuntimeInformation.IsOSPlatform(OSPlatform.Windows) Then
+                            ' Debugger.Launch() only works on Windows
+                            Debugger.Launch()
+                        Else
+                            Dim timeout = TimeSpan.FromMinutes(2)
+#If NET Then
+                            Dim processId = Environment.ProcessId
+#Else
+                            Dim processId = System.Diagnostics.Process.GetCurrentProcess().Id
+#End If
+                            Console.WriteLine($"Compiler started with process ID {processId}")
+                            Console.WriteLine($"Waiting {timeout:g} for a debugger to attach")
+                            Using timeoutSource = New CancellationTokenSource(timeout)
+                                While Not Debugger.IsAttached AndAlso Not timeoutSource.Token.IsCancellationRequested
+                                    Thread.Sleep(100)
+                                End While
+                            End Using
+                        End If
                         Continue For
 #End If
                 End Select
