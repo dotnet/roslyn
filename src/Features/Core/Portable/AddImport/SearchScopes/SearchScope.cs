@@ -42,29 +42,29 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             if (name != null && string.IsNullOrWhiteSpace(name))
                 return [];
 
-            using var results = TemporaryArray<SymbolResult<ISymbol>>.Empty;
-
             if (Exact)
             {
+                // Try finding exact matches first.  This provides better results for the common case of
+                // people typing the right name, and it also allows for searching specialized indices that
+                // contain those names quickly.
                 {
                     using var query = SearchQuery.Create(name, ignoreCase: false);
                     var symbols = await FindDeclarationsAsync(filter, query, cancellationToken).ConfigureAwait(false);
 
-                    foreach (var symbol in symbols)
-                        results.Add(SymbolResult.Create(symbol.Name, nameNode, symbol, weight: 0));
+                    if (symbols.Length > 0)
+                        return symbols.SelectAsArray(static (s, nameNode) => SymbolResult.Create(s.Name, nameNode, s, weight: 0), nameNode);
                 }
 
+                // If no exact matches were found, fallback to a the weaker case insensitive search.  This
+                // uses heuristics that can find some additional results, but with less accuracy (so not 
+                // everything will necessarily be found).
                 {
                     using var query = SearchQuery.Create(name, ignoreCase: true);
                     var symbols = await FindDeclarationsAsync(filter, query, cancellationToken).ConfigureAwait(false);
 
-                    foreach (var symbol in symbols)
-                    {
-                        // Case-sensitive matches were handled above.  Note: weight these lower than case-sensitive
-                        // so they always appear below them.
-                        if (symbol.Name != null)
-                            results.Add(SymbolResult.Create(symbol.Name, nameNode, symbol, weight: 1));
-                    }
+                    // Use a weight of '1' to indicate that these were case insensitive matches, and any other
+                    // results from other search scoped should beat it.
+                    return symbols.SelectAsArray(static (s, nameNode) => SymbolResult.Create(s.Name, nameNode, s, weight: 1), nameNode);
                 }
             }
             else
@@ -77,6 +77,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 // compiler bowels when we call FindDeclarations.
                 using var similarityChecker = new WordSimilarityChecker(name, substringsAreSimilar: false);
 
+                var results = new FixedSizeArrayBuilder<SymbolResult<ISymbol>>(symbols.Length);
                 foreach (var symbol in symbols)
                 {
                     var areSimilar = similarityChecker.AreSimilar(symbol.Name, out var matchCost);
@@ -84,9 +85,9 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                     Debug.Assert(areSimilar);
                     results.Add(SymbolResult.Create(symbol.Name, nameNode, symbol, matchCost));
                 }
-            }
 
-            return results.ToImmutableAndClear();
+                return results.MoveToImmutable();
+            }
         }
     }
 }
