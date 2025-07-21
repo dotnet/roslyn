@@ -216,7 +216,7 @@ internal abstract partial class AbstractNavigateToSearchService
         {
             using var _1 = GetPooledHashSet(priorityDocuments.Where(d => project == d.Project), out var highPriDocs);
 
-            await RoslynParallel.ForEachAsync(
+            await Parallel.ForEachAsync(
                 Prioritize(project.Documents, highPriDocs.Contains),
                 cancellationToken,
                 (document, cancellationToken) => SearchSingleDocumentAsync(

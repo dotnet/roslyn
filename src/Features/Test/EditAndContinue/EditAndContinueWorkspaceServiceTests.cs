@@ -4117,6 +4117,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         CommitSolutionUpdate(debuggingSession);
 
+        // Stale project baselines should get discarded after committing the update.
+        // Unlocks binaries and allows the user to rebuild the project.
+        Assert.False(debuggingSession.GetTestAccessor().HasProjectEmitBaseline(projectBId));
+
         // update source file in the editor (source text is now matching the PDB of project B):
         var text0 = CreateText(source0);
         solution = solution.WithDocumentText(documentA.Id, text0).WithDocumentText(documentB.Id, text0);
@@ -4144,7 +4148,6 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // Saving is required so that we can fetch the baseline content for the next delta calculation.
         File.WriteAllText(sourcePath, source2, Encoding.UTF8);
         var mvidB2 = EmitAndLoadLibraryToDebuggee(projectBId, source2, sourceFilePath: sourcePath, assemblyName: "A", targetFramework: TargetFramework.Net90);
-        debuggingSession.UpdateBaselines(solution, rebuiltProjects: [projectBId]);
 
         // no changes have been made:
 

@@ -25,6 +25,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)RequiredMemberAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SetsRequiredMembersAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExceptionUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EqualityComparerExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ReferenceEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Index.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Range.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ErrorReporting\FatalError.cs" />

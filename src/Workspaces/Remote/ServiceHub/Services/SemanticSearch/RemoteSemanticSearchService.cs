@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Roslyn.Utilities;
@@ -35,10 +36,12 @@ internal sealed class RemoteSemanticSearchService(
         public ValueTask ItemsCompletedAsync(int itemCount, CancellationToken cancellationToken)
             => callback.InvokeAsync((callback, cancellationToken) => callback.ItemsCompletedAsync(callbackId, itemCount, cancellationToken), cancellationToken);
 
-        public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
+        public async ValueTask OnSymbolFoundAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
+            var definition = await SemanticSearchDefinitionItemFactory.CreateAsync(solution, symbol, classificationOptions: this, cancellationToken).ConfigureAwait(false);
             var dehydratedDefinition = SerializableDefinitionItem.Dehydrate(id: 0, definition);
-            return callback.InvokeAsync((callback, cancellationToken) => callback.OnDefinitionFoundAsync(callbackId, dehydratedDefinition, cancellationToken), cancellationToken);
+
+            await callback.InvokeAsync((callback, cancellationToken) => callback.OnDefinitionFoundAsync(callbackId, dehydratedDefinition, cancellationToken), cancellationToken).ConfigureAwait(false);
         }
 
         public ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken)
@@ -97,7 +100,7 @@ internal sealed class RemoteSemanticSearchService(
 
             var clientCallbacks = new ClientCallbacks(callback, callbackId);
 
-            return await service.ExecuteQueryAsync(solution, queryId, clientCallbacks, clientCallbacks, TraceLogger, cancellationToken).ConfigureAwait(false);
+            return await service.ExecuteQueryAsync(solution, queryId, observer: clientCallbacks, TraceLogger, cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
     }
 }
