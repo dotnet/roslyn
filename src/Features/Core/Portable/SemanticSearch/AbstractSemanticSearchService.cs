@@ -147,7 +147,6 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
         Solution solution,
         CompiledQueryId queryId,
         ISemanticSearchResultsObserver observer,
-        OptionsProvider<ClassificationOptions> classificationOptions,
         TraceSource traceSource,
         CancellationToken cancellationToken)
     {
@@ -179,7 +178,7 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
                     return CreateResult(errorMessage, errorMessageArgs);
                 }
 
-                var invocationContext = new QueryExecutionContext(query.Text, findMethod, observer, classificationOptions, traceSource);
+                var invocationContext = new QueryExecutionContext(query.Text, findMethod, observer, traceSource);
                 try
                 {
                     await invocationContext.InvokeAsync(solution, queryKind, cancellationToken).ConfigureAwait(false);
