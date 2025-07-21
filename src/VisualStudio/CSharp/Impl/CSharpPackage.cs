@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -52,6 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 [ProvideLanguageEditorOptionPage(typeof(Options.NamingStylesOptionPage), "CSharp", @"Code Style", "Naming", pageNameResourceId: "#115", keywordListResourceId: 314)]
 [ProvideLanguageEditorOptionPage(typeof(Options.IntelliSenseOptionPage), "CSharp", null, "IntelliSense", pageNameResourceId: "#103", keywordListResourceId: 312)]
 [ProvideSettingsManifest(PackageRelativeManifestFile = @"UnifiedSettings\csharpSettings.registration.json")]
+[ProvideService(typeof(ICSharpTempPECompilerService), IsAsyncQueryable = false, IsCacheable = true, IsFreeThreaded = true, ServiceName = nameof(ICSharpTempPECompilerService))]
 [Guid(Guids.CSharpPackageIdString)]
 internal sealed class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService>, IVsUserSettingsQuery
 {
@@ -69,10 +71,9 @@ internal sealed class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLangu
     {
         try
         {
-            this.RegisterService<ICSharpTempPECompilerService>(async ct =>
+            ((IServiceContainer)this).AddService(typeof(ICSharpTempPECompilerService), (_, _) =>
             {
                 var workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
-                await JoinableTaskFactory.SwitchToMainThreadAsync(ct);
                 return new TempPECompilerService(workspace.Services.GetService<IMetadataService>());
             });
         }
