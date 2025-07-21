@@ -35206,17 +35206,14 @@ public class Base
 
 public class C : Base
 {
-    public static int M() => throw null;
+    public static new int M() => throw null;
 }
 """;
         comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS8917: The delegate type could not be inferred.
             // var x = new C().M;
-            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(1, 9),
-            // (11,23): warning CS0108: 'C.M()' hides inherited member 'Base.M'. Use the new keyword if hiding was intended.
-            //     public static int M() => throw null;
-            Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("C.M()", "Base.M").WithLocation(11, 23));
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(1, 9));
     }
 
     [Fact]
