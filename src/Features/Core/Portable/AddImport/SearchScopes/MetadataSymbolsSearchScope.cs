@@ -26,7 +26,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         public override SymbolReference CreateReference<T>(SymbolResult<T> searchResult)
         {
             return new MetadataSymbolReference(
-                provider,
+                Provider,
                 searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol),
                 _assemblyProject.Id,
                 _metadataReference);

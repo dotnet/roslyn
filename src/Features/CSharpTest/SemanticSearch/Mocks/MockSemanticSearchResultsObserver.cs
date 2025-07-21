@@ -6,15 +6,14 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SemanticSearch;
 
-internal sealed class MockSemanticSearchResultsObserver : ISemanticSearchResultsObserver
+internal sealed class MockSemanticSearchResultsObserver() : ISemanticSearchResultsObserver
 {
-    public Action<DefinitionItem>? OnDefinitionFoundImpl { get; set; }
+    public Action<ISymbol>? OnDefinitionFoundImpl { get; set; }
     public Action<UserCodeExceptionInfo>? OnUserCodeExceptionImpl { get; set; }
     public Action<ImmutableArray<QueryCompilationError>>? OnCompilationFailureImpl { get; set; }
     public Action<int>? ItemsCompletedImpl { get; set; }
@@ -32,9 +31,9 @@ internal sealed class MockSemanticSearchResultsObserver : ISemanticSearchResults
         return ValueTaskFactory.CompletedTask;
     }
 
-    public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
+    public ValueTask OnSymbolFoundAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
     {
-        OnDefinitionFoundImpl?.Invoke(definition);
+        OnDefinitionFoundImpl?.Invoke(symbol);
         return ValueTaskFactory.CompletedTask;
     }
 
