@@ -33,7 +33,7 @@ internal sealed partial class CSharpSemanticFactsService : AbstractSemanticFacts
     protected override SyntaxToken ToIdentifierToken(string identifier)
         => identifier.ToIdentifierToken();
 
-    protected override IEnumerable<ISymbol> GetCollidableSymbols(SemanticModel semanticModel, SyntaxNode location, SyntaxNode container, CancellationToken cancellationToken)
+    protected override IEnumerable<ISymbol> GetCollidableSymbols(SemanticModel semanticModel, SyntaxNode location, SyntaxNode? container, CancellationToken cancellationToken)
     {
         // Get all the symbols visible to the current location.
         var visibleSymbols = semanticModel.LookupSymbols(location.SpanStart);

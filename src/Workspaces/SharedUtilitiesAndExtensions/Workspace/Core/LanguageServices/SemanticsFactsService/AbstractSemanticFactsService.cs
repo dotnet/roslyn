@@ -36,7 +36,7 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
         s is { Kind: SymbolKind.NamedType, IsStatic: true };
 
     public SyntaxToken GenerateUniqueName(
-        SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
+        SemanticModel semanticModel, SyntaxNode location, SyntaxNode? containerOpt,
         string baseName, CancellationToken cancellationToken)
     {
         return GenerateUniqueName(
@@ -44,7 +44,7 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     }
 
     public SyntaxToken GenerateUniqueName(
-        SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
+        SemanticModel semanticModel, SyntaxNode location, SyntaxNode? containerOpt,
         string baseName, IEnumerable<string> usedNames, CancellationToken cancellationToken)
     {
         return GenerateUniqueName(
@@ -52,7 +52,7 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     }
 
     public SyntaxToken GenerateUniqueLocalName(
-        SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
+        SemanticModel semanticModel, SyntaxNode location, SyntaxNode? containerOpt,
         string baseName, CancellationToken cancellationToken)
     {
         return GenerateUniqueName(
@@ -60,7 +60,7 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     }
 
     public SyntaxToken GenerateUniqueLocalName(
-        SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
+        SemanticModel semanticModel, SyntaxNode location, SyntaxNode? containerOpt,
         string baseName, IEnumerable<string> usedNames, CancellationToken cancellationToken)
     {
         return GenerateUniqueName(
@@ -70,7 +70,7 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     public SyntaxToken GenerateUniqueName(
         SemanticModel semanticModel,
         SyntaxNode location,
-        SyntaxNode containerOpt,
+        SyntaxNode? containerOpt,
         string baseName,
         Func<ISymbol, bool>? filter,
         IEnumerable<string>? usedNames,
