@@ -33,6 +33,8 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     private static string MSBuildWorkspaceDirectory => Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!;
     private static bool IsLoadedFromNuGetPackage => File.Exists(Path.Combine(MSBuildWorkspaceDirectory, "..", "..", "microsoft.codeanalysis.workspaces.msbuild.nuspec"));
 
+    private static readonly string DotnetExecutable = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dotnet.exe" : "dotnet";
+
     public BuildHostProcessManager(ImmutableDictionary<string, string>? globalMSBuildProperties = null, IBinLogPathProvider? binaryLogPathProvider = null, ILoggerFactory? loggerFactory = null)
     {
         _globalMSBuildProperties = globalMSBuildProperties ?? ImmutableDictionary<string, string>.Empty;
@@ -63,58 +65,98 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             buildHostKind = BuildHostProcessKind.NetCore;
         }
 
-        var buildHost = await GetBuildHostAsync(buildHostKind, cancellationToken).ConfigureAwait(false);
+        var buildHost = await GetBuildHostAsync(buildHostKind, projectOrSolutionFilePath, dotnetPath: null, cancellationToken).ConfigureAwait(false);
 
         // If this is a .NET Framework build host, we may not have have build tools installed and thus can't actually use it to build.
         // Check if this is the case. Unlike the mono case, we have to actually ask the other process since MSBuildLocator only allows
         // us to discover VS instances in .NET Framework hosts right now.
         if (buildHostKind == BuildHostProcessKind.NetFramework)
         {
-            if (!await buildHost.HasUsableMSBuildAsync(projectOrSolutionFilePath, cancellationToken).ConfigureAwait(false))
+            var msbuildLocation = await buildHost.FindUsableMSBuildAsync(projectOrSolutionFilePath, cancellationToken).ConfigureAwait(false);
+            if (msbuildLocation is null)
             {
                 // It's not usable, so we'll fall back to the .NET Core one.
                 _logger?.LogWarning($"An installation of Visual Studio or the Build Tools for Visual Studio could not be found; {projectOrSolutionFilePath} will be loaded with the .NET Core SDK and may encounter errors.");
-                return (await GetBuildHostAsync(BuildHostProcessKind.NetCore, cancellationToken).ConfigureAwait(false), actualKind: BuildHostProcessKind.NetCore);
+                return await GetBuildHostWithFallbackAsync(BuildHostProcessKind.NetCore, projectOrSolutionFilePath, cancellationToken).ConfigureAwait(false);
             }
         }
 
         return (buildHost, buildHostKind);
     }
 
-    public async Task<RemoteBuildHost> GetBuildHostAsync(BuildHostProcessKind buildHostKind, CancellationToken cancellationToken)
+    public Task<RemoteBuildHost> GetBuildHostAsync(BuildHostProcessKind buildHostKind, CancellationToken cancellationToken)
+    {
+        return GetBuildHostAsync(buildHostKind, projectOrSolutionFilePath: null, dotnetPath: null, cancellationToken);
+    }
+
+    public async Task<RemoteBuildHost> GetBuildHostAsync(BuildHostProcessKind buildHostKind, string? projectOrSolutionFilePath, string? dotnetPath, CancellationToken cancellationToken)
     {
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             if (!_processes.TryGetValue(buildHostKind, out var buildHostProcess))
             {
-                var pipeName = Guid.NewGuid().ToString();
-                var processStartInfo = CreateBuildHostStartInfo(buildHostKind, pipeName);
-
-                var process = Process.Start(processStartInfo);
-                Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
-
-                buildHostProcess = new BuildHostProcess(process, pipeName, _loggerFactory);
-                buildHostProcess.Disconnected += BuildHostProcess_Disconnected;
-
-                // We've subscribed to Disconnected, but if the process crashed before that point we might have not seen it
-                if (process.HasExited)
+                bool reload;
+                do
                 {
-                    buildHostProcess.LogProcessFailure();
-                    throw new Exception($"BuildHost process exited immediately with {process.ExitCode}");
-                }
+                    reload = false;
+
+                    var pipeName = Guid.NewGuid().ToString();
+                    var processStartInfo = CreateBuildHostStartInfo(buildHostKind, pipeName, dotnetPath);
+
+                    var process = Process.Start(processStartInfo);
+                    Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
+
+                    buildHostProcess = new BuildHostProcess(process, pipeName, _loggerFactory);
+                    buildHostProcess.Disconnected += BuildHostProcess_Disconnected;
+
+                    // We've subscribed to Disconnected, but if the process crashed before that point we might have not seen it
+                    if (process.HasExited)
+                    {
+                        buildHostProcess.LogProcessFailure();
+                        throw new Exception($"BuildHost process exited immediately with {process.ExitCode}");
+                    }
+
+                    // When running on .NET Core, we need to find the right SDK location that can load our project and restart the BuildHost if required.
+                    // When dotnetPath is null, the BuildHost is started with the default dotnet executable, which may not be the right one for the project.
+                    if (buildHostKind == BuildHostProcessKind.NetCore
+                        && projectOrSolutionFilePath is not null
+                        && dotnetPath is null)
+                    {
+                        // The BuildHost will be able to search through all the SDK install locations for a usable MSBuild instance.
+                        var msbuildLocation = await buildHostProcess.BuildHost.FindUsableMSBuildAsync(projectOrSolutionFilePath, cancellationToken).ConfigureAwait(false);
+                        if (msbuildLocation is not null && GetProcessPath() is { } processPath)
+                        {
+                            // The layout of the SDK is such that the dotnet executable is always at the same relative path from the MSBuild location.
+                            dotnetPath = Path.GetFullPath(Path.Combine(msbuildLocation.Path, $"../../{DotnetExecutable}"));
+                            if (dotnetPath is not null && processPath != dotnetPath)
+                            {
+                                // We need to relaunch the .NET BuildHost from a different dotnet instance.
+                                reload = true;
+                                await buildHostProcess.DisposeAsync().ConfigureAwait(false);
+                                _logger?.LogInformation($".NET BuildHost started from {processPath} reloading to start from {dotnetPath} to match necessary SDK location.");
+                            }
+                        }
+                    }
+                } while (reload);
 
                 _processes.Add(buildHostKind, buildHostProcess);
             }
 
             return buildHostProcess.BuildHost;
         }
+
+#if NET
+        static string? GetProcessPath() => Environment.ProcessPath;
+#else
+        static string? GetProcessPath() => Process.GetCurrentProcess().MainModule?.FileName;
+#endif
     }
 
-    internal ProcessStartInfo CreateBuildHostStartInfo(BuildHostProcessKind buildHostKind, string pipeName)
+    internal ProcessStartInfo CreateBuildHostStartInfo(BuildHostProcessKind buildHostKind, string pipeName, string? dotnetPath)
     {
         return buildHostKind switch
         {
-            BuildHostProcessKind.NetCore => CreateDotNetCoreBuildHostStartInfo(pipeName),
+            BuildHostProcessKind.NetCore => CreateDotNetCoreBuildHostStartInfo(pipeName, dotnetPath),
             BuildHostProcessKind.NetFramework => CreateDotNetFrameworkBuildHostStartInfo(pipeName),
             BuildHostProcessKind.Mono => CreateMonoBuildHostStartInfo(pipeName),
             _ => throw ExceptionUtilities.UnexpectedValue(buildHostKind)
@@ -165,11 +207,11 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             await process.DisposeAsync().ConfigureAwait(false);
     }
 
-    private ProcessStartInfo CreateDotNetCoreBuildHostStartInfo(string pipeName)
+    private ProcessStartInfo CreateDotNetCoreBuildHostStartInfo(string pipeName, string? dotnetPath)
     {
         var processStartInfo = new ProcessStartInfo()
         {
-            FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dotnet.exe" : "dotnet",
+            FileName = dotnetPath ?? DotnetExecutable,
         };
 
         // We need to roll forward to the latest runtime, since the project may be using an SDK (or an SDK required runtime) newer than we ourselves built with.
@@ -231,9 +273,9 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         if (IsLoadedFromNuGetPackage)
         {
-            // When Workspaces.MSBuild is loaded from the NuGet package (as is the case in .NET Interactive, NCrunch, and possibly other use cases) 
+            // When Workspaces.MSBuild is loaded from the NuGet package (as is the case in .NET Interactive, NCrunch, and possibly other use cases)
             // the Build host is deployed under the contentFiles folder.
-            // 
+            //
             // Workspaces.MSBuild.dll Path - .nuget/packages/microsoft.codeanalysis.workspaces.msbuild/{version}/lib/{tfm}/Microsoft.CodeAnalysis.Workspaces.MSBuild.dll
             // MSBuild.BuildHost.dll Path  - .nuget/packages/microsoft.codeanalysis.workspaces.msbuild/{version}/contentFiles/any/any/{contentFolderName}/{assemblyName}
 

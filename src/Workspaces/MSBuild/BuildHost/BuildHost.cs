@@ -23,6 +23,7 @@ internal sealed class BuildHost : IBuildHost
     private readonly RpcServer _server;
     private readonly object _gate = new object();
     private ProjectBuildManager? _buildManager;
+    private MSBuildLocation? _msBuildLocation;
 
     public BuildHost(BuildHostLogger logger, ImmutableDictionary<string, string> globalMSBuildProperties, string? binaryLogPath, RpcServer server)
     {
@@ -32,14 +33,14 @@ internal sealed class BuildHost : IBuildHost
         _server = server;
     }
 
-    private bool TryEnsureMSBuildLoaded(string projectOrSolutionFilePath)
+    public MSBuildLocation? FindUsableMSBuild(string projectOrSolutionFilePath)
     {
         lock (_gate)
         {
             // If we've already created our MSBuild types, then there's nothing further to do.
             if (MSBuildLocator.IsRegistered)
             {
-                return true;
+                return _msBuildLocation;
             }
 
             if (!PlatformInformation.IsRunningOnMono)
@@ -59,7 +60,7 @@ internal sealed class BuildHost : IBuildHost
 
                 // Locate the right SDK for this particular project; MSBuildLocator ensures in this case the first one is the preferred one.
                 // TODO: we should pick the appropriate instance back in the main process and just use the one chosen here.
-                var options = new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Path.GetDirectoryName(projectOrSolutionFilePath) };
+                var options = new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Path.GetDirectoryName(projectOrSolutionFilePath), AllowAllDotnetLocations = true, AllowAllRuntimeVersions = true };
                 instance = MSBuildLocator.QueryVisualStudioInstances(options).FirstOrDefault();
 
 #endif
@@ -67,6 +68,7 @@ internal sealed class BuildHost : IBuildHost
                 if (instance != null)
                 {
                     MSBuildLocator.RegisterInstance(instance);
+                    _msBuildLocation = new(instance.MSBuildPath, instance.Version.ToString());
                     _logger.LogInformation($"Registered MSBuild instance at {instance.MSBuildPath}");
                 }
                 else
@@ -96,7 +98,7 @@ internal sealed class BuildHost : IBuildHost
 #endif
             }
 
-            return MSBuildLocator.IsRegistered;
+            return _msBuildLocation;
         }
     }
 
@@ -122,14 +124,9 @@ internal sealed class BuildHost : IBuildHost
         }
     }
 
-    public bool HasUsableMSBuild(string projectOrSolutionFilePath)
-    {
-        return TryEnsureMSBuildLoaded(projectOrSolutionFilePath);
-    }
-
     private void EnsureMSBuildLoaded(string projectFilePath)
     {
-        Contract.ThrowIfFalse(TryEnsureMSBuildLoaded(projectFilePath), $"We don't have an MSBuild to use; {nameof(HasUsableMSBuild)} should have been called first to check.");
+        Contract.ThrowIfNull(FindUsableMSBuild(projectFilePath), $"We don't have an MSBuild to use; {nameof(FindUsableMSBuild)} should have been called first to check.");
     }
 
     /// <summary>

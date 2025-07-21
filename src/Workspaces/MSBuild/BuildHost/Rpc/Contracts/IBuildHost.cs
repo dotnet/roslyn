@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 /// </summary>
 internal interface IBuildHost
 {
-    bool HasUsableMSBuild(string projectOrSolutionFilePath);
+    MSBuildLocation? FindUsableMSBuild(string projectOrSolutionFilePath);
     Task<int> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken);
 
     /// <summary>Permits loading a project file which only exists in-memory, for example, for file-based program scenarios.</summary>
