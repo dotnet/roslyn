@@ -1246,23 +1246,16 @@ internal sealed partial class SolutionCompilationState
     public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
         ProjectState project, bool withFrozenSourceGeneratedDocuments, bool forceOnlyRequiredDocuments, CancellationToken cancellationToken)
     {
-        if (!project.SupportsCompilation)
-            return new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
-
-        var tracker = forceOnlyRequiredDocuments
-                    ? GetCompilationTracker(project.Id, CreationPolicy.DoNotCreate)
-                    : GetCompilationTracker(project.Id);
-
-        Debug.Assert(!forceOnlyRequiredDocuments || tracker.GetCreationPolicy().GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.CreateRequired);
-
-        return tracker.GetSourceGeneratedDocumentStatesAsync(this, withFrozenSourceGeneratedDocuments, cancellationToken);
+        return project.SupportsCompilation
+            ? GetCompilationTrackerForGeneratedDocuments(project.Id, forceOnlyRequiredDocuments).GetSourceGeneratedDocumentStatesAsync(this, withFrozenSourceGeneratedDocuments, cancellationToken)
+            : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
     }
 
     public ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(
         ProjectState project, CancellationToken cancellationToken)
     {
         return project.SupportsCompilation
-            ? GetCompilationTracker(project.Id).GetSourceGeneratorDiagnosticsAsync(this, cancellationToken)
+            ? GetCompilationTrackerForGeneratedDocuments(project.Id, forceOnlyRequiredDocuments: false).GetSourceGeneratorDiagnosticsAsync(this, cancellationToken)
             : new([]);
     }
 
@@ -1270,8 +1263,19 @@ internal sealed partial class SolutionCompilationState
     ProjectState project, CancellationToken cancellationToken)
     {
         return project.SupportsCompilation
-            ? GetCompilationTracker(project.Id).GetSourceGeneratorRunResultAsync(this, cancellationToken)
+            ? GetCompilationTrackerForGeneratedDocuments(project.Id, forceOnlyRequiredDocuments: false).GetSourceGeneratorRunResultAsync(this, cancellationToken)
             : new();
+    }
+
+    private ICompilationTracker GetCompilationTrackerForGeneratedDocuments(ProjectId projectId, bool forceOnlyRequiredDocuments)
+    {
+        var tracker = forceOnlyRequiredDocuments
+              ? GetCompilationTracker(projectId, CreationPolicy.DoNotCreate)
+              : GetCompilationTracker(projectId);
+
+        Debug.Assert(!forceOnlyRequiredDocuments || tracker.GetCreationPolicy().GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.CreateRequired);
+
+        return tracker;
     }
 
     /// <summary>
