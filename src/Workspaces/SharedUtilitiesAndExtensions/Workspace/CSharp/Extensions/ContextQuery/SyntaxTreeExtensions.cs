@@ -2805,7 +2805,7 @@ internal static partial class SyntaxTreeExtensions
         return false;
     }
 
-    public static bool IsIsOrAsOrSwitchOrWithExpressionContext(
+    public static bool IsIsOrAsOrWithExpressionContext(
         this SyntaxTree syntaxTree,
         SemanticModel semanticModel,
         int position,
