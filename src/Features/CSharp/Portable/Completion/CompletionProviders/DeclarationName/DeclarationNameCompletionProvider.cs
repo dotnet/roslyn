@@ -73,7 +73,8 @@ internal sealed partial class DeclarationNameCompletionProvider(
             var sortValue = 0;
             foreach (var recommender in Recommenders)
             {
-                var names = await recommender.Value.ProvideRecommendedNamesAsync(completionContext, document, context, nameInfo, cancellationToken).ConfigureAwait(false);
+                var names = await recommender.Value.ProvideRecommendedNamesAsync(
+                    completionContext, document, context, nameInfo, cancellationToken).ConfigureAwait(false);
 
                 foreach (var (name, glyph) in names)
                 {

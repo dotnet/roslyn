@@ -380,9 +380,10 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             }
             """, "GetCAsync");
 
-    [Fact(Skip = "not yet implemented")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17989")]
     public Task NonAsyncTaskOfT()
         => VerifyItemExistsAsync("""
+            using System.Threading.Tasks;
             public class C
             {
                 Task<C> $$
