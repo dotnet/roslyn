@@ -31,8 +31,10 @@ internal interface IRemoteSourceGenerationService
     /// <param name="withFrozenSourceGeneratedDocuments">Controls if the caller wants frozen source generator documents
     /// included in the result, or if only the most underlying generated documents (produced by the real compiler <see
     /// cref="GeneratorDriver"/> should be included.</param>
+    /// <param name="requiredDocumentsOnly">Controls if the caller only wants to run required generators and use old
+    /// results for other generators, or if all generators should be run to get new documents.</param>
     ValueTask<ImmutableArray<SourceGeneratedDocumentInfo>> GetSourceGeneratedDocumentInfoAsync(
-        Checksum solutionChecksum, ProjectId projectId, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken);
+        Checksum solutionChecksum, ProjectId projectId, bool withFrozenSourceGeneratedDocuments, bool requiredDocumentsOnly, CancellationToken cancellationToken);
 
     /// <summary>
     /// Given a particular set of generated document ids, returns the fully generated content for those documents.

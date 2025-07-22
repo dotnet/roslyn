@@ -36,42 +36,29 @@ internal sealed partial class SolutionCompilationState
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
-            if (creationPolicy.GeneratedDocumentCreationPolicy is GeneratedDocumentCreationPolicy.DoNotCreate)
+            // First try to compute the SG docs in the remote process (if we're the host process), syncing the results
+            // back over to us to ensure that both processes are in total agreement about the SG docs and their
+            // contents.
+            var result = await TryComputeNewGeneratorInfoInRemoteProcessAsync(
+                compilationState, compilationWithoutGeneratedFiles, generatorInfo.Documents, compilationWithStaleGeneratedTrees, creationPolicy.GeneratedDocumentCreationPolicy, cancellationToken).ConfigureAwait(false);
+            if (result.HasValue)
             {
-                // We're frozen.  So we do not want to go through the expensive cost of running generators.  Instead, we
-                // just whatever prior generated docs we have.
-                var generatedSyntaxTrees = await generatorInfo.Documents.States.Values.SelectAsArrayAsync(
-                    static (state, cancellationToken) => state.GetSyntaxTreeAsync(cancellationToken), cancellationToken).ConfigureAwait(false);
-
-                var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(generatedSyntaxTrees);
-
-                // Return the old generator info as is.
-                return (compilationWithGeneratedFiles, generatorInfo);
+                // Since we ran the SG work out of process, we could not have created or modified the driver passed in.
+                // Just return `null` for the driver as there's nothing to track for it on the host side.
+                return (result.Value.compilationWithGeneratedFiles, new(result.Value.generatedDocuments, Driver: null));
             }
-            else
-            {
-                // First try to compute the SG docs in the remote process (if we're the host process), syncing the results
-                // back over to us to ensure that both processes are in total agreement about the SG docs and their
-                // contents.
-                var result = await TryComputeNewGeneratorInfoInRemoteProcessAsync(
-                    compilationState, compilationWithoutGeneratedFiles, generatorInfo.Documents, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
-                if (result.HasValue)
-                {
-                    // Since we ran the SG work out of process, we could not have created or modified the driver passed in.
-                    // Just return `null` for the driver as there's nothing to track for it on the host side.
-                    return (result.Value.compilationWithGeneratedFiles, new(result.Value.generatedDocuments, Driver: null));
-                }
 
-                // If that failed (OOP crash, or we are the OOP process ourselves), then generate the SG docs locally.
-                var (compilationWithGeneratedFiles, nextGeneratedDocuments, nextGeneratorDriver) = await ComputeNewGeneratorInfoInCurrentProcessAsync(
-                    compilationState,
-                    compilationWithoutGeneratedFiles,
-                    generatorInfo.Documents,
-                    generatorInfo.Driver,
-                    compilationWithStaleGeneratedTrees,
-                    cancellationToken).ConfigureAwait(false);
-                return (compilationWithGeneratedFiles, new(nextGeneratedDocuments, nextGeneratorDriver));
-            }
+            // If that failed (OOP crash, or we are the OOP process ourselves), then generate the SG docs locally.
+            var (compilationWithGeneratedFiles, nextGeneratedDocuments, nextGeneratorDriver) = await ComputeNewGeneratorInfoInCurrentProcessAsync(
+                compilationState,
+                compilationWithoutGeneratedFiles,
+                generatorInfo.Documents,
+                generatorInfo.Driver,
+                compilationWithStaleGeneratedTrees,
+                creationPolicy.GeneratedDocumentCreationPolicy,
+                cancellationToken).ConfigureAwait(false);
+            return (compilationWithGeneratedFiles, new(nextGeneratedDocuments, nextGeneratorDriver));
+
         }
 
         private async Task<(Compilation compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments)?> TryComputeNewGeneratorInfoInRemoteProcessAsync(
@@ -79,6 +66,7 @@ internal sealed partial class SolutionCompilationState
             Compilation compilationWithoutGeneratedFiles,
             TextDocumentStates<SourceGeneratedDocumentState> oldGeneratedDocuments,
             Compilation? compilationWithStaleGeneratedTrees,
+            GeneratedDocumentCreationPolicy creationPolicy,
             CancellationToken cancellationToken)
         {
             var solution = compilationState.SolutionState;
@@ -102,7 +90,7 @@ internal sealed partial class SolutionCompilationState
                 compilationState,
                 projectId,
                 (service, solutionChecksum, cancellationToken) => service.GetSourceGeneratedDocumentInfoAsync(
-                    solutionChecksum, projectId, withFrozenSourceGeneratedDocuments: false, cancellationToken),
+                    solutionChecksum, projectId, withFrozenSourceGeneratedDocuments: false, requiredDocumentsOnly: creationPolicy == GeneratedDocumentCreationPolicy.CreateRequired, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!infosOpt.HasValue)
@@ -111,7 +99,7 @@ internal sealed partial class SolutionCompilationState
             var infos = infosOpt.Value;
 
             // If there are no generated documents, bail out immediately.
-            if (infos.Length == 0)
+            if (creationPolicy == GeneratedDocumentCreationPolicy.Create && infos.Length == 0)
                 return (compilationWithoutGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState>.Empty);
 
             // Next, figure out what is different locally.  Specifically, what documents we don't know about, or we
@@ -220,6 +208,21 @@ internal sealed partial class SolutionCompilationState
                 }
             }
 
+            if (creationPolicy == GeneratedDocumentCreationPolicy.CreateRequired)
+            {
+                // the documents we got back are only for the required generators, meaning any documents from other generators remain the same. 
+                var generatorsThatRan = infos.Select(di => di.DocumentIdentity.Generator).Distinct().ToImmutableHashSet();
+
+                // go through the old docs and add any that aren't in the new set
+                foreach (var (_, oldDocumentState) in oldGeneratedDocuments.States)
+                {
+                    if (!generatorsThatRan.Contains(oldDocumentState.Identity.Generator))
+                    {
+                        generatedDocumentsBuilder.Add(oldDocumentState.WithParseOptions(this.ProjectState.ParseOptions!));
+                    }
+                }
+            }
+
             var newGeneratedDocuments = new TextDocumentStates<SourceGeneratedDocumentState>(generatedDocumentsBuilder.ToImmutableAndClear());
             var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(
                 await newGeneratedDocuments.States.Values.SelectAsArrayAsync(
@@ -233,6 +236,7 @@ internal sealed partial class SolutionCompilationState
             TextDocumentStates<SourceGeneratedDocumentState> oldGeneratedDocuments,
             GeneratorDriver? generatorDriver,
             Compilation? compilationWithStaleGeneratedTrees,
+            GeneratedDocumentCreationPolicy creationPolicy,
             CancellationToken cancellationToken)
         {
             // If we don't have any source generators.  Trivially bail out.
@@ -265,7 +269,7 @@ internal sealed partial class SolutionCompilationState
             var compilationToRunGeneratorsOn = compilationWithoutGeneratedFiles.RemoveSyntaxTrees(treesToRemove);
             // END HACK HACK HACK HACK.
 
-            generatorDriver = generatorDriver.RunGenerators(compilationToRunGeneratorsOn, cancellationToken);
+            generatorDriver = generatorDriver.RunGenerators(compilationToRunGeneratorsOn, GeneratorFilter, cancellationToken);
 
             Contract.ThrowIfNull(generatorDriver);
 
@@ -296,6 +300,9 @@ internal sealed partial class SolutionCompilationState
             var generationDateTime = DateTime.Now;
             foreach (var generatorResult in runResult.Results)
             {
+                if (generatorResult.GeneratedSources.IsDefault)
+                    continue;
+
                 var generatorAnalyzerReference = GetAnalyzerReference(this.ProjectState, generatorResult.Generator);
 
                 foreach (var generatedSource in generatorResult.GeneratedSources)
@@ -418,6 +425,16 @@ internal sealed partial class SolutionCompilationState
                 var additionalTexts = (ImmutableArray<AdditionalText>)additionalTextsMember.GetValue(state)!;
 
                 Contract.ThrowIfFalse(additionalTexts.Length == projectState.AdditionalDocumentStates.Count);
+            }
+
+            bool GeneratorFilter(GeneratorFilterContext context)
+            {
+                if (creationPolicy is GeneratedDocumentCreationPolicy.Create)
+                    return true;
+
+                // For now, we hard code the required generator list to Razor.
+                // In the future we might want to expand this to e.g. run any generators with open generated files
+                return context.Generator.GetGeneratorType().FullName == "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
             }
         }
     }

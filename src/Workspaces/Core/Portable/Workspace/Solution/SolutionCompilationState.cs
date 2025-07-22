@@ -1151,7 +1151,17 @@ internal sealed partial class SolutionCompilationState
     private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out ICompilationTracker? tracker)
         => _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
 
-    private static readonly Func<ProjectId, SolutionState, RegularCompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
+    private static readonly Func<ProjectId, (SolutionState, bool), RegularCompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
+
+    private static RegularCompilationTracker CreateCompilationTracker(ProjectId projectId, (SolutionState solution, bool requiredSourceGeneratorDocumentsOnly) data)
+    {
+        var tracker = CreateCompilationTracker(projectId, data.solution);
+        if (data.requiredSourceGeneratorDocumentsOnly)
+        {
+            tracker = tracker.WithDoNotCreateCreationPolicy();
+        }
+        return tracker;
+    }
 
     private static RegularCompilationTracker CreateCompilationTracker(ProjectId projectId, SolutionState solution)
     {
@@ -1160,11 +1170,11 @@ internal sealed partial class SolutionCompilationState
         return new RegularCompilationTracker(projectState);
     }
 
-    private ICompilationTracker GetCompilationTracker(ProjectId projectId)
+    private ICompilationTracker GetCompilationTracker(ProjectId projectId, bool requiredSourceGeneratorDocumentsOnly = false)
     {
         if (!_projectIdToTrackerMap.TryGetValue(projectId, out var tracker))
         {
-            tracker = RoslynImmutableInterlocked.GetOrAdd(ref _projectIdToTrackerMap, projectId, s_createCompilationTrackerFunction, this.SolutionState);
+            tracker = RoslynImmutableInterlocked.GetOrAdd(ref _projectIdToTrackerMap, projectId, s_createCompilationTrackerFunction, (this.SolutionState, requiredSourceGeneratorDocumentsOnly));
         }
 
         return tracker;
@@ -1228,14 +1238,14 @@ internal sealed partial class SolutionCompilationState
     /// Returns the generated document states for source generated documents.
     /// </summary>
     public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(ProjectState project, CancellationToken cancellationToken)
-        => GetSourceGeneratedDocumentStatesAsync(project, withFrozenSourceGeneratedDocuments: true, cancellationToken);
+        => GetSourceGeneratedDocumentStatesAsync(project, withFrozenSourceGeneratedDocuments: true, requiredDocumentsOnly: false, cancellationToken);
 
     /// <inheritdoc cref="GetSourceGeneratedDocumentStatesAsync(ProjectState, CancellationToken)"/>
     public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
-        ProjectState project, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)
+        ProjectState project, bool withFrozenSourceGeneratedDocuments, bool requiredDocumentsOnly, CancellationToken cancellationToken)
     {
         return project.SupportsCompilation
-            ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, withFrozenSourceGeneratedDocuments, cancellationToken)
+            ? GetCompilationTracker(project.Id, requiredDocumentsOnly).GetSourceGeneratedDocumentStatesAsync(this, withFrozenSourceGeneratedDocuments, cancellationToken)
             : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
     }
 
