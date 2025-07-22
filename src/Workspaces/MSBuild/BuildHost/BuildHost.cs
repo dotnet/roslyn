@@ -86,6 +86,7 @@ internal sealed class BuildHost : IBuildHost
                 if (monoMSBuildDirectory != null)
                 {
                     MSBuildLocator.RegisterMSBuildPath(monoMSBuildDirectory);
+                    _msBuildLocation = new(monoMSBuildDirectory, MonoMSBuildDiscovery.GetMonoMSBuildVersion());
                     _logger.LogInformation($"Registered MSBuild instance at {monoMSBuildDirectory}");
                 }
                 else
