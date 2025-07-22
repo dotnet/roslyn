@@ -21,6 +21,7 @@
     <PackageReference Include="Basic.Reference.Assemblies.Net60" />
     <PackageReference Include="Basic.Reference.Assemblies.Net80" />
     <PackageReference Include="Basic.Reference.Assemblies.Net90" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net100" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

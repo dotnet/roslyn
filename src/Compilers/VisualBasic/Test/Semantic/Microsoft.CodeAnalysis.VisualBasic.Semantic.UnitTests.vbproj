@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <PackageReference Include="Basic.Reference.Assemblies.Net60" />
     <PackageReference Include="Basic.Reference.Assemblies.Net90" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net100" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Drawing.Common" Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'" />
