@@ -95,6 +95,8 @@ internal sealed partial class SolutionCompilationState
                 : new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);
         }
 
+        public CreationPolicy GetCreationPolicy() => this.UnderlyingTracker.GetCreationPolicy();
+
         /// <summary>
         /// Updates the frozen source generated documents states being tracked
         /// </summary>

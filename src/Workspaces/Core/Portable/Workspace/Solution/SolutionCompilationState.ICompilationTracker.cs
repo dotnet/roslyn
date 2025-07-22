@@ -51,6 +51,11 @@ internal sealed partial class SolutionCompilationState
         /// </summary>
         ICompilationTracker WithDoNotCreateCreationPolicy();
 
+        /// <summary>
+        /// Gets the creation policy for this tracker.
+        /// </summary>
+        CreationPolicy GetCreationPolicy();
+
         Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
 
