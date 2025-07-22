@@ -561,19 +561,19 @@ public sealed class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeAction
                     }
                 }
                 """,
-"""
-class C
-{
-    void M()
-    {
-    }
+                """
+                class C
+                {
+                    void M()
+                    {
+                    }
 
-    private static C LocalFunction(C c)
-    {
-        return null;
-    }
-}
-""");
+                    private static C LocalFunction(C c)
+                    {
+                        return null;
+                    }
+                }
+                """);
         }
 
         async Task TestMissingAsync(string signature)

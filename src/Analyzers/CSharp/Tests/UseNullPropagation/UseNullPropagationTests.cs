@@ -2628,4 +2628,40 @@ public sealed partial class UseNullPropagationTests
             """,
             OutputKind.ConsoleApplication,
             LanguageVersionExtensions.CSharpNext);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79338")]
+    public Task TestNestedNullPropagation_DifferentForms()
+        => TestInRegularAndScript1Async(
+            """
+            using System;
+            
+            class C
+            {
+                string S;
+
+                void M(C c)
+                {
+                    [|if|] (c != null)
+                        c.X([|c == null ? null : c.S|]);
+                }
+
+                void X(string s) { }
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                string S;
+            
+                void M(C c)
+                {
+                    c?.X(c?.S);
+                }
+            
+                void X(string s) { }
+            }
+            """,
+            languageVersion: LanguageVersionExtensions.CSharpNext);
 }

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNullableDirective;
@@ -55,6 +56,32 @@ public sealed class CSharpRemoveUnnecessaryNullableDirectiveTests
             }
             """,
             """
+            enum EnumName
+            {
+                First,
+                Second,
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65401")]
+    public Task TestUnnecessaryDisableEnumDeclaration_WithAttribute()
+        => VerifyCodeFixAsync(
+            NullableContextOptions.Enable,
+            """
+            [|#nullable disable|]
+            using System;
+
+            [CLSCompliant(false)]
+            enum EnumName
+            {
+                First,
+                Second,
+            }
+            """,
+            """
+            using System;
+
+            [CLSCompliant(false)]
             enum EnumName
             {
                 First,

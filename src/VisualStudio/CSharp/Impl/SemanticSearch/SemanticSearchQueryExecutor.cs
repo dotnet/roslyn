@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
@@ -20,8 +21,11 @@ internal sealed class SemanticSearchQueryExecutor(
     FindUsagesContext presenterContext,
     IOptionsReader options)
 {
-    private sealed class ResultsObserver(IFindUsagesContext presenterContext, Document? queryDocument) : ISemanticSearchResultsObserver
+    private sealed class ResultsObserver(IFindUsagesContext presenterContext, IOptionsReader options, Document? queryDocument) : ISemanticSearchResultsDefinitionObserver
     {
+        public ValueTask<ClassificationOptions> GetClassificationOptionsAsync(Microsoft.CodeAnalysis.Host.LanguageServices language, CancellationToken cancellationToken)
+            => new(options.GetClassificationOptions(language.Language));
+
         public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             => presenterContext.OnDefinitionFoundAsync(definition, cancellationToken);
 
@@ -35,9 +39,6 @@ internal sealed class SemanticSearchQueryExecutor(
             => presenterContext.OnDefinitionFoundAsync(
                 new SearchExceptionDefinitionItem(exception.Message, exception.TypeName, exception.StackTrace, (queryDocument != null) ? new DocumentSpan(queryDocument, exception.Span) : default), cancellationToken);
     }
-
-    private readonly OptionsProvider<ClassificationOptions> _classificationOptionsProvider =
-        OptionsProvider.GetProvider(options, static (reader, language) => reader.GetClassificationOptions(language));
 
     public async Task ExecuteAsync(string? query, Document? queryDocument, Solution solution, CancellationToken cancellationToken)
     {
@@ -58,7 +59,7 @@ internal sealed class SemanticSearchQueryExecutor(
             return;
         }
 
-        var resultsObserver = new ResultsObserver(presenterContext, queryDocument);
+        var resultsObserver = new ResultsObserver(presenterContext, options, queryDocument);
         query ??= (await queryDocument!.GetTextAsync(cancellationToken).ConfigureAwait(false)).ToString();
 
         ExecuteQueryResult result = default;
@@ -96,7 +97,6 @@ internal sealed class SemanticSearchQueryExecutor(
                 solution,
                 compileResult.Value.QueryId,
                 resultsObserver,
-                _classificationOptionsProvider,
                 cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))

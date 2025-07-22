@@ -170,13 +170,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
+        public override TypeWithAnnotations GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
         {
             // This will throw if API shouldn't be supported or there is a problem with the argument.
             var notUsed = OriginalDefinition.GetTypeInferredDuringReduction(reducedFromTypeParameter);
 
-            Debug.Assert((object)notUsed == null && (object)OriginalDefinition.ReducedFrom != null);
-            return this.TypeArgumentsWithAnnotations[reducedFromTypeParameter.Ordinal].Type;
+            Debug.Assert(notUsed.Type is null && OriginalDefinition.ReducedFrom is not null);
+            return this.TypeArgumentsWithAnnotations[reducedFromTypeParameter.Ordinal];
         }
 
         public sealed override MethodSymbol ReducedFrom

@@ -21,12 +21,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(DeclarationNameCompletionProvider), LanguageNames.CSharp)]
+[ExportCompletionProvider(nameof(DeclarationNameCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(TupleNameCompletionProvider))]
-[Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed partial class DeclarationNameCompletionProvider([ImportMany] IEnumerable<Lazy<IDeclarationNameRecommender, OrderableMetadata>> recommenders) : LSPCompletionProvider
+internal sealed partial class DeclarationNameCompletionProvider(
+    [ImportMany] IEnumerable<Lazy<IDeclarationNameRecommender, OrderableMetadata>> recommenders) : LSPCompletionProvider
 {
     private ImmutableArray<Lazy<IDeclarationNameRecommender, OrderableMetadata>> Recommenders { get; } = [.. ExtensionOrderer.Order(recommenders)];
 

@@ -11573,6 +11573,1099 @@ public struct Vec4
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(18, 22));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes()
+        {
+            var source = """
+                var r1 = new R(111);
+                var r2 = new R(222);
+                Report(r1.F, r2.F);
+
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                ref struct R(in int x)
+                {
+                    public ref readonly int F = ref x;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics()
+                // Needs two int temps.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       43 (0x2b)
+                      .maxstack  2
+                      .locals init (R V_0, //r2
+                                    int V_1,
+                                    int V_2)
+                      IL_0000:  ldc.i4.s   111
+                      IL_0002:  stloc.1
+                      IL_0003:  ldloca.s   V_1
+                      IL_0005:  newobj     "R..ctor(in int)"
+                      IL_000a:  ldc.i4     0xde
+                      IL_000f:  stloc.2
+                      IL_0010:  ldloca.s   V_2
+                      IL_0012:  newobj     "R..ctor(in int)"
+                      IL_0017:  stloc.0
+                      IL_0018:  ldfld      "ref readonly int R.F"
+                      IL_001d:  ldind.i4
+                      IL_001e:  ldloc.0
+                      IL_001f:  ldfld      "ref readonly int R.F"
+                      IL_0024:  ldind.i4
+                      IL_0025:  call       "void Program.<<Main>$>g__Report|0_0(int, int)"
+                      IL_002a:  ret
+                    }
+                    """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_CannotEscape_NonRefStruct()
+        {
+            var source = """
+                var r1 = new R(111);
+                var r2 = new R(222);
+
+                struct R(in int x)
+                {
+                    public readonly int F = x;
+                }
+                """;
+            CompileAndVerify(source)
+                .VerifyDiagnostics()
+                // One int temp is enough.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       26 (0x1a)
+                      .maxstack  1
+                      .locals init (int V_0)
+                      IL_0000:  ldc.i4.s   111
+                      IL_0002:  stloc.0
+                      IL_0003:  ldloca.s   V_0
+                      IL_0005:  newobj     "R..ctor(in int)"
+                      IL_000a:  pop
+                      IL_000b:  ldc.i4     0xde
+                      IL_0010:  stloc.0
+                      IL_0011:  ldloca.s   V_0
+                      IL_0013:  newobj     "R..ctor(in int)"
+                      IL_0018:  pop
+                      IL_0019:  ret
+                    }
+                    """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_CannotEscape_UnusedResult()
+        {
+            var source = """
+                new R(111);
+                new R(222);
+
+                ref struct R
+                {
+                    public R(in int x) { }
+                }
+                """;
+            CompileAndVerify(source)
+                .VerifyDiagnostics()
+                // One int temp is enough.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       26 (0x1a)
+                      .maxstack  1
+                      .locals init (int V_0)
+                      IL_0000:  ldc.i4.s   111
+                      IL_0002:  stloc.0
+                      IL_0003:  ldloca.s   V_0
+                      IL_0005:  newobj     "R..ctor(in int)"
+                      IL_000a:  pop
+                      IL_000b:  ldc.i4     0xde
+                      IL_0010:  stloc.0
+                      IL_0011:  ldloca.s   V_0
+                      IL_0013:  newobj     "R..ctor(in int)"
+                      IL_0018:  pop
+                      IL_0019:  ret
+                    }
+                    """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_CannotEscape_ScopedParameter()
+        {
+            var source = """
+                var r1 = new R(111);
+                var r2 = new R(222);
+                Use(r1, r2);
+
+                static void Use(R x, R y) { }
+
+                ref struct R
+                {
+                    public R(scoped in int x) { }
+                }
+                """;
+            CompileAndVerify(source)
+                .VerifyDiagnostics()
+                // One int temp is enough.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       31 (0x1f)
+                      .maxstack  2
+                      .locals init (R V_0, //r2
+                                    int V_1)
+                      IL_0000:  ldc.i4.s   111
+                      IL_0002:  stloc.1
+                      IL_0003:  ldloca.s   V_1
+                      IL_0005:  newobj     "R..ctor(scoped in int)"
+                      IL_000a:  ldc.i4     0xde
+                      IL_000f:  stloc.1
+                      IL_0010:  ldloca.s   V_1
+                      IL_0012:  newobj     "R..ctor(scoped in int)"
+                      IL_0017:  stloc.0
+                      IL_0018:  ldloc.0
+                      IL_0019:  call       "void Program.<<Main>$>g__Use|0_0(R, R)"
+                      IL_001e:  ret
+                    }
+                    """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_NestedBlock()
+        {
+            var source = """
+                {
+                    var r1 = new R(111);
+                    var r2 = new R(222);
+                    Report(r1.F, r2.F);
+                }
+                {
+                    var r1 = new R(333);
+                    var r2 = new R(444);
+                    Report(r1.F, r2.F);
+                }
+
+                static void Report(int x, int y) => System.Console.Write($"{x} {y} ");
+
+                ref struct R(in int x)
+                {
+                    public ref readonly int F = ref x;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222 333 444"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics()
+                // Two int and two R temps would be enough, but the emit layer currently does not take blocks into account.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       90 (0x5a)
+                      .maxstack  2
+                      .locals init (R V_0, //r2
+                                    int V_1,
+                                    int V_2,
+                                    R V_3, //r2
+                                    int V_4,
+                                    int V_5)
+                      IL_0000:  ldc.i4.s   111
+                      IL_0002:  stloc.1
+                      IL_0003:  ldloca.s   V_1
+                      IL_0005:  newobj     "R..ctor(in int)"
+                      IL_000a:  ldc.i4     0xde
+                      IL_000f:  stloc.2
+                      IL_0010:  ldloca.s   V_2
+                      IL_0012:  newobj     "R..ctor(in int)"
+                      IL_0017:  stloc.0
+                      IL_0018:  ldfld      "ref readonly int R.F"
+                      IL_001d:  ldind.i4
+                      IL_001e:  ldloc.0
+                      IL_001f:  ldfld      "ref readonly int R.F"
+                      IL_0024:  ldind.i4
+                      IL_0025:  call       "void Program.<<Main>$>g__Report|0_0(int, int)"
+                      IL_002a:  ldc.i4     0x14d
+                      IL_002f:  stloc.s    V_4
+                      IL_0031:  ldloca.s   V_4
+                      IL_0033:  newobj     "R..ctor(in int)"
+                      IL_0038:  ldc.i4     0x1bc
+                      IL_003d:  stloc.s    V_5
+                      IL_003f:  ldloca.s   V_5
+                      IL_0041:  newobj     "R..ctor(in int)"
+                      IL_0046:  stloc.3
+                      IL_0047:  ldfld      "ref readonly int R.F"
+                      IL_004c:  ldind.i4
+                      IL_004d:  ldloc.3
+                      IL_004e:  ldfld      "ref readonly int R.F"
+                      IL_0053:  ldind.i4
+                      IL_0054:  call       "void Program.<<Main>$>g__Report|0_0(int, int)"
+                      IL_0059:  ret
+                    }
+                    """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_CannotEscape_ComCall()
+        {
+            var source = """
+                using System.Runtime.InteropServices;
+
+                I i = new C();
+                i.M(111);
+                i.M(222);
+
+                [ComImport, Guid("96A2DE64-6D44-4DA5-BBA4-25F5F07E0E6B")]
+                interface I
+                {
+                    void M(ref int i);
+                }
+
+                class C : I
+                {
+                    void I.M(ref int i) { }
+                }
+                """;
+            CompileAndVerify(source)
+                .VerifyDiagnostics()
+                // One int temp is enough.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       30 (0x1e)
+                      .maxstack  3
+                      .locals init (int V_0)
+                      IL_0000:  newobj     "C..ctor()"
+                      IL_0005:  dup
+                      IL_0006:  ldc.i4.s   111
+                      IL_0008:  stloc.0
+                      IL_0009:  ldloca.s   V_0
+                      IL_000b:  callvirt   "void I.M(ref int)"
+                      IL_0010:  ldc.i4     0xde
+                      IL_0015:  stloc.0
+                      IL_0016:  ldloca.s   V_0
+                      IL_0018:  callvirt   "void I.M(ref int)"
+                      IL_001d:  ret
+                    }
+                    """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_ComCall()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                using System.Runtime.InteropServices;
+
+                I i = new C();
+                var r1 = i.M(111);
+                var r2 = i.M(222);
+                Report(r1.F, r2.F);
+
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                [ComImport, Guid("96A2DE64-6D44-4DA5-BBA4-25F5F07E0E6B")]
+                interface I
+                {
+                    R M([UnscopedRef] ref int i);
+                }
+
+                class C : I
+                {
+                    R I.M([UnscopedRef] ref int i)
+                    {
+                        var r = new R();
+                        r.F = ref i;
+                        return r;
+                    }
+                }
+
+                ref struct R
+                {
+                    public ref int F;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.Fails)
+                .VerifyDiagnostics()
+                // Needs two int temps.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       51 (0x33)
+                      .maxstack  3
+                      .locals init (R V_0, //r1
+                                    R V_1, //r2
+                                    int V_2,
+                                    int V_3)
+                      IL_0000:  newobj     "C..ctor()"
+                      IL_0005:  dup
+                      IL_0006:  ldc.i4.s   111
+                      IL_0008:  stloc.2
+                      IL_0009:  ldloca.s   V_2
+                      IL_000b:  callvirt   "R I.M(ref int)"
+                      IL_0010:  stloc.0
+                      IL_0011:  ldc.i4     0xde
+                      IL_0016:  stloc.3
+                      IL_0017:  ldloca.s   V_3
+                      IL_0019:  callvirt   "R I.M(ref int)"
+                      IL_001e:  stloc.1
+                      IL_001f:  ldloc.0
+                      IL_0020:  ldfld      "ref int R.F"
+                      IL_0025:  ldind.i4
+                      IL_0026:  ldloc.1
+                      IL_0027:  ldfld      "ref int R.F"
+                      IL_002c:  ldind.i4
+                      IL_002d:  call       "void Program.<<Main>$>g__Report|0_0(int, int)"
+                      IL_0032:  ret
+                    }
+                    """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_NoTemp()
+        {
+            var source = """
+                var x1 = 111;
+                var r1 = new R(x1);
+                var x2 = 222;
+                var r2 = new R(x2);
+                Report(r1.F, r2.F);
+
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                ref struct R(in int x)
+                {
+                    public ref readonly int F = ref x;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics()
+                // No int temps needed.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       43 (0x2b)
+                      .maxstack  2
+                      .locals init (int V_0, //x1
+                                    int V_1, //x2
+                                    R V_2) //r2
+                      IL_0000:  ldc.i4.s   111
+                      IL_0002:  stloc.0
+                      IL_0003:  ldloca.s   V_0
+                      IL_0005:  newobj     "R..ctor(in int)"
+                      IL_000a:  ldc.i4     0xde
+                      IL_000f:  stloc.1
+                      IL_0010:  ldloca.s   V_1
+                      IL_0012:  newobj     "R..ctor(in int)"
+                      IL_0017:  stloc.2
+                      IL_0018:  ldfld      "ref readonly int R.F"
+                      IL_001d:  ldind.i4
+                      IL_001e:  ldloc.2
+                      IL_001f:  ldfld      "ref readonly int R.F"
+                      IL_0024:  ldind.i4
+                      IL_0025:  call       "void Program.<<Main>$>g__Report|0_0(int, int)"
+                      IL_002a:  ret
+                    }
+                    """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_RValue()
+        {
+            var source = """
+                var r1 = new R(F1());
+                var r2 = new R(F2());
+                Report(r1.F, r2.F);
+
+                static int F1() => 111;
+                static int F2() => 222;
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                ref struct R(in int x)
+                {
+                    public ref readonly int F = ref x;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics()
+                // Needs two int temps.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       46 (0x2e)
+                      .maxstack  2
+                      .locals init (R V_0, //r2
+                                    int V_1,
+                                    int V_2)
+                      IL_0000:  call       "int Program.<<Main>$>g__F1|0_0()"
+                      IL_0005:  stloc.1
+                      IL_0006:  ldloca.s   V_1
+                      IL_0008:  newobj     "R..ctor(in int)"
+                      IL_000d:  call       "int Program.<<Main>$>g__F2|0_1()"
+                      IL_0012:  stloc.2
+                      IL_0013:  ldloca.s   V_2
+                      IL_0015:  newobj     "R..ctor(in int)"
+                      IL_001a:  stloc.0
+                      IL_001b:  ldfld      "ref readonly int R.F"
+                      IL_0020:  ldind.i4
+                      IL_0021:  ldloc.0
+                      IL_0022:  ldfld      "ref readonly int R.F"
+                      IL_0027:  ldind.i4
+                      IL_0028:  call       "void Program.<<Main>$>g__Report|0_2(int, int)"
+                      IL_002d:  ret
+                    }
+                    """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_Assignment()
+        {
+            var source = """
+                var r1 = new R(100);
+                r1 = new R(101);
+                var r2 = new R(200);
+                r2 = new R(201);
+                Report(r1.F, r2.F);
+
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                ref struct R(in int x)
+                {
+                    public ref readonly int F = ref x;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("101 201"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics()
+                // Needs at least two int temps.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       68 (0x44)
+                      .maxstack  2
+                      .locals init (R V_0, //r2
+                                    int V_1,
+                                    int V_2,
+                                    int V_3)
+                      IL_0000:  ldc.i4.s   100
+                      IL_0002:  stloc.1
+                      IL_0003:  ldloca.s   V_1
+                      IL_0005:  newobj     "R..ctor(in int)"
+                      IL_000a:  pop
+                      IL_000b:  ldc.i4.s   101
+                      IL_000d:  stloc.1
+                      IL_000e:  ldloca.s   V_1
+                      IL_0010:  newobj     "R..ctor(in int)"
+                      IL_0015:  ldc.i4     0xc8
+                      IL_001a:  stloc.2
+                      IL_001b:  ldloca.s   V_2
+                      IL_001d:  newobj     "R..ctor(in int)"
+                      IL_0022:  stloc.0
+                      IL_0023:  ldc.i4     0xc9
+                      IL_0028:  stloc.3
+                      IL_0029:  ldloca.s   V_3
+                      IL_002b:  newobj     "R..ctor(in int)"
+                      IL_0030:  stloc.0
+                      IL_0031:  ldfld      "ref readonly int R.F"
+                      IL_0036:  ldind.i4
+                      IL_0037:  ldloc.0
+                      IL_0038:  ldfld      "ref readonly int R.F"
+                      IL_003d:  ldind.i4
+                      IL_003e:  call       "void Program.<<Main>$>g__Report|0_0(int, int)"
+                      IL_0043:  ret
+                    }
+                    """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_PatternMatch()
+        {
+            var source = """
+                if (new R(111) is { } r1 && new R(222) is { } r2)
+                {
+                    Report(r1.F, r2.F);
+                }
+
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                ref struct R(in int x)
+                {
+                    public ref readonly int F = ref x;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics()
+                // Needs two int temps.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       45 (0x2d)
+                      .maxstack  2
+                      .locals init (R V_0, //r1
+                                    R V_1, //r2
+                                    int V_2,
+                                    int V_3)
+                      IL_0000:  ldc.i4.s   111
+                      IL_0002:  stloc.2
+                      IL_0003:  ldloca.s   V_2
+                      IL_0005:  newobj     "R..ctor(in int)"
+                      IL_000a:  stloc.0
+                      IL_000b:  ldc.i4     0xde
+                      IL_0010:  stloc.3
+                      IL_0011:  ldloca.s   V_3
+                      IL_0013:  newobj     "R..ctor(in int)"
+                      IL_0018:  stloc.1
+                      IL_0019:  ldloc.0
+                      IL_001a:  ldfld      "ref readonly int R.F"
+                      IL_001f:  ldind.i4
+                      IL_0020:  ldloc.1
+                      IL_0021:  ldfld      "ref readonly int R.F"
+                      IL_0026:  ldind.i4
+                      IL_0027:  call       "void Program.<<Main>$>g__Report|0_0(int, int)"
+                      IL_002c:  ret
+                    }
+                    """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_Initializer()
+        {
+            var source = """
+                var r1 = new R() { F = ref M(111) };
+                var r2 = new R() { F = ref M(222) };
+                Report(r1.F, r2.F);
+
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                static ref readonly int M(in int x) => ref x;
+
+                ref struct R
+                {
+                    public ref readonly int F;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.Fails)
+                .VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_ViaOutParameter(
+            [CombinatorialValues("", "scoped")] string scoped,
+            [CombinatorialValues("", "readonly")] string ro)
+        {
+            var source = $$"""
+                scoped R r1, r2;
+                M(111, out r1);
+                M(222, out r2);
+                Report(r1.F, r2.F);
+
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                static void M(in int x, {{scoped}} out R r) => r = new R(x);
+
+                {{ro}} ref struct R(in int x)
+                {
+                    public {{ro}} ref readonly int F = ref x;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_CannotEscape_ViaOutParameter()
+        {
+            var source = """
+                scoped R r1, r2;
+                M(111, out r1);
+                M(222, out r2);
+
+                static void M(scoped in int x, scoped out R r) { }
+
+                ref struct R;
+                """;
+            CompileAndVerify(source)
+                .VerifyDiagnostics()
+                // One int temp would be enough, but currently the scope difference between input/output is not recognized by the heuristic.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       28 (0x1c)
+                      .maxstack  2
+                      .locals init (R V_0, //r1
+                                    R V_1, //r2
+                                    int V_2,
+                                    int V_3)
+                      IL_0000:  ldc.i4.s   111
+                      IL_0002:  stloc.2
+                      IL_0003:  ldloca.s   V_2
+                      IL_0005:  ldloca.s   V_0
+                      IL_0007:  call       "void Program.<<Main>$>g__M|0_0(scoped in int, out R)"
+                      IL_000c:  ldc.i4     0xde
+                      IL_0011:  stloc.3
+                      IL_0012:  ldloca.s   V_3
+                      IL_0014:  ldloca.s   V_1
+                      IL_0016:  call       "void Program.<<Main>$>g__M|0_0(scoped in int, out R)"
+                      IL_001b:  ret
+                    }
+                    """);
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_ViaRefParameter(
+            [CombinatorialValues("", "scoped")] string scoped)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                scoped var r1 = new R();
+                scoped var r2 = new R();
+                M(111, ref r1);
+                M(222, ref r2);
+                Report(r1.F, r2.F);
+
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                static void M([UnscopedRef] in int x, {{scoped}} ref R r)
+                {
+                    r.F = ref x;
+                }
+
+                ref struct R
+                {
+                    public ref readonly int F;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_ViaRefParameter_Readonly(
+            [CombinatorialValues("", "scoped")] string scoped)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                scoped var r1 = new R();
+                scoped var r2 = new R();
+                M(111, ref r1);
+                M(222, ref r2);
+                Report(r1.F, r2.F);
+
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                static void M([UnscopedRef] in int x, {{scoped}} ref R r)
+                {
+                    r = new R(in x);
+                }
+
+                readonly ref struct R(ref readonly int x)
+                {
+                    public readonly ref readonly int F = ref x;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_CannotEscape_ViaRefParameter()
+        {
+            var source = """
+                scoped R r1 = new(), r2 = new();
+                M(111, ref r1);
+                M(222, ref r2);
+
+                static void M(in int x, ref R r) { }
+
+                ref struct R;
+                """;
+            CompileAndVerify(source)
+                .VerifyDiagnostics()
+                // One int temp would be enough, but currently the scope difference between input/output is not recognized by the heuristic.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       44 (0x2c)
+                      .maxstack  2
+                      .locals init (R V_0, //r1
+                                    R V_1, //r2
+                                    int V_2,
+                                    int V_3)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "R"
+                      IL_0008:  ldloca.s   V_1
+                      IL_000a:  initobj    "R"
+                      IL_0010:  ldc.i4.s   111
+                      IL_0012:  stloc.2
+                      IL_0013:  ldloca.s   V_2
+                      IL_0015:  ldloca.s   V_0
+                      IL_0017:  call       "void Program.<<Main>$>g__M|0_0(in int, ref R)"
+                      IL_001c:  ldc.i4     0xde
+                      IL_0021:  stloc.3
+                      IL_0022:  ldloca.s   V_3
+                      IL_0024:  ldloca.s   V_1
+                      IL_0026:  call       "void Program.<<Main>$>g__M|0_0(in int, ref R)"
+                      IL_002b:  ret
+                    }
+                    """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_CannotEscape_ViaOutDiscard()
+        {
+            var source = """
+                M(111, out _);
+                M(222, out _);
+
+                static void M(in int x, out R r) => r = default;
+
+                ref struct R;
+                """;
+            CompileAndVerify(source)
+                .VerifyDiagnostics()
+                // One int and one R temp would be enough. But currently the emit layer does not see the argument is a discard.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       28 (0x1c)
+                      .maxstack  2
+                      .locals init (R V_0,
+                                    int V_1,
+                                    R V_2,
+                                    int V_3)
+                      IL_0000:  ldc.i4.s   111
+                      IL_0002:  stloc.1
+                      IL_0003:  ldloca.s   V_1
+                      IL_0005:  ldloca.s   V_0
+                      IL_0007:  call       "void Program.<<Main>$>g__M|0_0(in int, out R)"
+                      IL_000c:  ldc.i4     0xde
+                      IL_0011:  stloc.3
+                      IL_0012:  ldloca.s   V_3
+                      IL_0014:  ldloca.s   V_2
+                      IL_0016:  call       "void Program.<<Main>$>g__M|0_0(in int, out R)"
+                      IL_001b:  ret
+                    }
+                    """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_CannotEscape_Scoped()
+        {
+            var source = """
+                var r1 = new R(111);
+                var r2 = new R(222);
+
+                ref struct R
+                {
+                    public R(scoped in int x) { }
+                }
+                """;
+            CompileAndVerify(source)
+                .VerifyDiagnostics()
+                // One int temp is enough.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       26 (0x1a)
+                      .maxstack  1
+                      .locals init (int V_0)
+                      IL_0000:  ldc.i4.s   111
+                      IL_0002:  stloc.0
+                      IL_0003:  ldloca.s   V_0
+                      IL_0005:  newobj     "R..ctor(scoped in int)"
+                      IL_000a:  pop
+                      IL_000b:  ldc.i4     0xde
+                      IL_0010:  stloc.0
+                      IL_0011:  ldloca.s   V_0
+                      IL_0013:  newobj     "R..ctor(scoped in int)"
+                      IL_0018:  pop
+                      IL_0019:  ret
+                    }
+                    """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_InstanceMethod()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                scoped var r1 = new R();
+                scoped var r2 = new R();
+                r1.Set(111);
+                r2.Set(222);
+                Report(r1.F, r2.F);
+
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                ref struct R
+                {
+                    public ref readonly int F;
+
+                    public void Set([UnscopedRef] in int x) => F = ref x;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_InstanceMethod_Chained()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                scoped var r1 = new R();
+                scoped var r2 = new R();
+                new C().Set(111).To(ref r1);
+                new C().Set(222).To(ref r2);
+                Report(r1.F, r2.F);
+
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                class C
+                {
+                    public R Set([UnscopedRef] in int x)
+                    {
+                        var r = new R();
+                        r.F = ref x;
+                        return r;
+                    }
+                }
+
+                ref struct R
+                {
+                    public ref readonly int F;
+                    public void To(ref R r)
+                    {
+                        r.F = ref F;
+                    }
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.Fails)
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_FunctionPointer()
+        {
+            var source = """
+                unsafe
+                {
+                    delegate*<in int, R> f = &M;
+                    var r1 = f(111);
+                    var r2 = f(222);
+                    Report(r1.F, r2.F);
+                }
+
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                static R M(in int x) => new R(in x);
+
+                ref struct R(ref readonly int x)
+                {
+                    public ref readonly int F = ref x;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                options: TestOptions.UnsafeReleaseExe,
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.Fails)
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_RefAssignment()
+        {
+            var source = """
+                ref readonly int x = ref 111.M();
+                ref readonly int y = ref 222.M();
+
+                Report(x, y);
+
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                static class E
+                {
+                    public static ref readonly int M(this in int x) => ref x;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.Fails)
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_Receiver()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static S M1() => new S { F = 111 };
+
+                    static void M2(ref int x, ref int y) => System.Console.WriteLine($"{x} {y}");
+
+                    static void Main()
+                    {
+                        M2(ref M1().Ref(), ref new S { F = 222 }.Ref());
+                    }
+                }
+
+                struct S
+                {
+                    public int F;
+
+                    [UnscopedRef] public ref int Ref() => ref F;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.Fails)
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_Receiver_ReadOnlyContext_01()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                new S { F = 111 }.M3();
+
+                struct S
+                {
+                    public int F;
+
+                    [UnscopedRef] public ref int Ref() => ref F;
+
+                    public readonly void M3()
+                    {
+                        M2(ref Ref(), ref new S { F = 222 }.Ref());
+                    }
+
+                    static void M2(ref int x, ref int y) => System.Console.WriteLine($"{x} {y}");
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.Fails)
+                .VerifyDiagnostics(
+                    // (13,16): warning CS8656: Call to non-readonly member 'S.Ref()' from a 'readonly' member results in an implicit copy of 'this'.
+                    //         M2(ref Ref(), ref new S { F = 222 }.Ref());
+                    Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Ref").WithArguments("S.Ref()", "this").WithLocation(13, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_CannotEscape_Receiver_ReadOnlyContext_02()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                static S M1() => new S { F = 111 };
+
+                M1().M3();
+
+                struct S
+                {
+                    public int F;
+
+                    [UnscopedRef] public readonly ref readonly int Ref() => ref F;
+
+                    public readonly void M3()
+                    {
+                        M2(in Ref(), new S { F = 222 });
+                    }
+
+                    static void M2(in int x, S y) => System.Console.WriteLine($"{x} {y.F}");
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.Fails)
+                .VerifyDiagnostics()
+                // One S temp is enough.
+                .VerifyIL("S.M3", """
+                    {
+                      // Code size       33 (0x21)
+                      .maxstack  3
+                      .locals init (S V_0)
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "readonly ref readonly int S.Ref()"
+                      IL_0006:  ldloca.s   V_0
+                      IL_0008:  initobj    "S"
+                      IL_000e:  ldloca.s   V_0
+                      IL_0010:  ldc.i4     0xde
+                      IL_0015:  stfld      "int S.F"
+                      IL_001a:  ldloc.0
+                      IL_001b:  call       "void S.M2(in int, S)"
+                      IL_0020:  ret
+                    }
+                    """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_Receiver_ReadOnlyContext_03()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static S M1() => new S { F = 111 };
+
+                    static void M2(in int x, in int y) => System.Console.WriteLine($"{x} {y}");
+
+                    static void Main()
+                    {
+                        M2(in M1().Ref(), in new S { F = 222 }.Ref());
+                    }
+                }
+
+                public struct S
+                {
+                    public int F;
+
+                    [UnscopedRef] public readonly ref readonly int Ref() => ref F;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.Fails)
+                .VerifyDiagnostics();
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72873")]
         public void Utf8Addition()
         {

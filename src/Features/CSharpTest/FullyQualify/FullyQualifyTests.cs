@@ -18,13 +18,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class FullyQualifyTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public FullyQualifyTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpFullyQualifyCodeFixProvider());
 
@@ -74,7 +70,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                 }
             }
             """,
-index: 1, testHost: testHost);
+            index: 1, testHost: testHost);
 
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889385")]
@@ -178,7 +174,7 @@ index: 1, testHost: testHost);
                 }
             }
             """,
-"System.Collections.Generic.List", new TestParameters(testHost: testHost));
+            "System.Collections.Generic.List", new TestParameters(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestGenericWithWrongArgs(TestHost testHost)
@@ -372,7 +368,7 @@ index: 1, testHost: testHost);
                 }
             }
             """,
-count: 1, new TestParameters(testHost: testHost));
+            count: 1, new TestParameters(testHost: testHost));
 
         await TestInRegularAndScriptAsync(
             """
@@ -1045,7 +1041,7 @@ count: 1, new TestParameters(testHost: testHost));
                 Outer.C c;
             }
             """,
-index: 1, testHost: testHost);
+            index: 1, testHost: testHost);
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
     public Task BugFix5950(TestHost testHost)
@@ -1729,4 +1725,46 @@ class C
             """, new TestParameters(
             options: Option(MemberDisplayOptionsStorage.HideAdvancedMembers, true),
             testHost: testHost));
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79462")]
+    public async Task TestFullyQualifyWithSourceGeneratedFile(TestHost testHost)
+    {
+        const string InitialWorkspace = """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Console" CommonReferences="true">
+                    <Document FilePath="Program.cs">using Goo;
+
+            Something a;
+            [|PInvoke|].GetMessage();
+
+            namespace Goo
+            {
+                class Something { }
+            }</Document>
+                                    <DocumentFromSourceGenerator>
+            namespace Win32
+            {
+                public class PInvoke
+                {
+                }
+            }
+                                    </DocumentFromSourceGenerator>
+                </Project>
+            </Workspace>
+            """;
+
+        const string ExpectedDocumentText = """
+            using Goo;
+            
+            Something a;
+            Win32.PInvoke.GetMessage();
+            
+            namespace Goo
+            {
+                class Something { }
+            }
+            """;
+
+        await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
+    }
 }

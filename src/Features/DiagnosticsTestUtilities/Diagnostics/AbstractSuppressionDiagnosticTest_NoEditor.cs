@@ -20,20 +20,16 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 
-public abstract class AbstractSuppressionDiagnosticTest_NoEditor : AbstractUserDiagnosticTest_NoEditor
+public abstract class AbstractSuppressionDiagnosticTest_NoEditor(ITestOutputHelper logger = null)
+    : AbstractUserDiagnosticTest_NoEditor(logger)
 {
-    protected AbstractSuppressionDiagnosticTest_NoEditor(ITestOutputHelper logger = null)
-        : base(logger)
-    {
-    }
-
     protected abstract int CodeActionIndex { get; }
     protected virtual bool IncludeSuppressedDiagnostics => false;
     protected virtual bool IncludeUnsuppressedDiagnostics => true;
     protected virtual bool IncludeNoLocationDiagnostics => true;
 
-    protected Task TestAsync(string initial, string expected)
-        => TestAsync(initial, expected, parseOptions: null, index: CodeActionIndex);
+    protected Task TestAsync(string initial, string expected, ParseOptions parseOptions = null)
+        => TestAsync(initial, expected, parseOptions, index: CodeActionIndex);
 
     internal abstract Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 

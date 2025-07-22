@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenWithEvents
         Inherits BasicTestBase
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/79350")>
         Public Sub SimpleWithEventsTest()
             Dim compilation1 = CompileAndVerify(
 <compilation>
@@ -400,7 +400,7 @@ handled1
 
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/79350")>
         Public Sub SimpleSharedWithEvents()
             Dim compilation1 = CompileAndVerify(
 <compilation>
@@ -2003,7 +2003,7 @@ End Class
             CompileAndVerify(source)
         End Sub
 
-        <Fact, WorkItem(4544, "https://github.com/dotnet/roslyn/issues/4544")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/79350"), WorkItem(4544, "https://github.com/dotnet/roslyn/issues/4544")>
         Public Sub MultipleInitializationsWithAsNew_01()
             Dim source =
 <compilation>
@@ -2067,7 +2067,7 @@ False
 ]]>)
         End Sub
 
-        <Fact, WorkItem(4544, "https://github.com/dotnet/roslyn/issues/4544")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/79350"), WorkItem(4544, "https://github.com/dotnet/roslyn/issues/4544")>
         Public Sub MultipleInitializationsWithAsNew_02()
             Dim source =
 <compilation>
