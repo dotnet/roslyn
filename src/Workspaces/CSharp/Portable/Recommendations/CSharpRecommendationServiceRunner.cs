@@ -443,7 +443,7 @@ internal partial class CSharpRecommendationService
                 CancellationToken cancellationToken)
             {
                 // Fine to offer primary constructor parameters in field/property initializers 
-                var initializer = context.TargetToken.GetAncestors<EqualsValueClauseSyntax>().FirstOrDefault();
+                var initializer = context.TargetToken.GetAncestor<EqualsValueClauseSyntax>();
                 if (initializer is
                     {
                         Parent: PropertyDeclarationSyntax or
