@@ -69,7 +69,7 @@ internal sealed class ThisKeywordRecommender() : AbstractSyntacticSingleKeywordR
         if (!context.IsNameOfContext)
             return false;
 
-        var attribute = token.GetRequiredAncestor<AttributeSyntax>();
+        var attribute = token.GetAncestor<AttributeSyntax>();
         if (attribute is null)
             return false;
 
