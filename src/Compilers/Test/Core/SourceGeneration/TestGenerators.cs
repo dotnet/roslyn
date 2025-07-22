@@ -202,15 +202,16 @@ namespace Roslyn.Test.Utilities.TestGenerators
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
-    internal sealed class RazorSourceGenerator : ISourceGenerator
+    /// <summary>
+    /// We check for the presence of the razor SG by full name
+    /// so we have to make sure this is the right name in the right namespace.
+    /// </summary>
+    internal sealed class RazorSourceGenerator(Action<GeneratorExecutionContext> execute) : ISourceGenerator
     {
         private int _callCount = 0;
 
         public void Initialize(GeneratorInitializationContext context) { }
 
-        public void Execute(GeneratorExecutionContext context)
-        {
-            context.AddSource("file.cs", $"// callCount: {_callCount++}");
-        }
+        public void Execute(GeneratorExecutionContext context) => execute(context);
     }
 }

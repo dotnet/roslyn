@@ -211,7 +211,7 @@ internal sealed partial class SolutionCompilationState
             if (creationPolicy == GeneratedDocumentCreationPolicy.CreateRequired)
             {
                 // the documents we got back are only for the required generators, meaning any documents from other generators remain the same. 
-                var generatorsThatRan = infos.Select(di => di.DocumentIdentity.Generator).Distinct().ToImmutableHashSet();
+                var generatorsThatRan = infos.Select(di => di.DocumentIdentity.Generator).Distinct().ToArray();
 
                 // go through the old docs and add any that aren't in the new set
                 foreach (var (_, oldDocumentState) in oldGeneratedDocuments.States)
@@ -300,6 +300,8 @@ internal sealed partial class SolutionCompilationState
             var generationDateTime = DateTime.Now;
             foreach (var generatorResult in runResult.Results)
             {
+                // When we only run required generators, there may be generators that didn't run at all, and so didn't produce any sources.
+                // Note that this is different from running and producing zero documents, in which case we still need to consider it.
                 if (generatorResult.GeneratedSources.IsDefault)
                     continue;
 

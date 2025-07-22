@@ -1488,9 +1488,11 @@ public sealed partial class ServiceHubServicesTests
         var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
         globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, executionPreference);
 
-        var callCount = 0;
-        var generator1 = new CallbackGenerator(() => ("hintName.cs", "// callCount: " + callCount++));
-        var generator2 = new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator();
+        var callBackCallCount = 0;
+        var generator1 = new CallbackGenerator(() => ("hintName.cs", "// callCount: " + callBackCallCount++));
+
+        var razorCallCount = 0;
+        var generator2 = new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator((c) => c.AddSource("file.cs", "// callCount: " + razorCallCount++));
 
         var projectId = ProjectId.CreateNewId();
         var project = workspace.CurrentSolution
@@ -1506,25 +1508,29 @@ public sealed partial class ServiceHubServicesTests
         Assert.True(workspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
 
         // Initial: all generators run
-        await ValidateSourceGeneratorDocuments(expectedCallback: 0,
-                                               expectedRazor: 0);
+        await ValidateSourceGeneratorDocuments(
+            expectedCallback: 0,
+            expectedRazor: 0);
 
         // Now, make a simple edit to the main document.
         Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(tempDoc.Id, SourceText.From("// new text"))));
 
-        await ValidateSourceGeneratorDocuments(expectedCallback: executionPreference == SourceGeneratorExecutionPreference.Automatic ? 1 : 0,
-                                               expectedRazor: 1);
+        await ValidateSourceGeneratorDocuments(
+            expectedCallback: executionPreference == SourceGeneratorExecutionPreference.Automatic ? 1 : 0,
+            expectedRazor: 1);
 
         // Get the documents again and ensure nothing ran
-        await ValidateSourceGeneratorDocuments(expectedCallback: executionPreference == SourceGeneratorExecutionPreference.Automatic ? 1 : 0,
-                                               expectedRazor: 1);
+        await ValidateSourceGeneratorDocuments(
+            expectedCallback: executionPreference == SourceGeneratorExecutionPreference.Automatic ? 1 : 0,
+            expectedRazor: 1);
 
         // Make another change, but this time enqueue an update too
         Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(tempDoc.Id, SourceText.From("// more new text"))));
         workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
 
-        await ValidateSourceGeneratorDocuments(expectedCallback: executionPreference == SourceGeneratorExecutionPreference.Automatic ? 2 : 1,
-                                               expectedRazor: 2);
+        await ValidateSourceGeneratorDocuments(
+            expectedCallback: executionPreference == SourceGeneratorExecutionPreference.Automatic ? 2 : 1,
+            expectedRazor: 2);
 
         async Task ValidateSourceGeneratorDocuments(int expectedCallback, int expectedRazor)
         {
