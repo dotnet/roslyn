@@ -2929,6 +2929,39 @@ namespace B
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77606")>
+        Public Async Function CompletionEnumTypeAndValues_Escaped() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+namespace A
+{
+    public enum Colors
+    {
+        @int,
+        @string
+    }
+}
+namespace B
+{
+    class Program
+    {
+        static void Main(A.Colors c)
+        {
+            switch (c)
+            {
+                case $$
+        }
+    }
+}                              </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors" AndAlso i.FilterText = "Colors")
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors.@int" AndAlso i.FilterText = "A.Colors.@int")
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors.@string" AndAlso i.FilterText = "A.Colors.@string")
+                Await state.AssertSelectedCompletionItem("A.Colors", isHardSelected:=True)
+            End Using
+        End Function
+
         <WorkItem("https://github.com/dotnet/roslyn/pull/49632")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionEnumTypeSelectionSequenceTest() As Task
@@ -11928,6 +11961,27 @@ public class C(int x) : Base(x)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsDoNotContainAny("x")
                 Await state.AssertCompletionItemsContainAll("X")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/78917")>
+        Public Async Function FilterPrimaryConstructorParameters_AllowInBaseTypeWhenCapturedAsMember() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public sealed class Derived(
+    string value)
+    : Base($"{val$$}")
+{
+    public string Value { get; } = value;
+}
+
+public abstract class Base(string value);
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("value", displayTextSuffix:="")
             End Using
         End Function
 

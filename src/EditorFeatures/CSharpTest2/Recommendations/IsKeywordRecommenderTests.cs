@@ -301,4 +301,19 @@ public sealed class IsKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78800")]
+    public Task TestAfterReturnExpression()
+        => VerifyKeywordAsync(
+            """
+            class C
+            {
+                public static string EvaluateRangeVariable()
+                {
+                    return RandomValue() $$
+                }
+
+                public int RandomValue() => 0;
+            }
+            """);
 }
