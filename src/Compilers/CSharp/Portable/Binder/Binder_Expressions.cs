@@ -10874,7 +10874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
                         }
 
-                        // Note: we only care about methods since we're already decided this is a method group (ie. not resolving to some other kind of extension member)
+                        // Note: we only care about methods. If the expression resolved to a non-method extension member, we wouldn't get here to compute the function type for the expression.
                         if (extensionMember is MethodSymbol m)
                         {
                             if (m.GetIsNewExtensionMember())
