@@ -7101,7 +7101,7 @@ Block[B4] - Exit
         }
 
         [Fact]
-        public static void ForEach_ExtensionGetEnumeratorParamsOnWrongType_IL()
+        public void ForEach_ExtensionGetEnumeratorParamsOnWrongType_IL()
         {
             string il = @"
 .class public auto ansi beforefieldinit C extends [mscorlib]System.Object
@@ -7219,7 +7219,7 @@ Block[B4] - Exit
         }
 
         [Fact]
-        public static void ForEach_ExtensionGetEnumeratorNonTrailingDefaultValue_IL()
+        public void ForEach_ExtensionGetEnumeratorNonTrailingDefaultValue_IL()
         {
             string il = @"
 .class public auto ansi beforefieldinit C extends [mscorlib]System.Object

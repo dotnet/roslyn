@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class NullConditionalAssignmentTests : SemanticModelTestBase
+    public class NullConditionalAssignmentTests() : SemanticModelTestBase(TargetFramework.Standard)
     {
         [Fact]
         public void LangVersion_01()

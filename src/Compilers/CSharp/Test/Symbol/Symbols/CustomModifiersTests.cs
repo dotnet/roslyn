@@ -1827,7 +1827,7 @@ class CL3 : CL2
         }
     }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Mscorlib40, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe, references: new[] { SystemCoreRef });
 
             System.Action<ModuleSymbol> validator = (m) =>
             {
@@ -2591,7 +2591,7 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Standard);
+            var compilation = CreateCompilationWithILAndStandard(source, ilSource, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
             var test2 = cl2.GetMember<PropertySymbol>("Test");
@@ -2705,7 +2705,7 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Standard);
+            var compilation = CreateCompilationWithILAndStandard(source, ilSource, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
             var test2 = cl2.GetMember<EventSymbol>("Test");
@@ -2799,7 +2799,7 @@ class CL3 : CL1
     public void Raise() => Test(null);
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Standard);
+            var compilation = CreateCompilationWithILAndStandard(source, ilSource, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
             var test2 = cl2.GetMember<EventSymbol>("Test");

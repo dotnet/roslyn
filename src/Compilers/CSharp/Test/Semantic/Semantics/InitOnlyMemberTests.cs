@@ -768,7 +768,7 @@ public class C
     public string Property { get => throw null; init { } }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilationWithNetStandard(source, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (4,49): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
                 //     public string Property { get => throw null; init { } }
@@ -4410,7 +4410,7 @@ public struct S
         [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
         public void InitOnlyOnReadonlyInit_ReassignsSelf()
         {
-            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+            var verifier = CompileAndVerifyWithNetStandard(new[] { IsExternalInitTypeDefinition, @"
 var s = new S { I1 = 1, I2 = 2 };
 System.Console.WriteLine($""I1 is {s.I1}"");
 

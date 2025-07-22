@@ -5787,7 +5787,7 @@ class Program
         await new StructAwaitable();
     }
 }";
-            var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "StructAwaitable");
         }
 
@@ -5820,7 +5820,7 @@ class Program
         await s;
     }
 }";
-            var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = base.CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "StructAwaitable");
         }
 
@@ -5930,7 +5930,7 @@ public class C {
     }
 }
 ";
-            var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseDll);
+            var comp = base.CreateCompilation(source, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyMethodBody("C.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
@@ -6054,7 +6054,7 @@ public class C
     }
 }
 ";
-            var comp = CSharpTestBase.CreateCompilation(source);
+            var comp = base.CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
         }
 

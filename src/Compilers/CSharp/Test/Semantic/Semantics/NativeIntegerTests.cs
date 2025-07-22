@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public class NativeIntegerTests : CSharpTestBase
+    public class NativeIntegerTests() : CSharpTestBase(TargetFramework.Standard)
     {
         internal static readonly ConversionKind[] Identity = new[] { ConversionKind.Identity };
         internal static readonly ConversionKind[] NoConversion = new[] { ConversionKind.NoConversion };

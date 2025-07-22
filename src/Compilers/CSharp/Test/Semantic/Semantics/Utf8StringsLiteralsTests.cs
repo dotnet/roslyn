@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class Utf8StringsLiteralsTests : CompilingTestBase
+    public class Utf8StringsLiteralsTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         private static string HelpersSource => @"
 class Helpers

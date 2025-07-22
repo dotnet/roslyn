@@ -3447,7 +3447,7 @@ IVariableDeclaratorOperation (Symbol: System.ReadOnlySpan<System.Char> span) (Op
                           IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'arg')
                 """;
 
-            comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
+            comp = CreateCompilationWithNetFrameworkAndSpan(source, parseOptions: TestOptions.Regular12);
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(comp, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }

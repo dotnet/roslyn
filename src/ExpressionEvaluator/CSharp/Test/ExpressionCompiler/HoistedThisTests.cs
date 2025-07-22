@@ -1423,7 +1423,7 @@ public class C
             CheckIteratorOverloading(source, m => m.ParameterCount == 0);
         }
 
-        private static void CheckIteratorOverloading(string source, Func<MethodSymbol, bool> isDesiredOverload)
+        private void CheckIteratorOverloading(string source, Func<MethodSymbol, bool> isDesiredOverload)
         {
             var comp1 = CreateCompilation(source, options: TestOptions.DebugDll);
             var ref1 = comp1.EmitToImageReference();

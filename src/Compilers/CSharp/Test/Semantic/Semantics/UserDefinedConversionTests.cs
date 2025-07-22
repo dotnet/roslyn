@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class UserDefinedConversionTests : CompilingTestBase
+    public partial class UserDefinedConversionTests() : CompilingTestBase(TargetFramework.Standard)
     {
         #region "Source"
         private readonly string _userDefinedConversionTestTemplate = @"

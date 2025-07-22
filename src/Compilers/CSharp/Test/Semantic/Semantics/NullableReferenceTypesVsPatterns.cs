@@ -2626,7 +2626,7 @@ class B { public static implicit operator C(B b) => new C(); }
             // slot during DAG analysis, instead of re-using the slot we might
             // get from the expression
 
-            var comp = CreateCompilation(@"
+            var comp = CreateCompilationWithNetStandard(@"
 #nullable enable
 
 public class C

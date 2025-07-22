@@ -232,7 +232,7 @@ public class B
             VerifyEmitDiagnostics(source2, compilation1);
         }
 
-        private static void VerifyEmitDiagnostics(string source2, CSharpCompilation compilation1, params DiagnosticDescription[] expectedDiagnostics)
+        private void VerifyEmitDiagnostics(string source2, CSharpCompilation compilation1, params DiagnosticDescription[] expectedDiagnostics)
         {
             var compilation2 = CreateCompilation(source2, new MetadataReference[] { new CSharpCompilationReference(compilation1) });
             compilation2.VerifyDiagnostics(expectedDiagnostics);

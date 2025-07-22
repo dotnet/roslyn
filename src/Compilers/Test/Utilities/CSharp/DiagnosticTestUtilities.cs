@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         protected internal static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string[] srcs, params ErrorDescription[] expectedErrorDesp)
         {
-            var comp = CSharpTestBase.CreateCompilation(srcs, parseOptions: TestOptions.RegularPreview);
+            var comp = CSharpTestBase.CreateCompilationWithNetStandard(srcs, parseOptions: TestOptions.RegularPreview);
             var actualErrors = comp.GetDiagnostics();
             VerifyErrorCodes(actualErrors, expectedErrorDesp);
             return comp;

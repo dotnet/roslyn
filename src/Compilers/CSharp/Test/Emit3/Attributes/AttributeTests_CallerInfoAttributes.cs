@@ -2294,7 +2294,7 @@ class Program
         typeof(Program).GetCustomAttribute(typeof(MyAttribute));
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateCompilationWithIL(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "'3', '0'").VerifyDiagnostics();
             var arguments = compilation.GetTypeByMetadataName("Program").GetAttributes().Single().CommonConstructorArguments;
             Assert.Equal(2, arguments.Length);
