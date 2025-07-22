@@ -15045,22 +15045,22 @@ class C<T> { }
 
         verifier.VerifyTypeIL("E", """
 .class private auto ansi abstract sealed beforefieldinit E
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 class C`1<int32> source
-            ) cil managed
+            ) cil managed 
         {
-            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
             )
             // Method begins at RVA 0x212c
@@ -15068,11 +15068,11 @@ class C<T> { }
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig
+        .method public hidebysig 
             instance class C`1<string> SelectMany (
-                class [netstandard]System.Func`2<int32, class C`1<int32>> collectionSelector,
-                class [netstandard]System.Func`3<int32, int32, string> resultSelector
-            ) cil managed
+                class [mscorlib]System.Func`2<int32, class C`1<int32>> collectionSelector,
+                class [mscorlib]System.Func`3<int32, int32, string> resultSelector
+            ) cil managed 
         {
             // Method begins at RVA 0x212e
             // Code size 2 (0x2)
@@ -15080,8 +15080,8 @@ class C<T> { }
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::SelectMany
-        .method public hidebysig
-            instance class C`1<!!T> Cast<T> () cil managed
+        .method public hidebysig 
+            instance class C`1<!!T> Cast<T> () cil managed 
         {
             // Method begins at RVA 0x212e
             // Code size 2 (0x2)
@@ -15091,42 +15091,42 @@ class C<T> { }
         } // end of method '<>E__0'::Cast
     } // end of class <>E__0
     // Methods
-    .method public hidebysig static
+    .method public hidebysig static 
         class C`1<string> SelectMany (
             class C`1<int32> source,
-            class [netstandard]System.Func`2<int32, class C`1<int32>> collectionSelector,
-            class [netstandard]System.Func`3<int32, int32, string> resultSelector
-        ) cil managed
+            class [mscorlib]System.Func`2<int32, class C`1<int32>> collectionSelector,
+            class [mscorlib]System.Func`3<int32, int32, string> resultSelector
+        ) cil managed 
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Method begins at RVA 0x20cb
         // Code size 16 (0x10)
         .maxstack 8
         IL_0000: ldstr "SelectMany"
-        IL_0005: call void [netstandard]System.Console::Write(string)
+        IL_0005: call void [mscorlib]System.Console::Write(string)
         IL_000a: newobj instance void class C`1<string>::.ctor()
         IL_000f: ret
     } // end of method E::SelectMany
-    .method public hidebysig static
+    .method public hidebysig static 
         class C`1<!!T> Cast<T> (
             class C`1<int32> source
-        ) cil managed
+        ) cil managed 
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Method begins at RVA 0x20dc
         // Code size 16 (0x10)
         .maxstack 8
         IL_0000: ldstr "Cast "
-        IL_0005: call void [netstandard]System.Console::Write(string)
+        IL_0005: call void [mscorlib]System.Console::Write(string)
         IL_000a: newobj instance void class C`1<!!T>::.ctor()
         IL_000f: ret
     } // end of method E::Cast
 } // end of class E
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var expectedOperationTree = """
 ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: C<System.String>) (Syntax: 'from int x  ... .ToString()')
