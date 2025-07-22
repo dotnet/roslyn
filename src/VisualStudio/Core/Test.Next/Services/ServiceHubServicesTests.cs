@@ -1480,6 +1480,71 @@ public sealed partial class ServiceHubServicesTests
         }
     }
 
+    [Theory, CombinatorialData]
+    internal async Task TestSourceGenerationExecution_RazorGeneratorAlwaysRuns_OtherGeneratorsRespectPreference(SourceGeneratorExecutionPreference executionPreference)
+    {
+        using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
+
+        var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, executionPreference);
+
+        var callCount = 0;
+        var generator1 = new CallbackGenerator(() => ("hintName.cs", "// callCount: " + callCount++));
+        var generator2 = new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator();
+
+        var projectId = ProjectId.CreateNewId();
+        var project = workspace.CurrentSolution
+            .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
+            .GetRequiredProject(projectId)
+            .WithCompilationOutputInfo(new CompilationOutputInfo(
+                assemblyPath: Path.Combine(TempRoot.Root, "Test.dll"),
+                generatedFilesOutputDirectory: null))
+            .AddAnalyzerReference(new TestGeneratorReference(generator1))
+            .AddAnalyzerReference(new TestGeneratorReference(generator2));
+        var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
+
+        Assert.True(workspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
+
+        // Initial: all generators run
+        await ValidateSourceGeneratorDocuments(expectedCallback: 0,
+                                               expectedRazor: 0);
+
+        // Now, make a simple edit to the main document.
+        Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(tempDoc.Id, SourceText.From("// new text"))));
+
+        await ValidateSourceGeneratorDocuments(expectedCallback: executionPreference == SourceGeneratorExecutionPreference.Automatic ? 1 : 0,
+                                               expectedRazor: 1);
+
+        // Get the documents again and ensure nothing ran
+        await ValidateSourceGeneratorDocuments(expectedCallback: executionPreference == SourceGeneratorExecutionPreference.Automatic ? 1 : 0,
+                                               expectedRazor: 1);
+
+        // Make another change, but this time enqueue an update too
+        Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(tempDoc.Id, SourceText.From("// more new text"))));
+        workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
+
+        await ValidateSourceGeneratorDocuments(expectedCallback: executionPreference == SourceGeneratorExecutionPreference.Automatic ? 2 : 1,
+                                               expectedRazor: 2);
+
+        async Task ValidateSourceGeneratorDocuments(int expectedCallback, int expectedRazor)
+        {
+            await WaitForSourceGeneratorsAsync(workspace);
+            var project = workspace.CurrentSolution.Projects.Single();
+            var documents = await project.GetSourceGeneratedDocumentsAsync();
+
+            await AssertDocumentTextForGenerator(documents, "Roslyn.Test.Utilities.TestGenerators.CallbackGenerator", expectedCallback);
+            await AssertDocumentTextForGenerator(documents, "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", expectedRazor);
+        }
+
+        async static Task AssertDocumentTextForGenerator(IEnumerable<SourceGeneratedDocument> docs, string generatorTypeName, int expectedCount)
+        {
+            var text = await docs
+                    .Single(d => d.Identity.Generator.TypeName == generatorTypeName)
+                    .GetTextAsync();
+            Assert.Equal($"// callCount: {expectedCount}", text.ToString());
+        }
+    }
+
     private static async Task<Solution> VerifyIncrementalUpdatesAsync(
         TestWorkspace localWorkspace,
         Workspace remoteWorkspace,

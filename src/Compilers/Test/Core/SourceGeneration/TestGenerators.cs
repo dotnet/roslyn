@@ -199,3 +199,18 @@ namespace Roslyn.Test.Utilities.TestGenerators
         public void Initialize(IncrementalGeneratorInitializationContext context) => _onInit(context);
     }
 }
+
+namespace Microsoft.NET.Sdk.Razor.SourceGenerators
+{
+    internal sealed class RazorSourceGenerator : ISourceGenerator
+    {
+        private int _callCount = 0;
+
+        public void Initialize(GeneratorInitializationContext context) { }
+
+        public void Execute(GeneratorExecutionContext context)
+        {
+            context.AddSource("file.cs", $"// callCount: {_callCount++}");
+        }
+    }
+}
