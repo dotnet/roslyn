@@ -828,7 +828,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments,
             bool isNewExtensionMethod)
         {
-            //Debug.Assert(receiver is null || !isNewExtensionMethod);
             Debug.Assert(interpolationData.ReceiverPlaceholder is not null);
             placeholders.Add((interpolationData.ReceiverPlaceholder, SafeContextAndLocation.Create(_localScopeDepth)));
 
