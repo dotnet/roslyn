@@ -593,32 +593,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!node.HasErrors && node.Operator.Method is { } compoundMethod)
             {
-                if (compoundMethod.IsStatic)
-                {
-                    CheckInvocationArgMixing(
-                        node.Syntax,
-                        MethodInvocationInfo.FromCompoundAssignmentOperator(node),
-                        _localScopeDepth,
-                        compoundMethod,
-                        _diagnostics);
-                }
-                else
-                {
-                    CheckInvocationArgMixing(
-                        node.Syntax,
-                        new MethodInvocationInfo
-                        {
-                            MethodInfo = MethodInfo.Create(compoundMethod),
-                            ReceiverOpt = node.Left,
-                            ReceiverIsSubjectToCloning = ThreeState.False,
-                            Parameters = compoundMethod.Parameters,
-                            ArgsOpt = [node.Right],
-                            HasAnyErrors = false
-                        },
-                        _localScopeDepth,
-                        compoundMethod,
-                        _diagnostics);
+                var methodInvocationInfo = MethodInvocationInfo.FromCompoundAssignmentOperator(node);
+                methodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
+                CheckInvocationArgMixing(
+                    node.Syntax,
+                    methodInvocationInfo,
+                    _localScopeDepth,
+                    symbolForReporting: compoundMethod,
+                    _diagnostics);
 
+                if (!compoundMethod.IsStatic)
+                {
                     return null;
                 }
             }

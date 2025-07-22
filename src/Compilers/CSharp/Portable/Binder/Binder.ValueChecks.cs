@@ -267,14 +267,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public static MethodInvocationInfo FromCompoundAssignmentOperator(BoundCompoundAssignmentOperator compoundOperator)
             {
-                Debug.Assert(compoundOperator.Operator.Method is not null);
+                var method = compoundOperator.Operator.Method;
+                Debug.Assert(method is not null);
                 return new MethodInvocationInfo
                 {
-                    MethodInfo = MethodInfo.Create(compoundOperator.Operator.Method),
-                    ReceiverOpt = null,
-                    ReceiverIsSubjectToCloning = ThreeState.Unknown,
-                    Parameters = compoundOperator.Operator.Method.Parameters,
-                    ArgsOpt = [compoundOperator.Left, compoundOperator.Right],
+                    MethodInfo = MethodInfo.Create(method),
+                    ReceiverOpt = method.IsStatic ? null : compoundOperator.Left,
+                    ReceiverIsSubjectToCloning = method.IsStatic ? ThreeState.Unknown : ThreeState.False,
+                    Parameters = method.Parameters,
+                    ArgsOpt = method.IsStatic ? [compoundOperator.Left, compoundOperator.Right] : [compoundOperator.Right],
                     ArgumentRefKindsOpt = default,
                     ArgsToParamsOpt = default,
                     HasAnyErrors = compoundOperator.HasAnyErrors
