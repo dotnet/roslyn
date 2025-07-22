@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 VisitReceiver(methodInvocationInfo);
 
-                var nodeAndInvocationInfo = calls.Pop();
+                var nodeAndInvocationInfo = (call: node, methodInvocationInfo);
                 do
                 {
                     VisitArguments(nodeAndInvocationInfo.call, nodeAndInvocationInfo.methodInvocationInfo);
