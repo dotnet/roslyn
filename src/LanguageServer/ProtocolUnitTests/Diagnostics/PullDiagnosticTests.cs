@@ -680,6 +680,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         // First diagnostic request should report a diagnostic since the generator does not produce any source (text does not match).
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
+        var firstResultId = results.Single().ResultId;
         var diagnostic = AssertEx.Single(results.Single().Diagnostics);
         Assert.Equal("CS0103", diagnostic.Code);
 
@@ -703,7 +704,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         }
 
         await testLspServer.WaitForSourceGeneratorsAsync();
-        results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
+        results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics, previousResultId: firstResultId);
+        var secondResultId = results.Single().ResultId;
 
         if (executionPreference == SourceGeneratorExecutionPreference.Automatic)
         {
@@ -712,15 +714,18 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         }
         else
         {
-            // In balanced mode, the diagnostic should remain until there is a manual source generator run that updates the sg text.
-            diagnostic = AssertEx.Single(results.Single().Diagnostics);
-            Assert.Equal("CS0103", diagnostic.Code);
+            // In balanced mode, the diagnostic should be unchanged until there is a manual source generator run that updates the sg text.
+            Assert.Null(results.Single().Diagnostics);
+            Assert.Equal(firstResultId, secondResultId);
 
             testLspServer.TestWorkspace.EnqueueUpdateSourceGeneratorVersion(document.Project.Id, forceRegeneration: false);
             await testLspServer.WaitForSourceGeneratorsAsync();
 
-            results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
+            results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics, previousResultId: secondResultId);
+            var thirdResultId = results.Single().ResultId;
+            AssertEx.NotNull(results.Single().Diagnostics);
             Assert.Empty(results.Single().Diagnostics!);
+            Assert.NotEqual(firstResultId, thirdResultId);
         }
     }
 

@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.Decompiler.Solution;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -29,13 +30,16 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// the version stamp but not the content (for example, forking LSP text).
     /// </summary>
     private sealed class DiagnosticsPullCache(IGlobalOptionService globalOptions, string uniqueKey)
-        : VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion), (int globalStateVersion, Checksum dependentChecksum), DiagnosticsRequestState, ImmutableArray<DiagnosticData>>(uniqueKey)
+        : VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion, Checksum? executionVersion), (int globalStateVersion, Checksum dependentChecksum), DiagnosticsRequestState, ImmutableArray<DiagnosticData>>(uniqueKey)
     {
         private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-        public override async Task<(int globalStateVersion, VersionStamp? dependentVersion)> ComputeCheapVersionAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
+        public override async Task<(int globalStateVersion, VersionStamp? dependentVersion, Checksum? executionVersion)> ComputeCheapVersionAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
         {
-            return (state.GlobalStateVersion, await state.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false));
+            Checksum? executionVersion = state.Project.Solution.CompilationState.SourceGeneratorExecutionVersionMap.Map.TryGetValue(state.Project.Id, out var sourceGeneratorExecutionVersion) ?
+                sourceGeneratorExecutionVersion.Checksum : null;
+
+            return (state.GlobalStateVersion, await state.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false), executionVersion);
         }
 
         public override async Task<(int globalStateVersion, Checksum dependentChecksum)> ComputeExpensiveVersionAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
