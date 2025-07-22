@@ -30,13 +30,13 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
     }
 
     public ValueTask<ImmutableArray<SourceGeneratedDocumentInfo>> GetSourceGeneratedDocumentInfoAsync(
-        Checksum solutionChecksum, ProjectId projectId, bool withFrozenSourceGeneratedDocuments, bool requiredDocumentsOnly, CancellationToken cancellationToken)
+        Checksum solutionChecksum, ProjectId projectId, bool withFrozenSourceGeneratedDocuments, bool forceOnlyRequiredDocuments, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
             var project = solution.GetRequiredProject(projectId);
             var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(
-                project.State, withFrozenSourceGeneratedDocuments, requiredDocumentsOnly, cancellationToken).ConfigureAwait(false);
+                project.State, withFrozenSourceGeneratedDocuments, forceOnlyRequiredDocuments, cancellationToken).ConfigureAwait(false);
 
             var result = new FixedSizeArrayBuilder<SourceGeneratedDocumentInfo>(documentStates.States.Count);
             foreach (var (id, state) in documentStates.States)
@@ -56,7 +56,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         {
             var project = solution.GetRequiredProject(projectId);
             var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(
-                project.State, withFrozenSourceGeneratedDocuments, requiredDocumentsOnly: false, cancellationToken).ConfigureAwait(false);
+                project.State, withFrozenSourceGeneratedDocuments, forceOnlyRequiredDocuments: false, cancellationToken).ConfigureAwait(false);
 
             var result = new FixedSizeArrayBuilder<string>(documentIds.Length);
             foreach (var id in documentIds)

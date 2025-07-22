@@ -1240,16 +1240,22 @@ internal sealed partial class SolutionCompilationState
     /// Returns the generated document states for source generated documents.
     /// </summary>
     public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(ProjectState project, CancellationToken cancellationToken)
-        => GetSourceGeneratedDocumentStatesAsync(project, withFrozenSourceGeneratedDocuments: true, requiredDocumentsOnly: false, cancellationToken);
+        => GetSourceGeneratedDocumentStatesAsync(project, withFrozenSourceGeneratedDocuments: true, forceOnlyRequiredDocuments: false, cancellationToken);
 
     /// <inheritdoc cref="GetSourceGeneratedDocumentStatesAsync(ProjectState, CancellationToken)"/>
     public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
-        ProjectState project, bool withFrozenSourceGeneratedDocuments, bool requiredDocumentsOnly, CancellationToken cancellationToken)
+        ProjectState project, bool withFrozenSourceGeneratedDocuments, bool forceOnlyRequiredDocuments, CancellationToken cancellationToken)
     {
-        var creationPolicy = requiredDocumentsOnly ? CreationPolicy.DoNotCreate : CreationPolicy.Create;
-        return project.SupportsCompilation
-            ? GetCompilationTracker(project.Id, creationPolicy).GetSourceGeneratedDocumentStatesAsync(this, withFrozenSourceGeneratedDocuments, cancellationToken)
-            : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
+        if (!project.SupportsCompilation)
+            return new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
+
+        var tracker = forceOnlyRequiredDocuments
+                    ? GetCompilationTracker(project.Id, CreationPolicy.DoNotCreate)
+                    : GetCompilationTracker(project.Id);
+
+        Debug.Assert(!forceOnlyRequiredDocuments || tracker.GetCreationPolicy().GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.CreateRequired);
+
+        return tracker.GetSourceGeneratedDocumentStatesAsync(this, withFrozenSourceGeneratedDocuments, cancellationToken);
     }
 
     public ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(

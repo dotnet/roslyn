@@ -90,7 +90,7 @@ internal sealed partial class SolutionCompilationState
                 compilationState,
                 projectId,
                 (service, solutionChecksum, cancellationToken) => service.GetSourceGeneratedDocumentInfoAsync(
-                    solutionChecksum, projectId, withFrozenSourceGeneratedDocuments: false, requiredDocumentsOnly: creationPolicy == GeneratedDocumentCreationPolicy.CreateRequired, cancellationToken),
+                    solutionChecksum, projectId, withFrozenSourceGeneratedDocuments: false, forceOnlyRequiredDocuments: creationPolicy == GeneratedDocumentCreationPolicy.CreateRequired, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!infosOpt.HasValue)
