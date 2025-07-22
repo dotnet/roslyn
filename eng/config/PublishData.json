@@ -182,8 +182,8 @@
         "NonShipping"
       ],
       "vsBranch": "main",
-      "insertionTitlePrefix": "[dNext]",
-      "insertionCreateDraftPR": false
+      "insertionTitlePrefix": "[Validation]",
+      "insertionCreateDraftPR": true
     },
     "main": {
       "nugetKind": [
@@ -200,8 +200,8 @@
         "NonShipping"
       ],
       "vsBranch": "main",
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[dNext.1]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[dNext]"
     }
   }
 }

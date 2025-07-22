@@ -10,17 +10,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Debugging</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoConstants.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoEncoder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoKind.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoReader.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoRecord.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)DynamicLocalInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImportTargetKind.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)PortableCustomDebugInfoKinds.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)StateMachineHoistedLocalScope.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TupleElementNamesInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)VBImportScopeKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)**\*.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />

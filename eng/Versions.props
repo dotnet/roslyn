@@ -32,15 +32,15 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
     <MicrosoftIORedistVersion>6.0.1</MicrosoftIORedistVersion>
-    <SystemBuffersVersion>4.5.1</SystemBuffersVersion>
+    <SystemBuffersVersion>4.6.1</SystemBuffersVersion>
     <!--
     Microsoft.TeamFoundationServer.Client is referencing System.Data.SqlClient causing CG alert
     When it updates its referenced System.Data.SqlClient version this should be removed
     -->
     <SystemDataSqlClientVersion>4.8.6</SystemDataSqlClientVersion>
-    <SystemMemoryVersion>4.5.5</SystemMemoryVersion>
-    <SystemNumericsVectorsVersion>4.5.0</SystemNumericsVectorsVersion>
-    <SystemRuntimeCompilerServicesUnsafeVersion>6.0.0</SystemRuntimeCompilerServicesUnsafeVersion>
+    <SystemMemoryVersion>4.6.3</SystemMemoryVersion>
+    <SystemNumericsVectorsVersion>4.6.1</SystemNumericsVectorsVersion>
+    <SystemRuntimeCompilerServicesUnsafeVersion>6.1.2</SystemRuntimeCompilerServicesUnsafeVersion>
     <SystemThreadingTasksExtensionsVersion>4.5.4</SystemThreadingTasksExtensionsVersion>
     <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
   </PropertyGroup>
@@ -147,7 +147,7 @@
     <UsingToolXUnit>false</UsingToolXUnit>
     <UseVSTestRunner>true</UseVSTestRunner>
     <!-- Prohibit the usage of .NET Standard 1.x dependencies. -->
-    <FlagNetStandard1XDependencies Condition="'$(DotNetBuildSourceOnly)' == 'true' and '$(DotNetBuildOrchestrator)' == 'true'">true</FlagNetStandard1XDependencies>
+    <FlagNetStandard1XDependencies Condition="'$(DotNetBuildSourceOnly)' == 'true' and '$(DotNetBuildFromVMR)' == 'true'">true</FlagNetStandard1XDependencies>
   </PropertyGroup>
   <PropertyGroup>
     <!--

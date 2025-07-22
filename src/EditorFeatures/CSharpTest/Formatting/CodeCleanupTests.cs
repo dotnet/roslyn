@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,6 +53,116 @@ public sealed partial class CodeCleanupTests
                 static void Main(string[] args)
                 {
                     Console.WriteLine();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79463")]
+    public Task RemoveUsings_NotWithSyntaxError()
+    {
+        return AssertCodeCleanupResult("""
+            using System;
+            using System.Collections.Generic;
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    Console.WriteLine()
+                }
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Console.WriteLine()
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79463")]
+    public Task RemoveUsings_WithSemanticError()
+    {
+        return AssertCodeCleanupResult("""
+            using System;
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    Console.WriteLine1();
+                }
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Console.WriteLine1();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79463")]
+    public Task RemoveUsings_WithMergeMarker_NoSyntaxError()
+    {
+        return AssertCodeCleanupResult("""
+            using System;
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    Console.WriteLine();
+                }
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            internal class Program
+            {
+                static void Main(string[] args)
+                {
+            <<<<<<< 
+                    Console.WriteLine();
+            ======= 
+                    List<int> list = [];
+            >>>>>>> 
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79463")]
+    public Task RemoveUsings_WithMergeMarker_SyntaxError()
+    {
+        return AssertCodeCleanupResult("""
+            using System;
+            using System.Collections.Generic;
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    Console.WriteLine()
+                }
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            internal class Program
+            {
+                static void Main(string[] args)
+                {
+            <<<<<<< 
+                    Console.WriteLine()
+            ======= 
+                    List<int> list = [];
+            >>>>>>> 
                 }
             }
             """);
@@ -728,7 +837,7 @@ public sealed partial class CodeCleanupTests
         return TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(code, expected, severity);
     }
 
-    private static async Task TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(string code = null, string expected = null, DiagnosticSeverity severity = DiagnosticSeverity.Warning)
+    private static async Task TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(string? code = null, string? expected = null, DiagnosticSeverity severity = DiagnosticSeverity.Warning)
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodefix : CodeFixProvider, new()
     {
@@ -750,14 +859,14 @@ public sealed partial class CodeCleanupTests
         };
 
         project = project.AddAnalyzerReference(new TestAnalyzerReferenceByLanguage(map));
-        project = project.Solution.WithProjectFilePath(project.Id, @$"z:\\{project.FilePath}").GetProject(project.Id);
+        project = project.Solution.WithProjectFilePath(project.Id, @$"z:\\{project.FilePath}").GetRequiredProject(project.Id);
         project = project.AddAnalyzerConfigDocument(".editorconfig", SourceText.From(editorconfigText), filePath: @"z:\\.editorconfig").Project;
         workspace.TryApplyChanges(project.Solution);
 
         var hostdoc = workspace.Documents.Single();
-        var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
+        var document = workspace.CurrentSolution.GetRequiredDocument(hostdoc.Id);
 
-        var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+        var codeCleanupService = document.GetRequiredLanguageService<ICodeCleanupService>();
 
         var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
@@ -772,28 +881,21 @@ public sealed partial class CodeCleanupTests
     {
         using var workspace = GetTestWorkspaceForLanguage(language);
         var hostdoc = workspace.Documents.Single();
-        var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
+        var document = workspace.CurrentSolution.GetRequiredDocument(hostdoc.Id);
 
-        var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+        var codeCleanupService = document.GetRequiredLanguageService<ICodeCleanupService>();
 
         var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
         var supportedDiagnostics = enabledDiagnostics.Diagnostics.SelectMany(x => x.DiagnosticIds).ToArray();
         return supportedDiagnostics;
 
         static EditorTestWorkspace GetTestWorkspaceForLanguage(string language)
-        {
-            if (language == LanguageNames.CSharp)
+            => language switch
             {
-                return EditorTestWorkspace.CreateCSharp(string.Empty, composition: EditorTestCompositions.EditorFeatures);
-            }
-
-            if (language == LanguageNames.VisualBasic)
-            {
-                return EditorTestWorkspace.CreateVisualBasic(string.Empty, composition: EditorTestCompositions.EditorFeatures);
-            }
-
-            return null;
-        }
+                LanguageNames.CSharp => EditorTestWorkspace.CreateCSharp(string.Empty, composition: EditorTestCompositions.EditorFeatures),
+                LanguageNames.VisualBasic => EditorTestWorkspace.CreateVisualBasic(string.Empty, composition: EditorTestCompositions.EditorFeatures),
+                _ => throw ExceptionUtilities.Unreachable()
+            };
     }
 
     /// <summary>
@@ -806,7 +908,13 @@ public sealed partial class CodeCleanupTests
     /// <param name="enabledFixIdsFilter">Optional filter to determine if a specific fix ID is explicitly enabled for cleanup.</param>
     /// <param name="diagnosticIdsWithSeverity">Optional list of diagnostic IDs with effective severities to be configured in editorconfig.</param>
     /// <returns>The <see cref="Task"/> to test code cleanup.</returns>
-    private static Task AssertCodeCleanupResult(string expected, string code, bool systemUsingsFirst = true, bool separateUsingGroups = false, Func<string, bool> enabledFixIdsFilter = null, (string, DiagnosticSeverity)[] diagnosticIdsWithSeverity = null)
+    private static Task AssertCodeCleanupResult(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
+        bool systemUsingsFirst = true,
+        bool separateUsingGroups = false,
+        Func<string, bool>? enabledFixIdsFilter = null,
+        (string, DiagnosticSeverity)[]? diagnosticIdsWithSeverity = null)
         => AssertCodeCleanupResult(expected, code, new(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent), systemUsingsFirst, separateUsingGroups, enabledFixIdsFilter, diagnosticIdsWithSeverity);
 
     /// <summary>
@@ -820,7 +928,14 @@ public sealed partial class CodeCleanupTests
     /// <param name="enabledFixIdsFilter">Optional filter to determine if a specific fix ID is explicitly enabled for cleanup.</param>
     /// <param name="diagnosticIdsWithSeverity">Optional list of diagnostic IDs with effective severities to be configured in editorconfig.</param>
     /// <returns>The <see cref="Task"/> to test code cleanup.</returns>
-    private static async Task AssertCodeCleanupResult(string expected, string code, CodeStyleOption2<AddImportPlacement> preferredImportPlacement, bool systemUsingsFirst = true, bool separateUsingGroups = false, Func<string, bool> enabledFixIdsFilter = null, (string, DiagnosticSeverity)[] diagnosticIdsWithSeverity = null)
+    private static async Task AssertCodeCleanupResult(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
+        CodeStyleOption2<AddImportPlacement> preferredImportPlacement,
+        bool systemUsingsFirst = true,
+        bool separateUsingGroups = false,
+        Func<string, bool>? enabledFixIdsFilter = null,
+        (string, DiagnosticSeverity)[]? diagnosticIdsWithSeverity = null)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeatures);
 
@@ -854,9 +969,9 @@ public sealed partial class CodeCleanupTests
         workspace.TryApplyChanges(solution);
 
         var hostdoc = workspace.Documents.Single();
-        var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
+        var document = workspace.CurrentSolution.GetRequiredDocument(hostdoc.Id);
 
-        var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+        var codeCleanupService = document.GetRequiredLanguageService<ICodeCleanupService>();
 
         var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
@@ -868,18 +983,18 @@ public sealed partial class CodeCleanupTests
 
         var actual = await newDoc.GetTextAsync();
 
-        Assert.Equal(expected, actual.ToString());
+        AssertEx.Equal(expected, actual.ToString());
     }
 
     private static readonly CodeStyleOption2<AddImportPlacement> InsideNamespaceOption =
-        new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error);
+        new(AddImportPlacement.InsideNamespace, NotificationOption2.Error);
 
     private static readonly CodeStyleOption2<AddImportPlacement> OutsideNamespaceOption =
-        new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption2.Error);
+        new(AddImportPlacement.OutsideNamespace, NotificationOption2.Error);
 
     private static readonly CodeStyleOption2<AddImportPlacement> InsidePreferPreservationOption =
-        new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.None);
+        new(AddImportPlacement.InsideNamespace, NotificationOption2.None);
 
     private static readonly CodeStyleOption2<AddImportPlacement> OutsidePreferPreservationOption =
-        new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption2.None);
+        new(AddImportPlacement.OutsideNamespace, NotificationOption2.None);
 }

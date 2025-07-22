@@ -6,17 +6,29 @@ using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SemanticSearch;
 
-internal interface ISemanticSearchResultsObserver
+internal interface ISemanticSearchResultsCommonObserver
 {
     ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken);
-    ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken);
     ValueTask AddItemsAsync(int itemCount, CancellationToken cancellationToken);
     ValueTask ItemsCompletedAsync(int itemCount, CancellationToken cancellationToken);
+}
+
+internal interface ISemanticSearchResultsObserver : ISemanticSearchResultsCommonObserver
+{
+    ValueTask OnSymbolFoundAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken);
+}
+
+internal interface ISemanticSearchResultsDefinitionObserver : ISemanticSearchResultsCommonObserver
+{
+    ValueTask<ClassificationOptions> GetClassificationOptionsAsync(LanguageServices language, CancellationToken cancellationToken);
+    ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken);
 }
 
 [DataContract]
