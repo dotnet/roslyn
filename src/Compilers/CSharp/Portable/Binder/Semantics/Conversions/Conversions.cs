@@ -258,16 +258,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteInfo: ref useSiteInfo,
                     options: OverloadResolution.Options.InferWithDynamic | OverloadResolution.Options.IsMethodGroupConversion |
                              (isFunctionPointer ? OverloadResolution.Options.IsFunctionPointerResolution : OverloadResolution.Options.None),
-                    returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType,
+                    acceptOnlyMethods: true, returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType,
                     callingConventionInfo: callingConventionInfo);
                 analyzedArguments.Free();
             }
             else
             {
-                resolution = binder.ResolveMethodGroup(source, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.IsMethodGroupConversion);
+                resolution = binder.ResolveMethodGroup(source, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.IsMethodGroupConversion, acceptOnlyMethods: true);
             }
 
-            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _)); // we wouldn't be looking at a method group conversion in the first place if the source resolved to a non-method extension member
+            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _));
             return resolution;
         }
 
