@@ -166,28 +166,6 @@ extends:
           condition: succeeded()
 
         - task: Powershell@2
-          name: FancyBuild
-          displayName: Setting FancyBuild.BuildNumber
-          inputs:
-            targetType: inline
-            script: |
-              $pull_request = Invoke-RestMethod -Uri "https://api.github.com/repos/dotnet/roslyn/pulls/${{ parameters.PRNumber }}" `
-              -Headers @{
-                "Accept" = "application/vnd.github+json";
-                "X-GitHub-Api-Version" = "2022-11-28"
-              }
-              $buildNumberName = "$(OriginalBuildNumber) - $($pull_request.user.login) - '$($pull_request.title)'"
-              $buildNumberName = $buildNumberName -replace '["/:<>\|?@*]','_'
-              # Maximum buildnumber length is 255 chars and we are going to append to the end to ensure we have space.
-              if ($buildNumberName.Length -GT 253) {
-                $buildNumberName = $buildNumberName.Substring(0, 253)
-              }
-              # Avoid ever ending the BuildNumber with a `.` by always appending to it.
-              $buildNumberName += ' #'
-              Write-Host "##vso[task.setvariable variable=BuildNumber;isoutput=true;isreadonly=true]$buildNumberName"
-              Write-Host "##vso[build.updatebuildnumber]$buildNumberName"
-
-        - task: Powershell@2
           displayName: Tag PR validation build
           inputs:
             targetType: inline
@@ -203,6 +181,25 @@ extends:
             filePath: 'eng\setup-pr-validation.ps1'
             arguments: "-sourceBranchName $(SourceBranchName) -prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
           condition: succeeded()
+
+        - task: Powershell@2
+          name: FancyBuild
+          displayName: Setting FancyBuild.BuildNumber
+          inputs:
+            targetType: inline
+            script: |
+              $authorName = git log -1 --pretty=format:"%an" ${{ parameters.CommitSHA }}
+
+              $buildNumberName = "$(OriginalBuildNumber) - $($authorName) - '${{ parameters.PRNumber }}'"
+              $buildNumberName = $buildNumberName -replace '["/:<>\|?@*]','_'
+              # Maximum buildnumber length is 255 chars and we are going to append to the end to ensure we have space.
+              if ($buildNumberName.Length -GT 253) {
+                $buildNumberName = $buildNumberName.Substring(0, 253)
+              }
+              # Avoid ever ending the BuildNumber with a `.` by always appending to it.
+              $buildNumberName += ' #'
+              Write-Host "##vso[task.setvariable variable=BuildNumber;isoutput=true;isreadonly=true]$buildNumberName"
+              Write-Host "##vso[build.updatebuildnumber]$buildNumberName"
 
         - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(OriginalBuildNumber)"
           displayName: Setting VisualStudio.DropName variable
