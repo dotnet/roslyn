@@ -1151,17 +1151,7 @@ internal sealed partial class SolutionCompilationState
     private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out ICompilationTracker? tracker)
         => _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
 
-    private static readonly Func<ProjectId, (SolutionState, CreationPolicy), RegularCompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
-
-    private static RegularCompilationTracker CreateCompilationTracker(ProjectId projectId, (SolutionState solution, CreationPolicy CreationPolicy) data)
-    {
-        var tracker = CreateCompilationTracker(projectId, data.solution);
-        if (data.CreationPolicy == CreationPolicy.DoNotCreate)
-        {
-            tracker = tracker.WithDoNotCreateCreationPolicy();
-        }
-        return tracker;
-    }
+    private static readonly Func<ProjectId, SolutionState, RegularCompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
 
     private static RegularCompilationTracker CreateCompilationTracker(ProjectId projectId, SolutionState solution)
     {
@@ -1170,13 +1160,11 @@ internal sealed partial class SolutionCompilationState
         return new RegularCompilationTracker(projectState);
     }
 
-    private ICompilationTracker GetCompilationTracker(ProjectId projectId) => GetCompilationTracker(projectId, creationPolicy: CreationPolicy.Create);
-
-    private ICompilationTracker GetCompilationTracker(ProjectId projectId, CreationPolicy creationPolicy)
+    private ICompilationTracker GetCompilationTracker(ProjectId projectId)
     {
         if (!_projectIdToTrackerMap.TryGetValue(projectId, out var tracker))
         {
-            tracker = RoslynImmutableInterlocked.GetOrAdd(ref _projectIdToTrackerMap, projectId, s_createCompilationTrackerFunction, (this.SolutionState, creationPolicy));
+            tracker = RoslynImmutableInterlocked.GetOrAdd(ref _projectIdToTrackerMap, projectId, s_createCompilationTrackerFunction, this.SolutionState);
         }
 
         return tracker;
@@ -1236,18 +1224,34 @@ internal sealed partial class SolutionCompilationState
             : project.HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;
     }
 
+    public SolutionCompilationState WithForceOnlyRequiredGenerators(ProjectId projectId)
+    {
+        if (!_projectIdToTrackerMap.TryGetValue(projectId, out var tracker))
+        {
+            // we don't have a tracker for this yet, create one with the correct policy
+            tracker = RoslynImmutableInterlocked.GetOrAdd(
+                ref _projectIdToTrackerMap,
+                projectId,
+                static (id, solutionState) => CreateCompilationTracker(id, solutionState).WithDoNotCreateCreationPolicy(),
+                SolutionState);
+        }
+
+        Debug.Assert(tracker.GetCreationPolicy().GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.CreateRequired);
+        return this;
+    }
+
     /// <summary>
     /// Returns the generated document states for source generated documents.
     /// </summary>
     public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(ProjectState project, CancellationToken cancellationToken)
-        => GetSourceGeneratedDocumentStatesAsync(project, withFrozenSourceGeneratedDocuments: true, forceOnlyRequiredDocuments: false, cancellationToken);
+        => GetSourceGeneratedDocumentStatesAsync(project, withFrozenSourceGeneratedDocuments: true, cancellationToken);
 
     /// <inheritdoc cref="GetSourceGeneratedDocumentStatesAsync(ProjectState, CancellationToken)"/>
     public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
-        ProjectState project, bool withFrozenSourceGeneratedDocuments, bool forceOnlyRequiredDocuments, CancellationToken cancellationToken)
+        ProjectState project, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)
     {
         return project.SupportsCompilation
-            ? GetCompilationTrackerForGeneratedDocuments(project.Id, forceOnlyRequiredDocuments).GetSourceGeneratedDocumentStatesAsync(this, withFrozenSourceGeneratedDocuments, cancellationToken)
+            ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, withFrozenSourceGeneratedDocuments, cancellationToken)
             : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
     }
 
@@ -1255,7 +1259,7 @@ internal sealed partial class SolutionCompilationState
         ProjectState project, CancellationToken cancellationToken)
     {
         return project.SupportsCompilation
-            ? GetCompilationTrackerForGeneratedDocuments(project.Id, forceOnlyRequiredDocuments: false).GetSourceGeneratorDiagnosticsAsync(this, cancellationToken)
+            ? GetCompilationTracker(project.Id).GetSourceGeneratorDiagnosticsAsync(this, cancellationToken)
             : new([]);
     }
 
@@ -1263,19 +1267,8 @@ internal sealed partial class SolutionCompilationState
     ProjectState project, CancellationToken cancellationToken)
     {
         return project.SupportsCompilation
-            ? GetCompilationTrackerForGeneratedDocuments(project.Id, forceOnlyRequiredDocuments: false).GetSourceGeneratorRunResultAsync(this, cancellationToken)
+            ? GetCompilationTracker(project.Id).GetSourceGeneratorRunResultAsync(this, cancellationToken)
             : new();
-    }
-
-    private ICompilationTracker GetCompilationTrackerForGeneratedDocuments(ProjectId projectId, bool forceOnlyRequiredDocuments)
-    {
-        var tracker = forceOnlyRequiredDocuments
-              ? GetCompilationTracker(projectId, CreationPolicy.DoNotCreate)
-              : GetCompilationTracker(projectId);
-
-        Debug.Assert(!forceOnlyRequiredDocuments || tracker.GetCreationPolicy().GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.CreateRequired);
-
-        return tracker;
     }
 
     /// <summary>

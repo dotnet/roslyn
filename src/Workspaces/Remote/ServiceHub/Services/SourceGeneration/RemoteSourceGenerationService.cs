@@ -35,8 +35,13 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         return RunServiceAsync(solutionChecksum, async solution =>
         {
             var project = solution.GetRequiredProject(projectId);
-            var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(
-                project.State, withFrozenSourceGeneratedDocuments, forceOnlyRequiredDocuments, cancellationToken).ConfigureAwait(false);
+
+            var compilationState = forceOnlyRequiredDocuments
+                                 ? solution.CompilationState.WithForceOnlyRequiredGenerators(projectId)
+                                 : solution.CompilationState;
+
+            var documentStates = await compilationState.GetSourceGeneratedDocumentStatesAsync(
+                project.State, withFrozenSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
             var result = new FixedSizeArrayBuilder<SourceGeneratedDocumentInfo>(documentStates.States.Count);
             foreach (var (id, state) in documentStates.States)
@@ -56,7 +61,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         {
             var project = solution.GetRequiredProject(projectId);
             var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(
-                project.State, withFrozenSourceGeneratedDocuments, forceOnlyRequiredDocuments: false, cancellationToken).ConfigureAwait(false);
+                project.State, withFrozenSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
             var result = new FixedSizeArrayBuilder<string>(documentIds.Length);
             foreach (var id in documentIds)
