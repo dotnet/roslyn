@@ -4378,8 +4378,32 @@ class X : List<int>
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
-        public void CollectionInitializer_UnscopedRef_Return(bool extensionMethod)
+        public void CollectionInitializer_UnscopedRef_Return(bool? extensionMember)
         {
+            var addSource = extensionMember switch
+            {
+                true => """
+                    static class E
+                    {
+                        extension(ref R r)
+                        {
+                            public void Add([UnscopedRef] in int x) { }
+                        }
+                    }
+                    """,
+                false => """
+                    static class E
+                    {
+                        public static void Add(this ref R r, [UnscopedRef] in int x) { }
+                    }
+                    """,
+                null => """
+                    ref partial struct R : IEnumerable
+                    {
+                        public void Add([UnscopedRef] in int x) { }
+                    }
+                    """,
+            };
             var source = $$"""
                 using System.Collections;
                 using System.Diagnostics.CodeAnalysis;
@@ -4408,21 +4432,14 @@ class X : List<int>
                 {
                     IEnumerator IEnumerable.GetEnumerator() => throw null;
                 }
-                {{(extensionMethod
-                    ? """
-                    static class E
-                    {
-                        public static void Add(this ref R r, [UnscopedRef] in int x) { }
-                    }
-                    """
-                    : """
-                    ref partial struct R : IEnumerable
-                    {
-                        public void Add([UnscopedRef] in int x) { }
-                    }
-                    """)}}
+                {{addSource}}
                 """;
-            var method = extensionMethod ? "E.Add(ref R, in int)" : "R.Add(in int)";
+            var method = extensionMember switch
+            {
+                true => "E.extension(ref R).Add(in int)",
+                false => "E.Add(ref R, in int)",
+                null => "R.Add(in int)",
+            };
             CreateCompilation([source, UnscopedRefAttributeDefinition], options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,26): error CS8168: Cannot return local 'local' by reference because it is not a ref local
                 //         return new R() { local }; // 1

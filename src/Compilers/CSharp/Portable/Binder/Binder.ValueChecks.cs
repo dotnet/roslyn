@@ -2707,8 +2707,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // We have an extension method receiver.
-                Debug.Assert(methodInfo.Method?.IsExtensionMethod != false);
+                // We have a classic extension method receiver.
+                Debug.Assert(methodInfo.Method?.IsExtensionMethod != false && methodInfo.Method?.GetIsNewExtensionMember() != true);
 
                 if (parameters is [var extReceiver, ..])
                 {
@@ -2759,8 +2759,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool hasRefToRefStructThis(MethodSymbol? method)
             {
-                return method?.TryGetThisParameter(out var thisParameter) == true &&
+                return tryGetReceiverParameter(method) is { } thisParameter &&
                     isRefToRefStruct(thisParameter);
+            }
+
+            static ParameterSymbol? tryGetReceiverParameter(MethodSymbol? method)
+            {
+                if (method is null)
+                {
+                    return null;
+                }
+
+                if (method.GetIsNewExtensionMember())
+                {
+                    return method.ContainingType.ExtensionParameter;
+                }
+
+                if (method.TryGetThisParameter(out var thisParameter))
+                {
+                    return thisParameter;
+                }
+
+                return null;
             }
 
             static bool isRefToRefStruct(ParameterSymbol parameter)
