@@ -29,7 +29,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
     public readonly bool IsImplicitOrExplicitOperatorTypeContext;
     public readonly bool IsInNonUserCode;
     public readonly bool IsInstanceContext;
-    public readonly bool IsIsOrAsOrWithExpressionContext;
+    public readonly bool IsIsOrAsOrSwitchOrWithExpressionContext;
     public readonly bool IsIsOrAsTypeContext;
     public readonly bool IsLabelContext;
     public readonly bool IsLeftSideOfImportAliasDirective;
@@ -79,7 +79,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         bool isInQuery,
         bool isInstanceContext,
         bool isTaskLikeTypeContext,
-        bool isIsOrAsOrWithExpressionContext,
+        bool isIsOrAsOrSwitchOrWithExpressionContext,
         bool isIsOrAsTypeContext,
         bool isLabelContext,
         bool isLeftSideOfImportAliasDirective,
@@ -159,7 +159,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         this.IsImplicitOrExplicitOperatorTypeContext = isImplicitOrExplicitOperatorTypeContext;
         this.IsInNonUserCode = isInNonUserCode;
         this.IsInstanceContext = isInstanceContext;
-        this.IsIsOrAsOrWithExpressionContext = isIsOrAsOrWithExpressionContext;
+        this.IsIsOrAsOrSwitchOrWithExpressionContext = isIsOrAsOrSwitchOrWithExpressionContext;
         this.IsIsOrAsTypeContext = isIsOrAsTypeContext;
         this.IsLabelContext = isLabelContext;
         this.IsLeftSideOfImportAliasDirective = isLeftSideOfImportAliasDirective;
@@ -260,7 +260,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
             isInQuery: leftToken.GetAncestor<QueryExpressionSyntax>() != null,
             isInstanceContext: syntaxTree.IsInstanceContext(targetToken, semanticModel, cancellationToken),
             isTaskLikeTypeContext: precedingModifiers.Contains(SyntaxKind.AsyncKeyword),
-            isIsOrAsOrWithExpressionContext: syntaxTree.IsIsOrAsOrWithExpressionContext(semanticModel, position, leftToken, cancellationToken),
+            isIsOrAsOrSwitchOrWithExpressionContext: syntaxTree.IsIsOrAsOrSwitchOrWithExpressionContext(semanticModel, position, leftToken, cancellationToken),
             isIsOrAsTypeContext: syntaxTree.IsIsOrAsTypeContext(position, leftToken),
             isLabelContext: syntaxTree.IsLabelContext(position, cancellationToken),
             isLeftSideOfImportAliasDirective: IsLeftSideOfUsingAliasDirective(leftToken),

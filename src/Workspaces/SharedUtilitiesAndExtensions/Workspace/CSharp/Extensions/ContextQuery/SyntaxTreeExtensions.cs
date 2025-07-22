@@ -2805,7 +2805,7 @@ internal static partial class SyntaxTreeExtensions
         return false;
     }
 
-    public static bool IsIsOrAsOrWithExpressionContext(
+    public static bool IsIsOrAsOrSwitchOrWithExpressionContext(
         this SyntaxTree syntaxTree,
         SemanticModel semanticModel,
         int position,
@@ -2831,12 +2831,14 @@ internal static partial class SyntaxTreeExtensions
         // is/as/with are valid after expressions.
         if (token.IsLastTokenOfNode<ExpressionSyntax>(out var expression))
         {
-            // 'is/as/with' not allowed after a anonymous-method/lambda/method-group.
+            // 'is/as/with/switch' not allowed after a anonymous-method/lambda.
             if (expression is AnonymousFunctionExpressionSyntax)
                 return false;
 
+            // is/as/with/switch also not allowed after a naked method group reference (e.g. `this.ToString is`).
+            // They are allowed after a method invocation (e.g. `this.ToString() is`).
             var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
-            if (symbol is IMethodSymbol)
+            if (symbol is IMethodSymbol && expression is not InvocationExpressionSyntax)
                 return false;
 
             // However, many names look like expressions.  For example:
