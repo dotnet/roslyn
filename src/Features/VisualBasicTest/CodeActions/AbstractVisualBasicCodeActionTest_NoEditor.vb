@@ -7,7 +7,11 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 
     Public MustInherit Class AbstractVisualBasicCodeActionTest_NoEditor
-        Inherits AbstractCodeActionTest_NoEditor
+        Inherits AbstractCodeActionTest_NoEditor(Of
+            TestHostDocument,
+            TestHostProject,
+            TestHostSolution,
+            TestWorkspace)
 
         Private ReadOnly _compilationOptions As VisualBasicCompilationOptions =
             New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithParseOptions(New VisualBasicParseOptions(LanguageVersion.Latest))
