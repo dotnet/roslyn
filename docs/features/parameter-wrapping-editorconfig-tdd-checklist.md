@@ -34,10 +34,10 @@ Each step follows: **Red → Green → Refactor**
 #### Step 1.2.1: Formatting Rule Registration
 - [ ] ❌ **Test**: `SeparatedListWrappingFormattingRule` is registered in C# formatting pipeline
 - [ ] ❌ **Test**: Rule is invoked during formatting operations
-- [ ] ❌ **Test**: Rule short-circuits immediately when `do_not_wrap` specified (performance test)
+- [ ] ❌ **Test**: Rule short-circuits immediately when `do_not_wrap` specified (basic functionality test)
 - [ ] ✅ **Implement**: Create `SeparatedListWrappingFormattingRule` class
 - [ ] ✅ **Implement**: Register rule in `CSharpSyntaxFormatting._rules`
-- [ ] 🔄 **Refactor**: Optimize rule ordering and performance
+- [ ] 🔄 **Refactor**: Optimize rule ordering
 
 #### Step 1.2.2: Syntax Detection Logic
 - [ ] ❌ **Test**: Rule correctly identifies parameter lists needing wrapping
@@ -112,10 +112,10 @@ Each step follows: **Red → Green → Refactor**
 - [ ] ❌ **Test**: Full pipeline works: EditorConfig → `dotnet format` → Expected output
 - [ ] ❌ **Test**: Format-on-save applies wrapping automatically  
 - [ ] ❌ **Test**: Manual refactoring still available and unchanged
-- [ ] ❌ **Test**: Performance benchmarks show zero overhead for `do_not_wrap`
+- [ ] ❌ **Test**: Basic functionality works with `do_not_wrap` (no changes applied)
 - [ ] ✅ **Implement**: Full integration tests for all 4 styles
-- [ ] ✅ **Implement**: Performance regression tests
-- [ ] 🔄 **Refactor**: Optimize critical path performance
+- [ ] ✅ **Implement**: Integration tests with `dotnet format`
+- [ ] 🔄 **Refactor**: Clean up integration test setup
 
 #### Step 1.5.2: Edge Cases & Error Handling
 - [ ] ❌ **Test**: Handles nested parameter lists correctly
@@ -174,19 +174,13 @@ Each step follows: **Red → Green → Refactor**
 
 ## 📋 **Milestone 4: Polish & Integration**
 
-### **Phase 4.1: Performance Optimization**
-- [ ] ❌ **Test**: Performance benchmarks show acceptable impact for enabled wrapping
-- [ ] ❌ **Test**: Memory usage stays within acceptable bounds
-- [ ] ✅ **Implement**: Performance optimizations based on benchmark results
-- [ ] 🔄 **Refactor**: Optimize hot paths
-
-### **Phase 4.2: Comprehensive Testing**
-- [ ] ❌ **Test**: Large codebase testing (run on Roslyn itself)
+### **Phase 4.1: Comprehensive Testing**
+- [ ] ❌ **Test**: Large codebase testing (run on Roslyn itself or other significant codebase)
 - [ ] ❌ **Test**: Integration with all VS formatting scenarios
-- [ ] ✅ **Implement**: Comprehensive test suite
+- [ ] ✅ **Implement**: Comprehensive test suite covering edge cases
 - [ ] 🔄 **Refactor**: Clean up test infrastructure
 
-### **Phase 4.3: Documentation & Finalization**
+### **Phase 4.2: Documentation & Finalization**
 - [ ] ❌ **Test**: EditorConfig documentation examples work correctly
 - [ ] ❌ **Test**: All success criteria from design document are met
 - [ ] ✅ **Implement**: User documentation and examples
@@ -198,9 +192,9 @@ Each step follows: **Red → Green → Refactor**
 
 ### **Each Phase Complete When:**
 - [ ] All tests for that phase are ✅ **Green**
-- [ ] Code coverage ≥ 95% for new functionality  
+- [ ] Code coverage ≥ 90% for new functionality (or reasonable coverage)
 - [ ] Integration tests pass with `dotnet format` and format-on-save
-- [ ] Performance tests show acceptable impact
+- [ ] Basic functionality tests confirm expected behavior
 - [ ] Manual refactoring behavior unchanged and available
 
 ### **Milestone Complete When:**
@@ -215,6 +209,7 @@ Each step follows: **Red → Green → Refactor**
 
 - **Red-Green-Refactor cycle** should be short (ideally <30 minutes per step)
 - **Integration tests** should use real EditorConfig files and `dotnet format` command
-- **Performance tests** should benchmark against current main branch
+- **Focus on functionality** - Performance optimization can be addressed in future iterations
 - **Manual verification** should compare output with existing manual refactoring results
-- **Each test** should be **independent** and **repeatable** 
+- **Each test** should be **independent** and **repeatable**
+- **Basic performance** - Ensure `do_not_wrap` doesn't break anything, but don't optimize beyond that 
