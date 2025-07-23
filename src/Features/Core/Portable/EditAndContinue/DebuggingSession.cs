@@ -726,7 +726,12 @@ internal sealed class DebuggingSession : IDisposable
 
         foreach (var projectId in rebuiltProjects)
         {
-            _editSessionTelemetry.LogUpdatedBaseline(solution.GetRequiredProject(projectId).State.ProjectInfo.Attributes.TelemetryId);
+            var project = solution.GetProject(projectId);
+            if (project == null)
+            {
+                continue;
+            }
+            _editSessionTelemetry.LogUpdatedBaseline(project.State.ProjectInfo.Attributes.TelemetryId);
         }
 
         // Restart edit session reusing previous non-remappable regions and break state:
