@@ -21850,6 +21850,9 @@ static class E
             // (6,12): error CS8352: Cannot use variable 'new MyStruct() { i = ref i }' in this context because it may expose referenced variables outside of their declaration scope
             //     return new MyStruct() { i = ref i }.M($"");
             Diagnostic(ErrorCode.ERR_EscapeVariable, "new MyStruct() { i = ref i }").WithArguments("new MyStruct() { i = ref i }").WithLocation(6, 12),
+            // (6,12): error CS8347: Cannot use a result of 'E.extension(scoped MyStruct).M(InterpolationHandler)' in this context because it may expose variables referenced by parameter 'h' outside of their declaration scope
+            //     return new MyStruct() { i = ref i }.M($"");
+            Diagnostic(ErrorCode.ERR_EscapeCall, @"new MyStruct() { i = ref i }.M($"""")").WithArguments("E.extension(scoped MyStruct).M(InterpolationHandler)", "h").WithLocation(6, 12),
             // (6,43): error CS8347: Cannot use a result of 'InterpolationHandler.InterpolationHandler(int, int, MyStruct)' in this context because it may expose variables referenced by parameter 's2' outside of their declaration scope
             //     return new MyStruct() { i = ref i }.M($"");
             Diagnostic(ErrorCode.ERR_EscapeCall, @"$""""").WithArguments("InterpolationHandler.InterpolationHandler(int, int, MyStruct)", "s2").WithLocation(6, 43)
