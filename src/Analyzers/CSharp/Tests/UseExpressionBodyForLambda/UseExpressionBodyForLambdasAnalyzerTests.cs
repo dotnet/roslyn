@@ -100,7 +100,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task MissingWhenAlreadyHasBlockBody()
@@ -181,7 +181,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
 
                 void TargetMethod(Func<int, string> targetParam) { }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task UseExpressionBodyFromReturnKeyword()
@@ -293,7 +293,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task UseExpressionBodyWithVoidReturn()
@@ -380,7 +380,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task UseBlockBodyWithVoidReturnThrowing()
@@ -409,7 +409,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task UseExpressionBodyWithAsyncVoidReturn()
@@ -496,7 +496,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task UseBlockBodyWithAsyncVoidReturnThrowing()
@@ -525,7 +525,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task UseExpressionBodyWithTaskReturn()
@@ -618,7 +618,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task UseBlockBodyWithTaskReturnThrowing()
@@ -649,7 +649,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task UseExpressionBodyWithAsyncTaskReturn()
@@ -742,7 +742,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task UseBlockBodyWithAsyncTaskReturnThrowing()
@@ -773,7 +773,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task UseExpressionBodyWithTaskTReturn()
@@ -866,7 +866,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task UseBlockBodyWithTaskTReturnThrowing()
@@ -897,7 +897,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task UseExpressionBodyWithAsyncTaskTReturn()
@@ -990,7 +990,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task UseBlockBodyWithAsyncTaskTReturnThrowing()
@@ -1021,7 +1021,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task UseExpressionBodyWithPrecedingComment()
@@ -1117,7 +1117,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     }; // Comment
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task UseExpressionBodyInMethod_FixAll1()
@@ -1213,7 +1213,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task UseBlockBodyInMethod_FixAll2()
@@ -1245,7 +1245,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task FixAllNested1()
@@ -1341,7 +1341,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact]
     public Task FixAllNested4()
@@ -1373,7 +1373,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
+            """, new(options: UseBlockBody));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76645")]
     public Task TestMethodOverloadResolutionChange()
