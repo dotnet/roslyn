@@ -1450,10 +1450,7 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31928")]
     public void TestVersionStamp_Local()
-    {
-        // only Utc is allowed
-        Assert.Throws<ArgumentException>(() => VersionStamp.Create(DateTime.Now));
-    }
+        => Assert.Throws<ArgumentException>(() => VersionStamp.Create(DateTime.Now));
 
     [Fact]
     public void TestVersionStamp_Default()

@@ -23,8 +23,7 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
 {
     [Fact]
     public void SpeculationAnalyzerDifferentOverloads()
-    {
-        Test("""
+        => Test("""
             class Program
             {
                 void Vain(int arg = 3) { }
@@ -35,16 +34,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "Vain(string.Empty)", true);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672396")]
     public void SpeculationAnalyzerExtensionMethodExplicitInvocation()
-    {
-        // We consider a change here to be a change in semantics as an instance call became a static call. In
-        // practice this is fine as the only thing that makes this change is complexification, and we don't test for
-        // semantics changed after that as the purpose of complexification is to put us in a safe place to make
-        // changes that won't break semantics.
-        Test("""
+        => Test("""
             static class Program
             {
                 public static void Vain(this int arg) { }
@@ -54,12 +47,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "Vain(5)", semanticChanges: true);
-    }
 
     [Fact]
     public void SpeculationAnalyzerImplicitBaseClassConversion()
-    {
-        Test("""
+        => Test("""
             using System;
             class Program
             {
@@ -69,12 +60,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "new InvalidOperationException()", false);
-    }
 
     [Fact]
     public void SpeculationAnalyzerImplicitNumericConversion()
-    {
-        Test("""
+        => Test("""
             class Program
             {
                 void Main()
@@ -83,12 +72,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "5", false);
-    }
 
     [Fact]
     public void SpeculationAnalyzerImplicitUserConversion()
-    {
-        Test("""
+        => Test("""
             class From
             {
                 public static implicit operator To(From from) { return new To(); }
@@ -102,12 +89,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "new From()", true);
-    }
 
     [Fact]
     public void SpeculationAnalyzerExplicitConversion()
-    {
-        Test("""
+        => Test("""
             using System;
             class Program
             {
@@ -118,12 +103,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "ex1", true);
-    }
 
     [Fact]
     public void SpeculationAnalyzerArrayImplementingNonGenericInterface()
-    {
-        Test("""
+        => Test("""
             using System.Collections;
             class Program
             {
@@ -134,12 +117,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "a.GetEnumerator()", false);
-    }
 
     [Fact]
     public void SpeculationAnalyzerVirtualMethodWithBaseConversion()
-    {
-        Test("""
+        => Test("""
             using System;
             using System.IO;
             class Program
@@ -151,12 +132,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "s.Flush()", false);
-    }
 
     [Fact]
     public void SpeculationAnalyzerNonVirtualMethodImplementingInterface()
-    {
-        Test("""
+        => Test("""
             using System;
             class Class : IComparable
             {
@@ -172,12 +151,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "c.CompareTo(d)", true);
-    }
 
     [Fact]
     public void SpeculationAnalyzerSealedClassImplementingInterface()
-    {
-        Test("""
+        => Test("""
             using System;
             sealed class Class : IComparable
             {
@@ -193,12 +170,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "((IComparable)c).CompareTo(d)", semanticChanges: false);
-    }
 
     [Fact]
     public void SpeculationAnalyzerValueTypeImplementingInterface()
-    {
-        Test("""
+        => Test("""
             using System;
             class Program
             {
@@ -209,12 +184,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "d.CompareTo(6)", false);
-    }
 
     [Fact]
     public void SpeculationAnalyzerBinaryExpressionIntVsLong()
-    {
-        Test("""
+        => Test("""
             class Program
             {
                 void Main()
@@ -223,12 +196,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "1+1", true);
-    }
 
     [Fact]
     public void SpeculationAnalyzerQueryExpressionSelectType()
-    {
-        Test("""
+        => Test("""
             using System.Linq;
             class Program
             {
@@ -238,12 +209,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "from i in Enumerable.Range(0, 3) select i", true);
-    }
 
     [Fact]
     public void SpeculationAnalyzerQueryExpressionFromType()
-    {
-        Test("""
+        => Test("""
             using System.Linq;
             class Program
             {
@@ -253,12 +222,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "from i in new int[0] select i", true);
-    }
 
     [Fact]
     public void SpeculationAnalyzerQueryExpressionGroupByType()
-    {
-        Test("""
+        => Test("""
             using System.Linq;
             class Program
             {
@@ -268,12 +235,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "from i in Enumerable.Range(0, 3) group i by i", true);
-    }
 
     [Fact]
     public void SpeculationAnalyzerQueryExpressionOrderByType()
-    {
-        Test("""
+        => Test("""
             using System.Linq;
             class Program
             {
@@ -283,12 +248,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "i", true);
-    }
 
     [Fact]
     public void SpeculationAnalyzerDifferentAttributeConstructors()
-    {
-        Test("""
+        => Test("""
             using System;
             class AnAttribute : Attribute
             {
@@ -302,15 +265,9 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
             }
             """, "5", false, "6");
 
-        // Note: the answer should have been that the replacement does change semantics (true),
-        // however to have enough context one must analyze AttributeSyntax instead of separate ExpressionSyntaxes it contains,
-        // which is not supported in SpeculationAnalyzer, but possible with GetSpeculativeSemanticModel API
-    }
-
     [Fact]
     public void SpeculationAnalyzerCollectionInitializers()
-    {
-        Test("""
+        => Test("""
             using System.Collections;
             class Collection : IEnumerable
             {
@@ -323,12 +280,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "5", true);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088815")]
     public void SpeculationAnalyzerBrokenCode()
-    {
-        Test("""
+        => Test("""
             public interface IRogueAction
             {
                 public string Name { get; private set; }
@@ -339,12 +294,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "Name", semanticChanges: false, isBrokenCode: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8111")]
     public void SpeculationAnalyzerAnonymousObjectMemberDeclaredWithNeededCast()
-    {
-        Test("""
+        => Test("""
             class Program
             {
                 static void Main(string[] args)
@@ -354,12 +307,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 public enum Directions { North, East, South, West }
             }
             """, "Directions.South", semanticChanges: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8111")]
     public void SpeculationAnalyzerAnonymousObjectMemberDeclaredWithUnneededCast()
-    {
-        Test("""
+        => Test("""
             class Program
             {
                 static void Main(string[] args)
@@ -369,12 +320,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 public enum Directions { North, East, South, West }
             }
             """, "Directions.South", semanticChanges: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19987")]
     public void SpeculationAnalyzerSwitchCaseWithRedundantCast()
-    {
-        Test("""
+        => Test("""
             class Program
             {
                 static void Main(string[] arts)
@@ -393,12 +342,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "1", semanticChanges: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19987")]
     public void SpeculationAnalyzerSwitchCaseWithRequiredCast()
-    {
-        Test("""
+        => Test("""
             class Program
             {
                 static void Main(string[] arts)
@@ -417,12 +364,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, "1", semanticChanges: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28412")]
     public void SpeculationAnalyzerIndexerPropertyWithRedundantCast()
-    {
-        Test(code: """
+        => Test(code: """
             class Indexer
             {
                 public int this[int x] { get { return x; } }
@@ -443,12 +388,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, replacementExpression: "b", semanticChanges: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28412")]
     public void SpeculationAnalyzerIndexerPropertyWithRequiredCast()
-    {
-        Test(code: """
+        => Test(code: """
             class Indexer
             {
                 public int this[int x] { get { return x; } }
@@ -470,12 +413,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, replacementExpression: "b", semanticChanges: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28412")]
     public void SpeculationAnalyzerDelegatePropertyWithRedundantCast()
-    {
-        Test(code: """
+        => Test(code: """
             public delegate void MyDelegate();
             class A
             {
@@ -493,12 +434,10 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, replacementExpression: "b", semanticChanges: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28412")]
     public void SpeculationAnalyzerDelegatePropertyWithRequiredCast()
-    {
-        Test(code: """
+        => Test(code: """
             public delegate void MyDelegate();
             class A
             {
@@ -517,7 +456,6 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 }
             }
             """, replacementExpression: "b", semanticChanges: true);
-    }
 
     protected override SyntaxTree Parse(string text)
         => SyntaxFactory.ParseSyntaxTree(text);

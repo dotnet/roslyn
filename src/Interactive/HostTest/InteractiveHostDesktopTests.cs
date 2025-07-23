@@ -1075,9 +1075,7 @@ goo()
         // TODO (https://github.com/dotnet/roslyn/issues/7976): delete this
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7976")]
         public void Workaround7976()
-        {
-            Thread.Sleep(TimeSpan.FromSeconds(10));
-        }
+            => Thread.Sleep(TimeSpan.FromSeconds(10));
 
         #endregion
     }

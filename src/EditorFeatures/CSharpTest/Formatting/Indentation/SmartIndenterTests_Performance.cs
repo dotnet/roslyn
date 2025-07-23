@@ -16,12 +16,7 @@ public sealed partial class SmartIndenterTests
     [WpfFact]
     [Trait(Traits.Feature, Traits.Features.SmartIndent)]
     public void RegionPerformance()
-    {
-
-        #region very long sample code
-        #endregion
-
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
  using System;
  using System.Collections.Generic;
@@ -2213,5 +2208,4 @@ public sealed partial class SmartIndenterTests
  }
  """,
             expectedIndentation: 12);
-    }
 }

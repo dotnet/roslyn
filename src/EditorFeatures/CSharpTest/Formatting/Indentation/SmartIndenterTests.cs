@@ -31,17 +31,14 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
 
     [WpfFact]
     public void EmptyFile()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             code: string.Empty,
             indentationLine: 0,
             expectedIndentation: 0);
-    }
 
     [WpfFact]
     public void NoPreviousLine()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             #region Test
 
@@ -61,12 +58,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 13,
             expectedIndentation: 0);
-    }
 
     [WpfFact]
     public void EndOfFileInactive()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
 
                 // Line 1
@@ -77,12 +72,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 4,
             expectedIndentation: 0);
-    }
 
     [WpfFact]
     public void EndOfFileInactive2()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
 
                 // Line 1
@@ -94,12 +87,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 0);
-    }
 
     [WpfFact]
     public void Comments()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -112,12 +103,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 6,
             expectedIndentation: 4);
-    }
 
     [WpfFact]
     public void TestExplicitNoneIndentStyle()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -131,12 +120,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             indentationLine: 6,
             expectedIndentation: 0,
             indentStyle: IndentStyle.None);
-    }
 
     [WpfFact]
     public void UsingDirective()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -144,12 +131,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 1,
             expectedIndentation: 0);
-    }
 
     [WpfFact]
     public void DottedName()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System.
 
@@ -157,7 +142,6 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 1,
             expectedIndentation: 4);
-    }
 
     [WpfFact]
     public void Namespace()
@@ -182,8 +166,7 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
 
     [WpfFact]
     public void NamespaceDottedName()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -193,12 +176,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 3,
             expectedIndentation: 4);
-    }
 
     [WpfFact]
     public void NamespaceBody()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -209,7 +190,6 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 4,
             expectedIndentation: 4);
-    }
 
     [WpfFact]
     public void FileScopedNamespace()
@@ -240,8 +220,7 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
 
     [WpfFact]
     public void Class()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -253,12 +232,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void ClassBody()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -271,12 +248,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 6,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void Method()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -290,12 +265,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 7,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void MethodBody()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -310,12 +283,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 8,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void Property()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -329,12 +300,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 7,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void PropertyGetBody()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -351,12 +320,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 10,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void PropertySetBody()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -373,12 +340,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 10,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void Statement()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -394,12 +359,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 9,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void FieldInitializer()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class C
             {
@@ -408,12 +371,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 3,
             expectedIndentation: 4);
-    }
 
     [WpfFact]
     public void FieldInitializerWithNamespace()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             namespace NS
             {
@@ -425,7 +386,6 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void MethodCall()
@@ -458,8 +418,7 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
 
     [WpfFact]
     public void Switch()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -475,12 +434,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 9,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void SwitchBody()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -497,12 +454,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 10,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void SwitchCase()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -520,12 +475,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 11,
             expectedIndentation: 20);
-    }
 
     [WpfFact]
     public void ExtendedPropertyPattern()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
 
             class C
@@ -539,7 +492,6 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 7,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void ExtendedPropertyPattern_WithPattern()
@@ -569,8 +521,7 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
 
     [WpfFact]
     public void Block()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -589,12 +540,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 12,
             expectedIndentation: 24);
-    }
 
     [WpfFact]
     public void MultilineStatement1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -610,12 +559,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 9,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void MultilineStatement2()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -632,13 +579,11 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 10,
             expectedIndentation: 20);
-    }
 
     // Bug number 902477
     [WpfFact]
     public void Comments2()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Class
             {
@@ -652,12 +597,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void AfterCompletedBlock()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -672,12 +615,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void AfterCompletedBlockNestedInOtherBlock()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -693,12 +634,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void AfterTopLevelAttribute()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -710,12 +649,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 3,
             expectedIndentation: 4);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537802")]
     public void EmbeddedStatement()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -731,7 +668,6 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 6,
             expectedIndentation: 8);
-    }
 
     [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/50063")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/50063")]
@@ -741,8 +677,7 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
     [InlineData("void localFunction()")]
     [InlineData("static void localFunction()")]
     public void EmbeddedStatement2(string statement)
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             $$"""
             class Program
             {
@@ -757,12 +692,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 4);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537883")]
     public void EnterAfterComment()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -777,12 +710,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 8);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538121")]
     public void NestedBlock1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -797,12 +728,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void NestedEmbeddedStatement1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -819,12 +748,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 8,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void NestedEmbeddedStatement2()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -841,12 +768,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 8,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void NestedEmbeddedStatement3()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -863,12 +788,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 8,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void NestedEmbeddedStatement4()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -883,12 +806,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 8,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void NestedEmbeddedStatement5()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -903,12 +824,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 8,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void NestedEmbeddedStatement6()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -923,12 +842,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 8,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void NestedEmbeddedStatement7()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -945,12 +862,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 10,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void NestedEmbeddedStatement8()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -968,12 +883,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 10,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void Label1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -989,12 +902,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 6,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void Label2()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1009,12 +920,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void Label3()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1032,12 +941,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 8,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void Label4()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1054,12 +961,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 7,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void Label5()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1076,12 +981,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 7,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void Label6()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1096,12 +999,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void QueryExpression1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1116,12 +1017,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 20);
-    }
 
     [WpfFact]
     public void QueryExpression2()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1136,12 +1035,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void QueryExpression3()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1156,12 +1053,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void QueryExpression4()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1176,12 +1071,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void QueryExpression5()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1197,12 +1090,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 6,
             expectedIndentation: 20);
-    }
 
     [WpfFact]
     public void QueryExpression6()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1219,12 +1110,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 7,
             expectedIndentation: 20);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538779")]
     public void QueryExpression7()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1241,12 +1130,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 16);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538779")]
     public void QueryExpression8()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1264,12 +1151,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 6,
             expectedIndentation: 30);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538780")]
     public void QueryExpression9()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1286,12 +1171,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 6,
             expectedIndentation: 16);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538780")]
     public void QueryExpression10()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1309,12 +1192,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 7,
             expectedIndentation: 24);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538333")]
     public void Statement1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1324,12 +1205,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 3,
             expectedIndentation: 4);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538933")]
     public void EndOfFile1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1342,12 +1221,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 6,
             expectedIndentation: 8);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539059")]
     public void VerbatimString()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1359,12 +1236,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 0);
-    }
 
     [WpfFact]
     public void RawString1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """"
             class Program
             {
@@ -1379,12 +1254,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """",
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void RawString2()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """"
             class Program
             {
@@ -1399,12 +1272,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """",
             indentationLine: 6,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void RawString3()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """"
             class Program
             {
@@ -1419,12 +1290,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """",
             indentationLine: 6,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
     public void RawString4()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """"
             class Program
             {
@@ -1439,12 +1308,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """",
             indentationLine: 6,
             expectedIndentation: 16);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
     public void RawString5()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """"
             class Program
             {
@@ -1460,7 +1327,6 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """",
             indentationLine: 7,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void RawString6()
@@ -1484,8 +1350,7 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66368")]
     public void UnterminatedRawString1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """""""
             var x = """"""
                 1
@@ -1498,12 +1363,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """"""",
             indentationLine: 3,
             expectedIndentation: 4);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66368")]
     public void UnterminatedInterpolatedRawString1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """""""
             var x = $""""""
                 1
@@ -1516,12 +1379,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """"""",
             indentationLine: 3,
             expectedIndentation: 4);
-    }
 
     [WpfFact]
     public void InterpolatedRawString1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """"
             class Program
             {
@@ -1536,12 +1397,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """",
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void InterpolatedRawString2()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """"
             class Program
             {
@@ -1556,12 +1415,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """",
             indentationLine: 6,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void InterpolatedRawString3()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """"
             class Program
             {
@@ -1576,12 +1433,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """",
             indentationLine: 6,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
     public void InterpolatedRawString4()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """"
             class Program
             {
@@ -1596,12 +1451,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """",
             indentationLine: 6,
             expectedIndentation: 16);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
     public void InterpolatedRawString5()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """"
             class Program
             {
@@ -1617,7 +1470,6 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """",
             indentationLine: 7,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void InterpolatedRawString6()
@@ -1696,8 +1548,7 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539892")]
     public void Bug5994()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
             using System.Collections.Generic;
@@ -1718,12 +1569,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 11,
             expectedIndentation: 15);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539990")]
     public void Bug6124()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1743,12 +1592,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 11,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539990")]
     public void Bug6124_1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1769,12 +1616,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 11,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void AfterIfWithSingleStatementInTopLevelMethod_Bug7291_1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             int fact(int x)
             {
@@ -1786,12 +1631,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             indentationLine: 4,
             expectedIndentation: 4,
             options: TestOptions.Script);
-    }
 
     [WpfFact]
     public void AfterIfWithSingleStatementInTopLevelMethod_Bug7291_2()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             int fact(int x)
             {
@@ -1804,13 +1647,11 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             indentationLine: 4,
             expectedIndentation: 4,
             options: TestOptions.Script);
-    }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540634")]
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544268")]
     public void FirstArgumentInArgumentList()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1833,12 +1674,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 9,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void ForLoop()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1851,12 +1690,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void CallBaseCtor()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1866,12 +1703,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 3,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void MultipleDeclarations()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1884,12 +1719,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void CloseBracket()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1902,12 +1735,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void SwitchLabel()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1925,12 +1756,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 7,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void TypeParameters()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1940,12 +1769,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 3,
             expectedIndentation: 8);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542428")]
     public void TypeArguments()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -1960,12 +1787,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 7,
             expectedIndentation: 16);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542983")]
     public void ConstructorInitializer1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             public class Asset
             {
@@ -1975,12 +1800,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 3,
             expectedIndentation: 8);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542983")]
     public void ConstructorInitializer2()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             public class Asset
             {
@@ -1991,12 +1814,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 4,
             expectedIndentation: 14);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542983")]
     public void ConstructorInitializer3()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             public class Asset
             {
@@ -2007,12 +1828,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 4,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543131")]
     public void LockStatement1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
             class Program
@@ -2031,12 +1850,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 10,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543533")]
     public void ConstructorInitializer()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             public class Asset
             {
@@ -2046,12 +1863,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 3,
             expectedIndentation: 8);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/952803")]
     public void ArrayInitializer()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System.Collections.ObjectModel;
 
@@ -2069,12 +1884,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 8,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543563")]
     public void LambdaEmbededInExpression()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
             using System.Collections.Generic;
@@ -2108,12 +1921,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 10,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543563")]
     public void LambdaEmbededInExpression_1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -2126,12 +1937,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 16);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543563")]
     public void LambdaEmbededInExpression_3()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -2163,12 +1972,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 8,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543563")]
     public void LambdaEmbededInExpression_2()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -2182,12 +1989,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 6,
             expectedIndentation: 16);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543563")]
     public void LambdaEmbededInExpression_4()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
             class Class
@@ -2208,12 +2013,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 10,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void LambdaDefaultParameter_EnterAfterParamList()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -2226,12 +2029,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void LambdaDefaultParameter_EnterAfterEquals()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -2243,7 +2044,6 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void LambdaDefaultParameter_EnterBeforeEquals()
@@ -2278,8 +2078,7 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530074")]
     public void EnterInArgumentList1()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -2292,12 +2091,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530074")]
     public void EnterInArgumentList2()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -2310,12 +2107,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/806266")]
     public void EnterInArgumentList3()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class Program
             {
@@ -2328,12 +2123,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem(9216, "DevDiv_Projects/Roslyn")]
     public void FollowPreviousLineInMultilineStatements()
-    {
-        AssertSmartIndent("""
+        => AssertSmartIndent("""
             class Program
             {
                 static void Main(string[] args)
@@ -2345,14 +2138,12 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
                 }
             }
             """, indentationLine: 7, expectedIndentation: 39);
-    }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648068")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674611")]
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void AtBeginningOfSpanInNugget()
-    {
-        AssertSmartIndentInProjection(
+        => AssertSmartIndentInProjection(
             """
             class Program
             {
@@ -2366,12 +2157,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
                 }
             }
             """, BaseIndentationOfNugget + 4);
-    }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void AtEndOfSpanInNugget()
-    {
-        AssertSmartIndentInProjection(
+        => AssertSmartIndentInProjection(
             """
             class Program
             {
@@ -2385,17 +2174,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
                 }
             }
             """, BaseIndentationOfNugget + 4);
-    }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void InMiddleOfSpanAtStartOfNugget()
-    {
-
-        // Again, it doesn't matter where Console _is_ in this case -we format based on
-        // where we think it _should_ be.  So the position is one indent level past the base
-        // for the nugget (where we think the statement should be), plus one more since it is
-        // a continuation
-        AssertSmartIndentInProjection(
+        => AssertSmartIndentInProjection(
             """
             class Program
             {
@@ -2409,17 +2191,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
                 }
             }
             """, BaseIndentationOfNugget + 8);
-    }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void InMiddleOfSpanInsideOfNugget()
-    {
-
-        // Again, it doesn't matter where Console _is_ in this case -we format based on
-        // where we think it _should_ be.  So the position is one indent level past the base
-        // for the nugget (where we think the statement should be), plus one more since it is
-        // a continuation
-        AssertSmartIndentInProjection(
+        => AssertSmartIndentInProjection(
             """
             class Program
             {
@@ -2434,12 +2209,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
                 }
             }
             """, BaseIndentationOfNugget + 8);
-    }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void AfterStatementInNugget()
-    {
-        AssertSmartIndentInProjection(
+        => AssertSmartIndentInProjection(
             """
             class Program
             {
@@ -2455,23 +2228,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
                 }
             }
             """, BaseIndentationOfNugget + 4);
-    }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void AfterStatementOnFirstLineOfNugget()
-    {
-
-        // TODO: Fix this to indent relative to the previous statement,
-        // instead of relative to the containing scope.  I.e. Format like:
-        //     <%Console.WriteLine();
-        //       Console.WriteLine(); %>
-        // instead of
-        //     <%Console.WriteLine();
-        //         Console.WriteLine(); %>
-        // C# had the desired behavior in Dev12, where VB had the same behavior
-        // as Roslyn has.  The Roslyn formatting engine currently always formats
-        // each statement independently, so let's not change that just for Venus
-        AssertSmartIndentInProjection(
+        => AssertSmartIndentInProjection(
             """
             class Program
             {
@@ -2486,12 +2246,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
                 }
             }
             """, BaseIndentationOfNugget + 4);
-    }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void InQueryOnFistLineOfNugget()
-    {
-        AssertSmartIndentInProjection(
+        => AssertSmartIndentInProjection(
             """
             class Program
             {
@@ -2506,12 +2264,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
                 }
             }
             """, BaseIndentationOfNugget + 8);
-    }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void InQueryInNugget()
-    {
-        AssertSmartIndentInProjection(
+        => AssertSmartIndentInProjection(
             """
             class Program
             {
@@ -2527,13 +2283,11 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
                 }
             }
             """, BaseIndentationOfNugget + 8);
-    }
 
     [WorkItem(9216, "DevDiv_Projects/Roslyn")]
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void InsideBracesInNugget()
-    {
-        AssertSmartIndentInProjection("""
+        => AssertSmartIndentInProjection("""
             class Program
             {
                 static void Main(string[] args)
@@ -2548,16 +2302,11 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
                 }
             }
             """, BaseIndentationOfNugget + 8);
-    }
 
     [WorkItem(9216, "DevDiv_Projects/Roslyn")]
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void AfterEmbeddedStatementOnFirstLineOfNugget()
-    {
-
-        // In this case, we align the next statement with the "if" (though we _don't_
-        // align the braces with it :S)
-        AssertSmartIndentInProjection("""
+        => AssertSmartIndentInProjection("""
             class Program
                     {
                         static void Main(string[] args)
@@ -2574,15 +2323,11 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
                     }
             """,
             expectedIndentation: BaseIndentationOfNugget + 2);
-    }
 
     [WorkItem(9216, "DevDiv_Projects/Roslyn")]
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void AfterEmbeddedStatementInNugget()
-    {
-
-        // In this case we align with the "if", - the base indentation we pass in doesn't matter.
-        AssertSmartIndentInProjection("""
+        => AssertSmartIndentInProjection("""
             class Program
                     {
                         static void Main(string[] args)
@@ -2600,17 +2345,12 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
                     }
             """,
             expectedIndentation: BaseIndentationOfNugget + 4);
-    }
 
     // this is the special case where the smart indenter 
     // aligns with the base or base + 4th position.
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void AfterSwitchStatementAtEndOfNugget()
-    {
-
-        // It's yuck that I saw differences depending on where the end of the nugget is
-        // but I did, so lets add a test.
-        AssertSmartIndentInProjection("""
+        => AssertSmartIndentInProjection("""
 
             class Program
             {
@@ -2628,14 +2368,12 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             }
             """,
             expectedIndentation: BaseIndentationOfNugget + 12);
-    }
 
     // this is the special case where the smart indenter 
     // aligns with the base or base + 4th position.
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void AfterSwitchStatementInNugget()
-    {
-        AssertSmartIndentInProjection("""
+        => AssertSmartIndentInProjection("""
 
             class Program
             {
@@ -2654,12 +2392,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             }
             """,
             expectedIndentation: BaseIndentationOfNugget + 12);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529876"), Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)]
     public void InEmptyNugget()
-    {
-        AssertSmartIndentInProjection("""
+        => AssertSmartIndentInProjection("""
             class Program
                     {
                         static void Main(string[] args)
@@ -2673,13 +2409,11 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
                     }
             """,
             expectedIndentation: BaseIndentationOfNugget + 4);
-    }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1190278")]
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void GetNextTokenForFormattingSpanCalculationIncludesZeroWidthToken_CS()
-    {
-        AssertSmartIndentInProjection("""
+        => AssertSmartIndentInProjection("""
             //------------------------------------------------------------------------------
             // <auto-generated>
             //     This code was generated by a tool.
@@ -2747,12 +2481,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             }
             """,
             expectedIndentation: 24);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530948"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
     public void CommaSeparatedListEnumMembers()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             enum MyEnum
             {
@@ -2762,12 +2494,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 3,
             expectedIndentation: 4);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530796"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
     public void RelativeIndentationForBracesInExpression()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             class C
             {
@@ -2783,7 +2513,6 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 6,
             expectedIndentation: 12);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
     public void SwitchSection()
@@ -2986,8 +2715,7 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/5495")]
     public void AfterBadQueryContinuationWithSelectOrGroupClause()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -3031,12 +2759,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 13,
             expectedIndentation: 25);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/5495")]
     public void AfterPartialFromClause()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
 
             using System.Linq;
@@ -3053,12 +2779,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 8,
             expectedIndentation: 16);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/5635")]
     public void ConstructorInitializerMissingBaseOrThisKeyword()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
 
             class C
@@ -3071,12 +2795,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 5,
             expectedIndentation: 8);
-    }
 
     [WpfFact]
     public void CreateIndentOperationForBrokenBracketedArgumentList()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
 
             class Program
@@ -3091,12 +2813,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 6,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void PatternPropertyIndentFirst()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
 
             class C
@@ -3112,12 +2832,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 7,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void PatternPropertyIndentSecond()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
 
             class C
@@ -3134,12 +2852,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 8,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void PatternPropertyIndentNestedFirst()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
 
             class C
@@ -3159,12 +2875,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 9,
             expectedIndentation: 16);
-    }
 
     [WpfFact]
     public void PatternPropertyIndentNestedSecond()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
 
             class C
@@ -3184,7 +2898,6 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 10,
             expectedIndentation: 16);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33253")]
     public void EnterAfterFluentSequences_1()
@@ -3360,8 +3073,7 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
 
     [WpfFact]
     public void Operator()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -3375,12 +3087,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 7,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void CastOperator()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -3394,12 +3104,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 7,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void OperatorBody()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -3414,12 +3122,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 8,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void CastOperatorBody()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -3434,12 +3140,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 8,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void CheckedOperator()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -3454,12 +3158,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             indentationLine: 7,
             expectedIndentation: 12,
             options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
-    }
 
     [WpfFact]
     public void ExplicitCastCheckedOperator()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -3474,12 +3176,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             indentationLine: 7,
             expectedIndentation: 12,
             options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
-    }
 
     [WpfFact]
     public void CheckedOperatorBody()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -3495,12 +3195,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             indentationLine: 8,
             expectedIndentation: 12,
             options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
-    }
 
     [WpfFact]
     public void ExplicitCastCheckedOperatorBody()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -3516,12 +3214,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             indentationLine: 8,
             expectedIndentation: 12,
             options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
-    }
 
     [WpfFact]
     public void UnsignedRightShift()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -3535,12 +3231,10 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 7,
             expectedIndentation: 12);
-    }
 
     [WpfFact]
     public void UnsignedRightShiftBody()
-    {
-        AssertSmartIndent(
+        => AssertSmartIndent(
             """
             using System;
 
@@ -3555,7 +3249,6 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             """,
             indentationLine: 8,
             expectedIndentation: 12);
-    }
 
     [WpfTheory]
     [CombinatorialData]

@@ -131,9 +131,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCasesAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync("""
+        public Task CSharp_NoDiagnosticCasesAsync()
+            => VerifyCS.VerifyAnalyzerAsync("""
 
                 using System;
                 using System.Collections.Generic;
@@ -208,12 +207,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """);
-        }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCasesAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync("""
+        public Task VisualBasic_NoDiagnosticCasesAsync()
+            => VerifyVB.VerifyAnalyzerAsync("""
 
                 Imports System
                 Imports System.Collections.Generic
@@ -280,12 +277,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 End Class
 
                 """);
-        }
 
         [Fact, WorkItem(4308, "https://github.com/dotnet/roslyn-analyzers/issues/4308")]
-        public async Task CSharp_NestedStruct_NoDiagnosticAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync("""
+        public Task CSharp_NestedStruct_NoDiagnosticAsync()
+            => VerifyCS.VerifyAnalyzerAsync("""
 
                 using System;
                 using System.Collections.Concurrent;
@@ -346,14 +341,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """);
-        }
 
         [Theory]
         [InlineData("Func")]
         [InlineData("Action")]
         public Task CSharp_Func_NoDiagnostic(string delegateType)
-        {
-            return VerifyCS.VerifyAnalyzerAsync($$"""
+            => VerifyCS.VerifyAnalyzerAsync($$"""
 
                 using System;
                 using System.Collections.Immutable;
@@ -380,14 +373,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """);
-        }
 
         [Theory]
         [InlineData("Func")]
         [InlineData("Action")]
         public Task CSharp_NestedFunc_NoDiagnostic(string delegateType)
-        {
-            return VerifyCS.VerifyAnalyzerAsync($$"""
+            => VerifyCS.VerifyAnalyzerAsync($$"""
 
                 using System;
                 using System.Collections.Immutable;
@@ -414,14 +405,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """);
-        }
 
         [Theory]
         [InlineData("Func")]
         [InlineData("Action")]
         public Task CSharp_NestedNestedFunc_NoDiagnostic(string delegateType)
-        {
-            return VerifyCS.VerifyAnalyzerAsync($$"""
+            => VerifyCS.VerifyAnalyzerAsync($$"""
 
                 using System;
                 using System.Collections.Generic;
@@ -449,13 +438,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """);
-        }
 
         [Theory]
         [CombinatorialData]
         public Task CSharp_MultiFunc_NoDiagnostic([CombinatorialValues("Func", "Action")] string delegateType, [CombinatorialValues("bool", "int, string")] string types)
-        {
-            return VerifyCS.VerifyAnalyzerAsync($$"""
+            => VerifyCS.VerifyAnalyzerAsync($$"""
 
                 using System;
                 using System.Collections.Generic;
@@ -483,14 +470,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """);
-        }
 
         [Theory]
         [InlineData("Func")]
         [InlineData("Action")]
         public Task VisualBasic_Func_NoDiagnostic(string delegateType)
-        {
-            return VerifyVB.VerifyAnalyzerAsync($"""
+            => VerifyVB.VerifyAnalyzerAsync($"""
 
                 Imports System
                 Imports System.Collections.Immutable
@@ -516,14 +501,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     End Sub
                 End Class
                 """);
-        }
 
         [Theory]
         [InlineData("Func")]
         [InlineData("Action")]
         public Task VisualBasic_NestedFunc_NoDiagnostic(string delegateType)
-        {
-            return VerifyVB.VerifyAnalyzerAsync($"""
+            => VerifyVB.VerifyAnalyzerAsync($"""
 
                 Imports System
                 Imports System.Collections.Immutable
@@ -549,14 +532,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     End Sub
                 End Class
                 """);
-        }
 
         [Theory]
         [InlineData("Func")]
         [InlineData("Action")]
         public Task VisualBasic_NestedNestedFunc_NoDiagnostic(string delegateType)
-        {
-            return VerifyVB.VerifyAnalyzerAsync($"""
+            => VerifyVB.VerifyAnalyzerAsync($"""
 
                 Imports System
                 Imports System.Collections.Generic
@@ -583,13 +564,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     End Sub
                 End Class
                 """);
-        }
 
         [Theory]
         [CombinatorialData]
         public Task VisualBasic_MultiFunc_NoDiagnostic([CombinatorialValues("Func", "Action")] string delegateType, [CombinatorialValues("Int32", "Int32, String")] string types)
-        {
-            return VerifyVB.VerifyAnalyzerAsync($"""
+            => VerifyVB.VerifyAnalyzerAsync($"""
 
                 Imports System
                 Imports System.Collections.Immutable
@@ -615,7 +594,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     End Sub
                 End Class
                 """);
-        }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string violatingTypeName) =>
 #pragma warning disable RS0030 // Do not use banned APIs

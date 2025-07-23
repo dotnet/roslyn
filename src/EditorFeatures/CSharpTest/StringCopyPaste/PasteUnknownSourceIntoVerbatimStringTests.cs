@@ -11,8 +11,7 @@ public sealed class PasteUnknownSourceIntoVerbatimStringTests
 {
     [WpfFact]
     public void TestNewLineIntoVerbatimString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: "\n",
             """
             var x = @"[||]"
@@ -21,12 +20,10 @@ public sealed class PasteUnknownSourceIntoVerbatimStringTests
             afterUndo: """
             var x = @"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestNewLineIntoVerbatimString2()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
 
 
@@ -41,12 +38,10 @@ public sealed class PasteUnknownSourceIntoVerbatimStringTests
             afterUndo: """
             var x = @"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestTabIntoVerbatimString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: "\t",
             """
             var x = @"[||]"
@@ -55,12 +50,10 @@ public sealed class PasteUnknownSourceIntoVerbatimStringTests
             afterUndo: """
             var x = @"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestSingleQuoteIntoVerbatimString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """'""",
             """
             var x = @"[||]"
@@ -71,12 +64,10 @@ public sealed class PasteUnknownSourceIntoVerbatimStringTests
             afterUndo: """
             var x = @"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestDoubleQuoteIntoVerbatimString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             "
             """,
@@ -89,12 +80,10 @@ public sealed class PasteUnknownSourceIntoVerbatimStringTests
             afterUndo: """
             var x = @""[||]"
             """);
-    }
 
     [WpfFact]
     public void TestComplexStringIntoVerbatimString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: "\t\"\"\t",
             """
             var x = @"[||]"
@@ -103,12 +92,10 @@ public sealed class PasteUnknownSourceIntoVerbatimStringTests
             afterUndo: """
             var x = @"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestNormalTextIntoVerbatimString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """abc""",
             """
             var x = @"[||]"
@@ -119,14 +106,10 @@ public sealed class PasteUnknownSourceIntoVerbatimStringTests
             afterUndo: """
             var x = @"[||]"
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/62969")]
     public void TestNormalTextWithSomeQuotesToEscapeAndSomeToNotEscapeIntoVerbatimString()
-    {
-        // Because we're escaping the quotes in "CA2013", we should also escape teh `""`, even though `""` is legal
-        // to have in a verbatim string.
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             var lambda = [SuppressMessage("", "CA2013")] () => Object.ReferenceEquals(1, 2);
             """,
@@ -146,5 +129,4 @@ public sealed class PasteUnknownSourceIntoVerbatimStringTests
 
             var lambda = [SuppressMessage("", "CA2013")] () => Object.ReferenceEquals(1, 2);[||]";
             """);
-    }
 }

@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [InlineData("ParameterListSyntax")]
         [InlineData("LockStatementSyntax")]
         public Task Diagnostic(string type)
-        {
-            return new VerifyCS.Test
+            => new VerifyCS.Test
             {
                 TestCode = $$"""
                 using Microsoft.CodeAnalysis;
@@ -38,15 +37,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 """,
                 ExpectedDiagnostics = { new DiagnosticResult(CSharpSemanticModelGetDeclaredSymbolAlwaysReturnsNullAnalyzer.DiagnosticDescriptor).WithLocation(0).WithArguments(type) }
             }.RunAsync();
-        }
 
         [Theory]
         [InlineData("BaseFieldDeclarationSyntax")]
         [InlineData("FieldDeclarationSyntax")]
         [InlineData("EventFieldDeclarationSyntax")]
         public Task Field_Diagnostic(string type)
-        {
-            return new VerifyCS.Test
+            => new VerifyCS.Test
             {
                 TestCode = $$"""
                 using Microsoft.CodeAnalysis;
@@ -60,7 +57,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 """,
                 ExpectedDiagnostics = { new DiagnosticResult(CSharpSemanticModelGetDeclaredSymbolAlwaysReturnsNullAnalyzer.FieldDiagnosticDescriptor).WithLocation(0).WithArguments(type) }
             }.RunAsync();
-        }
 
         [Theory]
         [InlineData("SyntaxNode")]
@@ -69,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [InlineData("EnumMemberDeclarationSyntax")]
         [InlineData("NamespaceDeclarationSyntax")]
         public Task NoDiagnostic(string type)
-        {
-            return VerifyCS.VerifyAnalyzerAsync($$"""
+            => VerifyCS.VerifyAnalyzerAsync($$"""
                 using Microsoft.CodeAnalysis;
                 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -80,7 +75,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """);
-        }
 
         [Fact]
         public Task NoDiagnosticForCompilationError()

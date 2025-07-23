@@ -115,14 +115,10 @@ public sealed class InteractiveCommandHandlerTests
 
     [WpfFact]
     public void TestExecuteInInteractiveWithNonEmptyBuffer()
-    {
-        // Execute in interactive clears the existing current buffer before execution.
-        // Therefore `var x = 1;` will not be executed.
-        AssertExecuteInInteractive(
+        => AssertExecuteInInteractive(
             @"{|Selection:var y = 2;$$|}",
             "var y = 2;",
             submissionBuffer: "var x = 1;");
-    }
 
     [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/23200")]
     public void TestExecuteInInteractiveWithDefines()
@@ -169,20 +165,14 @@ public sealed class InteractiveCommandHandlerTests
 
     [WpfFact]
     public void TestCopyToInteractive()
-    {
-        AssertCopyToInteractive($"{{|Selection:{ExampleCode2}$$|}}", ExampleCode2);
-    }
+        => AssertCopyToInteractive($"{{|Selection:{ExampleCode2}$$|}}", ExampleCode2);
 
     [WpfFact]
     public void TestCopyToInteractiveWithNonEmptyBuffer()
-    {
-        // Copy to interactive does not clear the existing buffer.
-        // Therefore `var x = 1;` will still be present in the final buffer.
-        AssertCopyToInteractive(
+        => AssertCopyToInteractive(
             $"{{|Selection:{ExampleCode2}$$|}}",
             $"var x = 1;\r\n{ExampleCode2}",
             submissionBuffer: "var x = 1;");
-    }
 
     private static void AssertCopyToInteractive(string code, string expectedBufferText, string submissionBuffer = null)
     {

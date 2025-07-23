@@ -18,44 +18,35 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
 {
     [WpfFact]
     public void Creation()
-    {
-        Test("""
+        => Test("""
 
             $$
             """, "$$");
-    }
 
     [WpfFact]
     public void Usings()
-    {
-        Test("""
+        => Test("""
             using System;
             $$
             """, @"using System$$");
-    }
 
     [WpfFact]
     public void Namespace()
-    {
-        Test("""
+        => Test("""
             namespace {}
             $$
             """, @"namespace {$$}");
-    }
 
     [WpfFact]
     public void Class()
-    {
-        Test("""
+        => Test("""
             class {}
             $$
             """, "class {$$}");
-    }
 
     [WpfFact]
     public void Method()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 void Method() {$$}
@@ -66,12 +57,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 void Method() {$$}
             }
             """, assertNextHandlerInvoked: true);
-    }
 
     [WpfFact]
     public void Field()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 private readonly int i = 3;
@@ -83,12 +72,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 pri$$vate re$$adonly i$$nt i = 3$$
             }
             """);
-    }
 
     [WpfFact]
     public void EventField()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 event System.EventHandler e = null;
@@ -100,12 +87,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 e$$vent System.Even$$tHandler e$$ = null$$
             }
             """);
-    }
 
     [WpfFact]
     public void Field2()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 private readonly int i;
@@ -117,12 +102,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 private readonly int i$$
             }
             """);
-    }
 
     [WpfFact]
     public void EventField2()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 event System.EventHandler e
@@ -136,12 +119,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 eve$$nt System.E$$ventHandler e$$
             }
             """);
-    }
 
     [WpfFact]
     public void Field3()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 private readonly int
@@ -153,12 +134,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 private readonly int$$
             }
             """);
-    }
 
     [WpfFact]
     public void EventField3()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 event System.EventHandler
@@ -170,12 +149,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 event System.EventHandler$$
             }
             """);
-    }
 
     [WpfFact]
     public void EmbeddedStatement()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 void Method()
@@ -195,12 +172,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void EmbeddedStatement1()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 void Method()
@@ -220,12 +195,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void EmbeddedStatement2()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 void Method()
@@ -245,12 +218,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57323")]
     public void EmbeddedStatementFollowedByStatement()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 void Method()
@@ -282,12 +253,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void Statement()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 void Method()
@@ -305,12 +274,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void Statement1()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 void Method()
@@ -328,12 +295,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedMethod()
-    {
-        Test("""
+        => Test("""
             class T
             {
                 int M() => 1 + 2;
@@ -345,12 +310,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 int M() => 1 + 2$$
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedOperator()
-    {
-        Test("""
+        => Test("""
             class Complex
             {
                 int real; int imaginary;
@@ -366,12 +329,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 private Complex Add(int b) => null;
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedConversionOperator()
-    {
-        Test("""
+        => Test("""
             using System;
             public struct DBBool
             {
@@ -401,12 +362,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public static implicit operator DBBool(bool x) => x ? new DBBool(1) : dbFalse$$
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedProperty()
-    {
-        Test("""
+        => Test("""
             class T
             {
                 int P1 => 1 + 2;
@@ -418,12 +377,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 int P1 => 1 + 2$$
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedIndexer()
-    {
-        Test("""
+        => Test("""
             using System;
             class SampleCollection<T>
             {
@@ -439,12 +396,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public T this[int i] => i > 0 ? arr[i + 1] : arr[i + 2]$$
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
-    {
-        Test("""
+        => Test("""
             using System;
             class TestClass
             {
@@ -464,12 +419,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }$$
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
-    {
-        Test("""
+        => Test("""
             using System;
             class TestClass
             {
@@ -483,12 +436,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 Func<int, int> Y() => delegate (int x) { return 9; }$$
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
-    {
-        Test("""
+        => Test("""
             using System;
             class TestClass
             {
@@ -508,12 +459,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }$$
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedMethodWithExpressionBodiedSimpleLambdaExpression()
-    {
-        Test("""
+        => Test("""
             using System;
             class TestClass
             {
@@ -527,12 +476,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 Func<int, int> Y() => f => f * 9$$
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
-    {
-        Test("""
+        => Test("""
             using System;
             class TestClass
             {
@@ -556,12 +503,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 private int Method1(Func<int> p) => null;
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void Format_SimpleExpressionBodiedMember()
-    {
-        Test("""
+        => Test("""
             class T
             {
                 int M() => 1 + 2;
@@ -573,12 +518,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                      int   M()   =>    1       +     2$$
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void Format_ExpressionBodiedMemberWithSingleLineBlock()
-    {
-        Test("""
+        => Test("""
             using System;
             class TestClass
             {
@@ -592,12 +535,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                             Func<int, int>  Y ()   =>   delegate(int x) { return     9  ; }$$
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
     public void Format_ExpressionBodiedMemberWithMultiLineBlock()
-    {
-        Test("""
+        => Test("""
             using System;
             class TestClass
             {
@@ -617,12 +558,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                     }$$
             }
             """);
-    }
 
     [WpfFact]
     public void Format_Statement()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 void Method()
@@ -640,21 +579,17 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void Format_Using()
-    {
-        Test("""
+        => Test("""
             using System.Linq;
             $$
             """, @"         using           System          .                   Linq            $$");
-    }
 
     [WpfFact]
     public void Format_Using2()
-    {
-        Test("""
+        => Test("""
             using
                 System.Linq;
             $$
@@ -662,12 +597,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             using           
                 System          .                   Linq            $$
             """);
-    }
 
     [WpfFact]
     public void Format_Field()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 int i = 1;
@@ -679,12 +612,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                         int         i           =               1           $$
             }
             """);
-    }
 
     [WpfFact]
     public void Statement_Trivia()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 void goo()
@@ -702,12 +633,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TrailingText_Negative()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 event System.EventHandler e = null  int i = 2;
@@ -719,12 +648,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 event System.EventHandler e = null$$  int i = 2;  
             }
             """);
-    }
 
     [WpfFact]
     public void CompletionSetUp()
-    {
-        Test("""
+        => Test("""
             class Program
             {
                 object goo(object o)
@@ -742,12 +669,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """, completionActive: true);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530352")]
     public void EmbeddedStatement3()
-    {
-        Test("""
+        => Test("""
             class Program
             {
                 void Method()
@@ -767,12 +692,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66102")]
     public void EmbeddedStatement4()
-    {
-        Test("""
+        => Test("""
             class Program
             {
                 void Method()
@@ -792,12 +715,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530716")]
     public void DoNotAssertOnMultilineToken()
-    {
-        Test(""""
+        => Test(""""
             interface I
             {
                 void M(string s = @"""
@@ -809,12 +730,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 void M(string s = @"""$$
             }
             """");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530718")]
     public void AutomaticLineFormat()
-    {
-        Test("""
+        => Test("""
             class C
             {
                 public string P { set; get; }
@@ -826,12 +745,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public string P {set;get;$$}
             }
             """);
-    }
 
     [WpfFact]
     public void NotAfterExisitingSemicolon()
-    {
-        Test("""
+        => Test("""
             class TestClass
             {
                 private int i;
@@ -843,12 +760,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 private int i;$$
             }
             """);
-    }
 
     [WpfFact]
     public void NotAfterCloseBraceInMethod()
-    {
-        Test("""
+        => Test("""
             class TestClass
             {
                 void Test() { }
@@ -860,12 +775,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 void Test() { }$$
             }
             """);
-    }
 
     [WpfFact]
     public void NotAfterCloseBraceInStatement()
-    {
-        Test("""
+        => Test("""
             class TestClass
             {
                 void Test()
@@ -883,12 +796,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void NotAfterAutoPropertyAccessor()
-    {
-        Test("""
+        => Test("""
             class TestClass
             {
                 public int A { get; set }
@@ -900,12 +811,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public int A { get; set$$ }
             }
             """);
-    }
 
     [WpfFact]
     public void NotAfterAutoPropertyDeclaration()
-    {
-        Test("""
+        => Test("""
             class TestClass
             {
                 public int A { get; set; }
@@ -917,12 +826,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public int A { get; set; }$$
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
     public void DelegatedInEmptyBlock()
-    {
-        Test("""
+        => Test("""
             class TestClass
             {
                 void Method()
@@ -939,12 +846,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """, assertNextHandlerInvoked: true);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
     public void DelegatedInEmptyBlock2()
-    {
-        Test("""
+        => Test("""
             class TestClass
             {
                 void Method()
@@ -961,12 +866,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """, assertNextHandlerInvoked: true);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
     public void NotDelegatedOutsideEmptyBlock()
-    {
-        Test("""
+        => Test("""
             class TestClass
             {
                 void Method()
@@ -984,12 +887,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
     public void NotDelegatedAfterOpenBraceAndMissingCloseBrace()
-    {
-        Test("""
+        => Test("""
             class TestClass
             {
                 void Method()
@@ -1007,12 +908,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
     public void NotDelegatedInNonEmptyBlock()
-    {
-        Test("""
+        => Test("""
             class TestClass
             {
                 void Method()
@@ -1030,12 +929,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
     public void NotDelegatedAfterOpenBraceInAnonymousObjectCreationExpression()
-    {
-        Test("""
+        => Test("""
             class TestClass
             {
                 void Method()
@@ -1053,12 +950,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
     public void NotDelegatedAfterOpenBraceObjectCreationExpression()
-    {
-        Test("""
+        => Test("""
             class TestClass
             {
                 void Method()
@@ -1076,12 +971,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMultipleNamespace()
-    {
-        Test($$"""
+        => Test($$"""
             namespace Bar2
             {
                 $$
@@ -1095,7 +988,6 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             {
             }
             """);
-    }
 
     [WpfTheory]
     [InlineData("namespace")]
@@ -1105,8 +997,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
     [InlineData("enum")]
     [InlineData("interface")]
     public void TestEmptyBaseTypeDeclarationAndNamespace(string typeKeyword)
-    {
-        Test($$"""
+        => Test($$"""
             public {{typeKeyword}} Bar
             {
                 $$
@@ -1114,7 +1005,6 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             """, $"""
             pu$$blic {typeKeyword} $$Bar$$
             """);
-    }
 
     [WpfTheory]
     [InlineData("class")]
@@ -1123,8 +1013,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
     [InlineData("enum")]
     [InlineData("interface")]
     public void TestMultipleBaseTypeDeclaration(string typeKeyword)
-    {
-        Test($$"""
+        => Test($$"""
             public {{typeKeyword}} Bar2
             {
                 $$
@@ -1139,12 +1028,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             {
             }
             """);
-    }
 
     [WpfFact]
     public void TestNestedTypeDeclaration()
-    {
-        Test("""
+        => Test("""
             public class Bar1
             {
                 public class Bar2
@@ -1159,12 +1046,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 pu$$blic cla$$ss B$$ar2$$
             }
             """);
-    }
 
     [WpfFact]
     public void TestNestedNamespace()
-    {
-        Test("""
+        => Test("""
             namespace Bar1
             {
                 namespace Bar2
@@ -1179,7 +1064,6 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 namespa$$ce $$B$$ar2$$
             }
             """);
-    }
 
     [WpfTheory]
     [InlineData("namespace")]
@@ -1189,14 +1073,12 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
     [InlineData("enum")]
     [InlineData("interface")]
     public void TestBaseTypeDeclarationAndNamespaceWithOpenBrace(string typeKeyword)
-    {
-        Test($$"""
+        => Test($$"""
             public {{typeKeyword}} Bar {
                 $$
             """, $$"""
             pub$$lic {{typeKeyword}} B$$ar {$$
             """);
-    }
 
     [WpfTheory]
     [InlineData("namespace")]
@@ -1206,18 +1088,15 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
     [InlineData("enum")]
     [InlineData("interface")]
     public void TestValidTypeDeclarationAndNamespace(string typeKeyword)
-    {
-        Test($$"""
+        => Test($$"""
             public {{typeKeyword}} Bar {}
             $$
             """,
             $@"public {typeKeyword}$$ Ba$$r {{}}$$");
-    }
 
     [WpfFact]
     public void TestMethod()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 void Main()
@@ -1231,12 +1110,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 v$$oid Ma$$in($$)$$
             }
             """);
-    }
 
     [WpfFact]
     public void TestConstructor()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 void Bar()
@@ -1250,12 +1127,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 v$$oid Ba$$r($$)$$
             }
             """);
-    }
 
     [WpfFact]
     public void TestValidMethodInInterface()
-    {
-        Test("""
+        => Test("""
             public interface Bar
             {
                 void Main();
@@ -1267,12 +1142,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 v$$oid Mai$$n($$)$$;
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingSemicolonMethodInInterface()
-    {
-        Test("""
+        => Test("""
             public interface Bar
             {
                 void Main()
@@ -1284,12 +1157,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 v$$oid Mai$$n($$)$$
             }
             """);
-    }
 
     [WpfFact]
     public void TestValidLocalFunction()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 void Main()
@@ -1311,12 +1182,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestLocalFunction()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 void Main()
@@ -1336,12 +1205,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestIndexerAsLastElementInClass()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public int this[int i]
@@ -1355,12 +1222,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 p$$ublic in$$t thi$$s[in$$t i]$$
             }
             """);
-    }
 
     [WpfFact]
     public void TestIndexerNotAsLastElementInClass()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public int this[int i]
@@ -1376,12 +1241,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 void Main() {}
             }
             """);
-    }
 
     [WpfFact]
     public void TestValidIndexer()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public int this[int i]
@@ -1397,7 +1260,6 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestGetAccessorOfProperty()
@@ -1473,8 +1335,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
 
     [WpfFact]
     public void TestGetAccessorOfIndexer()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public int this[int i]
@@ -1494,12 +1355,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestValidGetAccessorOfIndexer()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public int this[int i]
@@ -1523,12 +1382,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestNonEmptyGetAccessor()
-    {
-        Test("""
+        => Test("""
             public Class Bar
             {
                 public int P
@@ -1559,12 +1416,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }   
             }
             """);
-    }
 
     [WpfFact]
     public void TestNonEmptySetAccessor()
-    {
-        Test("""
+        => Test("""
             public Class Bar
             {
                 public int P
@@ -1595,12 +1450,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }   
             }
             """);
-    }
 
     [WpfFact]
     public void TestSetAccessorOfIndexer()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public int this[int i]
@@ -1622,12 +1475,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestValidSetAccessorOfIndexer()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public int this[int i]
@@ -1653,12 +1504,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestAddAccessorInEventDeclaration()
-    {
-        Test("""
+        => Test("""
             using System;
             public class Bar
             {
@@ -1682,12 +1531,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestValidAddAccessorInEventDeclaration()
-    {
-        Test("""
+        => Test("""
             using System;
             public class Bar
             {
@@ -1715,12 +1562,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestRemoveAccessor()
-    {
-        Test("""
+        => Test("""
             using System;
             public class Bar
             {
@@ -1744,12 +1589,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestValidRemoveAccessor()
-    {
-        Test("""
+        => Test("""
             using System;
             public class Bar
             {
@@ -1777,7 +1620,6 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestField()
@@ -1808,8 +1650,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
 
     [WpfFact]
     public void TestReadonlyField()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public readonly int iii;
@@ -1821,12 +1662,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 p$$ublic reado$$nly i$$nt i$$ii$$
             }
             """);
-    }
 
     [WpfFact]
     public void TestNonEmptyProperty()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public int Foo
@@ -1844,12 +1683,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMultipleFields()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public int apple, banana;
@@ -1861,12 +1698,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 p$$ublic i$$nt ap$$ple$$, ba$$nana;$$
             }
             """);
-    }
 
     [WpfFact]
     public void TestMultipleEvents()
-    {
-        Test("""
+        => Test("""
             using System;
             public class Bar
             {
@@ -1880,7 +1715,6 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 p$$ublic event EventHandler ap$$ple$$, ba$$nana$$;$$
             }
             """);
-    }
 
     [WpfFact]
     public void TestEvent()
@@ -1914,8 +1748,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
 
     [WpfFact]
     public void TestNonEmptyEvent()
-    {
-        Test("""
+        => Test("""
             using System;
             public class Bar
             {
@@ -1935,7 +1768,6 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestObjectCreationExpressionWithParenthesis()
@@ -2206,8 +2038,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
 
     [WpfFact]
     public void TestObjectCreationExpressionWithNonEmptyInitializer()
-    {
-        Test(
+        => Test(
             """
             public class Bar
             {
@@ -2238,12 +2069,9 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             }
             """);
 
-    }
-
     [WpfFact]
     public void TestArrayInitializer1()
-    {
-        Test(
+        => Test(
             """
             using System.Collections.Generic;
             public class Bar
@@ -2265,12 +2093,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestArrayInitializer2()
-    {
-        Test(
+        => Test(
             """
             using System.Collections.Generic;
             public class Bar
@@ -2292,12 +2118,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestCollectionInitializerWithNonEmptyInitializer()
-    {
-        Test(
+        => Test(
             """
             using System.Collections.Generic;
             public class Bar
@@ -2319,12 +2143,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestCollectionExpression()
-    {
-        Test(
+        => Test(
             """
             using System.Collections.Generic;
             public class Bar
@@ -2346,12 +2168,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestIfStatementWithInnerStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Main(bool x)
@@ -2373,12 +2193,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestIfStatementWithFollowingElseClause()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Main(bool x)
@@ -2402,12 +2220,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestIfStatementWithoutStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Main(bool x)
@@ -2427,12 +2243,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestNestIfStatementWithInnerStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Main(int x)
@@ -2460,12 +2274,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestNestIfStatementWithoutInnerStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Main(int x)
@@ -2491,12 +2303,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestNestedElseIfStatementWithInnerStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Fo(int i)
@@ -2532,12 +2342,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestNestIfElseStatementWithBlockWithInnerStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Main(int x)
@@ -2575,12 +2383,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestEmptyDoStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Main()
@@ -2600,12 +2406,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestDoStatementWithInnerStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Main()
@@ -2627,12 +2431,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestDoStatementWithWhileClause()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Main()
@@ -2656,12 +2458,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestSingleElseStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Fo()
@@ -2687,12 +2487,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestElseStatementWithInnerStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Fo()
@@ -2720,12 +2518,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestElseIfStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Fo()
@@ -2751,12 +2547,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestElseIfInTheMiddleWithInnerStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Fo()
@@ -2790,12 +2584,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestElseClauseInNestedIfStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Fo(int i)
@@ -2827,12 +2619,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestForStatementWithoutStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Fo()
@@ -2852,12 +2642,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestForStatementWithInnerStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Fo()
@@ -2879,12 +2667,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestForEachStatementWithoutInnerStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Fo()
@@ -2906,12 +2692,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestLockStatementWithoutInnerStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 object o = new object();
@@ -2933,12 +2717,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestLockStatementWithInnerStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 object o = new object();
@@ -2962,12 +2744,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestUsingStatementWithoutInnerStatement()
-    {
-        Test("""
+        => Test("""
             using System;
             public class Bar
             {
@@ -2999,12 +2779,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 {}
             }
             """);
-    }
 
     [WpfFact]
     public void TestUsingStatementWithInnerStatement()
-    {
-        Test("""
+        => Test("""
             using System;
             public class Bar
             {
@@ -3038,12 +2816,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 {}
             }
             """);
-    }
 
     [WpfFact]
     public void TestUsingInLocalDeclarationStatement()
-    {
-        Test("""
+        => Test("""
             using System;
             public class Bar
             {
@@ -3073,12 +2849,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 {}
             }
             """);
-    }
 
     [WpfFact]
     public void TestWhileStatementWithoutInnerStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Fo()
@@ -3098,12 +2872,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestWhileStatementWithInnerStatement()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Fo()
@@ -3125,12 +2897,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestSwitchExpression1()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Goo(int c)
@@ -3152,12 +2922,9 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             }
             """);
 
-    }
-
     [WpfFact]
     public void TestSwitchExpression2()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Goo(int c)
@@ -3179,15 +2946,9 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             }
             """);
 
-    }
-
     [WpfFact]
     public void TestSwitchStatementWithOnlyOpenParenthesis()
-    {
-        // This test is to make sure {} will be added to the switch statement,
-        // but our formatter now can't format the case when the CloseParenthesis token is missing.
-        // If any future formatter improvement can handle this case, this test can be modified safely
-        Test("""
+        => Test("""
             public class bar
             {
                 public void TT()
@@ -3207,12 +2968,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestSwitchStatement()
-    {
-        Test("""
+        => Test("""
             public class bar
             {
                 public void TT()
@@ -3234,12 +2993,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestValidSwitchStatement()
-    {
-        Test("""
+        => Test("""
             public class bar
             {
                 public void TT()
@@ -3263,12 +3020,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestValidTryStatement()
-    {
-        Test("""
+        => Test("""
             public class bar
             {
                 public void TT()
@@ -3290,12 +3045,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestTryStatement()
-    {
-        Test("""
+        => Test("""
             public class bar
             {
                 public void TT()
@@ -3315,12 +3068,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestValidCatchClause()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void TT()
@@ -3348,12 +3099,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestCatchClauseWithException()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void TT()
@@ -3379,12 +3128,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestSingleCatchClause()
-    {
-        Test("""
+        => Test("""
             public class bar
             {
                 public void TT()
@@ -3410,12 +3157,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestCatchClauseWithWhenClause()
-    {
-        Test("""
+        => Test("""
             public class bar
             {
                 public void TT()
@@ -3441,12 +3186,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestFinallyClause()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Bar2()
@@ -3478,12 +3221,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestValidFinallyClause()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Bar2()
@@ -3517,12 +3258,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestObjectCreationExpressionWithMissingType()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Bar2()
@@ -3543,12 +3282,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestRemoveInitializerForImplicitObjectCreationExpression()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public void Bar2()
@@ -3570,14 +3307,12 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfTheory]
     [InlineData("checked")]
     [InlineData("unchecked")]
     public void TestCheckedStatement(string keywordToken)
-    {
-        Test($$"""
+        => Test($$"""
             public class Bar
             {
                 public void Bar2()
@@ -3598,14 +3333,12 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfTheory]
     [InlineData("checked")]
     [InlineData("unchecked")]
     public void TextCheckedExpression(string keywordToken)
-    {
-        Test($$"""
+        => Test($$"""
             public class Bar
             {
                 public void Bar2()
@@ -3624,12 +3357,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestConvertFieldToPropertyWithAttributeAndComment()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public int Property
@@ -3654,12 +3385,10 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public void Method() { }
             }
             """);
-    }
 
     [WpfFact]
     public void TestConvertEventFieldToPropertyWithAttributeAndComment()
-    {
-        Test("""
+        => Test("""
             public class Bar
             {
                 public event EventHandler MyEvent
@@ -3684,7 +3413,6 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public void Method() { }
             }
             """);
-    }
 
     protected override string Language => LanguageNames.CSharp;
 

@@ -11,18 +11,15 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
 {
     [Fact]
     public void TestEmpty()
-    {
-        Test("""
+        => Test("""
             ""
             """, expected: null,
             "",
             "", runLooseSubTreeCheck: false);
-    }
 
     [Fact]
     public void TestOneSpace()
-    {
-        Test("""
+        => Test("""
             " "
             """, """
             <Tree>
@@ -46,12 +43,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Syntax error" Start="9" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestTwoSpaces()
-    {
-        Test("""
+        => Test("""
             "  "
             """, """
             <Tree>
@@ -75,12 +70,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Syntax error" Start="9" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestTabSpace()
-    {
-        Test("""
+        => Test("""
             "\t"
             """, """
             <Tree>
@@ -104,12 +97,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Syntax error" Start="9" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestFormFeed()
-    {
-        Test("""
+        => Test("""
             "\f"
             """, """
             <Tree>
@@ -133,12 +124,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Syntax error" Start="9" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestFormFeed2()
-    {
-        Test("""
+        => Test("""
             "[\f1,0]"
             """, """
             <Tree>
@@ -170,14 +159,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Illegal whitespace character" Start="10" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestFormFeed3()
-    {
-        // .net strict parsers don't report the problem with the trailing \f.  we do as it's
-        // per the ecma spec.
-        Test("""
+        => Test("""
             "[0\f,1]"
             """, """
             <Tree>
@@ -209,12 +194,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Illegal whitespace character" Start="11" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestSingleLineComment()
-    {
-        Test("""
+        => Test("""
             "//"
             """, """
             <Tree>
@@ -238,12 +221,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Unterminated comment" Start="9" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestSingleLineCommentWithContent()
-    {
-        Test("""
+        => Test("""
             "// "
             """, """
             <Tree>
@@ -263,12 +244,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Comments not allowed" Start="9" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestEmptyMultiLineComment()
-    {
-        Test("""
+        => Test("""
             "/**/"
             """, """
             <Tree>
@@ -288,12 +267,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Comments not allowed" Start="9" Length="4" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestMultiLineCommentWithStar()
-    {
-        Test("""
+        => Test("""
             "/***/"
             """, """
             <Tree>
@@ -313,12 +290,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Comments not allowed" Start="9" Length="5" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestArray1()
-    {
-        Test("""
+        => Test("""
             "[]"
             """, """
             <Tree>
@@ -336,12 +311,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestArray2()
-    {
-        Test("""
+        => Test("""
             " [ ] "
             """, """
             <Tree>
@@ -362,12 +335,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestArray3()
-    {
-        Test("""
+        => Test("""
             "["
             """, """
             <Tree>
@@ -393,12 +364,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
       <Diagnostic Message="']' expected" Start="10" Length="0" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void TestArray4()
-    {
-        Test("""
+        => Test("""
             "]"
             """, """
             <Tree>
@@ -422,12 +391,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="']' unexpected" Start="9" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestArray5()
-    {
-        Test("""
+        => Test("""
             "[,]"
             """, """
             <Tree>
@@ -453,12 +420,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="',' unexpected" Start="10" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestArray6()
-    {
-        Test("""
+        => Test("""
             "[true,]"
             """, """
             <Tree>
@@ -487,12 +452,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Trailing comma not allowed" Start="14" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestArray7()
-    {
-        Test("""
+        => Test("""
             "[true]"
             """, """
             <Tree>
@@ -514,12 +477,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestArray8()
-    {
-        Test("""
+        => Test("""
             "[,,]"
             """, """
             <Tree>
@@ -548,12 +509,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="',' unexpected" Start="10" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestArray9()
-    {
-        Test("""
+        => Test("""
             "[true,,]"
             """, """
             <Tree>
@@ -585,12 +544,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="',' unexpected" Start="15" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestArray10()
-    {
-        Test("""
+        => Test("""
             "[,true,]"
             """, """
             <Tree>
@@ -622,12 +579,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="',' unexpected" Start="10" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestArray11()
-    {
-        Test("""
+        => Test("""
             "[,,true]"
             """, """
             <Tree>
@@ -659,12 +614,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="',' unexpected" Start="10" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestTrueLiteral1()
-    {
-        Test("""
+        => Test("""
             "true"
             """, """
             <Tree>
@@ -680,12 +633,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestTrueLiteral2()
-    {
-        Test("""
+        => Test("""
             " true "
             """, """
             <Tree>
@@ -704,12 +655,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestFalseLiteral1()
-    {
-        Test("""
+        => Test("""
             "false"
             """, """
             <Tree>
@@ -725,12 +674,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestFalseLiteral2()
-    {
-        Test("""
+        => Test("""
             " false "
             """, """
             <Tree>
@@ -749,12 +696,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestNullLiteral1()
-    {
-        Test("""
+        => Test("""
             "null"
             """, """
             <Tree>
@@ -770,12 +715,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestNullLiteral2()
-    {
-        Test("""
+        => Test("""
             " null "
             """, """
             <Tree>
@@ -794,12 +737,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestUndefinedLiteral1()
-    {
-        Test("""
+        => Test("""
             "undefined"
             """, """
             <Tree>
@@ -819,12 +760,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'undefined' literal not allowed" Start="9" Length="9" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNaNLiteral1()
-    {
-        Test("""
+        => Test("""
             "NaN"
             """, """
             <Tree>
@@ -844,12 +783,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'NaN' literal not allowed" Start="9" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNaNLiteral2()
-    {
-        Test("""
+        => Test("""
             " NaN "
             """, """
             <Tree>
@@ -872,12 +809,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'NaN' literal not allowed" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNaNLiteral3()
-    {
-        Test("""
+        => Test("""
             "nan"
             """, """
             <Tree>
@@ -901,12 +836,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestInfinity1()
-    {
-        Test("""
+        => Test("""
             "Infinity"
             """, """
             <Tree>
@@ -926,12 +859,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'Infinity' literal not allowed" Start="9" Length="8" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNegativeInfinity1()
-    {
-        Test("""
+        => Test("""
             "-Infinity"
             """, """
             <Tree>
@@ -952,12 +883,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'-Infinity' literal not allowed" Start="9" Length="9" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNegativeInfinity2()
-    {
-        Test("""
+        => Test("""
             "- Infinity"
             """, """
             <Tree>
@@ -984,12 +913,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="9" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestArrayWithMissingCommas()
-    {
-        Test("""
+        => Test("""
             "[0 1 2]"
             """, """
             <Tree>
@@ -1025,12 +952,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="',' expected" Start="12" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestIncompleteNull1()
-    {
-        Test("""
+        => Test("""
             "n"
             """, """
             <Tree>
@@ -1054,12 +979,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestIncompleteNull2()
-    {
-        Test("""
+        => Test("""
             "nu"
             """, """
             <Tree>
@@ -1083,12 +1006,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestIncompleteUnicode1()
-    {
-        Test("""
+        => Test("""
             @"'h\u123'"
             """, """
             <Tree>
@@ -1112,12 +1033,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestIncompleteEscape()
-    {
-        Test("""
+        => Test("""
             @"'h\u'"
             """, """
             <Tree>
@@ -1141,12 +1060,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestIncompleteUnicode2()
-    {
-        Test(""""
+        => Test(""""
             @"""h\u123"""
             """", """
             <Tree>
@@ -1170,12 +1087,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid escape sequence" Start="13" Length="7" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestIncompleteEscape2()
-    {
-        Test(""""
+        => Test(""""
             @"""h\u"""
             """", """
             <Tree>
@@ -1199,12 +1114,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid escape sequence" Start="13" Length="4" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestInvalidNonBase10()
-    {
-        Test("""
+        => Test("""
             "0aq2dun13.hod"
             """, """
             <Tree>
@@ -1228,12 +1141,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="9" Length="13" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestUnterminatedString()
-    {
-        Test("""
+        => Test("""
             "'hi"
             """, """
             <Tree>
@@ -1257,12 +1168,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Unterminated string" Start="9" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestUnterminatedString2()
-    {
-        Test("""
+        => Test("""
             "\"hi"
             """, """
             <Tree>
@@ -1286,12 +1195,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Unterminated string" Start="9" Length="4" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestExtraEndToken()
-    {
-        Test("""
+        => Test("""
             "{}}"
             """, """
             <Tree>
@@ -1320,12 +1227,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'}' unexpected" Start="11" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestMultiObject1()
-    {
-        Test("""
+        => Test("""
             "{'first':1,'second':2,'third':3}"
             """, """
             <Tree>
@@ -1371,12 +1276,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestMultiObject2()
-    {
-        Test("""
+        => Test("""
             "{\"first\":1,\"second\":2,\"third\":3}"
             """, """
             <Tree>
@@ -1418,12 +1321,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestExtraChar()
-    {
-        Test("""
+        => Test("""
             "nullz"
             """, """
             <Tree>
@@ -1447,12 +1348,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestMissingColon()
-    {
-        Test("""
+        => Test("""
             @"{ 'a': 0, 'b' 0 }"
             """, """
             <Tree>
@@ -1494,12 +1393,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="12" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNestedPropertyMissingColon()
-    {
-        Test("""
+        => Test("""
             @"
             {
               ""description"": ""A person"",
@@ -1662,12 +1559,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be followed by a ':'" Start="102" Length="8" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestMissingColon2()
-    {
-        Test("""
+        => Test("""
             @"{ ""a"": 0, ""b"" 0 }"
             """, """
             <Tree>
@@ -1709,12 +1604,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be followed by a ':'" Start="22" Length="5" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestAdditionalContentComma()
-    {
-        Test("""
+        => Test("""
             @"[
             ""Small"",
             ""Medium"",
@@ -1767,12 +1660,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="',' unexpected" Start="50" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestAdditionalContentText()
-    {
-        Test("""
+        => Test("""
             @"[
             ""Small"",
             ""Medium"",
@@ -1825,12 +1716,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'c' unexpected" Start="50" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestAdditionalContentWhitespaceText()
-    {
-        Test("""
+        => Test("""
             @"'hi' a"
             """, """
             <Tree>
@@ -1857,12 +1746,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestAdditionalContentWhitespaceText2()
-    {
-        Test(""""
+        => Test(""""
             @"""hi"" a"
             """", """
             <Tree>
@@ -1889,12 +1776,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'a' unexpected" Start="17" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestTrailingCommentStart()
-    {
-        Test("""
+        => Test("""
             @"true/"
             """, """
             <Tree>
@@ -1918,12 +1803,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Error parsing comment" Start="14" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestBadCharInArray()
-    {
-        Test("""
+        => Test("""
             @"[}"
             """, """
             <Tree>
@@ -1953,12 +1836,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'}' unexpected" Start="11" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestIncompleteObject()
-    {
-        Test("""
+        => Test("""
             @"{"
             """, """
             <Tree>
@@ -1984,12 +1865,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'}' expected" Start="11" Length="0" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestEmptyObject()
-    {
-        Test("""
+        => Test("""
             @"{}"
             """, """
             <Tree>
@@ -2007,12 +1886,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestLargeInt()
-    {
-        Test("""
+        => Test("""
             @"3333333333333333333333333333333333333"
             """, """
             <Tree>
@@ -2028,12 +1905,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestIdentifierProperty()
-    {
-        Test("""
+        => Test("""
             @"{ a: 0 }"
             """, """
             <Tree>
@@ -2063,12 +1938,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="12" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumericProperty()
-    {
-        Test("""
+        => Test("""
             @"{ 1: 0 }"
             """, """
             <Tree>
@@ -2098,12 +1971,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="12" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNegativeNumericProperty()
-    {
-        Test("""
+        => Test("""
             @"{ -1: 0 }"
             """, """
             <Tree>
@@ -2137,12 +2008,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="12" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestArrayPropertyName()
-    {
-        Test("""
+        => Test("""
             @"{ []: 0 }"
             """, """
             <Tree>
@@ -2182,12 +2051,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Only properties allowed in an object" Start="12" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNaNPropertyName()
-    {
-        Test("""
+        => Test("""
             @"{ NaN: 0 }"
             """, """
             <Tree>
@@ -2217,12 +2084,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="12" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestInfinityPropertyName()
-    {
-        Test("""
+        => Test("""
             @"{ Infinity: 0 }"
             """, """
             <Tree>
@@ -2252,12 +2117,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="12" Length="8" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNullPropertyName()
-    {
-        Test("""
+        => Test("""
             @"{ null: 0 }"
             """, """
             <Tree>
@@ -2287,12 +2150,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="12" Length="4" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestUndefinedPropertyName()
-    {
-        Test("""
+        => Test("""
             @"{ undefined: 0 }"
             """, """
             <Tree>
@@ -2322,12 +2183,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="12" Length="9" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNameWithSpace()
-    {
-        Test("""
+        => Test("""
             @"{ a b : 0 }"
             """, """
             <Tree>
@@ -2365,12 +2224,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'a' unexpected" Start="12" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNameWithNumber()
-    {
-        Test("""
+        => Test("""
             @"{ a0 : 0 }"
             """, """
             <Tree>
@@ -2400,12 +2257,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="12" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumberWithHexName()
-    {
-        Test("""
+        => Test("""
             @"{ 0a : 0 }"
             """, """
             <Tree>
@@ -2435,12 +2290,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="12" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumberWithNonHexName()
-    {
-        Test("""
+        => Test("""
             @"{ 0z : 0 }"
             """, """
             <Tree>
@@ -2470,12 +2323,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="12" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestDollarPropName()
-    {
-        Test("""
+        => Test("""
             @"{ $ : 0 }"
             """, """
             <Tree>
@@ -2505,12 +2356,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="12" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestUnderscorePropName()
-    {
-        Test("""
+        => Test("""
             @"{ _ : 0 }"
             """, """
             <Tree>
@@ -2540,12 +2389,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="12" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestStrangeLegalPropName()
-    {
-        Test("""
+        => Test("""
             @"{ 0$0 : 0 }"
             """, """
             <Tree>
@@ -2575,12 +2422,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="12" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestStrangeIllegalPropName()
-    {
-        Test("""
+        => Test("""
             @"{ 0(0 : 0 }"
             """, """
             <Tree>
@@ -2622,12 +2467,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Only properties allowed in an object" Start="12" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestStrangeIllegalPropName2()
-    {
-        Test("""
+        => Test("""
             @"{ 0%0 : 0 }"
             """, """
             <Tree>
@@ -2661,12 +2504,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="12" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestObjectWithEmptyPropValue1()
-    {
-        Test("""
+        => Test("""
             "{'first': , }"
             """, """
             <Tree>
@@ -2697,12 +2538,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Value required" Start="18" Length="0" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestObjectWithEmptyPropValue2()
-    {
-        Test("""
+        => Test("""
             "{\"first\": , }"
             """, """
             <Tree>
@@ -2733,12 +2572,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Value required" Start="20" Length="0" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestObjectWithEmptyPropValue3()
-    {
-        Test("""
+        => Test("""
             "{'first': }"
             """, """
             <Tree>
@@ -2772,12 +2609,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestObjectWithEmptyPropValue4()
-    {
-        Test("""
+        => Test("""
             "{\"first\": }"
             """, """
             <Tree>
@@ -2811,12 +2646,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'}' unexpected" Start="21" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestObjectWithEmptyPropValue5()
-    {
-        Test("""
+        => Test("""
             "{'first': "
             """, """
             <Tree>
@@ -2850,12 +2683,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Value required" Start="18" Length="0" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestObjectWithEmptyPropValue6()
-    {
-        Test("""
+        => Test("""
             "{\"first\": "
             """, """
             <Tree>
@@ -2889,12 +2720,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Value required" Start="20" Length="0" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNestedProp1()
-    {
-        Test("""
+        => Test("""
             "{'first': 'second': 'third' }"
             """, """
             <Tree>
@@ -2932,12 +2761,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNestedProp2()
-    {
-        Test("""
+        => Test("""
             "{\"first\": \"second\": \"third\" }"
             """, """
             <Tree>
@@ -2975,12 +2802,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Nested properties not allowed" Start="31" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestMultiItemList()
-    {
-        Test("""
+        => Test("""
             "[{ 'name': 'Admin' },{ 'name': 'Publisher' },1,null,[],,'string']"
             """, """
             <Tree>
@@ -3061,12 +2886,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="12" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestMultiItemList2()
-    {
-        Test("""
+        => Test("""
             "[{ \"name\": \"Admin\" },{ \"name\": \"Publisher\" },1,null,[],,\"string\"]"
             """, """
             <Tree>
@@ -3147,12 +2970,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="',' unexpected" Start="72" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestMultiLine1()
-    {
-        Test("""
+        => Test("""
             @"
             {'a':
             'bc','d':true
@@ -3199,12 +3020,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="13" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestMultiLine2()
-    {
-        Test("""
+        => Test("""
             @"
             {""a"":
             ""bc"",""d"":true
@@ -3247,12 +3066,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestNestedObject()
-    {
-        Test("""
+        => Test("""
             @"
             {
               'description': 'A person',
@@ -3411,12 +3228,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="17" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNestedObject1()
-    {
-        Test("""
+        => Test("""
             @"
             {
               ""description"": ""A person"",
@@ -3571,12 +3386,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestLiterals1()
-    {
-        Test("""
+        => Test("""
             @"{ A: '', B: 1, C: , D: 1.23, E: 3.45, F: null }"
             """, """
             <Tree>
@@ -3646,12 +3459,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="12" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestLiterals2()
-    {
-        Test("""""
+        => Test("""""
             @"{ ""A"": """", ""B"": 1, ""D"": 1.23, ""E"": 3.45, ""F"": null }"
             """"", """
             <Tree>
@@ -3709,12 +3520,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestLiterals3()
-    {
-        Test("""
+        => Test("""
             @"[
               1,
               0,
@@ -3911,12 +3720,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="244" Length="1" />
             </Diagnostics>
             """, runLooseSubTreeCheck: false);
-    }
 
     [Fact]
     public void TestCommentsInArray()
-    {
-        Test("""
+        => Test("""
             @"[/*hi*/1/*hi*/,2/*hi*/]"
             """, """
             <Tree>
@@ -3948,12 +3755,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Comments not allowed" Start="11" Length="6" />
             </Diagnostics>
             """, runLooseSubTreeCheck: false);
-    }
 
     [Fact]
     public void TestUnicode2()
-    {
-        Test("""
+        => Test("""
             @"{'text':0xabcdef12345}"
             """, """
             <Tree>
@@ -3983,12 +3788,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestUnicode3()
-    {
-        Test("""
+        => Test("""
             @"{""text"":0xabcdef12345}"
             """, """
             <Tree>
@@ -4018,12 +3821,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="20" Length="13" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestOctal1()
-    {
-        Test("""
+        => Test("""
             @"[0372, 0xFA, 0XFA]"
             """, """
             <Tree>
@@ -4061,12 +3862,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="11" Length="4" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestOctal2()
-    {
-        Test("""
+        => Test("""
             @"[00]"
             """, """
             <Tree>
@@ -4092,12 +3891,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="11" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestOctal3()
-    {
-        Test("""
+        => Test("""
             @"[0F]"
             """, """
             <Tree>
@@ -4127,12 +3924,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="11" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestOctal4()
-    {
-        Test("""
+        => Test("""
             @"[07777777]"
             """, """
             <Tree>
@@ -4158,12 +3953,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="11" Length="8" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestOctal5()
-    {
-        Test("""
+        => Test("""
             @"[0777777777777777]"
             """, """
             <Tree>
@@ -4189,12 +3982,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="11" Length="16" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestOctal6()
-    {
-        Test("""
+        => Test("""
             @"[07777777777777777777777777777777]"
             """, """
             <Tree>
@@ -4229,12 +4020,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="11" Length="32" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestOctal7()
-    {
-        Test("""
+        => Test("""
             @"[07]"
             """, """
             <Tree>
@@ -4260,12 +4049,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="11" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestOctal8()
-    {
-        Test("""
+        => Test("""
             @"[08]"
             """, """
             <Tree>
@@ -4295,12 +4082,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="11" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestObjectLiteralComments()
-    {
-        Test("""
+        => Test("""
             @"/*comment*/ { /*comment*/
                     'Name': /*comment*/ 'Apple' /*comment*/, /*comment*/
                     'ExpiryDate': '1',
@@ -4425,12 +4210,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Comments not allowed" Start="10" Length="11" />
             </Diagnostics>
             """, runLooseSubTreeCheck: false);
-    }
 
     [Fact]
     public void TestEmptyStrings()
-    {
-        Test("""
+        => Test("""
             @"['','','','','','','']"
             """, """
             <Tree>
@@ -4492,12 +4275,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestEmptyStrings2()
-    {
-        Test("""""
+        => Test("""""
             @"["""","""","""","""","""","""",""""]"
             """"", """
             <Tree>
@@ -4555,12 +4336,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestInvalidNumber()
-    {
-        Test("""
+        => Test("""
             @"0-10"
             """, """
             <Tree>
@@ -4584,12 +4363,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="4" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestSimpleEscapes()
-    {
-        Test("""
+        => Test("""
             @"[false, true, true, false, 'test!', 1.11, 0e-10, 0E-10, 0.25e-5, 0.3e10, 6.0221418e23, 'Purple\r \n monkey\'s:\tdishwasher']"
             """, """
             <Tree>
@@ -4681,12 +4458,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="37" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestSimpleEscapes2()
-    {
-        Test("""
+        => Test("""
             @"[false, true, true, false, ""test!"", 1.11, 0e-10, 0E-10, 0.25e-5, 0.3e10, 6.0221418e23, ""Purple\r \n monkey\'s:\tdishwasher""]"
             """, """
             <Tree>
@@ -4778,12 +4553,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid escape sequence" Start="119" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestDoubleQuoteInSingleQuote()
-    {
-        Test("""
+        => Test("""
             @"'a""b'"
             """, """
             <Tree>
@@ -4803,12 +4576,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestMultiLineString()
-    {
-        Test("""
+        => Test("""
             @"'a
             b'"
             """, """
@@ -4830,12 +4601,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestMultiLineString2()
-    {
-        Test(""""
+        => Test(""""
             @"""a
             b"""
             """", """
@@ -4857,12 +4626,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Illegal string character" Start="13" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestConstructor1()
-    {
-        Test("""
+        => Test("""
             @"new"
             """, """
             <Tree>
@@ -4890,12 +4657,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestConstructor2()
-    {
-        Test("""
+        => Test("""
             @"new A"
             """, """
             <Tree>
@@ -4923,12 +4688,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestConstructor3()
-    {
-        Test("""
+        => Test("""
             @"new A("
             """, """
             <Tree>
@@ -4956,12 +4719,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestConstructor4()
-    {
-        Test("""
+        => Test("""
             @"new A()"
             """, """
             <Tree>
@@ -4985,12 +4746,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestConstructor5()
-    {
-        Test("""
+        => Test("""
             @"new A(1)"
             """, """
             <Tree>
@@ -5018,12 +4777,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestConstructor6()
-    {
-        Test("""
+        => Test("""
             @"new A(1, 2)"
             """, """
             <Tree>
@@ -5057,12 +4814,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestConstructor7()
-    {
-        Test("""
+        => Test("""
             @"new A([new B()])"
             """, """
             <Tree>
@@ -5100,12 +4855,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestConstructor8()
-    {
-        Test("""
+        => Test("""
             @"new A(,)"
             """, """
             <Tree>
@@ -5133,12 +4886,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestConstructor9()
-    {
-        Test("""
+        => Test("""
             @"new A(1,)"
             """, """
             <Tree>
@@ -5169,12 +4920,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestConstructor10()
-    {
-        Test("""
+        => Test("""
             @"new A(,1)"
             """, """
             <Tree>
@@ -5205,12 +4954,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestConstructor11()
-    {
-        Test("""
+        => Test("""
             @"new A(1,1)"
             """, """
             <Tree>
@@ -5244,12 +4991,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestConstructor12()
-    {
-        Test("""
+        => Test("""
             @"new A(1,,1)"
             """, """
             <Tree>
@@ -5286,12 +5031,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestConstructor13()
-    {
-        Test("""
+        => Test("""
             @"new %()"
             """, """
             <Tree>
@@ -5319,12 +5062,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestConstructor14()
-    {
-        Test("""
+        => Test("""
             @"new A(1 2)"
             """, """
             <Tree>
@@ -5359,12 +5100,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestMultipleCommasInObject()
-    {
-        Test("""
+        => Test("""
             @"{0:0,,1:1}"
             """, """
             <Tree>
@@ -5410,12 +5149,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="11" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestSimpleEscapes3()
-    {
-        Test("""
+        => Test("""
             @" ""\r\n\f\t\b"" "
             """, """
             <Tree>
@@ -5434,12 +5171,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestSimpleEscapes4()
-    {
-        Test("""
+        => Test("""
             @" ""\m"" "
             """, """
             <Tree>
@@ -5466,12 +5201,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestSimpleEscapes5()
-    {
-        Test("""""
+        => Test("""""
             @" ""\\\/\"""" "
             """"", """
             <Tree>
@@ -5490,12 +5223,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestSimpleEscapes6()
-    {
-        Test("""
+        => Test("""
             @" ""\'"" "
             """, """
             <Tree>
@@ -5518,12 +5249,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestSimpleEscapes7()
-    {
-        Test("""
+        => Test("""
             @" '\'' "
             """, """
             <Tree>
@@ -5546,12 +5275,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestSimpleEscapes8()
-    {
-        Test("""
+        => Test("""
             @" '\""' "
             """, """
             <Tree>
@@ -5574,12 +5301,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestPropertyInArray1()
-    {
-        Test("""
+        => Test("""
             @" [""a"": 0] "
             """, """
             <Tree>
@@ -5616,12 +5341,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Properties not allowed in an array" Start="17" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestSimpleNumber1()
-    {
-        Test("""
+        => Test("""
             @"0.0"
             """, """
             <Tree>
@@ -5637,12 +5360,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestSimpleNumber2()
-    {
-        Test("""
+        => Test("""
             @"-0.0"
             """, """
             <Tree>
@@ -5658,12 +5379,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestSimpleNumber3()
-    {
-        Test("""
+        => Test("""
             @".0"
             """, """
             <Tree>
@@ -5683,12 +5402,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestSimpleNumber4()
-    {
-        Test("""
+        => Test("""
             @"-.0"
             """, """
             <Tree>
@@ -5708,12 +5425,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestStandaloneMinus()
-    {
-        Test("""
+        => Test("""
             @"-"
             """, """
             <Tree>
@@ -5737,12 +5452,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestMinusDot()
-    {
-        Test("""
+        => Test("""
             @"-."
             """, """
             <Tree>
@@ -5766,12 +5479,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber1()
-    {
-        Test("""
+        => Test("""
             @"0"
             """, """
             <Tree>
@@ -5787,12 +5498,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestNumber2()
-    {
-        Test("""
+        => Test("""
             @"-0"
             """, """
             <Tree>
@@ -5808,12 +5517,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestNumber3()
-    {
-        Test("""
+        => Test("""
             @"00"
             """, """
             <Tree>
@@ -5833,12 +5540,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber4()
-    {
-        Test("""
+        => Test("""
             @"-00"
             """, """
             <Tree>
@@ -5858,12 +5563,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber5()
-    {
-        Test("""
+        => Test("""
             @"0."
             """, """
             <Tree>
@@ -5883,12 +5586,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber6()
-    {
-        Test("""
+        => Test("""
             @"-0."
             """, """
             <Tree>
@@ -5908,12 +5609,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber7()
-    {
-        Test("""
+        => Test("""
             @"0e"
             """, """
             <Tree>
@@ -5937,12 +5636,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="2" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber8()
-    {
-        Test("""
+        => Test("""
             @"-0e"
             """, """
             <Tree>
@@ -5966,12 +5663,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber9()
-    {
-        Test("""
+        => Test("""
             @"0e0"
             """, """
             <Tree>
@@ -5987,12 +5682,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestNumber10()
-    {
-        Test("""
+        => Test("""
             @"-0e0"
             """, """
             <Tree>
@@ -6008,12 +5701,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestNumber11()
-    {
-        Test("""
+        => Test("""
             @"0e1"
             """, """
             <Tree>
@@ -6029,12 +5720,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestNumber12()
-    {
-        Test("""
+        => Test("""
             @"-0e1"
             """, """
             <Tree>
@@ -6050,12 +5739,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestNumber13()
-    {
-        Test("""
+        => Test("""
             @"0e-1"
             """, """
             <Tree>
@@ -6071,12 +5758,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestNumber14()
-    {
-        Test("""
+        => Test("""
             @"-0e-1"
             """, """
             <Tree>
@@ -6092,12 +5777,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestNumber15()
-    {
-        Test("""
+        => Test("""
             @"0e+1"
             """, """
             <Tree>
@@ -6113,12 +5796,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestNumber16()
-    {
-        Test("""
+        => Test("""
             @"-0e+1"
             """, """
             <Tree>
@@ -6134,12 +5815,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestNumber17()
-    {
-        Test("""
+        => Test("""
             @"--0"
             """, """
             <Tree>
@@ -6163,12 +5842,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber18()
-    {
-        Test("""
+        => Test("""
             @"+0"
             """, """
             <Tree>
@@ -6192,12 +5869,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'+' unexpected" Start="10" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber19()
-    {
-        Test("""
+        => Test("""
             @"0..0"
             """, """
             <Tree>
@@ -6221,12 +5896,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="4" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber20()
-    {
-        Test("""
+        => Test("""
             @"0ee0"
             """, """
             <Tree>
@@ -6250,12 +5923,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="4" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber21()
-    {
-        Test("""
+        => Test("""
             @"1e++1"
             """, """
             <Tree>
@@ -6279,12 +5950,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="5" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber22()
-    {
-        Test("""
+        => Test("""
             @"1e--1"
             """, """
             <Tree>
@@ -6308,12 +5977,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="5" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber23()
-    {
-        Test("""
+        => Test("""
             @"1e+-1"
             """, """
             <Tree>
@@ -6337,12 +6004,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="5" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber24()
-    {
-        Test("""
+        => Test("""
             @"1e-+1"
             """, """
             <Tree>
@@ -6366,12 +6031,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="5" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber25()
-    {
-        Test("""
+        => Test("""
             @"1e1.0"
             """, """
             <Tree>
@@ -6395,12 +6058,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="5" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber26()
-    {
-        Test("""
+        => Test("""
             @"1e+1.1"
             """, """
             <Tree>
@@ -6424,12 +6085,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="6" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber27()
-    {
-        Test("""
+        => Test("""
             @"1-1"
             """, """
             <Tree>
@@ -6453,12 +6112,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNumber28()
-    {
-        Test("""
+        => Test("""
             @"1+1"
             """, """
             <Tree>
@@ -6482,12 +6139,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Invalid number" Start="10" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestIncompleteProperty()
-    {
-        Test("""
+        => Test("""
             "{ 'a': }"
             """, """
             <Tree>
@@ -6521,12 +6176,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestPropertyWithCommaFollowedByComma()
-    {
-        Test("""
+        => Test("""
             "{ 'a': , , }"
             """, """
             <Tree>
@@ -6564,12 +6217,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Value required" Start="15" Length="0" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestTopLevelProperty()
-    {
-        Test("""
+        => Test("""
             "'a': 0"
             """, """
             <Tree>
@@ -6597,12 +6248,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Strings must start with &quot; not '" Start="9" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestTopLevelConstructor()
-    {
-        Test("""
+        => Test("""
             "new Date()"
             """, """
             <Tree>
@@ -6626,12 +6275,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Constructors not allowed" Start="9" Length="3" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestTopLevelText()
-    {
-        Test("""
+        => Test("""
             "Date"
             """, """
             <Tree>
@@ -6655,12 +6302,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'D' unexpected" Start="9" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestNestedArrays1()
-    {
-        Test("""
+        => Test("""
             "[1, [2, [3, [4]]]]"
             """, """
             <Tree>
@@ -6718,12 +6363,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             """,
             "",
             "");
-    }
 
     [Fact]
     public void TestNestedArraysTrailingCommas1()
-    {
-        Test("""
+        => Test("""
             "[1, [2, [3, [4,],],],]"
             """, """
             <Tree>
@@ -6797,12 +6440,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Trailing comma not allowed" Start="23" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestBogusNesting1()
-    {
-        Test("""
+        => Test("""
             "[1, [2, [3, [4}}}}"
             """, """
             <Tree>
@@ -6880,12 +6521,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'}' unexpected" Start="23" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestBogusNesting2()
-    {
-        Test("""
+        => Test("""
             "[1, [2, [3, [4}]}]"
             """, """
             <Tree>
@@ -6957,12 +6596,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="'}' unexpected" Start="23" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestBogusNesting3()
-    {
-        Test("""
+        => Test("""
             "{1, {2, {3, {4]]]]"
             """, """
             <Tree>
@@ -7038,12 +6675,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Only properties allowed in an object" Start="10" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestBogusNesting4()
-    {
-        Test("""
+        => Test("""
             "[1, {2, [3, {4]]]]"
             """, """
             <Tree>
@@ -7113,12 +6748,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Only properties allowed in an object" Start="14" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestBogusNesting5()
-    {
-        Test("""
+        => Test("""
             "[1, {2, [3, {4]}]}"
             """, """
             <Tree>
@@ -7185,12 +6818,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Only properties allowed in an object" Start="14" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestBogusNesting6()
-    {
-        Test("""
+        => Test("""
             "[1, {2, [3, {4}]}]"
             """, """
             <Tree>
@@ -7254,12 +6885,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Only properties allowed in an object" Start="14" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestIntegerPropertyName()
-    {
-        Test("""
+        => Test("""
             "{ 0: true }"
             """, expected: """
             <Tree>
@@ -7289,12 +6918,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="11" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact]
     public void TestColonPropertyName()
-    {
-        Test("""
+        => Test("""
             "{ :: true }"
             """, expected: """
             <Tree>
@@ -7328,12 +6955,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="11" Length="1" />
             </Diagnostics>
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1691963")]
     public void TestAllColons_BecomesNestedProperties()
-    {
-        Test("""
+        => Test("""
             "::::::::"
             """, expected: """
             <Tree>
@@ -7373,5 +6998,4 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
               <Diagnostic Message="Property name must be a string" Start="9" Length="1" />
             </Diagnostics>
             """);
-    }
 }

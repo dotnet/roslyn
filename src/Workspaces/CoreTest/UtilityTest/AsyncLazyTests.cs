@@ -123,18 +123,11 @@ public sealed partial class AsyncLazyTests
 
     [Fact]
     public void GetValueAsyncThrowsCorrectExceptionDuringCancellation()
-    {
-        // NOTE: since GetValueAsync inlines the call to the async computation, the GetValueAsync call will throw
-        // immediately instead of returning a task that transitions to the cancelled state
-        GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValueAsync(ct), includeSynchronousComputation: false);
-    }
+        => GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValueAsync(ct), includeSynchronousComputation: false);
 
     [Fact]
     public void GetValueAsyncThrowsCorrectExceptionDuringCancellationWithSynchronousComputation()
-    {
-        // In theory the synchronous computation isn't used during GetValueAsync, but just in case...
-        GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValueAsync(ct), includeSynchronousComputation: true);
-    }
+        => GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValueAsync(ct), includeSynchronousComputation: true);
 
     private static void GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation(Action<AsyncLazy<object>, CancellationToken> doGetValue, bool includeSynchronousComputation)
     {

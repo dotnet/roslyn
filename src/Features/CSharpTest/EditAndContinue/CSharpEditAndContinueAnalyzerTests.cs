@@ -128,8 +128,7 @@ public sealed class CSharpEditAndContinueAnalyzerTests
 
     [Fact]
     public void ErrorSpans_TopLevel()
-    {
-        TestSpans("""
+        => TestSpans("""
             /*<span>*/extern alias A;/*</span>*/
             /*<span>*/using Z = Goo.Bar;/*</span>*/
 
@@ -202,15 +201,10 @@ public sealed class CSharpEditAndContinueAnalyzerTests
 
             }
             """, SyntaxComparer.TopLevel.HasLabel);
-    }
 
     [Fact]
     public void ErrorSpans_StatementLevel_Update()
-    {
-        // TODO: test
-        // /*<span>*/F($$from a in b from c in d select a.x);/*</span>*/
-        // /*<span>*/F(from a in b $$from c in d select a.x);/*</span>*/
-        TestSpans("""
+        => TestSpans("""
             class C
             {
                 void M()
@@ -257,7 +251,6 @@ public sealed class CSharpEditAndContinueAnalyzerTests
                 }
             }
             """, SyntaxComparer.Statement.HasLabel);
-    }
 
     /// <summary>
     /// Verifies that <see cref="CSharpEditAndContinueAnalyzer.TryGetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/>s.

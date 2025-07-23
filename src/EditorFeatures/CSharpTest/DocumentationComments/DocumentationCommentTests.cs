@@ -19,8 +19,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
 {
     [WpfFact]
     public void TypingCharacter_Class()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             //$$
             class C
             {
@@ -33,12 +32,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_Record()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             //$$
             record R;
             """, """
@@ -47,12 +44,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             /// </summary>
             record R;
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_RecordStruct()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             //$$
             record struct R;
             """, """
@@ -61,12 +56,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             /// </summary>
             record struct R;
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_RecordWithPositionalParameters()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             //$$
             record R(string S, int I);
             """, """
@@ -77,12 +70,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             /// <param name="I"></param>
             record R(string S, int I);
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_ClassParameters()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             //$$
             class R(string S, int I);
             """, """
@@ -93,12 +84,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             /// <param name="I"></param>
             class R(string S, int I);
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_RecordStructWithPositionalParameters()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             //$$
             record struct R(string S, int I);
             """, """
@@ -109,12 +98,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             /// <param name="I"></param>
             record struct R(string S, int I);
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_StructParameters()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             //$$
             struct R(string S, int I);
             """, """
@@ -125,7 +112,6 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             /// <param name="I"></param>
             struct R(string S, int I);
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_Class_NewLine()
@@ -175,8 +161,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
 
     [WpfFact]
     public void TypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             //$$
             class C
             {
@@ -190,12 +175,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
         {
             { DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, false }
         });
-    }
 
     [WpfFact]
     public void TypingCharacter_Method()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C
             {
                 //$$
@@ -213,12 +196,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 int M<T>(int goo) { return 0; }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/54245")]
     public void TypingCharacter_Method_WithExceptions()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C
             {
                 //$$
@@ -245,12 +226,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/54245")]
     public void TypingCharacter_Constructor_WithExceptions()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C
             {
                 //$$
@@ -278,12 +257,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/54245")]
     public void TypingCharacter_Constructor_WithExceptions_Caught()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
 
             using System;
 
@@ -338,12 +315,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_Method_WithVerbatimParams()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C
             {
                 //$$
@@ -361,12 +336,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 int M<@int>(int @goo) { return 0; }
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_AutoProperty()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C
             {
                 //$$
@@ -381,12 +354,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 int P { get; set; }
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_Property()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C
             {
                 //$$
@@ -409,12 +380,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_Indexer()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C
             {
                 //$$
@@ -439,12 +408,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_VoidMethod1()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C
             {
                 //$$
@@ -461,12 +428,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 void M<T>(int goo) {  }
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_VoidMethod_WithVerbatimParams()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C
             {
                 //$$
@@ -483,12 +448,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 void M<@T>(int @int) {  }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538699")]
     public void TypingCharacter_VoidMethod2()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C
             {
                 //$$
@@ -503,12 +466,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 void Method() { }
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_NotWhenDocCommentExists1()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
 
             ///
             //$$
@@ -523,12 +484,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_NotWhenDocCommentExists2()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
 
             ///
 
@@ -545,12 +504,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_NotWhenDocCommentExists3()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
 
             class B { } ///
 
@@ -567,12 +524,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_NotWhenDocCommentExists4()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             //$$
             /// <summary></summary>
             class C
@@ -585,12 +540,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_NotWhenDocCommentExists5()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C
             {
                 //$$
@@ -605,12 +558,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 int M<T>(int goo) { return 0; }
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_NotInsideMethodBody1()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C
             {
                 void M(int goo)
@@ -627,12 +578,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_NotInsideMethodBody2()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C
             {
                 /// <summary></summary>
@@ -651,12 +600,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_NotAfterClassName()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C//$$
             {
             }
@@ -665,12 +612,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_NotAfterOpenBrace()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C
             {//$$
             }
@@ -679,12 +624,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {///$$
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_NotAfterCtorName()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C
             {
             C() //$$
@@ -695,12 +638,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             C() ///$$
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_NotInsideCtor()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             class C
             {
             C()
@@ -717,12 +658,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59081")]
     public void TypingCharacter_NotInTopLevel()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
 
             using System;
 
@@ -737,12 +676,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             Console.WriteLine();
 
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59081")]
     public void TypingCharacter_NotInNamespace()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
 
             using System;
 
@@ -757,12 +694,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             namespace NS { }
 
             """);
-    }
 
     [WpfFact]
     public void PressingEnter_InsertComment_Class1()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             ///$$
             class C
             {
@@ -775,12 +710,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4817")]
     public void PressingEnter_InsertComment_Class1_AutoGenerateXmlDocCommentsOff()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             ///$$
             class C
             {
@@ -795,12 +728,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
         {
             { DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, false }
         });
-    }
 
     [WpfFact]
     public void PressingEnter_InsertComment_Class2()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             ///$$class C
             {
             }
@@ -812,12 +743,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact]
     public void PressingEnter_InsertComment_Class3()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             ///$$[Goo] class C
             {
             }
@@ -829,12 +758,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact]
     public void PressingEnter_InsertComment_NotAfterWhitespace()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
         ///    $$class C
         {
         }
@@ -844,12 +771,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact]
     public void PressingEnter_InsertComment_Method1()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             class C
             {
                 ///$$
@@ -867,12 +792,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 int M<T>(int goo) { return 0; }
             }
             """);
-    }
 
     [WpfFact]
     public void PressingEnter_InsertComment_Method2()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             class C
             {
                 ///$$int M<T>(int goo) { return 0; }
@@ -889,12 +812,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 int M<T>(int goo) { return 0; }
             }
             """);
-    }
 
     [WpfFact]
     public void PressingEnter_NotInMethodBody1()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             class C
             {
             void Goo()
@@ -912,12 +833,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
     public void PressingEnter_NotInterleavedInClassName1()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             class///$$ C
             {
             }
@@ -927,12 +846,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
     public void PressingEnter_NotInterleavedInClassName2()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             class ///$$C
             {
             }
@@ -942,12 +859,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
     public void PressingEnter_NotInterleavedInClassName3()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             class /// $$C
             {
             }
@@ -957,13 +872,11 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537514")]
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537532")]
     public void PressingEnter_NotAfterClassName1()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             class C ///$$
             {
             }
@@ -973,12 +886,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537552")]
     public void PressingEnter_NotAfterClassName2()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             class C /** $$
             {
             }
@@ -988,12 +899,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537535")]
     public void PressingEnter_NotAfterCtorName()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             class C
             {
             C() ///$$
@@ -1005,12 +914,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             $$
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537511")]
     public void PressingEnter_NotInsideCtor()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             class C
             {
             C()
@@ -1028,12 +935,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537550")]
     public void PressingEnter_NotBeforeDocComment()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
                 class c1
                 {
             $$/// <summary>
@@ -1059,12 +964,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                     }
                 }
             """);
-    }
 
     [WpfFact]
     public void PressingEnter_InsertSlashes1()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             ///$$
             /// <summary></summary>
             class C
@@ -1078,12 +981,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact]
     public void PressingEnter_InsertSlashes2()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             /// <summary>
             /// $$
             /// </summary>
@@ -1099,12 +1000,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact]
     public void PressingEnter_InsertSlashes3()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
                 /// <summary>
                 /// $$
                 /// </summary>
@@ -1120,12 +1019,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             """);
-    }
 
     [WpfFact]
     public void PressingEnter_InsertSlashes4()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             /// <summary>$$</summary>
             class C
             {
@@ -1137,12 +1034,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact]
     public void PressingEnter_InsertSlashes5()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
                 /// <summary>
                 /// $$
                 /// </summary>
@@ -1158,12 +1053,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             """);
-    }
 
     [WpfFact]
     public void PressingEnter_InsertSlashes6()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             /// <summary></summary>$$
             class C
             {
@@ -1175,12 +1068,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact]
     public void PressingEnter_InsertSlashes7()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
                 /// <summary>$$</summary>
                 class C
                 {
@@ -1192,12 +1083,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538702")]
     public void PressingEnter_InsertSlashes8()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             /// <summary>
             /// 
             /// </summary>
@@ -1209,12 +1098,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             ///
             /// $$class C {}
             """);
-    }
 
     [WpfFact]
     public void PressingEnter_InsertSlashes9()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             class C
             {
                 ///$$
@@ -1230,12 +1117,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 int M<T>(int goo) { return 0; }
             }
             """);
-    }
 
     [WpfFact]
     public void PressingEnter_InsertSlashes10()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             /// <summary>
             /// 
             /// </summary>
@@ -1247,12 +1132,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             ///
             /// $$Go ahead and add some slashes
             """);
-    }
 
     [WpfFact]
     public void PressingEnter_InsertSlashes11()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             class C
             {
                 /// <summary>
@@ -1276,12 +1159,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4817")]
     public void PressingEnter_InsertSlashes12_AutoGenerateXmlDocCommentsOff()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             ///$$
             /// <summary></summary>
             class C
@@ -1298,12 +1179,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
         {
             { DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, false }
         });
-    }
 
     [WpfFact]
     public void PressingEnter_DoNotInsertSlashes1()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             /// <summary></summary>
             /// $$
             class C
@@ -1317,12 +1196,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538701")]
     public void PressingEnter_DoNotInsertSlashes2()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             ///<summary></summary>
 
             ///$$
@@ -1334,12 +1211,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             $$
             class C{}
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25746")]
     public void PressingEnter_ExtraSlashesAfterExteriorTrivia()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             class C
             {
             C()
@@ -1357,12 +1232,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542426")]
     public void PressingEnter_PreserveParams()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             /// <summary>
             /// 
             /// </summary>
@@ -1378,7 +1251,6 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             static void Main(string[] args)
             { }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2091")]
     public void PressingEnter_InTextBeforeSpace()
@@ -1580,8 +1452,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/5486")]
     public void PressingEnter_Selection1()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             /// <summary>
             /// Hello [|World|]$$!
             /// </summary>
@@ -1597,12 +1468,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/5486")]
     public void PressingEnter_Selection2()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             /// <summary>
             /// Hello $$[|World|]!
             /// </summary>
@@ -1618,14 +1487,12 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/27223")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/49564")]
     public void PressingEnter_XmlDocCommentInStringLiteral()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             class C
             {
                 C()
@@ -1647,12 +1514,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void Command_Class()
-    {
-        VerifyInsertCommentCommand("""
+        => VerifyInsertCommentCommand("""
             class C
             {$$
             }
@@ -1664,34 +1529,28 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact]
     public void Command_Record()
-    {
-        VerifyInsertCommentCommand("record R$$;", """
+        => VerifyInsertCommentCommand("record R$$;", """
             /// <summary>
             /// $$
             /// </summary>
             record R;
             """);
-    }
 
     [WpfFact]
     public void Command_RecordStruct()
-    {
-        VerifyInsertCommentCommand("record struct R$$;", """
+        => VerifyInsertCommentCommand("record struct R$$;", """
             /// <summary>
             /// $$
             /// </summary>
             record struct R;
             """);
-    }
 
     [WpfFact]
     public void Command_RecordWithPositionalParameters()
-    {
-        VerifyInsertCommentCommand("record R$$(string S, int I);", """
+        => VerifyInsertCommentCommand("record R$$(string S, int I);", """
             /// <summary>
             /// $$
             /// </summary>
@@ -1699,12 +1558,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             /// <param name="I"></param>
             record R(string S, int I);
             """);
-    }
 
     [WpfFact]
     public void Command_ClassParameters()
-    {
-        VerifyInsertCommentCommand("class R$$(string S, int I);", """
+        => VerifyInsertCommentCommand("class R$$(string S, int I);", """
             /// <summary>
             /// $$
             /// </summary>
@@ -1712,12 +1569,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             /// <param name="I"></param>
             class R(string S, int I);
             """);
-    }
 
     [WpfFact]
     public void Command_RecordStructWithPositionalParameters()
-    {
-        VerifyInsertCommentCommand("record struct R$$(string S, int I);", """
+        => VerifyInsertCommentCommand("record struct R$$(string S, int I);", """
             /// <summary>
             /// $$
             /// </summary>
@@ -1725,12 +1580,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             /// <param name="I"></param>
             record struct R(string S, int I);
             """);
-    }
 
     [WpfFact]
     public void Command_StructParameters()
-    {
-        VerifyInsertCommentCommand("struct R$$(string S, int I);", """
+        => VerifyInsertCommentCommand("struct R$$(string S, int I);", """
             /// <summary>
             /// $$
             /// </summary>
@@ -1738,12 +1591,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             /// <param name="I"></param>
             struct R(string S, int I);
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4817")]
     public void Command_Class_AutoGenerateXmlDocCommentsOff()
-    {
-        VerifyInsertCommentCommand("""
+        => VerifyInsertCommentCommand("""
             class C
             {$$
             }
@@ -1758,12 +1609,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
         {
             { DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, false }
         });
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
     public void Command_BeforeClass1()
-    {
-        VerifyInsertCommentCommand("""
+        => VerifyInsertCommentCommand("""
             $$
             class C { }
             """, """
@@ -1773,12 +1622,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             /// </summary>
             class C { }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
     public void Command_BeforeClass2()
-    {
-        VerifyInsertCommentCommand("""
+        => VerifyInsertCommentCommand("""
             class B { }
             $$
             class C { }
@@ -1790,12 +1637,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             /// </summary>
             class C { }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
     public void Command_BeforeClass3()
-    {
-        VerifyInsertCommentCommand("""
+        => VerifyInsertCommentCommand("""
             class B
             {
                 $$
@@ -1811,12 +1656,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 class C { }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527604")]
     public void Command_Class_NotIfMultilineDocCommentExists()
-    {
-        VerifyInsertCommentCommand("""
+        => VerifyInsertCommentCommand("""
             /**
             */
             class C { $$ }
@@ -1825,12 +1668,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             */
             class C { $$ }
             """);
-    }
 
     [WpfFact]
     public void Command_Method()
-    {
-        VerifyInsertCommentCommand("""
+        => VerifyInsertCommentCommand("""
             class C
             {
                 int M<T>(int goo) { $$return 0; }
@@ -1847,12 +1688,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 int M<T>(int goo) { return 0; }
             }
             """);
-    }
 
     [WpfFact]
     public void Command_Class_NotIfCommentExists()
-    {
-        VerifyInsertCommentCommand("""
+        => VerifyInsertCommentCommand("""
             /// <summary></summary>
             class C
             {$$
@@ -1863,12 +1702,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {$$
             }
             """);
-    }
 
     [WpfFact]
     public void Command_Method_NotIfCommentExists()
-    {
-        VerifyInsertCommentCommand("""
+        => VerifyInsertCommentCommand("""
             class C
             {
                 /// <summary></summary>
@@ -1881,29 +1718,23 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 int M<T>(int goo) { $$return 0; }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
     public void Command_FirstClassOnLine()
-    {
-        VerifyInsertCommentCommand(@"$$class C { } class D { }", """
+        => VerifyInsertCommentCommand(@"$$class C { } class D { }", """
             /// <summary>
             /// $$
             /// </summary>
             class C { } class D { }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
     public void Command_NotOnSecondClassOnLine()
-    {
-        VerifyInsertCommentCommand(@"class C { } $$class D { }", @"class C { } $$class D { }");
-    }
+        => VerifyInsertCommentCommand(@"class C { } $$class D { }", @"class C { } $$class D { }");
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
     public void Command_FirstMethodOnLine()
-    {
-        VerifyInsertCommentCommand("""
+        => VerifyInsertCommentCommand("""
             class C
             {
                 protected abstract void $$Goo(); protected abstract void Bar();
@@ -1917,12 +1748,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 protected abstract void Goo(); protected abstract void Bar();
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
     public void Command_NotOnSecondMethodOnLine()
-    {
-        VerifyInsertCommentCommand("""
+        => VerifyInsertCommentCommand("""
             class C
             {
                 protected abstract void Goo(); protected abstract void $$Bar();
@@ -1933,12 +1762,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 protected abstract void Goo(); protected abstract void $$Bar();
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917904")]
     public void TestUseTab()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             using System;
 
             public class Class1
@@ -1961,7 +1788,6 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             	}
             }
             """, useTabs: true);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
     public void TestOpenLineAbove1()
@@ -2240,8 +2066,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
 
     [WpfFact]
     public void TypingCharacter_Class_WithComment()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             //$$ This is my class and it does great things.
             class C
             {
@@ -2254,12 +2079,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact]
     public void TypingCharacter_Class_WithComment_NoSpace()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             //$$This is my class and it does great things.
             class C
             {
@@ -2272,12 +2095,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/75838")]
     public void TypingCharacter_ExistingText1()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             /// foo$$
             class C
             {
@@ -2288,12 +2109,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/75838")]
     public void TypingCharacter_ExistingText2()
-    {
-        VerifyTypingCharacter("""
+        => VerifyTypingCharacter("""
             namespace N
             {
                 /// foo$$
@@ -2310,12 +2129,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/75838")]
     public void PressingEnter_ExistingText1()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             /// foo$$
             class C
             {
@@ -2327,12 +2144,10 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             {
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/75838")]
     public void PressingEnter_ExistingText2()
-    {
-        VerifyPressingEnter("""
+        => VerifyPressingEnter("""
             namespace N
             {
                 /// foo$$
@@ -2350,7 +2165,6 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 }
             }
             """);
-    }
 
     protected override char DocumentationCommentCharacter
     {

@@ -244,20 +244,7 @@ public sealed class EditDistanceTests
 
     [Fact]
     public void TestSpecificMetric()
-    {
-        // If our edit distance is a metric then ED(CA,ABC) = 2 because CA -> AC -> ABC
-        // In this case.  This then satisfies the triangle inequality because 
-        // ED(CA, AC) + ED(AC, ABC) >= ED(CA, ABC)   ...   1 + 1 >= 2
-        //
-        // If it's not implemented with a metric (like if we used the Optimal String Alignment
-        // algorithm), then the we could get an edit distance of 3 "CA -> A -> AB -> ABC".  
-        // This violates the triangle inequality rule because: 
-        // 
-        // OSA(CA,AC) + OSA(AC,ABC) >= OSA(CA,ABC)  ...   1 + 1 >= 3    is not true.
-        //
-        // Being a metric is important so that we can properly use this with BKTrees.
-        VerifyEditDistance("CA", "ABC", 2);
-    }
+        => VerifyEditDistance("CA", "ABC", 2);
 
     [Fact]
     public void TestTriangleInequality()

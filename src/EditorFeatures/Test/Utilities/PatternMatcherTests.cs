@@ -73,11 +73,7 @@ public sealed class PatternMatcherTests
 
     [Fact]
     public void BreakIntoCharacterParts_NumberPrefixedIdentifier()
-    {
-        // 42Bar is not a valid identifier in either C# or VB, but it is entirely conceivable the user might be
-        // typing it trying to do a substring match
-        VerifyBreakIntoCharacterParts("42Bar", "42", "Bar");
-    }
+        => VerifyBreakIntoCharacterParts("42Bar", "42", "Bar");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544296")]
     public void BreakIntoWordParts_VerbatimIdentifier()
