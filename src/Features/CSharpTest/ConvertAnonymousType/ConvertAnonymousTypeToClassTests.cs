@@ -67,7 +67,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task ConvertSingleAnonymousType_FileScopedNamespace()
@@ -118,7 +118,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task ConvertSingleAnonymousType_CSharp9()
@@ -141,7 +141,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
 
             internal record NewRecord(int A, int B);
 
-            """, options: this.PreferImplicitTypeWithInfo());
+            """, new(options: this.PreferImplicitTypeWithInfo()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39916")]
     public Task ConvertSingleAnonymousType_Explicit()
@@ -188,7 +188,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact]
     public Task OnEmptyAnonymousType()
@@ -363,7 +363,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task ConvertSingleAnonymousTypeWithInferredName_CSharp9()
@@ -386,7 +386,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
 
             internal record NewRecord(int A, int B);
 
-            """, options: this.PreferImplicitTypeWithInfo());
+            """, new(options: this.PreferImplicitTypeWithInfo()));
 
     [Fact]
     public Task ConvertMultipleInstancesInSameMethod()
@@ -435,7 +435,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task ConvertMultipleInstancesInSameMethod_CSharp9()
@@ -460,7 +460,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
 
             internal record NewRecord(int A, int B);
 
-            """, options: this.PreferImplicitTypeWithInfo());
+            """, new(options: this.PreferImplicitTypeWithInfo()));
 
     [Fact]
     public Task ConvertMultipleInstancesAcrossMethods()
@@ -521,7 +521,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task OnlyConvertMatchingTypesInSameMethod()
@@ -574,7 +574,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task TestFixAllMatchesInSingleMethod()
@@ -627,7 +627,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task TestFixNotAcrossMethods()
@@ -688,7 +688,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task TestTrivia()
@@ -735,7 +735,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task TestTrivia2()
@@ -784,7 +784,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task NotIfReferencesAnonymousTypeInternally()
@@ -845,7 +845,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task RenameAnnotationOnStartingPoint()
@@ -894,7 +894,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task UpdateReferences()
@@ -943,7 +943,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task CapturedTypeParameters()
@@ -992,7 +992,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task CapturedTypeParameters_CSharp9()
@@ -1072,7 +1072,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task TestDuplicatedName()
@@ -1119,7 +1119,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task TestDuplicatedName_CSharp9()
@@ -1189,7 +1189,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task TestInLambda1()
@@ -1248,7 +1248,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task TestInLambda2()
@@ -1307,7 +1307,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task TestInLocalFunction1()
@@ -1366,7 +1366,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
     public Task TestInLocalFunction2()
@@ -1425,7 +1425,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
     public Task ConvertSingleAnonymousTypeSelection1()
@@ -1472,7 +1472,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
     public Task ConvertSingleAnonymousTypeSelection2()
@@ -1519,7 +1519,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
     public Task ConvertSingleAnonymousTypeSelection3()
@@ -1566,7 +1566,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45747")]
     public Task ConvertOmittingTrailingComma()
@@ -1620,7 +1620,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45747")]
     public Task ConvertOmittingTrailingCommaButPreservingTrivia()
@@ -1678,5 +1678,5 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return hashCode;
                 }
             }
-            """, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 }
