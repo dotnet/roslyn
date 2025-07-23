@@ -1283,5 +1283,5 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 } = 0;
             }
-            """, options: DoNotPreferExpressionBodiedAccessors, index: 1, parseOptions: CSharp14);
+            """, new(options: DoNotPreferExpressionBodiedAccessors, index: 1, parseOptions: CSharp14));
 }

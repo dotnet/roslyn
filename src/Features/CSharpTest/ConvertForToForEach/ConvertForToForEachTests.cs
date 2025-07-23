@@ -1117,7 +1117,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
                     }
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestDifferentIndexerAndEnumeratorType()
@@ -1169,7 +1169,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
                     }
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestSameIndexerAndEnumeratorType()
@@ -1221,7 +1221,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
                     }
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestTrivia()
