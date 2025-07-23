@@ -51,7 +51,7 @@ public sealed class UseInferredMemberNameTests : AbstractCSharpDiagnosticProvide
                     var t = (a, 2);
                 }
             }
-            """, parseOptions: s_parseOptions);
+            """, new(parseOptions: s_parseOptions));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24480")]
     public Task TestInferredTupleName_WithAmbiguity()
@@ -119,7 +119,7 @@ public sealed class UseInferredMemberNameTests : AbstractCSharpDiagnosticProvide
                     var t = ( /*before*/  /*middle*/ a /*after*/, /*before*/  /*middle*/ b /*after*/);
                 }
             }
-            """, parseOptions: s_parseOptions);
+            """, new(parseOptions: s_parseOptions));
 
     [Fact]
     public Task TestInferredAnonymousTypeMemberName()
@@ -183,5 +183,5 @@ public sealed class UseInferredMemberNameTests : AbstractCSharpDiagnosticProvide
                     var t = new { /*before*/  /*middle*/ a /*after*/, /*before*/  /*middle*/ b /*after*/ };
                 }
             }
-            """, parseOptions: s_parseOptions);
+            """, new(parseOptions: s_parseOptions));
 }

@@ -758,7 +758,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return true ? "a" : "b";
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestConversion1_Throw1_CSharp8()
@@ -816,7 +816,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return true ? throw new System.Exception() : (object)"b";
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestConversion1_Throw2_CSharp8()
@@ -874,7 +874,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return true ? (object)"a" : throw new System.Exception();
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact]
     public Task TestConversion2()
@@ -2124,7 +2124,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     throw new NotImplementedException();
                 }
             }
-            """, title: AnalyzersResources.Simplify_check);
+            """, new(title: AnalyzersResources.Simplify_check));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38879")]
     public Task TesSuppressionOperator()

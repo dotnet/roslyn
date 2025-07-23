@@ -1817,7 +1817,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
 
         //The type is not intrinsic but apparent
         await TestInRegularAndScriptAsync(before, after, new(options: ImplicitTypeEverywhere()));
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeButKeepIntrinsics());
+        await TestInRegularAndScriptAsync(before, after, new(options: ImplicitTypeButKeepIntrinsics()));
         await TestInRegularAndScriptAsync(before, after, new(options: ImplicitTypeWhereApparent()));
     }
 
@@ -1829,7 +1829,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
 
         //The type is not intrinsic and not apparent
         await TestInRegularAndScriptAsync(before, after, new(options: ImplicitTypeEverywhere()));
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeButKeepIntrinsics());
+        await TestInRegularAndScriptAsync(before, after, new(options: ImplicitTypeButKeepIntrinsics()));
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
     }
 
@@ -1896,7 +1896,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                 }
             }
             """ + trivial2uple,
-options: ImplicitTypeWhereApparent());
+            new(options: ImplicitTypeWhereApparent()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11095")]
     public Task ValueTupleCreate_2()

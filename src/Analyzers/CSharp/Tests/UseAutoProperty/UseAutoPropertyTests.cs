@@ -470,7 +470,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 public int P { get; private set; }
             }
             """,
-            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            new(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
 
     [Fact]
     public Task TestCSharp5_2()
@@ -3057,5 +3057,5 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 public string A { get; }
             }
             """,
-            options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
+            new(options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error)));
 }
