@@ -1012,13 +1012,9 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
         await TestInRegularAndScriptAsync(before, after, new(options: ExplicitTypeExceptWhereApparent()));
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37491")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
-    public async Task NotNullableType_ForeachVarDeconstruction()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
+    public async Task NotNullableType_ForeachVarDeconstruction1()
     {
-        // Semantic model doesn't yet handle var deconstruction foreach
-        // https://github.com/dotnet/roslyn/issues/37491
-        // https://github.com/dotnet/roslyn/issues/35010
         var before = """
             class Program
             {
@@ -1047,6 +1043,52 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
         await TestInRegularAndScriptAsync(before, after, new(options: ExplicitTypeEverywhere()));
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         await TestInRegularAndScriptAsync(before, after, new(options: ExplicitTypeExceptWhereApparent()));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47038")]
+    public async Task NotNullableType_ForeachVarDeconstruction2()
+    {
+        var before = """
+            #nullable enable
+
+            class C
+            {
+                public void Deconstruct(out string? s1, out string? s2)
+                {
+                    s1 = null;
+                    s2 = null;
+                }
+
+                void M(C[] items)
+                {
+                    foreach ([||]var (s1, s2) in items)
+                    {
+
+                    }
+                }
+            }
+            """;
+        var after = """
+            #nullable enable
+
+            class C
+            {
+                public void Deconstruct(out string? s1, out string? s2)
+                {
+                    s1 = null;
+                    s2 = null;
+                }
+
+                void M(C[] items)
+                {
+                    foreach ((string? s1, string? s2) in items)
+                    {
+
+                    }
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
