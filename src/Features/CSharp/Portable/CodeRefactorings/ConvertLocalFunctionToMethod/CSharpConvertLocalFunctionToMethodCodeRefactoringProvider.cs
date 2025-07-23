@@ -156,11 +156,11 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
 
             if (hasAdditionalTypeArguments)
             {
-                var existingTypeArguments = symbol.TypeArguments.Select(s => s.GenerateTypeSyntax());
                 // Prepend additional type arguments to preserve lexical order in which they are defined
-                var typeArguments = additionalTypeArguments.Concat(existingTypeArguments);
-                currentNode = (SimpleNameSyntax)generator.WithTypeArguments(currentNode, typeArguments);
-                currentNode = currentNode.WithAdditionalAnnotations(Simplifier.Annotation);
+                var typeArguments = additionalTypeArguments.Concat(symbol.TypeArguments.Select(s => s.GenerateTypeSyntax()));
+                currentNode = (SimpleNameSyntax)generator
+                    .WithTypeArguments(currentNode, typeArguments)
+                    .WithAdditionalAnnotations(Simplifier.Annotation);
             }
 
             if (simpleName.Parent is InvocationExpressionSyntax invocation)
@@ -257,28 +257,23 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         IMethodSymbol declaredSymbol,
         ImmutableArray<ISymbol> captures)
     {
-        using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var typeParameters);
-        for (var containingType = declaredSymbol.ContainingType; containingType != null; containingType = containingType.ContainingType)
-            typeParameters.AddRange(containingType.GetTypeParameters());
+        var typeParameters = new List<ITypeParameterSymbol>();
+        for (var containingMethod = declaredSymbol; containingMethod != null; containingMethod = containingMethod.ContainingSymbol as IMethodSymbol)
+            typeParameters.InsertRange(0, containingMethod.GetTypeParameters());
 
         // We're going to remove unreferenced type parameters but we explicitly preserve
         // captures' types, just in case that they were not spelt out in the function body
-        var captureTypes = captures.SelectMany(capture => capture.GetSymbolType().GetReferencedTypeParameters());
-        RemoveUnusedTypeParameters(reservedTypeParameters: captureTypes);
-        return typeParameters.ToImmutableAndClear();
-
-        void RemoveUnusedTypeParameters(IEnumerable<ITypeParameterSymbol> reservedTypeParameters)
+        var reservedTypeParameters = captures.SelectMany(capture => capture.GetSymbolType().GetReferencedTypeParameters());
+        var unusedTypeParameters = typeParameters.ToList();
+        foreach (var id in localFunction.DescendantNodes().OfType<IdentifierNameSyntax>())
         {
-            var unusedTypeParameters = typeParameters.ToList();
-            foreach (var id in localFunction.DescendantNodes().OfType<IdentifierNameSyntax>())
-            {
-                var symbol = semanticModel.GetSymbolInfo(id).Symbol;
-                if (symbol?.OriginalDefinition is ITypeParameterSymbol typeParameter)
-                    unusedTypeParameters.Remove(typeParameter);
-            }
-
-            typeParameters.RemoveRange(unusedTypeParameters.Except(reservedTypeParameters));
+            var symbol = semanticModel.GetSymbolInfo(id).Symbol;
+            if (symbol?.OriginalDefinition is ITypeParameterSymbol typeParameter)
+                unusedTypeParameters.Remove(typeParameter);
         }
+
+        typeParameters.RemoveRange(unusedTypeParameters.Except(reservedTypeParameters));
+        return [.. typeParameters];
     }
 
     private static ImmutableArray<IParameterSymbol> CreateFinalParameterList(
@@ -297,10 +292,10 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
     private static SyntaxNode GenerateArgument(IParameterSymbol p, string name, bool shouldUseNamedArguments = false)
         => CSharpSyntaxGenerator.Instance.Argument(shouldUseNamedArguments ? name : null, p.RefKind, name.ToIdentifierName());
 
-    private static List<string> GenerateUniqueParameterNames(ImmutableArray<IParameterSymbol> parameters, List<string> reservedNames)
+    private static ImmutableArray<string> GenerateUniqueParameterNames(ImmutableArray<IParameterSymbol> parameters, ImmutableArray<string> reservedNames)
         => [.. parameters.Select(p => NameGenerator.EnsureUniqueness(p.Name, reservedNames))];
 
-    private static List<string> GetReservedNames(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+    private static ImmutableArray<string> GetReservedNames(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
         => [.. semanticModel.GetAllDeclaredSymbols(node.GetAncestor<MemberDeclarationSyntax>(), cancellationToken).Select(s => s.Name)];
 
     private static ParameterSyntax GenerateParameter(IParameterSymbol parameter, string name)
