@@ -263,7 +263,7 @@ class Program
             i = i + 1
         next
     end sub
-end class", parseOptions:=Nothing)
+end class", New TestParameters(parseOptions:=Nothing))
         End Function
 
         <Fact>

@@ -2089,7 +2089,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, New TestParameters(options:=PreferIntrinsicTypeInMemberAccess()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2108,7 +2108,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, New TestParameters(options:=PreferIntrinsicTypeInMemberAccess()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012713")>
@@ -2189,7 +2189,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, New TestParameters(options:=PreferIntrinsicTypeInMemberAccess()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2210,7 +2210,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, New TestParameters(options:=PreferIntrinsicTypeInMemberAccess()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")>
@@ -2288,7 +2288,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, New TestParameters(options:=PreferIntrinsicTypeInMemberAccess()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
@@ -2319,7 +2319,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, New TestParameters(options:=PreferIntrinsicTypeInMemberAccess()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")>

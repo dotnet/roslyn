@@ -1350,7 +1350,7 @@ x = [|Goo|]</Text>.Value.Replace(vbLf, vbCrLf),
 <Text>Dim x As Integer
 Public Property Goo As Integer
 x = Goo</Text>.Value.Replace(vbLf, vbCrLf),
-parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
+New TestParameters(parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script)))
         End Function
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666189")>
         Public Async Function TestGenerateFieldInScript() As Task

@@ -365,7 +365,7 @@ Class C
         Dim x = Int32.MaxValue
     End Sub
 End Class
-", options:=FrameworkTypeInMemberAccess)
+", New TestParameters(options:=FrameworkTypeInMemberAccess))
         End Function
 
         <Fact>
@@ -384,7 +384,7 @@ Class C
         Dim x = Int32.Parse(""1"")
     End Sub
 End Class
-", options:=FrameworkTypeInMemberAccess)
+", New TestParameters(options:=FrameworkTypeInMemberAccess))
         End Function
 
         <Fact>
