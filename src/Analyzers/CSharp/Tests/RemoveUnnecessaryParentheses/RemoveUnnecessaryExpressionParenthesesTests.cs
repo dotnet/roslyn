@@ -627,7 +627,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
                     var v = s?.Length;
                 }
             }
-            """, options: RemoveAllUnnecessaryParentheses);
+            """, new(options: RemoveAllUnnecessaryParentheses));
 
     [Fact]
     public Task TestMissingForConditionalIndex()
