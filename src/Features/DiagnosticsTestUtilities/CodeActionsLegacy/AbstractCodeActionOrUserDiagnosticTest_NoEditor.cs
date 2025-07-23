@@ -404,22 +404,22 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor
         Assert.Equal(count, actions.Length);
     }
 
-    internal Task TestInRegularAndScriptAsync(
-        string initialMarkup,
-        string expectedMarkup,
-        int index = 0,
-        CodeActionPriority? priority = null,
-        CompilationOptions compilationOptions = null,
-        OptionsCollectionAlias options = null,
-        object fixProviderData = null,
-        ParseOptions parseOptions = null,
-        string title = null,
-        TestHost testHost = TestHost.OutOfProcess)
-    {
-        return TestInRegularAndScript1Async(
-            initialMarkup, expectedMarkup,
-            new TestParameters(parseOptions, compilationOptions, options, globalOptions: null, fixProviderData, index, priority, title: title, testHost: testHost));
-    }
+    //internal Task TestInRegularAndScriptAsync(
+    //    string initialMarkup,
+    //    string expectedMarkup,
+    //    int index = 0,
+    //    CodeActionPriority? priority = null,
+    //    CompilationOptions compilationOptions = null,
+    //    OptionsCollectionAlias options = null,
+    //    object fixProviderData = null,
+    //    ParseOptions parseOptions = null,
+    //    string title = null,
+    //    TestHost testHost = TestHost.OutOfProcess)
+    //{
+    //    return TestInRegularAndScript1Async(
+    //        initialMarkup, expectedMarkup,
+    //        new TestParameters(parseOptions, compilationOptions, options, globalOptions: null, fixProviderData, index, priority, title: title, testHost: testHost));
+    //}
 
     internal Task TestInRegularAndScript1Async(
         string initialMarkup,
@@ -444,25 +444,25 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor
         }
     }
 
-    internal Task TestAsync(
-        string initialMarkup,
-        string expectedMarkup,
-        ParseOptions parseOptions,
-        CompilationOptions compilationOptions = null,
-        int index = 0,
-        OptionsCollectionAlias options = null,
-        OptionsCollectionAlias globalOptions = null,
-        object fixProviderData = null,
-        CodeActionPriority? priority = null,
-        TestHost testHost = TestHost.OutOfProcess)
-    {
-        return TestAsync(
-            initialMarkup,
-            expectedMarkup,
-            new TestParameters(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, testHost: testHost));
-    }
+    //internal Task TestAsync(
+    //    string initialMarkup,
+    //    string expectedMarkup,
+    //    ParseOptions parseOptions,
+    //    CompilationOptions compilationOptions = null,
+    //    int index = 0,
+    //    OptionsCollectionAlias options = null,
+    //    OptionsCollectionAlias globalOptions = null,
+    //    object fixProviderData = null,
+    //    CodeActionPriority? priority = null,
+    //    TestHost testHost = TestHost.OutOfProcess)
+    //{
+    //    return TestAsync(
+    //        initialMarkup,
+    //        expectedMarkup,
+    //        new TestParameters(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, testHost: testHost));
+    //}
 
-    private async Task TestAsync(
+    internal async Task TestAsync(
         string initialMarkup,
         string expectedMarkup,
         TestParameters parameters)
