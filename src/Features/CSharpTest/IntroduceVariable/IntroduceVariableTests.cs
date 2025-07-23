@@ -599,7 +599,7 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
             }
             """,
             index: 0,
-            options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact]
     public Task TestMethodFixComplexName1NotVar()
@@ -690,7 +690,7 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
                 }
             }
             """,
-            options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact]
     public Task TestNameConflict2NotVar()
@@ -773,7 +773,7 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
                 }
             }
             """,
-            options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact]
     public Task TestNameVerbatimIdentifier1NoVar()
@@ -906,7 +906,7 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
                 }
             }
             """,
-            options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact]
     public Task TestNameVerbatimIdentifier2NoVar()
@@ -1018,7 +1018,7 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
                 }
             }
             """,
-            options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540468")]
     public Task TestCantExtractMethodTypeParameterToFieldCount()
@@ -1564,7 +1564,7 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
                 }
             }
             """,
-            options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543832")]
     public Task TestMissingOnGenericTypeParameter()
@@ -2577,7 +2577,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-            options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
     public Task TestLambdaParameter2()
@@ -2608,7 +2608,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-            options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
     public Task TestLambdaParameter3()
@@ -2639,7 +2639,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-            options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
     public Task TestLambdaParameter4()
@@ -2756,7 +2756,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-            options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530919")]
     public Task TestNullableOfPointerTypeNotVar()
@@ -2813,7 +2813,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-            options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655498")]
     public Task HandleParenthesizedExpression()
@@ -2911,7 +2911,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-            options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
     public Task TestInCollectionInitializer()
@@ -2939,7 +2939,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-            options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
     public Task TestInCollectionInitializerNoVar()
@@ -2998,7 +2998,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-            options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
     public Task TestInArrayInitializer()
@@ -3026,7 +3026,7 @@ options: ImplicitTypingEverywhere());
                 }
             }
             """,
-            options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
     public Task TestInArrayInitializerWithoutVar()
@@ -3090,7 +3090,7 @@ options: ImplicitTypingEverywhere());
             }
             """,
             index: 1,
-            options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939259")]
     public Task TestIntroduceLocalWithTriviaInMultiLineStatements()

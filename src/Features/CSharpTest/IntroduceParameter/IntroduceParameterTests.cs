@@ -681,7 +681,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 {
                 }
             }
-            """, index: 2, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+            """, index: 2, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestExpressionWithSingleMethodCallOverload()

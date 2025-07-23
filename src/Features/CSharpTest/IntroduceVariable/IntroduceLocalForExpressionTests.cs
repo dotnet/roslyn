@@ -946,7 +946,7 @@ public sealed partial class IntroduceLocalForExpressionTests : AbstractCSharpCod
                     (var someString, C c) = X();
                 }
             }
-            """, options: ImplicitTypeForIntrinsics());
+            """, new(options: ImplicitTypeForIntrinsics()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
     public Task IntroduceDeconstruction_ImplicitTypeWhenApparent1()
