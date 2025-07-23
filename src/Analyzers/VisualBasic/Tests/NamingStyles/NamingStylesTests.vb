@@ -37,7 +37,7 @@ end module",
     sub M(x as integer)
     end sub
 end module",
-                options:=s_options.ParameterNamesAreCamelCase)
+                New TestParameters(options:=s_options.ParameterNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -69,7 +69,7 @@ end module",
         dim X as integer, y, Z as string
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>

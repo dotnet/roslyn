@@ -1151,7 +1151,7 @@ class C(Of T)
         C(Of T).s_value = nothing
     end sub
 end class
-", parseOptions:=s_strictFeatureFlag)
+", New TestParameters(parseOptions:=s_strictFeatureFlag))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47197")>
