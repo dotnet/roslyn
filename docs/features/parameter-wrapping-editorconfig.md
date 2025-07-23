@@ -42,9 +42,11 @@ dotnet_parameter_wrapping = do_not_wrap | wrap_long_parameters | wrap_every_para
 ```
 
 **Option Values:**
-- `do_not_wrap` (default) - No automatic parameter wrapping
+- `do_not_wrap` (default) - **Preserve current behavior**: No automatic parameter wrapping applied during formatting
 - `wrap_long_parameters` - Wrap when exceeding wrapping column limit
 - `wrap_every_parameter` - Wrap each parameter to its own line
+
+**Backward Compatibility:** When no `dotnet_parameter_wrapping` option is specified, formatting behavior remains completely unchanged. Existing codebases will see no difference until they explicitly opt-in by adding the EditorConfig option.
 
 **Future Expansion:** Language-specific overrides could be added later if needed:
 ```editorconfig
