@@ -3121,7 +3121,7 @@ options: ImplicitTypeWhereApparent());
                   ref var y = ref x;
                 }
             }
-            """, CSharpParseOptions.Default, options: ImplicitTypeEverywhere());
+            """, new(CSharpParseOptions.Default, options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58404")]
     public Task TestLambdaNaturalType1()

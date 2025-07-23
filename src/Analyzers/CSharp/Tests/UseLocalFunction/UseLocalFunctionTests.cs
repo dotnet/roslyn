@@ -3919,7 +3919,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
                 }
             }
             """,
-            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10));
+            new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68439")]
     public Task TestImplicitlyTypedLambdaCSharp9()

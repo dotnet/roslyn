@@ -122,7 +122,7 @@ public partial class UseImplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -342,7 +342,7 @@ public partial class UseImplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -388,7 +388,7 @@ public partial class UseImplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """, options: ImplicitTypeButKeepIntrinsics());
+            """, new(options: ImplicitTypeButKeepIntrinsics()));
 
     #endregion
 }

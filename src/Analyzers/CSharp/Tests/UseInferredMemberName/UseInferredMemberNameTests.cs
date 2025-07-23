@@ -143,7 +143,7 @@ public sealed class UseInferredMemberNameTests : AbstractCSharpDiagnosticProvide
                     var t = new { a, 2 };
                 }
             }
-            """, parseOptions: s_parseOptions);
+            """, new(parseOptions: s_parseOptions));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24480")]
     public Task TestInferredAnonymousTypeMemberName_WithAmbiguity()
