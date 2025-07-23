@@ -3161,7 +3161,7 @@ class C
         var s = $"Alpha Beta { v } Gamma";
     }
 }
-""", options: ImplicitTypingEverywhere());
+""", new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1037057")]
     public Task TestIntroduceLocalWithBlankLine()
@@ -3188,7 +3188,7 @@ class C
                     int y = v * (x + 5);
                 }
             }
-            """, options: ImplicitTypingEverywhere());
+            """, new(options: ImplicitTypingEverywhere()));
 
     [Fact]
     public Task TestIntroduceLocalWithBlankLine_AllOccurencesMultiStatement()
@@ -3349,7 +3349,7 @@ class C
         var l = length ?? 0;
     }
 }
-""", options: ImplicitTypingEverywhere());
+""", new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
     public Task TestSmartNameForNullablesInConditionalAccessExpressionContext2()
@@ -3372,7 +3372,7 @@ class C
         var l = v ?? string.Empty;
     }
 }
-""", options: ImplicitTypingEverywhere());
+""", new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
     public Task TestSmartNameForNullablesInConditionalAccessExpressionContext3()
@@ -3413,7 +3413,7 @@ class B
 {
     public int Length { get; set; }
 }
-""", options: ImplicitTypingEverywhere());
+""", new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
     public Task TestSmartNameForNullablesInConditionalAccessExpressionContext4()
@@ -3456,7 +3456,7 @@ class B
     int age;
     public int GetAge() { return age; }
 }
-""", options: ImplicitTypingEverywhere());
+""", new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://github.com/dotnet/roslyn/issues/528")]
     public Task TestIntroduceFieldInExpressionBodiedMethod()
@@ -3692,7 +3692,7 @@ class Complex
         throw new NotImplementedException();
     }
 }
-""", options: ImplicitTypingEverywhere());
+""", new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://github.com/dotnet/roslyn/issues/528")]
     public Task TestIntroduceFieldInExpressionBodiedConversionOperator()
@@ -3846,7 +3846,7 @@ class SampleCollection<T>
         }
     }
 }
-""", options: ImplicitTypingEverywhere());
+""", new(options: ImplicitTypingEverywhere()));
 
     [Fact]
     public Task TestIntroduceLocalWithTargetTypedNew1()
@@ -4593,7 +4593,7 @@ class TestClass
         Console.WriteLine(value);
     }
 }
-""", options: ImplicitTypingEverywhere());
+""", new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/976")]
     public Task TestConstantForInterpolatedStrings()
@@ -4619,7 +4619,7 @@ class TestClass
         Console.WriteLine(Value);
     }
 }
-""", index: 1, options: ImplicitTypingEverywhere());
+""", index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact]
     public Task TestConstantForInterpolatedStringsNested()
@@ -4645,7 +4645,7 @@ class TestClass
         Console.WriteLine(Value);
     }
 }
-""", index: 1, options: ImplicitTypingEverywhere());
+""", index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact]
     public Task TestConstantForInterpolatedStringsInvalid()
@@ -4670,7 +4670,7 @@ class TestClass
         Console.WriteLine(value);
     }
 }
-""", index: 1, options: ImplicitTypingEverywhere());
+""", index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909152")]
     public Task TestMissingOnNullLiteral()
@@ -4717,7 +4717,7 @@ class C
         return x;
     }
 }
-""", options: ImplicitTypingEverywhere());
+""", new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
     public Task InParentConditionalAccessExpression2()
@@ -4742,7 +4742,7 @@ class C
         return x;
     }
 }
-""", options: ImplicitTypingEverywhere());
+""", new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/3110")]
@@ -6259,7 +6259,7 @@ class C
                     }
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_Property()
@@ -6304,7 +6304,7 @@ class C
                     }
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_ForLoop()
@@ -6355,7 +6355,7 @@ class C
                     }
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_NestedLocalFunction()
@@ -6398,7 +6398,7 @@ class C
                     }
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
     public Task TestIntroduceFromStaticLocalFunction_AllOccurences_NestedLocalFunction()
@@ -6441,7 +6441,7 @@ class C
                     }
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
     public Task TestIntroduceFromStaticLocalFunction_AllOccurences_Method()
@@ -6490,7 +6490,7 @@ class C
                     throw new NotImplementedException();
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_SingleMatch()
@@ -6523,7 +6523,7 @@ class C
                     }
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_MultipleMatches()
@@ -6558,7 +6558,7 @@ class C
                     }
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_MultipleMatches2()
@@ -6593,7 +6593,7 @@ class C
                     }
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40374")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_LocalFunctionCall()
@@ -6640,7 +6640,7 @@ class C
                     throw new NotImplementedException();
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40374")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_LocalFunctionCall2()
@@ -6687,7 +6687,7 @@ class C
                     throw new NotImplementedException();
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40374")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_LocalFunctionCall3()
@@ -6738,7 +6738,7 @@ class C
                     throw new NotImplementedException();
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40374")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_MultipleLocalFunctionCalls()
@@ -6791,7 +6791,7 @@ class C
                     throw new NotImplementedException();
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40374")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_NestedLocalFunctionCalls()
@@ -6850,7 +6850,7 @@ class C
                     throw new NotImplementedException();
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40374")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_MultipleLocalFunctions()
@@ -6917,7 +6917,7 @@ class C
                     throw new NotImplementedException();
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40374")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_MultipleLocalFunctions2()
@@ -6980,7 +6980,7 @@ class C
                     throw new NotImplementedException();
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40374")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_NoLocalFunctionCall()
@@ -7029,7 +7029,7 @@ class C
                     throw new NotImplementedException();
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40374")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_ExpressionBodiedLocalFunction()
@@ -7074,7 +7074,7 @@ class C
                     throw new NotImplementedException();
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40374")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_ExpressionBodiedLocalFunction2()
@@ -7119,7 +7119,7 @@ class C
                     throw new NotImplementedException();
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40374")]
     public Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_SameMethodNames()
@@ -7196,7 +7196,7 @@ class C
             {
                 public void Local() { }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40381")]
     public Task TestIntroduceFromMethod_AllOccurences_DoNotIncludeStaticLocalFunctionReferences()
@@ -7243,7 +7243,7 @@ class C
                     throw new NotImplementedException();
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40381")]
     public Task TestIntroduceFromMethod_AllOccurences_DoNotIncludeStaticLocalFunctionReferences2()
@@ -7288,7 +7288,7 @@ class C
                     throw new NotImplementedException();
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40381")]
     public Task TestIntroduceFromMethod_AllOccurences_IncludeNonStaticLocalFunctionReferences()
@@ -7335,7 +7335,7 @@ class C
                     throw new NotImplementedException();
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/561")]
     public Task DoNotGenerateBetweenElseAndIf()
@@ -8116,7 +8116,7 @@ namespace ConsoleApp1
 
             var v1 = random.Next();
             var v2 = random.Next();
-            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
+            """, index: 1, parseOptions: CSharpParseOptions.Default, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
     public Task TestTopLevel2()
@@ -8144,7 +8144,7 @@ namespace ConsoleApp1
             {
                 var v3 = random.Next();
             }
-            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
+            """, index: 1, parseOptions: CSharpParseOptions.Default, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
     public Task TestTopLevel3()
@@ -8178,7 +8178,7 @@ namespace ConsoleApp1
                     var v3 = new Random().Next();
                 }
             }
-            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
+            """, index: 1, parseOptions: CSharpParseOptions.Default, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
     public Task TestTopLevel4()
@@ -8212,7 +8212,7 @@ namespace ConsoleApp1
                     var v3 = new Random().Next();
                 }
             }
-            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
+            """, index: 1, parseOptions: CSharpParseOptions.Default, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
     public Task TestTopLevel5()
@@ -8240,7 +8240,7 @@ namespace ConsoleApp1
             {
                 var v3 = new Random().Next();
             }
-            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
+            """, index: 1, parseOptions: CSharpParseOptions.Default, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
     public Task TestTopLevel6()
@@ -8268,7 +8268,7 @@ namespace ConsoleApp1
             {
                 var v3 = random.Next();
             }
-            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
+            """, index: 1, parseOptions: CSharpParseOptions.Default, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
     public Task TestTopLevel7()
@@ -8295,7 +8295,7 @@ namespace ConsoleApp1
                 var {|Rename:random|} = new Random();
                 var v3 = random.Next();
             }
-            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
+            """, index: 1, parseOptions: CSharpParseOptions.Default, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47277")]
     public Task TestPreserveIndentationInLambda1()
@@ -8336,7 +8336,7 @@ namespace ConsoleApp1
                     };
                 }
             }
-            """, index: 0, options: ImplicitTypingEverywhere());
+            """, index: 0, new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47277")]
     public Task TestPreserveIndentationInLambda2()
@@ -8379,7 +8379,7 @@ namespace ConsoleApp1
                     };
                 }
             }
-            """, index: 0, options: ImplicitTypingEverywhere());
+            """, index: 0, new(options: ImplicitTypingEverywhere()));
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78204")]
