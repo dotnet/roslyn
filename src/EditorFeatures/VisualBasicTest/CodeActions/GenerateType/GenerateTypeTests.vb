@@ -1427,8 +1427,8 @@ Friend Class T
     End Sub
 End Class
 </text>.NormalizedValue,
-index:=1,
-options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Error))
+New TestParameters(index:=1,
+options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Error)))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869506")>
@@ -1842,8 +1842,7 @@ Friend Class D
         _i = i
     End Sub
 End Class
-",
-    index:=1, options:=options.FieldNamesAreCamelCaseWithUnderscorePrefix)
+", New TestParameters(index:=1, options:=options.FieldNamesAreCamelCaseWithUnderscorePrefix))
         End Function
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider
