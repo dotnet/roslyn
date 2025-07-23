@@ -39,17 +39,14 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
             return;
 
         var localFunction = await context.TryGetRelevantNodeAsync<LocalFunctionStatementSyntax>().ConfigureAwait(false);
-        if (localFunction == null)
-            return;
-
-        if (localFunction.Parent is not BlockSyntax parentBlock)
+        if (localFunction?.Parent is not BlockSyntax parentBlock)
             return;
 
         var container = localFunction.GetAncestor<MemberDeclarationSyntax>();
 
         // If the local function is defined in a block within the top-level statements context, then we can't provide the refactoring because
         // there is no class we can put the generated method in.
-        if (container == null || container is GlobalStatementSyntax or FieldDeclarationSyntax or EventFieldDeclarationSyntax)
+        if (container is null or GlobalStatementSyntax or FieldDeclarationSyntax or EventFieldDeclarationSyntax)
             return;
 
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -76,7 +73,7 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var declaredSymbol = semanticModel.GetRequiredDeclaredSymbol(localFunction, cancellationToken);
 
-        Contract.ThrowIfTrue(localFunction.Body is null && localFunction.ExpressionBody is null);
+        Contract.ThrowIfTrue(localFunction is { Body: null, ExpressionBody: null });
 
         var dataFlow = semanticModel.AnalyzeDataFlow(
             localFunction.Body ?? (SyntaxNode)localFunction.ExpressionBody!.Expression);
@@ -170,14 +167,33 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
             {
                 if (hasAdditionalArguments)
                 {
+                    var firstOptionalOrParamsArgument = invocation.ArgumentList.Arguments.FirstOrDefault(
+                        a =>
+                        {
+                            var parameter = a.DetermineParameter(semanticModel, allowUncertainCandidates: true, allowParams: true, cancellationToken);
+                            if (parameter is null)
+                                return false;
+
+                            return parameter.IsOptional || parameter.IsParams;
+                        });
+
+                    // Attempt to place the new arguments appropriately in the original invocation, accounting for things
+                    // like optional/params args. Otherwise, just fallback to appending the new arguments at the end if we
+                    // can't get proper semantics here.
+                    var insertionIndex = firstOptionalOrParamsArgument != null
+                        ? invocation.ArgumentList.Arguments.IndexOf(firstOptionalOrParamsArgument)
+                        : invocation.ArgumentList.Arguments.Count;
+
                     var shouldUseNamedArguments =
-                        !supportsNonTrailing && invocation.ArgumentList.Arguments.Any(arg => arg.NameColon != null);
+                        !supportsNonTrailing && invocation.ArgumentList.Arguments.Take(insertionIndex).Any(arg => arg.NameColon != null);
 
                     var additionalArguments = capturesAsParameters.Select(p =>
                         (ArgumentSyntax)GenerateArgument(p, p.Name, shouldUseNamedArguments)).ToArray();
 
-                    editor.ReplaceNode(invocation.ArgumentList,
-                        invocation.ArgumentList.AddArguments(additionalArguments));
+                    editor.ReplaceNode(
+                        invocation.ArgumentList,
+                        invocation.ArgumentList.WithArguments(
+                            invocation.ArgumentList.Arguments.InsertRange(insertionIndex, additionalArguments)));
                 }
             }
             else if (hasAdditionalArguments || hasAdditionalTypeArguments)
