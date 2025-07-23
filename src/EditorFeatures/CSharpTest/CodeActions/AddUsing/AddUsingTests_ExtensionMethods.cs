@@ -1112,7 +1112,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-            parseOptions: null);
+            new TestParameters(parseOptions: null));
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/16547")]
@@ -1387,7 +1387,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-            parseOptions: null);
+            new TestParameters(parseOptions: null));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55117")]
     public Task TestMethodConflictWithGenericExtension()

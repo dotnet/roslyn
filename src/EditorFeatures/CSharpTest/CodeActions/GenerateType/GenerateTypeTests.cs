@@ -3320,7 +3320,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1,
-            options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
+            new TestParameters(options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
     public Task GenerateTypeWithPreferIntrinsicPredefinedKeywordFalse()
@@ -3352,7 +3352,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1,
-            options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error));
+            new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
 
     #endregion
 
