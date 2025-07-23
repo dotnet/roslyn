@@ -208,6 +208,8 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
            ? TestWorkspace.Create(XElement.Parse(workspaceMarkupOrCode), openDocuments: false, composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind)
            : TestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: [workspaceMarkupOrCode], composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind);
 
+        // If you hit a cast exception here, it means your test class didn't properly override this method to return
+        // the acctual concrete test workspace type it says it needs.
         return (TTestWorkspace)(object)result;
     }
 
