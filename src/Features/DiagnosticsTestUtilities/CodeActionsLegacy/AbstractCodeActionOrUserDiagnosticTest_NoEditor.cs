@@ -385,7 +385,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         var ps = parameters ?? TestParameters.Default;
         using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
         var (_, action) = await GetCodeActionsAsync(workspace, ps);
-        Assert.Equal(glyph, action.Tags);
+        AssertEx.Equal(glyph, action.Tags);
     }
 
     protected async Task TestExactActionSetOfferedAsync(
