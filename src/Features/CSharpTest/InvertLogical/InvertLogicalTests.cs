@@ -350,7 +350,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || b is not string);
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsNotTypePattern1_CSharp8()
@@ -394,7 +394,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || b is string);
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsNullPattern1_CSharp8()
@@ -438,7 +438,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || b is not null);
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsNotNullPattern1_CSharp6()
@@ -504,7 +504,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || b is null);
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsTruePattern1_CSharp8()
@@ -548,7 +548,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || x is false);
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64292")]
     public Task InvertNonBooleanIsTruePattern1_CSharp9()
@@ -570,7 +570,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || b is not true);
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsFalsePattern1_CSharp8()
@@ -614,7 +614,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || x is true);
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64292")]
     public Task InvertNonBooleanIsFalsePattern1_CSharp9()
@@ -636,7 +636,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || b is not false);
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64558")]
     public Task InvertNumericIsGreaterThanPattern1_CSharp9()
@@ -658,7 +658,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || a is <= 20);
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64558")]
     public Task InvertNullableNumericIsGreaterThanPattern1_CSharp9()
@@ -680,7 +680,7 @@ void M(int a, int b, int c)
                     var c = !(!x || a is not > 20);
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64558")]
     public Task InvertNonNumericIsGreaterThanPattern1_CSharp9()
@@ -702,7 +702,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || b is not > 20);
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64558")]
     public Task InvertInvalidEqualsPattern1_CSharp9()
@@ -724,7 +724,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || a is not == 20);
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsAndPattern1_CSharp8()
@@ -768,7 +768,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || b is not string or not object);
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsOrPattern1_CSharp8()
@@ -812,7 +812,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || b is not string and not object);
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsTypeWithDesignationPattern1_CSharp8()
@@ -856,7 +856,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || b is not string s);
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsVarPattern1_CSharp8()
@@ -900,7 +900,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || !(b is var s));
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsAndWithDesignationPattern1_CSharp8()
@@ -944,7 +944,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || !(b is string s and object));
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsAndWithDesignationPattern2_CSharp8()
@@ -988,5 +988,5 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || !(b is string and object s));
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 }
