@@ -462,5 +462,5 @@ public partial class PreferFrameworkTypeTests : AbstractCSharpDiagnosticProvider
                     </Document>
                 </Project>
             </Workspace>
-            """, options: FrameworkTypeEverywhere);
+            """, new(options: FrameworkTypeEverywhere));
 }

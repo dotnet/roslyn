@@ -1807,7 +1807,7 @@ index: 1);
             {
                 int Goo { get => 1; }
             }
-            """, options: PreferExpressionBodiedAccessors);
+            """, new(options: PreferExpressionBodiedAccessors));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle2()
@@ -1826,7 +1826,7 @@ index: 1);
             {
                 int Goo => 1;
             }
-            """, options: PreferExpressionBodiedProperties);
+            """, new(options: PreferExpressionBodiedProperties));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle3()
@@ -1845,7 +1845,7 @@ index: 1);
             {
                 int Goo => 1;
             }
-            """, options: PreferExpressionBodiedAccessorsAndProperties);
+            """, new(options: PreferExpressionBodiedAccessorsAndProperties));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle4()
@@ -1871,7 +1871,7 @@ index: 1);
             }
             """,
             index: 1,
-            options: PreferExpressionBodiedAccessors);
+            new(options: PreferExpressionBodiedAccessors));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle5()
@@ -1908,7 +1908,7 @@ index: 1);
             }
             """,
             index: 1,
-            options: PreferExpressionBodiedProperties);
+            new(options: PreferExpressionBodiedProperties));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle6()
@@ -1934,7 +1934,7 @@ index: 1);
             }
             """,
             index: 1,
-            options: PreferExpressionBodiedAccessorsAndProperties);
+            new(options: PreferExpressionBodiedAccessorsAndProperties));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle7()
@@ -1950,7 +1950,7 @@ index: 1);
             {
                 int Goo => 0;
             }
-            """, options: PreferExpressionBodiedProperties);
+            """, new(options: PreferExpressionBodiedProperties));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle8()
@@ -1966,7 +1966,7 @@ index: 1);
             {
                 int Goo { get => 0; }
             }
-            """, options: PreferExpressionBodiedAccessors);
+            """, new(options: PreferExpressionBodiedAccessors));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle9()
@@ -1982,7 +1982,7 @@ index: 1);
             {
                 int Goo { get => throw e; }
             }
-            """, options: PreferExpressionBodiedAccessors);
+            """, new(options: PreferExpressionBodiedAccessors));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle10()
@@ -1998,7 +1998,7 @@ index: 1);
             {
                 int Goo => throw e;
             }
-            """, options: PreferExpressionBodiedProperties);
+            """, new(options: PreferExpressionBodiedProperties));
 
     [Fact]
     public Task TestUseExpressionBodyWhenOnSingleLine_AndIsSingleLine()
