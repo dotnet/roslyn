@@ -112,7 +112,7 @@ public sealed class HoverTests(ITestOutputHelper testOutputHelper) : AbstractLan
         var expectedLocation = testLspServer.GetLocations("caret").Single();
 
         var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
-        VerifyVSContent(results, "string A.Method(int i)|A great method|• |Item 1.| |• |Item 2.");
+        VerifyVSContent(results, "string A.Method(int i)|A great method|• |Item 1.|• |Item 2.");
     }
 
     [Theory, CombinatorialData]
@@ -248,7 +248,8 @@ A cref&nbsp;A\.AMethod\(int\)
 _italic text_  
 <u>underline text</u>  
   
-•&nbsp;Item 1\.&nbsp;•&nbsp;Item 2\.  
+•&nbsp;Item 1\.  
+•&nbsp;Item 2\.  
   
 [link text](https://google.com)  
   
@@ -311,7 +312,8 @@ strong text
 italic text
 underline text
 
-• Item 1. • Item 2.
+• Item 1.
+• Item 2.
 
 link text
 
