@@ -38,7 +38,7 @@ Class C
         Dim t = (a, 2)
     End Sub
 End Class
-", parseOptions:=s_parseOptions)
+", New TestParameters(parseOptions:=s_parseOptions))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24480")>

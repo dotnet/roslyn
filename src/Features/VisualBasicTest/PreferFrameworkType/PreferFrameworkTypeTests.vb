@@ -403,7 +403,7 @@ Class C
     Public Sub Test()
     End Sub
 End Class
-", options:=FrameworkTypeInMemberAccess)
+", New TestParameters(options:=FrameworkTypeInMemberAccess))
         End Function
 
         <Fact>

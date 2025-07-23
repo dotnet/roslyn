@@ -2045,7 +2045,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicPredefinedTypeInDeclaration())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, New TestParameters(options:=PreferIntrinsicPredefinedTypeInDeclaration()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2450,7 +2450,7 @@ Module Module1
         Dim var As UInteger = UInt32.MinValue
     End Sub
 End Module",
-                options:=PreferIntrinsicPredefinedTypeInDeclaration())
+                New TestParameters(options:=PreferIntrinsicPredefinedTypeInDeclaration()))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15996")>

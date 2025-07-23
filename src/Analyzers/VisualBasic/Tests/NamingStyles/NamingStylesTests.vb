@@ -454,7 +454,7 @@ end module",
         const PASCALCASE = 0
     end sub
 end module",
-                options:=s_options.LocalsAreCamelCaseConstantsAreUpperCase)
+                New TestParameters(options:=s_options.LocalsAreCamelCaseConstantsAreUpperCase))
         End Function
 
         <Fact>
@@ -490,7 +490,7 @@ End Interface",
 End Class",
 "Public Class classHolder(Of TType)
 End Class",
-                options:=s_options.TypeParameterNamesStartWithT)
+                New TestParameters(options:=s_options.TypeParameterNamesStartWithT))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51727")>

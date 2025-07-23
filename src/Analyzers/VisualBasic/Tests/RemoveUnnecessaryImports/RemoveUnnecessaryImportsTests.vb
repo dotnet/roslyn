@@ -30,8 +30,8 @@ End Module|]",
     Sub Main(args As DateTime())
     End Sub
 End Module",
-parseOptions:=TestOptions.Regular,
-compilationOptions:=TestOptions.ReleaseExe.WithGlobalImports({GlobalImport.Parse("System")}))
+New TestParameters(parseOptions:=TestOptions.Regular,
+compilationOptions:=TestOptions.ReleaseExe.WithGlobalImports({GlobalImport.Parse("System")})))
         End Function
 
         <Fact>
@@ -1320,8 +1320,8 @@ Namespace Bar
     End Class
 End Namespace
 ",
-parseOptions:=TestOptions.Regular,
-compilationOptions:=TestOptions.ReleaseExe.WithGlobalImports({GlobalImport.Parse("System"), GlobalImport.Parse("Goo"), GlobalImport.Parse("Bar")}))
+New TestParameters(parseOptions:=TestOptions.Regular,
+compilationOptions:=TestOptions.ReleaseExe.WithGlobalImports({GlobalImport.Parse("System"), GlobalImport.Parse("Goo"), GlobalImport.Parse("Bar")})))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78799")>

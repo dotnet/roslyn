@@ -820,7 +820,7 @@ End Namespace",
         End Sub
     End Class
 End Namespace",
-parseOptions:=Nothing) ' Namespaces not supported in script
+New TestParameters(parseOptions:=Nothing)) ' Namespaces not supported in script
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541078")>
