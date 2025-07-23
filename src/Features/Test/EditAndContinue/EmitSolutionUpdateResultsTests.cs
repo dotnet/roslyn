@@ -584,7 +584,7 @@ public sealed class EmitSolutionUpdateResultsTests
             CreateValidUpdates(c, d),
             CreateProjectRudeEdits(blocking: [], noEffect: [d]),
             addedUnbuiltProjects: [],
-            CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: true)])
+            CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: true)]),
             out var projectsToRestart,
             out var projectsToRebuild);
 
