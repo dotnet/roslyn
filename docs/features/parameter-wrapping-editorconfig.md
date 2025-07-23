@@ -34,14 +34,10 @@ These wrapping styles are not available during automatic formatting operations f
 ## Proposed Solution
 
 ### Phase 1: EditorConfig Option
-Add new EditorConfig options for parameter wrapping:
+Add a new language-agnostic EditorConfig option for parameter wrapping:
 
 ```editorconfig
-# Language-specific parameter wrapping
-csharp_parameter_wrapping = do_not_wrap | wrap_long_parameters | wrap_every_parameter  
-visual_basic_parameter_wrapping = do_not_wrap | wrap_long_parameters | wrap_every_parameter
-
-# Alternative: Language-agnostic (both languages)
+# Parameter wrapping style (applies to both C# and VB.NET)
 dotnet_parameter_wrapping = do_not_wrap | wrap_long_parameters | wrap_every_parameter
 ```
 
@@ -50,43 +46,39 @@ dotnet_parameter_wrapping = do_not_wrap | wrap_long_parameters | wrap_every_para
 - `wrap_long_parameters` - Wrap when exceeding wrapping column limit
 - `wrap_every_parameter` - Wrap each parameter to its own line
 
+**Future Expansion:** Language-specific overrides could be added later if needed:
+```editorconfig
+# Future: Language-specific overrides (if requested)
+# csharp_parameter_wrapping = wrap_every_parameter    # Overrides dotnet_parameter_wrapping for C#
+# visual_basic_parameter_wrapping = wrap_long_parameters  # Overrides dotnet_parameter_wrapping for VB.NET
+```
+
 ### Phase 2: Formatting Rule Integration
-Create a formatting rule that applies parameter wrapping based on the EditorConfig setting.
+Create formatting rules for both languages that apply parameter wrapping based on the shared EditorConfig setting.
 
 ### Phase 3: Additional Options (Future)
 After proving the concept, add additional wrapping styles:
-- `csharp_parameter_first_placement = same_line | new_line`  
-- `csharp_parameter_alignment = align_with_first | indent_uniform`
+- `dotnet_parameter_first_placement = same_line | new_line`  
+- `dotnet_parameter_alignment = align_with_first | indent_uniform`
 
 ## Technical Design
 
 ### 1. EditorConfig Option Definition
 
-**C# Options Location:** `src/Workspaces/SharedUtilitiesAndExtensions/Compiler/CSharp/Formatting/CSharpFormattingOptions2.cs`
+**Shared Option Location:** `src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Formatting/FormattingOptions2.cs`
 
 ```csharp
-public static Option2<ParameterWrappingOptionsInternal> ParameterWrapping { get; } = CreateOption(
-    CSharpFormattingOptionGroups.Wrapping, "csharp_parameter_wrapping",
+/// <summary>
+/// Parameter wrapping style for both C# and VB.NET
+/// </summary>
+public static readonly PerLanguageOption2<ParameterWrappingOptionsInternal> ParameterWrapping = new(
+    "dotnet_parameter_wrapping",
     defaultValue: ParameterWrappingOptionsInternal.DoNotWrap,
+    isEditorConfigOption: true,
     new EditorConfigValueSerializer<ParameterWrappingOptionsInternal>(
         s => ParseEditorConfigParameterWrapping(s),
         GetParameterWrappingOptionEditorConfigString));
-```
 
-**VB.NET Options Location:** `src/Workspaces/SharedUtilitiesAndExtensions/Compiler/VisualBasic/Formatting/VisualBasicFormattingOptions2.vb` (may need creation)
-
-```vb
-Public Shared ReadOnly Property ParameterWrapping As Option2(Of ParameterWrappingOptionsInternal) = CreateOption(
-    VisualBasicFormattingOptionGroups.Wrapping, "visual_basic_parameter_wrapping",
-    defaultValue:=ParameterWrappingOptionsInternal.DoNotWrap,
-    New EditorConfigValueSerializer(Of ParameterWrappingOptionsInternal)(
-        Function(s) ParseEditorConfigParameterWrapping(s),
-        AddressOf GetParameterWrappingOptionEditorConfigString))
-```
-
-**Shared Enum Location:** `src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Formatting/`
-
-```csharp
 internal enum ParameterWrappingOptionsInternal
 {
     DoNotWrap = 0,
@@ -97,40 +89,36 @@ internal enum ParameterWrappingOptionsInternal
 
 ### 2. Formatting Rule Implementation
 
+Both languages will implement their own formatting rules that consume the shared option:
+
 **C# Rule Location:** `src/Workspaces/SharedUtilitiesAndExtensions/Compiler/CSharp/Formatting/Rules/ParameterWrappingFormattingRule.cs`
 
 **VB.NET Rule Location:** `src/Workspaces/SharedUtilitiesAndExtensions/Compiler/VisualBasic/Formatting/Rules/ParameterWrappingFormattingRule.vb`
 
 ### 3. Language Support Strategy
 
-**Option A: Language-Specific Options (Recommended)**
-- `csharp_parameter_wrapping`
-- `visual_basic_parameter_wrapping` 
-- Allows per-language customization
-- Follows existing EditorConfig patterns
+**Primary Approach: Language-Agnostic Option**
+- `dotnet_parameter_wrapping` applies to both languages
+- Simpler configuration for teams
+- Same wrapping behavior regardless of language syntax
+- Consistent with .NET ecosystem trends (most repos are single-language)
 
-**Option B: Language-Agnostic Option**
-- `dotnet_parameter_wrapping`
-- Single option for both languages
-- Simpler for teams using both languages
-
-### 4. Reuse Existing Logic
-
-Leverage existing parameter wrapping logic from `CSharpParameterWrapper`:
-- Extract shared wrapping algorithms into utility classes
-- Avoid duplicating wrapping logic between refactoring and formatting
+**Future Option: Language-Specific Overrides**
+- If requested, add `csharp_parameter_wrapping` and `visual_basic_parameter_wrapping`
+- These would override `dotnet_parameter_wrapping` for specific languages
+- Low priority given rarity of mixed-language repositories
 
 ## Implementation Plan
 
 ### Phase 1: Foundation (Milestone 1) - C# First
-1. **Add C# EditorConfig option definition** 
-   - Define `ParameterWrappingOptionsInternal` enum
-   - Add option to `CSharpFormattingOptions2`
+1. **Add shared EditorConfig option definition** 
+   - Define `ParameterWrappingOptionsInternal` enum in shared location
+   - Add `dotnet_parameter_wrapping` option to `FormattingOptions2`
    - Add EditorConfig serialization support
 
 2. **Extend C# formatting options**
-   - Update `CSharpSyntaxFormattingOptions` constructor
-   - Update `CSharpSyntaxWrappingOptions` to consume parameter wrapping settings
+   - Update `CSharpSyntaxFormattingOptions` to consume the shared option
+   - Update `CSharpSyntaxWrappingOptions` to use parameter wrapping settings
 
 3. **Create basic C# formatting rule**
    - Implement `ParameterWrappingFormattingRule` with stub logic
@@ -149,7 +137,7 @@ Leverage existing parameter wrapping logic from `CSharpParameterWrapper`:
    - Handle parameter alignment and indentation
 
 3. **Add VB.NET support**
-   - Add VB.NET EditorConfig option (or implement language-agnostic option)
+   - Update `VisualBasicSyntaxFormattingOptions` to consume the shared option
    - Create VB.NET formatting rule parallel to C# version
    - Integrate into VB.NET formatting pipeline
 
@@ -168,33 +156,52 @@ Leverage existing parameter wrapping logic from `CSharpParameterWrapper`:
    - EditorConfig documentation for new option
    - Migration guide for teams wanting automatic parameter wrapping
 
+### 4. Reuse Existing Logic
+
+Leverage existing parameter wrapping logic from both wrappers:
+- Extract shared wrapping algorithms into utility classes
+- Avoid duplicating wrapping logic between refactoring and formatting
+- Ensure consistent behavior across manual refactoring and automatic formatting
+
 ## Testing Strategy
 
 ### Unit Tests
 - **EditorConfig parsing**: Test option serialization/deserialization
-- **Formatting rule behavior**: Test wrapping logic in isolation  
+- **Formatting rule behavior**: Test wrapping logic in isolation for both languages
 - **Integration**: Test interaction with other formatting rules
 
 ### Integration Tests
-- **dotnet format**: Verify command-line formatting works
+- **dotnet format**: Verify command-line formatting works for both languages
 - **VS integration**: Test format-on-save scenarios
 - **Cross-platform**: Ensure consistent behavior across environments
 
 ### Test Cases
 ```csharp
-// Input
+// Input (C#)
 void Method(int parameter1, int parameter2, int reallyLongParameterName, int anotherParameter) { }
 
-// csharp_parameter_wrapping = wrap_every_parameter
+// dotnet_parameter_wrapping = wrap_every_parameter
 void Method(
     int parameter1,
     int parameter2, 
     int reallyLongParameterName,
     int anotherParameter) { }
 
-// csharp_parameter_wrapping = wrap_long_parameters (with csharp_max_line_length = 80)
+// dotnet_parameter_wrapping = wrap_long_parameters (with dotnet_max_line_length = 80)
 void Method(int parameter1, int parameter2,
            int reallyLongParameterName, int anotherParameter) { }
+```
+
+```vb
+' Input (VB.NET)
+Sub Method(parameter1 As Integer, parameter2 As Integer, reallyLongParameterName As Integer, anotherParameter As Integer)
+
+' dotnet_parameter_wrapping = wrap_every_parameter
+Sub Method(
+    parameter1 As Integer,
+    parameter2 As Integer,
+    reallyLongParameterName As Integer,
+    anotherParameter As Integer)
 ```
 
 ## Compatibility
@@ -205,34 +212,32 @@ void Method(int parameter1, int parameter2,
 - No breaking changes to formatting APIs
 
 ### Forward Compatibility  
-- Design allows for additional wrapping options in future
+- Design allows for language-specific overrides if needed in future
 - Architecture supports extending to other construct types (arguments, expressions, etc.)
 
 ## Open Questions
 
-1. **Language Options**: Should we use language-specific options (`csharp_parameter_wrapping`, `visual_basic_parameter_wrapping`) or a single language-agnostic option (`dotnet_parameter_wrapping`)?
+1. **Rule Ordering**: Where should `ParameterWrappingFormattingRule` be positioned in the formatting pipeline for each language?
 
-2. **Implementation Order**: Should we implement both languages in Phase 1, or prove the concept with C# first then add VB.NET?
+2. **Performance**: What's the performance impact of adding wrapping detection to the formatting pipeline for both languages?
 
-3. **Rule Ordering**: Where should `ParameterWrappingFormattingRule` be positioned in the formatting pipeline for each language?
+3. **Interaction**: How should this interact with existing `csharp_preserve_single_line_*` options?
 
-4. **Performance**: What's the performance impact of adding wrapping detection to the formatting pipeline for both languages?
+4. **Scope**: Should the first implementation support method parameters only, or also include constructors, delegates, etc.?
 
-5. **Interaction**: How should this interact with existing `csharp_preserve_single_line_*` options?
-
-6. **Scope**: Should the first implementation support method parameters only, or also include constructors, delegates, etc.?
+5. **Line Length**: Should this use the existing `dotnet_max_line_length` option or introduce a separate parameter wrapping threshold?
 
 ## Success Criteria
 
 ### Milestone 1 Complete
-- [ ] C# EditorConfig option defined and integrated
+- [ ] Shared `dotnet_parameter_wrapping` EditorConfig option defined and integrated
 - [ ] Basic C# formatting rule infrastructure in place
 - [ ] Options flow from EditorConfig → C# Formatting pipeline
 
 ### Milestone 2 Complete  
 - [ ] `wrap_every_parameter` fully functional for C#
 - [ ] `wrap_long_parameters` with line length detection for C#
-- [ ] VB.NET EditorConfig option and formatting rule implemented  
+- [ ] VB.NET formatting rule implemented using shared option  
 - [ ] Integration tests passing with `dotnet format` for both languages
 
 ### Milestone 3 Complete
@@ -244,8 +249,11 @@ void Method(int parameter1, int parameter2,
 ## Future Extensions
 
 After parameter wrapping proves successful, this approach can be extended to:
-- **Argument wrapping** (`csharp_argument_wrapping`)
-- **Binary expression wrapping** (`csharp_binary_expression_wrapping`)  
-- **Chained expression wrapping** (`csharp_chained_expression_wrapping`)
+- **Argument wrapping** (`dotnet_argument_wrapping`)
+- **Binary expression wrapping** (`dotnet_binary_expression_wrapping`)  
+- **Chained expression wrapping** (`dotnet_chained_expression_wrapping`)
 
-This creates a path toward comprehensive automatic wrapping support throughout the C# formatting system. 
+**Language-specific overrides** (if requested):
+- `csharp_parameter_wrapping` / `visual_basic_parameter_wrapping` to override `dotnet_parameter_wrapping`
+
+This creates a path toward comprehensive automatic wrapping support throughout the .NET formatting system. 
