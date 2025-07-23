@@ -56,7 +56,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, string> f = x => x.ToString();
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task TestMissingWhenAlreadyAndExpressionBody()
@@ -148,7 +148,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
 
                 void TargetMethod(Func<int, string> targetParam) { }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseBlockBodyInArgument()
@@ -264,7 +264,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, string> f = x => throw null;
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseBlockBodyThrowing()
@@ -322,7 +322,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Action<int> f = x => x.ToString();
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseExpressionBodyWithVoidReturnThrowing()
@@ -351,7 +351,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Action<int> f = x => throw null;
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseBlockBodyWithVoidReturn()
@@ -438,7 +438,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Action<int> f = async x => x.ToString();
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseExpressionBodyWithAsyncVoidReturnThrowing()
@@ -556,7 +556,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<Task> f = () => Task.CompletedTask;
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseExpressionBodyWithTaskReturnThrowing()
@@ -587,7 +587,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<Task> f = () => throw null;
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseBlockBodyWithTaskReturn()
@@ -680,7 +680,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<Task> f = async () => await Task.CompletedTask;
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseExpressionBodyWithAsyncTaskReturnThrowing()
@@ -711,7 +711,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<Task> f = async () => throw null;
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseBlockBodyWithAsyncTaskReturn()
@@ -804,7 +804,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, Task<string>> f = x => Task.FromResult(x.ToString());
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseExpressionBodyWithTaskTReturnThrowing()
@@ -835,7 +835,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, Task<string>> f = x => throw null;
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseBlockBodyWithTaskTReturn()
@@ -928,7 +928,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, Task<string>> f = async x => await Task.FromResult(x.ToString());
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseExpressionBodyWithAsyncTaskTReturnThrowing()
@@ -959,7 +959,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, Task<string>> f = async x => throw null;
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseBlockBodyWithAsyncTaskTReturn()
@@ -1055,7 +1055,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                         x.ToString();
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseExpressionBodyWithEndingComment()
@@ -1086,7 +1086,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, string> f = x => x.ToString();
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseBlockBodyWithEndingComment()
@@ -1149,7 +1149,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, Func<int, string>> f = x => y => (x + y).ToString();
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseExpressionBodyInMethod_FixAll2()
@@ -1181,7 +1181,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, Func<int, string>> f = x => y => (x + y).ToString();
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseBlockBodyInMethod_FixAll1()
@@ -1277,7 +1277,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, Func<int, string>> f = a => b => b.ToString();
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task FixAllNested2()
@@ -1309,7 +1309,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, Func<int, string>> f = a => b => b.ToString();
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task FixAllNested3()
