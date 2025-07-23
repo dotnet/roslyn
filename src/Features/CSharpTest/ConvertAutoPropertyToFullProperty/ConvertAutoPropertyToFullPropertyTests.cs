@@ -231,7 +231,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
 
                 public int Goo { get => goo; set => goo = value; }
             }
-            """, options: PreferExpressionBodiedAccessorsWhenPossible);
+            """, new(options: PreferExpressionBodiedAccessorsWhenPossible));
 
     [Fact]
     public Task WithExpressionBodyWhenOnSingleLine()
@@ -247,7 +247,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
 
                 public int Goo { get => goo; set => goo = value; }
             }
-            """, options: PreferExpressionBodiedAccessorsWhenOnSingleLine);
+            """, new(options: PreferExpressionBodiedAccessorsWhenOnSingleLine));
 
     [Fact]
     public Task WithExpressionBodyWhenOnSingleLine2()
@@ -271,7 +271,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     set => goo = value;
                 }
             }
-            """, options: PreferExpressionBodiedAccessorsWhenOnSingleLine);
+            """, new(options: PreferExpressionBodiedAccessorsWhenOnSingleLine));
 
     [Fact]
     public Task WithExpressionBodyWithTrivia()
@@ -287,7 +287,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
 
                 public int Goo { get /* test */ => goo; set /* test2 */ => goo = value; }
             }
-            """, options: PreferExpressionBodiedAccessorsWhenPossible);
+            """, new(options: PreferExpressionBodiedAccessorsWhenPossible));
 
     [Fact]
     public Task WithPropertyOpenBraceOnSameLine()
@@ -312,7 +312,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine);
+            """, new(options: DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine));
 
     [Fact]
     public Task WithAccessorOpenBraceOnSameLine()
@@ -336,7 +336,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine);
+            """, new(options: DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine));
 
     [Fact]
     public Task StaticProperty()
@@ -659,7 +659,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
 
                 public int Goo => goo;
             }
-            """, options: PreferExpressionBodiesOnAccessorsAndMethods);
+            """, new(options: PreferExpressionBodiesOnAccessorsAndMethods));
 
     [Fact]
     public Task GetterOnlyExpressionBodies_Field()
@@ -880,7 +880,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: UseCustomFieldName);
+            """, new(options: UseCustomFieldName));
 
     [Fact, WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
     public Task UnderscorePrefixedFieldName()
@@ -906,7 +906,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: UseUnderscorePrefixedFieldName);
+            """, new(options: UseUnderscorePrefixedFieldName));
 
     [Fact, WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/30208")]
@@ -949,7 +949,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: UseCustomStaticFieldName);
+            """, new(options: UseCustomStaticFieldName));
 
     [Fact]
     public Task StaticPropertyWithCustomStaticFieldName()
@@ -975,7 +975,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: UseCustomStaticFieldName);
+            """, new(options: UseCustomStaticFieldName));
 
     [Fact]
     public Task InInterface()
