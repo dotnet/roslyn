@@ -3074,7 +3074,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility3_InternalInternal()
