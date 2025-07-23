@@ -1313,7 +1313,7 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             {
                 public override void M(int x) => throw new System.NotImplementedException();
             }
-            """, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
+            """, new(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
     public Task TestCodeStyle_Property1()
@@ -1438,7 +1438,7 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             {
                 public override int this[int i] => throw new System.NotImplementedException();
             }
-            """, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
+            """, new(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
     public Task TestCodeStyle_Indexer3()
@@ -1538,11 +1538,11 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             {
                 public override int M { get => throw new System.NotImplementedException(); }
             }
-            """, options: new OptionsCollection(GetLanguage())
+            """, new(options: new OptionsCollection(GetLanguage())
 {
     { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never, NotificationOption2.Silent },
     { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
-});
+}));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
     public Task TestCodeStyle_Accessor3()
@@ -1567,7 +1567,7 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             {
                 public override int M { set => throw new System.NotImplementedException(); }
             }
-            """, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
+            """, new(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
     public Task TestCodeStyle_Accessor4()
@@ -1703,7 +1703,7 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """,
-            parseOptions: TestOptions.Regular7);
+            new(parseOptions: TestOptions.Regular7));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17562")]
     public Task TestNullableOptionalParametersCSharp7()
