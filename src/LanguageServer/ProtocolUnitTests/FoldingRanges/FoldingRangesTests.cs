@@ -53,6 +53,17 @@ public sealed class FoldingRangesTests : AbstractLanguageServerProtocolTests
             }|}
             """);
 
+    [Theory, CombinatorialData]
+    public Task TestGetFoldingRangeAsync_AutoCollapse(bool mutatingLspWorkspace)
+        => AssertFoldingRanges(mutatingLspWorkspace, """
+            class C{|foldingRange:
+            {
+                private Action<int> Foo(){|implementation: => i =>{|foldingRange:
+                {
+                };|}|}
+            }|}
+            """);
+
     private async Task AssertFoldingRanges(bool mutatingLspWorkspace, string markup, string collapsedText = null)
     {
         var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
