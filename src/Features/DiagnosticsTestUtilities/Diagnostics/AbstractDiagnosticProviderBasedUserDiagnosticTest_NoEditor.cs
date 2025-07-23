@@ -34,14 +34,10 @@ using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Edito
 #else
 using OptionsCollectionAlias = OptionsCollection;
 #endif
-public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor : AbstractUserDiagnosticTest_NoEditor
+public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor(ITestOutputHelper logger)
+    : AbstractUserDiagnosticTest_NoEditor(logger)
 {
     private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap = [];
-
-    protected AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
 
     internal abstract (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace);
 

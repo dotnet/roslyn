@@ -8797,9 +8797,8 @@ class C
             """, [CodeFixesResources.Remove_redundant_assignment]);
 
     [Fact, WorkItem(38507, "https://github.com/dotnet/roslyn/issues/46251")]
-    public async Task TestCodeFixForAllInDocumentForNestedDiagnostic()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestCodeFixForAllInDocumentForNestedDiagnostic()
+        => TestInRegularAndScriptAsync("""
             using System;
             namespace ConsoleApp
             {
@@ -8843,8 +8842,7 @@ class C
                     }
             	}
             }
-            """, options: PreferDiscard).ConfigureAwait(false);
-    }
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45768")]
     public Task UnusedVarPattern_PartOfCase()

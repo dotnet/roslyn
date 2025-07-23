@@ -4510,7 +4510,7 @@ class C
                 }
             }
             """,
-            index: 3, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
+            new(index: 3, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545217")]
     public Task TestGenerateLocalNameSimplification()
@@ -4984,7 +4984,7 @@ class C
             #line default
             #line hidden
             }
-            """, options: ImplicitTypingEverywhere());
+            """, new(options: ImplicitTypingEverywhere()));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
@@ -9428,7 +9428,7 @@ class C
                 {
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
     public Task TestPropertyPatternInIsPattern9()
