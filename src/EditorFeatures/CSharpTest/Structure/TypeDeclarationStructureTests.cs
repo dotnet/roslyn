@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
@@ -231,4 +232,21 @@ public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
                 """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("span2", "// Goo ...", autoCollapse: true));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62506")]
+    public Task TestTypeDeclarationNoBraces1()
+        => VerifyBlockSpansAsync("""
+                {|comment:// comment|}
+                $$struct S
+                """,
+            Region("comment", "// comment ...", autoCollapse: true));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62506")]
+    public Task TestTypeDeclarationNoBraces2()
+        => VerifyBlockSpansAsync("""
+                {|comment:// comment|}
+                {|textspan1:{|hint1:$$struct S;|}|}
+                """,
+            Region("comment", "// comment ...", autoCollapse: true),
+            Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 }
