@@ -1046,9 +1046,9 @@ public sealed class FullyQualifyTests(ITestOutputHelper logger)
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
     public Task BugFix5950(TestHost testHost)
         => TestAsync(
-@"using System.Console; WriteLine([|Expression|].Constant(123));",
-@"using System.Console; WriteLine(System.Linq.Expressions.Expression.Constant(123));",
-parseOptions: GetScriptOptions(), new(testHost: testHost));
+            @"using System.Console; WriteLine([|Expression|].Constant(123));",
+            @"using System.Console; WriteLine(System.Linq.Expressions.Expression.Constant(123));",
+            new(parseOptions: GetScriptOptions(), testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
     public Task TestAfterAlias(TestHost testHost)

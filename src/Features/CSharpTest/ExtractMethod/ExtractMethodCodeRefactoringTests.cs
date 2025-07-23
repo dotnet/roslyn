@@ -5485,7 +5485,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitForBuiltInTypes());
+            new(options: ImplicitForBuiltInTypes()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleRefCapture()
@@ -8654,7 +8654,7 @@ class Program
                 }
             }
             """,
-            options: NoBraces());
+            new(options: NoBraces()));
 
     [Fact]
     public Task TestFlowControl_BreakAndReturn_NoBraces()
@@ -8706,7 +8706,7 @@ class Program
                 }
             }
             """,
-            options: NoBraces());
+            new(options: NoBraces()));
 
     [Fact]
     public Task TestFlowControl_BreakAndFallThrough_NoBraces()
@@ -8754,7 +8754,7 @@ class Program
                 }
             }
             """,
-            options: NoBraces());
+            new(options: NoBraces()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22597")]
     public Task TestFullyExtractedTypeParameter()
