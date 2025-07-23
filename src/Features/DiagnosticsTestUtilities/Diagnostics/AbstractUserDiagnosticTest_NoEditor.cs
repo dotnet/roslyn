@@ -38,13 +38,9 @@ using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Edito
 #else
 using OptionsCollectionAlias = OptionsCollection;
 #endif
-public abstract partial class AbstractUserDiagnosticTest_NoEditor : AbstractCodeActionOrUserDiagnosticTest_NoEditor
+public abstract partial class AbstractUserDiagnosticTest_NoEditor(ITestOutputHelper logger)
+    : AbstractCodeActionOrUserDiagnosticTest_NoEditor(logger)
 {
-    protected AbstractUserDiagnosticTest_NoEditor(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
-
     internal abstract Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
         TestWorkspace workspace, TestParameters parameters);
 

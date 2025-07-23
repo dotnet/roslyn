@@ -404,23 +404,6 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor
         Assert.Equal(count, actions.Length);
     }
 
-    //internal Task TestInRegularAndScriptAsync(
-    //    string initialMarkup,
-    //    string expectedMarkup,
-    //    int index = 0,
-    //    CodeActionPriority? priority = null,
-    //    CompilationOptions compilationOptions = null,
-    //    OptionsCollectionAlias options = null,
-    //    object fixProviderData = null,
-    //    ParseOptions parseOptions = null,
-    //    string title = null,
-    //    TestHost testHost = TestHost.OutOfProcess)
-    //{
-    //    return TestInRegularAndScriptAsync(
-    //        initialMarkup, expectedMarkup,
-    //        new TestParameters(parseOptions, compilationOptions, options, globalOptions: null, fixProviderData, index, priority, title: title, testHost: testHost));
-    //}
-
     internal Task TestInRegularAndScriptAsync(
         string initialMarkup,
         string expectedMarkup,
@@ -443,24 +426,6 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor
             await TestAsync(initialMarkup, expectedMarkup, WithScriptOptions(parameters));
         }
     }
-
-    //internal Task TestAsync(
-    //    string initialMarkup,
-    //    string expectedMarkup,
-    //    ParseOptions parseOptions,
-    //    CompilationOptions compilationOptions = null,
-    //    int index = 0,
-    //    OptionsCollectionAlias options = null,
-    //    OptionsCollectionAlias globalOptions = null,
-    //    object fixProviderData = null,
-    //    CodeActionPriority? priority = null,
-    //    TestHost testHost = TestHost.OutOfProcess)
-    //{
-    //    return TestAsync(
-    //        initialMarkup,
-    //        expectedMarkup,
-    //        new TestParameters(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, testHost: testHost));
-    //}
 
     internal async Task TestAsync(
         string initialMarkup,
