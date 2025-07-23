@@ -335,8 +335,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
                 }
             }
             """,
-            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
-            options: UseExpressionBodyForAccessors_ExpressionBodyForProperties);
+            new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6), options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
 
     [Fact]
     public Task TestOfferedWithSelectionInsideBlockBody()

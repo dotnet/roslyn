@@ -592,7 +592,7 @@ End Class
 Namespace System
     Structure ValueTuple(Of T1, T2)
     End Structure
-End Namespace", TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+End Namespace", New TestParameters(TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3)))
 
         End Function
 
@@ -624,7 +624,7 @@ End Class
 Namespace System
     Structure ValueTuple(Of T1, T2)
     End Structure
-End Namespace", TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+End Namespace", New TestParameters(TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15)))
 
         End Function
 
@@ -1147,9 +1147,9 @@ class Program
     End Sub
 end class
 ",
-            options:=New OptionsCollection(LanguageNames.VisualBasic) From {
+            New TestParameters(options:=New OptionsCollection(LanguageNames.VisualBasic) From {
                 {CodeStyleOptions2.QualifyMethodAccess, New CodeStyleOption2(Of Boolean)(True, New NotificationOption2(diagnostic, True))}
-            })
+            }))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")>

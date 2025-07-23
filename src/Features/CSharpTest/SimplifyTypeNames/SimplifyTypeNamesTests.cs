@@ -4736,7 +4736,7 @@ new TestParameters(Options.Script));
                 }
             }
             """,
-            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+            new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15996")]
     public Task TestMemberOfBuiltInType1()
@@ -4761,8 +4761,7 @@ new TestParameters(Options.Script));
                 }
             }
             """,
-            parseOptions: CSharpParseOptions.Default,
-            options: PreferIntrinsicTypeInDeclaration);
+            new(parseOptions: CSharpParseOptions.Default, options: PreferIntrinsicTypeInDeclaration));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15996")]
     public Task TestMemberOfBuiltInType2()
