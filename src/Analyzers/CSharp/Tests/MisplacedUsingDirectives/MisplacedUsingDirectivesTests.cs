@@ -93,7 +93,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             { GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst },
         };
         return TestInRegularAndScriptAsync(
-            initialMarkup, expectedMarkup, options: options, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10));
+            initialMarkup, expectedMarkup, new(options: options, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)));
     }
 
     #region Test Preserve

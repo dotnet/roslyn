@@ -479,7 +479,7 @@ public sealed partial class AddUsingTests(ITestOutputHelper logger) : AbstractAd
                 }
             }
             """,
-            parseOptions: Options.Regular);
+            new TestParameters(parseOptions: Options.Regular));
 
     [Theory, CombinatorialData]
     public Task TestOnEnum(TestHost testHost)
@@ -1925,7 +1925,7 @@ using System.Linq.Expressions;
 
 WriteLine(Expression.Constant(123));
 """,
-parseOptions: GetScriptOptions());
+new TestParameters(parseOptions: GetScriptOptions()));
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540339")]
@@ -2166,8 +2166,8 @@ parseOptions: GetScriptOptions());
 
             Expression
             """,
-            GetScriptOptions(),
-            TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
+            new TestParameters(GetScriptOptions(),
+            TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver)));
     }
 
     [Theory, CombinatorialData]
@@ -2818,7 +2818,7 @@ parseOptions: GetScriptOptions());
             /// This is just like <see cref='INotifyPropertyChanged'/>, but this one is mine.
             /// </summary>
             interface MyNotifyPropertyChanged { }
-            """, parseOptions: options);
+            """, new TestParameters(parseOptions: options));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
@@ -2838,7 +2838,7 @@ parseOptions: GetScriptOptions());
             /// This is just like <see cref='INotifyPropertyChanged.PropertyChanged'/>, but this one is mine.
             /// </summary>
             interface MyNotifyPropertyChanged { }
-            """, parseOptions: options);
+            """, new TestParameters(parseOptions: options));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
@@ -2884,7 +2884,7 @@ parseOptions: GetScriptOptions());
             public class MyClass2
             {
             }
-            """, parseOptions: options);
+            """, new TestParameters(parseOptions: options));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
@@ -2920,7 +2920,7 @@ parseOptions: GetScriptOptions());
                 {
                 }
             }
-            """, parseOptions: options);
+            """, new TestParameters(parseOptions: options));
     }
 
     [Theory, CombinatorialData]
@@ -6448,7 +6448,7 @@ class C
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
     public Task TestAddUsingPreservesNewlines1(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace ANamespace
             {
@@ -6489,7 +6489,7 @@ class C
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
     public Task TestAddUsingPreservesNewlines2(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using BNamespace;
 
@@ -6541,7 +6541,7 @@ class C
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
     public Task TestAddUsingPreservesNewlines3(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using ANamespace;
 
@@ -6593,7 +6593,7 @@ class C
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/24642")]
     public Task TestAddUsingWithMalformedGeneric(TestHost testHost)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -6613,7 +6613,7 @@ class C
 
     [Theory, CombinatorialData]
     public Task TestOutsideOfMethodWithMalformedGenericParameters(TestHost testHost)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             

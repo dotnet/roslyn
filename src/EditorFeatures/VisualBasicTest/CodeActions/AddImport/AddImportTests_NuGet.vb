@@ -68,7 +68,7 @@ Imports NuGetNamespace
 
 Class C
     Dim n As NuGetType
-End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
+End Class", New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object)))
         End Function
 
         <Fact>
@@ -97,7 +97,7 @@ Imports NS1.NS2
 
 Class C
     Dim n As NuGetType
-End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
+End Class", New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object)))
         End Function
 
         <Fact>
@@ -124,7 +124,7 @@ End Class",
 "
 Class C
     Dim n As NuGetType
-End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
+End Class", New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object)))
         End Function
 
         <Fact>
@@ -218,7 +218,7 @@ Imports NuGetNamespace
 
 Class C
     Dim n As NuGetType
-End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
+End Class", New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object)))
             installerServiceMock.Verify()
         End Function
 
@@ -250,7 +250,7 @@ Imports NuGetNamespace
 
 Class C
     Dim n As NuGetType
-End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
+End Class", New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object)))
             installerServiceMock.Verify()
         End Function
 
