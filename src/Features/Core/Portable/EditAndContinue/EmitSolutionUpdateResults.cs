@@ -185,7 +185,7 @@ internal readonly struct EmitSolutionUpdateResults
     /// <summary>
     /// Returns projects that need to be rebuilt and/or restarted due to blocking rude edits in order to apply changes.
     /// </summary>
-    /// ]<param name="addedUnbuiltProjects">Projects that were added to the solution and not built yet.</param>
+    /// <param name="addedUnbuiltProjects">Projects that were added to the solution and not built yet.</param>
     /// <param name="runningProjects">Identifies projects that have been launched.</param>
     /// <param name="projectsToRestart">
     /// Running projects that have to be restarted and a list of projects with rude edits that caused the restart.
