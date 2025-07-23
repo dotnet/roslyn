@@ -142,6 +142,7 @@ Instead of building new wrapping logic, this feature **exposes existing function
 - **Reuse, don't rebuild**: Leverage existing `CSharpParameterWrapper` infrastructure
 - **Consistent behavior**: Ensure EditorConfig wrapping matches manual refactoring results exactly  
 - **Performance**: Short-circuit when `do_not_wrap` is specified - zero overhead for default case
+- **Line length consistency**: Use existing `WrappingColumn` infrastructure (currently `dotnet_unsupported_wrapping_column`, default 120)
 
 ### Performance Design
 The performance impact is minimal by design:
@@ -150,6 +151,14 @@ The performance impact is minimal by design:
 - **Existing infrastructure**: Leverages proven `AbstractCSharpSeparatedSyntaxListWrapper` algorithms
 
 This means existing codebases see **no performance impact** until teams explicitly opt-in to automatic wrapping.
+
+### Line Length Integration
+The existing manual wrapping infrastructure already uses `Options.WrappingColumn` for "wrap long" detection:
+- **Current option**: `dotnet_unsupported_wrapping_column` (internal/undocumented, default: 120)
+- **Our approach**: Reuse existing `WrappingColumn` infrastructure for consistency
+- **Future consideration**: Could potentially expose this option or integrate with a future `dotnet_max_line_length` standard
+
+This ensures `_if_long` variants behave identically to existing manual "wrap long" refactorings.
 
 ## Implementation Plan
 
@@ -263,13 +272,11 @@ Sub Method(
 
 ## Open Questions
 
-1. **Line Length Integration**: Should this use the existing `dotnet_max_line_length` option or introduce a separate wrapping threshold for comma-separated lists?
+1. **Manual Refactoring Interaction**: Should the presence of an EditorConfig setting affect what manual refactoring options are shown in the lightbulb menu for comma-separated lists?
 
-2. **Manual Refactoring Interaction**: Should the presence of an EditorConfig setting affect what manual refactoring options are shown in the lightbulb menu for comma-separated lists?
+2. **Formatting vs. Refactoring Pipeline**: Which pipeline should drive this - extend the existing formatting system or create a new hybrid approach that bridges manual refactoring logic into automatic formatting?
 
-3. **Formatting vs. Refactoring Pipeline**: Which pipeline should drive this - extend the existing formatting system or create a new hybrid approach that bridges manual refactoring logic into automatic formatting?
-
-4. **Construct Priority**: If different comma-separated constructs have conflicting wrapping needs in the same file, how do we handle that? (This may be theoretical given the unified approach.)
+3. **Construct Priority**: If different comma-separated constructs have conflicting wrapping needs in the same file, how do we handle that? (This may be theoretical given the unified approach.)
 
 ## Success Criteria
 
