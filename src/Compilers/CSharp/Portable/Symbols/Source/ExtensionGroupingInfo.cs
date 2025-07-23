@@ -1,0 +1,504 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
+using Microsoft.Cci;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
+{
+    internal sealed class ExtensionGroupingInfo
+    {
+        private readonly Dictionary<string, MultiDictionary<string, SourceNamedTypeSymbol>> _groupingMap;
+        private ImmutableArray<ExtensionGroupingType> _lazyGroupingTypes;
+
+        public ExtensionGroupingInfo(Dictionary<string, MultiDictionary<string, SourceNamedTypeSymbol>> grouping)
+        {
+            _groupingMap = grouping;
+        }
+
+        public ImmutableArray<Cci.INestedTypeDefinition> GetGroupingTypes()
+        {
+            if (_lazyGroupingTypes.IsDefault)
+            {
+                var builder = ArrayBuilder<ExtensionGroupingType>.GetInstance(_groupingMap.Count);
+
+                foreach (KeyValuePair<string, MultiDictionary<string, SourceNamedTypeSymbol>> pair in _groupingMap)
+                {
+                    builder.Add(new ExtensionGroupingType(pair.Key, pair.Value));
+                }
+
+                builder.Sort();
+
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyGroupingTypes, builder.ToImmutableAndFree());
+            }
+
+            return ImmutableArray<Cci.INestedTypeDefinition>.CastUp(_lazyGroupingTypes);
+        }
+
+        public Cci.ITypeDefinition GetCorrespondingMarkerType(SourceNamedTypeSymbol type)
+        {
+            GetGroupingTypes();
+
+            // PROTOTYPE: Optimize lookup with side dictionaries?
+            var groupingName = type.GetExtensionGroupingMetadataName();
+            var markerName = type.GetExtensionMarkerMetadataName();
+
+            foreach (var groupingType in _lazyGroupingTypes)
+            {
+                if (groupingType.Name != groupingName)
+                {
+                    continue;
+                }
+
+                foreach (var markerType in groupingType.ExtensionMarkerTypes)
+                {
+                    if (markerType.Name == markerName)
+                    {
+                        return markerType;
+                    }
+                }
+
+                break;
+            }
+
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        public Cci.ITypeDefinition GetCorrespondingGroupingType(SourceNamedTypeSymbol type)
+        {
+            GetGroupingTypes();
+
+            // PROTOTYPE: Optimize lookup with a side dictionary?
+            var groupingName = type.GetExtensionGroupingMetadataName();
+
+            foreach (var groupingType in _lazyGroupingTypes)
+            {
+                if (groupingType.Name == groupingName)
+                {
+                    return groupingType;
+                }
+            }
+
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        private abstract class ExtensionGroupingOrMarkerType : Cci.INestedTypeDefinition
+        {
+            ushort ITypeDefinition.Alignment => 0;
+
+            IEnumerable<IGenericTypeParameter> ITypeDefinition.GenericParameters => GenericParameters;
+
+            protected abstract IEnumerable<IGenericTypeParameter> GenericParameters { get; }
+
+            ushort ITypeDefinition.GenericParameterCount => GenericParameterCount;
+
+            ushort INamedTypeReference.GenericParameterCount => GenericParameterCount;
+
+            protected abstract ushort GenericParameterCount { get; }
+
+            bool ITypeDefinition.HasDeclarativeSecurity => false;
+
+            bool ITypeDefinition.IsAbstract => IsAbstract;
+
+            protected abstract bool IsAbstract { get; }
+
+            bool ITypeDefinition.IsBeforeFieldInit => false;
+
+            bool ITypeDefinition.IsComObject => false;
+
+            bool ITypeDefinition.IsGeneric => GenericParameterCount != 0;
+
+            bool ITypeDefinition.IsInterface => false;
+
+            bool ITypeDefinition.IsDelegate => false;
+
+            bool ITypeDefinition.IsRuntimeSpecial => false;
+
+            bool ITypeDefinition.IsSerializable => false;
+
+            bool ITypeDefinition.IsSpecialName => true;
+
+            bool ITypeDefinition.IsWindowsRuntimeImport => false;
+
+            bool ITypeDefinition.IsSealed => IsSealed;
+
+            protected abstract bool IsSealed { get; }
+
+            LayoutKind ITypeDefinition.Layout => LayoutKind.Auto;
+
+            IEnumerable<SecurityAttribute> ITypeDefinition.SecurityAttributes => SpecializedCollections.EmptyEnumerable<SecurityAttribute>();
+
+            uint ITypeDefinition.SizeOf => 0;
+
+            CharSet ITypeDefinition.StringFormat => CharSet.Ansi;
+
+            ITypeDefinition ITypeDefinitionMember.ContainingTypeDefinition => ContainingTypeDefinition;
+
+            protected abstract ITypeDefinition ContainingTypeDefinition { get; }
+
+            TypeMemberVisibility ITypeDefinitionMember.Visibility => Visibility;
+
+            protected abstract TypeMemberVisibility Visibility { get; }
+
+            bool IDefinition.IsEncDeleted => false;
+
+            bool INamedTypeReference.MangleName => false;
+
+            string? INamedTypeReference.AssociatedFileIdentifier => null;
+
+            bool ITypeReference.IsEnum => false;
+
+            bool ITypeReference.IsValueType => false;
+
+            Cci.PrimitiveTypeCode ITypeReference.TypeCode => Cci.PrimitiveTypeCode.NotPrimitive;
+
+            TypeDefinitionHandle ITypeReference.TypeDef => default;
+
+            IGenericMethodParameterReference? ITypeReference.AsGenericMethodParameterReference => null;
+
+            IGenericTypeInstanceReference? ITypeReference.AsGenericTypeInstanceReference => null;
+
+            IGenericTypeParameterReference? ITypeReference.AsGenericTypeParameterReference => null;
+
+            INamespaceTypeReference? ITypeReference.AsNamespaceTypeReference => null;
+
+            INestedTypeReference? ITypeReference.AsNestedTypeReference => this;
+
+            ISpecializedNestedTypeReference? ITypeReference.AsSpecializedNestedTypeReference => null;
+
+            string? INamedEntity.Name => Name;
+
+            public abstract string Name { get; }
+
+            IDefinition? IReference.AsDefinition(EmitContext context)
+            {
+                return this;
+            }
+
+            INamespaceTypeDefinition? ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
+            {
+                return null;
+            }
+
+            INestedTypeDefinition? ITypeReference.AsNestedTypeDefinition(EmitContext context)
+            {
+                return this;
+            }
+
+            bool Cci.INestedTypeReference.InheritsEnclosingTypeTypeParameters => false;
+
+            ITypeDefinition? ITypeReference.AsTypeDefinition(EmitContext context)
+            {
+                return this;
+            }
+
+            void IReference.Dispatch(MetadataVisitor visitor)
+            {
+                visitor.Visit((INamedTypeDefinition)this);
+            }
+
+            IEnumerable<ICustomAttribute> IReference.GetAttributes(EmitContext context)
+            {
+                return GetAttributes(context);
+            }
+
+            protected abstract IEnumerable<ICustomAttribute> GetAttributes(EmitContext context);
+
+            ITypeReference? ITypeDefinition.GetBaseClass(EmitContext context)
+            {
+                return ObjectType;
+            }
+
+            protected abstract ITypeReference? ObjectType { get; }
+
+            ITypeReference ITypeMemberReference.GetContainingType(EmitContext context)
+            {
+                return ContainingTypeDefinition;
+            }
+
+            IEnumerable<IEventDefinition> ITypeDefinition.GetEvents(EmitContext context)
+            {
+                return SpecializedCollections.EmptyEnumerable<IEventDefinition>();
+            }
+
+            IEnumerable<Cci.MethodImplementation> ITypeDefinition.GetExplicitImplementationOverrides(EmitContext context)
+            {
+                return SpecializedCollections.EmptyEnumerable<Cci.MethodImplementation>();
+            }
+
+            IEnumerable<IFieldDefinition> ITypeDefinition.GetFields(EmitContext context)
+            {
+                return SpecializedCollections.EmptyEnumerable<IFieldDefinition>();
+            }
+
+            ISymbolInternal? IReference.GetInternalSymbol()
+            {
+                return null;
+            }
+
+            IEnumerable<IMethodDefinition> ITypeDefinition.GetMethods(EmitContext context)
+            {
+                return GetMethods(context);
+            }
+
+            protected abstract IEnumerable<IMethodDefinition> GetMethods(EmitContext context);
+
+            IEnumerable<INestedTypeDefinition> ITypeDefinition.GetNestedTypes(EmitContext context)
+            {
+                return NestedTypes;
+            }
+
+            protected abstract IEnumerable<INestedTypeDefinition> NestedTypes { get; }
+
+            IEnumerable<IPropertyDefinition> ITypeDefinition.GetProperties(EmitContext context)
+            {
+                return GetProperties(context);
+            }
+
+            protected abstract IEnumerable<IPropertyDefinition> GetProperties(EmitContext context);
+
+            ITypeDefinition? ITypeReference.GetResolvedType(EmitContext context)
+            {
+                return this;
+            }
+
+            IEnumerable<TypeReferenceWithAttributes> ITypeDefinition.Interfaces(EmitContext context)
+            {
+                return SpecializedCollections.EmptyEnumerable<TypeReferenceWithAttributes>();
+            }
+
+            public sealed override bool Equals(object? obj)
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            public sealed override int GetHashCode()
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        private sealed class ExtensionGroupingType : ExtensionGroupingOrMarkerType, IComparable<ExtensionGroupingType>
+        {
+            private readonly string _name;
+            public readonly ImmutableArray<ExtensionMarkerType> ExtensionMarkerTypes;
+            private readonly ImmutableArray<ExtensionGroupingTypeParameter> _typeParameters;
+
+            public ExtensionGroupingType(string name, MultiDictionary<string, SourceNamedTypeSymbol> extensionMarkerTypes)
+            {
+                _name = name;
+
+                var builder = ArrayBuilder<ExtensionMarkerType>.GetInstance(extensionMarkerTypes.Count);
+
+                foreach (var pair in extensionMarkerTypes)
+                {
+                    builder.Add(new ExtensionMarkerType(this, pair.Key, pair.Value));
+                }
+
+                builder.Sort();
+                ExtensionMarkerTypes = builder.ToImmutableAndFree();
+
+                _typeParameters = ExtensionMarkerTypes[0].UnderlyingExtensions[0].Arity != 0 ?
+                    ((INestedTypeDefinition)ExtensionMarkerTypes[0].UnderlyingExtensions[0].GetCciAdapter()).GenericParameters.SelectAsArray(static (p, @this) => new ExtensionGroupingTypeParameter(@this, p), this) :
+                    [];
+            }
+
+            int IComparable<ExtensionGroupingType>.CompareTo(ExtensionGroupingType? other)
+            {
+                Debug.Assert(other is { });
+                return ExtensionMarkerTypes[0].CompareTo(other.ExtensionMarkerTypes[0]);
+            }
+
+            protected override IEnumerable<IGenericTypeParameter> GenericParameters => _typeParameters;
+
+            protected override ushort GenericParameterCount => (ushort)ExtensionMarkerTypes[0].UnderlyingExtensions[0].Arity;
+
+            protected override bool IsAbstract => false;
+
+            protected override bool IsSealed => true;
+
+            protected override ITypeDefinition ContainingTypeDefinition => ExtensionMarkerTypes[0].UnderlyingExtensions[0].ContainingType!.GetCciAdapter();
+
+            protected override TypeMemberVisibility Visibility => TypeMemberVisibility.Public;
+
+            public override string Name => _name;
+
+            protected override ITypeReference? ObjectType => ExtensionMarkerTypes[0].UnderlyingExtensions[0].ContainingAssembly.GetSpecialType(SpecialType.System_Object).GetCciAdapter();
+
+            protected override IEnumerable<IMethodDefinition> GetMethods(EmitContext context)
+            {
+                foreach (var marker in ExtensionMarkerTypes)
+                {
+                    foreach (var type in marker.UnderlyingExtensions)
+                    {
+                        foreach (var method in type.GetMethodsToEmit())
+                        {
+                            Debug.Assert((object)method != null);
+
+                            // PROTOTYPE: SynthesizedExtensionMarker should not be added as a member of the extension type.
+                            //            Temporarily filtering it out here.
+                            if (method is not SynthesizedExtensionMarker && method.GetCciAdapter().ShouldInclude(context))
+                            {
+                                yield return method.GetCciAdapter();
+                            }
+                        }
+                    }
+                }
+            }
+
+            protected override IEnumerable<INestedTypeDefinition> NestedTypes => ExtensionMarkerTypes;
+
+            protected override IEnumerable<IPropertyDefinition> GetProperties(EmitContext context)
+            {
+                foreach (var marker in ExtensionMarkerTypes)
+                {
+                    foreach (var type in marker.UnderlyingExtensions)
+                    {
+                        foreach (PropertySymbol property in type.GetPropertiesToEmit())
+                        {
+                            Debug.Assert((object)property != null);
+                            IPropertyDefinition definition = property.GetCciAdapter();
+                            // If any accessor should be included, then the property should be included too
+                            if (definition.ShouldInclude(context) || !definition.GetAccessors(context).IsEmpty())
+                            {
+                                yield return definition;
+                            }
+                        }
+                    }
+                }
+            }
+
+            protected override IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
+            {
+                SynthesizedAttributeData? extensionAttribute = ExtensionMarkerTypes[0].UnderlyingExtensions[0].DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
+
+                if (extensionAttribute is { })
+                {
+                    yield return extensionAttribute;
+                }
+            }
+        }
+
+        private class ExtensionGroupingTypeParameter : InheritedTypeParameter
+        {
+            internal ExtensionGroupingTypeParameter(ExtensionGroupingType inheritingType, IGenericTypeParameter parentParameter) :
+                base(parentParameter.Index, inheritingType, parentParameter)
+            {
+            }
+
+            public override string? Name => "$T" + Index;
+
+            public override IEnumerable<TypeReferenceWithAttributes> GetConstraints(EmitContext context)
+            {
+                // Drop all attributes from constraints, they are about C# specific semantics.
+                foreach (var constrint in base.GetConstraints(context))
+                {
+                    yield return new TypeReferenceWithAttributes(constrint.TypeRef);
+                }
+            }
+
+            public override IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
+            {
+                // Preserve only the synthesized IsUnmanagedAttribute.
+                if (MustBeValueType)
+                {
+                    // PROTOTYPE: Make sure we have coverage for the WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor case
+                    var unmanagedCtor = ((PEModuleBuilder)context.Module).TryGetSynthesizedIsUnmanagedAttribute()?.Constructors[0] ??
+                        ((ExtensionGroupingType)DefiningType).ExtensionMarkerTypes[0].UnderlyingExtensions[0].DeclaringCompilation.
+                            GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor);
+
+                    if (unmanagedCtor is { })
+                    {
+                        foreach (var attribute in base.GetAttributes(context))
+                        {
+                            if (attribute is SynthesizedAttributeData synthesized &&
+                                synthesized.AttributeConstructor == unmanagedCtor)
+                            {
+                                yield return synthesized;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private sealed class ExtensionMarkerType : ExtensionGroupingOrMarkerType, IComparable<ExtensionMarkerType>
+        {
+            public readonly ExtensionGroupingType GroupingType;
+            private readonly string _name;
+            public readonly ImmutableArray<SourceNamedTypeSymbol> UnderlyingExtensions;
+            private readonly ImmutableArray<InheritedTypeParameter> _typeParameters;
+
+            public ExtensionMarkerType(ExtensionGroupingType groupingType, string name, MultiDictionary<string, SourceNamedTypeSymbol>.ValueSet extensions)
+            {
+                GroupingType = groupingType;
+                _name = name;
+
+                var builder = ArrayBuilder<SourceNamedTypeSymbol>.GetInstance(extensions.Count);
+                builder.AddRange(extensions);
+                builder.Sort(LexicalOrderSymbolComparer.Instance);
+                UnderlyingExtensions = builder.ToImmutableAndFree();
+
+                _typeParameters = UnderlyingExtensions[0].Arity != 0 ?
+                    ((INestedTypeDefinition)UnderlyingExtensions[0].GetCciAdapter()).GenericParameters.SelectAsArray(static (p, @this) => new InheritedTypeParameter(p.Index, @this, p), this) :
+                    [];
+            }
+
+            public int CompareTo(ExtensionMarkerType? other)
+            {
+                Debug.Assert(other is { });
+                return LexicalOrderSymbolComparer.Instance.Compare(UnderlyingExtensions[0], other.UnderlyingExtensions[0]);
+            }
+
+            protected override IEnumerable<IGenericTypeParameter> GenericParameters => _typeParameters;
+
+            protected override ushort GenericParameterCount => (ushort)UnderlyingExtensions[0].Arity;
+
+            protected override bool IsAbstract => true;
+
+            protected override bool IsSealed => true;
+
+            protected override ITypeDefinition ContainingTypeDefinition => GroupingType;
+
+            protected override TypeMemberVisibility Visibility => TypeMemberVisibility.Private;
+
+            public override string Name => _name;
+
+            protected override ITypeReference? ObjectType => UnderlyingExtensions[0].ContainingAssembly.GetSpecialType(SpecialType.System_Object).GetCciAdapter();
+
+            protected override IEnumerable<IMethodDefinition> GetMethods(EmitContext context)
+            {
+                var marker = UnderlyingExtensions[0].TryGetOrCreateExtensionMarker();
+
+                if (marker is { })
+                {
+                    yield return marker.GetCciAdapter();
+                }
+            }
+
+            protected override IEnumerable<INestedTypeDefinition> NestedTypes => SpecializedCollections.EmptyEnumerable<INestedTypeDefinition>();
+
+            protected override IEnumerable<IPropertyDefinition> GetProperties(EmitContext context) => SpecializedCollections.EmptyEnumerable<IPropertyDefinition>();
+
+            protected override IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
+            {
+                return SpecializedCollections.EmptyEnumerable<ICustomAttribute>();
+            }
+        }
+    }
+}

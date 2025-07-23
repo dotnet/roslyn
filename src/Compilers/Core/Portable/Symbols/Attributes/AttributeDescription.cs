@@ -491,5 +491,6 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription CollectionBuilderAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CollectionBuilderAttribute", s_signaturesOfCollectionBuilderAttribute);
         internal static readonly AttributeDescription OverloadResolutionPriorityAttribute = new AttributeDescription("System.Runtime.CompilerServices", "OverloadResolutionPriorityAttribute", s_signatures_HasThis_Void_Int32_Only);
         internal static readonly AttributeDescription CompilerLoweringPreserveAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CompilerLoweringPreserveAttribute", s_signatures_HasThis_Void_Only);
+        internal static readonly AttributeDescription ExtensionMarkerNameAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ExtensionMarkerNameAttribute", s_signatures_HasThis_Void_String_Only);
     }
 }

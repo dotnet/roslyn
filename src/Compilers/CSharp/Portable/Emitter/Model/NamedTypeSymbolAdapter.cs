@@ -157,6 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        bool Cci.INestedTypeReference.InheritsEnclosingTypeTypeParameters => true;
+
         Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
@@ -629,7 +631,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert((object)method != null);
 
-                if ((alwaysIncludeConstructors && method.MethodKind == MethodKind.Constructor) || method is SynthesizedExtensionMarker || method.GetCciAdapter().ShouldInclude(context))
+                // PROTOTYPE: SynthesizedExtensionMarker should not be added as a member of the extension type.
+                //            Temporarily filtering it out here.
+                if ((alwaysIncludeConstructors && method.MethodKind == MethodKind.Constructor) || (method is not SynthesizedExtensionMarker && method.GetCciAdapter().ShouldInclude(context)))
                 {
                     yield return method.GetCciAdapter();
                 }
@@ -655,7 +659,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (NamedTypeSymbol type in AdaptedNamedTypeSymbol.GetTypeMembers()) // Ordered.
             {
+                if (type.IsExtension)
+                {
+                    continue;
+                }
+
                 yield return type.GetCciAdapter();
+            }
+
+            if (AdaptedNamedTypeSymbol is SourceMemberContainerTypeSymbol { MergedDeclaration.ContainsExtensionDeclarations: true } container)
+            {
+                foreach (var groupingType in container.GetExtensionGroupingInfo().GetGroupingTypes())
+                {
+                    yield return groupingType;
+                }
             }
 
             IEnumerable<Cci.INestedTypeDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedTypes(AdaptedNamedTypeSymbol);
@@ -782,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (AdaptedNamedTypeSymbol.IsExtension)
                 {
-                    return AdaptedNamedTypeSymbol.ExtensionName;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 string unsuffixedName = AdaptedNamedTypeSymbol.Name;

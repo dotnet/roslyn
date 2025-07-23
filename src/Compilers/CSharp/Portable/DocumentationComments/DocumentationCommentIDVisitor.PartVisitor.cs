@@ -181,6 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Append('.');
                 }
 
+                // PROTOTYPE: Finalize the doc ID story. When we refer to a member, we probably need to use grouping type name,
+                //            but when we refer to an extension block, we probably need to "dot" through both names. 
                 builder.Append(symbol.IsExtension ? symbol.ExtensionName : symbol.Name);
 
                 if (symbol.Arity != 0)
@@ -189,8 +191,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // (and return type, for conversions) as constructed with its own type parameters.
                     if (!_inParameterOrReturnType && TypeSymbol.Equals(symbol, symbol.ConstructedFrom, TypeCompareKind.AllIgnoreOptions))
                     {
-                        builder.Append('`');
-                        builder.Append(symbol.Arity);
+                        if (!symbol.IsExtension)
+                        {
+                            builder.Append('`');
+                            builder.Append(symbol.Arity);
+                        }
                     }
                     else
                     {

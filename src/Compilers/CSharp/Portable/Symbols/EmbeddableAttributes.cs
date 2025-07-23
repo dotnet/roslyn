@@ -20,5 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         RefSafetyRulesAttribute = 0x100,
         RequiresLocationAttribute = 0x200,
         ParamCollectionAttribute = 0x400,
+        ExtensionMarkerNameAttribute = 0x800,
     }
 }

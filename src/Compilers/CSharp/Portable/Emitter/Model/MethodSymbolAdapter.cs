@@ -82,6 +82,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             NamedTypeSymbol containingType = AdaptedMethodSymbol.ContainingType;
+
+            if (AdaptedMethodSymbol is SynthesizedExtensionMarker)
+            {
+                return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType((SourceNamedTypeSymbol)containingType);
+            }
+            else if (containingType.IsExtension)
+            {
+                return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);
+            }
+
             var moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
             return moduleBeingBuilt.Translate(containingType,
@@ -298,6 +308,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (AdaptedMethodSymbol.OriginalDefinition is SynthesizedGlobalMethodSymbol synthesizedGlobalMethod)
                 {
                     return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;
+                }
+
+                // PROTOTYPE: Share logic with Cci.ITypeMemberReference.GetContainingType implementation?
+                if (AdaptedMethodSymbol is SynthesizedExtensionMarker)
+                {
+                    var containingType = AdaptedMethodSymbol.ContainingType;
+                    return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType((SourceNamedTypeSymbol)containingType);
+                }
+                else if (AdaptedMethodSymbol.GetIsNewExtensionMember())
+                {
+                    var containingType = AdaptedMethodSymbol.ContainingType;
+                    return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);
                 }
 
                 return AdaptedMethodSymbol.ContainingType.GetCciAdapter();

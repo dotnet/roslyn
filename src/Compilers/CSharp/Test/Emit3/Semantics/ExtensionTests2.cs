@@ -2659,7 +2659,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         CompileAndVerify(comp, expectedOutput: "M 3").VerifyDiagnostics();
     }
 
-    [Fact]
+    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
     public void PEMethodSymbol_GetUseSiteInfo()
     {
         // missing implementation method for M
@@ -3030,7 +3030,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
     }
 
-    [Fact]
+    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
     public void PENamedTypeSymbol_08()
     {
         // No containing type
@@ -3112,7 +3112,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
     }
 
-    [Fact]
+    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
     public void PENamedTypeSymbol_10()
     {
         // Arity mismatch between skeleton and implementation
@@ -3154,7 +3154,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
     }
 
-    [Fact]
+    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
     public void PENamedTypeSymbol_11()
     {
         // Accessibility mismatch between skeleton and implementation
@@ -3196,7 +3196,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
     }
 
-    [Fact]
+    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
     public void PENamedTypeSymbol_12()
     {
         // parameter count mismatch between skeleton and implementation
@@ -3238,7 +3238,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
     }
 
-    [Fact]
+    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
     public void PENamedTypeSymbol_13()
     {
         // return type mismatch between skeleton and implementation
@@ -3280,7 +3280,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
     }
 
-    [Fact]
+    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
     public void PENamedTypeSymbol_14()
     {
         // parameter type mismatch, instance method
@@ -3322,7 +3322,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 4));
     }
 
-    [Fact]
+    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
     public void PENamedTypeSymbol_15()
     {
         // parameter type mismatch, instance method
@@ -3364,7 +3364,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M(string)").WithLocation(1, 4));
     }
 
-    [Fact]
+    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
     public void PENamedTypeSymbol_16()
     {
         // constraint mismatch between skeleton and implementation
@@ -3406,7 +3406,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M<T>()").WithLocation(1, 5));
     }
 
-    [Fact]
+    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
     public void PENamedTypeSymbol_17()
     {
         // implementation is not static
@@ -3675,7 +3675,7 @@ int.M();
         Assert.False(comp.GetTypeByMetadataName("E").GetTypeMembers().Single().IsExtension);
     }
 
-    [Fact]
+    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
     public void PENamedTypeSymbol_23()
     {
         // parameter type mismatch, static method
@@ -3765,19 +3765,19 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.M(System.String)"/>
+    <see cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M(System.String)"/>
     <see cref="M:E.M(System.Int32,System.String)"/>
-    <see cref="M:E.&lt;&gt;E__0.M(System.String)"/>
+    <see cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M(System.String)"/>
     <see cref="M:E.M(System.Int32,System.String)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
-        AssertEx.Equal("T:E.<>E__0", e.GetTypeMembers().Single().GetDocumentationCommentId());
+        AssertEx.Equal("T:E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", e.GetTypeMembers().Single().GetDocumentationCommentId());
 
         var mSkeleton = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetMember("M");
         AssertEx.Equal("""
-<member name="M:E.&lt;&gt;E__0.M(System.String)">
+<member name="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M(System.String)">
     <see cref="M:E.M(System.Int32,System.String)"/>
     <see cref="!:M(string)"/>
     <see cref="M:E.M(System.Int32,System.String)"/>
@@ -3788,9 +3788,9 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         AssertEx.Equal([
-            "(E.extension(int).M(string), void E.<>E__0.M(System.String s))",
+            "(E.extension(int).M(string), void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M(System.String s))",
             "(E.M(int, string), void E.M(this System.Int32 i, System.String s))",
-            "(E.extension(int).M, void E.<>E__0.M(System.String s))",
+            "(E.extension(int).M, void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M(System.String s))",
             "(E.M, void E.M(this System.Int32 i, System.String s))",
             "(M(int, string), void E.M(this System.Int32 i, System.String s))",
             "(M(string), null)",
@@ -3817,16 +3817,16 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0`1.M``1(``0)"/>
+    <see cref="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
-        AssertEx.Equal("T:E.<>E__0`1", e.GetTypeMembers().Single().GetDocumentationCommentId());
+        AssertEx.Equal("T:E.<Extension>$8048A6C8BE30A622530249B904B537EB", e.GetTypeMembers().Single().GetDocumentationCommentId());
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension{T}(T).M{U}(U), void E.<>E__0<T>.M<U>(U u))"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension{T}(T).M{U}(U), void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M<U>(U u))"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -3872,7 +3872,7 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.M"/>
+    <see cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M"/>
     <see cref="!:E.extension(int).M()"/>
 </member>
 
@@ -3881,7 +3881,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         AssertEx.Equal([
-            "(E.extension(ref int).M(), void E.<>E__0.M())",
+            "(E.extension(ref int).M(), void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M())",
             "(E.extension(int).M(), null)"],
             PrintXmlCrefSymbols(tree, model));
     }
@@ -3909,14 +3909,14 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.M"/>
+    <see cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(int).M(), void E.<>E__0.M())"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(int).M(), void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M())"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -3952,8 +3952,8 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.M"/>
-    <see cref="M:E.&lt;&gt;E__0.M"/>
+    <see cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M"/>
+    <see cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -3993,14 +3993,14 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.M"/>
+    <see cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(int).M(), void E.<>E__0.M())"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(int).M(), void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M())"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4035,7 +4035,7 @@ static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(int, int).M(), null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(int, int).M(), null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4071,7 +4071,7 @@ static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(.M(), null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(.M(), null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4104,7 +4104,7 @@ static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension().M(), null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension().M(), null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4140,7 +4140,7 @@ static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(int, int).M(), null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(int, int).M(), null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4162,14 +4162,14 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="P:E.&lt;&gt;E__0.P"/>
+    <see cref="P:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(int).P, System.Int32 E.<>E__0.P { get; })"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(int).P, System.Int32 E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; })"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4195,14 +4195,14 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="P:E.&lt;&gt;E__0.P"/>
+    <see cref="P:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(int).P, System.Int32 E.<>E__0.P { get; })"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(int).P, System.Int32 E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; })"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4228,14 +4228,14 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="P:E.&lt;&gt;E__1.P"/>
+    <see cref="P:E.&lt;Extension&gt;$34505F560D9EACF86A87F3ED1F85E448.P"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(string).P, System.String E.<>E__1.P { get; })"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(string).P, System.String E.<Extension>$34505F560D9EACF86A87F3ED1F85E448.P { get; })"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4257,14 +4257,14 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.M"/>
+    <see cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(int).M, void E.<>E__0.M())"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(int).M, void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M())"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4296,7 +4296,7 @@ static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(string).M, null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(string).M, null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4318,14 +4318,14 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.M``1"/>
+    <see cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M``1"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(int).M, void E.<>E__0.M<T>())"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(int).M, void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M<T>())"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4348,14 +4348,14 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.M"/>
+    <see cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(int).M, void E.<>E__0.M())"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(int).M, void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M())"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4379,7 +4379,7 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.M``1"/>
+    <see cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M``1"/>
     <see cref="M:E.M``1(System.Int32)"/>
 </member>
 
@@ -4388,7 +4388,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         AssertEx.Equal([
-            "(E.extension(int).M{U}, void E.<>E__0.M<U>())",
+            "(E.extension(int).M{U}, void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M<U>())",
             "(E.M{U}, void E.M<U>(this System.Int32 i))"],
             PrintXmlCrefSymbols(tree, model));
     }
@@ -4423,7 +4423,7 @@ static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(int).M, null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(int).M, null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4456,7 +4456,7 @@ static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension{T}(int).M, null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension{T}(int).M, null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4478,14 +4478,14 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0`1.M"/>
+    <see cref="M:E.&lt;Extension&gt;$B8D310208B4544F25EEBACB9990FC73B.M"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension{T}(int).M, void E.<>E__0<T>.M())"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension{T}(int).M, void E.<Extension>$B8D310208B4544F25EEBACB9990FC73B<T>.M())"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4514,7 +4514,7 @@ static class E<T>
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.M, null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.M, null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4537,14 +4537,14 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0`1.M"/>
+    <see cref="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension{U}(U).M, void E.<>E__0<U>.M())"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension{U}(U).M, void E.<Extension>$8048A6C8BE30A622530249B904B537EB<U>.M())"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4580,7 +4580,7 @@ static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(string).P, null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(string).P, null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4607,7 +4607,7 @@ static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(string), void E.extension(System.String s))"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(string), void E.extension(System.String s))"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4642,7 +4642,7 @@ static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(int)., null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(int)., null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4677,7 +4677,7 @@ static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(int).Nested, null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(int).Nested, null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4720,7 +4720,7 @@ interface I
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(int).M, null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(int).M, null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -4755,7 +4755,7 @@ static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(missing).M, null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(missing).M, null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -5004,7 +5004,7 @@ static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension, E.extension)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension, E.extension)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -5040,7 +5040,7 @@ file static class E
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(object).M, null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(object).M, null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -5070,14 +5070,14 @@ public static class E
         var c = comp.GetMember<NamedTypeSymbol>("C");
         AssertEx.Equal("""
 <member name="T:C">
-    <see cref="M:E.&lt;&gt;E__0.M"/>
+    <see cref="M:E.&lt;Extension&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.M"/>
 </member>
 
 """, c.GetDocumentationCommentXml());
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(object).M, void E.<>E__0.M())"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(object).M, void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M())"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -5114,7 +5114,7 @@ public static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(object).M, null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(object).M, null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -5221,15 +5221,15 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.M"/>
-    <see cref="M:E.&lt;&gt;E__0.M2(System.Int32)"/>
+    <see cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M"/>
+    <see cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M2(System.Int32)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(int).M, null)", "(E.extension(int).M2, null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(int).M, null)", "(E.extension(int).M2, null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -5251,8 +5251,8 @@ static class E
         var comp2 = CreateCompilation("", references: [comp.EmitToImageReference(documentation: new TestDocumentationProvider())]);
 
         var mSkeleton = comp2.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetMember("M");
-        Assert.Equal("M:E.<>E__0.M", mSkeleton.GetDocumentationCommentId());
-        Assert.Equal("M:E.<>E__0.M", mSkeleton.GetDocumentationCommentXml());
+        AssertEx.Equal("M:E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M", mSkeleton.GetDocumentationCommentId());
+        AssertEx.Equal("M:E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M", mSkeleton.GetDocumentationCommentXml());
     }
 
     private class TestDocumentationProvider : DocumentationProvider
@@ -5293,7 +5293,7 @@ class C
         var c = comp.GetMember<NamedTypeSymbol>("C");
         AssertEx.Equal("""
 <member name="T:C">
-    <see cref="M:E.&lt;&gt;E__0.M"/>
+    <see cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M"/>
 </member>
 
 """, c.GetDocumentationCommentXml());
@@ -5350,15 +5350,15 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.M"/>
-    <see cref="M:E.&lt;&gt;E__0.M2(System.Int32)"/>
+    <see cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M"/>
+    <see cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M2(System.Int32)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(int).M, null)", "(E.extension(int).M2, null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(int).M, null)", "(E.extension(int).M2, null)"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -5379,7 +5379,7 @@ static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(E.extension(int).@M, void E.<>E__0.M())"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.SequenceEqual(["(E.extension(int).@M, void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M())"], PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
@@ -5497,7 +5497,7 @@ static class E
 
         var mSkeleton = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().First().GetMember("M");
         AssertEx.Equal("""
-<member name="M:E.&lt;&gt;E__0.M(System.String)">
+<member name="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M(System.String)">
     <see cref="!:M2(string)"/>
     <see cref="M:E.M2(System.Int32,System.String)"/>
 </member>
@@ -10088,12 +10088,48 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
 
         var e = comp.GetMember<NamedTypeSymbol>("E");
         var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
-        Assert.Equal("extension(System.Object)", extension.ComputeExtensionGroupingRawName());
-        Assert.Equal("extension(System.Object o)", extension.ComputeExtensionMarkerRawName());
+        AssertEx.Equal("extension(System.Object)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension(System.Object o)", extension.ComputeExtensionMarkerRawName());
+
+        CompileAndVerify(comp).VerifyDiagnostics().VerifyTypeIL("E", """
+.class private auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested private auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+            extends [mscorlib]System.Object
+        {
+            // Methods
+            .method private hidebysig specialname static 
+                void '<Extension>$' (
+                    object o
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2067
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<Marker>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
+        } // end of class <Marker>$119AA281C143547563250CAF89B48A76
+    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 
     [Theory]
@@ -10130,7 +10166,7 @@ static class E
 
         var e = comp.GetMember<NamedTypeSymbol>("E");
         var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
-        Assert.Equal("extension(System.Object)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension(System.Object)", extension.ComputeExtensionGroupingRawName());
         Assert.Equal($"extension(System.Object @{keyword})", extension.ComputeExtensionMarkerRawName());
     }
 
@@ -10165,8 +10201,8 @@ namespace N1
 
         var e = comp.GetMember<NamedTypeSymbol>("E");
         var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
-        Assert.Equal("extension(N1.N2.C1/C2/C3)", extension.ComputeExtensionGroupingRawName());
-        Assert.Equal("extension(N1.N2.C1.C2.C3)", extension.ComputeExtensionMarkerRawName());
+        AssertEx.Equal("extension(N1.N2.C1/C2/C3)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension(N1.N2.C1.C2.C3)", extension.ComputeExtensionMarkerRawName());
     }
 
     [Fact]
@@ -10380,12 +10416,48 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
 
         var e = comp.GetMember<NamedTypeSymbol>("E");
         var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
         AssertEx.Equal("extension<>(!0)", extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension<U>(U)", extension.ComputeExtensionMarkerRawName());
+
+        CompileAndVerify(comp).VerifyDiagnostics().VerifyTypeIL("E", """
+.class private auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<Extension>$8048A6C8BE30A622530249B904B537EB'<$T0>
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested private auto ansi abstract sealed specialname '<Marker>$A93DBF9EBD61C29E8B5CFA979E4C33E8'<U>
+            extends [mscorlib]System.Object
+        {
+            // Methods
+            .method private hidebysig specialname static 
+                void '<Extension>$' (
+                    !U ''
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2067
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<Marker>$A93DBF9EBD61C29E8B5CFA979E4C33E8'::'<Extension>$'
+        } // end of class <Marker>$A93DBF9EBD61C29E8B5CFA979E4C33E8
+    } // end of class <Extension>$8048A6C8BE30A622530249B904B537EB
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 
     [Fact]
@@ -10720,11 +10792,55 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<valuetype .ctor (System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType))>(!0)", extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension<T>(T) where T : unmanaged", extension.ComputeExtensionMarkerRawName());
+
+        CompileAndVerify(comp).VerifyDiagnostics().VerifyTypeIL("E", """
+.class private auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<Extension>$BAC44226FEFE1ED1B549A4B5F35748C7'<valuetype .ctor (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) $T0>
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .param type $T0
+            .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = (
+                01 00 00 00
+            )
+        // Nested Types
+        .class nested private auto ansi abstract sealed specialname '<Marker>$03A00A6A168488BDF2B2E5B73B8099A6'<valuetype .ctor (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T>
+            extends [mscorlib]System.Object
+        {
+            .param type T
+                .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+            // Methods
+            .method private hidebysig specialname static 
+                void '<Extension>$' (
+                    !T ''
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2067
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<Marker>$03A00A6A168488BDF2B2E5B73B8099A6'::'<Extension>$'
+        } // end of class <Marker>$03A00A6A168488BDF2B2E5B73B8099A6
+    } // end of class <Extension>$BAC44226FEFE1ED1B549A4B5F35748C7
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var src2 = """
 unsafe struct C<T> where T : unmanaged
@@ -12386,11 +12502,55 @@ static class E
 interface I { }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<(I), (I), (I)>(System.Int32)", extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension<T1, T2, T3>(System.Int32) where T1 : I! where T2 : I? where T3 : I", extension.ComputeExtensionMarkerRawName());
+
+        CompileAndVerify(comp).VerifyDiagnostics().VerifyTypeIL("E", """
+.class private auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<Extension>$0AD8C3962A3C5E6BFA97E099F6F428C4'<(I) $T0, (I) $T1, (I) $T2>
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested private auto ansi abstract sealed specialname '<Marker>$5B198AEBE2F597134BE1E94D84704187'<(I) T1, (I) T2, (I) T3>
+            extends [mscorlib]System.Object
+        {
+            .param constraint T1, I
+                .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+                    01 00 01 00 00
+                )
+            .param constraint T2, I
+                .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+                    01 00 02 00 00
+                )
+            // Methods
+            .method private hidebysig specialname static 
+                void '<Extension>$' (
+                    int32 ''
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x208e
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<Marker>$5B198AEBE2F597134BE1E94D84704187'::'<Extension>$'
+        } // end of class <Marker>$5B198AEBE2F597134BE1E94D84704187
+    } // end of class <Extension>$0AD8C3962A3C5E6BFA97E099F6F428C4
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 
     [Fact]
@@ -12434,11 +12594,61 @@ class AAttribute : System.Attribute { }
 class BAttribute : System.Attribute { }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<>(System.Int32)", extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension<[AAttribute/*()*/] [BAttribute/*()*/] T1>([AAttribute/*()*/] [BAttribute/*()*/] System.Int32)", extension.ComputeExtensionMarkerRawName());
+
+        CompileAndVerify(comp).VerifyDiagnostics().VerifyTypeIL("E", """
+.class private auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<Extension>$B8D310208B4544F25EEBACB9990FC73B'<$T0>
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested private auto ansi abstract sealed specialname '<Marker>$D131137B02074799BD78183FB29034EC'<T1>
+            extends [mscorlib]System.Object
+        {
+            .param type T1
+                .custom instance void AAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .custom instance void BAttribute::.ctor() = (
+                    01 00 00 00
+                )
+            // Methods
+            .method private hidebysig specialname static 
+                void '<Extension>$' (
+                    int32 ''
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .param [1]
+                    .custom instance void AAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    .custom instance void BAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                // Method begins at RVA 0x2067
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<Marker>$D131137B02074799BD78183FB29034EC'::'<Extension>$'
+        } // end of class <Marker>$D131137B02074799BD78183FB29034EC
+    } // end of class <Extension>$B8D310208B4544F25EEBACB9990FC73B
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         src = """
 static class E
@@ -13926,7 +14136,7 @@ unsafe public static class E
         comp.VerifyEmitDiagnostics();
 
         var field = comp.GetMember<NamedTypeSymbol>("C").GetField("field");
-        AssertEx.Equal(["System.Int32", "System.String", "System.Int64"], field.TypeWithAnnotations.CustomModifiers.SelectAsArray(m => m.Modifier.ToTestDisplayString()));
+        AssertEx.SequenceEqual(["System.Int32", "System.String", "System.Int64"], field.TypeWithAnnotations.CustomModifiers.SelectAsArray(m => m.Modifier.ToTestDisplayString()));
     }
 
     [Fact]

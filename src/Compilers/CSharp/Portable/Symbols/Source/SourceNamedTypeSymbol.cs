@@ -1826,8 +1826,18 @@ next:;
             get
             {
                 return IsExtension
-                    ? MetadataHelpers.ComposeAritySuffixedMetadataName(this.ExtensionName, Arity, associatedFileIdentifier: null)
+                    ? GetExtensionMarkerMetadataName()
                     : base.MetadataName;
+            }
+        }
+
+        internal override bool MangleName
+        {
+            get
+            {
+                return IsExtension
+                    ? false
+                    : base.MangleName;
             }
         }
 

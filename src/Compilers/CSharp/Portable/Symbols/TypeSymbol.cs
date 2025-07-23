@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal virtual bool IsNativeIntegerWrapperType => false;
 
 #nullable enable
-        public bool IsExtension
+        public virtual bool IsExtension
             => TypeKind == TypeKind.Extension;
 
         /// <summary>
