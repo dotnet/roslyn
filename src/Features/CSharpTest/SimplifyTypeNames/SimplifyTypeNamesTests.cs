@@ -4787,8 +4787,8 @@ new TestParameters(Options.Script));
                 }
             }
             """,
-            parseOptions: CSharpParseOptions.Default,
-            options: PreferIntrinsicTypeInMemberAccess);
+            new(parseOptions: CSharpParseOptions.Default,
+            options: PreferIntrinsicTypeInMemberAccess));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15996")]
     public Task TestMemberOfBuiltInType3()
@@ -4813,8 +4813,8 @@ new TestParameters(Options.Script));
                 }
             }
             """,
-            parseOptions: CSharpParseOptions.Default,
-            options: PreferIntrinsicTypeInMemberAccess);
+            new(parseOptions: CSharpParseOptions.Default,
+            options: PreferIntrinsicTypeInMemberAccess));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26923")]
     public Task NoSuggestionOnForeachCollectionExpression()
@@ -4901,7 +4901,7 @@ new TestParameters(Options.Script));
                     Exception c;
                 }
             }
-            """, compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: warningLevel));
+            """, new(compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: warningLevel)));
 
     [Fact]
     public Task TestGlobalAliasSimplifiesInUsingDirective()
