@@ -6,10 +6,15 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 
-public abstract class AbstractCSharpCodeActionTest_NoEditor : AbstractCodeActionTest_NoEditor
+public abstract class AbstractCSharpCodeActionTest_NoEditor : AbstractCodeActionTest_NoEditor<
+    TestHostDocument,
+    TestHostProject,
+    TestHostSolution,
+    TestWorkspace>
 {
     protected override ParseOptions GetScriptOptions() => TestOptions.Script;
 

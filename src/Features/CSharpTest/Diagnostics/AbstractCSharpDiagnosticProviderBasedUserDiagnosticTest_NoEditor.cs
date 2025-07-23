@@ -7,12 +7,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 
 public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(ITestOutputHelper? logger)
-    : AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
+    : AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor<
+        TestHostDocument,
+        TestHostProject,
+        TestHostSolution,
+        TestWorkspace>(logger)
 {
     private static readonly CSharpParseOptions Script = new(kind: SourceCodeKind.Script);
 

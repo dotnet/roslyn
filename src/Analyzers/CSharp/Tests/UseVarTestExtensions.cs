@@ -7,6 +7,8 @@
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Test.Utilities;
+
 
 #if CODE_STYLE
 using AbstractCodeActionOrUserDiagnosticTest = Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor;
@@ -111,7 +113,7 @@ internal static class UseVarTestExtensions
 
 #endif
 
-    public static OptionsCollection PreferExplicitTypeWithError(this AbstractCodeActionOrUserDiagnosticTest_NoEditor test)
+    public static OptionsCollection PreferExplicitTypeWithError(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
         => new OptionsCollection(test.GetLanguage())
         {
                     { CSharpCodeStyleOptions.VarElsewhere, offWithError },
@@ -119,7 +121,7 @@ internal static class UseVarTestExtensions
                     { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithError },
         };
 
-    public static OptionsCollection PreferImplicitTypeWithError(this AbstractCodeActionOrUserDiagnosticTest_NoEditor test)
+    public static OptionsCollection PreferImplicitTypeWithError(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
         => new OptionsCollection(test.GetLanguage())
         {
             { CSharpCodeStyleOptions.VarElsewhere, onWithError },
@@ -127,7 +129,7 @@ internal static class UseVarTestExtensions
             { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithError },
         };
 
-    public static OptionsCollection PreferExplicitTypeWithWarning(this AbstractCodeActionOrUserDiagnosticTest_NoEditor test)
+    public static OptionsCollection PreferExplicitTypeWithWarning(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
         => new OptionsCollection(test.GetLanguage())
         {
             { CSharpCodeStyleOptions.VarElsewhere, offWithWarning },
@@ -135,7 +137,7 @@ internal static class UseVarTestExtensions
             { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithWarning },
         };
 
-    public static OptionsCollection PreferImplicitTypeWithWarning(this AbstractCodeActionOrUserDiagnosticTest_NoEditor test)
+    public static OptionsCollection PreferImplicitTypeWithWarning(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
         => new OptionsCollection(test.GetLanguage())
         {
             { CSharpCodeStyleOptions.VarElsewhere, onWithWarning },
@@ -143,7 +145,7 @@ internal static class UseVarTestExtensions
             { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithWarning },
         };
 
-    public static OptionsCollection PreferExplicitTypeWithInfo(this AbstractCodeActionOrUserDiagnosticTest_NoEditor test)
+    public static OptionsCollection PreferExplicitTypeWithInfo(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
         => new OptionsCollection(test.GetLanguage())
         {
             { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
@@ -151,7 +153,7 @@ internal static class UseVarTestExtensions
             { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
         };
 
-    public static OptionsCollection PreferImplicitTypeWithInfo(this AbstractCodeActionOrUserDiagnosticTest_NoEditor test)
+    public static OptionsCollection PreferImplicitTypeWithInfo(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
         => new OptionsCollection(test.GetLanguage())
         {
             { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
@@ -159,7 +161,7 @@ internal static class UseVarTestExtensions
             { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
         };
 
-    public static OptionsCollection PreferExplicitTypeWithSilent(this AbstractCodeActionOrUserDiagnosticTest_NoEditor test)
+    public static OptionsCollection PreferExplicitTypeWithSilent(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
         => new OptionsCollection(test.GetLanguage())
         {
             { CSharpCodeStyleOptions.VarElsewhere, offWithSilent },
@@ -167,7 +169,7 @@ internal static class UseVarTestExtensions
             { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithSilent },
         };
 
-    public static OptionsCollection PreferImplicitTypeWithSilent(this AbstractCodeActionOrUserDiagnosticTest_NoEditor test)
+    public static OptionsCollection PreferImplicitTypeWithSilent(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
         => new OptionsCollection(test.GetLanguage())
         {
             { CSharpCodeStyleOptions.VarElsewhere, onWithSilent },
@@ -175,7 +177,7 @@ internal static class UseVarTestExtensions
             { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent },
         };
 
-    public static OptionsCollection PreferExplicitTypeWithNone(this AbstractCodeActionOrUserDiagnosticTest_NoEditor test)
+    public static OptionsCollection PreferExplicitTypeWithNone(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
         => new OptionsCollection(test.GetLanguage())
         {
             { CSharpCodeStyleOptions.VarElsewhere, offWithNone },
@@ -183,7 +185,7 @@ internal static class UseVarTestExtensions
             { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithNone },
         };
 
-    public static OptionsCollection PreferImplicitTypeWithNone(this AbstractCodeActionOrUserDiagnosticTest_NoEditor test)
+    public static OptionsCollection PreferImplicitTypeWithNone(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
         => new OptionsCollection(test.GetLanguage())
         {
             { CSharpCodeStyleOptions.VarElsewhere, onWithNone },
