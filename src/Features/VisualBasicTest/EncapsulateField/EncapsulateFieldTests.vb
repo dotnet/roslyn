@@ -637,9 +637,9 @@ Class C
     End Property
 End Class
 ",
-options:=New OptionsCollection(GetLanguage()) From {
+New TestParameters(options:=New OptionsCollection(GetLanguage()) From {
     {CodeStyleOptions2.QualifyFieldAccess, True, NotificationOption2.Error}
-}, New TestParameters(testHost:=host))
+}, testHost:=host))
         End Function
     End Class
 End Namespace

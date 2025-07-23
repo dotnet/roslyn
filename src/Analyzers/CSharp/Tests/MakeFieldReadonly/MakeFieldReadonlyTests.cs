@@ -2062,7 +2062,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
                     C<T>.s_value = null;
                 }
             }
-            """, parseOptions: s_strictFeatureFlag);
+            """, new(parseOptions: s_strictFeatureFlag));
 
     [Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")]
     public Task StrictFeatureFlagAssignment2()

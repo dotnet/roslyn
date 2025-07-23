@@ -2302,7 +2302,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
             if (int.TryParse(v, out int i))
             {
             }
-            """, CSharpParseOptions.Default);
+            """, new(CSharpParseOptions.Default));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47041")]
     public Task CollectionInitializer()
@@ -2460,12 +2460,12 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
                     }
                 }
             }
-            """, options: new(LanguageNames.CSharp)
+            """, new(options: new(LanguageNames.CSharp)
             {
                 { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, new CodeStyleOption2<bool>(preferIntrinsicPredefinedTypeKeywordInDeclaration, new NotificationOption2(preferIntrinsicPredefinedTypeKeywordInDeclarationDiagnostic, false)) },
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, new CodeStyleOption2<bool>(varForBuiltInTypes, new NotificationOption2(varForBuiltInTypesDiagnostic, false)) },
                 { CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, ignoreSpacing },
-            });
+            }));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62805")]
