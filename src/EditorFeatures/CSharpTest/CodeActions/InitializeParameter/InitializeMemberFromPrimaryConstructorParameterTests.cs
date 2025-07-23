@@ -978,7 +978,7 @@ public sealed partial class InitializeMemberFromPrimaryConstructorParameterTests
             class C(string s) {
                 public string S { get; } = s;
             }
-            """, options: this.Option(CSharpFormattingOptions2.NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.All & ~NewLineBeforeOpenBracePlacement.Types));
+            """, new(options: this.Option(CSharpFormattingOptions2.NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.All & ~NewLineBeforeOpenBracePlacement.Types)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
     public Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment()

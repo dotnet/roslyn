@@ -81,7 +81,7 @@ public sealed class AddUsingNuGetTests : AbstractAddUsingTests
             {
                 NuGetType n;
             }
-            """, fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
+            """, new TestParameters(fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object)));
     }
 
     [Fact]
@@ -118,7 +118,7 @@ public sealed class AddUsingNuGetTests : AbstractAddUsingTests
             {
                 NuGetType n;
             }
-            """, fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
+            """, new TestParameters(fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object)));
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public sealed class AddUsingNuGetTests : AbstractAddUsingTests
             {
                 NuGetType n;
             }
-            """, fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
+            """, new TestParameters(fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object)));
     }
 
     [Fact]

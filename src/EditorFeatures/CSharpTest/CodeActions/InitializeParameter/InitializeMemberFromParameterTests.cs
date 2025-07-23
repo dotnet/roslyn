@@ -1547,7 +1547,7 @@ class C
 
                 public string S { get; }
             }
-            """, options: this.Option(CSharpFormattingOptions2.NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.All & ~NewLineBeforeOpenBracePlacement.Methods));
+            """, new(options: this.Option(CSharpFormattingOptions2.NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.All & ~NewLineBeforeOpenBracePlacement.Methods)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
     public Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment()

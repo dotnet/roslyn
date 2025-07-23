@@ -1371,8 +1371,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             {
             }
             """,
-            index: 1,
-            parseOptions: null);
+            new(index: 1, parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538069")]
     public Task GenerateTypeFromArrayCreation2()
@@ -1399,8 +1398,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             {
             }
             """,
-            index: 1,
-            parseOptions: null);
+            new(index: 1, parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538069")]
     public Task GenerateTypeFromArrayCreation3()
@@ -1427,8 +1425,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             {
             }
             """,
-            index: 1,
-            parseOptions: null);
+            new(index: 1, parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539329")]
     public async Task NegativeTestNotInUsingDirective()
@@ -1787,8 +1784,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """,
-            index: 1,
-            parseOptions: TestOptions.Regular7);
+            new TestParameters(index: 1, parseOptions: TestOptions.Regular7));
 
     [Fact]
     public Task GenerateWithOutParameters2()
@@ -1951,8 +1947,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """,
-            index: 2,
-            parseOptions: TestOptions.Regular7);
+            new TestParameters(index: 2, parseOptions: TestOptions.Regular7));
 
     [Fact]
     public Task GenerateWithOutParameters6()
@@ -2945,8 +2940,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 protected int I;
             }
             """,
-            index: 1,
-            options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
+            new TestParameters(index: 1, options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error)));
 
     [Fact]
     public Task GenerateWithCallToField8()
@@ -3117,7 +3111,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """,
-            index: 1, options: options.FieldNamesAreCamelCaseWithUnderscorePrefix);
+            new TestParameters(index: 1, options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
     }
 
     [Fact]
@@ -3243,8 +3237,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 public int I { get; protected set; }
             }
             """,
-            index: 1,
-            options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
+            new TestParameters(index: 1, options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error)));
 
     [Fact]
     public Task GenerateWithCallToProperty3()

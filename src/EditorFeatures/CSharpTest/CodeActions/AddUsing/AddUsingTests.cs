@@ -479,7 +479,7 @@ public sealed partial class AddUsingTests(ITestOutputHelper logger) : AbstractAd
                 }
             }
             """,
-            parseOptions: Options.Regular);
+            new TestParameters(parseOptions: Options.Regular));
 
     [Theory, CombinatorialData]
     public Task TestOnEnum(TestHost testHost)
@@ -1925,7 +1925,7 @@ using System.Linq.Expressions;
 
 WriteLine(Expression.Constant(123));
 """,
-parseOptions: GetScriptOptions());
+new TestParameters(parseOptions: GetScriptOptions()));
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540339")]
@@ -2166,8 +2166,8 @@ parseOptions: GetScriptOptions());
 
             Expression
             """,
-            GetScriptOptions(),
-            TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
+            new TestParameters(GetScriptOptions(),
+            TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver)));
     }
 
     [Theory, CombinatorialData]
@@ -2818,7 +2818,7 @@ parseOptions: GetScriptOptions());
             /// This is just like <see cref='INotifyPropertyChanged'/>, but this one is mine.
             /// </summary>
             interface MyNotifyPropertyChanged { }
-            """, parseOptions: options);
+            """, new TestParameters(parseOptions: options));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
@@ -2838,7 +2838,7 @@ parseOptions: GetScriptOptions());
             /// This is just like <see cref='INotifyPropertyChanged.PropertyChanged'/>, but this one is mine.
             /// </summary>
             interface MyNotifyPropertyChanged { }
-            """, parseOptions: options);
+            """, new TestParameters(parseOptions: options));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
@@ -2884,7 +2884,7 @@ parseOptions: GetScriptOptions());
             public class MyClass2
             {
             }
-            """, parseOptions: options);
+            """, new TestParameters(parseOptions: options));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
@@ -2920,7 +2920,7 @@ parseOptions: GetScriptOptions());
                 {
                 }
             }
-            """, parseOptions: options);
+            """, new TestParameters(parseOptions: options));
     }
 
     [Theory, CombinatorialData]
