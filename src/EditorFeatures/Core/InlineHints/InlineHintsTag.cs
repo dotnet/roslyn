@@ -124,12 +124,11 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
         bool classify)
     {
         // Constructs the hint block which gets assigned parameter name and FontStyles according to the options
-        // page. Calculates a inline tag that will be 3/4s the size of a normal line. This shrink size tends to work
-        // well with VS at any zoom level or font size.
+        // page. For better monospaced alignment, we use the same font size as the editor text.
         var block = new TextBlock
         {
             FontFamily = format.Typeface.FontFamily,
-            FontSize = 0.75 * format.FontRenderingEmSize,
+            FontSize = format.FontRenderingEmSize, // Use same font size as editor for proper baseline alignment
             FontStyle = FontStyles.Normal,
             Foreground = format.ForegroundBrush,
             // Adds a little bit of padding to the left of the text relative to the border to make the text seem
