@@ -1,16 +1,35 @@
-# Parameter Wrapping EditorConfig Integration
+# Comma-Separated List Wrapping EditorConfig Integration
 
 ## Summary
 
-This feature exposes existing parameter wrapping functionality to EditorConfig, allowing parameter wrapping styles to be automatically applied during formatting operations (`dotnet format`, format-on-save, etc.) rather than only being available as manual refactorings.
+This feature exposes existing comma-separated list wrapping functionality to EditorConfig, allowing consistent wrapping styles to be automatically applied during formatting operations (`dotnet format`, format-on-save, etc.) rather than only being available as manual refactorings.
 
-**Language Support:** Both C# and VB.NET have equivalent manual parameter wrapping functionality. This design addresses both languages.
+**Scope:** Applies to all comma-separated syntax constructs including parameter lists, argument lists, collection expressions, and collection initializers.
+
+**Language Support:** Both C# and VB.NET have equivalent manual wrapping functionality through `AbstractCSharpSeparatedSyntaxListWrapper` and `AbstractVisualBasicSeparatedSyntaxListWrapper`. This design addresses both languages with a single unified option.
 
 ## Motivation
 
-Currently, Roslyn provides comprehensive parameter wrapping through the `CSharpParameterWrapper` refactoring provider, offering multiple wrapping styles (align wrapped, unwrap and indent all, etc.). However, these are only available as manual refactorings accessed through the lightbulb menu.
+Currently, Roslyn provides comprehensive comma-separated list wrapping through multiple refactoring providers (`CSharpParameterWrapper`, `CSharpArgumentWrapper`, etc.), offering consistent wrapping styles across all comma-separated constructs. However, these are only available as manual refactorings accessed through the lightbulb menu.
 
-Teams often want consistent parameter wrapping applied automatically during formatting operations. This feature bridges the gap between manual refactoring capabilities and automatic formatting rules.
+Teams often want consistent comma-separated list formatting applied automatically during formatting operations. This allows:
+
+1. **Consistent Code Style**: Enforce uniform wrapping across parameters, arguments, collections, etc.
+2. **Automatic Formatting**: Integration with `dotnet format`, format-on-save, and CI/CD pipelines  
+3. **Reduced Manual Work**: No need to manually apply wrapping refactorings
+4. **Team Consistency**: EditorConfig ensures all team members use the same wrapping style
+
+**Current Gap**: Automatic formatting handles indentation, spacing, and new lines, but doesn't handle semantic wrapping decisions for comma-separated constructs.
+
+### Current Comma-Separated List Wrapping Actions
+Both `AbstractCSharpSeparatedSyntaxListWrapper` and `AbstractVisualBasicSeparatedSyntaxListWrapper` provide equivalent refactoring actions for all comma-separated constructs:
+
+1. **Align wrapped items** - `void Goo(int i,\n         int j)`
+2. **Unwrap and indent all** - `void Goo(\n    int i,\n    int j)`  
+3. **Keep first, indent remaining** - `void Goo(int i,\n    int j)`
+4. **Unwrap to new line** - `void Goo(\n    int i, int j)`
+
+This feature exposes these existing, well-tested wrapping behaviors as automatic formatting rules.
 
 ## Current State
 
@@ -34,35 +53,42 @@ These wrapping styles are not available during automatic formatting operations f
 ## Proposed Solution
 
 ### Phase 1: EditorConfig Option
-Add a new language-agnostic EditorConfig option for parameter wrapping that exposes the existing manual refactoring functionality:
+Add a new language-agnostic EditorConfig option that applies to **all comma-separated constructs** (parameters, arguments, collection expressions, initializers):
 
 ```editorconfig
-# Parameter wrapping style (applies to both C# and VB.NET)
-dotnet_parameter_wrapping = do_not_wrap | align_wrapped | unwrap_and_indent_all | keep_first_indent_remaining | unwrap_to_new_line
+# Comma-separated list wrapping style (applies to both C# and VB.NET)
+dotnet_separated_list_wrapping = do_not_wrap | align_wrapped | unwrap_and_indent_all | keep_first_indent_remaining | unwrap_to_new_line
 ```
 
-**Option Values** (based on existing `CSharpParameterWrapper` functionality):
-- `do_not_wrap` (default) - **Preserve current behavior**: No automatic parameter wrapping applied during formatting
-- `align_wrapped` - Keep first parameter with parent, align remaining parameters with first
+**Applies To:**
+- Parameter lists: `void Method(int a, int b)`
+- Argument lists: `Method(value1, value2)`  
+- Collection expressions: `[item1, item2, item3]`
+- Collection initializers: `new List<int> { 1, 2, 3 }`
+- Any comma-separated syntax construct
+
+**Option Values** (based on existing `AbstractCSharpSeparatedSyntaxListWrapper` functionality):
+- `do_not_wrap` (default) - **Preserve current behavior**: No automatic wrapping applied during formatting
+- `align_wrapped` - Keep first item with parent, align remaining items with first
   ```csharp
   void Method(int first,
               int second,
               int third)
   ```
-- `unwrap_and_indent_all` - Wrap all parameters including first, indent all consistently  
+- `unwrap_and_indent_all` - Wrap all items including first, indent all consistently  
   ```csharp
   void Method(
       int first,
       int second,
       int third)
   ```
-- `keep_first_indent_remaining` - Keep first parameter with parent, indent remaining parameters
+- `keep_first_indent_remaining` - Keep first item with parent, indent remaining items
   ```csharp
   void Method(int first,
       int second,
       int third)
   ```
-- `unwrap_to_new_line` - Place all parameters on new line together, indented
+- `unwrap_to_new_line` - Place all items on new line together, indented
   ```csharp
   void Method(
       int first, int second, int third)
@@ -226,22 +252,17 @@ Sub Method(
 
 ## Open Questions
 
-1. **Scope Control**: Should Phase 1 focus only on parameter lists, or include all comma-separated constructs (arguments, collection expressions, initializers) that share the same wrapping infrastructure?
+1. **"If Long" Variants**: Should we implement `_if_long` variants (e.g., `align_wrapped_if_long`) in Phase 1, or add them later based on demand?
 
-2. **EditorConfig Option Naming**: 
-   - `dotnet_parameter_wrapping` (specific)
-   - `dotnet_comma_separated_wrapping` (broader scope)
-   - Should different constructs have separate options?
+2. **Line Length Integration**: Should this use the existing `dotnet_max_line_length` option or introduce a separate wrapping threshold for comma-separated lists?
 
-3. **"If Long" Variants**: Should we implement `_if_long` variants (e.g., `align_wrapped_if_long`) in Phase 1, or add them later based on demand?
+3. **Performance Impact**: How do we ensure minimal overhead when `do_not_wrap` is specified, especially in large codebases with many comma-separated constructs?
 
-4. **Line Length Integration**: Should this use the existing `dotnet_max_line_length` option or introduce a separate parameter wrapping threshold?
+4. **Manual Refactoring Interaction**: Should the presence of an EditorConfig setting affect what manual refactoring options are shown in the lightbulb menu for comma-separated lists?
 
-5. **Performance Impact**: How do we ensure minimal overhead when `do_not_wrap` is specified, especially in large codebases?
+5. **Formatting vs. Refactoring Pipeline**: Which pipeline should drive this - extend the existing formatting system or create a new hybrid approach that bridges manual refactoring logic into automatic formatting?
 
-6. **Manual Refactoring Interaction**: Should the presence of an EditorConfig setting affect what manual refactoring options are shown in the lightbulb menu?
-
-7. **Formatting vs. Refactoring Pipeline**: Which pipeline should drive this - extend the existing formatting system or create a new hybrid approach?
+6. **Construct Priority**: If different comma-separated constructs have conflicting wrapping needs in the same file, how do we handle that? (This may be theoretical given the unified approach.)
 
 ## Success Criteria
 
