@@ -136,7 +136,7 @@ public sealed class GenerateConstructorTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
+            new(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589")]
     public async Task TestWithNoArgs()
@@ -660,7 +660,7 @@ class C
                 }
             }
             """,
-            options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
+            new(options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
     public Task TestWithExistingField8()
@@ -963,7 +963,7 @@ class C
                 }
             }
             """,
-            options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
+            new(options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
     public Task TestWithExistingProperty4()
@@ -3486,7 +3486,7 @@ class C
                 }
             }
             """,
-            parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
+            new(parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12182")]
     public Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument_CSharp6()
@@ -3514,7 +3514,7 @@ class C
                 }
             }
             """,
-            parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
+            new(parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12182")]
     public Task TestOutVariableDeclaration_ExplicitlyTyped_CSharp6()
@@ -3994,7 +3994,7 @@ class C
             class D
             {
             }
-            """, options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
+            """, new(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33673")]
     [InlineData("_s", "s")]
@@ -4696,7 +4696,7 @@ unsafe class C
                     this.v2 = v2;
                 }
             }
-            """, parseOptions: TestOptions.Regular);
+            """, new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38822")]
     public Task TestMissingInLambdaWithCallToExistingConstructor()

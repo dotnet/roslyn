@@ -889,9 +889,9 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
         await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(options: this.PreferExplicitTypeWithNone()));
 
         // Enabled because the diagnostic is checking for the other direction
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferImplicitTypeWithNone());
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferImplicitTypeWithSilent());
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferImplicitTypeWithInfo());
+        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(options: this.PreferImplicitTypeWithNone()));
+        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(options: this.PreferImplicitTypeWithSilent()));
+        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(options: this.PreferImplicitTypeWithInfo()));
 
         // Disabled because the diagnostic will report it instead
         await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferExplicitTypeWithSilent()));
@@ -900,8 +900,8 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
         await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferExplicitTypeWithError()));
 
         // Currently this refactoring is still enabled in cases where it would cause a warning or error
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferImplicitTypeWithWarning());
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferImplicitTypeWithError());
+        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(options: this.PreferImplicitTypeWithWarning()));
+        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(options: this.PreferImplicitTypeWithError()));
     }
 
     private async Task TestMissingInRegularAndScriptAsync(string initialMarkup)

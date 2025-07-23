@@ -52,8 +52,7 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             initialMarkup,
             expectedMarkup,
             index: index,
-            options: options,
-            parseOptions: parseOptions);
+            new(options: options, parseOptions: parseOptions));
     }
 
     [Fact]
@@ -171,11 +170,11 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """,
-            compilationOptions: new CSharpCompilationOptions
+            new(compilationOptions: new CSharpCompilationOptions
             (
                 OutputKind.DynamicallyLinkedLibrary,
                 nullableContextOptions: NullableContextOptions.Enable
-            ));
+            )));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543234")]
     public Task TestNotAvailableForStruct()
@@ -1338,7 +1337,7 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             {
                 public override int M => throw new System.NotImplementedException();
             }
-            """, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
+            """, new(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
     public Task TestCodeStyle_Property3()
@@ -1369,11 +1368,11 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                     }
                 }
             }
-            """, options: new OptionsCollection(GetLanguage())
-{
-    { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
-    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
-});
+            """, new(options: new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
+            }));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
     public Task TestCodeStyle_Property4()
@@ -1409,11 +1408,11 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                     }
                 }
             }
-            """, options: new OptionsCollection(GetLanguage())
-{
-    { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
-    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
-});
+            """, new(options: new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
+            }));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
     public Task TestCodeStyle_Indexers1()
@@ -1469,11 +1468,11 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                     }
                 }
             }
-            """, options: new OptionsCollection(GetLanguage())
+            """, new(options: new OptionsCollection(GetLanguage())
 {
     { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
     { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
-});
+}));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
     public Task TestCodeStyle_Indexer4()
@@ -1509,11 +1508,11 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                     }
                 }
             }
-            """, options: new OptionsCollection(GetLanguage())
+            """, new(options: new OptionsCollection(GetLanguage())
 {
     { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
     { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
-});
+}));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
     public Task TestCodeStyle_Accessor1()
@@ -1592,7 +1591,7 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             {
                 public override int M { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
             }
-            """, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
+            """, new(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15387")]
     public async Task TestWithGroupingOff1()
@@ -1623,7 +1622,7 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
 
                 public override int Prop => throw new System.NotImplementedException();
             }
-            """, options: options);
+            """, new(options: options));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17274")]
@@ -1738,7 +1737,7 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                     throw new System.NotImplementedException();
                 }
             }
-            """, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
+            """, new(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17562")]
     public Task TestNullableOptionalParameters()
