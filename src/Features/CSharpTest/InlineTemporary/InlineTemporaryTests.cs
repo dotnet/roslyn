@@ -237,7 +237,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     3.ToString(); }
             }
             """,
-            CSharpParseOptions.Default);
+            new(CSharpParseOptions.Default));
 
     [Fact]
     public Task Conversion_DifferentOverload()
@@ -5016,7 +5016,7 @@ System.Diagnostics.Debug.Assert(x == true); }
             using System;
 
             (1 + 1).ToString();
-            """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44263")]
     public Task TopLevelStatement()
@@ -5044,7 +5044,7 @@ System.Diagnostics.Debug.Assert(x == true); }
                 System.Console.WriteLine(val + 1);
             }
             """,
-            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            new(TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact]
     public Task TestWithLinkedFile()

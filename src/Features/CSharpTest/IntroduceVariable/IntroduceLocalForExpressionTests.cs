@@ -512,7 +512,7 @@ public sealed partial class IntroduceLocalForExpressionTests : AbstractCSharpCod
                     var (someString, someInt) = X();
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
     public Task IntroduceDeconstruction2_A()
@@ -602,7 +602,7 @@ public sealed partial class IntroduceLocalForExpressionTests : AbstractCSharpCod
                     var (someString, someInt) = X();
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
     public Task IntroduceDeconstruction3_A()
@@ -704,7 +704,7 @@ public sealed partial class IntroduceLocalForExpressionTests : AbstractCSharpCod
                     string someString;
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
     public Task IntroduceDeconstruction4_A()
@@ -794,7 +794,7 @@ public sealed partial class IntroduceLocalForExpressionTests : AbstractCSharpCod
                     var (item1, item2) = X();
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
     public Task IntroduceDeconstruction5_A()
@@ -884,7 +884,7 @@ public sealed partial class IntroduceLocalForExpressionTests : AbstractCSharpCod
                     var (item1, item2) = X();
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
     public Task IntroduceDeconstruction_ImplicitTypeForIntrinsics1()

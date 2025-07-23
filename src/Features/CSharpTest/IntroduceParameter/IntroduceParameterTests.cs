@@ -347,7 +347,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 {
                 }
             }
-            """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestExpressionWithSingleMethodCallTrampoline()
@@ -383,7 +383,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                     M(z, y, x, GetM(z, y));
                 }
             }
-            """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestExpressionWithSingleMethodCallAndAccessorsTrampoline()
@@ -419,7 +419,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                     this.M(z, y, x, GetM(z, y));
                 }
             }
-            """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestExpressionWithSingleMethodCallAndAccessorsConditionalTrampoline()
@@ -455,7 +455,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                     this?.M(z, y, x, this?.GetM(z, y));
                 }
             }
-            """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestExpressionWithSingleMethodCallMultipleAccessorsTrampoline()
@@ -509,7 +509,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                     return age;
                 }
             }
-            """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestExpressionWithSingleMethodCallMultipleAccessorsConditionalTrampoline()
@@ -563,7 +563,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                     return age;
                 }
             }
-            """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestExpressionWithSingleMethodCallAccessorsMixedConditionalTrampoline()
@@ -617,7 +617,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                     return age;
                 }
             }
-            """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestExpressionWithSingleMethodCallTrampolineAllOccurrences()
@@ -655,7 +655,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                     M(z, y, x, GetM(z, y, x));
                 }
             }
-            """, index: 4, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+            """, index: 4, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestExpressionWithNoMethodCallOverload()
@@ -717,7 +717,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                     M(z, y, x);
                 }
             }
-            """, index: 2, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+            """, index: 2, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestExpressionBodiedMemberOverload()
@@ -775,7 +775,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                     int prod = M(z, y, x, GetV(z, y, x));
                 }
             }
-            """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestExpressionCaseWithRecursiveCall()
@@ -1083,7 +1083,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                     return M(x, x, z, GetM(x, x, z));
                 }
             }
-            """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestExpressionCaseWithNestedRecursiveCallTrampoline()
@@ -1111,7 +1111,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                     return M(x, x, M(x, y, x, GetM(x, y, x)), GetM(x, x, M(x, y, x, GetM(x, y, x))));
                 }
             }
-            """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestExpressionCaseInConstructor()
