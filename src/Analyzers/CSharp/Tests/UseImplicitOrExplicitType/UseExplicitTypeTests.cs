@@ -1015,9 +1015,6 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
     public async Task NotNullableType_ForeachVarDeconstruction1()
     {
-        // Semantic model doesn't yet handle var deconstruction foreach
-        // https://github.com/dotnet/roslyn/issues/37491
-        // https://github.com/dotnet/roslyn/issues/35010
         var before = """
             class Program
             {
@@ -1042,7 +1039,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """;
+        // The type is not intrinsic and not apparent
         await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+        await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+        await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47038")]
