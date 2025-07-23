@@ -265,6 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public void AdvanceChar(int n)
         {
             _positionInText += n;
+            Debug.Assert(_positionInText >= 0, "Position in text cannot be negative.");
         }
 
         /// <summary>
