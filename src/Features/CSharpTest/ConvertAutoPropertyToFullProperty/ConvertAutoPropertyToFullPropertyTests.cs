@@ -1231,7 +1231,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                 void M(int i) { }
             }
             """,
-            parseOptions: CSharp14);
+            new(parseOptions: CSharp14));
 
     [Theory]
     [InlineData("set"), InlineData("init")]
@@ -1257,7 +1257,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors, index: 1, parseOptions: CSharp14);
+            """, new(options: DoNotPreferExpressionBodiedAccessors, index: 1, parseOptions: CSharp14));
 
     [Theory]
     [InlineData("set"), InlineData("init")]
