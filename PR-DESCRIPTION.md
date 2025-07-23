@@ -1,5 +1,7 @@
 # Expose Comma-Separated List Wrapping to EditorConfig
 
+**Addresses:** [#33872](https://github.com/dotnet/roslyn/issues/33872) - Add editorconfig options for wrapping/unwrapping various language constructs
+
 ## 🎯 **Summary**
 
 This PR exposes existing comma-separated list wrapping functionality to EditorConfig, allowing consistent wrapping styles to be automatically applied during formatting operations (`dotnet format`, format-on-save, etc.) rather than only being available as manual refactorings.
@@ -7,6 +9,8 @@ This PR exposes existing comma-separated list wrapping functionality to EditorCo
 **Applies to:** Parameter lists, argument lists, collection expressions, collection initializers, and all other comma-separated syntax constructs.
 
 ## 📝 **Motivation**
+
+This PR addresses part of [#33872](https://github.com/dotnet/roslyn/issues/33872), which requests EditorConfig options for wrapping/unwrapping various language constructs. Specifically, this implements automatic wrapping for **comma-separated lists**.
 
 Teams often want consistent comma-separated list formatting applied automatically during formatting operations. Currently, Roslyn provides comprehensive wrapping through manual refactorings (`CSharpParameterWrapper`, `CSharpArgumentWrapper`, etc.), but these are only available through the lightbulb menu.
 
