@@ -447,7 +447,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var A = global::A.X;
                 }
             }
-            """, CSharpParseOptions.Default, options: ImplicitTypeEverywhere());
+            """, new(CSharpParseOptions.Default, options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
     public Task SuggestOnVariablesUsedInInitalizerExpressionAsInnerPartsOfQualifiedName()
@@ -732,7 +732,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var c = new C();
                 }
             }
-            """, new(options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarOnGenericType()
@@ -1923,7 +1923,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                 }
             }
             """ + trivial2uple,
-options: ImplicitTypeWhereApparent());
+            new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task TupleWithDifferentNames()
