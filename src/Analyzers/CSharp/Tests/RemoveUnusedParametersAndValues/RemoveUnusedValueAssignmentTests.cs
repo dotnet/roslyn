@@ -1826,7 +1826,7 @@ class C
 
                 void M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task Initialization_NonConstantValue_MiddleField_PreferDiscard()
@@ -1888,7 +1888,7 @@ class C
 
                 void M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task Initialization_NonConstantValue_LastField_PreferDiscard()
@@ -1949,7 +1949,7 @@ class C
 
                 void M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -2146,7 +2146,7 @@ class C
 
                 void M2(out int x) => x = 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task OutVarArgument_ExpressionBody_PreferDiscard()
@@ -2213,7 +2213,7 @@ class C
 
                 void M2(out int x) => x = 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "_")]
@@ -2368,7 +2368,7 @@ class C
                     return x;
                 }
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -2603,7 +2603,7 @@ class C
                     }
                 }
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task DeclarationPatternInIsPattern_WithOnlyWriteReference_PreferDiscard()
@@ -2647,7 +2647,7 @@ class C
                     }
                 }
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "C")]
@@ -4940,7 +4940,7 @@ class C
 
                 C M2(Action c = null) => null;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -5064,7 +5064,7 @@ class C
                     }
                 }
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task CatchClause_ExceptionVariable_PreferUnusedLocal_02()
@@ -5104,7 +5104,7 @@ class C
                     }
                 }
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -5519,7 +5519,7 @@ class C
 
                 bool M2(out int x) => x = 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task IfElse_AssignedInCondition_NoReads_PreferUnusedLocal()
@@ -5587,7 +5587,7 @@ class C
 
                 bool M2(out int x) => x = 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task IfElse_DeclaredInCondition_NoReads_PreferUnusedLocal()
@@ -5952,7 +5952,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -6370,7 +6370,7 @@ class C
                 bool M2(out int x) { x = 0; return true; }
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -6591,7 +6591,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task NonConstantValue_Trivia_PreferDiscard_01()
@@ -6703,7 +6703,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task NonConstantValue_Trivia_PreferUnusedLocal_02()
@@ -6742,7 +6742,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -7732,7 +7732,7 @@ class C
                     System.Console.WriteLine(foo);
                 }
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
     public Task MultipleRedundantAssignment_WithLeadingAndTrailingComment()
@@ -7773,7 +7773,7 @@ class C
                     System.Console.WriteLine(bar);
                 }
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
     public Task MultipleRedundantAssignment_WithInnerComment()
@@ -7805,7 +7805,7 @@ class C
                     System.Console.WriteLine(foo);
                 }
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
     public Task DeclarationPatternInSwitchCase_WithTrivia_PreferDiscard()
@@ -8157,7 +8157,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task CanUseLocalFunctionParameterName_PreferUnused()
@@ -8191,7 +8191,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task DoesNotUseLambdaFunctionParameterNameWithCSharpLessThan8_PreferUnused()

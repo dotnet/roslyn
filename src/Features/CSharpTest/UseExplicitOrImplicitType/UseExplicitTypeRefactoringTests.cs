@@ -886,7 +886,7 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
     private async Task TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(string initialMarkup, string expectedMarkup)
     {
         // Enabled because the diagnostic is disabled
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferExplicitTypeWithNone());
+        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(options: this.PreferExplicitTypeWithNone()));
 
         // Enabled because the diagnostic is checking for the other direction
         await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferImplicitTypeWithNone());

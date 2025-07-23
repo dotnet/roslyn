@@ -2161,7 +2161,7 @@ public sealed class GenerateVariableTests(ITestOutputHelper logger)
 
             C.i ++ ;
             """,
-            parseOptions: Options.Script);
+            new(parseOptions: Options.Script));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539558")]
     public Task BugFix5565()
