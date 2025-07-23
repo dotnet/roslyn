@@ -404,7 +404,7 @@ end module",
 "module C
     const FIELD = 0
 end module",
-                options:=s_options.ConstantsAreUpperCase)
+                New TestParameters(options:=s_options.ConstantsAreUpperCase))
         End Function
 
         <Fact>
@@ -420,7 +420,7 @@ end module",
         const local1 = 0, LOCAL2 as integer = 0
     end sub
 end module",
-                options:=s_options.ConstantsAreUpperCase)
+                New TestParameters(options:=s_options.ConstantsAreUpperCase))
         End Function
 
         <Fact>

@@ -106,7 +106,7 @@ Module Program
     Sub Main(args As String())
     End Sub
 End Module",
-options:=PreferIntrinsicPredefinedTypeEverywhere())
+New TestParameters(options:=PreferIntrinsicPredefinedTypeEverywhere()))
         End Function
 
         <Fact>
