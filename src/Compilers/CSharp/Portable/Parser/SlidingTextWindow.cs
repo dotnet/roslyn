@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Where the current character window starts in the source text.  This is the absolute position in the source text.
         /// In other words, if this is 2048, then that means it represents the chunk of characters starting at position 2048
         /// in the source text. <c>_characterWindow.Count</c> represents how large the chunk is.  Characters
-        /// <c>[0, _characterWindow.Count)</c> are valid characters within the window, and represents
+        /// <c>[0, _characterWindow.Count)</c> are valid characters within the window, and represent
         /// the chunk <c>[_characterWindowStartPositionInText, CharacterWindowEndPositionInText)</c> in <see cref="Text"/>.
         /// </summary>
         private int _characterWindowStartPositionInText;
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.Text = text;
             _textEnd = text.Length;
             _strings = StringTable.GetInstance();
-            _characterWindow = new(s_windowPool.Allocate());
+            _characterWindow = new ArraySegment<char>(s_windowPool.Allocate());
 
             // Read the first chunk of the file into the character window.
             this.ReadChunkAt(0);
@@ -124,13 +124,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         /// <summary>
         /// Reads a chunk of characters from the underlying <see cref="Text"/> at the given position and places them
-        /// at the start of the character window.  The character windows length will be set to the number of characters
+        /// at the start of the character window.  The character window's length will be set to the number of characters
         /// read.
         /// <para/>
-        /// Note: this does NOT set _positionInText.  We are just reading the characters into the window. The actual 
+        /// Note: this does NOT set <see cref="_positionInText"/>.  We are just reading the characters into the window. The actual 
         /// position in the text is unchanged by this, and callers should set that if necessary.
         /// </summary>
-        /// <param name="position"></param>
         private void ReadChunkAt(int position)
         {
             position = Math.Min(position, _textEnd);
@@ -154,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public readonly ReadOnlySpan<char> CurrentWindowSpan => _characterWindow.AsSpan(_positionInText - _characterWindowStartPositionInText);
 
         /// <summary>
-        /// Similar to <see cref="_characterWindowStartPositionInText"/>, except this represents the index (exclusive) of the first character
+        /// Similar to <see cref="_characterWindowStartPositionInText"/>, except this represents the index (exclusive) of the last character
         /// that <see cref="_characterWindow"/> encompases in <see cref="Text"/>.  This is equal to <see cref="_characterWindowStartPositionInText"/>
         /// + <see cref="_characterWindow"/>'s <see cref="ArraySegment{T}.Count"/>.
         /// </summary>
