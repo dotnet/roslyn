@@ -245,7 +245,7 @@ public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     public Task TestTypeDeclarationNoBraces2()
         => VerifyBlockSpansAsync("""
                 {|comment:// comment|}
-                {|textspan1:{|hint1:$$struct S;|}|}
+                {|hint1:$$struct S{|textspan1:;|}|}
                 """,
             Region("comment", "// comment ...", autoCollapse: true),
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
