@@ -552,5 +552,5 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
             {
             }
             """,
-parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 }
