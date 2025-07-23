@@ -36986,9 +36986,14 @@ public static class E2
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics(unnecessaryDirective);
 
-        // Note: in older LangVer, we look at all scopes to determine the unique signature
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
-        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // Tracked by https://github.com/dotnet/roslyn/issues/78968
+        {
+            // Note: in older LangVer, we look at all scopes to determine the unique signature
+            comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
+            CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+            //var used = comp.GetUsedAssemblyReferences();
+            //Assert.Contains(libRef, used);
+        }
 
         src = """
 var x = new object().M<int>;
@@ -37306,8 +37311,13 @@ public static class E2
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics(unnecessaryDirective);
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
-        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // Tracked by https://github.com/dotnet/roslyn/issues/78968
+        {
+            comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
+            CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+            //var used = comp.GetUsedAssemblyReferences();
+            //Assert.Contains(libRef, used);
+        }
     }
 
     [Fact]
