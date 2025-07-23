@@ -1090,8 +1090,7 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """,
-
-parseOptions: TestOptions.Regular);
+            new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
     public Task PreserveCommentsBeforeDeclaration_1()
@@ -5190,10 +5189,10 @@ class Program
                 }
             }
             """,
-            options: new(LanguageNames.CSharp)
+            new(options: new(LanguageNames.CSharp)
             {
                 { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.FalseWithSilentEnforcement },
-            });
+            }));
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
     public async Task TestPreferThisPreference_ForInstanceMethodWhenOn(ReportDiagnostic diagnostic)
@@ -5233,10 +5232,10 @@ class Program
                 }
             }
             """,
-            options: new(LanguageNames.CSharp)
+            new(options: new(LanguageNames.CSharp)
             {
                 { CodeStyleOptions2.QualifyMethodAccess, new CodeStyleOption2<bool>(true, new(diagnostic, true)) },
-            });
+            }));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
@@ -5269,10 +5268,10 @@ class Program
                 }
             }
             """,
-            options: new(LanguageNames.CSharp)
+            new(options: new(LanguageNames.CSharp)
             {
                 { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.TrueWithSilentEnforcement },
-            });
+            }));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
     public Task TestPreferThisPreference_NotForLocalFunctionWhenOn()
@@ -5305,10 +5304,10 @@ class Program
             }
             """,
             index: 1,
-            options: new(LanguageNames.CSharp)
+            new(options: new(LanguageNames.CSharp)
             {
                 { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.TrueWithSilentEnforcement },
-            });
+            }));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleOutTuple1()

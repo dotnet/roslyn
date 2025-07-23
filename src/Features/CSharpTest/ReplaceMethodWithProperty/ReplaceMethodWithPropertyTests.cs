@@ -24,9 +24,7 @@ public sealed class ReplaceMethodWithPropertyTests : AbstractCSharpCodeActionTes
         string initialMarkup, string expectedMarkup,
         ParseOptions? parseOptions = null, int index = 0)
         => TestAsync(
-            initialMarkup, expectedMarkup, parseOptions,
-            index: index,
-            options: AllCodeStyleOff);
+            initialMarkup, expectedMarkup, new(parseOptions, index: index, options: AllCodeStyleOff));
 
     private OptionsCollection AllCodeStyleOff
         => new(GetLanguage())

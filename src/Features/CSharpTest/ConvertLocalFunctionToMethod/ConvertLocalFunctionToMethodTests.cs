@@ -355,7 +355,7 @@ public sealed class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeAction
                     return var;
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2)));
 
     [Fact]
     public Task TestNamedArguments2()
@@ -392,7 +392,7 @@ public sealed class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeAction
                     return var;
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7)));
 
     [Fact]
     public Task TestDelegate1()

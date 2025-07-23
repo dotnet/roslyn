@@ -442,7 +442,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Console.Write(Int32.MaxValue);
                 }
             }
-            """, options: FrameworkTypeInMemberAccess);
+            """, new(options: FrameworkTypeInMemberAccess));
 
     [Fact]
     public Task MemberAccess2()
@@ -464,7 +464,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     var x = Int32.Parse("1");
                 }
             }
-            """, options: FrameworkTypeInMemberAccess);
+            """, new(options: FrameworkTypeInMemberAccess));
 
     [Fact]
     public Task DocCommentTriviaCrefExpression()
@@ -486,7 +486,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """, options: FrameworkTypeInMemberAccess);
+            """, new(options: FrameworkTypeInMemberAccess));
 
     [Fact]
     public Task DefaultExpression()

@@ -603,7 +603,7 @@ public sealed class MoveDeclarationNearReferenceTests : AbstractCSharpCodeAction
                 }
             }
             """,
-            title: FeaturesResources.Move_declaration_near_reference_may_change_semantics);
+            new(title: FeaturesResources.Move_declaration_near_reference_may_change_semantics));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
     public Task TestWarnOnChangingScopes1_TopLevelStatement()

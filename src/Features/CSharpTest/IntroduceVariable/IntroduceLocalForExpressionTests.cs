@@ -362,11 +362,11 @@ public sealed partial class IntroduceLocalForExpressionTests : AbstractCSharpCod
                     var {|Rename:dateTime|} = new DateTime();
                 }
             }
-            """, options: new OptionsCollection(GetLanguage())
-{
-    { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOption2.TrueWithSuggestionEnforcement },
-    { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSuggestionEnforcement },
-});
+            """, new(options: new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOption2.TrueWithSuggestionEnforcement },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSuggestionEnforcement },
+            }));
 
     [Fact]
     public Task MissingOnVoidCall()
@@ -914,7 +914,7 @@ public sealed partial class IntroduceLocalForExpressionTests : AbstractCSharpCod
                     var (someString, someInt) = X();
                 }
             }
-            """, options: ImplicitTypeForIntrinsics());
+            """, new(options: ImplicitTypeForIntrinsics()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
     public Task IntroduceDeconstruction_ImplicitTypeForIntrinsics2()

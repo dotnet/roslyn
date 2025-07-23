@@ -863,10 +863,10 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
                     G<int>.Add(@class);
                 }
             }
-            """, options: new(GetLanguage())
+            """, new(options: new(GetLanguage())
             {
                 { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, CodeStyleOption2.FalseWithSilentEnforcement }
-            });
+            }));
 
     [Fact]
     public Task TestNameVerbatimIdentifier2()
@@ -3882,10 +3882,10 @@ class SampleCollection<T>
 
                 private class Numbers {}
             }
-            """, options: new(GetLanguage())
-        {
-            { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, new CodeStyleOption2<bool>(true, NotificationOption2.Warning) },
-        });
+            """, new(options: new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, new CodeStyleOption2<bool>(true, NotificationOption2.Warning) },
+            }));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77276")]
     public Task TestIntroduceLocalWithTargetTypedNew2()
@@ -3916,10 +3916,10 @@ class SampleCollection<T>
             {
                 public int Value { get; set; }
             }
-            """, options: new(GetLanguage())
-        {
-            { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, new CodeStyleOption2<bool>(true, NotificationOption2.Warning) },
-        });
+            """, new(options: new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, new CodeStyleOption2<bool>(true, NotificationOption2.Warning) },
+            }));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77428")]
     public Task TestIntroduceLocalWithTargetTypedNew1_CSharp8()
@@ -5144,7 +5144,7 @@ class C
                 var t = (x, y: y1);
             }
         }
-        """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+        """, new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)));
 
     [Fact]
     public Task TupleWithInferredName_AllOccurrences()
@@ -5466,7 +5466,7 @@ class C
                     var tuple = (key: 1, value: Value);
                 }
             }
-            """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), index: 2);
+            """, new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), index: 2));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21373")]
     public Task TestInAttribute()

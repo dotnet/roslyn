@@ -601,7 +601,7 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                     _arg = arg ?? throw new ArgumentNullException(nameof(arg)); // Oh no!
                 }
             }
-            """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38102")]
     public Task PreserveTrailingTrivia2()
@@ -636,5 +636,5 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                     _arg = arg ?? throw new ArgumentNullException(nameof(arg)); // oh yes!
                 }
             }
-            """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 }

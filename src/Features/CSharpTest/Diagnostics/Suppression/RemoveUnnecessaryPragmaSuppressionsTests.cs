@@ -1396,7 +1396,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
             y = 1;
         }
     }
-    """, options: options);
+    """, new(options: options));
         }
 
         [Theory, CombinatorialData]

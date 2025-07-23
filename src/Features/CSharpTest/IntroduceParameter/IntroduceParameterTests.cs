@@ -744,7 +744,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                     int prod = M(z, y, x);
                 }
             }
-            """, index: 2, options: UseExpressionBody, parseOptions: CSharpParseOptions.Default);
+            """, index: 2, new(options: UseExpressionBody, parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestExpressionBodiedMemberTrampoline()

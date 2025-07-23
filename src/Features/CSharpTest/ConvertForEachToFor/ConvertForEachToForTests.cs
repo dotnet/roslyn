@@ -1794,5 +1794,5 @@ public sealed partial class ConvertForEachToForTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """, options: ImplicitTypeEverywhere);
+            """, new(options: ImplicitTypeEverywhere));
 }

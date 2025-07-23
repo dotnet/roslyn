@@ -232,7 +232,7 @@ public partial class UseImplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]

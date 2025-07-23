@@ -5027,7 +5027,7 @@ System.Diagnostics.Debug.Assert(x == true); }
             """, """
             int val = 0;
             System.Console.WriteLine(val + 1);
-            """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44263")]
     public Task TopLevelStatement_InScope()

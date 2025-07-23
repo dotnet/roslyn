@@ -4868,7 +4868,7 @@ class C
                 }
             }
             """,
-            index: PropertyIndex, options: ImplicitTypingEverywhere());
+            index: PropertyIndex, new(options: ImplicitTypingEverywhere()));
 
     [Fact]
     public Task TestFuncAssignment()
@@ -9342,7 +9342,7 @@ class C
                     public (int y, int z) X { get; internal set; }
                 }
             }
-            """ + TestResources.NetFX.ValueTuple.tuplelib_cs, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12)));
 
     [Fact]
     public Task TestConstantPatternInPropertyPattern()
@@ -9384,7 +9384,7 @@ class C
                 {
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12)));
 
     [Fact]
     public Task TestConstantPatternInExtendedPropertyPattern()

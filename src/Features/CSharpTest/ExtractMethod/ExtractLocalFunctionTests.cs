@@ -1988,7 +1988,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """, TestOptions.Regular7_1, index: CodeActionIndex);
+            """, new(TestOptions.Regular7_1, index: CodeActionIndex));
 
     [Fact]
     public Task TestDeconstruction5()
@@ -5148,7 +5148,7 @@ class Program
             {
                 return "string";
             }
-            """, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact]
     public Task TestMissingOnExtractLocalFunctionInNamespace()

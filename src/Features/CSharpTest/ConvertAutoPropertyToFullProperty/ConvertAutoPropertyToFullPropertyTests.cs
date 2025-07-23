@@ -674,7 +674,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
             {
                 public int Goo => field;
             }
-            """, options: PreferExpressionBodiesOnAccessorsAndMethods, index: 1, parseOptions: CSharp14);
+            """, new(options: PreferExpressionBodiesOnAccessorsAndMethods, index: 1, parseOptions: CSharp14));
 
     [Fact]
     public Task SetterOnly()

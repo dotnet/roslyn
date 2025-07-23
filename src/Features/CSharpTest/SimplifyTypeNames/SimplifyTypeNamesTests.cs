@@ -4705,7 +4705,7 @@ new TestParameters(Options.Script));
                 }
             }
             """,
-            parseOptions: CSharpParseOptions.Default);
+            new(parseOptions: CSharpParseOptions.Default));
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=388744")]
     public Task SimplifyTypeNameWithOutDiscard_FeatureDisabled()
