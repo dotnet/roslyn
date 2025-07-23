@@ -99,7 +99,7 @@ public sealed class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : Abs
                     }
                 }
             }
-            """, parseOptions: CSharp8ParseOptions);
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task ShouldTriggerForCSharp8()
@@ -166,7 +166,7 @@ public sealed class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : Abs
                     }
                 }
             }
-            """, parseOptions: CSharp8ParseOptions);
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestMultipleCalls()
@@ -201,7 +201,7 @@ public sealed class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : Abs
                 }
             }
             """
-, parseOptions: CSharp8ParseOptions);
+, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestMultipleCallsWithExistingParameters()
@@ -237,8 +237,7 @@ public sealed class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : Abs
                     }
                 }
             }
-            """
-, parseOptions: CSharp8ParseOptions);
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestRecursiveCall()
@@ -274,7 +273,7 @@ public sealed class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : Abs
                     }
                 }
             }
-            """, parseOptions: CSharp8ParseOptions);
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestCallInArgumentList()
@@ -308,7 +307,7 @@ public sealed class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : Abs
                     }
                 }
             }
-            """, parseOptions: CSharp8ParseOptions);
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestCallsWithNamedArguments()
@@ -345,7 +344,7 @@ public sealed class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : Abs
                 }
             }
             """
-, parseOptions: CSharp8ParseOptions);
+, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestCallsWithDafaultValue()
@@ -382,7 +381,7 @@ public sealed class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : Abs
                 }
             }
             """
-, parseOptions: CSharp8ParseOptions);
+, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestWarningAnnotation()
@@ -508,6 +507,6 @@ public sealed class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : Abs
                     }
                 }
             }
-            """, parseOptions: CSharp8ParseOptions);
+            """, new(parseOptions: CSharp8ParseOptions));
 }
 
