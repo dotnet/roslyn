@@ -2477,7 +2477,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             void local(int x, int y, int v)
             {
             }
-            """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44271")]
     public Task TopLevelStatement_Nested()
@@ -2579,7 +2579,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             {
                 public static class IsExternalInit { }
             }
-            """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact]
     public Task Test_PrimaryConstructor_Class()
@@ -2593,7 +2593,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             var r = new R(1, b);
 
             class R(int A, string b);
-            """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12));
+            """, new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54408")]
     public Task TestPositionalRecordStruct()
@@ -2617,7 +2617,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             {
                 public static class IsExternalInit { }
             }
-            """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact]
     public Task Test_PrimaryConstructor_Struct()
@@ -2631,7 +2631,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             var r = new R(1, b);
 
             struct R(int A, string b);
-            """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12));
+            """, new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56952")]
     public Task TestRecordsNamingConventions()
