@@ -976,7 +976,7 @@ public sealed partial class IntroduceLocalForExpressionTests : AbstractCSharpCod
                     (string someString, int someInt) = X();
                 }
             }
-            """, options: ImplicitTypeForApparent());
+            """, new(options: ImplicitTypeForApparent()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
     public Task IntroduceDeconstruction_ImplicitTypeWhenApparent2()
@@ -1032,5 +1032,5 @@ public sealed partial class IntroduceLocalForExpressionTests : AbstractCSharpCod
                     var (someString, someC) = (someString: "", someC: default(C));
                 }
             }
-            """, options: ImplicitTypeForApparentAndBuiltIn());
+            """, new(options: ImplicitTypeForApparentAndBuiltIn()));
 }

@@ -64,7 +64,7 @@ public sealed class MoveDeclarationNearReferenceTests : AbstractCSharpCodeAction
                 Console.WriteLine(x);
             }
             """,
-            TestOptions.Regular);
+            new(TestOptions.Regular));
 
     [Fact]
     public Task TestMove2()
@@ -105,7 +105,7 @@ public sealed class MoveDeclarationNearReferenceTests : AbstractCSharpCodeAction
             int x;
             Console.WriteLine(x);
             """,
-            TestOptions.Regular);
+            new(TestOptions.Regular));
 
     [Fact]
     public Task TestMove3()
@@ -168,7 +168,7 @@ public sealed class MoveDeclarationNearReferenceTests : AbstractCSharpCodeAction
                 Console.WriteLine(x);
             }
             """,
-            TestOptions.Regular);
+            new(TestOptions.Regular));
 
     [Fact]
     public Task TestMove4()
@@ -215,7 +215,7 @@ public sealed class MoveDeclarationNearReferenceTests : AbstractCSharpCodeAction
                 Console.WriteLine(x);
             }
             """,
-            TestOptions.Regular);
+            new(TestOptions.Regular));
 
     [Fact]
     public Task TestAssign1()
@@ -417,7 +417,7 @@ public sealed class MoveDeclarationNearReferenceTests : AbstractCSharpCodeAction
             Console.WriteLine();
             int i = 5; Console.Write(i);
             """,
-            TestOptions.Regular);
+            new(TestOptions.Regular));
 
     [Fact]
     public Task TestMissingInHiddenBlock1()
@@ -630,7 +630,7 @@ public sealed class MoveDeclarationNearReferenceTests : AbstractCSharpCodeAction
                 }
             });
             """,
-            TestOptions.Regular);
+            new(TestOptions.Regular));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
     public Task TestWarnOnChangingScopes2()
@@ -696,7 +696,7 @@ public sealed class MoveDeclarationNearReferenceTests : AbstractCSharpCodeAction
                 i++;
             }
             """,
-            TestOptions.Regular);
+            new(TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/44664")]
     public Task TestWarnOnChangingScopes3()
@@ -762,7 +762,7 @@ public sealed class MoveDeclarationNearReferenceTests : AbstractCSharpCodeAction
                 i++;
             }
             """,
-            TestOptions.Regular);
+            new(TestOptions.Regular));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545840")]
     public Task InsertCastIfNecessary1()
@@ -1523,7 +1523,7 @@ public sealed class MoveDeclarationNearReferenceTests : AbstractCSharpCodeAction
             int i = 0;
             Console.Write(i);
             """,
-            TestOptions.Regular);
+            new(TestOptions.Regular));
 
     [Fact]
     public Task TestMergeComments08()
@@ -1602,7 +1602,7 @@ public sealed class MoveDeclarationNearReferenceTests : AbstractCSharpCodeAction
                 Console.Write(i);
             }
             """,
-            TestOptions.Regular);
+            new(TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21907")]
     public Task TestMissingOnCrossFunction1()
@@ -1814,7 +1814,7 @@ public sealed class MoveDeclarationNearReferenceTests : AbstractCSharpCodeAction
                     break;
             }
             """,
-            TestOptions.Regular);
+            new(TestOptions.Regular));
 
     [Fact]
     public Task TestUsedInMultipleSwitchSections_MoveToSwitchStatement()
@@ -1887,7 +1887,7 @@ public sealed class MoveDeclarationNearReferenceTests : AbstractCSharpCodeAction
                     break;
             }
             """,
-            TestOptions.Regular);
+            new(TestOptions.Regular));
 
     [Fact]
     public Task TestUsedInMultipleSwitchSections_CannotMove()

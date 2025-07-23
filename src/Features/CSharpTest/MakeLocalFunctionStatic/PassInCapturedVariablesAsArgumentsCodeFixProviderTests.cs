@@ -132,7 +132,7 @@ public sealed class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : Abs
                 }  
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestMultipleVariables()
@@ -414,7 +414,7 @@ public sealed class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : Abs
                 }  
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestNonCamelCaseCapture()
@@ -449,7 +449,7 @@ public sealed class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : Abs
                 }  
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestFixAll()

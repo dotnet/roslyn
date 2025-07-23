@@ -1893,7 +1893,7 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
             }
             #line default
             """,
-            parseOptions: TestOptions.Regular);
+            new(parseOptions: TestOptions.Regular));
 
     [Fact]
     public Task TestMissingOnNamespace()
@@ -2348,8 +2348,7 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
                 }
             }
             """,
-
-options: ImplicitTypingEverywhere());
+            new(options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606347")]
     public Task InsertNeededCast1NotVar()
@@ -3217,7 +3216,7 @@ class C
                     int z = v;
                 }
             }
-            """, options: ImplicitTypingEverywhere(), index: 1);
+            """, new(options: ImplicitTypingEverywhere(), index: 1));
 
     [Fact]
     public Task TestIntroduceLocal_NullableType_FlowStateNonNull()
@@ -3959,11 +3958,11 @@ class SampleCollection<T>
                 private class Numbers {}
             }
             """,
-            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8),
+            new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8),
             options: new(GetLanguage())
             {
                 { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, new CodeStyleOption2<bool>(true, NotificationOption2.Warning) },
-            });
+            }));
 
     [Fact]
     public Task TestIntroduceFieldInExpressionBodiedPropertyGetter()
@@ -5412,7 +5411,7 @@ class C
                     var tuple = (id: 1, date: date);
                 }
             }
-            """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            """, new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21665")]
     public Task TestPickNameBasedOnValueTupleFieldName2()
@@ -8437,8 +8436,7 @@ namespace ConsoleApp1
                 public C c;
             }
             """,
-            parseOptions: null,
-            index: 1);
+            new(parseOptions: null, index: 1));
 
     [Fact]
     public Task TestNotOnNamedType1()
