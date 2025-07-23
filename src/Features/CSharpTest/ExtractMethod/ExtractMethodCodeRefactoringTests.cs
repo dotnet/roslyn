@@ -991,8 +991,7 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """,
-
-parseOptions: TestOptions.Regular);
+            new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
     public Task DoNotOverparenthesizeGenerics()

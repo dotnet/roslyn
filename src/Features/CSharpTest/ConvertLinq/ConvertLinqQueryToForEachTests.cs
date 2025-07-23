@@ -2196,7 +2196,7 @@ public sealed class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """, parseOptions: null);
+            """, new(parseOptions: null));
 
     [Fact]
     public Task IQueryable()

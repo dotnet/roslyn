@@ -171,7 +171,7 @@ public sealed class ConvertRegularStringToInterpolatedStringTests : AbstractCSha
                     const string v = $"string {{";
                 }
             }
-            """, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10));
+            """, new(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10)));
 
     [Fact]
     public Task TestMissingOnUnterminatedStringWithBraces()

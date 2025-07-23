@@ -810,8 +810,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
                 }
             }
             """,
-
-parseOptions: TestOptions.Regular, index: CodeActionIndex);
+            new(parseOptions: TestOptions.Regular, index: CodeActionIndex));
 
     [Fact]
     public Task PreserveCommentsBeforeDeclaration_1()
@@ -5335,7 +5334,7 @@ class Program
                     }
                 }
             }
-            """, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+            """, new(TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex));
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/55031")]
@@ -5381,7 +5380,7 @@ class Program
                     }
                 }
             }
-            """, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+            """, new(TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex));
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/55031")]
@@ -5489,7 +5488,7 @@ class Program
                 {
                 }
             }
-            """, TestOptions.Regular, index: CodeActionIndex);
+            """, new(TestOptions.Regular, index: CodeActionIndex));
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/63917")]
     [InlineData("true")]
