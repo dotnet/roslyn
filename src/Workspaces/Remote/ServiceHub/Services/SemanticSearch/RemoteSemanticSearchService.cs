@@ -63,7 +63,7 @@ internal sealed class RemoteSemanticSearchService(
             var service = services.GetLanguageServices(language).GetRequiredService<ISemanticSearchService>();
             var result = service.CompileQuery(services, query, referenceAssembliesDir, TraceLogger, cancellationToken);
 
-            return ValueTaskFactory.FromResult(result);
+            return ValueTask.FromResult(result);
         }, cancellationToken);
     }
 

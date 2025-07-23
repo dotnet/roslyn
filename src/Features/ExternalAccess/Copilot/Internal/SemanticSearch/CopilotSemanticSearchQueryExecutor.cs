@@ -37,16 +37,16 @@ internal sealed class CopilotSemanticSearchQueryExecutor(IHostWorkspaceProvider 
             => new(ClassificationOptions.Default);
 
         public ValueTask AddItemsAsync(int itemCount, CancellationToken cancellationToken)
-            => ValueTaskFactory.CompletedTask;
+            => ValueTask.CompletedTask;
 
         public ValueTask ItemsCompletedAsync(int itemCount, CancellationToken cancellationToken)
-            => ValueTaskFactory.CompletedTask;
+            => ValueTask.CompletedTask;
 
         public ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken)
         {
             RuntimeException ??= $"{exception.TypeName.ToVisibleDisplayString(includeLeftToRightMarker: false)}: {exception.Message}{Environment.NewLine}{exception.StackTrace.ToVisibleDisplayString(includeLeftToRightMarker: false)}";
             cancellationSource.Cancel();
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
@@ -58,7 +58,7 @@ internal sealed class CopilotSemanticSearchQueryExecutor(IHostWorkspaceProvider 
                 cancellationSource.Cancel();
             }
 
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
     }
 
