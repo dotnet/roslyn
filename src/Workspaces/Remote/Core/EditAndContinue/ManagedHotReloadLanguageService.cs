@@ -36,11 +36,11 @@ internal sealed partial class ManagedHotReloadLanguageService(
 
         // Returning null will check the file on disk:
         public ValueTask<string?> TryGetMatchingSourceTextAsync(string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult<string?>(null);
+            => ValueTask.FromResult<string?>(null);
     }
 
     private static readonly ActiveStatementSpanProvider s_emptyActiveStatementProvider =
-        (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+        (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
     private readonly ManagedHotReloadServiceProxy _debuggerService = new(serviceBrokerProvider.ServiceBroker);
     private readonly SolutionSnapshotProviderProxy _solutionSnapshotProvider = new(serviceBrokerProvider.ServiceBroker);
@@ -106,7 +106,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
     {
         if (_disabled)
         {
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         try
@@ -119,7 +119,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
             Disable();
         }
 
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     public ValueTask EnterBreakStateAsync(CancellationToken cancellationToken)
@@ -135,7 +135,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
     {
         if (_disabled)
         {
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         try
@@ -153,7 +153,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
             Disable();
         }
 
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     public async ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
@@ -189,7 +189,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
     {
         if (_disabled)
         {
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         try
@@ -204,14 +204,14 @@ internal sealed partial class ManagedHotReloadLanguageService(
             Disable();
         }
 
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     public ValueTask EndSessionAsync(CancellationToken cancellationToken)
     {
         if (_disabled)
         {
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         try
@@ -229,7 +229,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
             Disable();
         }
 
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     /// <summary>

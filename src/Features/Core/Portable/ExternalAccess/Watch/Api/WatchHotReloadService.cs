@@ -23,16 +23,16 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
     private sealed class DebuggerService(Func<ValueTask<ImmutableArray<string>>> capabilitiesProvider) : IManagedHotReloadService
     {
         public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
+            => ValueTask.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
 
         public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
+            => ValueTask.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
 
         public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
             => capabilitiesProvider();
 
         public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
-            => ValueTaskFactory.CompletedTask;
+            => ValueTask.CompletedTask;
     }
 
     public readonly struct Update
@@ -128,14 +128,14 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
     }
 
     private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
-        (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+        (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
     private readonly IEditAndContinueService _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
     private DebuggingSessionId _sessionId;
 
     public WatchHotReloadService(HostWorkspaceServices services, ImmutableArray<string> capabilities)
-        : this(services.SolutionServices, () => ValueTaskFactory.FromResult(AddImplicitDotNetCapabilities(capabilities)))
+        : this(services.SolutionServices, () => ValueTask.FromResult(AddImplicitDotNetCapabilities(capabilities)))
     {
     }
 

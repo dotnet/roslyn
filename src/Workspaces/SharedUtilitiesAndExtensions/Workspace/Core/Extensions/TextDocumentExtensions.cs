@@ -15,7 +15,7 @@ internal static partial class TextDocumentExtensions
     public static ValueTask<SourceText> GetValueTextAsync(this TextDocument document, CancellationToken cancellationToken)
     {
         if (document.TryGetText(out var text))
-            return ValueTaskFactory.FromResult(text);
+            return ValueTask.FromResult(text);
 
         return new ValueTask<SourceText>(document.GetTextAsync(cancellationToken));
     }

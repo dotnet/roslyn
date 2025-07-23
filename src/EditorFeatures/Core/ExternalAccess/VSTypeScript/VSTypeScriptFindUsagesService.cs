@@ -49,7 +49,7 @@ internal sealed class VSTypeScriptFindUsagesService(IVSTypeScriptFindUsagesServi
             => _context.OnReferencesFoundAsync(AsyncEnumerableFactory.SingletonAsync(reference.UnderlyingObject), cancellationToken);
 
         public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
-            => ValueTaskFactory.CompletedTask;
+            => ValueTask.CompletedTask;
     }
 
     private sealed class ProgressTracker(IStreamingProgressTracker progressTracker) : IVSTypeScriptStreamingProgressTracker

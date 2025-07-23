@@ -40,7 +40,7 @@ public sealed partial class LspTestWorkspace : TestWorkspace, ILspWorkspace
     {
         Contract.ThrowIfFalse(_supportsLspMutation);
         OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     internal override ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)

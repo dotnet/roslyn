@@ -20,16 +20,16 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
         private readonly ImmutableArray<string> _capabilities = capabilities;
 
         public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
+            => ValueTask.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
 
         public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
+            => ValueTask.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
 
         public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_capabilities);
+            => ValueTask.FromResult(_capabilities);
 
         public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
-            => ValueTaskFactory.CompletedTask;
+            => ValueTask.CompletedTask;
     }
 
     public readonly struct Update(
@@ -49,7 +49,7 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
     }
 
     private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
-        (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+        (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
     private static readonly ImmutableArray<Update> EmptyUpdate = [];
     private static readonly ImmutableArray<Diagnostic> EmptyDiagnostic = [];
