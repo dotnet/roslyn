@@ -1088,7 +1088,7 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """;
-        await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+        await TestInRegularAndScriptAsync(before, after, new(options: ExplicitTypeEverywhere()));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
