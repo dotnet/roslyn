@@ -328,7 +328,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || !(b is string));
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsTypePattern1_CSharp9()
@@ -372,7 +372,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || b is string);
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsNotTypePattern1_CSharp9()
@@ -416,7 +416,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || !(b is null));
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsNullPattern1_CSharp9()
@@ -482,7 +482,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || b is null);
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsNotNullPattern1_CSharp9()
@@ -526,7 +526,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || !(b is true));
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertBooleanIsTruePattern1_CSharp9()
@@ -592,7 +592,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || !(b is false));
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertBooleanIsFalsePattern1_CSharp9()
@@ -746,7 +746,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || !(b is string and object));
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsAndPattern1_CSharp9()
@@ -790,7 +790,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || !(b is string or object));
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsOrPattern1_CSharp9()
@@ -834,7 +834,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || !(b is string s));
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsTypeWithDesignationPattern1_CSharp9()
@@ -878,7 +878,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || !(b is var s));
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsVarPattern1_CSharp9()
@@ -922,7 +922,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || !(b is string s and object));
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsAndWithDesignationPattern1_CSharp9()
@@ -966,7 +966,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || !(b is string and object s));
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsAndWithDesignationPattern2_CSharp9()
