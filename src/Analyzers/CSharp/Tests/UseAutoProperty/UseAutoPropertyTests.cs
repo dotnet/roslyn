@@ -3028,7 +3028,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 public string A { get; }
             }
             """,
-            options: Option(CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Error));
+            new(options: Option(CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Error)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77011")]
     public Task TestKeepThisIfPreferredCodeStyle()

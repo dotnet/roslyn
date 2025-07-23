@@ -2529,7 +2529,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
                     }
                 }
             }
-            """, options: ExplicitTypeEverywhere());
+            """, new(options: ExplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40650")]
     public Task TestReferencedInSwitchArms1()

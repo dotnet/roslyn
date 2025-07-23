@@ -567,7 +567,7 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
             string x = null;
 
             x = s ?? throw new ArgumentNullException();
-            """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38102")]
     public Task PreserveTrailingTrivia1()

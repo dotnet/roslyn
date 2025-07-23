@@ -491,7 +491,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return checked(x == y) ? 0 : 1;
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70748")]
     public Task TestMissingWithUncheckedInIf()
@@ -524,7 +524,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return unchecked(x == y) ? 0 : 1;
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70748")]
     public Task TestMissingWithCheckedInTrueStatement()
@@ -557,7 +557,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return x == y ? checked(x - y) : 1;
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70748")]
     public Task TestMissingWithUncheckedInTrueStatement()
@@ -590,7 +590,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return x == y ? unchecked(x - y) : 1;
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70748")]
     public Task TestMissingWithCheckedInFalseStatement()
@@ -623,7 +623,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return x == y ? 1 : checked(x - y);
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70748")]
     public Task TestMissingWithUncheckedInFalseStatement()
@@ -656,7 +656,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return x == y ? 1 : unchecked(x - y);
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70750")]
     public Task TestMissingWithUnchecked()
@@ -729,7 +729,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return true ? "a" : "b";
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact]
     public Task TestConversion1_CSharp9()
@@ -845,7 +845,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return true ? (object)"a" : throw new System.Exception();
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestConversion1_Throw2_CSharp9()

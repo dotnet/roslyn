@@ -3489,7 +3489,7 @@ new TestParameters(Options.Script));
                     Program a = null; 
                 }
             }
-            """, parseOptions: null);
+            """, new(parseOptions: null));
 
         await TestMissingAsync(source, new TestParameters(GetScriptOptions()));
     }

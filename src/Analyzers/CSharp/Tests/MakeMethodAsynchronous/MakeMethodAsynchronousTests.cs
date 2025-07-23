@@ -75,8 +75,8 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default,
-            compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+            """, new(parseOptions: CSharpParseOptions.Default,
+            compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication)));
 
         // no option offered to keep void
         await TestActionCountAsync(initial, count: 1, new TestParameters(compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication)));
