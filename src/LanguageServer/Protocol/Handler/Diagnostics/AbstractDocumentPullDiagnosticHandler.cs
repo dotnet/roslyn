@@ -35,7 +35,7 @@ internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams
         // Only consider open documents here (and only closed ones in the WorkspacePullDiagnosticHandler).  Each
         // handler treats those as separate worlds that they are responsible for.
         var identifier = GetTextDocumentIdentifier(diagnosticsParams);
-        if (identifier is null || context.Document is null)
+        if (identifier is null || context.TextDocument is null)
         {
             context.TraceDebug("Ignoring diagnostics request because no text document was provided");
             return new([]);
