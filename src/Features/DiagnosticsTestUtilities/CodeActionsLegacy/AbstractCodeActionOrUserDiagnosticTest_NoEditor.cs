@@ -284,10 +284,10 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         }
     }
 
-    private static TestParameters WithRegularOptions(TestParameters parameters)
+    protected static TestParameters WithRegularOptions(TestParameters parameters)
         => parameters.WithParseOptions(parameters.parseOptions?.WithKind(SourceCodeKind.Regular));
 
-    private TestParameters WithScriptOptions(TestParameters parameters)
+    protected TestParameters WithScriptOptions(TestParameters parameters)
         => parameters.WithParseOptions(parameters.parseOptions?.WithKind(SourceCodeKind.Script) ?? GetScriptOptions());
 
     protected async Task TestMissingInRegularAndScriptAsync(
