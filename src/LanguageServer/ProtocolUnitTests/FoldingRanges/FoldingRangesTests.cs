@@ -70,6 +70,7 @@ public sealed class FoldingRangesTests : AbstractLanguageServerProtocolTests
         var expected = testLspServer.GetLocations()
             .SelectMany(kvp => kvp.Value.Select(location => CreateFoldingRange(kvp.Key, location.Range, collapsedText ?? "...")))
             .OrderByDescending(range => range.StartLine)
+            .ThenByDescending(range => range.StartCharacter)
             .ToArray();
 
         var results = await RunGetFoldingRangeAsync(testLspServer);
