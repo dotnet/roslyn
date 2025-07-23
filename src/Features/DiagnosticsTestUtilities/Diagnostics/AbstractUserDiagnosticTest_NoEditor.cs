@@ -219,7 +219,7 @@ public abstract partial class AbstractUserDiagnosticTest_NoEditor(ITestOutputHel
     }
 
     private protected Task TestActionCountInAllFixesAsync(string initialMarkup, int count)
-        => TestActionCountInAllFixesAsync(initialMarkup, new TestParameters(), count);
+        => TestActionCountInAllFixesAsync(initialMarkup, TestParameters.Default, count);
 
     private async Task TestActionCountInAllFixesAsync(
         string initialMarkup,

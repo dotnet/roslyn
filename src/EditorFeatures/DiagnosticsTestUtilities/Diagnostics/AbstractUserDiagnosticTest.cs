@@ -223,7 +223,7 @@ public abstract partial class AbstractUserDiagnosticTest(ITestOutputHelper logge
         int count)
     {
         return TestActionCountInAllFixesAsync(
-            initialMarkup, parameters: new TestParameters(), count);
+            initialMarkup, parameters: TestParameters.Default, count);
     }
 
     private async Task TestActionCountInAllFixesAsync(

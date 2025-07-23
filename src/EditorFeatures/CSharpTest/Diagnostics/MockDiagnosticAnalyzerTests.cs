@@ -54,7 +54,7 @@ public sealed partial class MockDiagnosticAnalyzerTests : AbstractCSharpDiagnost
          params DiagnosticDescription[] expectedDiagnostics)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(source, composition: GetComposition());
-        var actualDiagnostics = await this.GetDiagnosticsAsync(workspace, new TestParameters());
+        var actualDiagnostics = await this.GetDiagnosticsAsync(workspace, TestParameters.Default);
         actualDiagnostics.Verify(expectedDiagnostics);
     }
 

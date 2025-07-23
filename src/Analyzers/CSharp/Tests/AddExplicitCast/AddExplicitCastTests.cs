@@ -2430,9 +2430,9 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """;
-        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters()))
+        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, TestParameters.Default))
         {
-            var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
+            var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, TestParameters.Default);
             Assert.Equal(2, actions.Length);
         }
 
@@ -2493,9 +2493,9 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
             """;
 
-        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters()))
+        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, TestParameters.Default))
         {
-            var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
+            var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, TestParameters.Default);
             Assert.Equal(2, actions.Length);
         }
 
@@ -2633,9 +2633,9 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """;
-        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters()))
+        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, TestParameters.Default))
         {
-            var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
+            var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, TestParameters.Default);
             Assert.Equal(2, actions.Length);
         }
 
@@ -2707,9 +2707,9 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """;
-        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters()))
+        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, TestParameters.Default))
         {
-            var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
+            var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, TestParameters.Default);
             Assert.Equal(3, actions.Length);
         }
 

@@ -1242,7 +1242,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
                     }
                 }|]
                 """;
-            var parameters = new TestParameters();
+            var parameters = TestParameters.Default;
             using var workspace = CreateWorkspaceFromOptions(source, parameters);
 
             // Suppress the diagnostic in options.
