@@ -1605,7 +1605,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                            select x;
                 }
             }
-            """, parseOptions: null);
+            """, new(parseOptions: null));
         await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Collections.Generic;

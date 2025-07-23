@@ -227,7 +227,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
         var debuggingSession = TryGetDebuggingSession(sessionId);
         if (debuggingSession == null)
         {
-            return ValueTaskFactory.FromResult(EmitSolutionUpdateResults.Empty);
+            return ValueTask.FromResult(EmitSolutionUpdateResults.Empty);
         }
 
         return debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider, cancellationToken);
@@ -273,7 +273,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
         var debuggingSession = TryGetDebuggingSession(sessionId);
         if (debuggingSession == null)
         {
-            return ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+            return ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
         }
 
         return debuggingSession.GetAdjustedActiveStatementSpansAsync(mappedDocument, activeStatementSpanProvider, cancellationToken);

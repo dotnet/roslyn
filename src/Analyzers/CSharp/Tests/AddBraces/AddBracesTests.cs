@@ -1853,11 +1853,11 @@ public sealed partial class AddBracesTests : AbstractCSharpDiagnosticProviderBas
     {
         if (expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: Option(CSharpCodeStyleOptions.PreferBraces, bracesPreference, NotificationOption2.Silent));
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(options: Option(CSharpCodeStyleOptions.PreferBraces, bracesPreference, NotificationOption2.Silent)));
         }
         else
         {
-            await TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, bracesPreference, NotificationOption2.Silent)));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, new(options: Option(CSharpCodeStyleOptions.PreferBraces, bracesPreference, NotificationOption2.Silent)));
         }
     }
 }

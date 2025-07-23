@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Calling a static method defined on the current class via its simple name.
                         Debug.Assert(_factory.CurrentType is { });
-                        loweredReceiver = new BoundTypeExpression(node.Syntax, null, _factory.CurrentType); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Follow up (_factory.CompilationState.Type?)
+                        Debug.Assert(!_factory.CurrentType.IsExtension); // When binding a simple name for a call, you cannot get a member inside an extension type
+                        loweredReceiver = new BoundTypeExpression(node.Syntax, null, _factory.CurrentType);
                     }
                     else
                     {
@@ -211,8 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // When the original call is to an instance method, and the interceptor is an extension method,
             // we need to take special care to intercept with the extension method as though it is being called in reduced form.
             Debug.Assert(receiverOpt is not BoundTypeExpression || method.IsStatic);
-            var needToReduce = receiverOpt is not (null or BoundTypeExpression) && interceptor.IsExtensionMethod; // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
-            var symbolForCompare = needToReduce ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation, out _) : interceptor; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : test interceptors
+            var needToReduce = receiverOpt is not (null or BoundTypeExpression) && interceptor.IsExtensionMethod;
+            var symbolForCompare = needToReduce ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation, out _) : interceptor;
 
             if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare))
             {
@@ -260,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            if (invokedAsExtensionMethod && interceptor.IsStatic && !interceptor.IsExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
+            if (invokedAsExtensionMethod && interceptor.IsStatic && !interceptor.IsExtensionMethod)
             {
                 // Special case when intercepting an extension method call in reduced form with a non-extension.
                 this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, method.Parameters[0], method);
@@ -393,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<LocalSymbol>? temps = null;
                 var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                     ref rewrittenReceiver,
-                    captureReceiverMode: ReceiverCaptureMode.Default,
+                    forceReceiverCapturing: false,
                     arguments,
                     method,
                     argsToParamsOpt,
@@ -641,35 +642,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                    primaryCtor.GetCapturedParameters().ContainsKey(parameter);
         }
 
-        private enum ReceiverCaptureMode
-        {
-            /// <summary>
-            /// No special capture of the receiver, unless arguments need to refer to it.
-            /// For example, in case of a string interpolation handler.
-            /// </summary>
-            Default = 0,
-
-            /// <summary>
-            /// Used for a regular indexer compound assignment rewrite.
-            /// Everything is going to be in a single setter call with a getter call inside its value argument.
-            /// Only receiver and the indexes can be evaluated prior to evaluating the setter call. 
-            /// </summary>
-            CompoundAssignment,
-
-            /// <summary>
-            /// Used for situations when additional arbitrary side-effects are possibly involved.
-            /// Think about deconstruction, etc.
-            /// </summary>
-            UseTwiceComplex
-        }
-
         /// <summary>
         /// Visits all arguments of a method, doing any necessary rewriting for interpolated string handler conversions that
         /// might be present in the arguments and creating temps for any discard parameters.
         /// </summary>
         private ImmutableArray<BoundExpression> VisitArgumentsAndCaptureReceiverIfNeeded(
             [NotNullIfNotNull(nameof(rewrittenReceiver))] ref BoundExpression? rewrittenReceiver,
-            ReceiverCaptureMode captureReceiverMode,
+            bool forceReceiverCapturing,
             ImmutableArray<BoundExpression> arguments,
             Symbol methodOrIndexer,
             ImmutableArray<int> argsToParamsOpt,
@@ -681,12 +660,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(argumentRefKindsOpt.IsDefault || argumentRefKindsOpt.Length == arguments.Length);
             var requiresInstanceReceiver = methodOrIndexer.RequiresInstanceReceiver() && methodOrIndexer is not MethodSymbol { MethodKind: MethodKind.Constructor } and not FunctionPointerMethodSymbol;
             Debug.Assert(!requiresInstanceReceiver || rewrittenReceiver != null || _inExpressionLambda);
-            Debug.Assert(captureReceiverMode == ReceiverCaptureMode.Default || (requiresInstanceReceiver && rewrittenReceiver != null && storesOpt is object));
+            Debug.Assert(!forceReceiverCapturing || (requiresInstanceReceiver && rewrittenReceiver != null && storesOpt is object));
 
             BoundLocal? receiverTemp = null;
             BoundAssignmentOperator? assignmentToTemp = null;
 
-            if (captureReceiverMode != ReceiverCaptureMode.Default ||
+            if (forceReceiverCapturing ||
                 (requiresInstanceReceiver && arguments.Any(a => usesReceiver(a))))
             {
                 Debug.Assert(!_inExpressionLambda);
@@ -695,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 RefKind refKind;
 
-                if (captureReceiverMode != ReceiverCaptureMode.Default)
+                if (forceReceiverCapturing)
                 {
                     // SPEC VIOLATION: It is not very clear when receiver of constrained callvirt is dereferenced - when pushed (in lexical order),
                     // SPEC VIOLATION: or when actual call is executed. The actual behavior seems to be implementation specific in different JITs.
@@ -802,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (receiverTemp.LocalSymbol.IsRef &&
                     CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp) &&
                     !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp) &&
-                    (captureReceiverMode == ReceiverCaptureMode.UseTwiceComplex ||
+                    (forceReceiverCapturing ||
                      !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(rewrittenArguments)))
                 {
                     ReferToTempIfReferenceTypeReceiver(receiverTemp, ref assignmentToTemp, out extraRefInitialization, tempsOpt);

@@ -455,7 +455,7 @@ End Class
 </Document>
                     </Project>
                 </Workspace>.ToString()
-            Await TestInRegularAndScript1Async(markup, expected)
+            Await TestInRegularAndScriptAsync(markup, expected)
         End Function
     End Class
 End Namespace

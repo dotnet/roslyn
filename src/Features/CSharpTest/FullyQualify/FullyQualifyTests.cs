@@ -18,13 +18,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class FullyQualifyTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public FullyQualifyTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpFullyQualifyCodeFixProvider());
 
@@ -51,7 +47,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                     Goo();
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestTypeFromMultipleNamespaces2(TestHost testHost)
@@ -74,7 +70,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                 }
             }
             """,
-            index: 1, testHost: testHost);
+            index: 1, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889385")]
@@ -97,7 +93,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                     Goo();
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889385")]
@@ -120,7 +116,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                     Goo();
                 }
             }
-            """.Replace(@"\t", "\t"), testHost: testHost);
+            """.Replace(@"\t", "\t"), new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestGenericWithNoArgs(TestHost testHost)
@@ -142,7 +138,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                     Goo();
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestGenericWithCorrectArgs(TestHost testHost)
@@ -164,7 +160,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                     Goo();
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestSmartTagDisplayText(TestHost testHost)
@@ -249,7 +245,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                     System.Collections.Generic.List<int> a = new List<int>();
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestGenericItemType(TestHost testHost)
@@ -269,7 +265,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
             {
                 List<System.Int32> l;
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestGenerateWithExistingUsings(TestHost testHost)
@@ -295,7 +291,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                     Goo();
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestGenerateInNamespace(TestHost testHost)
@@ -323,7 +319,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                     }
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestGenerateInNamespaceWithUsings(TestHost testHost)
@@ -355,7 +351,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                     }
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public async Task TestExistingUsing(TestHost testHost)
@@ -396,7 +392,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                     Goo();
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
     }
 
     [Theory, CombinatorialData]
@@ -469,7 +465,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                     Blue
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestOnClassInheritance(TestHost testHost)
@@ -497,7 +493,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                 {
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestOnImplementedInterface(TestHost testHost)
@@ -525,7 +521,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                 {
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public async Task TestAllInBaseList(TestHost testHost)
@@ -568,7 +564,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                 {
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
         await TestInRegularAndScriptAsync(
             """
@@ -608,7 +604,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                 {
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
     }
 
     [Theory, CombinatorialData]
@@ -625,7 +621,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
             class Class
             {
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestAttributeExpanded(TestHost testHost)
@@ -641,7 +637,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
             class Class
             {
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527360")]
     public Task TestExtensionMethods(TestHost testHost)
@@ -681,7 +677,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                     l = new System.Collections.Generic.List<int>();
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestArgumentsInMethodCall(TestHost testHost)
@@ -703,7 +699,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                     Console.WriteLine(System.DateTime.Today);
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestCallSiteArgs(TestHost testHost)
@@ -723,7 +719,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                 {
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestUsePartialClass(TestHost testHost)
@@ -759,7 +755,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                 {
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestGenericClassInNestedNamespace(TestHost testHost)
@@ -801,7 +797,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                     A.B.GenericClass<int> c;
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TestBeforeStaticMethod(TestHost testHost)
@@ -821,7 +817,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                 {
                     System.Math.Sqrt();
                 }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
     public Task TestBeforeNamespace(TestHost testHost)
@@ -863,19 +859,19 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                     }
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
     public Task TestSimpleNameWithLeadingTrivia(TestHost testHost)
         => TestInRegularAndScriptAsync(
 @"class Class { void Test() { /*goo*/[|Int32|] i; } }",
-@"class Class { void Test() { /*goo*/System.Int32 i; } }", testHost: testHost);
+@"class Class { void Test() { /*goo*/System.Int32 i; } }", new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
     public Task TestGenericNameWithLeadingTrivia(TestHost testHost)
         => TestInRegularAndScriptAsync(
 @"class Class { void Test() { /*goo*/[|List<int>|] l; } }",
-@"class Class { void Test() { /*goo*/System.Collections.Generic.List<int> l; } }", testHost: testHost);
+@"class Class { void Test() { /*goo*/System.Collections.Generic.List<int> l; } }", new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
     public Task TestFullyQualifyTypeName(TestHost testHost)
@@ -905,7 +901,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
             {
                 Program.Inner i;
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26887")]
     public Task TestFullyQualifyUnboundIdentifier3(TestHost testHost)
@@ -935,7 +931,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
             {
                 public Program.Inner Name
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
     public Task TestFullyQualifyTypeName_NotForGenericType(TestHost testHost)
@@ -972,7 +968,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
             {
                 Alias.Int32 i;
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
     public Task TestFullyQualifyPrioritizeTypesOverNamespaces1(TestHost testHost)
@@ -1008,7 +1004,7 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
             {
                 Outer.C.C c;
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
     public Task TestFullyQualifyPrioritizeTypesOverNamespaces2(TestHost testHost)
@@ -1045,14 +1041,14 @@ public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUse
                 Outer.C c;
             }
             """,
-            index: 1, testHost: testHost);
+            index: 1, new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
     public Task BugFix5950(TestHost testHost)
         => TestAsync(
-@"using System.Console; WriteLine([|Expression|].Constant(123));",
-@"using System.Console; WriteLine(System.Linq.Expressions.Expression.Constant(123));",
-parseOptions: GetScriptOptions(), testHost: testHost);
+            @"using System.Console; WriteLine([|Expression|].Constant(123));",
+            @"using System.Console; WriteLine(System.Linq.Expressions.Expression.Constant(123));",
+            new(parseOptions: GetScriptOptions(), testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
     public Task TestAfterAlias(TestHost testHost)
@@ -1090,7 +1086,7 @@ parseOptions: GetScriptOptions(), testHost: testHost);
     public Task TestAssemblyAttribute(TestHost testHost)
         => TestInRegularAndScriptAsync(
 @"[assembly: [|InternalsVisibleTo|](""Project"")]",
-@"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project"")]", testHost: testHost);
+@"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project"")]", new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543388")]
     public Task TestMissingOnAliasName(TestHost testHost)
@@ -1150,7 +1146,7 @@ parseOptions: GetScriptOptions(), testHost: testHost);
     public Task TestAttribute(TestHost testHost)
         => TestInRegularAndScriptAsync(
 @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ",
-@"[ assembly : System.Runtime.InteropServices.Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", testHost: testHost);
+@"[ assembly : System.Runtime.InteropServices.Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
     public Task TestGeneratePropertyFromAttribute(TestHost testHost)
@@ -1193,7 +1189,7 @@ parseOptions: GetScriptOptions(), testHost: testHost);
                     System.Collections.Generic.IEnumerable<int> f;
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")]
     public Task AmbiguousTypeFix(TestHost testHost)
@@ -1249,7 +1245,7 @@ parseOptions: GetScriptOptions(), testHost: testHost);
                 {
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995857")]
     public async Task NonPublicNamespaces(TestHost testHost)
@@ -1300,7 +1296,7 @@ parseOptions: GetScriptOptions(), testHost: testHost);
                     System.Xaml
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
         await TestInRegularAndScriptAsync(
             """
@@ -1348,7 +1344,7 @@ parseOptions: GetScriptOptions(), testHost: testHost);
                     MS.Internal.Xaml
                 }
             }
-            """, index: 1, testHost: testHost);
+            """, index: 1, new(testHost: testHost));
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/11071")]
@@ -1405,7 +1401,7 @@ parseOptions: GetScriptOptions(), testHost: testHost);
                     }
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TupleTest(TestHost testHost)
@@ -1427,7 +1423,7 @@ parseOptions: GetScriptOptions(), testHost: testHost);
                     Goo();
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData]
     public Task TupleWithOneName(TestHost testHost)
@@ -1449,7 +1445,7 @@ parseOptions: GetScriptOptions(), testHost: testHost);
                     Goo();
                 }
             }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/18275")]
     public Task TestContextualKeyword1(TestHost testHost)
@@ -1508,7 +1504,7 @@ class C
         return ImmutableArray.CreateRange();
     }
 }
-""", testHost: testHost);
+""", new(testHost: testHost));
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/49986")]
@@ -1533,7 +1529,7 @@ class C
                 {
                     Sqrt(1);
                 }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/49986")]
     public Task TestInUsingContext_Namespace(TestHost testHost)
@@ -1557,7 +1553,7 @@ class C
                 {
                     Sqrt(1);
                 }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/49986")]
     public Task TestInUsingContext_UsingStatic(TestHost testHost)
@@ -1581,13 +1577,13 @@ class C
                 {
                     Sqrt(1);
                 }
-            """, testHost: testHost);
+            """, new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/51274")]
     public Task TestInUsingContext_UsingAlias(TestHost testHost)
         => TestInRegularAndScriptAsync(
 @"using M = [|Math|]",
-@"using M = System.Math", testHost: testHost);
+@"using M = System.Math", new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
     public async Task TestAddUsingsEditorBrowsableNeverSameProject(TestHost testHost)
@@ -1624,7 +1620,7 @@ class C
             }
             """;
 
-        await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
+        await TestInRegularAndScriptAsync(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
@@ -1696,7 +1692,7 @@ class C
                 }
             }
             """;
-        await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
+        await TestInRegularAndScriptAsync(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
@@ -1729,4 +1725,46 @@ class C
             """, new TestParameters(
             options: Option(MemberDisplayOptionsStorage.HideAdvancedMembers, true),
             testHost: testHost));
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79462")]
+    public async Task TestFullyQualifyWithSourceGeneratedFile(TestHost testHost)
+    {
+        const string InitialWorkspace = """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Console" CommonReferences="true">
+                    <Document FilePath="Program.cs">using Goo;
+
+            Something a;
+            [|PInvoke|].GetMessage();
+
+            namespace Goo
+            {
+                class Something { }
+            }</Document>
+                                    <DocumentFromSourceGenerator>
+            namespace Win32
+            {
+                public class PInvoke
+                {
+                }
+            }
+                                    </DocumentFromSourceGenerator>
+                </Project>
+            </Workspace>
+            """;
+
+        const string ExpectedDocumentText = """
+            using Goo;
+            
+            Something a;
+            Win32.PInvoke.GetMessage();
+            
+            namespace Goo
+            {
+                class Something { }
+            }
+            """;
+
+        await TestInRegularAndScriptAsync(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
+    }
 }

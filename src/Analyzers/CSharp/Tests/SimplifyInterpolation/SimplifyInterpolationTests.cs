@@ -48,7 +48,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ToStringWithNoParameter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -70,7 +70,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ToStringWithParameter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -92,7 +92,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ToStringWithEscapeSequences()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -114,7 +114,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ToStringWithVerbatimEscapeSequencesInsideVerbatimInterpolatedString()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -136,7 +136,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ToStringWithVerbatimEscapeSequencesInsideNonVerbatimInterpolatedString()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -158,7 +158,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ToStringWithNonVerbatimEscapeSequencesInsideVerbatimInterpolatedString()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -222,7 +222,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ToStringWithInvariantCultureInsideFormattableStringInvariant()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -244,7 +244,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task DateTimeFormatInfoInvariantInfoIsRecognized()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -266,7 +266,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task NumberFormatInfoInvariantInfoIsRecognized()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -301,7 +301,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ToStringWithFormatAndInvariantCultureInsideFormattableStringInvariant()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -336,7 +336,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task PadLeftWithIntegerLiteral()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -358,7 +358,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task PadRightWithIntegerLiteral()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -380,7 +380,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task PadLeftWithComplexConstantExpression()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -404,7 +404,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task PadLeftWithSpaceChar()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -426,7 +426,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task PadRightWithSpaceChar()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -474,7 +474,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task PadRightWithComplexConstantExpressionRequiringParentheses()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -524,7 +524,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ToStringWithNoParameterWhenAlignmentComponentIsSpecified()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -572,7 +572,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task PadLeftWhenFormattingComponentIsSpecified()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -594,7 +594,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task PadRightWhenFormattingComponentIsSpecified()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -668,7 +668,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ToStringWithoutFormatThenPadLeft()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -689,7 +689,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task PadLeftThenToStringWithoutFormat()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -710,7 +710,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task PadLeftThenToStringWithoutFormatWhenAlignmentComponentIsSpecified()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -731,7 +731,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact]
     public Task PadLeftThenPadRight_WithoutAlignment()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -843,7 +843,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42247")]
     public Task OnConstantAlignment1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Linq;
@@ -941,7 +941,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42669")]
     public Task PadLeftSimplificationIsStillOfferedOnBaseToString()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -972,7 +972,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42887")]
     public Task FormatComponentSimplificationIsOfferedOnIFormattableType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1006,7 +1006,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42887")]
     public Task ParameterlessToStringSimplificationIsStillOfferedOnNonIFormattableType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1032,7 +1032,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42887")]
     public Task PadLeftSimplificationIsStillOfferedOnNonIFormattableType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1073,7 +1073,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42936")]
     public Task PadLeftSimplificationIsStillOfferedOnRefStruct()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1126,7 +1126,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46011")]
     public Task DoubleOverridenToString()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1162,7 +1162,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49647")]
     public Task ConditionalExpressionMustRemainParenthesizedWhenUsingParameterlessToString()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1184,7 +1184,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49647")]
     public Task ConditionalExpressionMustRemainParenthesizedWhenUsingParameterizedToString()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1206,7 +1206,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49647")]
     public Task ConditionalExpressionMustRemainParenthesizedWhenUsingPadLeft()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {

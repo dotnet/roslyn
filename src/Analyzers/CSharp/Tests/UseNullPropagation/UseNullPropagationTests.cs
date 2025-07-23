@@ -22,7 +22,7 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
 public sealed partial class UseNullPropagationTests
 {
-    private static Task TestInRegularAndScript1Async(
+    private static Task TestInRegularAndScriptAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
         OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary,
@@ -53,7 +53,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestLeft_Equals()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -79,7 +79,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestLeft_Equals_IfStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -106,7 +106,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestIfStatement_WithBlock()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -173,7 +173,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestLeft_Equals_IfStatement_TopLevel()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -190,7 +190,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestLeft_IsNull()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -216,7 +216,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestLeft_IsNotNull()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -242,7 +242,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestLeft_IsNotNull_IfStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -300,7 +300,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestRight_Equals()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -326,7 +326,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestRight_Equals_IfStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -353,7 +353,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestLeft_NotEquals()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -379,7 +379,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestWithNullableType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -403,7 +403,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestWithNullableType_IfStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -428,7 +428,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestWithNullableTypeAndObjectCast()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -452,7 +452,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestWithNullableTypeAndObjectCast_IfStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -477,7 +477,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestRight_NotEquals()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -503,7 +503,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestIndexer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -529,7 +529,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestIndexer_IfStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -556,7 +556,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestConditionalAccess()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -582,7 +582,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestConditionalAccess_IfStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -609,7 +609,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestMemberAccess()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -635,7 +635,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestMemberAccess_IfStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -693,7 +693,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestParenthesizedCondition()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -719,7 +719,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestFixAll1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -747,7 +747,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestFixAll2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -893,7 +893,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19774")]
     public Task TestNullableMemberAccess()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -920,7 +920,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19774")]
     public Task TestNullableMemberAccess_IfStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -948,7 +948,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19774")]
     public Task TestNullableElementAccess()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -985,7 +985,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndIsNull()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1009,7 +1009,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndIsNotNull()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1033,7 +1033,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndIsNotNull_IfStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1130,7 +1130,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndReferenceEquals1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1154,7 +1154,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndReferenceEquals1_IfStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1179,7 +1179,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndReferenceEquals2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1203,7 +1203,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndReferenceEquals2_IfStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1286,7 +1286,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndReferenceEqualsWithObject1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1310,7 +1310,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndReferenceEqualsWithObject1_IfStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1335,7 +1335,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndReferenceEqualsWithObject2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1359,7 +1359,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndReferenceEqualsWithObject2_IfStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1412,7 +1412,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndNotIsNull()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1436,7 +1436,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndNotIsNotNull()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1487,7 +1487,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndLogicalNotReferenceEquals1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1511,7 +1511,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndLogicalNotReferenceEquals2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1563,7 +1563,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndLogicalNotReferenceEqualsWithObject1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1587,7 +1587,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestWithNullableTypeAndLogicalNotReferenceEqualsWithObject2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1639,7 +1639,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestEqualsWithLogicalNot()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1663,7 +1663,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestEqualsWithLogicalNot_IfStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1688,7 +1688,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")]
     public Task TestNotEqualsWithLogicalNot()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1740,7 +1740,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49517")]
     public Task TestParenthesizedExpression()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1766,7 +1766,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49517")]
     public Task TestReversedParenthesizedExpression()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1792,7 +1792,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74273")]
     public Task TestParenthesizedPropertyAccess()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System;
             
             class C
@@ -1810,7 +1810,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74273")]
     public Task TestReversedParenthesizedPropertyAccess()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System;
             
             class C
@@ -1828,7 +1828,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49517")]
     public Task TestParenthesizedNull()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1854,7 +1854,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49517")]
     public Task TestReversedParenthesizedNull()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1880,7 +1880,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestIfStatement_Trivia1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1909,7 +1909,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestIfStatement_Trivia2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1940,7 +1940,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestIfStatement_Trivia3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1973,7 +1973,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestIfStatement_Trivia4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2006,7 +2006,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestIfStatement_Trivia5()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2081,7 +2081,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63557")]
     public Task TestWithColorColorInstanceCase()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2139,7 +2139,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66036")]
     public Task TestElseIfStatement1()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M(string s)
@@ -2171,7 +2171,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66036")]
     public Task TestElseIfStatement_NullAssignment1()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M(string s)
@@ -2205,7 +2205,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66036")]
     public Task TestElseIfStatement2()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M(string s)
@@ -2233,7 +2233,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66036")]
     public Task TestElseIfStatement_Trivia()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M(string s)
@@ -2267,7 +2267,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66036")]
     public Task TestElseIfStatement_KeepBracePlacementStyle()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M(string s)
@@ -2297,7 +2297,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66141")]
     public Task TestOnValueOffOfNullableValueType1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2323,7 +2323,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66141")]
     public Task TestOnValueOffOfNullableValueType2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2349,7 +2349,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestNullConditionalAssignment1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2399,7 +2399,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestNullAssignmentAfterOperation1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2435,7 +2435,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestNullAssignmentAfterOperation2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2561,7 +2561,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestNullAssignmentAfterOperation_TopLevel1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             
@@ -2595,7 +2595,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact]
     public Task TestNullAssignmentAfterOperation_TopLevel2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             
@@ -2631,7 +2631,7 @@ public sealed partial class UseNullPropagationTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79338")]
     public Task TestNestedNullPropagation_DifferentForms()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             

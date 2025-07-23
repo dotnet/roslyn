@@ -286,8 +286,12 @@ internal static class CSharpStructureHelpers
         static SyntaxToken GetHintTextEndToken(SyntaxNode node)
             => node switch
             {
-                EnumDeclarationSyntax enumDeclaration => enumDeclaration.OpenBraceToken.GetPreviousToken(),
-                TypeDeclarationSyntax typeDeclaration => typeDeclaration.OpenBraceToken.GetPreviousToken(),
+                EnumDeclarationSyntax enumDeclaration
+                    => enumDeclaration.OpenBraceToken.GetPreviousToken(),
+                TypeDeclarationSyntax typeDeclaration
+                    => typeDeclaration.OpenBraceToken != default
+                        ? typeDeclaration.OpenBraceToken.GetPreviousToken()
+                        : typeDeclaration.SemicolonToken.GetPreviousToken(),
                 _ => node.GetLastToken()
             };
     }

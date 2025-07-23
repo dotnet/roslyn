@@ -100,7 +100,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
         return RunServiceAsync(cancellationToken =>
         {
             GetService().BreakStateOrCapabilitiesChanged(sessionId, inBreakState);
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 
@@ -112,7 +112,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
         return RunServiceAsync(cancellationToken =>
         {
             GetService().EndDebuggingSession(sessionId);
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 
@@ -166,7 +166,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
         return RunServiceAsync(cancellationToken =>
         {
             GetService().CommitSolutionUpdate(sessionId);
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 

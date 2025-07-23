@@ -21,7 +21,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
         => new CSharpInlineTemporaryCodeRefactoringProvider();
 
     private async Task TestFixOneAsync(string initial, string expected)
-        => await TestInRegularAndScript1Async(GetTreeText(initial), GetTreeText(expected));
+        => await TestInRegularAndScriptAsync(GetTreeText(initial), GetTreeText(expected));
 
     private static string GetTreeText(string initial)
     {
@@ -237,7 +237,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     3.ToString(); }
             }
             """,
-            CSharpParseOptions.Default);
+            new(CSharpParseOptions.Default));
 
     [Fact]
     public Task Conversion_DifferentOverload()
@@ -369,7 +369,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var y = true ? (int?)42 : null;
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion)));
 
     [Theory]
     [InlineData(LanguageVersion.CSharp8, " (int?)42")]
@@ -397,7 +397,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
              : null;
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion)));
 
     [Fact]
     public Task NoCastOnVar()
@@ -2238,7 +2238,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
             }
         }
         """,
-        parseOptions: null);
+        new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544635")]
     public Task InsertCastForEnumZeroIfBoxed()
@@ -2267,7 +2267,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
             }
         }
         """,
-        parseOptions: null);
+        new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554010")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544636")]
@@ -2295,7 +2295,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
             }
         }
         """,
-        parseOptions: null);
+        new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554010")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544978")]
@@ -2323,7 +2323,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
             }
         }
         """,
-        parseOptions: null);
+        new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545103")]
     public Task DoNotInsertCastForTypeThatNoLongerBindsToTheSameType()
@@ -2356,7 +2356,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
             }
         }
         """,
-        parseOptions: null);
+        new(parseOptions: null));
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545170")]
@@ -3108,7 +3108,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529950")]
     public Task InlineTempDoesNotInsertUnnecessaryExplicitTypeInLambdaParameter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
         """
         using System;
 
@@ -3548,7 +3548,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var s2 = string.Replace($"hello", "world");
                 }
             }
-            """, parseOptions: TestOptions.Regular7);
+            """, new(parseOptions: TestOptions.Regular7));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33108")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/4583")]
@@ -3623,7 +3623,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var s2 = string.Replace($"hello {x}", "world");
                 }
             }
-            """, parseOptions: TestOptions.Regular7);
+            """, new(parseOptions: TestOptions.Regular7));
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33108")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/4583")]
@@ -3798,7 +3798,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
     [InlineData(LanguageVersion.CSharp6)]
     [InlineData(LanguageVersion.CSharp12)]
     public Task Tuples(LanguageVersion version)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -5003,7 +5003,7 @@ System.Diagnostics.Debug.Assert(x == true); }
                 {
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44263")]
     public Task Call_TopLevelStatement()
@@ -5016,7 +5016,7 @@ System.Diagnostics.Debug.Assert(x == true); }
             using System;
 
             (1 + 1).ToString();
-            """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44263")]
     public Task TopLevelStatement()
@@ -5027,7 +5027,7 @@ System.Diagnostics.Debug.Assert(x == true); }
             """, """
             int val = 0;
             System.Console.WriteLine(val + 1);
-            """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44263")]
     public Task TopLevelStatement_InScope()
@@ -5044,11 +5044,11 @@ System.Diagnostics.Debug.Assert(x == true); }
                 System.Console.WriteLine(val + 1);
             }
             """,
-            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            new(TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact]
     public Task TestWithLinkedFile()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
@@ -5116,7 +5116,7 @@ System.Diagnostics.Debug.Assert(x == true); }
                     new MyClass().ToString();
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34143")]
     public Task TestPreserveDestinationTrivia1()

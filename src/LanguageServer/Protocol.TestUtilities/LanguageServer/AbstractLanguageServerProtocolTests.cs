@@ -645,14 +645,25 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         public async Task<Document> GetDocumentAsync(DocumentUri uri)
         {
-            var document = await GetCurrentSolution().GetDocumentAsync(new LSP.TextDocumentIdentifier { DocumentUri = uri }, CancellationToken.None).ConfigureAwait(false);
+            var textDocument = await GetTextDocumentAsync(uri).ConfigureAwait(false);
+            if (textDocument is not Document document)
+            {
+                throw new InvalidOperationException($"Found TextDocument with {uri} in solution, but it is not a Document");
+            }
+
+            return document;
+        }
+
+        public async Task<TextDocument> GetTextDocumentAsync(DocumentUri uri)
+        {
+            var document = await GetCurrentSolution().GetTextDocumentAsync(new LSP.TextDocumentIdentifier { DocumentUri = uri }, CancellationToken.None).ConfigureAwait(false);
             Contract.ThrowIfNull(document, $"Unable to find document with {uri} in solution");
             return document;
         }
 
         public async Task<SourceText> GetDocumentTextAsync(DocumentUri uri)
         {
-            var document = await GetDocumentAsync(uri).ConfigureAwait(false);
+            var document = await GetTextDocumentAsync(uri).ConfigureAwait(false);
             return await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
         }
 

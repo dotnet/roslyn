@@ -1421,7 +1421,7 @@ public sealed class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTe
             {
                 private int GetProp() => 0;
             }
-            """, options: PreferExpressionBodiedMethods);
+            """, new(options: PreferExpressionBodiedMethods));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle2()
@@ -1449,7 +1449,7 @@ public sealed class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTe
                 private int GetProp() => 0;
                 private void SetProp(int value) => throw e;
             }
-            """, options: PreferExpressionBodiedMethods);
+            """, new(options: PreferExpressionBodiedMethods));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle3()
@@ -1471,7 +1471,7 @@ public sealed class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTe
                 private int GetProp() => 0;
                 private void SetProp(int value) => throw e;
             }
-            """, options: PreferExpressionBodiedMethods);
+            """, new(options: PreferExpressionBodiedMethods));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle4()
@@ -1487,7 +1487,7 @@ public sealed class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTe
             {
                 private int GetProp() => 0;
             }
-            """, options: PreferExpressionBodiedMethods);
+            """, new(options: PreferExpressionBodiedMethods));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle5()
@@ -1505,7 +1505,7 @@ public sealed class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTe
 
                 private int GetProp() => prop;
             }
-            """, options: PreferExpressionBodiedMethods);
+            """, new(options: PreferExpressionBodiedMethods));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle6()
@@ -1524,7 +1524,7 @@ public sealed class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTe
                 private int GetProp() => prop;
                 private void SetProp(int value) => prop = value;
             }
-            """, options: PreferExpressionBodiedMethods);
+            """, new(options: PreferExpressionBodiedMethods));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle7()
@@ -1551,7 +1551,7 @@ public sealed class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTe
                     return B();
                 }
             }
-            """, options: PreferExpressionBodiedMethods);
+            """, new(options: PreferExpressionBodiedMethods));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
     public Task TestDocumentationComment1()
@@ -1816,7 +1816,7 @@ public sealed class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTe
             #endif
             }
             """,
-            options: PreferExpressionBodiedMethods);
+            new(options: PreferExpressionBodiedMethods));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
     public Task TestWithDirectives3()
@@ -1869,7 +1869,7 @@ public sealed class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTe
             #endif
             }
             """,
-            options: PreferExpressionBodiedMethods);
+            new(options: PreferExpressionBodiedMethods));
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")]
     public Task TestExplicitInterfaceImplementation()

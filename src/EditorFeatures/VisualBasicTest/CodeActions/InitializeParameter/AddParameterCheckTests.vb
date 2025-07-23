@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InitializeParamete
 
         <Fact>
         Public Async Function TestSimpleReferenceType() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -40,7 +40,7 @@ end class")
 
         <Fact>
         Public Async Function TestNullable() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -62,7 +62,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47030")>
         Public Async Function TestOnByRefParameter() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     public sub new([||]byref s as string)
@@ -82,7 +82,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47030")>
         Public Async Function TestOnOutByRefParameter() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Runtime.InteropServices
 class C
@@ -137,7 +137,7 @@ end class")
 
         <Fact>
         Public Async Function TestDoNotUpdateExistingFieldAssignment() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -166,7 +166,7 @@ end class")
 
         <Fact>
         Public Async Function TestDoNotUpdateExistingPropertyAssignment() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -195,7 +195,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004")>
         Public Async Function TestInsertAfterExistingNullCheck1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -222,7 +222,7 @@ end class")
 
         <Fact>
         Public Async Function TestInsertBeforeExistingNullCheck1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -309,7 +309,7 @@ end class")
 
         <Fact>
         Public Async Function TestInMethod() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -331,7 +331,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")>
         Public Async Function TestOnMultiLineSubLambdaParameter() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -357,7 +357,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")>
         Public Async Function TestOnMultiLineFunctionLambdaParameter() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -386,7 +386,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")>
         Public Async Function TestOnSingleLineSubLambdaParameter() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -413,7 +413,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")>
         Public Async Function TestOnSingleLineFunctionLambdaParameter() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -464,7 +464,7 @@ end class")
 
         <Fact>
         Public Async Function TestSpecialStringCheck1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -486,7 +486,7 @@ end class", index:=1)
 
         <Fact>
         Public Async Function TestSpecialStringCheck2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -513,7 +513,7 @@ end class", index:=2)
             Try
                 CultureInfo.CurrentUICulture = New CultureInfo("de-DE", useUserOverride:=False)
 
-                Await TestInRegularAndScript1Async(
+                Await TestInRegularAndScriptAsync(
     "
 Imports System
 
@@ -538,7 +538,7 @@ end class", index:=1)
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004")>
         Public Async Function TestMultiNullableParameters() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -568,7 +568,7 @@ end class", index:=3)
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004")>
         Public Async Function TestMultiNullableWithCursorOnNonNullable() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -594,7 +594,7 @@ end class", index:=0)
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29190")>
         Public Async Function TestSimpleReferenceTypeWithParameterNameSelected1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -627,7 +627,7 @@ End Class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52383")>
         Public Async Function TestImportSystem() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Sub M([||]s As String)
