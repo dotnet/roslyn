@@ -2061,7 +2061,7 @@ public static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : should we extend member post-conditions to work with extension members?
+        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : nullability, should we extend member post-conditions to work with extension members?
         DiagnosticDescription[] expected = [
             // (4,5): warning CS8602: Dereference of a possibly null reference.
             //     object.P2.ToString(); // 1
@@ -14569,6 +14569,660 @@ public static class E
             // (1,3): error CS1501: No overload for method 'M' takes 1 arguments
             // 1.M(2);
             Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "1").WithLocation(1, 3));
+    }
+
+    [Fact]
+    public void FunctionType_MissingImplementationMethod()
+    {
+        // Based on the following, but without implementation method
+        // public static class E
+        // {
+        //     extension(int)
+        //     {
+        //         public static void M() { }
+        //     }
+        // }
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            IL_0000: ret
+        }
+
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
+}
+""";
+
+        var src = """
+var x = int.M;
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSrc, parseOptions: TestOptions.Regular12);
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS0570: 'E.extension(int).M()' is not supported by the language
+            // var x = int.M;
+            Diagnostic(ErrorCode.ERR_BindToBogus, "int.M").WithArguments("E.extension(int).M()").WithLocation(1, 9));
+
+        DiagnosticDescription[] expected = [
+            // (1,9): error CS0570: 'E.extension(int).M()' is not supported by the language
+            // var x = int.M;
+            Diagnostic(ErrorCode.ERR_BindToBogus, "int.M").WithArguments("E.extension(int).M()").WithLocation(1, 9)];
+
+        comp = CreateCompilationWithIL(src, ilSrc, parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics(expected);
+
+        comp = CreateCompilationWithIL(src, ilSrc, parseOptions: TestOptions.RegularNext);
+        comp.VerifyEmitDiagnostics(expected);
+
+        comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(expected);
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_01()
+    {
+        var src = """
+static class E
+{
+    extension(int)
+    {
+        public static void E() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,28): error CS0542: 'E': member names cannot be the same as their enclosing type
+            //         public static void E() { }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "E").WithArguments("E").WithLocation(5, 28));
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_02()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public void E() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,21): error CS0542: 'E': member names cannot be the same as their enclosing type
+            //         public void E() { }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "E").WithArguments("E").WithLocation(5, 21));
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_03()
+    {
+        var src = """
+static class E
+{
+    extension(object)
+    {
+        public static int E { get => 0; set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,27): error CS0542: 'E': member names cannot be the same as their enclosing type
+            //         public static int E { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "E").WithArguments("E").WithLocation(5, 27));
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_04()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public int E { get => 0; set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,20): error CS0542: 'E': member names cannot be the same as their enclosing type
+            //         public int E { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "E").WithArguments("E").WithLocation(5, 20));
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_05()
+    {
+        var src = """
+static class get_E
+{
+    extension(object)
+    {
+        public static int E => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,32): error CS0542: 'get_E': member names cannot be the same as their enclosing type
+            //         public static int E => 0;
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "0").WithArguments("get_E").WithLocation(5, 32));
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_07()
+    {
+        var src = """
+static class get_E
+{
+    extension(object)
+    {
+        public static int E => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,32): error CS0542: 'get_E': member names cannot be the same as their enclosing type
+            //         public static int E => 0;
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "0").WithArguments("get_E").WithLocation(5, 32));
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_08()
+    {
+        var src = """
+static class op_Addition
+{
+    extension(object)
+    {
+        public static object operator+(object o1, object o2) => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,38): error CS0542: 'op_Addition': member names cannot be the same as their enclosing type
+            //         public static object operator+(object o1, object o2) => throw null;
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "+").WithArguments("op_Addition").WithLocation(5, 38));
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_09()
+    {
+        var src = """
+extension(object)
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            // extension(object)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void MemberNameSameAsType_10()
+    {
+        var src = """
+static class E1
+{
+    static class E2
+    {
+        extension(object)
+        {
+            public static void E1() { }
+            public static void E2() { }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //         extension(object)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(5, 9),
+            // (8,32): error CS0542: 'E2': member names cannot be the same as their enclosing type
+            //             public static void E2() { }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "E2").WithArguments("E2").WithLocation(8, 32));
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_01()
+    {
+        var src = """
+static class E
+{
+    extension(Name)
+    {
+        public static void Name() { }
+    }
+}
+
+class Name { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,28): error CS9326: 'Name': extension member names cannot be the same as their extended type
+            //         public static void Name() { }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "Name").WithArguments("Name").WithLocation(5, 28));
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_02()
+    {
+        var src = """
+static class E
+{
+    extension(get_P)
+    {
+        public static int P => 0;
+    }
+}
+
+class get_P { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,32): error CS9326: 'get_P': extension member names cannot be the same as their extended type
+            //         public static int P => 0;
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "0").WithArguments("get_P").WithLocation(5, 32));
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_03()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        void T() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_04()
+    {
+        var src = """
+static class E
+{
+    extension(op_Addition)
+    {
+        public static op_Addition operator+(op_Addition o1, op_Addition o2) => throw null;
+    }
+}
+
+class op_Addition { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,43): error CS9326: 'op_Addition': extension member names cannot be the same as their extended type
+            //         public static op_Addition operator+(op_Addition o1, op_Addition o2) => throw null;
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "+").WithArguments("op_Addition").WithLocation(5, 43));
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_05()
+    {
+        var src = """
+static class E
+{
+    extension(N.op_Addition)
+    {
+        public static N.op_Addition operator+(N.op_Addition o1, N.op_Addition o2) => throw null;
+    }
+}
+
+namespace N
+{
+    class op_Addition { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,45): error CS9326: 'op_Addition': extension member names cannot be the same as their extended type
+            //         public static N.op_Addition operator+(N.op_Addition o1, N.op_Addition o2) => throw null;
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "+").WithArguments("op_Addition").WithLocation(5, 45));
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_06()
+    {
+        var src = """
+static class E
+{
+    extension<T>(op_Addition<T>)
+    {
+        public static op_Addition<T> operator+(op_Addition<T> o1, op_Addition<T> o2) => throw null;
+    }
+}
+
+class op_Addition<T> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,46): error CS9326: 'op_Addition': extension member names cannot be the same as their extended type
+            //         public static op_Addition<T> operator+(op_Addition<T> o1, op_Addition<T> o2) => throw null;
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "+").WithArguments("op_Addition").WithLocation(5, 46));
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_07()
+    {
+        var src = """
+static class E
+{
+    extension((int, int))
+    {
+        public static void ValueTuple() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,28): error CS9326: 'ValueTuple': extension member names cannot be the same as their extended type
+            //         public static void ValueTuple() { }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "ValueTuple").WithArguments("ValueTuple").WithLocation(5, 28));
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_08()
+    {
+        var src = """
+#nullable enable
+
+static class E
+{
+    extension(string?)
+    {
+        public static void String() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,28): error CS9326: 'String': extension member names cannot be the same as their extended type
+            //         public static void String() { }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "String").WithArguments("String").WithLocation(7, 28));
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_09()
+    {
+        var src = """
+#nullable enable
+
+static class E
+{
+    extension(string?)
+    {
+        public static void @string() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void MemberNameSameAsExtendedType_10()
+    {
+        var src = """
+static class E
+{
+    extension(C<int>)
+    {
+        public static void C() { }
+    }
+}
+
+public class C<T> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,28): error CS9326: 'C': extension member names cannot be the same as their extended type
+            //         public static void C() { }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsExtendedType, "C").WithArguments("C").WithLocation(5, 28));
+    }
+
+    [Fact]
+    public void ExtractCastInvocation_01()
+    {
+        var src = """
+_ = /*<bind>*/ from int x in new C<int>()
+    from int y in new C<int>()
+    select x.ToString() + y.ToString() /*</bind>*/;
+
+static class E
+{
+    extension(C<int> source)
+    {
+        public C<string> SelectMany(System.Func<int, C<int>> collectionSelector, System.Func<int, int, string> resultSelector) { System.Console.Write("SelectMany"); return new C<string>(); }
+        public C<T> Cast<T>() { System.Console.Write("Cast "); return new C<T>(); }
+    }
+}
+
+class C<T> { }
+""";
+        var comp = CreateCompilation(src);
+        var verifier = CompileAndVerify(comp, expectedOutput: "Cast SelectMany").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var q = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Single();
+
+        var info0 = model.GetQueryClauseInfo(q.FromClause);
+        Assert.Equal("Cast", info0.CastInfo.Symbol.Name);
+        Assert.Null(info0.OperationInfo.Symbol);
+        Assert.Equal("x", model.GetDeclaredSymbol(q.FromClause).Name);
+
+        var info1 = model.GetQueryClauseInfo(q.Body.Clauses[0]);
+        Assert.Equal("Cast", info1.CastInfo.Symbol.Name);
+        Assert.Equal("SelectMany", info1.OperationInfo.Symbol.Name);
+        Assert.Equal("y", model.GetDeclaredSymbol(q.Body.Clauses[0]).Name);
+
+        verifier.VerifyTypeIL("E", """
+.class private auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        // Methods
+        .method private hidebysig specialname static 
+            void '<Extension>$' (
+                class C`1<int32> source
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x212c
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
+        .method public hidebysig 
+            instance class C`1<string> SelectMany (
+                class [mscorlib]System.Func`2<int32, class C`1<int32>> collectionSelector,
+                class [mscorlib]System.Func`3<int32, int32, string> resultSelector
+            ) cil managed 
+        {
+            // Method begins at RVA 0x212e
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::SelectMany
+        .method public hidebysig 
+            instance class C`1<!!T> Cast<T> () cil managed 
+        {
+            // Method begins at RVA 0x212e
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::Cast
+    } // end of class <>E__0
+    // Methods
+    .method public hidebysig static 
+        class C`1<string> SelectMany (
+            class C`1<int32> source,
+            class [mscorlib]System.Func`2<int32, class C`1<int32>> collectionSelector,
+            class [mscorlib]System.Func`3<int32, int32, string> resultSelector
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x20cb
+        // Code size 16 (0x10)
+        .maxstack 8
+        IL_0000: ldstr "SelectMany"
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: newobj instance void class C`1<string>::.ctor()
+        IL_000f: ret
+    } // end of method E::SelectMany
+    .method public hidebysig static 
+        class C`1<!!T> Cast<T> (
+            class C`1<int32> source
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x20dc
+        // Code size 16 (0x10)
+        .maxstack 8
+        IL_0000: ldstr "Cast "
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: newobj instance void class C`1<!!T>::.ctor()
+        IL_000f: ret
+    } // end of method E::Cast
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+
+        var expectedOperationTree = """
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: C<System.String>) (Syntax: 'from int x  ... .ToString()')
+Expression:
+  IInvocationOperation ( C<System.String> E.<>E__0.SelectMany(System.Func<System.Int32, C<System.Int32>> collectionSelector, System.Func<System.Int32, System.Int32, System.String> resultSelector)) (OperationKind.Invocation, Type: C<System.String>, IsImplicit) (Syntax: 'from int y  ... ew C<int>()')
+    Instance Receiver:
+      IInvocationOperation ( C<System.Int32> E.<>E__0.Cast<System.Int32>()) (OperationKind.Invocation, Type: C<System.Int32>, IsImplicit) (Syntax: 'from int x  ... ew C<int>()')
+        Instance Receiver:
+          IObjectCreationOperation (Constructor: C<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: C<System.Int32>) (Syntax: 'new C<int>()')
+            Arguments(0)
+            Initializer:
+              null
+        Arguments(0)
+    Arguments(2):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: collectionSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new C<int>()')
+          IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Int32, C<System.Int32>>, IsImplicit) (Syntax: 'new C<int>()')
+            Target:
+              IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'new C<int>()')
+                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'new C<int>()')
+                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'new C<int>()')
+                    ReturnedValue:
+                      IInvocationOperation ( C<System.Int32> E.<>E__0.Cast<System.Int32>()) (OperationKind.Invocation, Type: C<System.Int32>, IsImplicit) (Syntax: 'new C<int>()')
+                        Instance Receiver:
+                          IObjectCreationOperation (Constructor: C<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: C<System.Int32>) (Syntax: 'new C<int>()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                        Arguments(0)
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: resultSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x.ToString( ... .ToString()')
+          IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Int32, System.Int32, System.String>, IsImplicit) (Syntax: 'x.ToString( ... .ToString()')
+            Target:
+              IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'x.ToString( ... .ToString()')
+                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x.ToString( ... .ToString()')
+                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x.ToString( ... .ToString()')
+                    ReturnedValue:
+                      IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: 'x.ToString( ... .ToString()')
+                        Left:
+                          IInvocationOperation (virtual System.String System.Int32.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'x.ToString()')
+                            Instance Receiver:
+                              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                            Arguments(0)
+                        Right:
+                          IInvocationOperation (virtual System.String System.Int32.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'y.ToString()')
+                            Instance Receiver:
+                              IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+                            Arguments(0)
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+""";
+        VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(src, expectedOperationTree, []);
+    }
+
+    [Fact]
+    public void MissingSystemObject()
+    {
+        var src = """
+static class E
+{
+    extension(object)
+    {
+    }
+}
+""";
+        var comp = CreateEmptyCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+            Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+            // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+            // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+            // error CS0518: Predefined type 'System.Int32' is not defined or imported
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Int32").WithLocation(1, 1),
+            // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+            // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+            // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
+            // (1,14): error CS0518: Predefined type 'System.Object' is not defined or imported
+            // static class E
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Object").WithLocation(1, 14),
+            // (3,5): error CS0518: Predefined type 'System.Object' is not defined or imported
+            //     extension(object)
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "extension").WithArguments("System.Object").WithLocation(3, 5),
+            // (3,5): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+            //     extension(object)
+            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 5),
+            // (3,14): error CS0518: Predefined type 'System.Void' is not defined or imported
+            //     extension(object)
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(").WithArguments("System.Void").WithLocation(3, 14),
+            // (3,15): error CS0518: Predefined type 'System.Object' is not defined or imported
+            //     extension(object)
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(3, 15));
     }
 }
 
