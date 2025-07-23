@@ -141,7 +141,15 @@ Instead of building new wrapping logic, this feature **exposes existing function
 ### Key Implementation Strategy
 - **Reuse, don't rebuild**: Leverage existing `CSharpParameterWrapper` infrastructure
 - **Consistent behavior**: Ensure EditorConfig wrapping matches manual refactoring results exactly  
-- **Performance**: Minimize overhead when `do_not_wrap` is specified (default)
+- **Performance**: Short-circuit when `do_not_wrap` is specified - zero overhead for default case
+
+### Performance Design
+The performance impact is minimal by design:
+- **Default case (`do_not_wrap`)**: Formatting rule short-circuits immediately - zero analysis overhead
+- **Wrapping enabled**: Only processes comma-separated constructs that would benefit from wrapping
+- **Existing infrastructure**: Leverages proven `AbstractCSharpSeparatedSyntaxListWrapper` algorithms
+
+This means existing codebases see **no performance impact** until teams explicitly opt-in to automatic wrapping.
 
 ## Implementation Plan
 
@@ -257,13 +265,11 @@ Sub Method(
 
 1. **Line Length Integration**: Should this use the existing `dotnet_max_line_length` option or introduce a separate wrapping threshold for comma-separated lists?
 
-2. **Performance Impact**: How do we ensure minimal overhead when `do_not_wrap` is specified, especially in large codebases with many comma-separated constructs?
+2. **Manual Refactoring Interaction**: Should the presence of an EditorConfig setting affect what manual refactoring options are shown in the lightbulb menu for comma-separated lists?
 
-3. **Manual Refactoring Interaction**: Should the presence of an EditorConfig setting affect what manual refactoring options are shown in the lightbulb menu for comma-separated lists?
+3. **Formatting vs. Refactoring Pipeline**: Which pipeline should drive this - extend the existing formatting system or create a new hybrid approach that bridges manual refactoring logic into automatic formatting?
 
-4. **Formatting vs. Refactoring Pipeline**: Which pipeline should drive this - extend the existing formatting system or create a new hybrid approach that bridges manual refactoring logic into automatic formatting?
-
-5. **Construct Priority**: If different comma-separated constructs have conflicting wrapping needs in the same file, how do we handle that? (This may be theoretical given the unified approach.)
+4. **Construct Priority**: If different comma-separated constructs have conflicting wrapping needs in the same file, how do we handle that? (This may be theoretical given the unified approach.)
 
 ## Success Criteria
 
