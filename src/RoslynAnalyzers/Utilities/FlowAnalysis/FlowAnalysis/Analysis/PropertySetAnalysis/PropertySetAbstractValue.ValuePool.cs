@@ -26,7 +26,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
             public ValuePool()
             {
-                int[] values = Enum.GetValues(typeof(PropertySetAbstractValueKind)).Cast<int>().ToArray();
+                int[] values = Enum.GetValues<PropertySetAbstractValueKind>().Cast<int>().ToArray();
                 Array.Sort(values);
                 for (int i = 0; i < values.Length; i++)
                 {
