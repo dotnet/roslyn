@@ -1028,7 +1028,7 @@ Module M
         Print(s)
     End Sub
 End Module",
-parseOptions:=Nothing) ' TODO (tomat): Modules nested in Script class not supported yet)
+New TestParameters(parseOptions:=Nothing)) ' TODO (tomat): Modules nested in Script class not supported yet)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542942")>
@@ -1360,8 +1360,8 @@ x = [|Goo|]</Text>.Value.Replace(vbLf, vbCrLf),
 <Text>Dim x As Integer
 Private Goo As Integer
 x = Goo</Text>.Value.Replace(vbLf, vbCrLf),
-parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script),
-index:=1)
+New TestParameters(parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script),
+index:=1))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/977580")>

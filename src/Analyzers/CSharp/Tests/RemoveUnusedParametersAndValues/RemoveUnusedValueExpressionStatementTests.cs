@@ -505,7 +505,7 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
 
                 int M2() => 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task ExpressionStatement_Trivia_PreferDiscard_02()

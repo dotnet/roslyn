@@ -1177,9 +1177,9 @@ class Program
     End Sub
 end class
 ",
-            options:=New OptionsCollection(LanguageNames.VisualBasic) From {
+            New TestParameters(options:=New OptionsCollection(LanguageNames.VisualBasic) From {
                 {CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.FalseWithSilentEnforcement}
-            })
+            }))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20088")>

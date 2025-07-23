@@ -2445,7 +2445,7 @@ class C
                     };
                 }
             }
-            """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+            """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
 
     [Fact]
     public Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferDiscard_CSharp9()
@@ -2477,7 +2477,7 @@ class C
                     };
                 }
             }
-            """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9));
+            """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9)));
 
     [Theory, CombinatorialData]
     public Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferUnusedLocal(
@@ -2701,7 +2701,7 @@ class C
                     var isZero = (p1, p2) switch { (0, 0) => true, (int _, int x2) => false };
                 }
             }
-            """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+            """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
     [CombinatorialData]
@@ -2807,7 +2807,7 @@ class C
                     return false;
                 }
             }
-            """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+            """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
     [CombinatorialData]
@@ -7839,7 +7839,7 @@ class C
                     };
                 }
             }
-            """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+            """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
 
     [Theory, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
     [CombinatorialData]
@@ -8227,7 +8227,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3));
+            """, new TestParameters(options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)));
 
     [Fact]
     public Task CanUseLambdaFunctionParameterNameWithCSharp8_PreferUnused()
@@ -8263,7 +8263,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+            """, new TestParameters(options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33464")]
     public Task UsingDeclaration()
@@ -8505,7 +8505,7 @@ class C
                     var x = c is { P : int _ };
                 }
             }
-            """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+            """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40499")]
     public Task UnusedLocalDefinedInPropertySubPattern_TypePattern()
@@ -8564,7 +8564,7 @@ class C
                     var x = c is { P : _ };
                 }
             }
-            """, options: PreferDiscard, parseOptions: new CSharpParseOptions(languageVersion));
+            """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(languageVersion)));
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/40499")]
     [CombinatorialData]
@@ -8610,7 +8610,7 @@ class C
                     };
                 }
             }
-            """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+            """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38640")]
     public Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_TypePattern()

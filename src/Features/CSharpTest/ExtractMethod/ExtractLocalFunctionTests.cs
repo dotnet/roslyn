@@ -5411,7 +5411,7 @@ class Program
                     }
                 }
             }
-            """, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+            """, new(TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex));
 
     [Fact]
     public Task TestExtractLocalFunction_MissingInBaseInitializer()

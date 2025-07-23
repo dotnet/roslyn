@@ -5425,7 +5425,7 @@ class Program
                 }
             }
             """,
-            options: ExplicitTypeEverywhere());
+            new(options: ExplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleOutTuple_ImplicitForBuiltInTypes()

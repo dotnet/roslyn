@@ -2746,7 +2746,7 @@ Class C
     End Sub
 End Class
 "
-            Await TestAsync(code, expected, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+            Await TestAsync(code, expected, New TestParameters(parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)))
         End Function
 
         <Fact>
@@ -2819,7 +2819,7 @@ Class C
     End Sub
 End Class
 "
-            Await TestAsync(code, expected, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+            Await TestAsync(code, expected, New TestParameters(parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)))
         End Function
 
         <Fact>
