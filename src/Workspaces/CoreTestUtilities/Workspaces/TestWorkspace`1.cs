@@ -30,13 +30,19 @@ using RuntimeMetadataReferenceResolver = SCRIPTING::Microsoft.CodeAnalysis.Scrip
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Workspace
+public abstract partial class TestWorkspaceBase
+    (TestComposition? composition, HostServices host, string? workspaceKind)
+    : Workspace(host, workspaceKind)
+{
+    internal abstract IGlobalOptionService GlobalOptions { get; }
+}
+
+public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : TestWorkspaceBase
     where TDocument : TestHostDocument
     where TProject : TestHostProject<TDocument>
     where TSolution : TestHostSolution<TDocument>
 {
     public ExportProvider ExportProvider { get; }
-    public TestComposition? Composition { get; }
 
     public bool CanApplyChangeDocument { get; set; }
 
@@ -47,7 +53,7 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
     public IList<TDocument> AdditionalDocuments { get; }
     public IList<TDocument> AnalyzerConfigDocuments { get; }
     public IList<TDocument> ProjectionDocuments { get; }
-    internal IGlobalOptionService GlobalOptions { get; }
+    internal override IGlobalOptionService GlobalOptions { get; }
 
     internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
 
@@ -60,9 +66,8 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
         bool disablePartialSolutions = true,
         bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
         WorkspaceConfigurationOptions? configurationOptions = null)
-        : base(GetHostServices(ref composition, configurationOptions != null), workspaceKind ?? WorkspaceKind.Host)
+        : base(composition, GetHostServices(ref composition, configurationOptions != null), workspaceKind ?? WorkspaceKind.Host)
     {
-        this.Composition = composition;
         this.ExportProvider = composition.ExportProviderFactory.CreateExportProvider();
 
         var partialSolutionsTestHook = Services.GetRequiredService<IWorkspacePartialSolutionsTestHook>();

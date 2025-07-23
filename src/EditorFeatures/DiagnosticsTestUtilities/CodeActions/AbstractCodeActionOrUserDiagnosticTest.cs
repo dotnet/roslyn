@@ -46,99 +46,19 @@ using OptionsCollectionAlias = OptionsCollection;
 
 [UseExportProvider]
 public abstract partial class AbstractCodeActionOrUserDiagnosticTest(ITestOutputHelper logger = null)
+    : AbstractCodeActionOrUserDiagnosticTest_NoEditor(logger)
 {
-    public sealed class TestParameters
-    {
-        /// <summary>
-        /// editorconfig options.
-        /// </summary>
-        internal readonly OptionsCollectionAlias options;
-        internal readonly OptionsCollectionAlias globalOptions;
-        internal readonly TestHost testHost;
-        internal readonly string workspaceKind;
-        internal readonly object fixProviderData;
-        internal readonly ParseOptions parseOptions;
-        internal readonly CompilationOptions compilationOptions;
-        internal readonly int index;
-        internal readonly CodeActionPriority? priority;
-        internal readonly bool retainNonFixableDiagnostics;
-        internal readonly bool includeDiagnosticsOutsideSelection;
-        internal readonly bool includeNonLocalDocumentDiagnostics;
-        internal readonly string title;
-        internal readonly bool treatPositionIndicatorsAsCode;
-
-        internal TestParameters(
-            ParseOptions parseOptions = null,
-            CompilationOptions compilationOptions = null,
-            OptionsCollectionAlias options = null,
-            OptionsCollectionAlias globalOptions = null,
-            object fixProviderData = null,
-            int index = 0,
-            CodeActionPriority? priority = null,
-            bool retainNonFixableDiagnostics = false,
-            bool includeDiagnosticsOutsideSelection = false,
-            string title = null,
-            TestHost testHost = TestHost.OutOfProcess,
-            string workspaceKind = null,
-            bool includeNonLocalDocumentDiagnostics = false,
-            bool treatPositionIndicatorsAsCode = false)
-        {
-            this.parseOptions = parseOptions;
-            this.compilationOptions = compilationOptions;
-            this.options = options;
-            this.globalOptions = globalOptions;
-            this.fixProviderData = fixProviderData;
-            this.index = index;
-            this.priority = priority;
-            this.retainNonFixableDiagnostics = retainNonFixableDiagnostics;
-            this.includeDiagnosticsOutsideSelection = includeDiagnosticsOutsideSelection;
-            this.title = title;
-            this.testHost = testHost;
-            this.workspaceKind = workspaceKind;
-            this.includeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;
-            this.treatPositionIndicatorsAsCode = treatPositionIndicatorsAsCode;
-        }
-
-        public static readonly TestParameters Default = new(parseOptions: null);
-
-        public TestParameters WithParseOptions(ParseOptions parseOptions)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
-
-        public TestParameters WithCompilationOptions(CompilationOptions compilationOptions)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
-
-        internal TestParameters WithOptions(OptionsCollectionAlias options)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
-
-        public TestParameters WithFixProviderData(object fixProviderData)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
-
-        public TestParameters WithIndex(int index)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
-
-        public TestParameters WithRetainNonFixableDiagnostics(bool retainNonFixableDiagnostics)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
-
-        public TestParameters WithIncludeDiagnosticsOutsideSelection(bool includeDiagnosticsOutsideSelection)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
-
-        public TestParameters WithWorkspaceKind(string workspaceKind)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
-
-        public TestParameters WithIncludeNonLocalDocumentDiagnostics(bool includeNonLocalDocumentDiagnostics)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
-    }
-
 #pragma warning disable IDE0052 // Remove unread private members (unused when CODE_STYLE is set)
     private readonly ITestOutputHelper _logger = logger;
 
 #pragma warning restore
 
     private const string AutoGeneratedAnalyzerConfigHeader = @"# auto-generated .editorconfig for code style options";
+   
 
-    protected internal abstract string GetLanguage();
+//    protected internal abstract string GetLanguage();
     protected ParenthesesOptionsProvider ParenthesesOptionsProvider => new ParenthesesOptionsProvider(this.GetLanguage());
-    protected abstract ParseOptions GetScriptOptions();
+  //  protected abstract ParseOptions GetScriptOptions();
 
     private protected virtual IDocumentServiceProvider GetDocumentServiceProvider()
         => null;
