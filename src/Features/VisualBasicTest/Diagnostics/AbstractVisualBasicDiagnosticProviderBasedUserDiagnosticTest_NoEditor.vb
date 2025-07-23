@@ -32,8 +32,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
             Dim expectedStr = expected.ConvertTestSourceTag()
 
             Await MyBase.TestAsync(initialMarkupStr, expectedStr,
-                                   parseOptions:=_compilationOptions.ParseOptions, compilationOptions:=_compilationOptions,
-                                   index:=index)
+                                   New TestParameters(parseOptions:=_compilationOptions.ParseOptions, compilationOptions:=_compilationOptions,
+                                   index:=index))
         End Function
 
         Protected Overloads Async Function TestMissingAsync(initialMarkup As XElement) As Task
