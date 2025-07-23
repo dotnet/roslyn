@@ -274,8 +274,6 @@ Sub Method(
 
 1. **Formatting vs. Refactoring Pipeline**: Which pipeline should drive this - extend the existing formatting system or create a new hybrid approach that bridges manual refactoring logic into automatic formatting?
 
-2. **Construct Priority**: If different comma-separated constructs have conflicting wrapping needs in the same file, how do we handle that? (This may be theoretical given the unified approach.)
-
 ## Success Criteria
 
 ### Milestone 1 Complete (C# Basic Wrapping)
