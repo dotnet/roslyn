@@ -156,9 +156,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return _positionInText > _textEnd
-                    ? default
-                    : _characterWindow.AsSpan(_positionInText - _characterWindowStartPositionInText);
+                var start = _positionInText - _characterWindowStartPositionInText;
+                // If we are outside the bounds of the current character window, then we cannot return a span around any of it.
+                if (start < 0 || start >= _characterWindow.Count)
+                    return default;
+
+                return _characterWindow.AsSpan(start);
             }
         }
         /// <summary>
