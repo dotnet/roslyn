@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var parameter in symbol.Parameters)
                 {
-                    builder.Add(parameter, rewrittenParameters[parameter.Ordinal]); // TODO2
+                    builder.Add(parameter, rewrittenParameters[parameter.Ordinal]);
                 }
 
                 _symbolMap = builder.ToImmutable();
@@ -215,10 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
         {
-            MethodSymbol method = node.Method;
-            Debug.Assert(method.IsDefinition);
-
-            method = ExtensionMethodReferenceRewriter.VisitMethodSymbolWithExtensionRewrite(this, method);
+            MethodSymbol method = ExtensionMethodReferenceRewriter.VisitMethodSymbolWithExtensionRewrite(this, node.Method);
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(method, type);
         }

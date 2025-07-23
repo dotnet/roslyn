@@ -194,10 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
         {
-            MethodSymbol method = node.Method;
-            Debug.Assert(method.IsDefinition);
-            // TODO2 Is it possible to have a MethodDef to extension method, from outside the method?
-
+            MethodSymbol method = VisitMethodSymbolWithExtensionRewrite(this, node.Method);
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(method, type);
         }

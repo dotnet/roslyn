@@ -124,9 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!_originalMethod.IsStatic)
             {
-                // TODO2
-                // Tracked by https://github.com/dotnet/roslyn/issues/78962 : Need to confirm if this rewrite going to break LocalStateTracingInstrumenter
-                //            Specifically BoundParameterId, etc.   
                 parameters.Add(new ExtensionMetadataMethodParameterSymbol(this, ((SourceNamedTypeSymbol)_originalMethod.ContainingType).ExtensionParameter!));
             }
 

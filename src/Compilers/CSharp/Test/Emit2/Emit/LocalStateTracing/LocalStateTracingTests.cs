@@ -6,7 +6,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
@@ -79,14 +78,6 @@ namespace Microsoft.CodeAnalysis.Runtime
 
         public static ulong GetNewStateMachineInstanceId()
             => unchecked((ulong)Interlocked.Increment(ref s_stateMachineId));
-
-        private static string MethodDisplay(MethodBase method)
-        {
-            bool includeContainingType = INCLUDE_CONTAINING_TYPE;
-            return includeContainingType
-                ? method.DeclaringType.FullName + "." + method.Name
-                : method.Name;
-        }
 
         private static LocalStoreTracker Entry(int methodId, int lambdaId, ulong stateMachineId)
         {
@@ -164,6 +155,14 @@ namespace Microsoft.CodeAnalysis.Runtime
         public void LogParameterStoreParameterAlias(int sourceParameterIndex, int targetParameterIndex) { WriteLine($"{M.Name}: {P(targetParameterIndex)} -> {P(sourceParameterIndex)}"); }
 
         public void LogLocalStoreLocalAlias(int sourceLocalIndex, int targetLocalIndex) { WriteLine($"{M.Name}: {L(targetLocalIndex)} -> {L(sourceLocalIndex)}"); }
+
+        private static string MethodDisplay(MethodBase method)
+        {
+            bool includeContainingType = INCLUDE_CONTAINING_TYPE;
+            return includeContainingType
+                ? method.DeclaringType.FullName + "." + method.Name
+                : method.Name;
+        }
     }
 }
 """;
@@ -466,7 +465,7 @@ class C
   IL_0013:  dup
   IL_0014:  stloc.1
   IL_0015:  ldc.i4.1
-  IL_0016:  call       0x06000019
+  IL_0016:  call       0x06000018
   IL_001b:  nop
   IL_001c:  nop
   IL_001d:  call       0x06000031
@@ -491,7 +490,7 @@ class C
   IL_0018:  dup
   IL_0019:  stloc.1
   IL_001a:  ldc.i4.1
-  IL_001b:  call       0x06000019
+  IL_001b:  call       0x06000018
   IL_0020:  nop
   IL_0021:  leave.s    IL_002c
   IL_0023:  ldloca.s   V_0
@@ -3917,7 +3916,6 @@ class C
 }
 ");
 
-            // TODO2 why no `[0]` on parameters?
             var verifier = CompileAndVerify(source, expectedOutput: @"
 Main: Entered
 G: Entered
@@ -6671,39 +6669,21 @@ Program.<Main>$: Returned
         [Fact, CompilerTrait(CompilerFeature.Extensions)]
         public void Extensions_02()
         {
-            // classic extension
+            // non-static extension method with ref parameters and assignments
             var source = WithHelpers("""
-42.M(43);
+int x1 = 42;
+int x2 = 43;
+x1.M(ref x2);
 
 static class E
 {
-    public static void M(this int i1, int i2) { }
-}
-""", displayContainingType: true);
-
-            CompileAndVerify(source, expectedOutput: """
-Program.<Main>$: Entered
-Program.<Main>$: P'args'[0] = System.String[]
-E.M: Entered
-E.M: P'i1'[0] = 42
-E.M: P'i2'[1] = 43
-E.M: Returned
-Program.<Main>$: Returned
-""");
-        }
-
-        [Fact, CompilerTrait(CompilerFeature.Extensions)]
-        public void Extensions_04()
-        {
-            // static extension method
-            var source = WithHelpers("""
-int.M(42);
-
-static class E
-{
-    extension(int)
+    extension(ref int i1)
     {
-        public static void M(int i) { }
+        public void M(ref int i2)
+        {
+            i1 = 52;
+            i2 = 53;
+        }
     }
 }
 """, displayContainingType: true);
@@ -6711,9 +6691,83 @@ static class E
             CompileAndVerify(source, expectedOutput: """
 Program.<Main>$: Entered
 Program.<Main>$: P'args'[0] = System.String[]
+Program.<Main>$: L1 = 42
+Program.<Main>$: L2 = 43
 E.M: Entered
-E.M: P'i'[0] = 42
+E.M: P'i1'[0] = 42
+E.M: P'i2'[1] = 43
+E.M: P'i1'[0] = 52
+E.M: P'i2'[1] = 53
 E.M: Returned
+Program.<Main>$: L1 = 52
+Program.<Main>$: L2 = 53
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_03()
+        {
+            // assignment to parameter, static extension method
+            var source = WithHelpers("""
+int i = 0;
+int.M(ref i);
+
+static class E
+{
+    extension(int)
+    {
+        public static void M(ref int i2)
+        {
+            i2 = 42;
+        }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+Program.<Main>$: L1 = 0
+E.M: Entered
+E.M: P'i2'[0] = 0
+E.M: P'i2'[0] = 42
+E.M: Returned
+Program.<Main>$: L1 = 42
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_04()
+        {
+            // only receiver parameter has ref kind
+            var source = WithHelpers("""
+int i = 42;
+i.M(43);
+
+static class E
+{
+    extension(ref int i1)
+    {
+        public void M(int i2)
+        {
+            i1 = 52;
+        }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+Program.<Main>$: L1 = 42
+E.M: Entered
+E.M: P'i1'[0] = 42
+E.M: P'i2'[1] = 43
+E.M: P'i1'[0] = 52
+E.M: Returned
+Program.<Main>$: L1 = 52
 Program.<Main>$: Returned
 """);
         }
@@ -7046,7 +7100,6 @@ static class E
 }
 """, displayContainingType: true);
 
-            // TODO2 why no `[0]` index on this parameter?
             CompileAndVerify(source, expectedOutput: """
 Program.<Main>$: Entered
 Program.<Main>$: P'args'[0] = System.String[]
@@ -7088,7 +7141,6 @@ static class E
 }
 """, displayContainingType: true);
 
-            // TODO2 why no `[0]` index on this parameter?
             CompileAndVerify(source, expectedOutput: """
 Program.<Main>$: Entered
 Program.<Main>$: P'args'[0] = System.String[]
@@ -7143,190 +7195,56 @@ Program.<Main>$: Returned
         }
 
         [Fact, CompilerTrait(CompilerFeature.Extensions)]
-        public void Extensions_18()
+        public void Extensions_16()
         {
-            // assignment to extension parameter
+            // extension operator
             var source = WithHelpers("""
-int i = 42;
-i.M();
+_ = new C() + 10;
 
 static class E
 {
-    extension(ref int i)
+    extension(C)
     {
-        public void M()
+        public static C operator +(C c, int i)
         {
-            System.Console.WriteLine("ran");
-            i = 43;
+            return new C();
         }
     }
 }
+
+class C { }
 """, displayContainingType: true);
 
-            // TODO2 why two assignments?
-            var verifier = CompileAndVerify(source, expectedOutput: """
+            CompileAndVerify(source, expectedOutput: """
 Program.<Main>$: Entered
 Program.<Main>$: P'args'[0] = System.String[]
-Program.<Main>$: L1 = 42
-E.M: Entered
-E.M: P'i'[0] = 42
-ran
-E.M: P'i'[0] = 43
-E.M: Returned
+C..ctor: Entered
+C..ctor: Returned
+E.op_Addition: Entered
+E.op_Addition: P'c'[0] = C
+E.op_Addition: P'i'[1] = 10
+C..ctor: Entered
+C..ctor: Returned
+E.op_Addition: Returned
 Program.<Main>$: Returned
-""");
-
-            verifier.VerifyMethodBody("E.M", """
-{
-  // Code size       61 (0x3d)
-  .maxstack  4
-  .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
-                int V_1)
-  // sequence point: <hidden>
-  IL_0000:  ldtoken    "void E.M(ref int)"
-  IL_0005:  call       "Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)"
-  IL_000a:  stloc.0
-  .try
-  {
-    // sequence point: {
-    IL_000b:  ldloca.s   V_0
-    IL_000d:  ldarg.0
-    IL_000e:  ldind.i4
-    IL_000f:  ldc.i4.0
-    IL_0010:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)"
-    IL_0015:  nop
-    // sequence point: System.Console.WriteLine("ran");
-    IL_0016:  ldstr      "ran"
-    IL_001b:  call       "void System.Console.WriteLine(string)"
-    IL_0020:  nop
-    // sequence point: i = 43;
-    IL_0021:  ldloca.s   V_0
-    IL_0023:  ldarg.0
-    IL_0024:  ldc.i4.s   43
-    IL_0026:  dup
-    IL_0027:  stloc.1
-    IL_0028:  stind.i4
-    IL_0029:  ldloc.1
-    IL_002a:  ldc.i4.0
-    IL_002b:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)"
-    IL_0030:  nop
-    // sequence point: }
-    IL_0031:  leave.s    IL_003c
-  }
-  finally
-  {
-    // sequence point: <hidden>
-    IL_0033:  ldloca.s   V_0
-    IL_0035:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()"
-    IL_003a:  nop
-    IL_003b:  endfinally
-  }
-  // sequence point: <hidden>
-  IL_003c:  ret
-}
 """);
         }
 
         [Fact, CompilerTrait(CompilerFeature.Extensions)]
-        public void Extensions_19()
+        public void Extensions_17()
         {
-            // assignment to parameter, non-static extension method
+            // ref assignment from parameter
             var source = WithHelpers("""
-int i = 42;
-10.M(ref i);
+42.M(43);
 
 static class E
 {
     extension(int i1)
     {
-        public void M(ref int i2)
+        public void M(int i2)
         {
-            i2 = 43;
-        }
-    }
-}
-""", displayContainingType: true);
-
-            var verifier = CompileAndVerify(source, expectedOutput: """
-Program.<Main>$: Entered
-Program.<Main>$: P'args'[0] = System.String[]
-Program.<Main>$: L1 = 42
-E.M: Entered
-E.M: P'i1'[0] = 10
-E.M: P'i2'[1] = 42
-E.M: P'i2'[1] = 43
-E.M: Returned
-Program.<Main>$: L1 = 43
-Program.<Main>$: Returned
-""");
-
-            verifier.VerifyMethodBody("E.M", """
-{
-  // Code size       60 (0x3c)
-  .maxstack  4
-  .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
-                int V_1)
-  // sequence point: <hidden>
-  IL_0000:  ldtoken    "void E.M(int, ref int)"
-  IL_0005:  call       "Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)"
-  IL_000a:  stloc.0
-  .try
-  {
-    // sequence point: {
-    IL_000b:  ldloca.s   V_0
-    IL_000d:  ldarg.0
-    IL_000e:  ldc.i4.0
-    IL_000f:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)"
-    IL_0014:  nop
-    IL_0015:  ldloca.s   V_0
-    IL_0017:  ldarg.1
-    IL_0018:  ldind.i4
-    IL_0019:  ldc.i4.1
-    IL_001a:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)"
-    IL_001f:  nop
-    // sequence point: i2 = 43;
-    IL_0020:  ldloca.s   V_0
-    IL_0022:  ldarg.1
-    IL_0023:  ldc.i4.s   43
-    IL_0025:  dup
-    IL_0026:  stloc.1
-    IL_0027:  stind.i4
-    IL_0028:  ldloc.1
-    IL_0029:  ldc.i4.1
-    IL_002a:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)"
-    IL_002f:  nop
-    // sequence point: }
-    IL_0030:  leave.s    IL_003b
-  }
-  finally
-  {
-    // sequence point: <hidden>
-    IL_0032:  ldloca.s   V_0
-    IL_0034:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()"
-    IL_0039:  nop
-    IL_003a:  endfinally
-  }
-  // sequence point: <hidden>
-  IL_003b:  ret
-}
-""");
-        }
-
-        [Fact, CompilerTrait(CompilerFeature.Extensions)]
-        public void Extensions_20()
-        {
-            // assignment to parameter, static extension method
-            var source = WithHelpers("""
-int i = 0;
-int.M(ref i);
-
-static class E
-{
-    extension(int)
-    {
-        public static void M(ref int i2)
-        {
-            i2 = 42;
+            ref int x1 = ref i1;
+            ref int x2 = ref i2;
         }
     }
 }
@@ -7335,12 +7253,83 @@ static class E
             CompileAndVerify(source, expectedOutput: """
 Program.<Main>$: Entered
 Program.<Main>$: P'args'[0] = System.String[]
-Program.<Main>$: L1 = 0
 E.M: Entered
-E.M: P'i2'[0] = 0
-E.M: P'i2'[0] = 42
+E.M: P'i1'[0] = 42
+E.M: P'i2'[1] = 43
+M: L1 -> P'i1'[0]
+M: L2 -> P'i2'[1]
 E.M: Returned
-Program.<Main>$: L1 = 42
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_18()
+        {
+            // ref assignment from hoisted parameter
+            var source = WithHelpers("""
+42.M(43);
+
+static class E
+{
+    extension(int i1)
+    {
+        public void M(int i2)
+        {
+            var f = () =>
+            {
+                ref int x1 = ref i1;
+                ref int x2 = ref i2;
+            };
+
+            f();
+        }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+E.M: Entered
+E.M: P'i1' = 42
+E.M: P'i2' = 43
+E.M: L2 = System.Action
+E.M: Entered lambda 'E+<>c__DisplayClass1_0.<M>b__0'
+<M>b__0: L1 -> P'i1'
+<M>b__0: L2 -> P'i2'
+E+<>c__DisplayClass1_0.<M>b__0: Returned
+E.M: Returned
+Program.<Main>$: Returned
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_19()
+        {
+            // ref readonly extension parameter
+            var source = WithHelpers("""
+42.M();
+
+static class E
+{
+    extension(ref readonly int i1)
+    {
+        public void M()
+        {
+            ref readonly int x1 = ref i1;
+        }
+    }
+}
+""", displayContainingType: true);
+
+            CompileAndVerify(source, expectedOutput: """
+Program.<Main>$: Entered
+Program.<Main>$: P'args'[0] = System.String[]
+E.M: Entered
+E.M: P'i1'[0] = 42
+M: L1 -> P'i1'[0]
+E.M: Returned
 Program.<Main>$: Returned
 """);
         }

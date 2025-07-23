@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _methodBodyFactory.Local(_methodPayload),
                     _methodBodyFactory.ArrayAccess(
                         _methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType),
-                        ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method)))); // TODO2 test this scenario
+                        ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method))));
 
             BoundExpression mvid = _methodBodyFactory.ModuleVersionId();
             BoundExpression methodToken = _methodBodyFactory.MethodDefIndex(_method);

@@ -309,7 +309,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                // TODO2
                 var parameterLogger = GetLocalOrParameterStoreLogger(parameter.Type, parameter, refAssignmentSourceIsLocal: null, _factory.Syntax);
                 if (parameterLogger != null)
                 {
@@ -372,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (original.Right is BoundParameter rightParameter)
                 {
                     refAssignmentSourceIsLocal = false;
-                    refAssignmentSourceIndex = _factory.ParameterId(rightParameter.ParameterSymbol); // TODO2
+                    refAssignmentSourceIndex = _factory.ParameterId(rightParameter.ParameterSymbol);
                 }
                 else
                 {
@@ -423,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 symbol = parameterSymbol;
                 type = parameterSymbol.Type;
-                indexExpression = _factory.ParameterId(parameterSymbol); // TODO2
+                indexExpression = _factory.ParameterId(parameterSymbol);
                 return true;
             }
 
@@ -543,7 +542,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundExpression InstrumentCall(BoundCall original, BoundExpression rewritten)
-            => InstrumentCall(base.InstrumentCall(original, rewritten), original.Arguments, original.ArgumentRefKindsOpt); // TODO2 adjust arguments?
+        {
+            ImmutableArray<BoundExpression> arguments = original.Arguments;
+            MethodSymbol method = original.Method;
+            bool adjustForNewExtension = method.GetIsNewExtensionMember() && !method.IsStatic;
+            ImmutableArray<RefKind> argumentRefKindsOpt = NullableWalker.GetArgumentRefKinds(original.ArgumentRefKindsOpt, adjustForNewExtension, method, arguments.Length);
+
+            if (adjustForNewExtension)
+            {
+                Debug.Assert(original.ReceiverOpt is not null);
+                arguments = [original.ReceiverOpt, .. arguments];
+            }
+
+            return InstrumentCall(base.InstrumentCall(original, rewritten), arguments, argumentRefKindsOpt);
+        }
 
         public override BoundExpression InstrumentObjectCreationExpression(BoundObjectCreationExpression original, BoundExpression rewritten)
             => InstrumentCall(base.InstrumentObjectCreationExpression(original, rewritten), original.Arguments, original.ArgumentRefKindsOpt);
@@ -553,7 +565,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression InstrumentCall(BoundExpression invocation, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKinds)
         {
-            // TODO2
             Debug.Assert(refKinds.IsDefault || arguments.Length == refKinds.Length);
             Debug.Assert(invocation.Type is not null);
 
@@ -575,6 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(invocation);
             }
 
+            // Record outbound assignments
             for (int i = 0; i < arguments.Length; i++)
             {
                 if (refKinds[i] is not (RefKind.Ref or RefKind.Out))
