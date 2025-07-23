@@ -145,51 +145,54 @@ Instead of building new wrapping logic, this feature **exposes existing function
 
 ## Implementation Plan
 
-### Phase 1: Foundation (Milestone 1) - C# First
+### Phase 1: Foundation (Milestone 1) - C# Basic Wrapping
 1. **Add shared EditorConfig option definition** 
-   - Define `ParameterWrappingOptionsInternal` enum in shared location
-   - Add `dotnet_parameter_wrapping` option to `FormattingOptions2`
+   - Define `SeparatedListWrappingStyle` enum in shared location
+   - Add `dotnet_separated_list_wrapping` option to `FormattingOptions2`
    - Add EditorConfig serialization support
 
 2. **Extend C# formatting options**
    - Update `CSharpSyntaxFormattingOptions` to consume the shared option
-   - Update `CSharpSyntaxWrappingOptions` to use parameter wrapping settings
+   - Update `CSharpSyntaxWrappingOptions` to use separated list wrapping settings
 
 3. **Create basic C# formatting rule**
-   - Implement `ParameterWrappingFormattingRule` with stub logic
+   - Implement `SeparatedListWrappingFormattingRule` with core 4 wrapping styles
    - Integrate into C# formatting pipeline
    - Add to `CSharpSyntaxFormatting._rules`
 
-### Phase 2: Core Logic + VB.NET (Milestone 2)
-1. **Extract shared wrapping utilities**
-   - Create language-agnostic `ParameterWrappingUtilities` class
-   - Extract algorithms from both `CSharpParameterWrapper` and `VisualBasicParameterWrapper`
-   - Ensure both refactoring and formatting can use shared code
+### Phase 2: VB.NET Support (Milestone 2)
+1. **Extend VB.NET formatting options**
+   - Update `VisualBasicSyntaxFormattingOptions` to consume shared option
+   - Create VB.NET equivalent formatting rule
 
-2. **Implement C# wrapping logic**
-   - Add `WrapEveryParameter` support in C# formatting rule
-   - Add `WrapLongParameters` support with column detection
-   - Handle parameter alignment and indentation
+2. **Extract shared wrapping utilities** 
+   - Create language-agnostic wrapping detection and transformation logic
+   - Ensure C# and VB.NET use consistent implementation
 
-3. **Add VB.NET support**
-   - Update `VisualBasicSyntaxFormattingOptions` to consume the shared option
-   - Create VB.NET formatting rule parallel to C# version
-   - Integrate into VB.NET formatting pipeline
+### Phase 3: "If Long" Variants (Milestone 3)
+1. **Extend EditorConfig option values**
+   - Add `_if_long` variants: `align_wrapped_if_long`, `unwrap_and_indent_all_if_long`, etc.
+   - Update EditorConfig serialization to handle expanded options
 
-4. **Testing**
-   - Unit tests for both language formatting rules
-   - Integration tests with `dotnet format` for both languages
-   - EditorConfig option parsing tests
+2. **Line length detection integration**
+   - Integrate with existing `dotnet_max_line_length` option
+   - Add logic to detect when comma-separated list exceeds length threshold
+   - Apply wrapping only when length threshold is exceeded
 
-### Phase 3: Polish & Documentation (Milestone 3)
+3. **Enhanced formatting rules**
+   - Update both C# and VB.NET formatting rules to support conditional wrapping
+   - Ensure consistent line length calculation across all comma-separated constructs
+
+### Phase 4: Polish & Integration (Milestone 4)  
 1. **Edge case handling**
-   - Handle complex parameter scenarios (attributes, default values, etc.)
-   - Ensure compatibility with existing formatting rules
-   - Performance optimization
+   - Complex scenarios (attributes, default values, nested constructs)
+   - Performance optimization for `do_not_wrap` default
+   - Integration testing with `dotnet format`
 
-2. **Documentation**
-   - EditorConfig documentation for new option
-   - Migration guide for teams wanting automatic parameter wrapping
+2. **Documentation and testing**
+   - Comprehensive test coverage for all wrapping styles and constructs
+   - Update Roslyn documentation
+   - Add integration tests with real-world scenarios
 
 ### 4. Reuse Existing Logic
 
@@ -252,36 +255,42 @@ Sub Method(
 
 ## Open Questions
 
-1. **"If Long" Variants**: Should we implement `_if_long` variants (e.g., `align_wrapped_if_long`) in Phase 1, or add them later based on demand?
+1. **Line Length Integration**: Should this use the existing `dotnet_max_line_length` option or introduce a separate wrapping threshold for comma-separated lists?
 
-2. **Line Length Integration**: Should this use the existing `dotnet_max_line_length` option or introduce a separate wrapping threshold for comma-separated lists?
+2. **Performance Impact**: How do we ensure minimal overhead when `do_not_wrap` is specified, especially in large codebases with many comma-separated constructs?
 
-3. **Performance Impact**: How do we ensure minimal overhead when `do_not_wrap` is specified, especially in large codebases with many comma-separated constructs?
+3. **Manual Refactoring Interaction**: Should the presence of an EditorConfig setting affect what manual refactoring options are shown in the lightbulb menu for comma-separated lists?
 
-4. **Manual Refactoring Interaction**: Should the presence of an EditorConfig setting affect what manual refactoring options are shown in the lightbulb menu for comma-separated lists?
+4. **Formatting vs. Refactoring Pipeline**: Which pipeline should drive this - extend the existing formatting system or create a new hybrid approach that bridges manual refactoring logic into automatic formatting?
 
-5. **Formatting vs. Refactoring Pipeline**: Which pipeline should drive this - extend the existing formatting system or create a new hybrid approach that bridges manual refactoring logic into automatic formatting?
-
-6. **Construct Priority**: If different comma-separated constructs have conflicting wrapping needs in the same file, how do we handle that? (This may be theoretical given the unified approach.)
+5. **Construct Priority**: If different comma-separated constructs have conflicting wrapping needs in the same file, how do we handle that? (This may be theoretical given the unified approach.)
 
 ## Success Criteria
 
-### Milestone 1 Complete
-- [ ] Shared `dotnet_parameter_wrapping` EditorConfig option defined and integrated
-- [ ] Basic C# formatting rule infrastructure in place
+### Milestone 1 Complete (C# Basic Wrapping)
+- [ ] Shared `dotnet_separated_list_wrapping` EditorConfig option defined and integrated
+- [ ] Basic C# formatting rule infrastructure in place with all 4 core wrapping styles
 - [ ] Options flow from EditorConfig → C# Formatting pipeline
+- [ ] Core wrapping styles functional: `align_wrapped`, `unwrap_and_indent_all`, `keep_first_indent_remaining`, `unwrap_to_new_line`
 
-### Milestone 2 Complete  
-- [ ] `wrap_every_parameter` fully functional for C#
-- [ ] `wrap_long_parameters` with line length detection for C#
+### Milestone 2 Complete (VB.NET Support)  
 - [ ] VB.NET formatting rule implemented using shared option  
+- [ ] Consistent behavior between C# and VB.NET wrapping
 - [ ] Integration tests passing with `dotnet format` for both languages
+- [ ] Language-agnostic wrapping utilities extracted and shared
 
-### Milestone 3 Complete
+### Milestone 3 Complete ("If Long" Variants)
+- [ ] All `_if_long` variants implemented: `align_wrapped_if_long`, `unwrap_and_indent_all_if_long`, etc.
+- [ ] Line length detection integrated with `dotnet_max_line_length` option
+- [ ] Conditional wrapping only applied when comma-separated lists exceed threshold
+- [ ] Consistent line length calculation across all comma-separated constructs
+
+### Milestone 4 Complete (Polish & Integration)
 - [ ] Edge cases handled (attributes, default values, complex scenarios)
-- [ ] Performance impact measured and acceptable
-- [ ] Documentation complete
-- [ ] Ready for broader team review
+- [ ] Performance impact measured and optimized for `do_not_wrap` default
+- [ ] Comprehensive test coverage across all wrapping styles and constructs
+- [ ] Integration tests with real-world scenarios and `dotnet format`
+- [ ] Documentation updated with EditorConfig usage examples
 
 ## Future Extensions
 
