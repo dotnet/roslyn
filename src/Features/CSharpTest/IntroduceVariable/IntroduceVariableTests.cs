@@ -4933,7 +4933,7 @@ class C
             private static readonly (int, string) {|Rename:value|} = (1, "hello");
             var i = value.ToString();
         }
-        """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+        """, new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)));
 
     [Fact]
     public Task ElementOfTuple()
@@ -5120,7 +5120,7 @@ class C
                 var t = (a, x: y1);
             }
         }
-        """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+        """, new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)));
 
     [Fact]
     public Task TupleWithInferredName_InferredNameBecomesExplicit()
@@ -5172,7 +5172,7 @@ class C
                 var t2 = (y: y1, x);
             }
         }
-        """, index: 1, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+        """, new(index: 1, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)));
 
     [Fact]
     public Task TupleWithInferredName_NoDuplicateNames()
@@ -5440,7 +5440,7 @@ class C
                     var tuple = (key: 1, value: Value);
                 }
             }
-            """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), index: 0);
+            """, new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), index: 0));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21665")]
     public Task TestPickNameBasedOnValueTupleFieldName3()
@@ -8116,7 +8116,7 @@ namespace ConsoleApp1
 
             var v1 = random.Next();
             var v2 = random.Next();
-            """, index: 1, parseOptions: CSharpParseOptions.Default, new(options: ImplicitTypingEverywhere()));
+            """, new(index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
     public Task TestTopLevel2()
@@ -8144,7 +8144,7 @@ namespace ConsoleApp1
             {
                 var v3 = random.Next();
             }
-            """, index: 1, parseOptions: CSharpParseOptions.Default, new(options: ImplicitTypingEverywhere()));
+            """, new(index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
     public Task TestTopLevel3()
@@ -8178,7 +8178,7 @@ namespace ConsoleApp1
                     var v3 = new Random().Next();
                 }
             }
-            """, index: 1, parseOptions: CSharpParseOptions.Default, new(options: ImplicitTypingEverywhere()));
+            """, new(index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
     public Task TestTopLevel4()
@@ -8212,7 +8212,7 @@ namespace ConsoleApp1
                     var v3 = new Random().Next();
                 }
             }
-            """, index: 1, parseOptions: CSharpParseOptions.Default, new(options: ImplicitTypingEverywhere()));
+            """, new(index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
     public Task TestTopLevel5()
@@ -8240,7 +8240,7 @@ namespace ConsoleApp1
             {
                 var v3 = new Random().Next();
             }
-            """, index: 1, parseOptions: CSharpParseOptions.Default, new(options: ImplicitTypingEverywhere()));
+            """, new(index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
     public Task TestTopLevel6()
@@ -8268,7 +8268,7 @@ namespace ConsoleApp1
             {
                 var v3 = random.Next();
             }
-            """, index: 1, parseOptions: CSharpParseOptions.Default, new(options: ImplicitTypingEverywhere()));
+            """, new(index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
     public Task TestTopLevel7()
@@ -8295,7 +8295,7 @@ namespace ConsoleApp1
                 var {|Rename:random|} = new Random();
                 var v3 = random.Next();
             }
-            """, index: 1, parseOptions: CSharpParseOptions.Default, new(options: ImplicitTypingEverywhere()));
+            """, new(index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47277")]
     public Task TestPreserveIndentationInLambda1()
