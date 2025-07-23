@@ -1122,13 +1122,13 @@ class C
                 static void Main(string[] args)
                 {
                     var begin = "Hello";
-                    Console.WriteLine(GetFullString());
-            
-                    string GetFullString(bool exclamation = false)
-                    {
-                        var suffix = exclamation ? "!" : "";
-                        return begin + " World" + suffix;
-                    }
+                    Console.WriteLine(GetFullString(begin));
+                }
+
+                private static string GetFullString(string begin, bool exclamation = false)
+                {
+                    var suffix = exclamation ? "!" : "";
+                    return begin + " World" + suffix;
                 }
             }
             """);
@@ -1158,13 +1158,13 @@ class C
                 static void Main(string[] args)
                 {
                     var begin = "Hello";
-                    Console.WriteLine(GetFullString());
+                    Console.WriteLine(GetFullString(begin, true));
+                }
             
-                    string GetFullString(bool exclamation = false)
-                    {
-                        var suffix = exclamation ? "!" : "";
-                        return begin + " World" + suffix;
-                    }
+                private static string GetFullString(string begin, bool exclamation = false)
+                {
+                    var suffix = exclamation ? "!" : "";
+                    return begin + " World" + suffix;
                 }
             }
             """);
