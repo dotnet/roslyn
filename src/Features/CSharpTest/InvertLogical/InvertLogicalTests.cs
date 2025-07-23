@@ -460,7 +460,7 @@ void M(int a, int b, int c)
                     var c = !(a <= 10 || b is null);
                 }
             }
-            """, parseOptions: CSharp6);
+            """, new(parseOptions: CSharp6));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task InvertIsNotNullPattern1_CSharp8()
