@@ -2014,7 +2014,7 @@ index: 1);
             {
                 int Goo => throw e;
             }
-            """, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+            """, new(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
 
     [Fact]
     public Task TestUseExpressionBodyWhenOnSingleLine_AndIsNotSingleLine()
@@ -2038,11 +2038,11 @@ index: 1);
                     }
                 }
             }
-            """, options: new OptionsCollection(GetLanguage())
-{
-    { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement },
-    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement },
-});
+            """, new(options: new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement },
+            }));
 
     [Fact]
     public Task TestExplicitInterfaceImplementation()

@@ -1068,7 +1068,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
             {
                 int i;
             }
-            """, options: featureOptions);
+            """, new(options: featureOptions));
         await TestActionCountAsync(
             source, count: 1, parameters: new TestParameters(options: featureOptions));
         await TestSpansAsync(
@@ -1799,7 +1799,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
                     }
                 }
             }
-            """, options: PreferIntrinsicTypeEverywhere);
+            """, new(options: PreferIntrinsicTypeEverywhere));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
     public Task SimplifyAlias1()
@@ -4193,7 +4193,7 @@ new TestParameters(Options.Script));
                 {
                 }
             }
-            """, options: PreferIntrinsicTypeEverywhere);
+            """, new(options: PreferIntrinsicTypeEverywhere));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
     public Task TestIntrinsicTypesInsideCref_Default_1()
@@ -4216,7 +4216,7 @@ new TestParameters(Options.Script));
                 {
                 }
             }
-            """, options: PreferIntrinsicTypeInMemberAccess);
+            """, new(options: PreferIntrinsicTypeInMemberAccess));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
     public Task TestIntrinsicTypesInsideCref_Default_2()
@@ -4237,7 +4237,7 @@ new TestParameters(Options.Script));
                 {
                 }
             }
-            """, options: PreferIntrinsicTypeEverywhere);
+            """, new(options: PreferIntrinsicTypeEverywhere));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
     public Task TestIntrinsicTypesInsideCref_Default_3()
@@ -4260,7 +4260,7 @@ new TestParameters(Options.Script));
                 {
                 }
             }
-            """, options: PreferIntrinsicTypeEverywhere);
+            """, new(options: PreferIntrinsicTypeEverywhere));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
@@ -4303,7 +4303,7 @@ new TestParameters(Options.Script));
                 {
                 }
             }
-            """, options: PreferIntrinsicTypeInMemberAccess);
+            """, new(options: PreferIntrinsicTypeInMemberAccess));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
@@ -4346,7 +4346,7 @@ new TestParameters(Options.Script));
                 }
             }
             """,
-            options: PreferIntrinsicTypeInMemberAccess);
+            new(options: PreferIntrinsicTypeInMemberAccess));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
     public Task TestIntrinsicTypesInsideCref_NonDefault_5()
@@ -4382,7 +4382,7 @@ new TestParameters(Options.Script));
                 }
             }
             """,
-            options: PreferIntrinsicTypeInMemberAccess);
+            new(options: PreferIntrinsicTypeInMemberAccess));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
     public Task TestIntrinsicTypesInsideCref_NonDefault_6_PreferDeclaration()
@@ -4462,7 +4462,7 @@ new TestParameters(Options.Script));
                     var sss = int.MaxValue;
                 }
             }
-            """, options: PreferIntrinsicTypeInMemberAccess);
+            """, new(options: PreferIntrinsicTypeInMemberAccess));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
     public Task TestIntrinsicTypesInMemberAccess_Default_2()
@@ -4488,7 +4488,7 @@ new TestParameters(Options.Script));
                     var sss = int.MaxValue;
                 }
             }
-            """, options: PreferIntrinsicTypeInMemberAccess);
+            """, new(options: PreferIntrinsicTypeInMemberAccess));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")]
     public Task TestIntrinsicTypesInMemberAccess_Default_3()
@@ -5064,7 +5064,7 @@ new TestParameters(Options.Script));
                     int i = 0;
                 }
             }
-            """, options: PreferImplicitTypeEverywhere);
+            """, new(options: PreferImplicitTypeEverywhere));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27819")]
     public Task DoNotSimplifyToVar_EvenIfVarIsPreferred_2()
@@ -6384,7 +6384,7 @@ new TestParameters(Options.Script));
                     }
                 }
             }
-            """, options: PreferIntrinsicTypeEverywhere);
+            """, new(options: PreferIntrinsicTypeEverywhere));
 
     [Fact]
     public Task TestMissingOnInstanceMemberAccessOfOtherValue()
@@ -6721,7 +6721,7 @@ new TestParameters(Options.Script));
             {
                 nint i;
             }
-            """, options: featureOptions);
+            """, new(options: featureOptions));
     }
 
     [Fact]
@@ -6790,7 +6790,7 @@ new TestParameters(Options.Script));
             {
                 nuint i;
             }
-            """, options: featureOptions);
+            """, new(options: featureOptions));
     }
 
     [Fact]
