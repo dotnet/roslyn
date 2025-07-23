@@ -414,12 +414,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
                 return this.Text.ToString(span);
             }
-            else
-            {
+
 #if TRACING
-                Interlocked.Increment(ref GetTextInsideWindowCount);
+            Interlocked.Increment(ref GetTextInsideWindowCount);
 #endif
-            }
 
             var offset = position - _characterWindowStartPositionInText;
             var array = _characterWindow.Array!;
