@@ -1507,6 +1507,11 @@
         <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MemberNameSameAsExtendedType">
+        <source>'{0}': extension member names cannot be the same as their extended type</source>
+        <target state="new">'{0}': extension member names cannot be the same as their extended type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Ninguna sobrecarga correspondiente a "{0}" coincide con el puntero de función "{1}".</target>
