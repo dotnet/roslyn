@@ -231,7 +231,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     }
 
     [Theory, CombinatorialData]
-    public async Task ProjectThatDoesNotSupportEnC(bool breakMode)
+    public async Task ProjectThatDoesNotSupportEnC_Language(bool breakMode)
     {
         using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
         var project = solution.AddProject("dummy_proj", "dummy_proj", NoCompilationConstants.LanguageName);
@@ -261,6 +261,52 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var document2 = solution.GetDocument(document1.Id);
         diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
         Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task ProjectThatDoesNotSupportEnC_Settings_OptimizationLevel()
+    {
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        var source1 = """
+            class C
+            {
+            }
+            """;
+
+        var source2 = """
+            class C
+            {
+                public void F() {}
+            }
+            """;
+
+        var sourceFile = Temp.CreateFile().WriteAllText(source1, Encoding.UTF8);
+
+        solution = solution.
+            AddTestProject("test", out var projectId).
+                WithCompilationOptions<CSharpCompilationOptions>(options => options.WithOptimizationLevel(OptimizationLevel.Release)).
+            AddTestDocument(source1, sourceFile.Path, out var documentId).Project.Solution;
+
+        var project = solution.GetRequiredProject(projectId);
+        EmitAndLoadLibraryToDebuggee(project);
+
+        // Debugger reports error when trying to emit change for optimized module. We do not report another rude edit.
+        _debuggerService.IsEditAndContinueAvailable = _ => new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Optimized, localizedMessage: "*optimized*");
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // change the source:
+        solution = solution.WithDocumentText(documentId, CreateText(source2));
+
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        Assert.Empty(results.ModuleUpdates.Updates);
+
+        AssertEx.Equal(
+        [
+            $"test: {sourceFile.Path}: (2,0)-(2,22): Error ENC2012: {string.Format(FeaturesResources.EditAndContinueDisallowedByProject, ["test", "*optimized*"])}"
+        ], InspectDiagnostics(results.Diagnostics));
     }
 
     [Fact]
@@ -544,6 +590,52 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         debuggingSession.DiscardSolutionUpdate();
         EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
+    public async Task ProjectWithoutChanges()
+    {
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        var source = """
+            class A
+            {
+            }
+            """;
+
+        var sourceFile = Temp.CreateFile().WriteAllText(source, Encoding.UTF8);
+
+        solution = solution.
+            AddTestProject("A", out var projectId).
+            AddTestDocument(source, sourceFile.Path).Project.Solution;
+
+        var project = solution.GetRequiredProject(projectId);
+        EmitAndLoadLibraryToDebuggee(project);
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        var newRefOutPath = Path.Combine(TempRoot.Root, "newRef");
+        solution = solution.WithProjectOutputRefFilePath(projectId, newRefOutPath);
+
+        // No changes pertinent to EnC were made to the project, we should not read its outputs:
+        var mockOutputs = (MockCompilationOutputs)_mockCompilationOutputs[projectId];
+
+        mockOutputs.OpenAssemblyStreamImpl = () =>
+        {
+            Assert.Fail("Should not open assembly");
+            return null;
+        };
+
+        mockOutputs.OpenPdbStreamImpl = () =>
+        {
+            Assert.Fail("Should not open PDB");
+            return null;
+        };
+
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        Assert.Equal(ModuleUpdateStatus.None, results.ModuleUpdates.Status);
+        Assert.Empty(results.ModuleUpdates.Updates);
+        Assert.Empty(results.Diagnostics);
     }
 
     private static MetadataReference EmitLibraryReference(Version version, bool useStrongName = false)
@@ -2385,27 +2477,162 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.Contains("System.InvalidOperationException: Source generator failed", generatorDiagnostics.Single().GetMessage());
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1204")]
-    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1371694")]
+    [Fact]
+    public async Task HasChanges_Settings()
+    {
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        var sourcePath = Path.Combine(TempRoot.Root, "A.cs");
+
+        solution = solution.
+            AddTestProject("A", out var projectId).
+            AddTestDocument("class C;", sourcePath).Project.Solution;
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        EnterBreakState(debuggingSession);
+
+        var oldSolution = solution;
+        solution = solution
+            .GetRequiredProject(projectId)
+            .WithCompilationOptions<CSharpCompilationOptions>(options => options.WithOverflowChecks(!options.CheckOverflow)).Solution;
+
+        Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
+        Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: sourcePath, CancellationToken.None));
+
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
+    public async Task HasChanges_References()
+    {
+        using var _ = CreateWorkspace(out var solution0, out var service);
+
+        solution0 = solution0.
+            AddTestProject("A", out var projectAId).Solution.
+            AddTestProject("B", out var projectBId).Solution;
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution0);
+        EnterBreakState(debuggingSession);
+
+        // add metadata reference:
+        var solution1 = solution0.AddMetadataReference(projectAId, TestReferences.MetadataTests.InterfaceAndClass.CSClasses01);
+        Assert.True(await EditSession.HasChangesAsync(solution0, solution1, CancellationToken.None));
+
+        // add project reference:
+        var solution2 = solution1.AddProjectReferences(projectBId, [new ProjectReference(projectAId)]);
+        Assert.True(await EditSession.HasChangesAsync(solution1, solution2, CancellationToken.None));
+
+        // change reference properties:
+        var solution3 = solution2.WithProjectReferences(projectBId, [new ProjectReference(projectAId, aliases: ["A"])]);
+        Assert.True(await EditSession.HasChangesAsync(solution2, solution3, CancellationToken.None));
+
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
     public async Task Project_Add()
+    {
+        var sourceA1 = "class A { void M() { System.Console.WriteLine(1); } }";
+        var sourceB1 = "class B { int F() => 1; }";
+
+        var dir = Temp.CreateDirectory();
+        var sourceFileA = dir.CreateFile("a.cs").WriteAllText(sourceA1, Encoding.UTF8);
+        var sourceFileB = dir.CreateFile("b.cs").WriteAllText(sourceB1, Encoding.UTF8);
+
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        solution = solution
+            .AddTestProject("A", out var projectAId)
+                .AddTestDocument(sourceA1, path: sourceFileA.Path, out var documentAId).Project.Solution;
+
+        EmitAndLoadLibraryToDebuggee(solution.GetRequiredProject(projectAId));
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // Add project B and a project reference A -> B
+        solution = solution
+            .AddTestProject("B", out var projectBId)
+                .AddTestDocument(sourceB1, path: sourceFileB.Path, out var documentBId).Project.Solution
+           .AddProjectReference(projectAId, new ProjectReference(projectBId));
+
+        var runningProjects = ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty
+            .Add(projectAId, new RunningProjectInfo() { AllowPartialUpdate = true, RestartWhenChangesHaveNoEffect = false });
+
+        var results = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, s_noActiveSpans, CancellationToken.None);
+
+        AssertEx.Empty(results.ProjectsToRestart);
+        AssertEx.Equal([projectBId], results.ProjectsToRebuild);
+        AssertEx.Equal([projectAId], results.ProjectsToRedeploy);
+        AssertEx.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        AssertEx.Empty(results.ModuleUpdates.Updates);
+
+        CommitSolutionUpdate(debuggingSession);
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
+    public async Task ProjectReference_Add()
+    {
+        var sourceA1 = "class A { void M() { System.Console.WriteLine(1); } }";
+        var sourceB1 = "class B { int F() => 1; }";
+
+        var dir = Temp.CreateDirectory();
+        var sourceFileA = dir.CreateFile("a.cs").WriteAllText(sourceA1, Encoding.UTF8);
+        var sourceFileB = dir.CreateFile("b.cs").WriteAllText(sourceB1, Encoding.UTF8);
+
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        solution = solution
+            .AddTestProject("A", out var projectAId)
+                .AddTestDocument(sourceA1, path: sourceFileA.Path, out var documentAId).Project.Solution
+            .AddTestProject("B", out var projectBId)
+                .AddTestDocument(sourceB1, path: sourceFileB.Path, out var documentBId).Project.Solution;
+
+        EmitAndLoadLibraryToDebuggee(solution.GetRequiredProject(projectAId));
+        EmitAndLoadLibraryToDebuggee(solution.GetRequiredProject(projectBId));
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // Add project reference A -> B
+        solution = solution.AddProjectReference(projectAId, new ProjectReference(projectBId));
+
+        var runningProjects = ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty
+            .Add(projectAId, new RunningProjectInfo() { AllowPartialUpdate = true, RestartWhenChangesHaveNoEffect = false });
+
+        var results = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, s_noActiveSpans, CancellationToken.None);
+
+        AssertEx.Empty(results.ProjectsToRestart);
+        AssertEx.Empty(results.ProjectsToRebuild);
+        AssertEx.Equal([projectAId], results.ProjectsToRedeploy);
+        AssertEx.Equal(ModuleUpdateStatus.None, results.ModuleUpdates.Status);
+        AssertEx.Empty(results.ModuleUpdates.Updates);
+
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1371694")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/1204")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79423")]
+    public async Task Project_Add_BinaryAlreadyLoaded()
     {
         // Project A:
         var sourceA1 = "class A { void M() { System.Console.WriteLine(1); } }";
 
         // Project B (baseline, but not loaded into solution):
         var sourceB1 = "class B { int F() => 1; }";
+        var sourceB2 = "class B { virtual int F() => 1; }"; // rude edit
 
-        // Additional documents added to B:
-        var sourceB2 = "class B { int G() => 1; }";
         var dir = Temp.CreateDirectory();
         var sourceFileA = dir.CreateFile("a.cs").WriteAllText(sourceA1, Encoding.UTF8);
         var sourceFileB = dir.CreateFile("b.cs").WriteAllText(sourceB1, Encoding.UTF8);
 
         using var _ = CreateWorkspace(out var solution, out var service);
-        solution = AddDefaultTestProject(solution, [sourceA1]);
-        var documentA1 = solution.Projects.Single().Documents.Single();
 
-        var projectAId = documentA1.Project.Id;
+        solution = solution
+            .AddTestProject("A", out var projectAId)
+                .AddTestDocument(sourceA1, path: sourceFileA.Path, out var documentAId).Project.Solution;
+
         var projectBId = ProjectId.CreateNewId("B");
 
         var mvidA = EmitAndLoadLibraryToDebuggee(projectAId, sourceA1, sourceFilePath: sourceFileA.Path, assemblyName: "A");
@@ -2433,26 +2660,24 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // add project that matches assembly B and update the document:
 
-        var documentB2 = solution.
+        solution = solution.
             AddTestProject("B", id: projectBId).
-            AddTestDocument(sourceB2, path: sourceFileB.Path);
+            AddTestDocument(sourceB2, path: sourceFileB.Path, out var documentBId).Project.Solution;
 
-        solution = documentB2.Project.Solution;
+        var documentB2 = solution.GetRequiredDocument(documentBId);
 
-        // TODO: https://github.com/dotnet/roslyn/issues/1204
-        // Should return span in document B since the document content matches the PDB.
-        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [documentA1.Id, documentB2.Id], CancellationToken.None);
+        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [documentAId, documentBId], CancellationToken.None);
         AssertEx.Equal(
         [
-            "<empty>",
-            "(0,21)-(0,22)"
+            activeLineSpanA1.ToString(),
+            activeLineSpanB1.ToString(),
         ], baseSpans.Select(spans => spans.IsEmpty ? "<empty>" : string.Join(",", spans.Select(s => s.LineSpan.ToString()))));
 
         var trackedActiveSpans = ImmutableArray.Create(
             new ActiveStatementSpan(new ActiveStatementId(0), activeLineSpanB1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame));
 
         var currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(documentB2, (_, _, _) => new(trackedActiveSpans), CancellationToken.None);
-        // TODO: https://github.com/dotnet/roslyn/issues/1204
+        // TODO: https://github.com/dotnet/roslyn/issues/79423
         // AssertEx.Equal(trackedActiveSpans, currentSpans);
         Assert.Empty(currentSpans);
 
