@@ -3037,10 +3037,10 @@ Class Program
     End Class
 End Class"
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived"), index:=0,
-                title:=String.Format(CodeFixesResources.Convert_type_to_0, "Derived"))
+                New TestParameters(title:=String.Format(CodeFixesResources.Convert_type_to_0, "Derived")))
 
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived2"), index:=1,
-                title:=String.Format(CodeFixesResources.Convert_type_to_0, "Derived2"))
+                New TestParameters(title:=String.Format(CodeFixesResources.Convert_type_to_0, "Derived2")))
         End Function
 
         <Fact>

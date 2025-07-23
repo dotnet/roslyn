@@ -53,7 +53,7 @@ end module",
         dim x = 0
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -85,7 +85,7 @@ end module",
         dim x(0 to 4) as integer, Y as new object(), Z%? as integer
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -101,7 +101,7 @@ end module",
         dim X(0 to 4) as integer, y as new object(), Z%? as integer
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -117,7 +117,7 @@ end module",
         dim X(0 to 4) as integer, Y as new object(), z%? as integer
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -135,7 +135,7 @@ end module",
         end using
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -153,7 +153,7 @@ end module",
         end using
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact(Skip:="Implicit declarations cannot be found by syntax. Requires https://github.com/dotnet/roslyn/issues/14061")>
@@ -171,7 +171,7 @@ end module",
         next
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -201,7 +201,7 @@ end module",
         next
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact(Skip:="Implicit declarations cannot be found by syntax. Requires https://github.com/dotnet/roslyn/issues/14061")>
@@ -219,7 +219,7 @@ end module",
         next
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -249,7 +249,7 @@ end module",
         next
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -271,7 +271,7 @@ module C
         end try
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -302,7 +302,7 @@ end module",
         System.Console.WriteLine(value)
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>

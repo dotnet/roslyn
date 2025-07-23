@@ -1835,7 +1835,7 @@ Namespace N
         End Sub
     End Class
 End Namespace",
-parseOptions:=Nothing)
+New TestParameters(parseOptions:=Nothing))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545679"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>

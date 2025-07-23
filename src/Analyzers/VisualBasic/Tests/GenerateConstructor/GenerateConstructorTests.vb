@@ -1954,7 +1954,7 @@ End Class",
         Dim x As Integer = 1
         Dim obj As New C(x)
     End Sub
-End Class", options:=options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix))
+End Class", New TestParameters(options:=options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23807")>
