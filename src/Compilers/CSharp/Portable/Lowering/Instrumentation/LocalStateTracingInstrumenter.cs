@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (parameterLogger != null)
                 {
                     prologueBuilder.Add(_factory.ExpressionStatement(_factory.Call(receiver: _factory.Local(_scope.ContextVariable), parameterLogger,
-                        MakeStoreLoggerArguments(parameterLogger.Parameters[0], parameter, parameter.Type, _factory.Parameter(parameter), refAssignmentSourceIndex: null, _factory.Literal((ushort)parameter.Ordinal)))));
+                        MakeStoreLoggerArguments(parameterLogger.Parameters[0], parameter, parameter.Type, _factory.Parameter(parameter), refAssignmentSourceIndex: null, _factory.ParameterId(parameter)))));
                 }
             }
 
@@ -441,6 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? refAssignmentSourceIndex,
             BoundExpression index)
         {
+            Debug.Assert(index is BoundParameterId or BoundLocalId);
             if (refAssignmentSourceIndex != null)
             {
                 return ImmutableArray.Create(_factory.Sequence(new[] { value }, refAssignmentSourceIndex), index);

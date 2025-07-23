@@ -3593,12 +3593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (node.HoistedField is null)
             {
-                var containingSymbol = node.Parameter.ContainingSymbol;
-                if (containingSymbol.GetIsNewExtensionMember())
-                {
-
-                }
-                _builder.EmitIntConstant(node.Parameter.Ordinal); // Tracked by https://github.com/dotnet/roslyn/issues/78963 : Follow up TODO2
+                _builder.EmitIntConstant(node.Parameter.Ordinal);
             }
             else
             {
