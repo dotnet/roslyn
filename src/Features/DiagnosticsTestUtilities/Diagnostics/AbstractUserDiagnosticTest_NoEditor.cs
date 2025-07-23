@@ -218,20 +218,8 @@ public abstract partial class AbstractUserDiagnosticTest_NoEditor(ITestOutputHel
             : new FixAllState(fixAllProvider, diagnosticSpan: null, document: null, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider);
     }
 
-    private protected Task TestActionCountInAllFixesAsync(
-        string initialMarkup,
-        int count,
-        ParseOptions parseOptions = null,
-        CompilationOptions compilationOptions = null,
-        OptionsCollectionAlias options = null,
-        OptionsCollectionAlias globalOptions = null,
-        object fixProviderData = null)
-    {
-        return TestActionCountInAllFixesAsync(
-            initialMarkup,
-            new TestParameters(parseOptions, compilationOptions, options, globalOptions, fixProviderData),
-            count);
-    }
+    private protected Task TestActionCountInAllFixesAsync(string initialMarkup, int count)
+        => TestActionCountInAllFixesAsync(initialMarkup, new TestParameters(), count);
 
     private async Task TestActionCountInAllFixesAsync(
         string initialMarkup,

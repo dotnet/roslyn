@@ -220,16 +220,10 @@ public abstract partial class AbstractUserDiagnosticTest(ITestOutputHelper logge
 
     private protected Task TestActionCountInAllFixesAsync(
         string initialMarkup,
-        int count,
-        ParseOptions parseOptions = null,
-        CompilationOptions compilationOptions = null,
-        OptionsCollectionAlias options = null,
-        object fixProviderData = null)
+        int count)
     {
         return TestActionCountInAllFixesAsync(
-            initialMarkup,
-            new TestParameters(parseOptions, compilationOptions, options, globalOptions: null, fixProviderData),
-            count);
+            initialMarkup, parameters: new TestParameters(), count);
     }
 
     private async Task TestActionCountInAllFixesAsync(
