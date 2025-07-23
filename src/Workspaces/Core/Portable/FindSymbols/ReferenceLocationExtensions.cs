@@ -52,9 +52,9 @@ internal static class ReferenceLocationExtensions
     {
         foreach (var reference in references)
         {
-            // Filter out references in string literals and nameof expressions
+            // Filter out references in string literals, nameof expressions, and typeof expressions
             // This fixes the most common Call Hierarchy false positives
-            if (IsTokenInStringLiteralOrNameof(reference))
+            if (IsTokenInStringLiteralNameofOrTypeof(reference))
                 continue;
             
             var containingSymbol = GetEnclosingMethodOrPropertyOrField(semanticModel, reference);
@@ -72,10 +72,10 @@ internal static class ReferenceLocationExtensions
     }
 
     /// <summary>
-    /// Checks if a reference location is in a string literal or nameof expression.
+    /// Checks if a reference location is in a string literal, nameof expression, or typeof expression.
     /// These are the most common false positives in Call Hierarchy.
     /// </summary>
-    private static bool IsTokenInStringLiteralOrNameof(ReferenceLocation reference)
+    private static bool IsTokenInStringLiteralNameofOrTypeof(ReferenceLocation reference)
     {
         if (!reference.Location.IsInSource)
             return false;
@@ -94,7 +94,7 @@ internal static class ReferenceLocationExtensions
         if (syntaxFacts.IsStringLiteralOrInterpolatedStringLiteral(token))
             return true;
 
-        // Walk up the tree to check for string literals or nameof expressions
+        // Walk up the tree to check for string literals, nameof expressions, or typeof expressions
         var current = token.Parent;
         while (current != null)
         {
@@ -108,6 +108,10 @@ internal static class ReferenceLocationExtensions
 
             // Check for nameof expressions
             if (IsNameofExpression(syntaxFacts, current))
+                return true;
+
+            // Check for typeof expressions
+            if (IsTypeOfExpression(syntaxFacts, current))
                 return true;
 
             current = current.Parent;
@@ -137,6 +141,15 @@ internal static class ReferenceLocationExtensions
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Checks if a node is a typeof expression.
+    /// </summary>
+    private static bool IsTypeOfExpression(Microsoft.CodeAnalysis.LanguageService.ISyntaxFactsService syntaxFacts, SyntaxNode node)
+    {
+        // Check if this is a typeof expression using the syntax kinds
+        return node?.RawKind == syntaxFacts.SyntaxKinds.TypeOfExpression;
     }
 
     private static ISymbol? GetEnclosingMethodOrPropertyOrField(
