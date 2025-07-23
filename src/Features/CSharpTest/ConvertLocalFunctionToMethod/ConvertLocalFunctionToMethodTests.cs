@@ -1097,7 +1097,7 @@ class C
             
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64904")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76562")]
     public Task TestOptionalParameters1()
         => TestInRegularAndScript1Async(
             """
@@ -1133,7 +1133,7 @@ class C
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64904")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76562")]
     public Task TestOptionalParameters2()
         => TestInRegularAndScript1Async(
             """
@@ -1164,6 +1164,78 @@ class C
                 private static string GetFullString(string begin, bool exclamation = false)
                 {
                     var suffix = exclamation ? "!" : "";
+                    return begin + " World" + suffix;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76562")]
+    public Task TestOptionalParameters3()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    var begin = "Hello";
+                    Console.WriteLine(GetFullString("There"));
+
+                    string [||]GetFullString(string required, bool exclamation = false)
+                    {
+                        var suffix = exclamation ? "!" : required;
+                        return begin + " World" + suffix;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    var begin = "Hello";
+                    Console.WriteLine(GetFullString("There", begin));
+                }
+
+                private static string GetFullString(string required, string begin, bool exclamation = false)
+                {
+                    var suffix = exclamation ? "!" : required;
+                    return begin + " World" + suffix;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76562")]
+    public Task TestOptionalParameters4()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    var begin = "Hello";
+                    Console.WriteLine(GetFullString("There", true));
+
+                    string [||]GetFullString(string required, bool exclamation = false)
+                    {
+                        var suffix = exclamation ? "!" : required;
+                        return begin + " World" + suffix;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    var begin = "Hello";
+                    Console.WriteLine(GetFullString("There", begin, true));
+                }
+
+                private static string GetFullString(string required, string begin, bool exclamation = false)
+                {
+                    var suffix = exclamation ? "!" : required;
                     return begin + " World" + suffix;
                 }
             }
