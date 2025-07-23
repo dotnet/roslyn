@@ -143,6 +143,7 @@ Instead of building new wrapping logic, this feature **exposes existing function
 - **Consistent behavior**: Ensure EditorConfig wrapping matches manual refactoring results exactly  
 - **Performance**: Short-circuit when `do_not_wrap` is specified - zero overhead for default case
 - **Line length consistency**: Use existing `WrappingColumn` infrastructure (currently `dotnet_unsupported_wrapping_column`, default 120)
+- **Hybrid pipeline**: Formatting system delegates to refactoring system for transformations
 
 ### Performance Design
 The performance impact is minimal by design:
@@ -159,6 +160,27 @@ The existing manual wrapping infrastructure already uses `Options.WrappingColumn
 - **Future consideration**: Could potentially expose this option or integrate with a future `dotnet_max_line_length` standard
 
 This ensures `_if_long` variants behave identically to existing manual "wrap long" refactorings.
+
+### Pipeline Architecture
+**Hybrid Approach**: Formatting pipeline delegates to refactoring pipeline for transformations
+
+```
+EditorConfig → FormattingOptions → SeparatedListWrappingFormattingRule → CSharpParameterWrapper → Formatting Operations
+```
+
+**Flow:**
+1. **EditorConfig setting** parsed into `FormattingOptions`
+2. **Formatting pipeline** (dotnet format, format-on-save) invokes formatting rules
+3. **`SeparatedListWrappingFormattingRule`** checks if wrapping needed
+4. **Delegates to existing refactoring logic** (`CSharpParameterWrapper`, etc.)
+5. **Converts refactoring edits** to formatting operations
+6. **Applied automatically** during formatting
+
+**Benefits:**
+- **Zero code duplication** - All wrapping logic remains in proven refactoring infrastructure
+- **Consistent behavior** - Manual refactoring and auto-formatting use identical transformations
+- **Clean separation** - Formatting handles "when", refactoring handles "what"
+- **Natural integration** - Automatic via formatting, manual via refactoring
 
 ## Implementation Plan
 
@@ -269,10 +291,6 @@ Sub Method(
 ### Forward Compatibility  
 - Design allows for language-specific overrides if needed in future
 - Architecture supports extending to other construct types (arguments, expressions, etc.)
-
-## Open Questions
-
-1. **Formatting vs. Refactoring Pipeline**: Which pipeline should drive this - extend the existing formatting system or create a new hybrid approach that bridges manual refactoring logic into automatic formatting?
 
 ## Success Criteria
 
