@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -58,7 +59,7 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         context.RegisterRefactoring(
             CodeAction.Create(
                 CSharpFeaturesResources.Convert_to_method,
-                c => UpdateDocumentAsync(document, parentBlock, localFunction, container, c),
+                cancellationToken => UpdateDocumentAsync(document, parentBlock, localFunction, container, cancellationToken),
                 nameof(CSharpFeaturesResources.Convert_to_method)),
             localFunction.Span);
     }
@@ -80,19 +81,19 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
             localFunction.Body ?? (SyntaxNode)localFunction.ExpressionBody!.Expression);
 
         // Exclude local function parameters in case they were captured inside the function body
-        var captures = dataFlow.CapturedInside.Except(dataFlow.VariablesDeclared).Except(declaredSymbol.Parameters).ToList();
+        var captures = dataFlow.CapturedInside.Except(dataFlow.VariablesDeclared).Except(declaredSymbol.Parameters).ToImmutableArray();
 
         // First, create a parameter per each capture so that we can pass them as arguments to the final method
         // Filter out `this` because it doesn't need a parameter, we will just make a non-static method for that
         // We also make a `ref` parameter here for each capture that is being written into inside the function
-        var capturesAsParameters = captures
-            .Where(capture => !capture.IsThisParameter())
-            .Select(capture => CodeGenerationSymbolFactory.CreateParameterSymbol(
+        var capturesAsParameters = captures.SelectAsArray(
+            capture => !capture.IsThisParameter(),
+            capture => CodeGenerationSymbolFactory.CreateParameterSymbol(
                 attributes: default,
                 refKind: dataFlow.WrittenInside.Contains(capture) ? RefKind.Ref : RefKind.None,
                 isParams: false,
                 type: capture.GetSymbolType() ?? semanticModel.Compilation.ObjectType,
-                name: capture.Name)).ToList();
+                name: capture.Name));
 
         // Find all enclosing type parameters e.g. from outer local functions and the containing member
         // We exclude the containing type itself which has type parameters accessible to all members
@@ -114,6 +115,8 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
 
         var methodName = GenerateUniqueMethodName(declaredSymbol);
         var parameters = declaredSymbol.Parameters;
+        var finalParameterList = CreateFinalParameterList(parameters, capturesAsParameters);
+
         var methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
             containingType: declaredSymbol.ContainingType,
             attributes: default,
@@ -124,7 +127,7 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
             explicitInterfaceImplementations: default,
             name: methodName,
             typeParameters: [.. typeParameters],
-            parameters: parameters.AddRange(capturesAsParameters));
+            parameters: finalParameterList);
 
         var info = (CSharpCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
         var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, info, cancellationToken);
@@ -138,52 +141,39 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         var needsRename = methodName != declaredSymbol.Name;
         var identifierToken = needsRename ? methodName.ToIdentifierToken() : default;
         var supportsNonTrailing = SupportsNonTrailingNamedArguments(root.SyntaxTree.Options);
-        var hasAdditionalArguments = !capturesAsParameters.IsEmpty();
+        var hasAdditionalArguments = capturesAsParameters.Length != 0;
         var additionalTypeParameters = typeParameters.Except(declaredSymbol.TypeParameters).ToList();
-        var hasAdditionalTypeArguments = !additionalTypeParameters.IsEmpty();
+        var hasAdditionalTypeArguments = additionalTypeParameters.Count != 0;
         var additionalTypeArguments = hasAdditionalTypeArguments
-            ? additionalTypeParameters.Select(p => (TypeSyntax)p.Name.ToIdentifierName()).ToArray()
-            : null;
+            ? additionalTypeParameters.SelectAsArray(p => (TypeSyntax)p.Name.ToIdentifierName())
+            : [];
 
         var anyDelegatesToReplace = false;
         // Update callers' name, arguments and type arguments
-        foreach (var node in parentBlock.DescendantNodes())
+        // A local function reference can only be an identifier or a generic name.
+        foreach (var simpleName in parentBlock.DescendantNodes().OfType<SimpleNameSyntax>())
         {
-            // A local function reference can only be an identifier or a generic name.
-            switch (node.Kind())
-            {
-                case SyntaxKind.IdentifierName:
-                case SyntaxKind.GenericName:
-                    break;
-                default:
-                    continue;
-            }
-
             // Using symbol to get type arguments, since it could be inferred and not present in the source
-            var symbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol as IMethodSymbol;
+            var symbol = semanticModel.GetSymbolInfo(simpleName, cancellationToken).Symbol as IMethodSymbol;
             if (!Equals(symbol?.OriginalDefinition, declaredSymbol))
             {
                 continue;
             }
 
-            var currentNode = node;
-
+            var currentNode = simpleName;
             if (needsRename)
-            {
-                currentNode = ((SimpleNameSyntax)currentNode).WithIdentifier(identifierToken);
-            }
+                currentNode = currentNode.WithIdentifier(identifierToken).WithTriviaFrom(currentNode);
 
             if (hasAdditionalTypeArguments)
             {
                 var existingTypeArguments = symbol.TypeArguments.Select(s => s.GenerateTypeSyntax());
                 // Prepend additional type arguments to preserve lexical order in which they are defined
-                Contract.ThrowIfNull(additionalTypeArguments);
                 var typeArguments = additionalTypeArguments.Concat(existingTypeArguments);
-                currentNode = generator.WithTypeArguments(currentNode, typeArguments);
+                currentNode = (SimpleNameSyntax)generator.WithTypeArguments(currentNode, typeArguments);
                 currentNode = currentNode.WithAdditionalAnnotations(Simplifier.Annotation);
             }
 
-            if (node.Parent is InvocationExpressionSyntax invocation)
+            if (simpleName.Parent is InvocationExpressionSyntax invocation)
             {
                 if (hasAdditionalArguments)
                 {
@@ -204,7 +194,7 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
                 anyDelegatesToReplace = true;
             }
 
-            editor.ReplaceNode(node, currentNode);
+            editor.ReplaceNode(simpleName, currentNode);
         }
 
         editor.TrackNode(localFunction);
@@ -250,6 +240,16 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         }
 
         return document.WithSyntaxRoot(editor.GetChangedRoot());
+    }
+
+    private static ImmutableArray<IParameterSymbol> CreateFinalParameterList(
+        ImmutableArray<IParameterSymbol> parameters, ImmutableArray<IParameterSymbol> capturesAsParameters)
+    {
+        var firstOptionalOrParamsParameterIndex = parameters.IndexOf(p => p.IsOptional || p.IsParams);
+        if (firstOptionalOrParamsParameterIndex < 0)
+            firstOptionalOrParamsParameterIndex = parameters.Length;
+
+        return [.. parameters.Take(firstOptionalOrParamsParameterIndex), .. capturesAsParameters, .. parameters.Skip(firstOptionalOrParamsParameterIndex)];
     }
 
     private static bool SupportsNonTrailingNamedArguments(ParseOptions options)
