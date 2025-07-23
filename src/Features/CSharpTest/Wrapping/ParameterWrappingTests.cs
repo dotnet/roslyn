@@ -125,7 +125,7 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestWithOpenTokenLeadingComment()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Goo/**/([||]int i, int j) {
@@ -143,7 +143,7 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestWithCloseTokenTrailingComment()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Goo([||]int i, int j)/**/ {
@@ -182,7 +182,7 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInHeader1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 [||]void Goo(int i, int j) {
@@ -199,7 +199,7 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInHeader2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void [||]Goo(int i, int j) {
@@ -216,7 +216,7 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInHeader3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 [||]public void Goo(int i, int j) {
@@ -233,7 +233,7 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInHeader4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 public void Goo(int i, int j)[||] {
@@ -932,7 +932,7 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 public [||]C(int i, int j) {
@@ -949,7 +949,7 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38986")]
     public Task TestInConstructorWithSyntaxErrorAfter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 public [||]C(int i, int j) : base(,) {
@@ -966,7 +966,7 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInIndexer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 public int [||]this[int i, int j] => 0;
@@ -981,7 +981,7 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInOperator()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 public shared int operator [||]+(C c1, C c2) => 0;
@@ -996,7 +996,7 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInDelegate()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 public delegate int [||]D(C c1, C c2);
@@ -1011,7 +1011,7 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInParenthesizedLambda()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Goo()
@@ -1034,7 +1034,7 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInParenthesizedLambda2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Goo()
@@ -1070,7 +1070,7 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestLocalFunction()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Goo()
@@ -1093,7 +1093,7 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestRecord_Semicolon()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 "record R([||]int I, string S);",
 """
 record R(int I,
@@ -1102,7 +1102,7 @@ record R(int I,
 
     [Fact]
     public Task TestClass_Semicolon()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 "class R([||]int I, string S);",
 """
 class R(int I,
@@ -1111,7 +1111,7 @@ class R(int I,
 
     [Fact]
     public Task TestInterface_Semicolon()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 "interface R([||]int I, string S);",
 """
 interface R(int I,
@@ -1120,7 +1120,7 @@ interface R(int I,
 
     [Fact]
     public Task TestRecord_Braces()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 "record R([||]int I, string S) { }",
 """
 record R(int I,
@@ -1129,7 +1129,7 @@ record R(int I,
 
     [Fact]
     public Task TestClass_Braces()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 "class R([||]int I, string S) { }",
 """
 class R(int I,
@@ -1138,7 +1138,7 @@ class R(int I,
 
     [Fact]
     public Task TestInterface_Braces()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 "interface R([||]int I, string S) { }",
 """
 interface R(int I,
@@ -1147,7 +1147,7 @@ interface R(int I,
 
     [Fact]
     public Task TestRecordStruct_Semicolon()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 "record struct R([||]int I, string S);",
 """
 record struct R(int I,
@@ -1156,7 +1156,7 @@ record struct R(int I,
 
     [Fact]
     public Task TestStruct_Semicolon()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 "struct R([||]int I, string S);",
 """
 struct R(int I,
@@ -1165,7 +1165,7 @@ struct R(int I,
 
     [Fact]
     public Task TestRecordStruct_Braces()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 "record struct R([||]int I, string S) { }",
 """
 record struct R(int I,
@@ -1174,7 +1174,7 @@ record struct R(int I,
 
     [Fact]
     public Task TestStruct_Braces()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 "struct R([||]int I, string S) { }",
 """
 struct R(int I,

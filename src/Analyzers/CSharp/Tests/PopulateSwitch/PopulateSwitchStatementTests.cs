@@ -1066,7 +1066,7 @@ public sealed partial class PopulateSwitchStatementTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
     public Task TestForNullableEnum_NullableEnabled()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -1112,7 +1112,7 @@ public sealed partial class PopulateSwitchStatementTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
     public Task TestForNullableEnum_NullableEnabled_NotGenerateNullArmIfItAlreadyExists()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -1160,7 +1160,7 @@ public sealed partial class PopulateSwitchStatementTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
     public Task TestForNullableEnum_NullableDisabled()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable disable
 
@@ -1206,7 +1206,7 @@ public sealed partial class PopulateSwitchStatementTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
     public Task TestForNullableEnum_NullableDisabled_NotGenerateNullArmIfItAlreadyExists()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable disable
 
@@ -1315,7 +1315,7 @@ public sealed partial class PopulateSwitchStatementTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
     public Task OnIncompleteBoolean1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public class Sample
             {
@@ -1345,7 +1345,7 @@ public sealed partial class PopulateSwitchStatementTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
     public Task OnIncompleteBoolean2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public class Sample
             {

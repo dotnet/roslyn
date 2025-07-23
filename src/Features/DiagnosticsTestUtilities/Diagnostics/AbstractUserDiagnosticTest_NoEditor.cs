@@ -38,13 +38,9 @@ using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Edito
 #else
 using OptionsCollectionAlias = OptionsCollection;
 #endif
-public abstract partial class AbstractUserDiagnosticTest_NoEditor : AbstractCodeActionOrUserDiagnosticTest_NoEditor
+public abstract partial class AbstractUserDiagnosticTest_NoEditor(ITestOutputHelper logger)
+    : AbstractCodeActionOrUserDiagnosticTest_NoEditor(logger)
 {
-    protected AbstractUserDiagnosticTest_NoEditor(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
-
     internal abstract Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
         TestWorkspace workspace, TestParameters parameters);
 
@@ -222,20 +218,8 @@ public abstract partial class AbstractUserDiagnosticTest_NoEditor : AbstractCode
             : new FixAllState(fixAllProvider, diagnosticSpan: null, document: null, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider);
     }
 
-    private protected Task TestActionCountInAllFixesAsync(
-        string initialMarkup,
-        int count,
-        ParseOptions parseOptions = null,
-        CompilationOptions compilationOptions = null,
-        OptionsCollectionAlias options = null,
-        OptionsCollectionAlias globalOptions = null,
-        object fixProviderData = null)
-    {
-        return TestActionCountInAllFixesAsync(
-            initialMarkup,
-            new TestParameters(parseOptions, compilationOptions, options, globalOptions, fixProviderData),
-            count);
-    }
+    private protected Task TestActionCountInAllFixesAsync(string initialMarkup, int count)
+        => TestActionCountInAllFixesAsync(initialMarkup, TestParameters.Default, count);
 
     private async Task TestActionCountInAllFixesAsync(
         string initialMarkup,

@@ -53,7 +53,7 @@ internal abstract partial class AbstractGlobalOperationNotificationService : IGl
             eventHandler?.Invoke(this, EventArgs.Empty);
         }
 
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     public IDisposable Start(string operation)

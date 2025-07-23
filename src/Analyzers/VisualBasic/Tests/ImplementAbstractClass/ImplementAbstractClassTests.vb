@@ -602,7 +602,7 @@ End Class")
         <WorkItem("https://github.com/dotnet/roslyn/issues/13932")>
         <WorkItem("https://github.com/dotnet/roslyn/issues/5898")>
         Public Async Function TestAutoProperties() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class AbstractClass
     MustOverride ReadOnly Property ReadOnlyProp As Integer
     MustOverride Property ReadWriteProp As Integer

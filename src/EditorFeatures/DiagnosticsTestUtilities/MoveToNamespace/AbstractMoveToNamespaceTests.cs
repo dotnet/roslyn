@@ -32,7 +32,7 @@ public abstract partial class AbstractMoveToNamespaceTests : AbstractCodeActionT
         bool optionCancelled = false,
         IReadOnlyDictionary<string, string> expectedSymbolChanges = null)
     {
-        testParameters ??= new TestParameters();
+        testParameters ??= TestParameters.Default;
 
         var moveToNamespaceOptions = optionCancelled
             ? MoveToNamespaceOptionsResult.Cancelled
@@ -86,7 +86,7 @@ public abstract partial class AbstractMoveToNamespaceTests : AbstractCodeActionT
 
             if (!optionCancelled && !string.IsNullOrEmpty(targetNamespace))
             {
-                await TestInRegularAndScriptAsync(markup, expectedMarkup, options: testParameters.options);
+                await TestInRegularAndScriptAsync(markup, expectedMarkup, new(options: testParameters.options));
             }
         }
         else
@@ -97,7 +97,7 @@ public abstract partial class AbstractMoveToNamespaceTests : AbstractCodeActionT
 
     public async Task TestMoveToNamespaceAnalysisAsync(string markup, string expectedNamespaceName)
     {
-        var workspace = CreateWorkspaceFromOptions(markup, new TestParameters());
+        var workspace = CreateWorkspaceFromOptions(markup, TestParameters.Default);
         using var testState = new TestState(workspace);
 
         var analysis = await testState.MoveToNamespaceService.AnalyzeTypeAtPositionAsync(

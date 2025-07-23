@@ -145,7 +145,7 @@ internal sealed partial class InProcRemoteHostClient : RemoteHostClient
 
             clientConnection.StartListening();
 
-            return ValueTaskFactory.FromResult((T?)clientConnection.ConstructRpcClient<T>());
+            return ValueTask.FromResult((T?)clientConnection.ConstructRpcClient<T>());
         }
     }
 

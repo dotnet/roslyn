@@ -29,7 +29,7 @@ public abstract class AbstractSuppressionDiagnosticTest_NoEditor(ITestOutputHelp
     protected virtual bool IncludeNoLocationDiagnostics => true;
 
     protected Task TestAsync(string initial, string expected, ParseOptions parseOptions = null)
-        => TestAsync(initial, expected, parseOptions, index: CodeActionIndex);
+        => TestAsync(initial, expected, new TestParameters(parseOptions, index: CodeActionIndex));
 
     internal abstract Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 

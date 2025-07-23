@@ -227,7 +227,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
             }
             else
             {
-                await TestInRegularAndScript1Async(code, """
+                await TestInRegularAndScriptAsync(code, """
 
                     class Class
                     {
@@ -262,7 +262,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
             }
             else
             {
-                await TestInRegularAndScript1Async(code, """
+                await TestInRegularAndScriptAsync(code, """
 
                     class Class
                     {
@@ -457,7 +457,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
         [InlineData("static", "int")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/78786")]
         public Task TestRemoveDiagnosticSuppression_Attribute_MultiVariableDeclaration(string keyword, string type)
-            => TestInRegularAndScript1Async(
+            => TestInRegularAndScriptAsync(
                 $$"""
                 public class C
                 {
@@ -475,7 +475,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/78786")]
         public Task TestRemoveDiagnosticSuppression_Attribute_PartialMethodDefinition()
-            => TestInRegularAndScript1Async(
+            => TestInRegularAndScriptAsync(
                 """
                 public partial class C
                 {
@@ -507,7 +507,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/78786")]
         public Task TestRemoveDiagnosticSuppression_Attribute_PartialMethodImplementation()
-            => TestInRegularAndScript1Async(
+            => TestInRegularAndScriptAsync(
                 """
                 public partial class C
                 {
@@ -539,7 +539,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/78786")]
         public Task TestRemoveDiagnosticSuppression_Attribute_PartialPropertyDefinition()
-            => TestInRegularAndScript1Async(
+            => TestInRegularAndScriptAsync(
                 """
                 public partial class C
                 {
@@ -567,7 +567,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/78786")]
         public Task TestRemoveDiagnosticSuppression_Attribute_PartialPropertyImplementation()
-            => TestInRegularAndScript1Async(
+            => TestInRegularAndScriptAsync(
                 """
                 public partial class C
                 {
@@ -622,7 +622,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
                 ? ("[|", "|]", "", "")
                 : ("", "", "[|", "|]");
 
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
     $$"""
 
     class Class
@@ -651,7 +651,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
 
         [Fact]
         public Task TestRemoveDiagnosticSuppression_Attribute()
-            => TestInRegularAndScript1Async(
+            => TestInRegularAndScriptAsync(
     $$"""
 
     class Class
@@ -678,7 +678,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
 
         [Fact]
         public Task TestRemoveDiagnosticSuppression_Attribute_Trivia()
-            => TestInRegularAndScript1Async(
+            => TestInRegularAndScriptAsync(
     $$"""
 
     class Class
@@ -717,7 +717,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
 
         [Fact]
         public Task TestRemoveDiagnosticSuppression_OnlyDisableDirective()
-            => TestInRegularAndScript1Async(
+            => TestInRegularAndScriptAsync(
     $$"""
 
     class Class
@@ -744,7 +744,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
 
         [Fact]
         public Task TestRemoveDiagnosticSuppression_OnlyRestoreDirective()
-            => TestInRegularAndScript1Async(
+            => TestInRegularAndScriptAsync(
     $$"""
 
     class Class
@@ -776,7 +776,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
                 ? ("[|", "|]", "", "")
                 : ("", "", "[|", "|]");
 
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
     $$"""
 
     class Class
@@ -817,7 +817,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
                     
                 """;
 
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
                 $$"""
 
                 class Class
@@ -854,7 +854,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
                     
                 """;
 
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
                 $$"""
 
                 {|FixAllInDocument:[System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "{{VariableDeclaredButNotUsedDiagnosticId}}")] // Variable is declared but never used - Unnecessary|}
@@ -918,7 +918,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
                     """;
             }
 
-            await TestInRegularAndScript1Async($$"""
+            await TestInRegularAndScriptAsync($$"""
 
                 class Class
                 {
@@ -940,7 +940,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
                 ? ("[|", "|]", "", "")
                 : ("", "", "[|", "|]");
 
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
     $$"""
 
     class Class
@@ -971,7 +971,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
 
         [Fact]
         public Task TestRemoveDiagnosticSuppression_Attribute_InnerValidSuppression()
-            => TestInRegularAndScript1Async(
+            => TestInRegularAndScriptAsync(
     $$"""
 
     class Class
@@ -1003,7 +1003,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
                 ? ("[|", "|]", "", "")
                 : ("", "", "[|", "|]");
 
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
     $$"""
 
     class Class
@@ -1034,7 +1034,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
 
         [Fact]
         public Task TestRemoveDiagnosticSuppression_Attribute_OuterValidSuppression()
-            => TestInRegularAndScript1Async(
+            => TestInRegularAndScriptAsync(
     $$"""
 
     class Class
@@ -1066,7 +1066,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
                 ? ("[|", "|]", "", "")
                 : ("", "", "[|", "|]");
 
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
     $$"""
 
     class Class
@@ -1097,7 +1097,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
 
         [Fact]
         public Task TestRemoveDiagnosticSuppression_DuplicateDisableWithoutMatchingRestoreDirective()
-            => TestInRegularAndScript1Async(
+            => TestInRegularAndScriptAsync(
     $$"""
 
     class Class
@@ -1126,7 +1126,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
 
         [Fact]
         public Task TestRemoveDiagnosticSuppression_DuplicateRestoreWithoutMatchingDisableDirective()
-            => TestInRegularAndScript1Async(
+            => TestInRegularAndScriptAsync(
     $$"""
 
     class Class
@@ -1160,7 +1160,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
                 ? ("[|", "|]", "", "")
                 : ("", "", "[|", "|]");
 
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
     $$"""
 
     {{disablePrefix}}#pragma warning disable UnknownId{{disableSuffix}}
@@ -1179,7 +1179,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
 
         [Fact]
         public Task TestRemoveUnknownDiagnosticSuppression_Attribute()
-            => TestInRegularAndScript1Async(
+            => TestInRegularAndScriptAsync(
     """
 
     [|[System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "UnknownId")]|]
@@ -1242,7 +1242,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
                     }
                 }|]
                 """;
-            var parameters = new TestParameters();
+            var parameters = TestParameters.Default;
             using var workspace = CreateWorkspaceFromOptions(source, parameters);
 
             // Suppress the diagnostic in options.
@@ -1279,7 +1279,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
         public async Task TestRemoveCompilerDiagnosticSuppression_IntegerId(bool leadingZero)
         {
             var id = leadingZero ? "0168" : "168";
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
     $$"""
 
     class Class
@@ -1396,7 +1396,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
             y = 1;
         }
     }
-    """, options: options);
+    """, new(options: options));
         }
 
         [Theory, CombinatorialData]
@@ -1406,7 +1406,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
                 ? ("{|FixAllInDocument:", "|}", "", "")
                 : ("", "", "{|FixAllInDocument:", "|}");
 
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
     $$"""
 
     #pragma warning disable CS0168 // Variable is declared but never used - Unnecessary
@@ -1444,7 +1444,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
 
     [Fact]
     public Task TestRemoveDiagnosticSuppression_Attribute_Field()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             $$"""
 
             class Class
@@ -1462,7 +1462,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
 
     [Fact]
     public Task TestRemoveDiagnosticSuppression_Attribute_Property()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             $$"""
 
             class Class
@@ -1480,7 +1480,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
 
     [Fact]
     public Task TestRemoveDiagnosticSuppression_Attribute_Event()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             $$"""
 
             class Class

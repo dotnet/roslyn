@@ -1151,7 +1151,7 @@ Private Shared Sub Goo()
     Throw New NotImplementedException()
 End Sub
 ",
-            parseOptions:=GetScriptOptions())
+            New TestParameters(parseOptions:=GetScriptOptions()))
         End Function
 
         <Fact>
@@ -1585,8 +1585,8 @@ End Module",
         Throw New NotImplementedException()
     End Function
 End Module",
-parseOptions:=Nothing,
-compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("System"), GlobalImport.Parse("System.Collections.Generic")))
+New TestParameters(parseOptions:=Nothing,
+compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("System"), GlobalImport.Parse("System.Collections.Generic"))))
         End Function
 
         <Fact>
@@ -1607,8 +1607,8 @@ End Module",
         Throw New NotImplementedException()
     End Function
 End Module",
-parseOptions:=Nothing,
-compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("System"), GlobalImport.Parse("System.Collections.Generic")))
+New TestParameters(parseOptions:=Nothing,
+compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("System"), GlobalImport.Parse("System.Collections.Generic"))))
         End Function
 
         <Fact>
@@ -1633,8 +1633,8 @@ End Module",
         Throw New NotImplementedException()
     End Function
 End Module",
-parseOptions:=Nothing,
-compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("System")))
+New TestParameters(parseOptions:=Nothing,
+compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("System"))))
         End Function
 
         <Fact>
@@ -1655,8 +1655,8 @@ End Module",
         Throw New NotImplementedException()
     End Function
 End Module",
-parseOptions:=Nothing,
-compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("System")))
+New TestParameters(parseOptions:=Nothing,
+compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("System"))))
         End Function
 
         <Fact>
