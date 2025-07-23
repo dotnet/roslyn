@@ -219,12 +219,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _positionInText = Math.Min(position, _textEnd);
 
             // if position is within already read character range then just use what we have
-            if (PositionIsWithinWindow(position))
+            if (PositionIsWithinWindow(_positionInText))
                 return;
 
             // Otherwise, ensure that the character window contains this position so we can read characters directly
             // from there.
-            this.ReadChunkAt(position);
+            this.ReadChunkAt(_positionInText);
         }
 
         /// <summary>
