@@ -893,7 +893,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
     }
 
     protected static void GetDocumentAndSelectSpanOrAnnotatedSpan(
-        TestWorkspace workspace,
+        TTestWorkspace workspace,
         out Document document,
         out TextSpan span,
         out string annotation)
@@ -905,7 +905,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         }
     }
 
-    private static bool TryGetDocumentAndSelectSpan(TestWorkspace workspace, out Document document, out TextSpan span)
+    private static bool TryGetDocumentAndSelectSpan(TTestWorkspace workspace, out Document document, out TextSpan span)
     {
         var hostDocument = workspace.Documents.FirstOrDefault(d => d.SelectedSpans.Any());
         if (hostDocument == null)
@@ -930,7 +930,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         return true;
     }
 
-    private static Document GetDocumentAndAnnotatedSpan(TestWorkspace workspace, out string annotation, out TextSpan span)
+    private static Document GetDocumentAndAnnotatedSpan(TTestWorkspace workspace, out string annotation, out TextSpan span)
     {
         var annotatedDocuments = workspace.Documents.Where(d => d.AnnotatedSpans.Any());
         var hostDocument = annotatedDocuments.Single();

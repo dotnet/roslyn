@@ -46,7 +46,11 @@ using OptionsCollectionAlias = OptionsCollection;
 
 [UseExportProvider]
 public abstract partial class AbstractCodeActionOrUserDiagnosticTest(ITestOutputHelper logger = null)
-    : AbstractCodeActionOrUserDiagnosticTest_NoEditor(logger)
+    : AbstractCodeActionOrUserDiagnosticTest_NoEditor<
+        EditorTestHostDocument,
+        EditorTestHostProject,
+        EditorTestHostSolution,
+        EditorTestWorkspace>(logger)
 {
 #pragma warning disable IDE0052 // Remove unread private members (unused when CODE_STYLE is set)
     private readonly ITestOutputHelper _logger = logger;
