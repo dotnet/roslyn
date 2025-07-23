@@ -160,13 +160,13 @@ public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosti
     internal OptionsCollection RemoveAllUnnecessaryParentheses => ParenthesesOptionsProvider.RemoveAllUnnecessaryParentheses;
     internal OptionsCollection RequireAllParenthesesForClarity => ParenthesesOptionsProvider.RequireAllParenthesesForClarity;
 
-    internal new Task TestInRegularAndScript1Async(
+    internal new Task TestInRegularAndScriptAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
         int index = 0,
         TestParameters? parameters = null)
     {
-        return base.TestInRegularAndScript1Async(initialMarkup, expectedMarkup, index, parameters);
+        return base.TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, index, parameters);
     }
 
     internal new Task TestInRegularAndScriptAsync(

@@ -1722,7 +1722,7 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
 
     [Fact]
     public Task TestInPartiallyHiddenMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {

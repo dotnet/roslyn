@@ -41,7 +41,7 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
 
     [Fact]
     public Task TestArithmeticRequiredForClarity2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {

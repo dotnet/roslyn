@@ -187,7 +187,7 @@ public abstract partial class AbstractCodeActionTest_NoEditor : AbstractCodeActi
     {
         var ps = parameters ?? TestParameters.Default;
         var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);
-        return TestInRegularAndScript1Async(
+        return TestInRegularAndScriptAsync(
             initialMarkup, expectedMarkup,
             index,
             ps.WithFixProviderData(pickMembersService));

@@ -4503,7 +4503,7 @@ End Namespace")
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13932")>
         <WorkItem("https://github.com/dotnet/roslyn/issues/5898")>
         Public Async Function TestAutoProperties() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "interface IInterface
     readonly property ReadOnlyProp as integer
     property ReadWriteProp as integer

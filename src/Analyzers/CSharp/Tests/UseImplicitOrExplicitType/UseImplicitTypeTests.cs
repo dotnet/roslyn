@@ -2101,7 +2101,7 @@ options: ImplicitTypeWhereApparent());
     [WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79337")]
     public Task DoSuggestVarOnStackAllocExpressions_SpanType_NestedConditional()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System;
             namespace System
             {
@@ -2139,7 +2139,7 @@ options: ImplicitTypeWhereApparent());
     [WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79337")]
     public Task DoSuggestVarOnStackAllocExpressions_SpanType_NestedCast()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System;
             namespace System
             {

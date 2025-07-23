@@ -1531,7 +1531,7 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
     public Task TestPartialFieldSelectionBeforeIdentifier()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1552,7 +1552,7 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
     public Task TestPartialFieldSelectionAfterIdentifier()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {

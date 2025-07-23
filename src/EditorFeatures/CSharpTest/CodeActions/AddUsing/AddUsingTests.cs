@@ -6448,7 +6448,7 @@ class C
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
     public Task TestAddUsingPreservesNewlines1(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace ANamespace
             {
@@ -6489,7 +6489,7 @@ class C
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
     public Task TestAddUsingPreservesNewlines2(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using BNamespace;
 
@@ -6541,7 +6541,7 @@ class C
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
     public Task TestAddUsingPreservesNewlines3(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using ANamespace;
 
@@ -6593,7 +6593,7 @@ class C
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/24642")]
     public Task TestAddUsingWithMalformedGeneric(TestHost testHost)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -6613,7 +6613,7 @@ class C
 
     [Theory, CombinatorialData]
     public Task TestOutsideOfMethodWithMalformedGenericParameters(TestHost testHost)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             

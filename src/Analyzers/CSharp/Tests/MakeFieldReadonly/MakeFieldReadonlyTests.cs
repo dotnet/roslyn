@@ -90,7 +90,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task FieldNotAssigned()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -106,7 +106,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task FieldNotAssigned_Struct()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             struct MyStruct
             {
@@ -122,7 +122,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task FieldAssignedInline()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -138,7 +138,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task MultipleFieldsAssignedInline_AllCanBeReadonly()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -155,7 +155,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ThreeFieldsAssignedInline_AllCanBeReadonly_SeparatesAllAndKeepsThemInOrder()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -173,7 +173,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task MultipleFieldsAssignedInline_OneIsAssignedInMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -199,7 +199,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task MultipleFieldsAssignedInline_NoInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -219,7 +219,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
     [InlineData("\r\n")]
     [InlineData("\r\n\r\n")]
     public Task MultipleFieldsAssignedInline_LeadingCommentAndWhitespace(string leadingTrvia)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             $$"""
             class MyClass
             {
@@ -238,7 +238,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task FieldAssignedInCtor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -383,7 +383,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task FieldAssignedInCtor_QualifiedWithThis()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -407,7 +407,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task FieldReturnedInProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -431,7 +431,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29746")]
     public Task FieldReturnedInMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -457,7 +457,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29746")]
     public Task FieldReadInMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -548,7 +548,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task FieldInNestedTypeAssignedInConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -580,7 +580,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task VariableAssignedToFieldInMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -646,7 +646,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task NotAssignedInPartialClass1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             partial class MyClass
             {
@@ -662,7 +662,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task NotAssignedInPartialClass2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             partial class MyClass
             {
@@ -684,7 +684,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task NotAssignedInPartialClass3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -779,7 +779,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task PassedAsParameter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -992,7 +992,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
     public Task ReturnedByRefReadonly1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1016,7 +1016,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
     public Task ReturnedByRefReadonly2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1036,7 +1036,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
     public Task ReturnedByRefReadonly3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1063,7 +1063,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
     public async Task ReturnedByRefReadonly4()
     {
-        await TestInRegularAndScript1Async(
+        await TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1087,7 +1087,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
             }
             """);
 
-        await TestInRegularAndScript1Async(
+        await TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1115,7 +1115,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
     public async Task ReturnedByRefReadonly5()
     {
-        await TestInRegularAndScript1Async(
+        await TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1135,7 +1135,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
             }
             """);
 
-        await TestInRegularAndScript1Async(
+        await TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1158,7 +1158,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
     public Task ReturnedByRefReadonly6()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1192,7 +1192,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
     public Task ReturnedByRefReadonly7()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1224,7 +1224,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
     public Task ReturnedByRefReadonly8()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1256,7 +1256,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
     public Task ConditionOfRefConditional1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1282,7 +1282,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33009")]
     public Task ConditionOfRefConditional2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1304,7 +1304,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task PassedAsOutParameterInCtor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1328,7 +1328,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task PassedAsRefParameterInCtor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1358,7 +1358,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task StaticFieldAssignedInStaticCtor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1410,7 +1410,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task FieldTypeIsCustomImmutableStruct()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             struct MyStruct
             {
@@ -1438,7 +1438,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task FixAll()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1464,7 +1464,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task FixAll2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1510,7 +1510,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26262")]
     public Task FieldAssignedInCtor_InParens()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1534,7 +1534,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26262")]
     public Task FieldAssignedInCtor_QualifiedWithThis_InParens()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MyClass
             {
@@ -1606,7 +1606,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26264")]
     public Task FieldUsedInTupleExpressionOnRight()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1634,7 +1634,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26264")]
     public Task FieldInTypeWithGeneratedCode()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1690,7 +1690,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task FieldAssignedToLocalReadOnlyRef()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1716,7 +1716,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26213")]
     public Task TestFieldAccessesOnLeftOfDot()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             interface IFaceServiceClient
             {
@@ -1752,7 +1752,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42759")]
     public Task TestVolatileField1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestClass
             {
@@ -1768,7 +1768,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42759")]
     public Task TestVolatileField2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestClass
             {
@@ -1785,7 +1785,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42759")]
     public Task TestVolatileField3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestClass
             {
@@ -1900,7 +1900,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")]
     public Task ShouldWarnForDataMemberFieldsInNonDataContractClasses()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferencesNet45="true">
@@ -1930,7 +1930,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")]
     public Task ShouldWarnForPrivateNonDataMemberFieldsInDataContractClasses()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferencesNet45="true">
@@ -1983,7 +1983,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59577")]
     public Task TestInStruct()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             struct MyClass
             {
@@ -2014,7 +2014,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38468")]
     public Task PreserveLeadingTrivia1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public class C
             {
@@ -2168,7 +2168,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47198")]
     public Task TestIndexedAndAssignedField_ClassType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class GreenNode { }
 
@@ -2233,7 +2233,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49290")]
     public Task TestPropertyMutatedField_ClassType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             interface I
             {

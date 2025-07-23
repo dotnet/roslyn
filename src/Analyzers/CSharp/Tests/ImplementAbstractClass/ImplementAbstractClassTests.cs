@@ -1785,7 +1785,7 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             Option(MemberDisplayOptionsStorage.HideAdvancedMembers, true),
         };
 
-        await TestInRegularAndScript1Async(
+        await TestInRegularAndScriptAsync(
             """
             abstract class AbstractClass
             {

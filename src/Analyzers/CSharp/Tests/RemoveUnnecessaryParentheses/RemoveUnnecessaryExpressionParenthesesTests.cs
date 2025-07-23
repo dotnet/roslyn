@@ -118,7 +118,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
 
     [Fact]
     public Task TestArithmeticRequiredForClarity2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -153,7 +153,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
 
     [Fact]
     public Task TestLogicalRequiredForClarity2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -955,7 +955,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
 
     [Fact]
     public Task TestForOverloadedOperatorOnLeft()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1035,7 +1035,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
 
     [Fact]
     public Task TestRemoveShiftIfNotNecessary2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1096,7 +1096,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
 
     [Fact]
     public Task TestRemoveCoalesceIfNotNecessary2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2353,7 +2353,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29454")]
     public Task TestForPostIncrement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2376,7 +2376,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29454")]
     public Task TestForPostDecrement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2399,7 +2399,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29454")]
     public Task TestForPreIncrementInLocalDeclaration()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2421,7 +2421,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29454")]
     public Task TestForPreIncrementInSimpleAssignment()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2443,7 +2443,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29454")]
     public Task TestForPreIncrementInArgument()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2504,7 +2504,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31103")]
     public Task TestConditionalExpressionAsRightHandSideValue()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Bar
             {
@@ -2943,7 +2943,7 @@ compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLib
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45100")]
     public Task TestArithmeticOverflow2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -3200,7 +3200,7 @@ compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLib
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75203")]
     public Task TestConditionalExpressionInWhenClauseAmbiguity2()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 public void M(object o, object?[] c)
@@ -3228,7 +3228,7 @@ compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLib
 
     [Fact]
     public Task TestCollectionExpressionSpread()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 public void M()

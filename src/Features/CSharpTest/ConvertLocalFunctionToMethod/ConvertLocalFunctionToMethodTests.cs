@@ -965,7 +965,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32975")]
     public Task TestRefReturn()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class ClassA
             {
                 class RefClass { }
@@ -998,7 +998,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32975")]
     public Task TestAttributes()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class ClassA
             {
                 class RefClass { }
@@ -1054,7 +1054,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64904")]
     public Task TestNameofReferenceInParameterInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 

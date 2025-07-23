@@ -1395,7 +1395,7 @@ public sealed partial class UseAutoPropertyTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26527")]
     public Task TestFixAllInDocument3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1428,7 +1428,7 @@ public sealed partial class UseAutoPropertyTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76790")]
     public Task TestFixAllInDocument4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1460,7 +1460,7 @@ public sealed partial class UseAutoPropertyTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76790")]
     public Task TestWrittenInConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1487,7 +1487,7 @@ public sealed partial class UseAutoPropertyTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76901")]
     public Task TestReadAndWrite()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1513,7 +1513,7 @@ public sealed partial class UseAutoPropertyTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76901")]
     public Task TestContractCall()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1547,7 +1547,7 @@ public sealed partial class UseAutoPropertyTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76901")]
     public Task TestDelegateInvoke()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 

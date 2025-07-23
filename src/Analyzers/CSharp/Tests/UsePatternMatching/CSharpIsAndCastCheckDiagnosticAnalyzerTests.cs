@@ -32,7 +32,7 @@ public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : Abstra
 
     [Fact]
     public Task InlineTypeCheck1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -155,7 +155,7 @@ public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : Abstra
 
     [Fact]
     public Task InlineTypeCheckComplexExpression1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -182,7 +182,7 @@ public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : Abstra
 
     [Fact]
     public Task TestInlineTypeCheckWithElse()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -215,7 +215,7 @@ public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : Abstra
 
     [Fact]
     public Task TestComments1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -244,7 +244,7 @@ public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : Abstra
 
     [Fact]
     public Task TestComments2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -272,7 +272,7 @@ public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : Abstra
 
     [Fact]
     public Task TestComments3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -302,7 +302,7 @@ public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : Abstra
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17126")]
     public Task TestComments4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             namespace N {
@@ -342,7 +342,7 @@ public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : Abstra
 
     [Fact]
     public Task InlineTypeCheckParenthesized1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -369,7 +369,7 @@ public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : Abstra
 
     [Fact]
     public Task InlineTypeCheckParenthesized2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -396,7 +396,7 @@ public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : Abstra
 
     [Fact]
     public Task InlineTypeCheckParenthesized3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -485,7 +485,7 @@ public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : Abstra
 
     [Fact]
     public Task InlineTypeCheckScopeNonConflict1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -694,7 +694,7 @@ public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : Abstra
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42462")]
     public Task TestWithLocalInsideTryBlock()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {

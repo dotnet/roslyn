@@ -410,21 +410,21 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest
         string title = null,
         TestHost testHost = TestHost.OutOfProcess)
     {
-        return TestInRegularAndScript1Async(
+        return TestInRegularAndScriptAsync(
             initialMarkup, expectedMarkup,
             new TestParameters(parseOptions, compilationOptions, options, globalOptions: null, fixProviderData, index, priority, title: title, testHost: testHost));
     }
 
-    internal Task TestInRegularAndScript1Async(
+    internal Task TestInRegularAndScriptAsync(
         string initialMarkup,
         string expectedMarkup,
         int index = 0,
         TestParameters parameters = null)
     {
-        return TestInRegularAndScript1Async(initialMarkup, expectedMarkup, (parameters ?? TestParameters.Default).WithIndex(index));
+        return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, (parameters ?? TestParameters.Default).WithIndex(index));
     }
 
-    internal async Task TestInRegularAndScript1Async(
+    internal async Task TestInRegularAndScriptAsync(
         string initialMarkup,
         string expectedMarkup,
         TestParameters parameters)
@@ -904,7 +904,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest
         for (var index = 0; index < outputs.Length; index++)
         {
             var output = outputs[index];
-            await TestInRegularAndScript1Async(input, output, parameters.WithIndex(index));
+            await TestInRegularAndScriptAsync(input, output, parameters.WithIndex(index));
         }
 
         await TestActionCountAsync(input, outputs.Length, parameters);

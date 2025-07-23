@@ -108,7 +108,7 @@ End Class")
                 enableSuffix = "|]"
             End If
 
-            Await TestInRegularAndScript1Async($"
+            Await TestInRegularAndScriptAsync($"
 Imports System
 Class C
     Sub Method()
@@ -129,7 +129,7 @@ End Class")
 
         <Fact>
         Public Async Function TestRemoveUnnecessaryAttributeSuppression_Method() As Task
-            Await TestInRegularAndScript1Async($"
+            Await TestInRegularAndScriptAsync($"
 Imports System
 Class C
     [|<System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""UnknownId"")>|]
@@ -149,7 +149,7 @@ End Class")
 
         <Fact>
         Public Async Function TestRemoveUnnecessaryAttributeSuppression_Field() As Task
-            Await TestInRegularAndScript1Async($"
+            Await TestInRegularAndScriptAsync($"
 Imports System
 Class C
     [|<System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""UnknownId"")>|]
@@ -163,7 +163,7 @@ End Class")
 
         <Fact>
         Public Async Function TestRemoveUnnecessaryAttributeSuppression_Property() As Task
-            Await TestInRegularAndScript1Async($"
+            Await TestInRegularAndScriptAsync($"
 Imports System
 Class C
     [|<System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""UnknownId"")>|]
@@ -177,7 +177,7 @@ End Class")
 
         <Fact>
         Public Async Function TestRemoveUnnecessaryAttributeSuppression_Event() As Task
-            Await TestInRegularAndScript1Async($"
+            Await TestInRegularAndScriptAsync($"
 Imports System
 Class C
     [|<System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""UnknownId"")>|]

@@ -1620,7 +1620,7 @@ class C
             }
             """;
 
-        await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
+        await TestInRegularAndScriptAsync(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
@@ -1692,7 +1692,7 @@ class C
                 }
             }
             """;
-        await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
+        await TestInRegularAndScriptAsync(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
@@ -1765,6 +1765,6 @@ class C
             }
             """;
 
-        await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
+        await TestInRegularAndScriptAsync(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
     }
 }

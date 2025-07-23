@@ -21,7 +21,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
         => new CSharpInlineTemporaryCodeRefactoringProvider();
 
     private async Task TestFixOneAsync(string initial, string expected)
-        => await TestInRegularAndScript1Async(GetTreeText(initial), GetTreeText(expected));
+        => await TestInRegularAndScriptAsync(GetTreeText(initial), GetTreeText(expected));
 
     private static string GetTreeText(string initial)
     {
@@ -3108,7 +3108,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529950")]
     public Task InlineTempDoesNotInsertUnnecessaryExplicitTypeInLambdaParameter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
         """
         using System;
 
@@ -3798,7 +3798,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
     [InlineData(LanguageVersion.CSharp6)]
     [InlineData(LanguageVersion.CSharp12)]
     public Task Tuples(LanguageVersion version)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -5048,7 +5048,7 @@ System.Diagnostics.Debug.Assert(x == true); }
 
     [Fact]
     public Task TestWithLinkedFile()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>

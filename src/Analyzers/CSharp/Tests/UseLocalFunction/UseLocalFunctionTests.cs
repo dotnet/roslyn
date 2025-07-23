@@ -167,7 +167,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSimpleInitialization_SimpleLambda_Block()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -209,7 +209,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSimpleInitialization_ParenLambdaNoType_Block()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -251,7 +251,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSimpleInitialization_ParenLambdaWithType_Block()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -293,7 +293,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSimpleInitialization_AnonymousMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -335,7 +335,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSimpleInitialization_SimpleLambda_ExprBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -367,7 +367,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSimpleInitialization_ParenLambdaNoType_ExprBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -399,7 +399,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSimpleInitialization_ParenLambdaWithType_ExprBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -431,7 +431,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestCastInitialization_SimpleLambda_Block()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -473,7 +473,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestCastInitialization_SimpleLambda_Block_ExtraParens()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -515,7 +515,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestCastInitialization_ParenLambdaNoType_Block()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -557,7 +557,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestCastInitialization_ParenLambdaWithType_Block()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -599,7 +599,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestCastInitialization_AnonymousMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -641,7 +641,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestCastInitialization_SimpleLambda_ExprBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -673,7 +673,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestCastInitialization_ParenLambdaNoType_ExprBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -705,7 +705,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestCastInitialization_ParenLambdaWithType_ExprBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -785,7 +785,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSplitInitialization_SimpleLambda_Block()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -828,7 +828,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSplitInitialization_SimpleLambda_Block_NoInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -871,7 +871,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSplitInitialization_SimpleLambda_Block_DefaultLiteral()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -917,7 +917,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSplitInitialization_SimpleLambda_Block_DefaultExpression()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -960,7 +960,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSplitInitialization_SimpleLambda_Block_DefaultExpression_var()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1003,7 +1003,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSplitInitialization_ParenLambdaNoType_Block()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1046,7 +1046,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSplitInitialization_ParenLambdaWithType_Block()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1089,7 +1089,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSplitInitialization_AnonymousMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1132,7 +1132,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSplitInitialization_SimpleLambda_ExprBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1165,7 +1165,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSplitInitialization_ParenLambdaNoType_ExprBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1198,7 +1198,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestSplitInitialization_ParenLambdaWithType_ExprBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1231,7 +1231,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestFixAll1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1267,7 +1267,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestFixAll2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1303,7 +1303,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestFixAll3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1340,7 +1340,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestFixAll4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1377,7 +1377,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestTrivia()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1421,7 +1421,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestInWithParameters()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             delegate void D(in int p);
             class C
@@ -1447,7 +1447,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestRefReadOnlyWithReturnType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             delegate ref readonly int D();
             class C
@@ -1491,7 +1491,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23118")]
     public Task TestAvailableIfConvertedToDelegate()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1563,7 +1563,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23118")]
     public Task TestAvailableIfConvertedToCoContraVariantDelegate0()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1596,7 +1596,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/23118")]
     public Task TestAvailableIfConvertedToCoContraVariantDelegate1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1629,7 +1629,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/23118")]
     public Task TestAvailableIfConvertedToCoContraVariantDelegate2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1662,7 +1662,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/23118")]
     public Task TestAvailableIfConvertedToCoContraVariantDelegate3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1806,7 +1806,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23150")]
     public Task TestWithInvokeMethod1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1846,7 +1846,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23150")]
     public Task TestWithInvokeMethod2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1886,7 +1886,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23150")]
     public Task TestWithInvokeMethod3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1932,7 +1932,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23150")]
     public Task TestWithInvokeMethod4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1978,7 +1978,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24760#issuecomment-364807853")]
     public Task TestWithRecursiveInvokeMethod1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2005,7 +2005,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24760#issuecomment-364807853")]
     public Task TestWithRecursiveInvokeMethod2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2032,7 +2032,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24760#issuecomment-364935495")]
     public Task TestWithNestedInvokeMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2060,7 +2060,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestWithNestedRecursiveInvokeMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2087,7 +2087,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestWithDefaultParameter1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2113,7 +2113,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24760#issuecomment-364655480")]
     public Task TestWithDefaultParameter2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2139,7 +2139,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestWithDefaultParameter3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2165,7 +2165,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24760#issuecomment-364764542")]
     public Task TestWithUnmatchingParameterList1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2191,7 +2191,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestWithUnmatchingParameterList2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2217,7 +2217,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestWithAsyncLambdaExpression()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -2245,7 +2245,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestWithAsyncAnonymousMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -2273,7 +2273,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestWithParameterlessAnonymousMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2307,7 +2307,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24764")]
     public Task TestWithNamedArguments1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2339,7 +2339,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24764")]
     public Task TestWithNamedArguments2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2373,7 +2373,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestWithNamedArgumentsAndBrokenCode1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2407,7 +2407,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestWithNamedArgumentsAndBrokenCode2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2443,7 +2443,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestWithNamedAndDefaultArguments()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2478,7 +2478,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestWithNamedAndDefaultArgumentsAndNestedRecursiveInvocations_FixAll()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2533,7 +2533,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestSimpleInitialization_SingleLine1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2559,7 +2559,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestSimpleInitialization_SingleLine2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2585,7 +2585,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestSimpleInitialization_SingleLine2Async()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2611,7 +2611,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestSimpleInitialization_SingleLine2MultiToken()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2635,7 +2635,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestSimpleInitialization_SingleLine2MultiTokenAsync()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -2661,7 +2661,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestSimpleInitialization_SingleLine3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2687,7 +2687,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestSimpleInitialization_SingleLine4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2713,7 +2713,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestSimpleInitialization_SingleLine4Async()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2739,7 +2739,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestCastInitialization_SingleLine1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2765,7 +2765,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestCastInitialization_SingleLine2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2791,7 +2791,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestCastInitialization_SingleLine2Async()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2817,7 +2817,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestCastInitialization_SingleLine3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2843,7 +2843,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestCastInitialization_SingleLine4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2869,7 +2869,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestCastInitialization_SingleLine4Async()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2895,7 +2895,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestSplitInitialization_SingleLine1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2922,7 +2922,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestSplitInitialization_SingleLine2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2949,7 +2949,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestSplitInitialization_SingleLine2Async()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2976,7 +2976,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestSplitInitialization_SingleLine3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -3003,7 +3003,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestSplitInitialization_SingleLine4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -3030,7 +3030,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
     public Task TestSplitInitialization_SingleLine4Async()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -3150,7 +3150,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/27950")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/23149")]
     public Task TestAvailableIfTypeParameterNotChanged1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3192,7 +3192,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23149")]
     public Task TestAvailableIfTypeParameterNotChanged2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3235,7 +3235,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56963")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/26526")]
     public Task TestAvailableWithCastIntroducedIfAssignedToVar()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3265,7 +3265,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26526")]
     public Task TestAvailableWithCastIntroducedForGenericTypeInference1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3303,7 +3303,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26526")]
     public Task TestAvailableWithCastIntroducedForGenericTypeInference2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3349,7 +3349,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestAvailableWithCastIntroducedForOverloadResolution()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3399,7 +3399,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestAvailableWithoutCastIfUnnecessaryForOverloadResolution()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3512,7 +3512,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29793")]
     public Task TestWithInvalidUnrelatedCode()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3550,7 +3550,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29793")]
     public Task TestWithInvalidUnrelatedCode2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3588,7 +3588,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29793")]
     public Task TestWithObsoleteCode()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3638,7 +3638,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29793")]
     public Task TestWithDeclarationWarning()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3678,7 +3678,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestMakeStaticIfNoCaptures()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3720,7 +3720,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestDoNotMakeStaticIfCaptures()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3764,7 +3764,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestWithAsyncLambdaExpression_MakeStatic()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -3792,7 +3792,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestWithNullableParameterAndReturn()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -3822,7 +3822,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestWithDiscardParameters()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -3844,7 +3844,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestWithOptionalParameter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -3872,7 +3872,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
 
     [Fact]
     public Task TestWithParamsArray()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {

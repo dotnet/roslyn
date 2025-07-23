@@ -2434,7 +2434,7 @@ index: 1);
 
     [Fact]
     public Task TestBeforeStartOfMethod_NotBeforeAttributes()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2485,7 +2485,7 @@ index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42699")]
     public Task TestSameNameMemberAsProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2510,7 +2510,7 @@ index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42698")]
     public Task TestMethodWithTrivia_3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2787,7 +2787,7 @@ index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72035")]
     public Task TestUpdateGetReferenceGeneratedPart()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">

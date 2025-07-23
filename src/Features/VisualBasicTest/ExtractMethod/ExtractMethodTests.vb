@@ -828,7 +828,7 @@ End Class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess1() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 class C
@@ -853,7 +853,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess2() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 class C
@@ -878,7 +878,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess3() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 class C
@@ -903,7 +903,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess4() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 class C
@@ -928,7 +928,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess5() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 class C
@@ -953,7 +953,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess6() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 class C
@@ -978,7 +978,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess7() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 class C
@@ -1003,7 +1003,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess8() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 class C
@@ -1028,7 +1028,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess9() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 imports System.Xml.Linq
@@ -1055,7 +1055,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess10() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 imports System.Xml.Linq

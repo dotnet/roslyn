@@ -34,7 +34,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestArray1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -66,7 +66,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestWarnIfCrossesFunctionBoundary()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -104,7 +104,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestWarnIfCollectionPotentiallyMutated1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -140,7 +140,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestWarnIfCollectionPotentiallyMutated2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -176,7 +176,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestNoWarnIfCollectionPropertyAccess()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -212,7 +212,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestNoWarnIfDoesNotCrossFunctionBoundary()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -250,7 +250,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestMultipleReferences()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -284,7 +284,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestEmbeddedStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -312,7 +312,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestPostIncrement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -344,7 +344,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestArrayPlusEqualsIncrementor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -376,7 +376,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
     public Task TestBeforeKeyword()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -426,7 +426,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
     public Task TestInParentheses()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -476,7 +476,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
     public Task TestInParentheses2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -508,7 +508,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestAtEndOfFor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -540,7 +540,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestForSelected()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -572,7 +572,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestBeforeOpenParen()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -604,7 +604,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestAfterCloseParen()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -835,7 +835,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestList1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -869,7 +869,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestChooseNameFromDeclarationStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -904,7 +904,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestIgnoreFormattingForReferences()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -939,7 +939,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestChooseNameFromDeclarationStatement_PreserveComments()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -978,7 +978,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestChooseNameFromDeclarationStatement_PreserveDirectives()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1057,7 +1057,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestWarningIfCollectionWrittenTo()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1225,7 +1225,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestTrivia()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1315,7 +1315,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestJaggedArray1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1347,7 +1347,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestJaggedArray2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1379,7 +1379,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestJaggedArray3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1418,7 +1418,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestJaggedArray4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1456,7 +1456,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestJaggedArray5()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1512,7 +1512,7 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestDoesNotUseLocalFunctionName()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 """
 using System;
 
@@ -1548,7 +1548,7 @@ class C
 
     [Fact]
     public Task TestUsesLocalFunctionParameterName()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 """
 using System;
 
@@ -1588,7 +1588,7 @@ class C
 
     [Fact]
     public Task TestDoesNotUseLambdaParameterWithCSharpLessThan8()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 """
 using System;
 
@@ -1624,7 +1624,7 @@ class C
 
     [Fact]
     public Task TestUsesLambdaParameterNameInCSharp8()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 """
 using System;
 
@@ -1684,7 +1684,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36305")]
     public Task TestOnElementAt1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;

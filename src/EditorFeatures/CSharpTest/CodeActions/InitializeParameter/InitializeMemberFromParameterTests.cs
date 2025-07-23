@@ -25,7 +25,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeFieldWithSameName()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -50,7 +50,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestEndOfParameter1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -75,7 +75,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestEndOfParameter2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -100,7 +100,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeFieldWithUnderscoreName()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -125,7 +125,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeWritableProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -177,7 +177,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeNonWritableProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -230,7 +230,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeFieldWithWrongType1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -257,7 +257,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeFieldWithWrongType2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -340,7 +340,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestWhenAlreadyInitialized3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -370,7 +370,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInsertionLocation1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -399,7 +399,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInsertionLocation2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -428,7 +428,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInsertionLocation3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -470,7 +470,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInsertionLocation4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -497,7 +497,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInsertionLocation5()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -524,7 +524,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInsertionLocation6()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -552,7 +552,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInsertionLocation7()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -580,7 +580,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19956")]
     public Task TestNoBlock()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -603,7 +603,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29190")]
     public Task TestInitializeFieldWithParameterNameSelected1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -628,7 +628,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29190")]
     public Task TestInitializeField_ParameterNameSelected2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -653,7 +653,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeClassProperty_RequiredAccessibilityOmitIfDefault()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -680,7 +680,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeClassProperty_RequiredAccessibilityNever()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -707,7 +707,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeClassProperty_RequiredAccessibilityAlways()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -734,7 +734,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeClassField_RequiredAccessibilityOmitIfDefault()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -760,7 +760,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeClassField_RequiredAccessibilityNever()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -786,7 +786,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeClassField_RequiredAccessibilityAlways()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -812,7 +812,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeStructProperty_RequiredAccessibilityOmitIfDefault()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             struct S
             {
@@ -835,7 +835,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeStructProperty_RequiredAccessibilityNever()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             struct S
             {
@@ -858,7 +858,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeStructProperty_RequiredAccessibilityAlways()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             struct S
             {
@@ -881,7 +881,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeStructField_RequiredAccessibilityOmitIfDefault()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             struct S
             {
@@ -904,7 +904,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeStructField_RequiredAccessibilityNever()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             struct S
             {
@@ -927,7 +927,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestInitializeStructField_RequiredAccessibilityAlways()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             struct S
             {
@@ -950,7 +950,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestNoParameterNamingStyle_CreateAndInitField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -973,7 +973,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestCommonParameterNamingStyle_CreateAndInitField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -996,7 +996,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestSpecifiedParameterNamingStyle_CreateAndInitField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1019,7 +1019,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestCommonAndSpecifiedParameterNamingStyle_CreateAndInitField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1042,7 +1042,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestCommonAndSpecifiedParameterNamingStyle2_CreateAndInitField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1065,7 +1065,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestNoParameterNamingStyle_CreateAndInitProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1088,7 +1088,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestCommonParameterNamingStyle_CreateAndInitProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1111,7 +1111,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestSpecifiedParameterNamingStyle_CreateAndInitProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1134,7 +1134,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestCommonAndSpecifiedParameterNamingStyle_CreateAndInitProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1157,7 +1157,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestCommonAndSpecifiedParameterNamingStyle2_CreateAndInitProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1180,7 +1180,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestNoParameterNamingStyle_InitializeField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1205,7 +1205,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestCommonParameterNamingStyle_InitializeField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1230,7 +1230,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestSpecifiedParameterNamingStyle_InitializeField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1255,7 +1255,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestCommonAndSpecifiedParameterNamingStyle_InitializeField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1280,7 +1280,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestCommonAndSpecifiedParameterNamingStyle2_InitializeField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
     """
     class C
     {
@@ -1305,7 +1305,7 @@ public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpC
 
     [Fact]
     public Task TestNoParameterNamingStyle_InitializeProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 """
 class C
 {
@@ -1330,7 +1330,7 @@ class C
 
     [Fact]
     public Task TestCommonParameterNamingStyle_InitializeProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 """
 class C
 {
@@ -1355,7 +1355,7 @@ class C
 
     [Fact]
     public Task TestSpecifiedParameterNamingStyle_InitializeProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 """
 class C
 {
@@ -1380,7 +1380,7 @@ class C
 
     [Fact]
     public Task TestCommonAndSpecifiedParameterNamingStyle_InitializeProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 """
 class C
 {
@@ -1405,7 +1405,7 @@ class C
 
     [Fact]
     public Task TestCommonAndSpecifiedParameterNamingStyle2_InitializeProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
     """
     class C
     {
@@ -1460,7 +1460,7 @@ class C
 
     [Fact]
     public Task TestCreateFieldWithTopLevelNullability()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 """
 #nullable enable
 class C
@@ -1485,7 +1485,7 @@ class C
 
     [Fact]
     public Task TestCreatePropertyWithTopLevelNullability()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 """
 #nullable enable
 class C
@@ -1510,7 +1510,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24526")]
     public Task TestSingleLineBlock_BraceOnNextLine()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1551,7 +1551,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
     public Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1579,7 +1579,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
     public Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1607,7 +1607,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
     public Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1636,7 +1636,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
     public Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1661,7 +1661,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
     public Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1692,7 +1692,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
     public Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment_TupleAssignment1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1721,7 +1721,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
     public Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment_TupleAssignment2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1746,7 +1746,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
     public Task TestGenerateFieldIfParameterInMiddleOfExistingFieldAssignment_TupleAssignment1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1775,7 +1775,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
     public Task TestGenerateFieldIfParameterInMiddleOfExistingFieldAssignment_TupleAssignment2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1800,7 +1800,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
     public Task TestGeneratePropertyIfParameterFollowsExistingPropertyAssignment_TupleAssignment1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1846,7 +1846,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
     public Task TestGenerateRemainingFields1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1873,7 +1873,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
     public Task TestGenerateRemainingFields2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1903,7 +1903,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
     public Task TestGenerateRemainingFields3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1933,7 +1933,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
     public Task TestGenerateRemainingFields4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1963,7 +1963,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
     public Task TestGenerateRemainingProperties1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1990,7 +1990,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
     public Task TestGenerateRemainingProperties2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2021,7 +2021,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
     public Task TestGenerateRemainingProperties3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2052,7 +2052,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
     public Task TestGenerateRemainingProperties4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2109,7 +2109,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
     public Task TestInitializeThrowingProperty1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2138,7 +2138,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
     public Task TestInitializeThrowingProperty2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2173,7 +2173,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
     public Task TestInitializeThrowingProperty3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2208,7 +2208,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
     public Task TestInitializeThrowingProperty4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2245,7 +2245,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
     public Task TestInitializeThrowingProperty5()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2282,7 +2282,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
     public Task TestInitializeThrowingProperty6()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 

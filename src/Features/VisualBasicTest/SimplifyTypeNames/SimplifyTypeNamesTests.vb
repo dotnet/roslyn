@@ -128,7 +128,7 @@ End Module")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21449")>
         Public Async Function DoNotChangeToAliasInNameOfIfItChangesNameOfName() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports Foo = SimplifyInsideNameof.Program
 

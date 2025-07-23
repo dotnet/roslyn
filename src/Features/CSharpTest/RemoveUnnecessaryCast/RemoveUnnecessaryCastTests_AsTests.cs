@@ -2730,7 +2730,7 @@ public sealed partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpD
 
     [Fact]
     public Task DoRemoveCastOnCallToMethodWithIncorrectParamsArgs()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -2932,7 +2932,7 @@ public sealed partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpD
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
     public Task DoRemoveCastOnCallToAttributeWithInvalidParamsArgs()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             sealed class MarkAttribute : Attribute

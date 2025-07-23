@@ -27,7 +27,7 @@ public sealed class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCS
 
     [Fact]
     public Task Simple()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -62,7 +62,7 @@ public sealed class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCS
 
     [Fact]
     public Task InCall()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -84,7 +84,7 @@ public sealed class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCS
 
     [Fact]
     public Task FixAllInDocument()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {

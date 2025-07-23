@@ -1360,7 +1360,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25446")]
     public Task TestOnAwaitParsedAsType()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             class C
@@ -1386,7 +1386,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63404")]
     public Task PartialMethod1()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             public partial class C
@@ -1420,7 +1420,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63404")]
     public Task PartialMethod2()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             public partial class C
@@ -1454,7 +1454,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63404")]
     public Task PartialMethod3()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             public partial class C
@@ -1488,7 +1488,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63404")]
     public Task PartialMethod4()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             public partial class C

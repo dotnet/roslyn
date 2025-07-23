@@ -1285,7 +1285,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17656")]
     public Task TestInterfacesStartWithIOnTypeThatAlreadyStartsWithI1()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             interface [|InputStream|] { }
             """, """
             interface IInputStream { }
@@ -1293,7 +1293,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17656")]
     public Task TestInterfacesStartWithIOnTypeThatAlreadyStartsWithI2()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             interface [|Stream|] { }
             """, """
             interface IStream { }

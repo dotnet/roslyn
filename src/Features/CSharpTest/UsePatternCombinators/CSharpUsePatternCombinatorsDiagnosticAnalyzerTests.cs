@@ -682,7 +682,7 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76730")]
     public Task TestLogicalAndPatternNot()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {

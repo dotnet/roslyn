@@ -82,7 +82,7 @@ end class", New TestParameters(options:=RequireArithmeticBinaryParenthesesForCla
 
         <Fact>
         Public Async Function TestArithmeticRequiredForClarity2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub M()
         dim x = a orelse $$(b andalso c)
@@ -107,7 +107,7 @@ end class", New TestParameters(options:=RequireOtherBinaryParenthesesForClarity)
 
         <Fact>
         Public Async Function TestLogicalRequiredForClarity2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub M()
         dim x = a + $$(b * c)
@@ -477,7 +477,7 @@ end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=False)
 
         <Fact>
         Public Async Function TestForOverloadedOperatorOnLeft() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub M(c1 as C, c2 as C, c3 as C)
         dim x = $$(c1 + c2) + c3
@@ -564,7 +564,7 @@ end class", parameters:=New TestParameters(options:=RemoveAllUnnecessaryParenthe
 
         <Fact>
         Public Async Function TestRemoveShiftWithSamePrecedence() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub M()
         dim x = $$(1 << 2) << 3

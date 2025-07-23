@@ -7957,7 +7957,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17621")]
     public Task TestWithMatchingTypeName1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -7985,7 +7985,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17621")]
     public Task TestWithMatchingTypeName2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
