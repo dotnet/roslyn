@@ -2136,6 +2136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SafeContext GetInvocationEscapeToReceiver(
             in MethodInfo methodInfo,
             ImmutableArray<ParameterSymbol> parameters,
+            BoundExpression? receiver,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
@@ -2148,6 +2149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetFilteredInvocationArgumentsForEscapeToReceiver(
                 methodInfo,
                 parameters,
+                receiver,
                 argsOpt,
                 argRefKindsOpt,
                 argsToParamsOpt,
@@ -2398,6 +2400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             in MethodInfo methodInfo,
             ImmutableArray<ParameterSymbol> parameters,
+            BoundExpression? receiver,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
@@ -2412,6 +2415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetFilteredInvocationArgumentsForEscapeToReceiver(
                 methodInfo,
                 parameters,
+                receiver,
                 argsOpt,
                 argRefKindsOpt,
                 argsToParamsOpt,
@@ -2690,17 +2694,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GetFilteredInvocationArgumentsForEscapeToReceiver(
             in MethodInfo methodInfo,
             ImmutableArray<ParameterSymbol> parameters,
+            BoundExpression? receiver,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
             ArrayBuilder<EscapeValue> escapeValues)
         {
+            var localMethodInfo = ReplaceWithExtensionImplementationIfNeeded(
+                methodInfo,
+                ref parameters,
+                ref receiver,
+                ref argsOpt,
+                ref argRefKindsOpt,
+                ref argsToParamsOpt);
+
             // If the receiver is not a ref to a ref struct, it cannot capture anything.
             ParameterSymbol? extensionReceiver = null;
-            if (methodInfo.Symbol.RequiresInstanceReceiver())
+            if (localMethodInfo.Symbol.RequiresInstanceReceiver())
             {
                 // We have an instance method receiver.
-                if (!hasRefToRefStructThis(methodInfo.Method) && !hasRefToRefStructThis(methodInfo.SetMethod))
+                if (!hasRefToRefStructThis(localMethodInfo.Method) && !hasRefToRefStructThis(localMethodInfo.SetMethod))
                 {
                     return;
                 }
@@ -2708,7 +2721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // We have a classic extension method receiver.
-                Debug.Assert(methodInfo.Method?.IsExtensionMethod != false && methodInfo.Method?.GetIsNewExtensionMember() != true);
+                Debug.Assert(localMethodInfo.Method?.IsExtensionMethod != false);
 
                 if (parameters is [var extReceiver, ..])
                 {
@@ -2722,7 +2735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var unfilteredEscapeValues = ArrayBuilder<EscapeValue>.GetInstance();
             GetEscapeValues(
-                methodInfo,
+                localMethodInfo,
                 // We do not need the receiver in `escapeValues`.
                 receiver: null,
                 receiverIsSubjectToCloning: ThreeState.Unknown,
@@ -2759,28 +2772,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool hasRefToRefStructThis(MethodSymbol? method)
             {
-                return tryGetReceiverParameter(method) is { } thisParameter &&
+                return method?.TryGetThisParameter(out var thisParameter) == true &&
                     isRefToRefStruct(thisParameter);
-            }
-
-            static ParameterSymbol? tryGetReceiverParameter(MethodSymbol? method)
-            {
-                if (method is null)
-                {
-                    return null;
-                }
-
-                if (method.GetIsNewExtensionMember())
-                {
-                    return method.ContainingType.ExtensionParameter;
-                }
-
-                if (method.TryGetThisParameter(out var thisParameter))
-                {
-                    return thisParameter;
-                }
-
-                return null;
             }
 
             static bool isRefToRefStruct(ParameterSymbol parameter)
@@ -4910,6 +4903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? GetInvocationEscapeToReceiver(
                         MethodInfo.Create(colElement.AddMethod),
                         colElement.AddMethod.Parameters,
+                        colElement.ImplicitReceiverOpt,
                         colElement.Arguments,
                         argRefKindsOpt: default,
                         colElement.ArgsToParamsOpt,
@@ -5938,6 +5932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             colElement.Syntax,
                             MethodInfo.Create(colElement.AddMethod),
                             colElement.AddMethod.Parameters,
+                            colElement.ImplicitReceiverOpt,
                             colElement.Arguments,
                             argRefKindsOpt: default,
                             colElement.ArgsToParamsOpt,
@@ -6037,6 +6032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     scope = scope.Intersect(GetInvocationEscapeToReceiver(
                         MethodInfo.Create(call.Method),
                         call.Method.Parameters,
+                        call.ReceiverOpt,
                         call.Arguments,
                         call.ArgumentRefKindsOpt,
                         call.ArgsToParamsOpt,
@@ -6084,6 +6080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             call.Syntax,
                             MethodInfo.Create(call.Method),
                             call.Method.Parameters,
+                            call.ReceiverOpt,
                             call.Arguments,
                             call.ArgumentRefKindsOpt,
                             call.ArgsToParamsOpt,
