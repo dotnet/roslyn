@@ -169,19 +169,19 @@ public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosti
         return base.TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, index, parameters);
     }
 
-    internal new Task TestInRegularAndScriptAsync(
-        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
-        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
-        int index = 0,
-        CodeActionPriority? priority = null,
-        CompilationOptions? compilationOptions = null,
-        OptionsCollectionAlias? options = null,
-        object? fixProviderData = null,
-        ParseOptions? parseOptions = null,
-        string? title = null,
-        TestHost testHost = TestHost.OutOfProcess)
-    {
-        return base.TestInRegularAndScriptAsync(
-            initialMarkup, expectedMarkup, index, priority, compilationOptions, options, fixProviderData, parseOptions, title, testHost);
-    }
+    //internal new Task TestInRegularAndScriptAsync(
+    //    [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+    //    [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+    //    int index = 0,
+    //    CodeActionPriority? priority = null,
+    //    CompilationOptions? compilationOptions = null,
+    //    OptionsCollectionAlias? options = null,
+    //    object? fixProviderData = null,
+    //    ParseOptions? parseOptions = null,
+    //    string? title = null,
+    //    TestHost testHost = TestHost.OutOfProcess)
+    //{
+    //    return base.TestInRegularAndScriptAsync(
+    //        initialMarkup, expectedMarkup, index, priority, compilationOptions, options, fixProviderData, parseOptions, title, testHost);
+    //}
 }

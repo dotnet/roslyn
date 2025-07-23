@@ -86,7 +86,7 @@ public abstract partial class AbstractMoveToNamespaceTests : AbstractCodeActionT
 
             if (!optionCancelled && !string.IsNullOrEmpty(targetNamespace))
             {
-                await TestInRegularAndScriptAsync(markup, expectedMarkup, options: testParameters.options);
+                await TestInRegularAndScriptAsync(markup, expectedMarkup, new(options: testParameters.options));
             }
         }
         else
