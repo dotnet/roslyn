@@ -996,7 +996,7 @@ Module M
         Print(s)
     End Sub
 End Module",
-parseOptions:=Nothing) ' TODO (tomat): Modules nested in Script class not supported yet
+New TestParameters(parseOptions:=Nothing)) ' TODO (tomat): Modules nested in Script class not supported yet
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542395")>

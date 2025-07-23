@@ -44,8 +44,7 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
     private Task TestAllAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup)
-        => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup,
-            parseOptions: CSharp9, options: null);
+        => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(parseOptions: CSharp9, options: null));
 
     private Task TestAllOnExpressionAsync(string expression, string expected)
         => TestAllAsync(FromExpression(expression), FromExpression(expected));

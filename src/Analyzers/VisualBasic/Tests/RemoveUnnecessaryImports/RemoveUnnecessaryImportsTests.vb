@@ -1333,7 +1333,7 @@ Class C
 End Class",
 "Class C
 End Class",
-TestOptions.Regular)
+New TestParameters(TestOptions.Regular))
         End Function
     End Class
 End Namespace

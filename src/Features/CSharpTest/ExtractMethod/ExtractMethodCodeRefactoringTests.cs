@@ -2374,7 +2374,7 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                     (x, y) = (1, 2);
                 }
             }
-            """, TestOptions.Regular7_1);
+            """, new(TestOptions.Regular7_1));
 
     [Fact]
     public Task TestIndexExpression()
@@ -8601,7 +8601,7 @@ class Program
                 }
             }
             """,
-            options: NoBraces());
+            new(options: NoBraces()));
 
     [Fact]
     public Task TestFlowControl_BreakAndContinue_NoBraces()

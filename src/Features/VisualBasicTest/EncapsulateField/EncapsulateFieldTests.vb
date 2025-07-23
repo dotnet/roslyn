@@ -342,9 +342,9 @@ End Class</File>.ConvertTestSourceTag()
 
             Await TestInRegularAndScriptAsync(
                 text, expected,
-                options:=New OptionsCollection(GetLanguage()) From {
+                New TestParameters(options:=New OptionsCollection(GetLanguage()) From {
                     {CodeStyleOptions2.QualifyFieldAccess, True, NotificationOption2.Error}
-                }, New TestParameters(testHost:=host))
+                }, testHost:=host))
         End Function
 
         <Theory, CombinatorialData>

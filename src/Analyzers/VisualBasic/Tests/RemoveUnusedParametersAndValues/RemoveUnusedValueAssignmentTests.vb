@@ -77,7 +77,7 @@ $"Class C
         Dim x As Integer = 2
         Return x
     End Function
-End Class", options:=PreferUnusedLocal)
+End Class", New TestParameters(options:=PreferUnusedLocal))
         End Function
 
         <Fact>

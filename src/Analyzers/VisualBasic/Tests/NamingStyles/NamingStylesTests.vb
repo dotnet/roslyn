@@ -470,7 +470,7 @@ end module",
         dim pascalCase = 0
     end sub
 end module",
-                options:=s_options.LocalsAreCamelCaseConstantsAreUpperCase)
+                New TestParameters(options:=s_options.LocalsAreCamelCaseConstantsAreUpperCase))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38513")>
@@ -480,7 +480,7 @@ end module",
 End Interface",
 "Interface ITest
 End Interface",
-                options:=s_options.InterfaceNamesStartWithI)
+                New TestParameters(options:=s_options.InterfaceNamesStartWithI))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38513")>

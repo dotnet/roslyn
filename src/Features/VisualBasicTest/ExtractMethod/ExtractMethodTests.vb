@@ -1109,9 +1109,9 @@ class Program
     End Sub
 end class
 ",
-            options:=New OptionsCollection(LanguageNames.VisualBasic) From {
+            New TestParameters(options:=New OptionsCollection(LanguageNames.VisualBasic) From {
                 {CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.FalseWithSilentEnforcement}
-            })
+            }))
         End Function
 
         <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/33618")>

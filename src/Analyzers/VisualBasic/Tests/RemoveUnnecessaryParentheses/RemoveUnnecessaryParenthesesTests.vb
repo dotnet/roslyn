@@ -41,10 +41,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryP
                 RemoveUnnecessaryParenthesesTests.CheckOverflow,
                 RemoveUnnecessaryParenthesesTests.DoNotCheckOverflow)
 
-            Await TestInRegularAndScriptAsync(initial, expected, options:=RemoveAllUnnecessaryParentheses, index:=index, compilationOptions:=compilationOptions)
+            Await TestInRegularAndScriptAsync(initial, expected, New TestParameters(options:=RemoveAllUnnecessaryParentheses, index:=index, compilationOptions:=compilationOptions))
 
             If (offeredWhenRequireAllParenthesesForClarityIsEnabled) Then
-                Await TestInRegularAndScriptAsync(initial, expected, options:=RequireAllParenthesesForClarity, index:=index, compilationOptions:=compilationOptions)
+                Await TestInRegularAndScriptAsync(initial, expected, New TestParameters(options:=RequireAllParenthesesForClarity, index:=index, compilationOptions:=compilationOptions))
             Else
                 Await TestMissingAsync(initial, parameters:=New TestParameters(options:=RequireAllParenthesesForClarity, compilationOptions:=compilationOptions))
             End If

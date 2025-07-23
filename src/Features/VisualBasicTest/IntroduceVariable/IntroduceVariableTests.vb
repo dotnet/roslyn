@@ -1921,7 +1921,7 @@ End Module",
         End With
     End Sub
 End Module",
-parseOptions:=Nothing)
+New TestParameters(parseOptions:=Nothing))
 
             Await TestAsync(
 "Module Program

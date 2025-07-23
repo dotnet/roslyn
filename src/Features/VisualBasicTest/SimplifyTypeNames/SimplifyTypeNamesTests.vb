@@ -965,7 +965,7 @@ End Namespace")
 [|System.Console|].WriteLine(0)",
 "Imports System
 Console.WriteLine(0)",
-        parseOptions:=TestOptions.Script)
+        New TestParameters(parseOptions:=TestOptions.Script))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542093")>
@@ -1563,7 +1563,7 @@ End Class"
     Sub Goo()
         Dim x As New Program
     End Sub
-End Class", parseOptions:=Nothing, index:=0)
+End Class", New TestParameters(parseOptions:=Nothing, index:=0))
 
             Await TestMissingAsync(source, New TestParameters(GetScriptOptions()))
         End Function
@@ -2068,7 +2068,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicPredefinedTypeInDeclaration())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, New TestParameters(options:=PreferIntrinsicPredefinedTypeInDeclaration()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2468,7 +2468,7 @@ Module Module1
         Dim var As UInt32 = UInteger.MinValue
     End Sub
 End Module",
-                options:=PreferIntrinsicTypeInMemberAccess())
+                New TestParameters(options:=PreferIntrinsicTypeInMemberAccess()))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15996")>
@@ -2486,7 +2486,7 @@ Module Module1
         UInteger.Parse(""Goo"")
     End Sub
 End Module",
-                options:=PreferIntrinsicTypeInMemberAccess())
+                New TestParameters(options:=PreferIntrinsicTypeInMemberAccess()))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34494")>
