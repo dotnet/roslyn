@@ -94,7 +94,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, New TestParameters(options:=PreferIntrinsicPredefinedTypeEverywhere()))
         End Function
 
         <Fact>
@@ -183,7 +183,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, New TestParameters(options:=PreferIntrinsicPredefinedTypeEverywhere()))
         End Function
 
         <Fact>
