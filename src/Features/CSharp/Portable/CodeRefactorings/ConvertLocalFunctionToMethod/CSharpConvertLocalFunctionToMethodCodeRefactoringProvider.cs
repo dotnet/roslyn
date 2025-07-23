@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
@@ -97,13 +98,7 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
 
         // Find all enclosing type parameters e.g. from outer local functions and the containing member
         // We exclude the containing type itself which has type parameters accessible to all members
-        var typeParameters = new List<ITypeParameterSymbol>();
-        AddCapturedTypeParameters(declaredSymbol, typeParameters);
-
-        // We're going to remove unreferenced type parameters but we explicitly preserve
-        // captures' types, just in case that they were not spelt out in the function body
-        var captureTypes = captures.SelectMany(capture => capture.GetSymbolType().GetReferencedTypeParameters());
-        RemoveUnusedTypeParameters(localFunction, semanticModel, typeParameters, reservedTypeParameters: captureTypes);
+        var typeParameters = CreateFinalTypeParameterList(semanticModel, localFunction, declaredSymbol, captures);
 
         var containerSymbol = semanticModel.GetRequiredDeclaredSymbol(container, cancellationToken);
         var isStatic = containerSymbol.IsStatic || captures.All(capture => !capture.IsThisParameter());
@@ -142,11 +137,9 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         var identifierToken = needsRename ? methodName.ToIdentifierToken() : default;
         var supportsNonTrailing = SupportsNonTrailingNamedArguments(root.SyntaxTree.Options);
         var hasAdditionalArguments = capturesAsParameters.Length != 0;
-        var additionalTypeParameters = typeParameters.Except(declaredSymbol.TypeParameters).ToList();
-        var hasAdditionalTypeArguments = additionalTypeParameters.Count != 0;
-        var additionalTypeArguments = hasAdditionalTypeArguments
-            ? additionalTypeParameters.SelectAsArray(p => (TypeSyntax)p.Name.ToIdentifierName())
-            : [];
+        var additionalTypeParameters = typeParameters.Except(declaredSymbol.TypeParameters).ToImmutableArray();
+        var hasAdditionalTypeArguments = additionalTypeParameters.Length != 0;
+        var additionalTypeArguments = additionalTypeParameters.SelectAsArray(p => (TypeSyntax)p.Name.ToIdentifierName());
 
         var anyDelegatesToReplace = false;
         // Update callers' name, arguments and type arguments
@@ -242,6 +235,36 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         return document.WithSyntaxRoot(editor.GetChangedRoot());
     }
 
+    private static ImmutableArray<ITypeParameterSymbol> CreateFinalTypeParameterList(
+        SemanticModel semanticModel,
+        LocalFunctionStatementSyntax localFunction,
+        IMethodSymbol declaredSymbol,
+        ImmutableArray<ISymbol> captures)
+    {
+        using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var typeParameters);
+        for (var containingType = declaredSymbol.ContainingType; containingType != null; containingType = containingType.ContainingType)
+            typeParameters.AddRange(containingType.GetTypeParameters());
+
+        // We're going to remove unreferenced type parameters but we explicitly preserve
+        // captures' types, just in case that they were not spelt out in the function body
+        var captureTypes = captures.SelectMany(capture => capture.GetSymbolType().GetReferencedTypeParameters());
+        RemoveUnusedTypeParameters(reservedTypeParameters: captureTypes);
+        return typeParameters.ToImmutableAndClear();
+
+        void RemoveUnusedTypeParameters(IEnumerable<ITypeParameterSymbol> reservedTypeParameters)
+        {
+            var unusedTypeParameters = typeParameters.ToList();
+            foreach (var id in localFunction.DescendantNodes().OfType<IdentifierNameSyntax>())
+            {
+                var symbol = semanticModel.GetSymbolInfo(id).Symbol;
+                if (symbol?.OriginalDefinition is ITypeParameterSymbol typeParameter)
+                    unusedTypeParameters.Remove(typeParameter);
+            }
+
+            typeParameters.RemoveRange(unusedTypeParameters.Except(reservedTypeParameters));
+        }
+    }
+
     private static ImmutableArray<IParameterSymbol> CreateFinalParameterList(
         ImmutableArray<IParameterSymbol> parameters, ImmutableArray<IParameterSymbol> capturesAsParameters)
     {
@@ -278,37 +301,6 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
             .WithExpressionBody(localFunction.ExpressionBody)
             .WithSemicolonToken(localFunction.SemicolonToken)
             .WithBody(localFunction.Body);
-    }
-
-    private static void AddCapturedTypeParameters(ISymbol symbol, List<ITypeParameterSymbol> typeParameters)
-    {
-        var containingSymbol = symbol.ContainingSymbol;
-        if (containingSymbol != null &&
-            containingSymbol.Kind != SymbolKind.NamedType)
-        {
-            AddCapturedTypeParameters(containingSymbol, typeParameters);
-        }
-
-        typeParameters.AddRange(symbol.GetTypeParameters());
-    }
-
-    private static void RemoveUnusedTypeParameters(
-        SyntaxNode localFunction,
-        SemanticModel semanticModel,
-        List<ITypeParameterSymbol> typeParameters,
-        IEnumerable<ITypeParameterSymbol> reservedTypeParameters)
-    {
-        var unusedTypeParameters = typeParameters.ToList();
-        foreach (var id in localFunction.DescendantNodes().OfType<IdentifierNameSyntax>())
-        {
-            var symbol = semanticModel.GetSymbolInfo(id).Symbol;
-            if (symbol != null && symbol.OriginalDefinition is ITypeParameterSymbol typeParameter)
-            {
-                unusedTypeParameters.Remove(typeParameter);
-            }
-        }
-
-        typeParameters.RemoveRange(unusedTypeParameters.Except(reservedTypeParameters));
     }
 
     private static string GenerateUniqueMethodName(ISymbol declaredSymbol)
