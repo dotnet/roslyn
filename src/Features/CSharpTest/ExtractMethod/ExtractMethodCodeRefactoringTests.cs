@@ -2317,7 +2317,7 @@ parseOptions: TestOptions.Regular);
                     return (a, b: 2);
                 }
             }
-            """, TestOptions.Regular7_1);
+            """, new(TestOptions.Regular7_1));
 
     [Fact]
     public Task TestDeconstruction4()
@@ -2346,7 +2346,7 @@ parseOptions: TestOptions.Regular);
                     var (x, y) = (1, 2);
                 }
             }
-            """, TestOptions.Regular7_1);
+            """, new(TestOptions.Regular7_1));
 
     [Fact]
     public Task TestDeconstruction5()
@@ -5367,7 +5367,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleOutTuple_ExplicitEverywhere()
@@ -5535,7 +5535,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleRefCapture_PartialCapture()
@@ -5586,7 +5586,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleRefCapture_PartialCapture_InitializedInside()
@@ -5637,7 +5637,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleRefCapture_PartialCapture_InitializedInside2()
@@ -5693,7 +5693,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61555")]
     public async Task TestKnownNotNullParameter()
@@ -6783,7 +6783,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestFlowControl_BreakAndContinue_AllowVar()
@@ -6839,7 +6839,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestFlowControl_BreakAndReturn_AllowVar()
@@ -6895,7 +6895,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestFlowControl_BreakAndFallThrough_AllowVar()
@@ -6945,7 +6945,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestFlowControl_ContinueAndBreak_AllowVar()
@@ -7001,7 +7001,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestFlowControl_ContinueAndContinue_AllowVar()
@@ -7050,7 +7050,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestFlowControl_ContinueAndReturn_AllowVar()
@@ -7103,7 +7103,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestFlowControl_ContinueAndFallThrough_AllowVar()
@@ -7153,7 +7153,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestFlowControl_ReturnAndBreak_AllowVar()
@@ -7209,7 +7209,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestFlowControl_ReturnAndContinue_AllowVar()
@@ -7262,7 +7262,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestFlowControl_ReturnAndReturn_AllowVar()
@@ -7310,7 +7310,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestFlowControl_ReturnAndFallThrough_AllowVar()
@@ -7360,7 +7360,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestFlowControl_BreakAndContinueAndReturn_AllowVar()
@@ -7430,7 +7430,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestFlowControl_BreakAndContinueAndFallThrough_AllowVar()
@@ -7494,7 +7494,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestFlowControl_ContinueAndReturnAndFallThrough_AllowVar()
@@ -7555,7 +7555,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestFlowControl_BreakAndContinueAndReturnAndFallThrough_AllowVar()
@@ -7632,7 +7632,7 @@ class Program
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task TestFlowControl_BreakAndBreak_Async()

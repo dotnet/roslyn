@@ -711,8 +711,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
                 }
             }
             """,
-
-parseOptions: TestOptions.Regular, index: CodeActionIndex);
+            new(parseOptions: TestOptions.Regular, index: CodeActionIndex));
 
     [Fact]
     public Task DoNotOverParenthesizeGenerics()
@@ -1960,7 +1959,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
                     }
                 }
             }
-            """, TestOptions.Regular7_1, index: CodeActionIndex);
+            """, new(TestOptions.Regular7_1, index: CodeActionIndex));
 
     [Fact]
     public Task TestDeconstruction4()
@@ -2018,7 +2017,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
                     }
                 }
             }
-            """, TestOptions.Regular7_1, index: CodeActionIndex);
+            """, new(TestOptions.Regular7_1, index: CodeActionIndex));
 
     [Fact]
     public Task TestIndexExpression()
@@ -5290,7 +5289,7 @@ class Program
                     }
                 }
             }
-            """, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+            """, new(TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex));
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/55031")]
@@ -5524,5 +5523,5 @@ class Program
                     }
                 }
             }
-            """, TestOptions.Regular, index: CodeActionIndex);
+            """, new(TestOptions.Regular, index: CodeActionIndex));
 }
