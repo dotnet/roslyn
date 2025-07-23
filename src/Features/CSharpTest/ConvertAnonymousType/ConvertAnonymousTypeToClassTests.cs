@@ -226,7 +226,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return 0;
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact]
     public Task OnEmptyAnonymousType_CSharp9()
@@ -292,7 +292,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                     return -862436692 + A.GetHashCode();
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact]
     public Task OnSingleFieldAnonymousType_CSharp9()
@@ -1017,7 +1017,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                 where X : struct
                 where Y : class, new();
 
-            """, options: this.PreferImplicitTypeWithInfo());
+            """, new(options: this.PreferImplicitTypeWithInfo()));
 
     [Fact]
     public Task NewTypeNameCollision()
@@ -1142,7 +1142,7 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
 
             internal record NewRecord(int A, int Item);
 
-            """, options: this.PreferImplicitTypeWithInfo());
+            """, new(options: this.PreferImplicitTypeWithInfo()));
 
     [Fact]
     public Task TestNewSelection()
