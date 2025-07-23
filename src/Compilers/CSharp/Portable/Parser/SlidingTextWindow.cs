@@ -74,7 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private readonly int _textEnd;
 
         /// <summary>
-        /// The current position in <see cref="Text"/> that we are reading characters from.  This is the absolute position in the source text.
+        /// The current position in <see cref="Text"/> that we are reading characters from.  This is the absolute 
+        /// position in the source text.  This is not allowed to be negative.  It is allowed to be greater than or
+        /// equal to <see cref="_textEnd"/>
         /// </summary>
         private int _positionInText;
 
@@ -150,8 +152,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// The view starts at <see cref="Position"/> and contains as many legal characters from
         /// <see cref="Text"/> that are available after that.  This span may be empty.
         /// </summary>
-        public readonly ReadOnlySpan<char> CurrentWindowSpan => _characterWindow.AsSpan(_positionInText - _characterWindowStartPositionInText);
-
+        public readonly ReadOnlySpan<char> CurrentWindowSpan
+        {
+            get
+            {
+                return _positionInText > _textEnd
+                    ? default
+                    : _characterWindow.AsSpan(_positionInText - _characterWindowStartPositionInText);
+            }
+        }
         /// <summary>
         /// Similar to <see cref="_characterWindowStartPositionInText"/>, except this represents the index (exclusive) of the last character
         /// that <see cref="_characterWindow"/> encompases in <see cref="Text"/>.  This is equal to <see cref="_characterWindowStartPositionInText"/>
