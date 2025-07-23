@@ -1395,7 +1395,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var text = default(C);
                 }
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task SuggestVarWhereTypeIsEvident_Literals()
@@ -1462,7 +1462,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var c = new C();
                 }
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task SuggestVarWhereTypeIsEvident_CastExpression()
@@ -1490,7 +1490,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var date = (DateTime)o;
                 }
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task DoNotSuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule1()
@@ -1590,7 +1590,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
             interface IInterface
             {
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task SuggestVarWhereTypeIsEvident_ConversionHelpers()
@@ -1616,7 +1616,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var a = DateTime.Parse("1");
                 }
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task SuggestVarWhereTypeIsEvident_CreationHelpers()
@@ -1648,7 +1648,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
             {
                 internal static XElement Load() => return null;
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task SuggestVarWhereTypeIsEvident_CreationHelpersWithInferredTypeArguments()
@@ -1674,7 +1674,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var a = Tuple.Create(0, true);
                 }
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task SuggestVarWhereTypeIsEvident_ConvertToType()
@@ -1702,7 +1702,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var date = Convert.ToDateTime(integralValue);
                 }
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task SuggestVarWhereTypeIsEvident_IConvertibleToType()
@@ -1732,7 +1732,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var date = iConv.ToDateTime(null);
                 }
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task SuggestVarNotificationLevelSilent()
@@ -1818,7 +1818,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
         //The type is not intrinsic but apparent
         await TestInRegularAndScriptAsync(before, after, new(options: ImplicitTypeEverywhere()));
         await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeButKeepIntrinsics());
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeWhereApparent());
+        await TestInRegularAndScriptAsync(before, after, new(options: ImplicitTypeWhereApparent()));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
