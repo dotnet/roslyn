@@ -584,7 +584,7 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
-                        [G]: Unexpected type on the stack. { Offset = 0x104, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x104, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics();
@@ -632,8 +632,8 @@ namespace ConsoleApplication1
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("3", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [Bar]: Unexpected type on the stack. { Offset = 0xc, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                    [Goo]: Unexpected type on the stack. { Offset = 0x15, Found = value 'T', Expected = ref 'System.Threading.Tasks.Task`1<T0>' }
+                    [Bar]: Unexpected type on the stack. { Offset = 0xc, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    [Goo]: Unexpected type on the stack. { Offset = 0x15, Found = value 'T', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<T0>' }
                     """
             });
             verifier.VerifyDiagnostics();
@@ -684,7 +684,7 @@ class Test
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
-                        [G]: Unexpected type on the stack. { Offset = 0x13, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x13, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics(
@@ -735,7 +735,7 @@ exception
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [H]: Unexpected type on the stack. { Offset = 0xa, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [H]: Unexpected type on the stack. { Offset = 0xa, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyDiagnostics(
@@ -899,8 +899,8 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
-                        [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0x29, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x29, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics(
@@ -1004,7 +1004,7 @@ class Test
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [F]: Unexpected type on the stack. { Offset = 0xb, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xb, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyDiagnostics(
@@ -1363,8 +1363,8 @@ class Test
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                    [G]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    [G]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyDiagnostics(
@@ -1484,8 +1484,8 @@ class Test
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
-                        [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0x3e, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x3e, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics(
@@ -1769,7 +1769,7 @@ class Test
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyDiagnostics(
@@ -1779,7 +1779,7 @@ class Test
             );
             verifier.VerifyIL("Test.G()", """
                 {
-                  // Code size       78 (0x4e)
+                  // Code size       72 (0x48)
                   .maxstack  2
                   .locals init (int V_0, //x
                                 object V_1,
@@ -1794,35 +1794,34 @@ class Test
                     IL_0009:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
                     IL_000e:  stloc.0
                     IL_000f:  ldloca.s   V_0
-                    IL_0011:  constrained. "int"
-                    IL_0017:  callvirt   "string object.ToString()"
-                    IL_001c:  newobj     "System.Exception..ctor(string)"
-                    IL_0021:  throw
+                    IL_0011:  call       "string int.ToString()"
+                    IL_0016:  newobj     "System.Exception..ctor(string)"
+                    IL_001b:  throw
                   }
                   catch object
                   {
-                    IL_0022:  stloc.1
-                    IL_0023:  leave.s    IL_0025
+                    IL_001c:  stloc.1
+                    IL_001d:  leave.s    IL_001f
                   }
-                  IL_0025:  ldloc.0
-                  IL_0026:  call       "System.Threading.Tasks.Task<int> Test.F()"
-                  IL_002b:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_0030:  stloc.2
-                  IL_0031:  ldloc.2
-                  IL_0032:  add
-                  IL_0033:  stloc.0
-                  IL_0034:  ldloc.1
-                  IL_0035:  brfalse.s  IL_004c
-                  IL_0037:  ldloc.1
-                  IL_0038:  isinst     "System.Exception"
-                  IL_003d:  dup
-                  IL_003e:  brtrue.s   IL_0042
-                  IL_0040:  ldloc.1
-                  IL_0041:  throw
-                  IL_0042:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
-                  IL_0047:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
-                  IL_004c:  ldnull
-                  IL_004d:  throw
+                  IL_001f:  ldloc.0
+                  IL_0020:  call       "System.Threading.Tasks.Task<int> Test.F()"
+                  IL_0025:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_002a:  stloc.2
+                  IL_002b:  ldloc.2
+                  IL_002c:  add
+                  IL_002d:  stloc.0
+                  IL_002e:  ldloc.1
+                  IL_002f:  brfalse.s  IL_0046
+                  IL_0031:  ldloc.1
+                  IL_0032:  isinst     "System.Exception"
+                  IL_0037:  dup
+                  IL_0038:  brtrue.s   IL_003c
+                  IL_003a:  ldloc.1
+                  IL_003b:  throw
+                  IL_003c:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0041:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0046:  ldnull
+                  IL_0047:  throw
                 }
                 """);
         }
@@ -2048,7 +2047,7 @@ class Test
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyDiagnostics(
@@ -2301,7 +2300,7 @@ class Test
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyDiagnostics(
@@ -2382,8 +2381,8 @@ class Test
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                    [G]: Unexpected type on the stack. { Offset = 0x45, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    [G]: Unexpected type on the stack. { Offset = 0x45, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyDiagnostics(
@@ -2510,8 +2509,8 @@ class Test
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
-                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0xc1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0xc1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics(
@@ -2598,8 +2597,8 @@ class Test
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
-                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0xc7, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0xc7, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics(
@@ -2690,8 +2689,8 @@ class Test
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
-                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0x96, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x96, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics(
@@ -2855,8 +2854,8 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
-                        [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0x1f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x1f, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics(
@@ -2970,8 +2969,8 @@ Attempted to divide by zero.
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
-                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0x5f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x5f, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics();
@@ -3050,8 +3049,8 @@ Attempted to divide by zero.
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
-                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0x58, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x58, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics();
@@ -3135,8 +3134,8 @@ Attempted to divide by zero.
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
-                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0x9d, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x9d, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics();
@@ -3200,8 +3199,8 @@ hello
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
-                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0xa4, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0xa4, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics();
@@ -3380,8 +3379,8 @@ class Test
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
-                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0xcf, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0xcf, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics();
@@ -3472,8 +3471,8 @@ hello
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
-                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0x16e, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x16e, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics();
@@ -3567,8 +3566,8 @@ hello
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
-                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [<G>b__0]: Unexpected type on the stack. { Offset = 0x1a9, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                        [<G>b__0]: Unexpected type on the stack. { Offset = 0x1a9, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics();
@@ -3803,7 +3802,7 @@ class Driver
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
-                        [Main]: Return value missing on the stack. { Offset = 0x7a }
+                        [Main]: Return value missing on the stack. { Offset = 0xa3 }
                         [M1]: Return value missing on the stack. { Offset = 0x6d }
                         [M1]: Return value missing on the stack. { Offset = 0xf8 }
                         [M1]: Return value missing on the stack. { Offset = 0x159 }

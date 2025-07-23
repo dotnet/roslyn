@@ -710,20 +710,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             }
             """;
 
-        internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, string runtimeAsyncAwaitHelpers = RuntimeAsyncAwaitHelpers)
+        internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, string runtimeAsyncAwaitHelpers = RuntimeAsyncAwaitHelpers /* prototype */)
         {
-            // PROTOTYPE: Remove this helper and just use .NET 10 when we can
-            var corlib = CreateEmptyCompilation([
-                RuntimeAsyncCoreLib,
-                runtimeAsyncAwaitHelpers,
-                AsyncStreamsTypes,
-                TestSources.Index,
-                TestSources.Range,
-                TestSources.Span
-            ], options: TestOptions.UnsafeDebugDll);
-
-            var compilation = CreateEmptyCompilation(source, references: [.. references ?? [], corlib.EmitToImageReference()], options: options, parseOptions: parseOptions ?? WithRuntimeAsync(TestOptions.RegularPreview));
-            return compilation;
+            return CreateCompilation(source, options: options, parseOptions: parseOptions ?? WithRuntimeAsync(TestOptions.RegularPreview), targetFramework: TargetFramework.Net100);
         }
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = default)
@@ -1111,7 +1100,7 @@ O brave new world...
 
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = "[F]: Unexpected type on the stack. { Offset = 0x2e, Found = ref 'string', Expected = ref 'System.Threading.Tasks.Task`1<string>' }",
+                ILVerifyMessage = "[F]: Unexpected type on the stack. { Offset = 0x2e, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }",
             }, symbolValidator: verify);
             verifier.VerifyDiagnostics();
 
@@ -1172,7 +1161,7 @@ class Test
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xa, Found = ref 'string', Expected = value 'System.Threading.Tasks.ValueTask`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xa, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
             }, symbolValidator: verify);
@@ -1233,7 +1222,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x11")}}
                     """,
                 (false, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0x29, Found = ref 'string', Expected = ref 'System.Threading.Tasks.Task`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x29, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
                 (true, false) => $$"""
@@ -1241,7 +1230,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x11")}}
                     """,
                 (true, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xf, Found = ref 'string', Expected = value 'System.Threading.Tasks.ValueTask`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xf, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
             };
@@ -1372,7 +1361,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x16")}}
                     """,
                 (false, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xb, Found = ref 'string', Expected = ref 'System.Threading.Tasks.Task`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xb, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }
                     {{ReturnValueMissing("Main", "0x17")}}
                     """,
                 (true, false) => $$"""
@@ -1380,7 +1369,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x16")}}
                     """,
                 (true, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0x13, Found = ref 'string', Expected = value 'System.Threading.Tasks.ValueTask`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x13, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
                     {{ReturnValueMissing("Main", "0x18")}}
                     """,
             };
@@ -1496,7 +1485,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x16")}}
                     """,
                 (false, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0x6, Found = ref 'string', Expected = ref 'System.Threading.Tasks.Task`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x6, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }
                     {{ReturnValueMissing("Main", "0x17")}}
                     """,
                 (true, false) => $$"""
@@ -1504,7 +1493,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x16")}}
                     """,
                 (true, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xe, Found = ref 'string', Expected = value 'System.Threading.Tasks.ValueTask`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xe, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
                     {{ReturnValueMissing("Main", "0x18")}}
                     """,
             };
@@ -1609,7 +1598,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x11")}}
                     """,
                 (false, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0x1e, Found = ref 'string', Expected = ref 'System.Threading.Tasks.Task`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x1e, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
                 (true, false) => $$"""
@@ -1617,7 +1606,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x11")}}
                     """,
                 (true, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0x1e, Found = ref 'string', Expected = value 'System.Threading.Tasks.ValueTask`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x1e, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
             };
@@ -1740,7 +1729,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x11")}}
                     """,
                 (false, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xf, Found = ref 'string', Expected = ref 'System.Threading.Tasks.Task`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xf, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
                 (true, false) => $$"""
@@ -1748,7 +1737,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x11")}}
                     """,
                 (true, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xf, Found = ref 'string', Expected = value 'System.Threading.Tasks.ValueTask`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xf, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
             };
@@ -1853,7 +1842,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x11")}}
                     """,
                 (false, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xa, Found = ref 'string', Expected = ref 'System.Threading.Tasks.Task`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xa, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
                 (true, false) => $$"""
@@ -1861,7 +1850,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x11")}}
                     """,
                 (true, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xa, Found = ref 'string', Expected = value 'System.Threading.Tasks.ValueTask`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xa, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
             };
@@ -8888,8 +8877,8 @@ class Test1
             {
                 ILVerifyMessage = $$"""
                     {{ReturnValueMissing("Main", "0x11")}}
-                    [Fib]: Unexpected type on the stack. { Offset = 0x30, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                    [Fib]: Unexpected type on the stack. { Offset = 0x4e, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Fib]: Unexpected type on the stack. { Offset = 0x30, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    [Fib]: Unexpected type on the stack. { Offset = 0x4e, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyIL("C.Fib(int)", """
@@ -8944,25 +8933,25 @@ class Test1
                 """;
 
             var runtimeAsyncHelpers = """
-            namespace System.Runtime.CompilerServices
-            {
-                public static class AsyncHelpers
+                namespace System.Runtime.CompilerServices
                 {
-                    public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
-                    {}
-                    public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
-                    {}
+                    public static class AsyncHelpers
+                    {
+                        public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
+                        {}
+                        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
+                        {}
 
-                    public static void Await(object task) => throw null!;
-                    public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
-                    public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
-                    public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
-                    public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                        public static void Await(object task) => throw null!;
+                        public static void Await(System.Threading.Tasks.Task task) => throw null!;
+                        public static void Await(System.Threading.Tasks.ValueTask task) => throw null!;
+                        public static T Await<T>(System.Threading.Tasks.Task<T> task) => throw null!;
+                        public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => throw null!;
+                    }
                 }
-            }
-            """;
+                """;
 
-            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncHelpers);
+            var comp = CreateRuntimeAsyncCompilationWithCustomAwaitHelpers(code, runtimeAsyncAwaitHelpers: runtimeAsyncHelpers);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             // No error when multiple valid runtime async await methods are present, we just fall back to AwaitAwaiter
             verifier.VerifyIL("<top-level-statements-entry-point>", """
@@ -8985,6 +8974,82 @@ class Test1
                 """);
         }
 
+        private Compilation CreateRuntimeAsyncCompilationWithCustomAwaitHelpers(string source, string runtimeAsyncAwaitHelpers)
+        {
+            var corlib = """
+                namespace System
+                {
+                    public class Attribute {}
+                    public enum AttributeTargets {}
+                    public class AttributeUsageAttribute : Attribute
+                    {
+                        public AttributeUsageAttribute(AttributeTargets validOn) {}
+                        public bool AllowMultiple { get; set; }
+                        public bool Inherited { get; set; }
+                    }
+                    public struct Boolean {}
+                    public abstract class Enum {}
+                    public class Exception {}
+                    public struct Int32 {}
+                    public class Object {}
+                    public class String {}
+                    public class ValueType {}
+                    public class Void {}
+
+                    namespace Threading.Tasks
+                    {
+                        public class Task
+                        {
+                            public Runtime.CompilerServices.TaskAwaiter GetAwaiter() => throw null!;
+                            public static Task<T> FromResult<T>(T result) => throw null!;
+                            public static Task CompletedTask => throw null!;
+                        }
+                        public class Task<T>
+                        {
+                            public Runtime.CompilerServices.TaskAwaiter<T> GetAwaiter() => throw null!;
+                        }
+                        public struct ValueTask
+                        {
+                            public Runtime.CompilerServices.ValueTaskAwaiter GetAwaiter() => throw null!;
+                        }
+                        public struct ValueTask<T>
+                        {
+                            public Runtime.CompilerServices.ValueTaskAwaiter<T> GetAwaiter() => throw null!;
+                        }
+                    }
+
+                    namespace Runtime.CompilerServices
+                    {
+                        public interface INotifyCompletion {}
+                        public interface ICriticalNotifyCompletion : INotifyCompletion {}
+                        public struct TaskAwaiter : ICriticalNotifyCompletion
+                        {
+                            public bool IsCompleted => false;
+                            public void GetResult() {}
+                        }
+                        public struct TaskAwaiter<TResult> : ICriticalNotifyCompletion
+                        {
+                            public bool IsCompleted => false;
+                            public TResult GetResult() => default;
+                        }
+                        public struct ValueTaskAwaiter : ICriticalNotifyCompletion
+                        {
+                            public bool IsCompleted => false;
+                            public void GetResult() {}
+                        }
+                        public struct ValueTaskAwaiter<TResult> : ICriticalNotifyCompletion
+                        {
+                            public bool IsCompleted => false;
+                            public TResult GetResult() => default;
+                        }
+                    }
+                }
+                """;
+
+            var corlibComp = CreateEmptyCompilation([corlib, runtimeAsyncAwaitHelpers]);
+            return CreateEmptyCompilation(source, references: [corlibComp.EmitToImageReference()], parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
+        }
+
         [Fact]
         public void MissingAwaitTask()
         {
@@ -8993,23 +9058,23 @@ class Test1
                 """;
 
             var runtimeAsyncHelpers = """
-            namespace System.Runtime.CompilerServices
-            {
-                public static class AsyncHelpers
+                namespace System.Runtime.CompilerServices
                 {
-                    public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
-                    {}
-                    public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
-                    {}
+                    public static class AsyncHelpers
+                    {
+                        public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
+                        {}
+                        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
+                        {}
 
-                    public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
-                    public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
-                    public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                        public static void Await(System.Threading.Tasks.ValueTask task) => throw null!;
+                        public static T Await<T>(System.Threading.Tasks.Task<T> task) => throw null!;
+                        public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => throw null!;
+                    }
                 }
-            }
-            """;
+                """;
 
-            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncHelpers);
+            var comp = CreateRuntimeAsyncCompilationWithCustomAwaitHelpers(code, runtimeAsyncAwaitHelpers: runtimeAsyncHelpers);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {
@@ -9048,14 +9113,14 @@ class Test1
                     public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
                     {}
 
-                    public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
-                    public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
-                    public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                    public static void Await(System.Threading.Tasks.Task task) => throw null!;
+                    public static void Await(System.Threading.Tasks.ValueTask task) => throw null!;
+                    public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => throw null!;
                 }
             }
             """;
 
-            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncHelpers);
+            var comp = CreateRuntimeAsyncCompilationWithCustomAwaitHelpers(code, runtimeAsyncAwaitHelpers: runtimeAsyncHelpers);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {
@@ -9096,14 +9161,14 @@ class Test1
                     public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
                     {}
 
-                    public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
-                    public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
-                    public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                    public static void Await(System.Threading.Tasks.Task task) => throw null!;
+                    public static T Await<T>(System.Threading.Tasks.Task<T> task) => throw null!;
+                    public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => throw null!;
                 }
             }
             """;
 
-            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncHelpers);
+            var comp = CreateRuntimeAsyncCompilationWithCustomAwaitHelpers(code, runtimeAsyncAwaitHelpers: runtimeAsyncHelpers);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {
@@ -9145,14 +9210,14 @@ class Test1
                     public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
                     {}
 
-                    public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
-                    public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
-                    public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
+                    public static void Await(System.Threading.Tasks.Task task) => throw null!;
+                    public static void Await(System.Threading.Tasks.ValueTask task) => throw null!;
+                    public static T Await<T>(System.Threading.Tasks.Task<T> task) => throw null!;
                 }
             }
             """;
 
-            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncHelpers);
+            var comp = CreateRuntimeAsyncCompilationWithCustomAwaitHelpers(code, runtimeAsyncAwaitHelpers: runtimeAsyncHelpers);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {
@@ -9268,10 +9333,10 @@ class Test1
                         public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
                         {}
 
-                        public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
-                        public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
-                        public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
-                        public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                        public static void Await(System.Threading.Tasks.Task task) => throw null;
+                        public static void Await(System.Threading.Tasks.ValueTask task) => throw null!;
+                        public static T Await<T>(System.Threading.Tasks.Task<T> task) => throw null!;
+                        public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => throw null!;
                     }
                 }
                 """;
@@ -9283,18 +9348,17 @@ class Test1
 
                 class C
                 {
-                    public CAwaiter GetAwaiter() => new CAwaiter();
+                    public CAwaiter GetAwaiter() => throw null!;
                 }
 
                 class CAwaiter : INotifyCompletion
                 {
-                    public void OnCompleted(System.Action continuation) {}
                     public bool IsCompleted => true;
                     public void GetResult() {}
                 }
                 """;
 
-            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncAwaitHelpers);
+            var comp = CreateRuntimeAsyncCompilationWithCustomAwaitHelpers(code, runtimeAsyncAwaitHelpers: runtimeAsyncAwaitHelpers);
             comp.VerifyDiagnostics(
                 // (3,7): error CS0453: The type 'CAwaiter' must be a non-nullable value type in order to use it as parameter 'TAwaiter' in the generic type or method 'AsyncHelpers.AwaitAwaiter<TAwaiter>(TAwaiter)'
                 // await new C();
@@ -9315,23 +9379,34 @@ class Test1
                         public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : class, ICriticalNotifyCompletion
                         {}
 
-                        public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
-                        public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
-                        public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
-                        public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                        public static void Await(System.Threading.Tasks.Task task) => throw null!;
+                        public static void Await(System.Threading.Tasks.ValueTask task) => throw null!;
+                        public static T Await<T>(System.Threading.Tasks.Task<T> task) => throw null!;
+                        public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => throw null!;
                     }
                 }
                 """;
 
             var code = """
-                await System.Threading.Tasks.Task.Yield();
+                await default(Awaited);
+
+                struct Awaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion
+                {
+                    public bool IsCompleted => true;
+                    public void GetResult() {}
+                }
+
+                struct Awaited
+                {
+                    public Awaiter GetAwaiter() => throw null!;
+                }
                 """;
 
-            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncAwaitHelpers);
+            var comp = CreateRuntimeAsyncCompilationWithCustomAwaitHelpers(code, runtimeAsyncAwaitHelpers: runtimeAsyncAwaitHelpers);
             comp.VerifyDiagnostics(
-                // (1,7): error CS0452: The type 'YieldAwaitable.YieldAwaiter' must be a reference type in order to use it as parameter 'TAwaiter' in the generic type or method 'AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)'
-                // await System.Threading.Tasks.Task.Yield();
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "System.Threading.Tasks.Task.Yield()").WithArguments("System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)", "TAwaiter", "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter").WithLocation(1, 7)
+                // (1,7): error CS0452: The type 'Awaiter' must be a reference type in order to use it as parameter 'TAwaiter' in the generic type or method 'AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)'
+                // await default(Awaited);
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "default(Awaited)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)", "TAwaiter", "Awaiter").WithLocation(1, 7)
             );
         }
 
@@ -9348,24 +9423,24 @@ class Test1
                         public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : class, ICriticalNotifyCompletion
                         {}
 
-                        public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
-                        public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
-                        public static T Await<T>(System.Threading.Tasks.Task<T> task) where T : class => task.GetAwaiter().GetResult();
-                        public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                        public static void Await(System.Threading.Tasks.Task task) => throw null!;
+                        public static void Await(System.Threading.Tasks.ValueTask task) => throw null!;
+                        public static T Await<T>(System.Threading.Tasks.Task<T> task) where T : class => throw null!;
+                        public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => throw null!;
                     }
                 }
                 """;
 
             var code = """
-                await System.Threading.Tasks.Task<int>.FromResult(1);
+                await System.Threading.Tasks.Task.FromResult(1);
                 """;
 
-            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncAwaitHelpers);
+            var comp = CreateRuntimeAsyncCompilationWithCustomAwaitHelpers(code, runtimeAsyncAwaitHelpers: runtimeAsyncAwaitHelpers);
             // Note: because of constraints failure, Await is skipped over, and then UnsafeAwaitAwaiter is attempted.
             comp.VerifyDiagnostics(
                 // (1,7): error CS0452: The type 'TaskAwaiter<int>' must be a reference type in order to use it as parameter 'TAwaiter' in the generic type or method 'AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)'
-                // await System.Threading.Tasks.Task<int>.FromResult(1);
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "System.Threading.Tasks.Task<int>.FromResult(1)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)", "TAwaiter", "System.Runtime.CompilerServices.TaskAwaiter<int>").WithLocation(1, 7)
+                // await System.Threading.Tasks.Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "System.Threading.Tasks.Task.FromResult(1)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)", "TAwaiter", "System.Runtime.CompilerServices.TaskAwaiter<int>").WithLocation(1, 7)
             );
         }
 
@@ -9382,10 +9457,10 @@ class Test1
                         public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : class, ICriticalNotifyCompletion
                         {}
 
-                        public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
-                        public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
-                        public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
-                        public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) where T : class => task.GetAwaiter().GetResult();
+                        public static void Await(System.Threading.Tasks.Task task) => throw null!;
+                        public static void Await(System.Threading.Tasks.ValueTask task) => throw null!;
+                        public static T Await<T>(System.Threading.Tasks.Task<T> task) => throw null!;
+                        public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) where T : class => throw null!;
                     }
                 }
                 """;
@@ -9394,7 +9469,7 @@ class Test1
                 await default(System.Threading.Tasks.ValueTask<int>);
                 """;
 
-            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncAwaitHelpers);
+            var comp = CreateRuntimeAsyncCompilationWithCustomAwaitHelpers(code, runtimeAsyncAwaitHelpers: runtimeAsyncAwaitHelpers);
             // Note: because of constraints failure, Await is skipped over, and then UnsafeAwaitAwaiter is attempted.
             comp.VerifyDiagnostics(
                 // (1,7): error CS0452: The type 'ValueTaskAwaiter<int>' must be a reference type in order to use it as parameter 'TAwaiter' in the generic type or method 'AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)'
@@ -9441,7 +9516,7 @@ class Test1
             {
                 ILVerifyMessage = $$"""
                     {{ReturnValueMissing("<Main>$", "0xf")}}
-                    [Handler]: Unexpected type on the stack. { Offset = 0x18, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Handler]: Unexpected type on the stack. { Offset = 0x18, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyIL("C.Handler()", """
@@ -9473,7 +9548,7 @@ class Test1
             {
                 ILVerifyMessage = $$"""
                     {{ReturnValueMissing("<Main>$", "0x12")}}
-                    [Handler]: Unexpected type on the stack. { Offset = 0x1f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Handler]: Unexpected type on the stack. { Offset = 0x1f, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyIL("C.Handler()", """
