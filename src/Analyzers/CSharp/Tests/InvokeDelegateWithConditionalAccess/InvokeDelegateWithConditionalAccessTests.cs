@@ -81,7 +81,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
             Action a = null;
 
             a?.Invoke();
-            """, parseOptions: CSharpParseOptions.Default);
+            """, new(parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestOnIf()

@@ -787,7 +787,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return true ? throw new System.Exception() : (object)"b";
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestConversion1_Throw1_CSharp9()

@@ -31,11 +31,11 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
         bool offeredWhenRequireForClarityIsEnabled, int index = 0)
     {
-        await TestInRegularAndScriptAsync(initial, expected, options: RemoveAllUnnecessaryParentheses, index: index);
+        await TestInRegularAndScriptAsync(initial, expected, index: index, new(options: RemoveAllUnnecessaryParentheses));
 
         if (offeredWhenRequireForClarityIsEnabled)
         {
-            await TestInRegularAndScriptAsync(initial, expected, options: RequireAllParenthesesForClarity, index: index);
+            await TestInRegularAndScriptAsync(initial, expected, index: index, new(options: RequireAllParenthesesForClarity));
         }
         else
         {

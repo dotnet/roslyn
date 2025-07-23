@@ -278,7 +278,7 @@ public sealed partial class UseAutoPropertyTests
             {
                 string P => field.Trim();
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestMultipleFields_NoClearChoice()

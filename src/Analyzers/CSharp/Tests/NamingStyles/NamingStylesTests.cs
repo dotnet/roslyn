@@ -86,7 +86,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 int [|{{correctedName}}|];
             }
             """,
-            options: s_options.FieldNamesAreCamelCase);
+            new(options: s_options.FieldNamesAreCamelCase));
 
     [Theory]
     [InlineData("M_bar", "_bar")]

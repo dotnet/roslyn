@@ -421,7 +421,7 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
             """;
         // The type is intrinsic and not apparent
         await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
-        await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeForBuiltInTypesOnly());
+        await TestInRegularAndScriptAsync(before, after, new(options: ExplicitTypeForBuiltInTypesOnly()));
         await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
     }
 

@@ -525,7 +525,7 @@ class C
                 }
             }
             """,
-            options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
+            new(options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
     public Task TestWithExistingField6()
@@ -828,7 +828,7 @@ class C
                 public int X { get; private set; }
             }
             """,
-            options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
+            new(options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
     public Task TestWithExistingProperty2()
@@ -1052,7 +1052,7 @@ class C
                 }
             }
             """,
-            options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
+            new(options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
     public Task TestWithExistingProperty5()
@@ -3542,7 +3542,7 @@ class C
                 }
             }
             """,
-            parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
+            new(parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12182")]
     public Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument_CSharp6()
@@ -3570,7 +3570,7 @@ class C
                 }
             }
             """,
-            parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
+            new(parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13749")]
     public Task Support_Readonly_Properties()
@@ -3894,7 +3894,7 @@ class C
                     new Program(s);
                 }
             }
-            """, options: options.FieldNamesAreCamelCaseWithUnderscorePrefix);
+            """, new(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14077")]
     public Task TestFieldWithNamingStyleAlreadyExists()
@@ -3927,7 +3927,7 @@ class C
                     new Program(s);
                 }
             }
-            """, options: options.FieldNamesAreCamelCaseWithUnderscorePrefix);
+            """, new(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14077")]
     public Task TestFieldAndParameterNamingStyles()
@@ -3958,7 +3958,7 @@ class C
                     new Program(s);
                 }
             }
-            """, options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
+            """, new(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14077")]
     public Task TestAttributeArgumentWithNamingRules()

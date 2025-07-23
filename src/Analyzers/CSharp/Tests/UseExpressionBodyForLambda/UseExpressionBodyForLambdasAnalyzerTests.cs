@@ -467,7 +467,7 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Action<int> f = async x => throw null;
                 }
             }
-            """, options: UseExpressionBody);
+            """, new(options: UseExpressionBody));
 
     [Fact]
     public Task UseBlockBodyWithAsyncVoidReturn()

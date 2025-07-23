@@ -217,7 +217,7 @@ public sealed partial class UseIsNullCheckForCastAndEqualityOperatorTests : Abst
                         return;
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
 
     [Fact]
     public Task TestNotEqualitySwapped_CSharp9()
