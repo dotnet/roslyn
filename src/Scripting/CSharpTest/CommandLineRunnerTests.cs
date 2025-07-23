@@ -762,7 +762,7 @@ $@"{LogoAndHelpPrompt}
             var runner = CreateRunner(["/langversion:?"]);
             Assert.Equal(0, runner.RunInteractive());
 
-            var expected = Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>()
+            var expected = Enum.GetValues<LanguageVersion>()
                 .Select(v => v.ToDisplayString());
 
             var actual = runner.Console.Out.ToString();
