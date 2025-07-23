@@ -243,4 +243,7 @@
   <data name="FeatureName_CopilotChangeAnalysis" xml:space="preserve">
     <value>Copilot change analysis</value>
   </data>
+  <data name="FeatureName_CopilotProposalAdjuster" xml:space="preserve">
+    <value>Copilot proposal adjuster</value>
+  </data>
 </root>

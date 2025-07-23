@@ -33,7 +33,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="Microsoft.Extensions.Options" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="Microsoft.Extensions.Primitives" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Buffers" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.CodeDom" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Collections.Immutable" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
@@ -50,7 +49,6 @@
     <PackageReference Include="System.Composition.Runtime" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" VersionOverride="$(SystemCompositionVersion)" />
     <PackageReference Include="System.Composition.TypedParts" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" VersionOverride="$(SystemCompositionVersion)" />
     
-    <PackageReference Include="System.Drawing.Common" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Diagnostics.EventLog" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.IO.Hashing" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />

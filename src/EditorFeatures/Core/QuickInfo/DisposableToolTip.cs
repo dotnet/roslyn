@@ -5,23 +5,17 @@
 #nullable disable
 
 using System;
-using System.Threading;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo;
 
-internal sealed class DisposableToolTip : IDisposable
+internal sealed class DisposableToolTip(ToolTip toolTip, ReferenceCountedDisposable<PreviewWorkspace> workspaceOpt) : IDisposable
 {
-    public readonly ToolTip ToolTip;
-    private PreviewWorkspace _workspaceOpt;
-
-    public DisposableToolTip(ToolTip toolTip, PreviewWorkspace workspaceOpt)
-    {
-        ToolTip = toolTip;
-        _workspaceOpt = workspaceOpt;
-    }
+    public readonly ToolTip ToolTip = toolTip;
+    private readonly ReferenceCountedDisposable<PreviewWorkspace> _workspaceOpt = workspaceOpt;
 
     public void Dispose()
-        => Interlocked.Exchange(ref _workspaceOpt, null)?.Dispose();
+        => _workspaceOpt.Dispose();
 }
