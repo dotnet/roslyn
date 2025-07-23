@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 out int startingQuoteCount)
             {
                 // Handles reading the start of the interpolated string literal (up to where the content begins)
-                var window = _lexer.TextWindow;
+                ref var window = ref _lexer.TextWindow;
                 var start = window.Position;
 
                 if ((window.PeekChar(0), window.PeekChar(1), window.PeekChar(2)) is ('$', '@', '"') or ('@', '$', '"'))

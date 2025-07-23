@@ -1622,7 +1622,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task Initialization_NonConstantValue_NoReferences_PreferUnusedLocal()
@@ -1665,7 +1665,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task Initialization_NonConstantValue_NoReadReferences_PreferUnusedLocal()
@@ -1796,7 +1796,7 @@ class C
 
                 void M2() => 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task Initialization_NonConstantValue_FirstField_PreferUnusedLocal()
@@ -1826,7 +1826,7 @@ class C
 
                 void M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task Initialization_NonConstantValue_MiddleField_PreferDiscard()
@@ -1858,7 +1858,7 @@ class C
 
                 void M2() => 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task Initialization_NonConstantValue_MiddleField_PreferUnusedLocal()
@@ -1888,7 +1888,7 @@ class C
 
                 void M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task Initialization_NonConstantValue_LastField_PreferDiscard()
@@ -1919,7 +1919,7 @@ class C
 
                 void M2() => 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task Initialization_NonConstantValue_LastField_PreferUnusedLocal()
@@ -1949,7 +1949,7 @@ class C
 
                 void M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -2113,7 +2113,7 @@ class C
 
                 void M2(out int x) => x = 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task OutArgument_PreferUnusedLocal()
@@ -2146,7 +2146,7 @@ class C
 
                 void M2(out int x) => x = 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task OutVarArgument_ExpressionBody_PreferDiscard()
@@ -2164,7 +2164,7 @@ class C
                 void M() => M2(out _);
                 void M2(out int x) => x = 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task OutArgument_NoReads_PreferDiscard()
@@ -2197,7 +2197,7 @@ class C
 
                 void M2(out int x) => x = 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task OutArgument_NoReads_PreferUnusedLocal()
@@ -2213,7 +2213,7 @@ class C
 
                 void M2(out int x) => x = 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "_")]
@@ -2339,7 +2339,7 @@ class C
                     return x;
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task DeconstructionAssignment_01_PreferUnusedLocal()
@@ -2368,7 +2368,7 @@ class C
                     return x;
                 }
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -2445,7 +2445,7 @@ class C
                     };
                 }
             }
-            """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+            """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
 
     [Fact]
     public Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferDiscard_CSharp9()
@@ -2477,7 +2477,7 @@ class C
                     };
                 }
             }
-            """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9));
+            """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9)));
 
     [Theory, CombinatorialData]
     public Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferUnusedLocal(
@@ -2588,7 +2588,7 @@ class C
                     }
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task DeclarationPatternInIsPattern_WithNoReference_PreferUnusedLocal()
@@ -2603,7 +2603,7 @@ class C
                     }
                 }
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task DeclarationPatternInIsPattern_WithOnlyWriteReference_PreferDiscard()
@@ -2631,7 +2631,7 @@ class C
                     }
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task DeclarationPatternInIsPattern_WithOnlyWriteReference_PreferUnusedLocal()
@@ -2647,7 +2647,7 @@ class C
                     }
                 }
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "C")]
@@ -2701,7 +2701,7 @@ class C
                     var isZero = (p1, p2) switch { (0, 0) => true, (int _, int x2) => false };
                 }
             }
-            """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+            """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
     [CombinatorialData]
@@ -2807,7 +2807,7 @@ class C
                     return false;
                 }
             }
-            """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+            """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
     [CombinatorialData]
@@ -4923,7 +4923,7 @@ class C
 
                 C M2(Action c = null) => null;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task UnusedValue_DelegateTypeOptionalParameter_PreferUnusedLocal()
@@ -4940,7 +4940,7 @@ class C
 
                 C M2(Action c = null) => null;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -5044,7 +5044,7 @@ class C
                     }
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task CatchClause_ExceptionVariable_PreferUnusedLocal_01()
@@ -5064,7 +5064,7 @@ class C
                     }
                 }
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task CatchClause_ExceptionVariable_PreferUnusedLocal_02()
@@ -5104,7 +5104,7 @@ class C
                     }
                 }
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -5431,7 +5431,7 @@ class C
 
                 bool M2(out int x) => x = 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task IfElse_DeclaredInCondition_PreferDiscard()
@@ -5472,7 +5472,7 @@ class C
 
                 bool M2(out int x) => x = 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task IfElseAssignedInCondition_ReadAfter_PreferUnusedLocal()
@@ -5519,7 +5519,7 @@ class C
 
                 bool M2(out int x) => x = 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task IfElse_AssignedInCondition_NoReads_PreferUnusedLocal()
@@ -5587,7 +5587,7 @@ class C
 
                 bool M2(out int x) => x = 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task IfElse_DeclaredInCondition_NoReads_PreferUnusedLocal()
@@ -5819,26 +5819,26 @@ class C
                 int M3() => 0;
             }
             """,
-    $$"""
-    class C
-    {
-        int M(bool flag)
-        {
-            int x;
-            if ({{condition}})
-            {
-            }
-            else
-            {
-            }
+            $$"""
+                class C
+                {
+                    int M(bool flag)
+                    {
+                        int x;
+                        if ({{condition}})
+                        {
+                        }
+                        else
+                        {
+                        }
 
-            return x;
-        }
+                        return x;
+                    }
 
-        bool M2(out int x) { x = 0; return true; }
-        int M3() => 0;
-    }
-    """);
+                    bool M2(out int x) { x = 0; return true; }
+                    int M3() => 0;
+                }
+                """);
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -5929,7 +5929,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task SwitchCase_UnusedValueWithOnlyWrite_PreferUnusedLocal()
@@ -5952,7 +5952,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -6271,7 +6271,7 @@ class C
                 bool M2(out int x) { x = 0; return true; }
                 int M2() => 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task FixAll_NonConstantValue_PreferUnusedLocal()
@@ -6370,7 +6370,7 @@ class C
                 bool M2(out int x) { x = 0; return true; }
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -6530,7 +6530,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task FixAll_MoveMultipleVariableDeclarations_PreferUnusedLocal()
@@ -6591,7 +6591,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task NonConstantValue_Trivia_PreferDiscard_01()
@@ -6627,7 +6627,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task NonConstantValue_Trivia_PreferDiscard_02()
@@ -6665,7 +6665,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task NonConstantValue_Trivia_PreferUnusedLocal_01()
@@ -6703,7 +6703,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task NonConstantValue_Trivia_PreferUnusedLocal_02()
@@ -6742,7 +6742,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -6865,7 +6865,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task ExistingDiscardDeclarationInLambda_UseInsideLambda()
@@ -6907,7 +6907,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -7012,7 +7012,7 @@ class C
                     return true;
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task UnusedOutVariableDeclaration_MethodOverloads_PreferDiscard()
@@ -7062,7 +7062,7 @@ class C
                     return true;
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31583")]
     [InlineData(nameof(PreferDiscard))]
@@ -7269,7 +7269,7 @@ class C
                     T Invoke<T>(Func<T> a) { return a(); }
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32959")]
     public Task UnusedVariable_BailOutOnSemanticError()
@@ -7287,7 +7287,7 @@ class C
                     T Invoke<T>(Func<T> a) { return a(); }
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32946")]
     public Task DelegateEscape_01()
@@ -7303,7 +7303,7 @@ class C
                     return new Action[1] { () => Console.WriteLine(j) };
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32946")]
     public Task DelegateEscape_02()
@@ -7320,7 +7320,7 @@ class C
                     return actions;
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32946")]
     public Task DelegateEscape_03()
@@ -7337,7 +7337,7 @@ class C
                     return actions;
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32946")]
     public Task DelegateEscape_04()
@@ -7354,7 +7354,7 @@ class C
                     return new List<Action> { () => Console.WriteLine(j) };
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32946")]
     public Task DelegateEscape_05()
@@ -7373,7 +7373,7 @@ class C
                     return list;
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32924")]
     public Task DelegateEscape_06()
@@ -7389,7 +7389,7 @@ class C
                     Console.CancelKeyPress += (s, e) => e.Cancel = j != 0;
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32924")]
     public Task DelegateEscape_07()
@@ -7408,7 +7408,7 @@ class C
                     void LocalFunctionHandler(object s, ConsoleCancelEventArgs e) => e.Cancel = j != 0;
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32856")]
     public Task RedundantAssignment_IfStatementParent()
@@ -7436,7 +7436,7 @@ class C
 
                 bool M2() => true;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32856")]
     public Task RedundantAssignment_LoopStatementParent()
@@ -7460,7 +7460,7 @@ class C
                         _ = i;
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
     public Task RedundantAssignment_ForStatementVariableDeclarationConstant()
@@ -7486,7 +7486,7 @@ class C
                     }
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
     public Task RedundantAssignment_ForStatementVariableDeclarationMethod()
@@ -7516,7 +7516,7 @@ class C
                     }
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
     public Task RedundantAssignment_ForStatementVariableDeclarationStaticMethod()
@@ -7546,7 +7546,7 @@ class C
                     }
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
     public Task RedundantAssignment_ForStatementVariableDeclarationInsideUsedLambda()
@@ -7584,7 +7584,7 @@ class C
                     a();
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
     public Task RedundantAssignment_ForStatementVariableDeclarationInsideUnusedLambda()
@@ -7732,7 +7732,7 @@ class C
                     System.Console.WriteLine(foo);
                 }
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
     public Task MultipleRedundantAssignment_WithLeadingAndTrailingComment()
@@ -7773,7 +7773,7 @@ class C
                     System.Console.WriteLine(bar);
                 }
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
     public Task MultipleRedundantAssignment_WithInnerComment()
@@ -7805,7 +7805,7 @@ class C
                     System.Console.WriteLine(foo);
                 }
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
     public Task DeclarationPatternInSwitchCase_WithTrivia_PreferDiscard()
@@ -7839,7 +7839,7 @@ class C
                     };
                 }
             }
-            """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+            """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
 
     [Theory, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
     [CombinatorialData]
@@ -8157,7 +8157,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task CanUseLocalFunctionParameterName_PreferUnused()
@@ -8191,7 +8191,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task DoesNotUseLambdaFunctionParameterNameWithCSharpLessThan8_PreferUnused()
@@ -8227,7 +8227,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3));
+            """, new TestParameters(options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)));
 
     [Fact]
     public Task CanUseLambdaFunctionParameterNameWithCSharp8_PreferUnused()
@@ -8263,7 +8263,7 @@ class C
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+            """, new TestParameters(options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33464")]
     public Task UsingDeclaration()
@@ -8505,7 +8505,7 @@ class C
                     var x = c is { P : int _ };
                 }
             }
-            """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+            """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40499")]
     public Task UnusedLocalDefinedInPropertySubPattern_TypePattern()
@@ -8564,7 +8564,7 @@ class C
                     var x = c is { P : _ };
                 }
             }
-            """, options: PreferDiscard, parseOptions: new CSharpParseOptions(languageVersion));
+            """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(languageVersion)));
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/40499")]
     [CombinatorialData]
@@ -8610,7 +8610,7 @@ class C
                     };
                 }
             }
-            """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+            """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38640")]
     public Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_TypePattern()
@@ -8752,7 +8752,7 @@ class C
                     }
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38507")]
     public Task TestCodeFixTitleForBlockBodyRedundantCompoundAssignmentReturn()
@@ -8797,9 +8797,8 @@ class C
             """, [CodeFixesResources.Remove_redundant_assignment]);
 
     [Fact, WorkItem(38507, "https://github.com/dotnet/roslyn/issues/46251")]
-    public async Task TestCodeFixForAllInDocumentForNestedDiagnostic()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestCodeFixForAllInDocumentForNestedDiagnostic()
+        => TestInRegularAndScriptAsync("""
             using System;
             namespace ConsoleApp
             {
@@ -8843,8 +8842,7 @@ class C
                     }
             	}
             }
-            """, options: PreferDiscard).ConfigureAwait(false);
-    }
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45768")]
     public Task UnusedVarPattern_PartOfCase()
@@ -8878,7 +8876,7 @@ class C
                     }
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45768")]
     public Task UnusedVarPattern_PartOfIs()
@@ -8904,7 +8902,7 @@ class C
                     }
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45768")]
     public Task UnusedVarPattern_TestTrivia()
@@ -8930,7 +8928,7 @@ class C
                     }
                 }
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/57650")]
     [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]

@@ -186,13 +186,13 @@ internal sealed class ReferenceCountedDisposable<T> : IReferenceCountedDisposabl
     {
         var instanceToDispose = DisposeImpl();
         if (instanceToDispose == null)
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
 
         if (instanceToDispose is IAsyncDisposable asyncDisposable)
             return asyncDisposable.DisposeAsync();
 
         instanceToDispose.Dispose();
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     private T? DisposeImpl()

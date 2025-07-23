@@ -318,16 +318,16 @@ public sealed class SplitCommentCommandHandlerTests : AbstractSplitCommentComman
                 }
             }
             """,
-"""
-public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        //    X
-        //    Test Comment
-    }
-}
-""");
+            """
+            public class Program
+            {
+                public static void Main(string[] args) 
+                { 
+                    //    X
+                    //    Test Comment
+                }
+            }
+            """);
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
@@ -349,16 +349,16 @@ public class Program
                 }
             }
             """,
-"""
-public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        ////    X
-        ////    Test Comment
-    }
-}
-""");
+            """
+            public class Program
+            {
+                public static void Main(string[] args) 
+                { 
+                    ////    X
+                    ////    Test Comment
+                }
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]

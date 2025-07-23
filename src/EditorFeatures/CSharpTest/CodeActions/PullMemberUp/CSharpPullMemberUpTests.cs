@@ -3983,7 +3983,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
     {
         var service = new TestPullMemberUpService(selection, destinationName);
 
-        return TestInRegularAndScript1Async(
+        return TestInRegularAndScriptAsync(
             initialMarkUp, expectedResult,
             (parameters ?? TestParameters.Default).WithFixProviderData(service).WithOptions(options).WithIndex(index));
     }

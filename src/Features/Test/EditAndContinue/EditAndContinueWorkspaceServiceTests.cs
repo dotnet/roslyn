@@ -300,6 +300,439 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         EndDebuggingSession(debuggingSession);
     }
 
+    [Theory]
+    [CombinatorialData]
+    internal async Task Project_ParseOptions(
+        [CombinatorialValues(ProjectSettingKind.LangVersion, ProjectSettingKind.Features, ProjectSettingKind.DefineConstants)] ProjectSettingKind settingKind,
+        [CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string language)
+    {
+        var source = language == LanguageNames.CSharp
+            ? """
+              class C;
+              """
+            : """
+              Class C
+              End Class
+              """;
+
+        var sourceFile1 = Temp.CreateFile().WriteAllText(source, Encoding.UTF8);
+
+        using var w = CreateWorkspace(out var solution, out var service);
+
+        solution = solution.
+            AddTestProject("test", language, out var projectId).
+            AddTestDocument(source, sourceFile1.Path, out var documentId).Project.Solution;
+
+        var project = solution.GetRequiredProject(projectId);
+
+        EmitAndLoadLibraryToDebuggee(project);
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        var (code, settingName) = settingKind switch
+        {
+            ProjectSettingKind.LangVersion => ("ENC1100", "LangVersion"),
+            ProjectSettingKind.Features => ("ENC1101", "Features"),
+            ProjectSettingKind.DefineConstants => ("ENC1102", "DefineConstants"),
+            _ => throw ExceptionUtilities.UnexpectedValue(settingKind)
+        };
+
+        ParseOptions newOptions;
+        string oldValue;
+        string newValue;
+
+        if (language == LanguageNames.CSharp)
+        {
+            var oldOptions = (CSharpParseOptions)project.ParseOptions;
+
+            (newOptions, oldValue, newValue) = settingKind switch
+            {
+                ProjectSettingKind.LangVersion => (oldOptions.WithLanguageVersion(CSharp.LanguageVersion.CSharp11), "default", "11.0"),
+                ProjectSettingKind.Features => (oldOptions.WithFeatures([new("f1", "1"), new("f2", "2")]), "noRefSafetyRulesAttribute=true", "f1=1,f2=2"),
+                ProjectSettingKind.DefineConstants => (oldOptions.WithPreprocessorSymbols("S1", "S2"), "", "S1,S2"),
+                _ => throw ExceptionUtilities.UnexpectedValue(settingKind)
+            };
+        }
+        else
+        {
+            var oldOptions = (VisualBasic.VisualBasicParseOptions)project.ParseOptions;
+
+            (newOptions, oldValue, newValue) = settingKind switch
+            {
+                ProjectSettingKind.LangVersion => (oldOptions.WithLanguageVersion(VisualBasic.LanguageVersion.VisualBasic11), "default", "11"),
+                ProjectSettingKind.Features => (oldOptions.WithFeatures([new("f1", "1"), new("f2", "2")]), "", "f1=1,f2=2"),
+                ProjectSettingKind.DefineConstants => (oldOptions.WithPreprocessorSymbols(new("S1", 1), new("S2", 2)), "_MYTYPE=Empty", "S1=1,S2=2"),
+                _ => throw ExceptionUtilities.UnexpectedValue(settingKind)
+            };
+        }
+
+        solution = project.WithParseOptions(newOptions).Solution;
+
+        // Rude edits not reported for document, will be reported when emitting updates:
+        var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentId), s_noActiveSpans, CancellationToken.None);
+        AssertEx.Empty(diagnostics);
+
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        Assert.Empty(results.ModuleUpdates.Updates);
+
+        AssertEx.Equal(
+        [
+            $"test: <no location>: Error {code}: {string.Format(FeaturesResources.Changing_project_setting_0_from_1_to_2_requires_restarting_the_application, settingName, oldValue, newValue)}"
+        ], InspectDiagnostics(results.Diagnostics));
+
+        debuggingSession.DiscardSolutionUpdate();
+
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    internal async Task Project_CompilationOptions(
+        [CombinatorialValues(
+            ProjectSettingKind.CheckForOverflowUnderflow,
+            ProjectSettingKind.OutputType,
+            ProjectSettingKind.StartupObject,
+            ProjectSettingKind.ModuleAssemblyName,
+            ProjectSettingKind.Platform,
+            ProjectSettingKind.OptimizationLevel
+        )] ProjectSettingKind settingKind,
+        [CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string language)
+    {
+        var source = language == LanguageNames.CSharp
+            ? """
+              class C;
+              """
+            : """
+              Class C
+              End Class
+              """;
+
+        var sourceFile1 = Temp.CreateFile().WriteAllText(source, Encoding.UTF8);
+
+        using var w = CreateWorkspace(out var solution, out var service);
+
+        solution = solution.
+            AddTestProject("test", language, out var projectId).
+            AddTestDocument(source, sourceFile1.Path, out var documentId).Project.Solution;
+
+        var project = solution.GetRequiredProject(projectId);
+
+        EmitAndLoadLibraryToDebuggee(project);
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        var (code, settingName, isWarning) = settingKind switch
+        {
+            ProjectSettingKind.CheckForOverflowUnderflow => ("ENC1103", "CheckForOverflowUnderflow", isWarning: false),
+            ProjectSettingKind.OutputType => ("ENC1104", "OutputType", isWarning: true),
+            ProjectSettingKind.StartupObject => ("ENC1105", "StartupObject", isWarning: true),
+            ProjectSettingKind.ModuleAssemblyName => ("ENC1109", "ModuleAssemblyName", isWarning: false),
+            ProjectSettingKind.Platform => ("ENC1111", "Platform", isWarning: true),
+            ProjectSettingKind.OptimizationLevel => ("ENC1112", "OptimizationLevel", isWarning: false),
+            _ => throw ExceptionUtilities.UnexpectedValue(settingKind)
+        };
+
+        CompilationOptions newOptions;
+        string oldValue;
+        string newValue;
+
+        var oldOptions = project.CompilationOptions;
+        var defaultOverflowChecks = oldOptions.CheckOverflow;
+
+        (newOptions, oldValue, newValue) = settingKind switch
+        {
+            ProjectSettingKind.CheckForOverflowUnderflow => (oldOptions.WithOverflowChecks(!defaultOverflowChecks), defaultOverflowChecks.ToString(), (!defaultOverflowChecks).ToString()),
+            ProjectSettingKind.OutputType => (oldOptions.WithOutputKind(OutputKind.WindowsRuntimeApplication), "Library", "AppContainerExe"),
+            ProjectSettingKind.StartupObject => (oldOptions.WithMainTypeName("NewProgram"), $"<{FeaturesResources.@default}>", "NewProgram"),
+            ProjectSettingKind.ModuleAssemblyName => (oldOptions.WithModuleName("mod"), $"<{FeaturesResources.@default}>", "mod"),
+            ProjectSettingKind.Platform => (oldOptions.WithPlatform(Platform.Arm64), "AnyCpu", "Arm64"),
+            ProjectSettingKind.OptimizationLevel => (oldOptions.WithOptimizationLevel(OptimizationLevel.Release), "Debug", "Release"),
+            _ => throw ExceptionUtilities.UnexpectedValue(settingKind)
+        };
+
+        solution = project.WithCompilationOptions(newOptions).Solution;
+
+        // Rude edits not reported for document, will be reported when emitting updates:
+        var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentId), s_noActiveSpans, CancellationToken.None);
+        AssertEx.Empty(diagnostics);
+
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        Assert.Equal(isWarning ? ModuleUpdateStatus.None : ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        Assert.Empty(results.ModuleUpdates.Updates);
+
+        AssertEx.Equal(
+        [
+            $"test: <no location>: {(isWarning ? "Warning" : "Error")} {code}: {string.Format(FeaturesResources.Changing_project_setting_0_from_1_to_2_requires_restarting_the_application, settingName, oldValue, newValue)}"
+        ], InspectDiagnostics(results.Diagnostics));
+
+        if (!isWarning)
+        {
+            debuggingSession.DiscardSolutionUpdate();
+        }
+
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Theory]
+    [InlineData(ProjectSettingKind.RootNamespace)]
+    [InlineData(ProjectSettingKind.OptionStrict)]
+    [InlineData(ProjectSettingKind.OptionInfer)]
+    [InlineData(ProjectSettingKind.OptionExplicit)]
+    [InlineData(ProjectSettingKind.OptionCompare)]
+    internal async Task Project_CompilationOptions_VB(ProjectSettingKind settingKind)
+    {
+        var source = """
+            Class C
+            End Class
+            """;
+
+        var sourceFile1 = Temp.CreateFile().WriteAllText(source, Encoding.UTF8);
+
+        using var w = CreateWorkspace(out var solution, out var service);
+
+        solution = solution.
+            AddTestProject("test", LanguageNames.VisualBasic, out var projectId).
+            AddTestDocument(source, sourceFile1.Path, out var documentId).Project.Solution;
+
+        var project = solution.GetRequiredProject(projectId);
+
+        EmitAndLoadLibraryToDebuggee(project);
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        var (code, settingName) = settingKind switch
+        {
+            ProjectSettingKind.RootNamespace => ("ENC1150", "RootNamespace"),
+            ProjectSettingKind.OptionStrict => ("ENC1151", "OptionStrict"),
+            ProjectSettingKind.OptionInfer => ("ENC1152", "OptionInfer"),
+            ProjectSettingKind.OptionExplicit => ("ENC1153", "OptionExplicit"),
+            ProjectSettingKind.OptionCompare => ("ENC1154", "OptionCompare"),
+            _ => throw ExceptionUtilities.UnexpectedValue(settingKind)
+        };
+
+        CompilationOptions newOptions;
+        string oldValue;
+        string newValue;
+
+        var oldOptions = (VisualBasic.VisualBasicCompilationOptions)project.CompilationOptions;
+
+        (newOptions, oldValue, newValue) = settingKind switch
+        {
+            ProjectSettingKind.RootNamespace => (oldOptions.WithRootNamespace("N"), "", "N"),
+            ProjectSettingKind.OptionStrict => (oldOptions.WithOptionStrict(VisualBasic.OptionStrict.On), "Off", "On"),
+            ProjectSettingKind.OptionInfer => (oldOptions.WithOptionInfer(false), "On", "Off"),
+            ProjectSettingKind.OptionExplicit => (oldOptions.WithOptionExplicit(false), "On", "Off"),
+            ProjectSettingKind.OptionCompare => (oldOptions.WithOptionCompareText(true), "Binary", "Text"),
+            _ => throw ExceptionUtilities.UnexpectedValue(settingKind)
+        };
+
+        solution = project.WithCompilationOptions(newOptions).Solution;
+
+        // Rude edits not reported for document, will be reported when emitting updates:
+        var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentId), s_noActiveSpans, CancellationToken.None);
+        AssertEx.Empty(diagnostics);
+
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        Assert.Empty(results.ModuleUpdates.Updates);
+
+        AssertEx.Equal(
+        [
+            $"test: <no location>: Error {code}: {string.Format(FeaturesResources.Changing_project_setting_0_from_1_to_2_requires_restarting_the_application, settingName, oldValue, newValue)}"
+        ], InspectDiagnostics(results.Diagnostics));
+
+        debuggingSession.DiscardSolutionUpdate();
+        EndDebuggingSession(debuggingSession);
+    }
+
+    private static MetadataReference EmitLibraryReference(Version version, bool useStrongName = false)
+    {
+        var libSource = $$"""
+            [assembly: System.Reflection.AssemblyVersion("{{version}}")]
+            public class Lib;
+            """;
+
+        var libCompilation = CSharpCompilation.Create(
+            assemblyName: "Lib",
+            syntaxTrees: [SyntaxFactory.ParseSyntaxTree(libSource, options: TestOptions.Regular, path: "Lib.cs", Encoding.UTF8)],
+            references: TargetFrameworkUtil.GetReferences(TargetFramework.NetStandard20),
+            useStrongName ? TestOptions.SigningDebugDll.WithCryptoKeyFile(SigningTestHelpers.KeyPairFile) : TestOptions.DebugDll);
+
+        return libCompilation.EmitToImageReference();
+    }
+
+    [Fact]
+    internal async Task Project_MetadataReferences()
+    {
+        var source = "class C;";
+        var sourceFile = Temp.CreateFile().WriteAllText(source, Encoding.UTF8);
+
+        var libV1 = EmitLibraryReference(new Version(1, 0, 0, 0));
+        var libV2 = EmitLibraryReference(new Version(2, 0, 0, 0));
+
+        using var w = CreateWorkspace(out var solution, out var service);
+
+        solution = solution.
+            AddTestProject("test", out var projectId).
+                AddMetadataReference(libV1).
+            AddTestDocument(source, sourceFile.Path, out var documentId).Project.Solution;
+
+        var project = solution.GetRequiredProject(projectId);
+
+        EmitAndLoadLibraryToDebuggee(project);
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // change version of the dependency:
+        solution = project.RemoveMetadataReference(libV1).AddMetadataReference(libV2).Solution;
+
+        // Rude edits not reported for document, will be reported when emitting updates:
+        var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentId), s_noActiveSpans, CancellationToken.None);
+        AssertEx.Empty(diagnostics);
+
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        Assert.Empty(results.ModuleUpdates.Updates);
+
+        AssertEx.Equal(
+        [
+            $"test: <no location>: Error ENC1099: {string.Format(
+                FeaturesResources.Changing_project_or_package_reference_caused_the_identity_of_referenced_assembly_to_change_from_0_to_1_which_requires_restarting_the_application,
+                "Lib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "Lib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null")}"
+        ], InspectDiagnostics(results.Diagnostics));
+
+        debuggingSession.DiscardSolutionUpdate();
+
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
+    internal async Task Project_MetadataReferences_RemoveAdd()
+    {
+        var source = "class C;";
+        var sourceFile = Temp.CreateFile().WriteAllText(source, Encoding.UTF8);
+
+        var libV1 = EmitLibraryReference(new Version(1, 0, 0, 0));
+        var libV2 = EmitLibraryReference(new Version(2, 0, 0, 0));
+
+        using var w = CreateWorkspace(out var solution, out var service);
+
+        solution = solution.
+            AddTestProject("test", out var projectId).
+                AddMetadataReference(libV1).
+            AddTestDocument(source, sourceFile.Path, out var documentId).Project.Solution;
+
+        var project = solution.GetRequiredProject(projectId);
+
+        EmitAndLoadLibraryToDebuggee(project);
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // remove dependency:
+        solution = project.RemoveMetadataReference(libV1).Solution;
+
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        Assert.Equal(ModuleUpdateStatus.None, results.ModuleUpdates.Status);
+        Assert.Empty(results.ModuleUpdates.Updates);
+        Assert.Empty(results.Diagnostics);
+
+        // add newer version:
+        solution = project.AddMetadataReference(libV2).Solution;
+
+        results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        Assert.Empty(results.ModuleUpdates.Updates);
+
+        AssertEx.Equal(
+        [
+            $"test: <no location>: Error ENC1099: {string.Format(
+                FeaturesResources.Changing_project_or_package_reference_caused_the_identity_of_referenced_assembly_to_change_from_0_to_1_which_requires_restarting_the_application,
+                "Lib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "Lib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null")}"
+        ], InspectDiagnostics(results.Diagnostics));
+
+        debuggingSession.DiscardSolutionUpdate();
+
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
+    internal async Task Project_MetadataReferences_Add()
+    {
+        var source = "class C;";
+        var sourceFile = Temp.CreateFile().WriteAllText(source, Encoding.UTF8);
+
+        var libV1 = EmitLibraryReference(new Version(1, 0, 0, 0));
+
+        using var w = CreateWorkspace(out var solution, out var service);
+
+        solution = solution.
+            AddTestProject("test", out var projectId).
+            AddTestDocument(source, sourceFile.Path, out var documentId).Project.Solution;
+
+        var project = solution.GetRequiredProject(projectId);
+
+        EmitAndLoadLibraryToDebuggee(project);
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // add dependency:
+        solution = project.AddMetadataReference(libV1).Solution;
+
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        Assert.Equal(ModuleUpdateStatus.None, results.ModuleUpdates.Status);
+        Assert.Empty(results.ModuleUpdates.Updates);
+        Assert.Empty(results.Diagnostics);
+
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
+    internal async Task Project_MetadataReferences_MultipleVersions()
+    {
+        var source = "class C;";
+        var sourceFile = Temp.CreateFile().WriteAllText(source, Encoding.UTF8);
+
+        var libV1 = EmitLibraryReference(new Version(1, 0, 0, 0), useStrongName: true);
+        var libV2 = EmitLibraryReference(new Version(2, 0, 0, 0), useStrongName: true);
+        var libV3 = EmitLibraryReference(new Version(3, 0, 0, 0), useStrongName: true);
+
+        using var w = CreateWorkspace(out var solution, out var service);
+
+        solution = solution.
+            AddTestProject("test", out var projectId).
+                AddMetadataReference(libV1).
+                AddMetadataReference(libV2).
+            AddTestDocument(source, sourceFile.Path, out var documentId).Project.Solution;
+
+        var project = solution.GetRequiredProject(projectId);
+
+        EmitAndLoadLibraryToDebuggee(project);
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // add version 3:
+        solution = project.AddMetadataReference(libV3).Solution;
+
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        Assert.Empty(results.ModuleUpdates.Updates);
+
+        AssertEx.Equal(
+        [
+            $"test: <no location>: Error ENC1098: {string.Format(
+                FeaturesResources.Project_references_mutliple_assemblies_of_the_same_simple_name_0_1_Changing_a_reference_to_such_an_assembly_requires_restarting_the_application,
+                "Lib",
+                "'Lib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2', 'Lib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'")}"
+        ], InspectDiagnostics(results.Diagnostics));
+
+        debuggingSession.DiscardSolutionUpdate();
+
+        EndDebuggingSession(debuggingSession);
+    }
+
     [Fact]
     public async Task DesignTimeOnlyDocument()
     {
@@ -661,10 +1094,11 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         debuggingSession.DiscardSolutionUpdate();
         EndDebuggingSession(debuggingSession);
 
-        AssertEx.Equal(
+        AssertEx.SequenceEqual(
         [
             "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
-            "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=|ProjectIdsWithUpdatedBaselines="
+            "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=|ProjectIdsWithUpdatedBaselines=",
+            "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1006"
         ], _telemetryLog);
     }
 
@@ -1742,7 +2176,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         EnterBreakState(debuggingSession);
 
         Assert.Equal(1, generatorExecutionCount);
-        var documentDifferences = new ProjectDocumentDifferences();
+        var projectDifferences = new ProjectDifferences();
 
         //
         // Add document
@@ -1771,10 +2205,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
         var diagnostics = new ArrayBuilder<Diagnostic>();
-        await EditSession.GetDocumentDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), documentDifferences, diagnostics, CancellationToken.None);
+        await EditSession.GetProjectDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), projectDifferences, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
-        Assert.Empty(documentDifferences.Deleted);
-        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], documentDifferences.ChangedOrAdded.Select(d => d.Id));
+        Assert.Empty(projectDifferences.DeletedDocuments);
+        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], projectDifferences.ChangedOrAddedDocuments.Select(d => d.Id));
 
         Assert.Equal(1, generatorExecutionCount);
 
@@ -1801,9 +2235,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         AssertEx.Equal(documentKind == TextDocumentKind.Document ? new[] { documentId } : [],
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.GetDocumentDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), documentDifferences, diagnostics, CancellationToken.None);
+        await EditSession.GetProjectDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), projectDifferences, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
-        Assert.True(documentDifferences.IsEmpty);
+        Assert.True(projectDifferences.IsEmpty);
 
         Assert.Equal(1, generatorExecutionCount);
 
@@ -1826,10 +2260,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId],
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.GetDocumentDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), documentDifferences, diagnostics, CancellationToken.None);
+        await EditSession.GetProjectDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), projectDifferences, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
-        Assert.Empty(documentDifferences.Deleted);
-        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], documentDifferences.ChangedOrAdded.Select(d => d.Id));
+        Assert.Empty(projectDifferences.DeletedDocuments);
+        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], projectDifferences.ChangedOrAddedDocuments.Select(d => d.Id));
 
         Assert.Equal(1, generatorExecutionCount);
 
@@ -1854,19 +2288,19 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         AssertEx.Equal([generatedDocumentId],
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.GetDocumentDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), documentDifferences, diagnostics, CancellationToken.None);
+        await EditSession.GetProjectDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), projectDifferences, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
 
         if (documentKind == TextDocumentKind.Document)
         {
-            AssertEx.Equal([documentId], documentDifferences.Deleted.Select(d => d.Id));
+            AssertEx.Equal([documentId], projectDifferences.DeletedDocuments.Select(d => d.Id));
         }
         else
         {
-            AssertEx.Empty(documentDifferences.Deleted);
+            AssertEx.Empty(projectDifferences.DeletedDocuments);
         }
 
-        AssertEx.Equal([generatedDocumentId], documentDifferences.ChangedOrAdded.Select(d => d.Id));
+        AssertEx.Equal([generatedDocumentId], projectDifferences.ChangedOrAddedDocuments.Select(d => d.Id));
 
         Assert.Equal(1, generatorExecutionCount);
     }
@@ -1919,7 +2353,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
         EnterBreakState(debuggingSession);
 
-        var documentDiffences = new ProjectDocumentDifferences();
+        var diffences = new ProjectDifferences();
 
         //
         // Update document content
@@ -1937,10 +2371,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         AssertEx.Empty(await EditSession.GetChangedDocumentsAsync(log, oldProject, project, CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
         var diagnostics = new ArrayBuilder<Diagnostic>();
-        await EditSession.GetDocumentDifferencesAsync(log, oldProject, project, documentDiffences, diagnostics, CancellationToken.None);
+        await EditSession.GetProjectDifferencesAsync(log, oldProject, project, diffences, diagnostics, CancellationToken.None);
         Assert.Contains("System.InvalidOperationException: Source generator failed", diagnostics.Single().GetMessage());
-        AssertEx.Empty(documentDiffences.ChangedOrAdded);
-        AssertEx.Equal(["generated.cs"], documentDiffences.Deleted.Select(d => d.Name));
+        AssertEx.Empty(diffences.ChangedOrAddedDocuments);
+        AssertEx.Equal(["generated.cs"], diffences.DeletedDocuments.Select(d => d.Name));
 
         Assert.Equal(2, generatorExecutionCount);
 
@@ -3437,7 +3871,8 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         AssertEx.SequenceEqual(
         [
-            "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
+            "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
+            "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=False|HadValidInsignificantChanges=True|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=|ProjectIdsWithUpdatedBaselines="
         ], _telemetryLog);
     }
 
@@ -3682,6 +4117,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         CommitSolutionUpdate(debuggingSession);
 
+        // Stale project baselines should get discarded after committing the update.
+        // Unlocks binaries and allows the user to rebuild the project.
+        Assert.False(debuggingSession.GetTestAccessor().HasProjectEmitBaseline(projectBId));
+
         // update source file in the editor (source text is now matching the PDB of project B):
         var text0 = CreateText(source0);
         solution = solution.WithDocumentText(documentA.Id, text0).WithDocumentText(documentB.Id, text0);
@@ -3709,7 +4148,6 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // Saving is required so that we can fetch the baseline content for the next delta calculation.
         File.WriteAllText(sourcePath, source2, Encoding.UTF8);
         var mvidB2 = EmitAndLoadLibraryToDebuggee(projectBId, source2, sourceFilePath: sourcePath, assemblyName: "A", targetFramework: TargetFramework.Net90);
-        debuggingSession.UpdateBaselines(solution, rebuiltProjects: [projectBId]);
 
         // no changes have been made:
 
@@ -3996,7 +4434,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var document2 = solution.GetDocument(documentId);
 
         // no adjustments made due to syntax error or out-of-sync document:
-        var currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(document2, (_, _, _) => ValueTaskFactory.FromResult(baseSpans), CancellationToken.None);
+        var currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(document2, (_, _, _) => ValueTask.FromResult(baseSpans), CancellationToken.None);
         AssertEx.Equal([activeLineSpan11, activeLineSpan12], currentSpans.Select(s => s.LineSpan));
     }
 

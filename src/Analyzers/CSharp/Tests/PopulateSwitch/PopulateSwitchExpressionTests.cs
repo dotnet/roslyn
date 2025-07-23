@@ -85,7 +85,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact]
     public Task AllMembersExist_NotDefault()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -140,7 +140,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact]
     public Task AllMembersExist_NotDefault_NoComma()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -195,7 +195,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact]
     public Task NotAllMembersExist_NotDefault()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -249,7 +249,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact]
     public Task NotAllMembersExist_WithDefault()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -304,7 +304,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact]
     public Task NotAllMembersExist_NotDefault_EnumHasExplicitType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -358,7 +358,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact]
     public Task NotAllMembersExist_WithMembersAndDefaultInSection_NewValuesAboveDefaultSection()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -413,7 +413,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact]
     public Task NotAllMembersExist_WithMembersAndDefaultInSection_AssumesDefaultIsInLastSection()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -468,7 +468,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact]
     public Task NoMembersExist0()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -519,7 +519,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact]
     public Task NoMembersExist1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -568,7 +568,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact]
     public Task NoMembersExist2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -676,7 +676,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact]
     public Task UsingStaticEnum_MembersExist()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using static System.IO.FileMode;
 
@@ -726,7 +726,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact]
     public Task UsingStaticEnum_NoMembersExist()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using static System.IO.FileMode;
 
@@ -771,7 +771,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact]
     public Task NotAllMembersExist_NotDefault_EnumHasNonFlagsAttribute()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -827,7 +827,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact]
     public Task NotAllMembersExist_NotDefault_EnumIsNested()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -905,7 +905,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact]
     public Task NotAllMembersExist_NotDefault_UsingConstants()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             enum MyEnum
             {
@@ -953,7 +953,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact]
     public Task NotAllMembersExist_NotDefault_WithMismatchingConstantType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             enum MyEnum
             {
@@ -1002,7 +1002,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40399")]
     public Task AllMissingTokens()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
         """
         enum MyEnum
         {
@@ -1037,7 +1037,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40240")]
     public Task TestAddMissingCasesForNullableEnum()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public class Program
             {
@@ -1086,7 +1086,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50982")]
     public Task TestOrPatternIsHandled()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public static class C
             {
@@ -1171,7 +1171,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50982")]
     public Task TestMixingOrWithAndPatterns()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public static class C
             {
@@ -1231,7 +1231,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50982")]
     public Task TestMixingOrWithAndPatterns2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public static class C
             {
@@ -1387,7 +1387,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
     public Task TestForNullableEnum_NullableEnabled()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -1426,7 +1426,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
     public Task TestForNullableEnum_NullableEnabled_NotGenerateNullArmIfItAlreadyExists()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -1466,7 +1466,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
     public Task TestForNullableEnum_NullableDisabled()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable disable
 
@@ -1505,7 +1505,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
     public Task TestForNullableEnum_NullableDisabled_NotGenerateNullArmIfItAlreadyExists()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable disable
 
@@ -1580,7 +1580,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
     public Task OnIncompleteBoolean1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public class Sample
             {
@@ -1609,7 +1609,7 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
     public Task OnIncompleteBoolean2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public class Sample
             {

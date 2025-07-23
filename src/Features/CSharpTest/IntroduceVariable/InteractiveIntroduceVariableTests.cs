@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.IntroduceVariable;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-public class InteractiveIntroduceVariableTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class InteractiveIntroduceVariableTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new IntroduceVariableCodeRefactoringProvider();
@@ -23,8 +23,8 @@ public class InteractiveIntroduceVariableTests : AbstractCSharpCodeActionTest_No
     protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
         => GetNestedActions(actions);
 
-    protected Task TestAsync(string initial, string expected, int index = 0)
-        => TestAsync(initial, expected, TestOptions.Script, null, index);
+    private Task TestAsync(string initial, string expected, int index = 0)
+        => TestAsync(initial, expected, new TestParameters(TestOptions.Script, null, index: index));
 
     [Fact]
     public Task TestMethodFix1()
@@ -182,7 +182,7 @@ public class InteractiveIntroduceVariableTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546465")]
     public Task TestPreserveTrivia()

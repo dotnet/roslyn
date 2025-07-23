@@ -4,7 +4,9 @@
 
 using System.Runtime.CompilerServices;
 
-#if NET5_0_OR_GREATER
+#nullable enable
+
+#if NET
 
 #pragma warning disable RS0016 // Add public types and members to the declared API (this is a supporting forwarder for an internal polyfill API)
 [assembly: TypeForwardedTo(typeof(System.Collections.Generic.ReferenceEqualityComparer))]

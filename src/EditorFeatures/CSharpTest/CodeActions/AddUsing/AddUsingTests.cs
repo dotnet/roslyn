@@ -158,7 +158,7 @@ public sealed partial class AddUsingTests(ITestOutputHelper logger) : AbstractAd
                 }
             }
             """,
-testHost, index: 1);
+            testHost, index: 1);
 
     [Theory, CombinatorialData]
     public Task TestGenericWithNoArgs(TestHost testHost)
@@ -383,7 +383,7 @@ testHost, index: 1);
                 }
             }
             """,
-count: 1);
+            count: 1);
 
     [Theory, CombinatorialData]
     public Task TestExistingUsing(TestHost testHost)
@@ -479,7 +479,7 @@ count: 1);
                 }
             }
             """,
-parseOptions: Options.Regular);
+            new TestParameters(parseOptions: Options.Regular));
 
     [Theory, CombinatorialData]
     public Task TestOnEnum(TestHost testHost)
@@ -1434,7 +1434,7 @@ parseOptions: Options.Regular);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleSystemSortedUsings2(TestHost testHost)
@@ -1486,7 +1486,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleSystemSortedUsings3(TestHost testHost)
@@ -1516,7 +1516,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleSystemUnsortedUsings1(TestHost testHost)
@@ -1568,7 +1568,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleSystemUnsortedUsings2(TestHost testHost)
@@ -1620,7 +1620,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleSystemUnsortedUsings3(TestHost testHost)
@@ -1650,7 +1650,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleBogusSystemUsings1(TestHost testHost)
@@ -1678,7 +1678,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleBogusSystemUsings2(TestHost testHost)
@@ -1706,7 +1706,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestUsingsWithComments(TestHost testHost)
@@ -1734,7 +1734,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     // System Not on top cases
     [Theory, CombinatorialData]
@@ -1787,7 +1787,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleSystemSortedUsings5(TestHost testHost)
@@ -1837,7 +1837,7 @@ testHost);
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     public Task TestSimpleSystemSortedUsings4(TestHost testHost)
@@ -1867,7 +1867,7 @@ testHost);
                 }
             }
             """,
-testHost, options: Option(GenerationOptions.PlaceSystemNamespaceFirst, false));
+            testHost, options: Option(GenerationOptions.PlaceSystemNamespaceFirst, false));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
@@ -1925,7 +1925,7 @@ using System.Linq.Expressions;
 
 WriteLine(Expression.Constant(123));
 """,
-parseOptions: GetScriptOptions());
+new TestParameters(parseOptions: GetScriptOptions()));
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540339")]
@@ -2166,8 +2166,8 @@ parseOptions: GetScriptOptions());
 
             Expression
             """,
-GetScriptOptions(),
-TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
+            new TestParameters(GetScriptOptions(),
+            TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver)));
     }
 
     [Theory, CombinatorialData]
@@ -2399,7 +2399,7 @@ TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
                     Log }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858085")]
@@ -2818,7 +2818,7 @@ testHost);
             /// This is just like <see cref='INotifyPropertyChanged'/>, but this one is mine.
             /// </summary>
             interface MyNotifyPropertyChanged { }
-            """, parseOptions: options);
+            """, new TestParameters(parseOptions: options));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
@@ -2838,7 +2838,7 @@ testHost);
             /// This is just like <see cref='INotifyPropertyChanged.PropertyChanged'/>, but this one is mine.
             /// </summary>
             interface MyNotifyPropertyChanged { }
-            """, parseOptions: options);
+            """, new TestParameters(parseOptions: options));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
@@ -2884,7 +2884,7 @@ testHost);
             public class MyClass2
             {
             }
-            """, parseOptions: options);
+            """, new TestParameters(parseOptions: options));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
@@ -2920,7 +2920,7 @@ testHost);
                 {
                 }
             }
-            """, parseOptions: options);
+            """, new TestParameters(parseOptions: options));
     }
 
     [Theory, CombinatorialData]
@@ -4963,7 +4963,7 @@ class C
                 }
             }
             """,
-testHost);
+            testHost);
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/19796")]
@@ -6448,7 +6448,7 @@ testHost);
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
     public Task TestAddUsingPreservesNewlines1(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace ANamespace
             {
@@ -6489,7 +6489,7 @@ testHost);
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
     public Task TestAddUsingPreservesNewlines2(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using BNamespace;
 
@@ -6541,7 +6541,7 @@ testHost);
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
     public Task TestAddUsingPreservesNewlines3(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using ANamespace;
 
@@ -6593,7 +6593,7 @@ testHost);
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/24642")]
     public Task TestAddUsingWithMalformedGeneric(TestHost testHost)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -6613,7 +6613,7 @@ testHost);
 
     [Theory, CombinatorialData]
     public Task TestOutsideOfMethodWithMalformedGenericParameters(TestHost testHost)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             
@@ -6646,4 +6646,46 @@ testHost);
 
             [assembly: NeutralResourcesLanguage("en")]
             """, testHost);
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79462")]
+    public async Task TestAddUsingsWithSourceGeneratedFile(TestHost testHost)
+    {
+        const string InitialWorkspace = """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Console" CommonReferences="true">
+                    <Document FilePath="Program.cs">using Goo;
+
+            Something a;
+            [|PInvoke|].GetMessage();
+
+            namespace Goo
+            {
+                class Something { }
+            }</Document>
+                                    <DocumentFromSourceGenerator>
+            namespace Win32
+            {
+                public class PInvoke
+                {
+                }
+            }
+                                    </DocumentFromSourceGenerator>
+                </Project>
+            </Workspace>
+            """;
+
+        const string ExpectedDocumentText = """
+            using Goo;
+            using Win32;
+            
+            Something a;
+            PInvoke.GetMessage();
+            
+            namespace Goo
+            {
+                class Something { }
+            }
+            """;
+        await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
+    }
 }

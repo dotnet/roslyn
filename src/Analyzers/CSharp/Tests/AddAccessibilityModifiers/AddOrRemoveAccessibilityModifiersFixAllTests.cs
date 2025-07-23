@@ -34,5 +34,5 @@ public sealed class AddOrRemoveAccessibilityModifiersFixAllTests(ITestOutputHelp
             internal class Program
             {
             }
-            """, TestParameters.Default.parseOptions);
+            """, new(TestParameters.Default.parseOptions));
 }

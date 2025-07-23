@@ -355,7 +355,7 @@ public sealed class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeAction
                     return var;
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2)));
 
     [Fact]
     public Task TestNamedArguments2()
@@ -392,7 +392,7 @@ public sealed class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeAction
                     return var;
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7)));
 
     [Fact]
     public Task TestDelegate1()
@@ -561,19 +561,19 @@ public sealed class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeAction
                     }
                 }
                 """,
-"""
-class C
-{
-    void M()
-    {
-    }
+                """
+                class C
+                {
+                    void M()
+                    {
+                    }
 
-    private static C LocalFunction(C c)
-    {
-        return null;
-    }
-}
-""");
+                    private static C LocalFunction(C c)
+                    {
+                        return null;
+                    }
+                }
+                """);
         }
 
         async Task TestMissingAsync(string signature)
@@ -965,7 +965,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32975")]
     public Task TestRefReturn()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class ClassA
             {
                 class RefClass { }
@@ -998,7 +998,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32975")]
     public Task TestAttributes()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class ClassA
             {
                 class RefClass { }
@@ -1054,7 +1054,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64904")]
     public Task TestNameofReferenceInParameterInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1095,5 +1095,149 @@ class C
                 }
             }
             
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76562")]
+    public Task TestOptionalParameters1()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    var begin = "Hello";
+                    Console.WriteLine(GetFullString());
+
+                    string [||]GetFullString(bool exclamation = false)
+                    {
+                        var suffix = exclamation ? "!" : "";
+                        return begin + " World" + suffix;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    var begin = "Hello";
+                    Console.WriteLine(GetFullString(begin));
+                }
+
+                private static string GetFullString(string begin, bool exclamation = false)
+                {
+                    var suffix = exclamation ? "!" : "";
+                    return begin + " World" + suffix;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76562")]
+    public Task TestOptionalParameters2()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    var begin = "Hello";
+                    Console.WriteLine(GetFullString(true));
+
+                    string [||]GetFullString(bool exclamation = false)
+                    {
+                        var suffix = exclamation ? "!" : "";
+                        return begin + " World" + suffix;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    var begin = "Hello";
+                    Console.WriteLine(GetFullString(begin, true));
+                }
+            
+                private static string GetFullString(string begin, bool exclamation = false)
+                {
+                    var suffix = exclamation ? "!" : "";
+                    return begin + " World" + suffix;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76562")]
+    public Task TestOptionalParameters3()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    var begin = "Hello";
+                    Console.WriteLine(GetFullString("There"));
+
+                    string [||]GetFullString(string required, bool exclamation = false)
+                    {
+                        var suffix = exclamation ? "!" : required;
+                        return begin + " World" + suffix;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    var begin = "Hello";
+                    Console.WriteLine(GetFullString("There", begin));
+                }
+
+                private static string GetFullString(string required, string begin, bool exclamation = false)
+                {
+                    var suffix = exclamation ? "!" : required;
+                    return begin + " World" + suffix;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76562")]
+    public Task TestOptionalParameters4()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    var begin = "Hello";
+                    Console.WriteLine(GetFullString("There", true));
+
+                    string [||]GetFullString(string required, bool exclamation = false)
+                    {
+                        var suffix = exclamation ? "!" : required;
+                        return begin + " World" + suffix;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    var begin = "Hello";
+                    Console.WriteLine(GetFullString("There", begin, true));
+                }
+
+                private static string GetFullString(string required, string begin, bool exclamation = false)
+                {
+                    var suffix = exclamation ? "!" : required;
+                    return begin + " World" + suffix;
+                }
+            }
             """);
 }
