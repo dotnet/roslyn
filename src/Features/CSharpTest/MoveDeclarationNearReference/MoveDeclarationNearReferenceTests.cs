@@ -565,7 +565,7 @@ public sealed class MoveDeclarationNearReferenceTests : AbstractCSharpCodeAction
             int x = 0;
             Bar(x);
             """,
-            TestOptions.Regular);
+            new(TestOptions.Regular));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
     public Task TestWarnOnChangingScopes1()
