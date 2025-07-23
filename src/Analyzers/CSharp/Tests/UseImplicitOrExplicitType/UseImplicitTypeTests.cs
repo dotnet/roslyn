@@ -1421,7 +1421,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var text = 5;
                 }
             }
-            """, options: ImplicitTypeWhereApparentAndForIntrinsics());
+            """, new(options: ImplicitTypeWhereApparentAndForIntrinsics()));
 
     [Fact]
     public Task DoNotSuggestVarWhereTypeIsEvident_Literals()
@@ -1858,7 +1858,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
         var after = @"class C { static void M() { var s = (a: 1, ""hello""); } }";
 
         await TestInRegularAndScriptAsync(before, after, new(options: ImplicitTypeEverywhere()));
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeWhereApparentAndForIntrinsics());
+        await TestInRegularAndScriptAsync(before, after, new(options: ImplicitTypeWhereApparentAndForIntrinsics()));
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
     }
 
