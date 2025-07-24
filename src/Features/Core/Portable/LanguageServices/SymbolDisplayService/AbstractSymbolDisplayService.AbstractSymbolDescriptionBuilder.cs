@@ -157,7 +157,7 @@ internal abstract partial class AbstractSymbolDisplayService
 
             // Grab the doc comment once as computing it for each portion we're concatenating can be expensive for
             // LSIF (which does this for every symbol in an entire solution).
-            var firstSymbolDocumentationComment = firstSymbol.GetAppropriateDocumentationComment(Compilation, CancellationToken);
+            var firstSymbolDocumentationComment = GetAppropriateDocumentationComment(firstSymbol, Compilation, CancellationToken);
 
             await AddDescriptionPartAsync(firstSymbol).ConfigureAwait(false);
 
@@ -169,7 +169,68 @@ internal abstract partial class AbstractSymbolDisplayService
             AddDocumentationContent(firstSymbol, firstSymbolDocumentationComment);
         }
 
-        private void AddDocumentationContent(ISymbol symbol, DocumentationComment documentationComment)
+        private DocumentationComment GetAppropriateDocumentationComment(ISymbol firstSymbol, Compilation compilation, CancellationToken cancellationToken)
+        {
+            // For locals, we synthesize the documentation comment from the leading trivia of the local declaration.
+            return firstSymbol is ILocalSymbol localSymbol
+                ? SynthesizeDocumentationCommentForLocal(localSymbol, cancellationToken)
+                : firstSymbol.GetAppropriateDocumentationComment(compilation, cancellationToken);
+        }
+
+        private DocumentationComment SynthesizeDocumentationCommentForLocal(
+            ILocalSymbol localSymbol, CancellationToken cancellationToken)
+        {
+            if (localSymbol.DeclaringSyntaxReferences is not [var reference])
+                return DocumentationComment.Empty;
+
+            var node = reference.GetSyntax(cancellationToken);
+
+            var syntaxFacts = LanguageServices.GetRequiredService<ISyntaxFactsService>();
+            var statement = node.AncestorsAndSelf().FirstOrDefault(syntaxFacts.IsStatement);
+            if (statement is null)
+                return DocumentationComment.Empty;
+
+            var leadingTrivia = statement.GetLeadingTrivia();
+
+            var startIndex = leadingTrivia.Count;
+
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var comments);
+
+            while (true)
+            {
+
+                if (syntaxFacts.IsWhitespaceTrivia(GetTrivia(startIndex - 1)) &&
+                    syntaxFacts.IsEndOfLineTrivia(GetTrivia(startIndex - 2)) &&
+                    syntaxFacts.IsRegularComment(GetTrivia(startIndex - 3)))
+                {
+                    comments.Add(GetTrivia(startIndex - 3));
+                    startIndex -= 3;
+                    continue;
+                }
+
+                // Comment on non-indented local.
+                if (syntaxFacts.IsEndOfLineTrivia(GetTrivia(startIndex - 1)) &&
+                    syntaxFacts.IsRegularComment(GetTrivia(startIndex - 2)))
+                {
+                    comments.Add(GetTrivia(startIndex - 2));
+                    startIndex -= 2;
+                    continue;
+                }
+
+                break;
+            }
+
+            if (comments.Count == 0)
+                return DocumentationComment.Empty;
+
+            SyntaxTrivia GetTrivia(int index)
+                => index < 0 || index >= leadingTrivia.Count ? default : leadingTrivia[index];
+        }
+    }
+
+
+
+    private void AddDocumentationContent(ISymbol symbol, DocumentationComment documentationComment)
         {
             var formatter = LanguageServices.GetRequiredService<IDocumentationCommentFormattingService>();
             var format = ISymbolExtensions2.CrefFormat;

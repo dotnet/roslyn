@@ -4,13 +4,11 @@
 
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
-Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
-
     <ExportLanguageService(GetType(IDocumentationCommentFormattingService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicDocumentationCommentFormattingService
+    Friend NotInheritable Class VisualBasicDocumentationCommentFormattingService
         Inherits AbstractDocumentationCommentFormattingService
 
         <ImportingConstructor>
