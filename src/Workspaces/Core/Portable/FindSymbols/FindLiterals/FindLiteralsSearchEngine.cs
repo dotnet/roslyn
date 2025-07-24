@@ -87,7 +87,7 @@ internal sealed class FindLiteralsSearchEngine
         var count = _solution.Projects.SelectMany(p => p.DocumentIds).Count();
         await _progressTracker.AddItemsAsync(count, cancellationToken).ConfigureAwait(false);
 
-        await RoslynParallel.ForEachAsync(
+        await Parallel.ForEachAsync(
             source: SelectManyAsync(_solution.Projects, p => p.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken)),
             cancellationToken,
             ProcessDocumentAsync).ConfigureAwait(false);

@@ -47,8 +47,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
             initialMarkup,
             expectedMarkup,
             index: 1,
-            options: options,
-            parseOptions: parseOptions);
+            new(options: options, parseOptions: parseOptions));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -115,7 +114,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
                     inner.Method();
                 }
             }
-            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
+            """, index: 1, new(title: string.Format(AnalyzersResources.Implement_through_0, "inner")));
 
     [Fact]
     public Task RefParameters_Method()
@@ -146,7 +145,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
                     inner.Method(a, ref b, c, in d, out e);
                 }
             }
-            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
+            """, index: 1, new(title: string.Format(AnalyzersResources.Implement_through_0, "inner")));
 
     [Fact]
     public Task RefParameters_Indexer()
@@ -174,7 +173,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
 
                 public override int this[int a, in int b, ref readonly int c, out int d] => inner[a, b, in c, out d];
             }
-            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
+            """, index: 1, new(title: string.Format(AnalyzersResources.Implement_through_0, "inner")));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
     public Task SkipInaccessibleMember()
@@ -207,7 +206,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
                     inner.Method1();
                 }
             }
-            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
+            """, index: 1, new(title: string.Format(AnalyzersResources.Implement_through_0, "inner")));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
     public Task TestNotOfferedWhenOnlyUnimplementedMemberIsInaccessible()
@@ -267,7 +266,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
             class DerivedAgain : Derived
             {
             }
-            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
+            """, index: 1, new(title: string.Format(AnalyzersResources.Implement_through_0, "inner")));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
     public Task FieldOfConstrainedGenericTypeIsSuggested()
@@ -298,7 +297,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
                     inner.Method();
                 }
             }
-            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
+            """, index: 1, new(title: string.Format(AnalyzersResources.Implement_through_0, "inner")));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
     public Task DistinguishableOptionsAreShownForExplicitPropertyWithSameName()
@@ -371,7 +370,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
                     inner.Method();
                 }
             }
-            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
+            """, index: 1, new(title: string.Format(AnalyzersResources.Implement_through_0, "inner")));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
     public Task PropertyIsDelegated()
@@ -399,7 +398,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
 
                 public override int Property { get => inner.Property; set => inner.Property = value; }
             }
-            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
+            """, index: 1, new(title: string.Format(AnalyzersResources.Implement_through_0, "inner")));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
     public Task PropertyIsDelegated_AllOptionsOff()
@@ -470,7 +469,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
 
                 public override int SetOnly { set => inner.SetOnly = value; }
             }
-            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
+            """, index: 1, new(title: string.Format(AnalyzersResources.Implement_through_0, "inner")));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
     public Task PropertyWithSingleAccessorIsDelegated_AllOptionsOff()
@@ -557,7 +556,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
                     }
                 }
             }
-            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
+            """, index: 1, new(title: string.Format(AnalyzersResources.Implement_through_0, "inner")));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
     public Task OnlyOverridableMethodsAreOverridden()
@@ -592,7 +591,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
                     inner.Method();
                 }
             }
-            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
+            """, index: 1, new(title: string.Format(AnalyzersResources.Implement_through_0, "inner")));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
     public Task ProtectedMethodsCannotBeDelegatedThroughBaseType()
@@ -638,7 +637,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
                     inner.Method();
                 }
             }
-            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
+            """, index: 1, new(title: string.Format(AnalyzersResources.Implement_through_0, "inner")));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
     public Task ProtectedInternalMethodsAreOverridden()
@@ -669,7 +668,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
                     inner.Method();
                 }
             }
-            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
+            """, index: 1, new(title: string.Format(AnalyzersResources.Implement_through_0, "inner")));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
     public Task InternalMethodsAreOverridden()
@@ -700,7 +699,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
                     inner.Method();
                 }
             }
-            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
+            """, index: 1, new(title: string.Format(AnalyzersResources.Implement_through_0, "inner")));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
     public Task PrivateProtectedMethodsCannotBeDelegatedThroughBaseType()
@@ -746,7 +745,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
                     inner.Method();
                 }
             }
-            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
+            """, index: 1, new(title: string.Format(AnalyzersResources.Implement_through_0, "inner")));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
     public Task AccessorsWithDifferingVisibilityAreGeneratedCorrectly()
@@ -777,7 +776,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
                 public override int InternalGet { internal get => inner.InternalGet; set => inner.InternalGet = value; }
                 public override int InternalSet { get => inner.InternalSet; internal set => inner.InternalSet = value; }
             }
-            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
+            """, index: 1, new(title: string.Format(AnalyzersResources.Implement_through_0, "inner")));
 
     [Fact]
     public Task TestCrossProjectWithInaccessibleMemberInCase()

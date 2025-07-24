@@ -100,9 +100,7 @@ public sealed class DiagnosticRegistrationTests : AbstractLanguageServerProtocol
 
         [JsonRpcMethod(Methods.ClientRegisterCapabilityName, UseSingleObjectParameterDeserialization = true)]
         public void ClientRegisterCapability(RegistrationParams registrationParams, CancellationToken _)
-        {
-            _registrations.AddRange(registrationParams.Registrations);
-        }
+            => _registrations.AddRange(registrationParams.Registrations);
 
         /// <summary>
         /// This is safe to call after 'initialized' has completed because capabilties are dynamically registered in the

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -27,16 +28,24 @@ public sealed partial class QualifyMemberAccessTests : AbstractCSharpDiagnosticP
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpQualifyMemberAccessDiagnosticAnalyzer(), new CSharpQualifyMemberAccessCodeFixProvider());
 
-    private Task TestAsyncWithOption(string code, string expected, PerLanguageOption2<CodeStyleOption2<bool>> option)
+    private Task TestAsyncWithOption(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
+        PerLanguageOption2<CodeStyleOption2<bool>> option)
         => TestAsyncWithOptionAndNotificationOption(code, expected, option, NotificationOption2.Error);
 
-    private Task TestAsyncWithOptionAndNotificationOption(string code, string expected, PerLanguageOption2<CodeStyleOption2<bool>> option, NotificationOption2 notification)
-        => TestInRegularAndScriptAsync(code, expected, options: Option(option, true, notification));
+    private Task TestAsyncWithOptionAndNotificationOption(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
+        PerLanguageOption2<CodeStyleOption2<bool>> option, NotificationOption2 notification)
+        => TestInRegularAndScriptAsync(code, expected, new(options: Option(option, true, notification)));
 
-    private Task TestMissingAsyncWithOption(string code, PerLanguageOption2<CodeStyleOption2<bool>> option)
+    private Task TestMissingAsyncWithOption(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code, PerLanguageOption2<CodeStyleOption2<bool>> option)
         => TestMissingAsyncWithOptionAndNotificationOption(code, option, NotificationOption2.Error);
 
-    private Task TestMissingAsyncWithOptionAndNotificationOption(string code, PerLanguageOption2<CodeStyleOption2<bool>> option, NotificationOption2 notification)
+    private Task TestMissingAsyncWithOptionAndNotificationOption(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code, PerLanguageOption2<CodeStyleOption2<bool>> option, NotificationOption2 notification)
         => TestMissingInRegularAndScriptAsync(code, new TestParameters(options: Option(option, true, notification)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7065")]

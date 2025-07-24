@@ -11,24 +11,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     // separate out text windowing implementation (keeps scanning & lexing functions from abusing details)
     internal class AbstractLexer : IDisposable
     {
-        internal readonly SlidingTextWindow TextWindow;
+        /// <summary>
+        /// Not readonly.  This is a mutable struct that will be modified as we lex tokens.
+        /// </summary>
+        internal SlidingTextWindow TextWindow;
+
         private List<SyntaxDiagnosticInfo>? _errors;
+        protected int LexemeStartPosition;
 
         protected AbstractLexer(SourceText text)
         {
             this.TextWindow = new SlidingTextWindow(text);
         }
 
-        protected int LexemeStartPosition => this.TextWindow.LexemeStartPosition;
-
         public virtual void Dispose()
         {
-            this.TextWindow.Dispose();
+            this.TextWindow.Free();
         }
 
         protected void Start()
         {
-            TextWindow.Start();
+            LexemeStartPosition = this.TextWindow.Position;
             _errors = null;
         }
 
@@ -135,10 +138,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         protected string GetNonInternedLexemeText()
-            => TextWindow.GetText(intern: false);
+            => TextWindow.GetText(LexemeStartPosition, intern: false);
 
         protected string GetInternedLexemeText()
-            => TextWindow.GetText(intern: true);
+            => TextWindow.GetText(LexemeStartPosition, intern: true);
 
         protected int CurrentLexemeWidth
             => this.TextWindow.Position - LexemeStartPosition;

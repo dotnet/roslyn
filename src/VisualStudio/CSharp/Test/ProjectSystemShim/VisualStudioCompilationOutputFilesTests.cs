@@ -19,9 +19,7 @@ public sealed class VisualStudioCompilationOutputFilesTests : TestBase
 {
     [Fact]
     public void OpenStream_Errors()
-    {
-        Assert.Throws<ArgumentException>(() => new CompilationOutputFilesWithImplicitPdbPath(@"a.dll"));
-    }
+        => Assert.Throws<ArgumentException>(() => new CompilationOutputFilesWithImplicitPdbPath(@"a.dll"));
 
     [Theory]
     [InlineData(DebugInformationFormat.PortablePdb, true)]

@@ -55,7 +55,7 @@ internal static class SpecializedTasks
     {
         var taskArray = tasks.AsArray();
         if (taskArray.Length == 0)
-            return ValueTaskFactory.FromResult(Array.Empty<T>());
+            return ValueTask.FromResult(Array.Empty<T>());
 
         var allCompletedSuccessfully = true;
         for (var i = 0; i < taskArray.Length; i++)
@@ -75,7 +75,7 @@ internal static class SpecializedTasks
                 result[i] = taskArray[i].Result;
             }
 
-            return ValueTaskFactory.FromResult(result);
+            return ValueTask.FromResult(result);
         }
         else
         {

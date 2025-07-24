@@ -5228,7 +5228,7 @@ class test<T> where T : c0
 1");
             compilation.VerifyIL("test<T>.Repro1(T)", @"
 {
-  // Code size       86 (0x56)
+  // Code size       84 (0x54)
   .maxstack  4
   .locals init (T& V_0,
                 T V_1)
@@ -5251,20 +5251,21 @@ class test<T> where T : c0
   IL_0026:  add
   IL_0027:  constrained. ""T""
   IL_002d:  callvirt   ""void c0.P1.set""
-  IL_0032:  ldarga.s   V_0
-  IL_0034:  stloc.0
-  IL_0035:  ldloc.0
-  IL_0036:  ldobj      ""T""
-  IL_003b:  box        ""T""
-  IL_0040:  ldc.i4.1
-  IL_0041:  ldloc.0
-  IL_0042:  ldc.i4.1
-  IL_0043:  constrained. ""T""
-  IL_0049:  callvirt   ""int c0.this[int].get""
-  IL_004e:  ldc.i4.1
-  IL_004f:  add
-  IL_0050:  callvirt   ""void c0.this[int].set""
-  IL_0055:  ret
+  IL_0032:  ldarg.0
+  IL_0033:  stloc.1
+  IL_0034:  ldloca.s   V_1
+  IL_0036:  stloc.0
+  IL_0037:  ldloc.0
+  IL_0038:  ldc.i4.1
+  IL_0039:  ldloc.0
+  IL_003a:  ldc.i4.1
+  IL_003b:  constrained. ""T""
+  IL_0041:  callvirt   ""int c0.this[int].get""
+  IL_0046:  ldc.i4.1
+  IL_0047:  add
+  IL_0048:  constrained. ""T""
+  IL_004e:  callvirt   ""void c0.this[int].set""
+  IL_0053:  ret
 }
 ").VerifyIL("test<T>.Repro2(T)", @"
 {

@@ -15,8 +15,7 @@ public sealed partial class CSharpRegexParserTests
 {
     [Fact]
     public void TestEmpty()
-    {
-        Test("""
+        => Test("""
             ""
             """, """
             <Tree>
@@ -29,12 +28,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOneWhitespace_IgnorePatternWhitespace()
-    {
-        Test("""
+        => Test("""
             " "
             """, """
             <Tree>
@@ -51,12 +48,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestTwoWhitespace_IgnorePatternWhitespace()
-    {
-        Test("""
+        => Test("""
             "  "
             """, """
             <Tree>
@@ -73,12 +68,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestEmptyParenComment()
-    {
-        Test("""
+        => Test("""
             "(?#)"
             """, """
             <Tree>
@@ -95,12 +88,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestSimpleParenComment()
-    {
-        Test("""
+        => Test("""
             "(?# )"
             """, """
             <Tree>
@@ -117,12 +108,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestUnterminatedParenComment1()
-    {
-        Test("""
+        => Test("""
             "(?#"
             """, $"""
             <Tree>
@@ -142,12 +131,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestUnterminatedParenComment2()
-    {
-        Test("""
+        => Test("""
             "(?# "
             """, $"""
             <Tree>
@@ -167,12 +154,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestMultipleComments1()
-    {
-        Test("""
+        => Test("""
             "(?#)(?#)"
             """, """
             <Tree>
@@ -190,12 +175,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestMultipleComments2()
-    {
-        Test("""
+        => Test("""
             "(?#)(?#)"
             """, """
             <Tree>
@@ -213,12 +196,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestMultipleComments3()
-    {
-        Test("""
+        => Test("""
             "(?#) (?#)"
             """, """
             <Tree>
@@ -242,12 +223,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestMultipleComments4()
-    {
-        Test("""
+        => Test("""
             "(?#) (?#)"
             """, """
             <Tree>
@@ -266,12 +245,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestDoNotTreatAsCommentAfterEscapeInCharacterClass1()
-    {
-        Test("""
+        => Test("""
             @"[a\p{Lu}(?#)b]"
             """, """
             <Tree>
@@ -304,12 +281,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestDoNotTreatAsCommentAfterEscapeInCharacterClass2()
-    {
-        Test("""
+        => Test("""
             @"[a\0(?#)b]"
             """, """
             <Tree>
@@ -339,12 +314,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestDoNotTreatAsCommentAfterEscapeInCharacterClass3()
-    {
-        Test("""
+        => Test("""
             @"[a\a(?#)b]"
             """, """
             <Tree>
@@ -374,12 +347,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestDoNotTreatAsCommentAfterEscapeInCharacterClass4()
-    {
-        Test("""
+        => Test("""
             @"[a\x00(?#)b]"
             """, """
             <Tree>
@@ -410,12 +381,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestDoNotTreatAsCommentAfterEscapeInCharacterClass5()
-    {
-        Test("""
+        => Test("""
             @"[a\u0000(?#)b]"
             """, """
             <Tree>
@@ -446,12 +415,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestDoNotTreatAsCommentAfterEscapeInCharacterClass6()
-    {
-        Test("""
+        => Test("""
             @"[a\](?#)b]"
             """, """
             <Tree>
@@ -481,12 +448,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOpenQuestion1()
-    {
-        Test("""
+        => Test("""
             "(?"
             """, $"""
             <Tree>
@@ -514,12 +479,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOpenQuestion2()
-    {
-        Test("""
+        => Test("""
             "(?"
             """, $"""
             <Tree>
@@ -547,12 +510,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestOpenQuestion3()
-    {
-        Test("""
+        => Test("""
             "(? "
             """, $"""
             <Tree>
@@ -583,12 +544,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOpenQuestion4()
-    {
-        Test("""
+        => Test("""
             "(? "
             """, $"""
             <Tree>
@@ -620,12 +579,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestSimpleOptionsNode1()
-    {
-        Test("""
+        => Test("""
             "(?i)"
             """, """
             <Tree>
@@ -645,12 +602,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestSimpleOptionsNode2()
-    {
-        Test("""
+        => Test("""
             "(?im)"
             """, """
             <Tree>
@@ -670,12 +625,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestSimpleOptionsNode3()
-    {
-        Test("""
+        => Test("""
             "(?im-x)"
             """, """
             <Tree>
@@ -695,12 +648,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestSimpleOptionsNode4()
-    {
-        Test("""
+        => Test("""
             "(?im-x+n)"
             """, """
             <Tree>
@@ -720,12 +671,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOptionThatDoesNotChangeWhitespaceScanning()
-    {
-        Test("""
+        => Test("""
             "(?i) "
             """, """
             <Tree>
@@ -748,12 +697,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOptionThatDoesChangeWhitespaceScanning()
-    {
-        Test("""
+        => Test("""
             "(?x) "
             """, """
             <Tree>
@@ -777,12 +724,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOptionThatDoesChangeWhitespaceScanning2()
-    {
-        Test("""
+        => Test("""
             " (?x) "
             """, """
             <Tree>
@@ -809,12 +754,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOptionThatDoesChangeWhitespaceScanning3()
-    {
-        Test("""
+        => Test("""
             " (?-x) "
             """, """
             <Tree>
@@ -840,12 +783,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestOptionRestoredWhenGroupPops()
-    {
-        Test("""
+        => Test("""
             " ( (?-x) ) "
             """, """
             <Tree>
@@ -885,12 +826,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNestedOptionGroup1()
-    {
-        Test("""
+        => Test("""
             " (?-x:) "
             """, """
             <Tree>
@@ -919,12 +858,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNestedOptionGroup2()
-    {
-        Test("""
+        => Test("""
             " (?-x: ) "
             """, """
             <Tree>
@@ -957,12 +894,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNestedOptionGroup3()
-    {
-        Test("""
+        => Test("""
             " (?-x: (?+x: ) ) "
             """, """
             <Tree>
@@ -1009,12 +944,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestIncompleteOptionsGroup1()
-    {
-        Test("""
+        => Test("""
             "(?-x"
             """, $"""
             <Tree>
@@ -1037,12 +970,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestIncompleteOptionsGroup2()
-    {
-        Test("""
+        => Test("""
             "(?-x "
             """, $"""
             <Tree>
@@ -1068,12 +999,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestIncorrectOptionsGroup3()
-    {
-        Test("""
+        => Test("""
             "(?-x :"
             """, $"""
             <Tree>
@@ -1099,12 +1028,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestIncorrectOptionsGroup4()
-    {
-        Test("""
+        => Test("""
             "(?-x )"
             """, $"""
             <Tree>
@@ -1134,12 +1061,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestIncorrectOptionsGroup5()
-    {
-        Test("""
+        => Test("""
             "(?-x :)"
             """, $"""
             <Tree>
@@ -1169,12 +1094,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestCloseParen()
-    {
-        Test("""
+        => Test("""
             ")"
             """, $"""
             <Tree>
@@ -1194,12 +1117,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestSingleChar()
-    {
-        Test("""
+        => Test("""
             "a"
             """, """
             <Tree>
@@ -1216,12 +1137,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestTwoCharsChar()
-    {
-        Test("""
+        => Test("""
             "ab"
             """, """
             <Tree>
@@ -1238,12 +1157,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestAsteriskQuantifier()
-    {
-        Test("""
+        => Test("""
             "a*"
             """, """
             <Tree>
@@ -1263,12 +1180,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestAsteriskQuestionQuantifier()
-    {
-        Test("""
+        => Test("""
             "a*?"
             """, """
             <Tree>
@@ -1291,12 +1206,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestPlusQuantifier()
-    {
-        Test("""
+        => Test("""
             "a+"
             """, """
             <Tree>
@@ -1316,12 +1229,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestPlusQuestionQuantifier()
-    {
-        Test("""
+        => Test("""
             "a+?"
             """, """
             <Tree>
@@ -1344,12 +1255,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestQuestionQuantifier()
-    {
-        Test("""
+        => Test("""
             "a?"
             """, """
             <Tree>
@@ -1369,12 +1278,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestQuestionQuestionQuantifier()
-    {
-        Test("""
+        => Test("""
             "a??"
             """, """
             <Tree>
@@ -1397,12 +1304,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestEmptySimpleGroup()
-    {
-        Test("""
+        => Test("""
             "()"
             """, """
             <Tree>
@@ -1422,12 +1327,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestGroupWithSingleElement()
-    {
-        Test("""
+        => Test("""
             "(a)"
             """, """
             <Tree>
@@ -1451,12 +1354,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestGroupWithMissingCloseParen()
-    {
-        Test("""
+        => Test("""
             "("
             """, $"""
             <Tree>
@@ -1479,12 +1380,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestGroupWithElementWithMissingCloseParen()
-    {
-        Test("""
+        => Test("""
             "(a"
             """, $"""
             <Tree>
@@ -1511,12 +1410,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void JustBar()
-    {
-        Test("""
+        => Test("""
             "|"
             """, """
             <Tree>
@@ -1533,12 +1430,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void SpaceBar()
-    {
-        Test("""
+        => Test("""
             " |"
             """, """
             <Tree>
@@ -1559,12 +1454,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void BarSpace()
-    {
-        Test("""
+        => Test("""
             "| "
             """, """
             <Tree>
@@ -1585,12 +1478,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void SpaceBarSpace()
-    {
-        Test("""
+        => Test("""
             " | "
             """, """
             <Tree>
@@ -1615,12 +1506,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void JustBar_IgnoreWhitespace()
-    {
-        Test("""
+        => Test("""
             "|"
             """, """
             <Tree>
@@ -1637,12 +1526,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void SpaceBar_IgnoreWhitespace()
-    {
-        Test("""
+        => Test("""
             " |"
             """, """
             <Tree>
@@ -1662,12 +1549,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void BarSpace_IgnoreWhitespace()
-    {
-        Test("""
+        => Test("""
             "| "
             """, """
             <Tree>
@@ -1688,12 +1573,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void SpaceBarSpace_IgnoreWhitespace()
-    {
-        Test("""
+        => Test("""
             " | "
             """, """
             <Tree>
@@ -1717,12 +1600,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void DoubleBar()
-    {
-        Test("""
+        => Test("""
             "||"
             """, """
             <Tree>
@@ -1743,12 +1624,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void BarInGroup()
-    {
-        Test("""
+        => Test("""
             "(|)"
             """, """
             <Tree>
@@ -1772,12 +1651,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestExactNumericQuantifier()
-    {
-        Test("""
+        => Test("""
             "a{0}"
             """, """
             <Tree>
@@ -1799,12 +1676,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOpenRangeNumericQuantifier()
-    {
-        Test("""
+        => Test("""
             "a{0,}"
             """, """
             <Tree>
@@ -1827,12 +1702,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestClosedRangeNumericQuantifier()
-    {
-        Test("""
+        => Test("""
             "a{0,1}"
             """, """
             <Tree>
@@ -1856,12 +1729,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestLargeExactRangeNumericQuantifier1()
-    {
-        Test("""
+        => Test("""
             "a{2147483647}"
             """, """
             <Tree>
@@ -1883,12 +1754,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestLargeExactRangeNumericQuantifier2()
-    {
-        Test("""
+        => Test("""
             "a{2147483648}"
             """, $$"""
             <Tree>
@@ -1913,12 +1782,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestLargeOpenRangeNumericQuantifier1()
-    {
-        Test("""
+        => Test("""
             "a{2147483647,}"
             """, """
             <Tree>
@@ -1941,12 +1808,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestLargeOpenRangeNumericQuantifier2()
-    {
-        Test("""
+        => Test("""
             "a{2147483648,}"
             """, $$"""
             <Tree>
@@ -1972,12 +1837,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestLargeClosedRangeNumericQuantifier1()
-    {
-        Test("""
+        => Test("""
             "a{0,2147483647}"
             """, """
             <Tree>
@@ -2001,12 +1864,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestLargeClosedRangeNumericQuantifier2()
-    {
-        Test("""
+        => Test("""
             "a{0,2147483648}"
             """, $$"""
             <Tree>
@@ -2033,12 +1894,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestBadMinMaxClosedRangeNumericQuantifier()
-    {
-        Test("""
+        => Test("""
             "a{1,0}"
             """, $$"""
             <Tree>
@@ -2065,12 +1924,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestLazyExactNumericQuantifier()
-    {
-        Test("""
+        => Test("""
             "a{0}?"
             """, """
             <Tree>
@@ -2095,12 +1952,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestLazyOpenNumericQuantifier()
-    {
-        Test("""
+        => Test("""
             "a{0,}?"
             """, """
             <Tree>
@@ -2126,12 +1981,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestLazyClosedNumericQuantifier()
-    {
-        Test("""
+        => Test("""
             "a{0,1}?"
             """, """
             <Tree>
@@ -2158,12 +2011,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestIncompleteNumericQuantifier1()
-    {
-        Test("""
+        => Test("""
             "a{"
             """, """
             <Tree>
@@ -2180,12 +2031,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestIncompleteNumericQuantifier2()
-    {
-        Test("""
+        => Test("""
             "a{0"
             """, """
             <Tree>
@@ -2202,12 +2051,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestIncompleteNumericQuantifier3()
-    {
-        Test("""
+        => Test("""
             "a{0,"
             """, """
             <Tree>
@@ -2224,12 +2071,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestIncompleteNumericQuantifier4()
-    {
-        Test("""
+        => Test("""
             "a{0,1"
             """, """
             <Tree>
@@ -2246,12 +2091,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNotNumericQuantifier1()
-    {
-        Test("""
+        => Test("""
             "a{0 }"
             """, """
             <Tree>
@@ -2274,12 +2117,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNotNumericQuantifier2()
-    {
-        Test("""
+        => Test("""
             "a{0, }"
             """, """
             <Tree>
@@ -2302,12 +2143,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNotNumericQuantifier3()
-    {
-        Test("""
+        => Test("""
             "a{0 ,}"
             """, """
             <Tree>
@@ -2330,12 +2169,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNotNumericQuantifier4()
-    {
-        Test("""
+        => Test("""
             "a{0 ,1}"
             """, """
             <Tree>
@@ -2358,12 +2195,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNotNumericQuantifier5()
-    {
-        Test("""
+        => Test("""
             "a{0, 1}"
             """, """
             <Tree>
@@ -2386,12 +2221,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNotNumericQuantifier6()
-    {
-        Test("""
+        => Test("""
             "a{0,1 }"
             """, """
             <Tree>
@@ -2414,12 +2247,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41425")]
     public void TestLegalOpenCloseBrace1()
-    {
-        Test("""
+        => Test("""
             @"{}"
             """, """
             <Tree>
@@ -2436,12 +2267,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41425")]
     public void TestLegalOpenCloseBrace2()
-    {
-        Test("""
+        => Test("""
             @"{1, 2}"
             """, """
             <Tree>
@@ -2458,12 +2287,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41425")]
     public void TestDanglingNumericQuantifier1()
-    {
-        Test("""
+        => Test("""
             @"{1}"
             """, $$"""
             <Tree>
@@ -2486,12 +2313,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41425")]
     public void TestDanglingNumericQuantifier2()
-    {
-        Test("""
+        => Test("""
             @"{1,2}"
             """, $$"""
             <Tree>
@@ -2514,12 +2339,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestLazyQuantifierDueToIgnoredWhitespace()
-    {
-        Test("""
+        => Test("""
             "a* ?"
             """, """
             <Tree>
@@ -2545,12 +2368,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNonLazyQuantifierDueToNonIgnoredWhitespace()
-    {
-        Test("""
+        => Test("""
             "a* ?"
             """, """
             <Tree>
@@ -2576,12 +2397,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestAsteriskQuantifierAtStart()
-    {
-        Test("""
+        => Test("""
             "*"
             """, $"""
             <Tree>
@@ -2601,12 +2420,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestAsteriskQuantifierAtStartOfGroup()
-    {
-        Test("""
+        => Test("""
             "(*)"
             """, $"""
             <Tree>
@@ -2633,12 +2450,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestAsteriskQuantifierAfterQuantifier()
-    {
-        Test("""
+        => Test("""
             "a**"
             """, $"""
             <Tree>
@@ -2664,12 +2479,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestPlusQuantifierAtStart()
-    {
-        Test("""
+        => Test("""
             "+"
             """, $"""
             <Tree>
@@ -2689,12 +2502,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestPlusQuantifierAtStartOfGroup()
-    {
-        Test("""
+        => Test("""
             "(+)"
             """, $"""
             <Tree>
@@ -2721,12 +2532,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestPlusQuantifierAfterQuantifier()
-    {
-        Test("""
+        => Test("""
             "a*+"
             """, $"""
             <Tree>
@@ -2752,12 +2561,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestQuestionQuantifierAtStart()
-    {
-        Test("""
+        => Test("""
             "?"
             """, $"""
             <Tree>
@@ -2777,12 +2584,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestQuestionQuantifierAtStartOfGroup()
-    {
-        Test("""
+        => Test("""
             "(?)"
             """, $"""
             <Tree>
@@ -2808,12 +2613,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestQuestionQuantifierAfterQuantifier()
-    {
-        Test("""
+        => Test("""
             "a*??"
             """, $"""
             <Tree>
@@ -2842,12 +2645,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNumericQuantifierAtStart()
-    {
-        Test("""
+        => Test("""
             "{0}"
             """, $$"""
             <Tree>
@@ -2870,12 +2671,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNumericQuantifierAtStartOfGroup()
-    {
-        Test("""
+        => Test("""
             "({0})"
             """, $$"""
             <Tree>
@@ -2905,12 +2704,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNumericQuantifierAfterQuantifier()
-    {
-        Test("""
+        => Test("""
             "a*{0}"
             """, $$"""
             <Tree>
@@ -2939,12 +2736,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNonNumericQuantifierAtStart()
-    {
-        Test("""
+        => Test("""
             "{0"
             """, """
             <Tree>
@@ -2961,12 +2756,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNonNumericQuantifierAtStartOfGroup()
-    {
-        Test("""
+        => Test("""
             "({0)"
             """, """
             <Tree>
@@ -2990,12 +2783,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNonNumericQuantifierAfterQuantifier()
-    {
-        Test("""
+        => Test("""
             "a*{0"
             """, """
             <Tree>
@@ -3018,12 +2809,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestEscapeAtEnd1()
-    {
-        Test("""
+        => Test("""
             @"\"
             """, $"""
             <Tree>
@@ -3044,12 +2833,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestEscapeAtEnd2()
-    {
-        Test("""
+        => Test("""
             "\\"
             """, $"""
             <Tree>
@@ -3070,12 +2857,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestSimpleEscape()
-    {
-        Test("""
+        => Test("""
             @"\w"
             """, """
             <Tree>
@@ -3093,12 +2878,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestPrimaryEscapes1()
-    {
-        Test("""
+        => Test("""
             @"\b\B\A\G\Z\z\w\W\s\W\s\S\d\D"
             """, """
             <Tree>
@@ -3168,12 +2951,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape1()
-    {
-        Test("""
+        => Test("""
             @"\c"
             """, $"""
             <Tree>
@@ -3195,12 +2976,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape2()
-    {
-        Test("""
+        => Test("""
             @"\c<"
             """, $"""
             <Tree>
@@ -3225,12 +3004,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape3()
-    {
-        Test("""
+        => Test("""
             @"\ca"
             """, """
             <Tree>
@@ -3249,12 +3026,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape4()
-    {
-        Test("""
+        => Test("""
             @"\cA"
             """, """
             <Tree>
@@ -3273,12 +3048,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape5()
-    {
-        Test("""
+        => Test("""
             @"\c A"
             """, $"""
             <Tree>
@@ -3303,12 +3076,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape6()
-    {
-        Test("""
+        => Test("""
             @"\c(a)"
             """, $"""
             <Tree>
@@ -3340,12 +3111,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape7()
-    {
-        Test("""
+        => Test("""
             @"\c>"
             """, $"""
             <Tree>
@@ -3370,12 +3139,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape8()
-    {
-        Test("""
+        => Test("""
             @"\c?"
             """, $"""
             <Tree>
@@ -3400,12 +3167,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape9()
-    {
-        Test("""
+        => Test("""
             @"\c@"
             """, """
             <Tree>
@@ -3424,12 +3189,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape10()
-    {
-        Test("""
+        => Test("""
             @"\c^"
             """, """
             <Tree>
@@ -3448,12 +3211,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape11()
-    {
-        Test("""
+        => Test("""
             @"\c_"
             """, """
             <Tree>
@@ -3472,12 +3233,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape12()
-    {
-        Test("""
+        => Test("""
             @"\c`"
             """, $"""
             <Tree>
@@ -3502,12 +3261,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape13()
-    {
-        Test("""
+        => Test("""
             @"\c{"
             """, $$"""
             <Tree>
@@ -3532,12 +3289,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape14()
-    {
-        Test("""
+        => Test("""
             @"\ca"
             """, """
             <Tree>
@@ -3556,12 +3311,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape15()
-    {
-        Test("""
+        => Test("""
             @"\cA"
             """, """
             <Tree>
@@ -3580,12 +3333,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape16()
-    {
-        Test("""
+        => Test("""
             @"\cz"
             """, """
             <Tree>
@@ -3604,12 +3355,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape17()
-    {
-        Test("""
+        => Test("""
             @"\cZ"
             """, """
             <Tree>
@@ -3628,12 +3377,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape18()
-    {
-        Test("""
+        => Test("""
             @"\c\"
             """, """
             <Tree>
@@ -3652,12 +3399,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestControlEscape19()
-    {
-        Test("""
+        => Test("""
             @"\c]"
             """, """
             <Tree>
@@ -3676,12 +3421,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestUnknownEscape1()
-    {
-        Test("""
+        => Test("""
             @"\m"
             """, $"""
             <Tree>
@@ -3702,12 +3445,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestHexEscape1()
-    {
-        Test("""
+        => Test("""
             @"\x"
             """, $"""
             <Tree>
@@ -3729,12 +3470,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestHexEscape2()
-    {
-        Test("""
+        => Test("""
             @"\x "
             """, $"""
             <Tree>
@@ -3759,12 +3498,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestHexEscape3()
-    {
-        Test("""
+        => Test("""
             @"\x0"
             """, $"""
             <Tree>
@@ -3786,12 +3523,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestHexEscape4()
-    {
-        Test("""
+        => Test("""
             @"\x0 "
             """, $"""
             <Tree>
@@ -3816,12 +3551,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestHexEscape5()
-    {
-        Test("""
+        => Test("""
             @"\x00"
             """, """
             <Tree>
@@ -3840,12 +3573,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestHexEscape6()
-    {
-        Test("""
+        => Test("""
             @"\x00 "
             """, """
             <Tree>
@@ -3867,12 +3598,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestHexEscape7()
-    {
-        Test("""
+        => Test("""
             @"\x000"
             """, """
             <Tree>
@@ -3894,12 +3623,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestHexEscape8()
-    {
-        Test("""
+        => Test("""
             @"\xff"
             """, """
             <Tree>
@@ -3918,12 +3645,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestHexEscape9()
-    {
-        Test("""
+        => Test("""
             @"\xFF"
             """, """
             <Tree>
@@ -3942,12 +3667,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestHexEscape10()
-    {
-        Test("""
+        => Test("""
             @"\xfF"
             """, """
             <Tree>
@@ -3966,12 +3689,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestHexEscape11()
-    {
-        Test("""
+        => Test("""
             @"\xfff"
             """, """
             <Tree>
@@ -3993,12 +3714,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestHexEscape12()
-    {
-        Test("""
+        => Test("""
             @"\xgg"
             """, $"""
             <Tree>
@@ -4023,12 +3742,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestUnknownEscape2()
-    {
-        Test("""
+        => Test("""
             @"\m "
             """, $"""
             <Tree>
@@ -4052,12 +3769,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestUnicodeEscape1()
-    {
-        Test("""
+        => Test("""
             @"\u"
             """, $"""
             <Tree>
@@ -4079,12 +3794,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestUnicodeEscape2()
-    {
-        Test("""
+        => Test("""
             @"\u0"
             """, $"""
             <Tree>
@@ -4106,12 +3819,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestUnicodeEscape3()
-    {
-        Test("""
+        => Test("""
             @"\u00"
             """, $"""
             <Tree>
@@ -4133,12 +3844,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestUnicodeEscape4()
-    {
-        Test("""
+        => Test("""
             @"\u000"
             """, $"""
             <Tree>
@@ -4160,12 +3869,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestUnicodeEscape5()
-    {
-        Test("""
+        => Test("""
             @"\u0000"
             """, """
             <Tree>
@@ -4184,12 +3891,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestUnicodeEscape6()
-    {
-        Test("""
+        => Test("""
             @"\u0000 "
             """, """
             <Tree>
@@ -4211,12 +3916,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestUnicodeEscape7()
-    {
-        Test("""
+        => Test("""
             @"\u "
             """, $"""
             <Tree>
@@ -4241,12 +3944,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestUnicodeEscape8()
-    {
-        Test("""
+        => Test("""
             @"\u0 "
             """, $"""
             <Tree>
@@ -4271,12 +3972,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestUnicodeEscape9()
-    {
-        Test("""
+        => Test("""
             @"\ugggg"
             """, $"""
             <Tree>
@@ -4301,12 +4000,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOctalEscape1()
-    {
-        Test("""
+        => Test("""
             @"\0"
             """, """
             <Tree>
@@ -4324,12 +4021,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOctalEscape2()
-    {
-        Test("""
+        => Test("""
             @"\0 "
             """, """
             <Tree>
@@ -4350,12 +4045,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOctalEscape3()
-    {
-        Test("""
+        => Test("""
             @"\00"
             """, """
             <Tree>
@@ -4373,12 +4066,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOctalEscape4()
-    {
-        Test("""
+        => Test("""
             @"\00 "
             """, """
             <Tree>
@@ -4399,12 +4090,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOctalEscape5()
-    {
-        Test("""
+        => Test("""
             @"\000"
             """, """
             <Tree>
@@ -4422,12 +4111,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOctalEscape6()
-    {
-        Test("""
+        => Test("""
             @"\000 "
             """, """
             <Tree>
@@ -4448,12 +4135,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOctalEscape7()
-    {
-        Test("""
+        => Test("""
             @"\0000"
             """, """
             <Tree>
@@ -4474,12 +4159,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOctalEscape8()
-    {
-        Test("""
+        => Test("""
             @"\0000 "
             """, """
             <Tree>
@@ -4500,12 +4183,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOctalEscape9()
-    {
-        Test("""
+        => Test("""
             @"\7"
             """, $"""
             <Tree>
@@ -4526,12 +4207,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOctalEscape10()
-    {
-        Test("""
+        => Test("""
             @"\78"
             """, """
             <Tree>
@@ -4552,12 +4231,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOctalEscape11()
-    {
-        Test("""
+        => Test("""
             @"\8"
             """, $"""
             <Tree>
@@ -4578,12 +4255,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestOctalEscapeEcmascript1()
-    {
-        Test("""
+        => Test("""
             @"\40"
             """, """
             <Tree>
@@ -4601,12 +4276,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestOctalEscapeEcmascript2()
-    {
-        Test("""
+        => Test("""
             @"\401"
             """, """
             <Tree>
@@ -4627,12 +4300,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestOctalEscapeEcmascript3()
-    {
-        Test("""
+        => Test("""
             @"\37"
             """, """
             <Tree>
@@ -4650,12 +4321,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestOctalEscapeEcmascript4()
-    {
-        Test("""
+        => Test("""
             @"\371"
             """, """
             <Tree>
@@ -4673,12 +4342,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestOctalEscapeEcmascript5()
-    {
-        Test("""
+        => Test("""
             @"\0000"
             """, """
             <Tree>
@@ -4699,12 +4366,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestKCaptureEscape1()
-    {
-        Test("""
+        => Test("""
             @"\k"
             """, $"""
             <Tree>
@@ -4725,12 +4390,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureEscape2()
-    {
-        Test("""
+        => Test("""
             @"\k "
             """, $"""
             <Tree>
@@ -4754,12 +4417,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureEscape3()
-    {
-        Test("""
+        => Test("""
             @"\k<"
             """, $"""
             <Tree>
@@ -4783,12 +4444,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureEscape4()
-    {
-        Test("""
+        => Test("""
             @"\k< "
             """, $"""
             <Tree>
@@ -4812,12 +4471,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureEscape5()
-    {
-        Test("""
+        => Test("""
             @"\k<0"
             """, $"""
             <Tree>
@@ -4841,12 +4498,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureEscape6()
-    {
-        Test("""
+        => Test("""
             @"\k<0 "
             """, $"""
             <Tree>
@@ -4870,12 +4525,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureEscape7()
-    {
-        Test("""
+        => Test("""
             @"\k<0>"
             """, """
             <Tree>
@@ -4896,12 +4549,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureEscape8()
-    {
-        Test("""
+        => Test("""
             @"\k<0> "
             """, """
             <Tree>
@@ -4925,12 +4576,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureEscape9()
-    {
-        Test("""
+        => Test("""
             @"\k<00> "
             """, """
             <Tree>
@@ -4954,12 +4603,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureEscape10()
-    {
-        Test("""
+        => Test("""
             @"\k<a> "
             """, $"""
             <Tree>
@@ -4986,12 +4633,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureEscape11()
-    {
-        Test("""
+        => Test("""
             @"(?<a>)\k<a> "
             """, """
             <Tree>
@@ -5026,12 +4671,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureEcmaEscape1()
-    {
-        Test("""
+        => Test("""
             @"\k"
             """, $"""
             <Tree>
@@ -5052,12 +4695,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestKCaptureEcmaEscape2()
-    {
-        Test("""
+        => Test("""
             @"\k "
             """, $"""
             <Tree>
@@ -5081,12 +4722,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestKCaptureEcmaEscape3()
-    {
-        Test("""
+        => Test("""
             @"\k<"
             """, $"""
             <Tree>
@@ -5110,12 +4749,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestKCaptureEcmaEscape4()
-    {
-        Test("""
+        => Test("""
             @"\k< "
             """, """
             <Tree>
@@ -5136,12 +4773,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestKCaptureEcmaEscape5()
-    {
-        Test("""
+        => Test("""
             @"\k<0"
             """, """
             <Tree>
@@ -5162,12 +4797,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestKCaptureEcmaEscape6()
-    {
-        Test("""
+        => Test("""
             @"\k<0 "
             """, """
             <Tree>
@@ -5188,12 +4821,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestKCaptureEcmaEscape7()
-    {
-        Test("""
+        => Test("""
             @"\k<0>"
             """, """
             <Tree>
@@ -5214,12 +4845,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestKCaptureEcmaEscape8()
-    {
-        Test("""
+        => Test("""
             @"\k<0> "
             """, """
             <Tree>
@@ -5243,12 +4872,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestKCaptureQuoteEscape3()
-    {
-        Test("""
+        => Test("""
             @"\k'"
             """, $"""
             <Tree>
@@ -5272,12 +4899,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureQuoteEscape4()
-    {
-        Test("""
+        => Test("""
             @"\k' "
             """, $"""
             <Tree>
@@ -5301,12 +4926,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureQuoteEscape5()
-    {
-        Test("""
+        => Test("""
             @"\k'0"
             """, $"""
             <Tree>
@@ -5330,12 +4953,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureQuoteEscape6()
-    {
-        Test("""
+        => Test("""
             @"\k'0 "
             """, $"""
             <Tree>
@@ -5359,12 +4980,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureQuoteEscape7()
-    {
-        Test("""
+        => Test("""
             @"\k'0'"
             """, """
             <Tree>
@@ -5385,12 +5004,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureQuoteEscape8()
-    {
-        Test("""
+        => Test("""
             @"\k'0' "
             """, """
             <Tree>
@@ -5414,12 +5031,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureQuoteEscape9()
-    {
-        Test("""
+        => Test("""
             @"\k'00' "
             """, """
             <Tree>
@@ -5443,12 +5058,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureQuoteEscape10()
-    {
-        Test("""
+        => Test("""
             @"\k'a' "
             """, $"""
             <Tree>
@@ -5475,12 +5088,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureQuoteEscape11()
-    {
-        Test("""
+        => Test("""
             @"(?<a>)\k'a' "
             """, """
             <Tree>
@@ -5515,12 +5126,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureWrongQuote1()
-    {
-        Test("""
+        => Test("""
             @"\k<0' "
             """, $"""
             <Tree>
@@ -5544,12 +5153,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestKCaptureWrongQuote2()
-    {
-        Test("""
+        => Test("""
             @"\k'0> "
             """, $"""
             <Tree>
@@ -5573,12 +5180,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureEscape1()
-    {
-        Test("""
+        => Test("""
             @"\"
             """, $"""
             <Tree>
@@ -5599,12 +5204,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureEscape2()
-    {
-        Test("""
+        => Test("""
             @"\ "
             """, """
             <Tree>
@@ -5622,12 +5225,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureEscape3()
-    {
-        Test("""
+        => Test("""
             @"\<"
             """, """
             <Tree>
@@ -5645,12 +5246,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureEscape4()
-    {
-        Test("""
+        => Test("""
             @"\< "
             """, """
             <Tree>
@@ -5671,12 +5270,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureEscape5()
-    {
-        Test("""
+        => Test("""
             @"\<0"
             """, """
             <Tree>
@@ -5697,12 +5294,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureEscape6()
-    {
-        Test("""
+        => Test("""
             @"\<0 "
             """, """
             <Tree>
@@ -5723,12 +5318,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureEscape7()
-    {
-        Test("""
+        => Test("""
             @"\<0>"
             """, """
             <Tree>
@@ -5748,12 +5341,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureEscape8()
-    {
-        Test("""
+        => Test("""
             @"\<0> "
             """, """
             <Tree>
@@ -5776,12 +5367,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureEscape9()
-    {
-        Test("""
+        => Test("""
             @"\<00> "
             """, """
             <Tree>
@@ -5804,12 +5393,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureEscape10()
-    {
-        Test("""
+        => Test("""
             @"\<a> "
             """, $"""
             <Tree>
@@ -5835,12 +5422,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureEscape11()
-    {
-        Test("""
+        => Test("""
             @"(?<a>)\<a> "
             """, """
             <Tree>
@@ -5874,12 +5459,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureEcmaEscape1()
-    {
-        Test("""
+        => Test("""
             @"\"
             """, $"""
             <Tree>
@@ -5900,12 +5483,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestCaptureEcmaEscape2()
-    {
-        Test("""
+        => Test("""
             @"\ "
             """, """
             <Tree>
@@ -5923,12 +5504,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestCaptureEcmaEscape3()
-    {
-        Test("""
+        => Test("""
             @"\<"
             """, """
             <Tree>
@@ -5946,12 +5525,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestCaptureEcmaEscape4()
-    {
-        Test("""
+        => Test("""
             @"\< "
             """, """
             <Tree>
@@ -5972,12 +5549,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestCaptureEcmaEscape5()
-    {
-        Test("""
+        => Test("""
             @"\<0"
             """, """
             <Tree>
@@ -5998,12 +5573,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestCaptureEcmaEscape6()
-    {
-        Test("""
+        => Test("""
             @"\<0 "
             """, """
             <Tree>
@@ -6024,12 +5597,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestCaptureEcmaEscape7()
-    {
-        Test("""
+        => Test("""
             @"\<0>"
             """, """
             <Tree>
@@ -6049,12 +5620,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestCaptureEcmaEscape8()
-    {
-        Test("""
+        => Test("""
             @"\<0> "
             """, """
             <Tree>
@@ -6077,12 +5646,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestCaptureQuoteEscape3()
-    {
-        Test("""
+        => Test("""
             @"\'"
             """, """
             <Tree>
@@ -6100,12 +5667,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureQuoteEscape4()
-    {
-        Test("""
+        => Test("""
             @"\' "
             """, """
             <Tree>
@@ -6126,12 +5691,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureQuoteEscape5()
-    {
-        Test("""
+        => Test("""
             @"\'0"
             """, """
             <Tree>
@@ -6152,12 +5715,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureQuoteEscape6()
-    {
-        Test("""
+        => Test("""
             @"\'0 "
             """, """
             <Tree>
@@ -6178,12 +5739,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureQuoteEscape7()
-    {
-        Test("""
+        => Test("""
             @"\'0'"
             """, """
             <Tree>
@@ -6203,12 +5762,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureQuoteEscape8()
-    {
-        Test("""
+        => Test("""
             @"\'0' "
             """, """
             <Tree>
@@ -6231,12 +5788,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureQuoteEscape9()
-    {
-        Test("""
+        => Test("""
             @"\'00' "
             """, """
             <Tree>
@@ -6259,12 +5814,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureQuoteEscape10()
-    {
-        Test("""
+        => Test("""
             @"\'a' "
             """, $"""
             <Tree>
@@ -6290,12 +5843,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureQuoteEscape11()
-    {
-        Test("""
+        => Test("""
             @"(?<a>)\'a' "
             """, """
             <Tree>
@@ -6329,12 +5880,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureWrongQuote1()
-    {
-        Test("""
+        => Test("""
             @"\<0' "
             """, """
             <Tree>
@@ -6355,12 +5904,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureWrongQuote2()
-    {
-        Test("""
+        => Test("""
             @"\'0> "
             """, """
             <Tree>
@@ -6381,12 +5928,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestDefinedCategoryEscape()
-    {
-        Test("""
+        => Test("""
             "\\p{Cc}"
             """, """
             <Tree>
@@ -6407,12 +5952,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestDefinedCategoryEscapeWithSpaces1()
-    {
-        Test("""
+        => Test("""
             "\\p{ Cc }"
             """, $$"""
             <Tree>
@@ -6436,12 +5979,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestDefinedCategoryEscapeWithSpaces2()
-    {
-        Test("""
+        => Test("""
             "\\p{ Cc }"
             """, $$"""
             <Tree>
@@ -6477,12 +6018,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestDefinedCategoryEscapeWithSpaces3()
-    {
-        Test("""
+        => Test("""
             "\\p {Cc}"
             """, $$"""
             <Tree>
@@ -6509,12 +6048,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestUndefinedCategoryEscape()
-    {
-        Test("""
+        => Test("""
             "\\p{xxx}"
             """, $$"""
             <Tree>
@@ -6538,12 +6075,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestTooShortCategoryEscape1()
-    {
-        Test("""
+        => Test("""
             "\\p"
             """, $"""
             <Tree>
@@ -6564,12 +6099,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestTooShortCategoryEscape2()
-    {
-        Test("""
+        => Test("""
             "\\p{"
             """, $$"""
             <Tree>
@@ -6593,12 +6126,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestTooShortCategoryEscape3()
-    {
-        Test("""
+        => Test("""
             "\\p{}"
             """, $$"""
             <Tree>
@@ -6622,12 +6153,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestTooShortCategoryEscape4()
-    {
-        Test("""
+        => Test("""
             "\\p{} "
             """, $$"""
             <Tree>
@@ -6651,12 +6180,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestTooShortCategoryEscape5()
-    {
-        Test("""
+        => Test("""
             "\\p {} "
             """, $$"""
             <Tree>
@@ -6680,12 +6207,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestTooShortCategoryEscape6()
-    {
-        Test("""
+        => Test("""
             "\\p{Cc "
             """, $$"""
             <Tree>
@@ -6709,12 +6234,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCategoryNameWithDash()
-    {
-        Test("""
+        => Test("""
             "\\p{IsArabicPresentationForms-A}"
             """, """
             <Tree>
@@ -6735,12 +6258,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNonCapturingGrouping1()
-    {
-        Test("""
+        => Test("""
             "(?:)"
             """, """
             <Tree>
@@ -6761,12 +6282,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNonCapturingGrouping2()
-    {
-        Test("""
+        => Test("""
             "(?:a)"
             """, """
             <Tree>
@@ -6791,12 +6310,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNonCapturingGrouping3()
-    {
-        Test("""
+        => Test("""
             "(?:"
             """, $"""
             <Tree>
@@ -6820,12 +6337,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNonCapturingGrouping4()
-    {
-        Test("""
+        => Test("""
             "(?: "
             """, $"""
             <Tree>
@@ -6853,12 +6368,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestPositiveLookaheadGrouping1()
-    {
-        Test("""
+        => Test("""
             "(?=)"
             """, """
             <Tree>
@@ -6879,12 +6392,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestPositiveLookaheadGrouping2()
-    {
-        Test("""
+        => Test("""
             "(?=a)"
             """, """
             <Tree>
@@ -6909,12 +6420,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestPositiveLookaheadGrouping3()
-    {
-        Test("""
+        => Test("""
             "(?="
             """, $"""
             <Tree>
@@ -6938,12 +6447,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestPositiveLookaheadGrouping4()
-    {
-        Test("""
+        => Test("""
             "(?= "
             """, $"""
             <Tree>
@@ -6971,12 +6478,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNegativeLookaheadGrouping1()
-    {
-        Test("""
+        => Test("""
             "(?!)"
             """, """
             <Tree>
@@ -6997,12 +6502,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNegativeLookaheadGrouping2()
-    {
-        Test("""
+        => Test("""
             "(?!a)"
             """, """
             <Tree>
@@ -7027,12 +6530,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNegativeLookaheadGrouping3()
-    {
-        Test("""
+        => Test("""
             "(?!"
             """, $"""
             <Tree>
@@ -7056,12 +6557,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNegativeLookaheadGrouping4()
-    {
-        Test("""
+        => Test("""
             "(?! "
             """, $"""
             <Tree>
@@ -7089,12 +6588,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestAtomicGrouping1()
-    {
-        Test("""
+        => Test("""
             "(?>)"
             """, """
             <Tree>
@@ -7115,12 +6612,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestAtomicGrouping2()
-    {
-        Test("""
+        => Test("""
             "(?>a)"
             """, """
             <Tree>
@@ -7145,12 +6640,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestAtomicGrouping3()
-    {
-        Test("""
+        => Test("""
             "(?>"
             """, $"""
             <Tree>
@@ -7174,12 +6667,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestAtomicGrouping4()
-    {
-        Test("""
+        => Test("""
             "(?> "
             """, $"""
             <Tree>
@@ -7207,12 +6698,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestPositiveLookbehindGrouping1()
-    {
-        Test("""
+        => Test("""
             "(?<=)"
             """, """
             <Tree>
@@ -7234,12 +6723,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestPositiveLookbehindGrouping2()
-    {
-        Test("""
+        => Test("""
             "(?<=a)"
             """, """
             <Tree>
@@ -7265,12 +6752,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestPositiveLookbehindGrouping3()
-    {
-        Test("""
+        => Test("""
             "(?<="
             """, $"""
             <Tree>
@@ -7295,12 +6780,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestPositiveLookbehindGrouping4()
-    {
-        Test("""
+        => Test("""
             "(?<= "
             """, $"""
             <Tree>
@@ -7329,12 +6812,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNegativeLookbehindGrouping1()
-    {
-        Test("""
+        => Test("""
             "(?<!)"
             """, """
             <Tree>
@@ -7356,12 +6837,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNegativeLookbehindGrouping2()
-    {
-        Test("""
+        => Test("""
             "(?<!a)"
             """, """
             <Tree>
@@ -7387,12 +6866,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNegativeLookbehindGrouping3()
-    {
-        Test("""
+        => Test("""
             "(?<!"
             """, $"""
             <Tree>
@@ -7417,12 +6894,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNegativeLookbehindGrouping4()
-    {
-        Test("""
+        => Test("""
             "(?<! "
             """, $"""
             <Tree>
@@ -7451,12 +6926,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNamedCapture1()
-    {
-        Test("""
+        => Test("""
             "(?<"
             """, $"""
             <Tree>
@@ -7483,12 +6956,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNamedCapture2()
-    {
-        Test("""
+        => Test("""
             "(?<>"
             """, $"""
             <Tree>
@@ -7515,12 +6986,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNamedCapture3()
-    {
-        Test("""
+        => Test("""
             "(?<a"
             """, $"""
             <Tree>
@@ -7549,12 +7018,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNamedCapture4()
-    {
-        Test("""
+        => Test("""
             "(?<a>"
             """, $"""
             <Tree>
@@ -7582,12 +7049,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNamedCapture5()
-    {
-        Test("""
+        => Test("""
             "(?<a>a"
             """, $"""
             <Tree>
@@ -7619,12 +7084,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNamedCapture6()
-    {
-        Test("""
+        => Test("""
             "(?<a>a)"
             """, """
             <Tree>
@@ -7653,12 +7116,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNamedCapture7()
-    {
-        Test("""
+        => Test("""
             "(?<a >a)"
             """, $"""
             <Tree>
@@ -7690,12 +7151,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNamedCapture8()
-    {
-        Test("""
+        => Test("""
             "(?<a >a)"
             """, $"""
             <Tree>
@@ -7730,12 +7189,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNamedCapture9()
-    {
-        Test("""
+        => Test("""
             "(?< a>a)"
             """, $"""
             <Tree>
@@ -7765,12 +7222,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNamedCapture10()
-    {
-        Test("""
+        => Test("""
             "(?< a>a)"
             """, $"""
             <Tree>
@@ -7803,12 +7258,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNamedCapture11()
-    {
-        Test("""
+        => Test("""
             "(?< a >a)"
             """, $"""
             <Tree>
@@ -7838,12 +7291,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNamedCapture12()
-    {
-        Test("""
+        => Test("""
             "(?< a >a)"
             """, $"""
             <Tree>
@@ -7882,12 +7333,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNamedCapture13()
-    {
-        Test("""
+        => Test("""
             "(?<ab>a)"
             """, """
             <Tree>
@@ -7916,12 +7365,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestZeroNumberCapture()
-    {
-        Test("""
+        => Test("""
             "(?<0>a)"
             """, $"""
             <Tree>
@@ -7951,12 +7398,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNumericNumberCapture1()
-    {
-        Test("""
+        => Test("""
             "(?<1>a)"
             """, """
             <Tree>
@@ -7984,12 +7429,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNumericNumberCapture2()
-    {
-        Test("""
+        => Test("""
             "(?<10>a)"
             """, """
             <Tree>
@@ -8017,12 +7460,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNumericNumberCapture3()
-    {
-        Test("""
+        => Test("""
             "(?<1>)"
             """, """
             <Tree>
@@ -8046,12 +7487,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNumericNumberCapture4()
-    {
-        Test("""
+        => Test("""
             "(?<1> )"
             """, """
             <Tree>
@@ -8079,12 +7518,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNumericNumberCapture6()
-    {
-        Test("""
+        => Test("""
             "(?<1> )"
             """, """
             <Tree>
@@ -8111,12 +7548,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping1()
-    {
-        Test("""
+        => Test("""
             "(?<-"
             """, $"""
             <Tree>
@@ -8146,12 +7581,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping2()
-    {
-        Test("""
+        => Test("""
             "(?<-0"
             """, $"""
             <Tree>
@@ -8180,12 +7613,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping3()
-    {
-        Test("""
+        => Test("""
             "(?<-0)"
             """, $"""
             <Tree>
@@ -8213,12 +7644,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping4()
-    {
-        Test("""
+        => Test("""
             "(?<-0>"
             """, $"""
             <Tree>
@@ -8246,12 +7675,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping5()
-    {
-        Test("""
+        => Test("""
             "(?<-0>)"
             """, """
             <Tree>
@@ -8276,12 +7703,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping6()
-    {
-        Test("""
+        => Test("""
             "(?<-0 >)"
             """, $"""
             <Tree>
@@ -8316,12 +7741,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping7()
-    {
-        Test("""
+        => Test("""
             "(?<- 0 >)"
             """, $"""
             <Tree>
@@ -8362,12 +7785,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping8()
-    {
-        Test("""
+        => Test("""
             "(?<- 0>)"
             """, $"""
             <Tree>
@@ -8402,12 +7823,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping9()
-    {
-        Test("""
+        => Test("""
             "(?<-00>)"
             """, """
             <Tree>
@@ -8432,12 +7851,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping10()
-    {
-        Test("""
+        => Test("""
             "(?<a-"
             """, $"""
             <Tree>
@@ -8469,12 +7886,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping11()
-    {
-        Test("""
+        => Test("""
             "(?<a-0"
             """, $"""
             <Tree>
@@ -8505,12 +7920,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping12()
-    {
-        Test("""
+        => Test("""
             "(?<a-0)"
             """, $"""
             <Tree>
@@ -8540,12 +7953,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping13()
-    {
-        Test("""
+        => Test("""
             "(?<a-0>"
             """, $"""
             <Tree>
@@ -8575,12 +7986,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping14()
-    {
-        Test("""
+        => Test("""
             "(?<a-0>)"
             """, """
             <Tree>
@@ -8607,12 +8016,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping15()
-    {
-        Test("""
+        => Test("""
             "(?<a-0 >)"
             """, $"""
             <Tree>
@@ -8649,12 +8056,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping16()
-    {
-        Test("""
+        => Test("""
             "(?<a- 0 >)"
             """, $"""
             <Tree>
@@ -8697,12 +8102,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping17()
-    {
-        Test("""
+        => Test("""
             "(?<a- 0>)"
             """, $"""
             <Tree>
@@ -8739,12 +8142,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGrouping18()
-    {
-        Test("""
+        => Test("""
             "(?<a-00>)"
             """, """
             <Tree>
@@ -8771,12 +8172,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingUndefinedReference1()
-    {
-        Test("""
+        => Test("""
             "(?<-1>)"
             """, $"""
             <Tree>
@@ -8804,12 +8203,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingDefinedReferenceBehind()
-    {
-        Test("""
+        => Test("""
             "()(?<-1>)"
             """, """
             <Tree>
@@ -8840,12 +8237,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingDefinedReferenceAhead()
-    {
-        Test("""
+        => Test("""
             "(?<-1>)()"
             """, """
             <Tree>
@@ -8876,12 +8271,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingNamedReferenceBehind()
-    {
-        Test("""
+        => Test("""
             "(?<a>)(?<-a>)"
             """, """
             <Tree>
@@ -8917,12 +8310,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingNamedReferenceAhead()
-    {
-        Test("""
+        => Test("""
             "(?<-a>)(?<a>)"
             """, """
             <Tree>
@@ -8958,12 +8349,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingNumberedReferenceBehind()
-    {
-        Test("""
+        => Test("""
             "(?<4>)(?<-4>)"
             """, """
             <Tree>
@@ -8998,12 +8387,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingNumberedReferenceAhead()
-    {
-        Test("""
+        => Test("""
             "(?<-4>)(?<4>)"
             """, """
             <Tree>
@@ -9038,12 +8425,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingAutoNumberedExists()
-    {
-        Test("""
+        => Test("""
             "(?<a>)(?<b>)(?<-1>)(?<-2>)"
             """, """
             <Tree>
@@ -9101,12 +8486,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingAutoNumbers()
-    {
-        Test("""
+        => Test("""
             "()()(?<-0>)(?<-1>)(?<-2>)(?<-3>)"
             """, $"""
             <Tree>
@@ -9179,12 +8562,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingAutoNumbers1()
-    {
-        Test("""
+        => Test("""
             "()(?<a>)(?<-0>)(?<-1>)(?<-2>)(?<-3>)"
             """, $"""
             <Tree>
@@ -9262,12 +8643,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingAutoNumbers2()
-    {
-        Test("""
+        => Test("""
             "(?<a>)()(?<-0>)(?<-1>)(?<-2>)(?<-3>)"
             """, $"""
             <Tree>
@@ -9345,12 +8724,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingAutoNumbers3()
-    {
-        Test("""
+        => Test("""
             "(?<a>)(?<b>)(?<-0>)(?<-1>)(?<-2>)(?<-3>)"
             """, $"""
             <Tree>
@@ -9433,12 +8810,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingAutoNumbers4()
-    {
-        Test("""
+        => Test("""
             "(?<-0>)(?<-1>)(?<-2>)(?<-3>)()()"
             """, $"""
             <Tree>
@@ -9511,12 +8886,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingAutoNumbers5_1()
-    {
-        Test("""
+        => Test("""
             "(?<-0>)(?<-1>)(?<-2>)(?<-3>)()(?"
             """, $"""
             <Tree>
@@ -9596,12 +8969,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingAutoNumbers5()
-    {
-        Test("""
+        => Test("""
             "(?<-0>)(?<-1>)(?<-2>)(?<-3>)()(?<a>)"
             """, $"""
             <Tree>
@@ -9679,12 +9050,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingAutoNumbers6()
-    {
-        Test("""
+        => Test("""
             "(?<-0>)(?<-1>)(?<-2>)(?<-3>)(?<a>)()"
             """, $"""
             <Tree>
@@ -9762,12 +9131,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingAutoNumbers7_1()
-    {
-        Test("""
+        => Test("""
             "(?<-0>)(?<-1>)(?<-2>)(?<-3>)(?<a>)(?"
             """, $"""
             <Tree>
@@ -9852,12 +9219,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBalancingGroupingAutoNumbers7()
-    {
-        Test("""
+        => Test("""
             "(?<-0>)(?<-1>)(?<-2>)(?<-3>)(?<a>)(?<b>)"
             """, $"""
             <Tree>
@@ -9940,12 +9305,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestReferenceToBalancingGroupCaptureName1()
-    {
-        Test("""
+        => Test("""
             "(?<a-0>)(?<b-a>)"
             """, """
             <Tree>
@@ -9985,12 +9348,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestReferenceToBalancingGroupCaptureName2()
-    {
-        Test("""
+        => Test("""
             "(?<a-0>)(?<-a>)"
             """, """
             <Tree>
@@ -10028,12 +9389,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestReferenceToSameBalancingGroup()
-    {
-        Test("""
+        => Test("""
             "(?<a-a>)"
             """, """
             <Tree>
@@ -10060,12 +9419,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestQuoteNamedCapture()
-    {
-        Test("""
+        => Test("""
             "(?'a')"
             """, """
             <Tree>
@@ -10090,12 +9447,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestQuoteBalancingCapture1()
-    {
-        Test("""
+        => Test("""
             "(?'-0')"
             """, """
             <Tree>
@@ -10120,12 +9475,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestQuoteBalancingCapture2()
-    {
-        Test("""
+        => Test("""
             "(?'a-0')"
             """, """
             <Tree>
@@ -10152,12 +9505,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestMismatchedOpenCloseCapture1()
-    {
-        Test("""
+        => Test("""
             "(?<a-0')"
             """, $"""
             <Tree>
@@ -10191,12 +9542,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestMismatchedOpenCloseCapture2()
-    {
-        Test("""
+        => Test("""
             "(?'a-0>)"
             """, $"""
             <Tree>
@@ -10230,12 +9579,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestConditionalCapture1()
-    {
-        Test("""
+        => Test("""
             "(?("
             """, $"""
             <Tree>
@@ -10263,12 +9610,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestConditionalCapture2()
-    {
-        Test("""
+        => Test("""
             "(?(0"
             """, $"""
             <Tree>
@@ -10295,12 +9640,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestConditionalCapture3()
-    {
-        Test("""
+        => Test("""
             "(?(0)"
             """, $"""
             <Tree>
@@ -10326,12 +9669,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestConditionalCapture4()
-    {
-        Test("""
+        => Test("""
             "(?(0))"
             """, """
             <Tree>
@@ -10354,12 +9695,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestConditionalCapture5()
-    {
-        Test("""
+        => Test("""
             "(?(0)a)"
             """, """
             <Tree>
@@ -10386,12 +9725,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestConditionalCapture6()
-    {
-        Test("""
+        => Test("""
             "(?(0)a|)"
             """, """
             <Tree>
@@ -10422,12 +9759,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestConditionalCapture7()
-    {
-        Test("""
+        => Test("""
             "(?(0)a|b)"
             """, """
             <Tree>
@@ -10462,12 +9797,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestConditionalCapture8()
-    {
-        Test("""
+        => Test("""
             "(?(0)a|b|)"
             """, $"""
             <Tree>
@@ -10509,12 +9842,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestConditionalCapture9()
-    {
-        Test("""
+        => Test("""
             "(?(0)a|b|c)"
             """, $"""
             <Tree>
@@ -10560,12 +9891,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestConditionalCapture10()
-    {
-        Test("""
+        => Test("""
             "(?(0 )"
             """, $"""
             <Tree>
@@ -10594,12 +9923,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestConditionalCapture11()
-    {
-        Test("""
+        => Test("""
             "(?(1))"
             """, $"""
             <Tree>
@@ -10625,12 +9952,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestConditionalCapture12()
-    {
-        Test("""
+        => Test("""
             "(?(00))"
             """, """
             <Tree>
@@ -10653,12 +9978,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestConditionalCapture13()
-    {
-        Test("""
+        => Test("""
             "(?(0)a|b|c|d)"
             """, $"""
             <Tree>
@@ -10713,12 +10036,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestConditionalCapture14()
-    {
-        Test("""
+        => Test("""
             "(?(0)a|b|c|d|e)"
             """, $"""
             <Tree>
@@ -10782,12 +10103,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNamedConditionalCapture1()
-    {
-        Test("""
+        => Test("""
             "(?(a))"
             """, """
             <Tree>
@@ -10816,12 +10135,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNamedConditionalCapture2()
-    {
-        Test("""
+        => Test("""
             "(?<a>)(?(a))"
             """, """
             <Tree>
@@ -10855,12 +10172,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNamedConditionalCapture3()
-    {
-        Test("""
+        => Test("""
             "(?<a>)(?(a ))"
             """, """
             <Tree>
@@ -10903,12 +10218,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNamedConditionalCapture4()
-    {
-        Test("""
+        => Test("""
             "(?<a>)(?( a))"
             """, """
             <Tree>
@@ -10951,12 +10264,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestNestedGroupsInConditionalGrouping1()
-    {
-        Test("""
+        => Test("""
             "(?(()a()))"
             """, """
             <Tree>
@@ -10997,12 +10308,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNestedGroupsInConditionalGrouping2()
-    {
-        Test("""
+        => Test("""
             "(?((?<x>)a(?<y>)))"
             """, """
             <Tree>
@@ -11053,12 +10362,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptureInConditionalGrouping1()
-    {
-        Test("""
+        => Test("""
             "(?(?'"
             """, $"""
             <Tree>
@@ -11092,12 +10399,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestCaptureInConditionalGrouping2()
-    {
-        Test("""
+        => Test("""
             "(?(?'x'))"
             """, $"""
             <Tree>
@@ -11129,12 +10434,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestCommentInConditionalGrouping1()
-    {
-        Test("""
+        => Test("""
             "(?(?#"
             """, $"""
             <Tree>
@@ -11173,12 +10476,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestCommentInConditionalGrouping2()
-    {
-        Test("""
+        => Test("""
             "(?(?#)"
             """, $"""
             <Tree>
@@ -11217,12 +10518,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestCommentInConditionalGrouping3()
-    {
-        Test("""
+        => Test("""
             "(?(?#))"
             """, $"""
             <Tree>
@@ -11261,12 +10560,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestAngleCaptureInConditionalGrouping1()
-    {
-        Test("""
+        => Test("""
             "(?(?<"
             """, $"""
             <Tree>
@@ -11300,12 +10597,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestAngleCaptureInConditionalGrouping2()
-    {
-        Test("""
+        => Test("""
             "(?(?<a"
             """, $"""
             <Tree>
@@ -11339,12 +10634,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestAngleCaptureInConditionalGrouping3()
-    {
-        Test("""
+        => Test("""
             "(?(?<a>"
             """, $"""
             <Tree>
@@ -11377,12 +10670,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestAngleCaptureInConditionalGrouping4()
-    {
-        Test("""
+        => Test("""
             "(?(?<a>)"
             """, $"""
             <Tree>
@@ -11415,12 +10706,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestAngleCaptureInConditionalGrouping5()
-    {
-        Test("""
+        => Test("""
             "(?(?<a>))"
             """, $"""
             <Tree>
@@ -11452,12 +10741,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestLookbehindAssertionInConditionalGrouping1()
-    {
-        Test("""
+        => Test("""
             "(?(?<=))"
             """, """
             <Tree>
@@ -11485,12 +10772,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestLookbehindAssertionInConditionalGrouping2()
-    {
-        Test("""
+        => Test("""
             "(?(?<!))"
             """, """
             <Tree>
@@ -11518,12 +10803,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void TestBackreference1()
-    {
-        Test("""
+        => Test("""
             @"\1"
             """, $"""
             <Tree>
@@ -11544,12 +10827,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestBackreference2()
-    {
-        Test("""
+        => Test("""
             @"\1 "
             """, $"""
             <Tree>
@@ -11573,12 +10854,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestBackreference3()
-    {
-        Test("""
+        => Test("""
             @"()\1"
             """, """
             <Tree>
@@ -11602,12 +10881,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestBackreference4()
-    {
-        Test("""
+        => Test("""
             @"()\1 "
             """, """
             <Tree>
@@ -11634,12 +10911,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestBackreference5()
-    {
-        Test("""
+        => Test("""
             @"()\10 "
             """, """
             <Tree>
@@ -11666,12 +10941,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestEcmascriptBackreference1()
-    {
-        Test("""
+        => Test("""
             @"\1"
             """, """
             <Tree>
@@ -11689,12 +10962,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestEcmascriptBackreference2()
-    {
-        Test("""
+        => Test("""
             @"\1 "
             """, """
             <Tree>
@@ -11715,12 +10986,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestEcmascriptBackreference3()
-    {
-        Test("""
+        => Test("""
             @"()\1"
             """, """
             <Tree>
@@ -11744,12 +11013,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestEcmaBackreference4()
-    {
-        Test("""
+        => Test("""
             @"()\1 "
             """, """
             <Tree>
@@ -11776,12 +11043,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestEcmascriptBackreference5()
-    {
-        Test("""
+        => Test("""
             @"()\10 "
             """, """
             <Tree>
@@ -11808,12 +11073,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestEcmascriptBackreference6()
-    {
-        Test("""
+        => Test("""
             @"()()()()()()()()()()\10 "
             """, """
             <Tree>
@@ -11894,12 +11157,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void TestCharacterClass1()
-    {
-        Test("""
+        => Test("""
             @"["
             """, $"""
             <Tree>
@@ -11921,12 +11182,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass2()
-    {
-        Test("""
+        => Test("""
             @"[ "
             """, $"""
             <Tree>
@@ -11952,12 +11211,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass3()
-    {
-        Test("""
+        => Test("""
             @"[]"
             """, $"""
             <Tree>
@@ -11983,12 +11240,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass4()
-    {
-        Test("""
+        => Test("""
             @"[] "
             """, $"""
             <Tree>
@@ -12014,12 +11269,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass5()
-    {
-        Test("""
+        => Test("""
             @"[a]"
             """, """
             <Tree>
@@ -12042,12 +11295,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass6()
-    {
-        Test("""
+        => Test("""
             @"[a] "
             """, """
             <Tree>
@@ -12073,12 +11324,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass7()
-    {
-        Test("""
+        => Test("""
             @"[a-"
             """, $"""
             <Tree>
@@ -12110,12 +11359,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass8()
-    {
-        Test("""
+        => Test("""
             @"[a- "
             """, $"""
             <Tree>
@@ -12148,12 +11395,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass9()
-    {
-        Test("""
+        => Test("""
             @"[a-]"
             """, """
             <Tree>
@@ -12176,12 +11421,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass10()
-    {
-        Test("""
+        => Test("""
             @"[a-] "
             """, """
             <Tree>
@@ -12207,12 +11450,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass11()
-    {
-        Test("""
+        => Test("""
             @"[a-b]"
             """, """
             <Tree>
@@ -12241,12 +11482,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass12()
-    {
-        Test("""
+        => Test("""
             @"[a-b] "
             """, """
             <Tree>
@@ -12278,12 +11517,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass13()
-    {
-        Test("""
+        => Test("""
             @"[a-[b]] "
             """, """
             <Tree>
@@ -12321,12 +11558,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass14()
-    {
-        Test("""
+        => Test("""
             @"[a-b-[c]] "
             """, """
             <Tree>
@@ -12370,12 +11605,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass15()
-    {
-        Test("""
+        => Test("""
             @"[a-[b]-c] "
             """, $"""
             <Tree>
@@ -12419,12 +11652,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass16()
-    {
-        Test("""
+        => Test("""
             @"[[a]-b] "
             """, """
             <Tree>
@@ -12450,12 +11681,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass17()
-    {
-        Test("""
+        => Test("""
             @"[[a]-[b]] "
             """, """
             <Tree>
@@ -12493,12 +11722,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass18()
-    {
-        Test("""
+        => Test("""
             @"[\w-a] "
             """, """
             <Tree>
@@ -12528,12 +11755,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass19()
-    {
-        Test("""
+        => Test("""
             @"[a-\w] "
             """, $"""
             <Tree>
@@ -12569,12 +11794,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass20()
-    {
-        Test("""
+        => Test("""
             @"[\p{llll}-a] "
             """, $$"""
             <Tree>
@@ -12610,12 +11833,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass21()
-    {
-        Test("""
+        => Test("""
             @"[\p{Lu}-a] "
             """, """
             <Tree>
@@ -12648,12 +11869,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass22()
-    {
-        Test("""
+        => Test("""
             @"[a-\p{Lu}] "
             """, $$"""
             <Tree>
@@ -12692,12 +11911,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass23()
-    {
-        Test("""
+        => Test("""
             @"[a-[:Ll:]] "
             """, """
             <Tree>
@@ -12735,12 +11952,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass24()
-    {
-        Test("""
+        => Test("""
             @"[a-[:Ll]] "
             """, """
             <Tree>
@@ -12778,12 +11993,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass25()
-    {
-        Test("""
+        => Test("""
             @"[a-[:"
             """, $"""
             <Tree>
@@ -12821,12 +12034,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass26()
-    {
-        Test("""
+        => Test("""
             @"[a-[:L"
             """, $"""
             <Tree>
@@ -12864,12 +12075,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass27()
-    {
-        Test("""
+        => Test("""
             @"[a-[:L:"
             """, $"""
             <Tree>
@@ -12907,12 +12116,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass28()
-    {
-        Test("""
+        => Test("""
             @"[a-[:L:]"
             """, $"""
             <Tree>
@@ -12950,12 +12157,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass29()
-    {
-        Test("""
+        => Test("""
             @"[\-]"
             """, """
             <Tree>
@@ -12979,12 +12184,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass30()
-    {
-        Test("""
+        => Test("""
             @"[a-b-c] "
             """, """
             <Tree>
@@ -13019,12 +12222,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass31()
-    {
-        Test("""
+        => Test("""
             @"[-b-c] "
             """, """
             <Tree>
@@ -13059,12 +12260,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass32()
-    {
-        Test("""
+        => Test("""
             @"[-[b] "
             """, """
             <Tree>
@@ -13090,12 +12289,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass33()
-    {
-        Test("""
+        => Test("""
             @"[-[b]] "
             """, """
             <Tree>
@@ -13121,12 +12318,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass34()
-    {
-        Test("""
+        => Test("""
             @"[--b "
             """, $"""
             <Tree>
@@ -13161,12 +12356,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass35()
-    {
-        Test("""
+        => Test("""
             @"[--b] "
             """, """
             <Tree>
@@ -13198,12 +12391,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass36()
-    {
-        Test("""
+        => Test("""
             @"[--[b "
             """, $"""
             <Tree>
@@ -13241,12 +12432,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass37()
-    {
-        Test("""
+        => Test("""
             @"[--[b] "
             """, $"""
             <Tree>
@@ -13288,12 +12477,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass38()
-    {
-        Test("""
+        => Test("""
             @"[--[b]] "
             """, """
             <Tree>
@@ -13331,12 +12518,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass39()
-    {
-        Test("""
+        => Test("""
             @"[a--[b "
             """, $"""
             <Tree>
@@ -13372,12 +12557,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass40()
-    {
-        Test("""
+        => Test("""
             @"[,--[a] "
             """, """
             <Tree>
@@ -13412,12 +12595,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass41()
-    {
-        Test("""
+        => Test("""
             @"[,--[a]] "
             """, """
             <Tree>
@@ -13452,12 +12633,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass42()
-    {
-        Test("""
+        => Test("""
             @"[\s-a]"
             """, """
             <Tree>
@@ -13484,12 +12663,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass43()
-    {
-        Test("""
+        => Test("""
             @"[\p{Lu}-a]"
             """, """
             <Tree>
@@ -13519,12 +12696,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClass44()
-    {
-        Test("""
+        => Test("""
             @"[\p{Lu}-a]"
             """, """
             <Tree>
@@ -13554,12 +12729,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestNegatedCharacterClass1()
-    {
-        Test("""
+        => Test("""
             @"[a]"
             """, """
             <Tree>
@@ -13582,12 +12755,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange1()
-    {
-        Test("""
+        => Test("""
             @"[\c<-\c>]"
             """, $"""
             <Tree>
@@ -13630,12 +12801,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange2()
-    {
-        Test("""
+        => Test("""
             @"[\c>-\c<]"
             """, $"""
             <Tree>
@@ -13678,12 +12847,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange3()
-    {
-        Test("""
+        => Test("""
             @"[\c>-a]"
             """, $"""
             <Tree>
@@ -13720,12 +12887,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange4()
-    {
-        Test("""
+        => Test("""
             @"[a-\c>]"
             """, $"""
             <Tree>
@@ -13762,12 +12927,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange5()
-    {
-        Test("""
+        => Test("""
             @"[a--]"
             """, $"""
             <Tree>
@@ -13799,12 +12962,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange6()
-    {
-        Test("""
+        => Test("""
             @"[--a]"
             """, """
             <Tree>
@@ -13833,12 +12994,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange7()
-    {
-        Test("""
+        => Test("""
             @"[a-\-]"
             """, $"""
             <Tree>
@@ -13871,12 +13030,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange8()
-    {
-        Test("""
+        => Test("""
             @"[\--a]"
             """, """
             <Tree>
@@ -13903,12 +13060,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange9()
-    {
-        Test("""
+        => Test("""
             @"[\0-\1]"
             """, """
             <Tree>
@@ -13939,12 +13094,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange10()
-    {
-        Test("""
+        => Test("""
             @"[\1-\0]"
             """, $"""
             <Tree>
@@ -13978,12 +13131,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange11()
-    {
-        Test("""
+        => Test("""
             @"[\0-\01]"
             """, """
             <Tree>
@@ -14014,12 +13165,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange12()
-    {
-        Test("""
+        => Test("""
             @"[\01-\0]"
             """, $"""
             <Tree>
@@ -14053,12 +13202,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange13()
-    {
-        Test("""
+        => Test("""
             @"[[:x:]-a]"
             """, """
             <Tree>
@@ -14084,12 +13231,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange14()
-    {
-        Test("""
+        => Test("""
             @"[a-[:x:]]"
             """, """
             <Tree>
@@ -14124,12 +13269,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange15()
-    {
-        Test("""
+        => Test("""
             @"[\0-\ca]"
             """, """
             <Tree>
@@ -14161,12 +13304,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange16()
-    {
-        Test("""
+        => Test("""
             @"[\ca-\0]"
             """, $"""
             <Tree>
@@ -14201,12 +13342,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange17()
-    {
-        Test("""
+        => Test("""
             @"[\ca-\cA]"
             """, """
             <Tree>
@@ -14239,12 +13378,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange18()
-    {
-        Test("""
+        => Test("""
             @"[\cA-\ca]"
             """, """
             <Tree>
@@ -14277,12 +13414,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange19()
-    {
-        Test("""
+        => Test("""
             @"[\u0-\u1]"
             """, $"""
             <Tree>
@@ -14319,12 +13454,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange20()
-    {
-        Test("""
+        => Test("""
             @"[\u1-\u0]"
             """, $"""
             <Tree>
@@ -14361,12 +13494,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange21()
-    {
-        Test("""
+        => Test("""
             @"[\u0000-\u0000]"
             """, """
             <Tree>
@@ -14399,12 +13530,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange22()
-    {
-        Test("""
+        => Test("""
             @"[\u0000-\u0001]"
             """, """
             <Tree>
@@ -14437,12 +13566,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange23()
-    {
-        Test("""
+        => Test("""
             @"[\u0001-\u0000]"
             """, $"""
             <Tree>
@@ -14478,12 +13605,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange24()
-    {
-        Test("""
+        => Test("""
             @"[\u0001-a]"
             """, """
             <Tree>
@@ -14514,12 +13639,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange25()
-    {
-        Test("""
+        => Test("""
             @"[a-\u0001]"
             """, $"""
             <Tree>
@@ -14553,12 +13676,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange26()
-    {
-        Test("""
+        => Test("""
             @"[a-a]"
             """, """
             <Tree>
@@ -14587,12 +13708,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange27()
-    {
-        Test("""
+        => Test("""
             @"[a-A]"
             """, $"""
             <Tree>
@@ -14624,12 +13743,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange28()
-    {
-        Test("""
+        => Test("""
             @"[A-a]"
             """, """
             <Tree>
@@ -14658,12 +13775,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange29()
-    {
-        Test("""
+        => Test("""
             @"[a-a]"
             """, """
             <Tree>
@@ -14692,12 +13807,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnoreCase);
-    }
 
     [Fact]
     public void TestCharacterClassRange30()
-    {
-        Test("""
+        => Test("""
             @"[a-A]"
             """, $"""
             <Tree>
@@ -14729,12 +13842,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnoreCase);
-    }
 
     [Fact]
     public void TestCharacterClassRange31()
-    {
-        Test("""
+        => Test("""
             @"[A-a]"
             """, """
             <Tree>
@@ -14763,12 +13874,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnoreCase);
-    }
 
     [Fact]
     public void TestCharacterClassRange32()
-    {
-        Test("""
+        => Test("""
             @"[a-\x61]"
             """, """
             <Tree>
@@ -14799,12 +13908,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange33()
-    {
-        Test("""
+        => Test("""
             @"[\x61-a]"
             """, """
             <Tree>
@@ -14835,12 +13942,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange34()
-    {
-        Test("""
+        => Test("""
             @"[a-\x60]"
             """, $"""
             <Tree>
@@ -14874,12 +13979,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange35()
-    {
-        Test("""
+        => Test("""
             @"[\x62-a]"
             """, $"""
             <Tree>
@@ -14913,12 +14016,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange36()
-    {
-        Test("""
+        => Test("""
             @"[a-\x62]"
             """, """
             <Tree>
@@ -14949,12 +14050,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange37()
-    {
-        Test("""
+        => Test("""
             @"[\x62-a]"
             """, $"""
             <Tree>
@@ -14988,12 +14087,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange38()
-    {
-        Test("""
+        => Test("""
             @"[\3-\cc]"
             """, """
             <Tree>
@@ -15025,12 +14122,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange39()
-    {
-        Test("""
+        => Test("""
             @"[\cc-\3]"
             """, """
             <Tree>
@@ -15062,12 +14157,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange40()
-    {
-        Test("""
+        => Test("""
             @"[\2-\cc]"
             """, """
             <Tree>
@@ -15099,12 +14192,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange41()
-    {
-        Test("""
+        => Test("""
             @"[\cc-\2]"
             """, $"""
             <Tree>
@@ -15139,12 +14230,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange42()
-    {
-        Test("""
+        => Test("""
             @"[\4-\cc]"
             """, $"""
             <Tree>
@@ -15179,12 +14268,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange43()
-    {
-        Test("""
+        => Test("""
             @"[\cc-\4]"
             """, """
             <Tree>
@@ -15216,12 +14303,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange44()
-    {
-        Test("""
+        => Test("""
             @"[\ca-\cb]"
             """, """
             <Tree>
@@ -15254,12 +14339,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange45()
-    {
-        Test("""
+        => Test("""
             @"[\ca-\cB]"
             """, """
             <Tree>
@@ -15292,12 +14375,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange46()
-    {
-        Test("""
+        => Test("""
             @"[\cA-\cb]"
             """, """
             <Tree>
@@ -15330,12 +14411,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange47()
-    {
-        Test("""
+        => Test("""
             @"[\cA-\cB]"
             """, """
             <Tree>
@@ -15368,12 +14447,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange48()
-    {
-        Test("""
+        => Test("""
             @"[\cb-\ca]"
             """, $"""
             <Tree>
@@ -15409,12 +14486,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange49()
-    {
-        Test("""
+        => Test("""
             @"[\cb-\cA]"
             """, $"""
             <Tree>
@@ -15450,12 +14525,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange50()
-    {
-        Test("""
+        => Test("""
             @"[\cB-\ca]"
             """, $"""
             <Tree>
@@ -15491,12 +14564,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange51()
-    {
-        Test("""
+        => Test("""
             @"[\cB-\cA]"
             """, $"""
             <Tree>
@@ -15532,12 +14603,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange52()
-    {
-        Test("""
+        => Test("""
             @"[\--a]"
             """, """
             <Tree>
@@ -15564,12 +14633,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange53()
-    {
-        Test("""
+        => Test("""
             @"[\--#]"
             """, """
             <Tree>
@@ -15596,12 +14663,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange54()
-    {
-        Test("""
+        => Test("""
             @"[a-\-]"
             """, $"""
             <Tree>
@@ -15634,12 +14699,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange55()
-    {
-        Test("""
+        => Test("""
             @"[a-\-b]"
             """, $"""
             <Tree>
@@ -15675,12 +14738,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange56()
-    {
-        Test("""
+        => Test("""
             @"[a-\-\-b]"
             """, $"""
             <Tree>
@@ -15720,12 +14781,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange57()
-    {
-        Test("""
+        => Test("""
             @"[b-\-a]"
             """, $"""
             <Tree>
@@ -15761,12 +14820,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange58()
-    {
-        Test("""
+        => Test("""
             @"[b-\-\-a]"
             """, $"""
             <Tree>
@@ -15806,12 +14863,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange59()
-    {
-        Test("""
+        => Test("""
             @"[a-\-\D]"
             """, $"""
             <Tree>
@@ -15848,12 +14903,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange60()
-    {
-        Test("""
+        => Test("""
             @"[a-\-\-\D]"
             """, $"""
             <Tree>
@@ -15894,12 +14947,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange61()
-    {
-        Test("""
+        => Test("""
             @"[a -\-\b]"
             """, $"""
             <Tree>
@@ -15936,12 +14987,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCharacterClassRange62()
-    {
-        Test("""
+        => Test("""
             @"[ab-\-a]"
             """, $"""
             <Tree>
@@ -15980,12 +15029,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptures1()
-    {
-        Test("""
+        => Test("""
             @"()\1"
             """, """
             <Tree>
@@ -16009,12 +15056,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptures2()
-    {
-        Test("""
+        => Test("""
             @"()\2"
             """, $"""
             <Tree>
@@ -16041,12 +15086,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptures3()
-    {
-        Test("""
+        => Test("""
             @"()()\2"
             """, """
             <Tree>
@@ -16076,12 +15119,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptures4()
-    {
-        Test("""
+        => Test("""
             @"()\1"
             """, $"""
             <Tree>
@@ -16107,12 +15148,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ExplicitCapture);
-    }
 
     [Fact]
     public void TestCaptures5()
-    {
-        Test("""
+        => Test("""
             @"()\2"
             """, $"""
             <Tree>
@@ -16138,12 +15177,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ExplicitCapture);
-    }
 
     [Fact]
     public void TestCaptures6()
-    {
-        Test("""
+        => Test("""
             @"()()\2"
             """, $"""
             <Tree>
@@ -16174,12 +15211,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ExplicitCapture);
-    }
 
     [Fact]
     public void TestCaptures7()
-    {
-        Test("""
+        => Test("""
             @"()()(?n)\1\2"
             """, """
             <Tree>
@@ -16219,12 +15254,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptures8()
-    {
-        Test("""
+        => Test("""
             @"()(?n)()\1\2"
             """, $"""
             <Tree>
@@ -16266,12 +15299,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptures9()
-    {
-        Test("""
+        => Test("""
             @"(?n)()()\1\2"
             """, $"""
             <Tree>
@@ -16313,12 +15344,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptures10()
-    {
-        Test("""
+        => Test("""
             @"()()(?n)\1\2"
             """, $"""
             <Tree>
@@ -16360,12 +15389,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ExplicitCapture);
-    }
 
     [Fact]
     public void TestCaptures11()
-    {
-        Test("""
+        => Test("""
             @"()(?n)()\1\2"
             """, $"""
             <Tree>
@@ -16407,12 +15434,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ExplicitCapture);
-    }
 
     [Fact]
     public void TestCaptures12()
-    {
-        Test("""
+        => Test("""
             @"(?n)()()\1\2"
             """, $"""
             <Tree>
@@ -16454,12 +15479,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ExplicitCapture);
-    }
 
     [Fact]
     public void TestCaptures13()
-    {
-        Test("""
+        => Test("""
             @"()()(?-n)\1\2"
             """, """
             <Tree>
@@ -16499,12 +15522,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptures14()
-    {
-        Test("""
+        => Test("""
             @"()(?-n)()\1\2"
             """, """
             <Tree>
@@ -16544,12 +15565,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptures15()
-    {
-        Test("""
+        => Test("""
             @"(?-n)()()\1\2"
             """, """
             <Tree>
@@ -16589,12 +15608,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptures16()
-    {
-        Test("""
+        => Test("""
             @"()()(?-n)\1\2"
             """, $"""
             <Tree>
@@ -16636,12 +15653,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ExplicitCapture);
-    }
 
     [Fact]
     public void TestCaptures17()
-    {
-        Test("""
+        => Test("""
             @"()(?-n)()\1\2"
             """, $"""
             <Tree>
@@ -16683,12 +15698,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ExplicitCapture);
-    }
 
     [Fact]
     public void TestCaptures18()
-    {
-        Test("""
+        => Test("""
             @"(?-n)()()\1\2"
             """, """
             <Tree>
@@ -16728,12 +15741,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ExplicitCapture);
-    }
 
     [Fact]
     public void TestCaptures19()
-    {
-        Test("""
+        => Test("""
             @"()()(?n:\1\2)"
             """, """
             <Tree>
@@ -16776,12 +15787,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptures20()
-    {
-        Test("""
+        => Test("""
             @"()()(?n:\1\2)"
             """, $"""
             <Tree>
@@ -16826,12 +15835,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ExplicitCapture);
-    }
 
     [Fact]
     public void TestCaptures21()
-    {
-        Test("""
+        => Test("""
             @"()()(?-n:\1\2)"
             """, """
             <Tree>
@@ -16874,12 +15881,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptures22()
-    {
-        Test("""
+        => Test("""
             @"()()(?-n:\1\2)"
             """, $"""
             <Tree>
@@ -16924,12 +15929,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ExplicitCapture);
-    }
 
     [Fact]
     public void TestCaptures23()
-    {
-        Test("""
+        => Test("""
             @"(?n:)()()\1\2"
             """, """
             <Tree>
@@ -16971,12 +15974,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptures24()
-    {
-        Test("""
+        => Test("""
             @"(?n:)()()\1\2"
             """, $"""
             <Tree>
@@ -17020,12 +16021,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ExplicitCapture);
-    }
 
     [Fact]
     public void TestCaptures25()
-    {
-        Test("""
+        => Test("""
             @"(?-n:)()()\1\2"
             """, """
             <Tree>
@@ -17067,12 +16066,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptures26()
-    {
-        Test("""
+        => Test("""
             @"(?-n:)()()\1\2"
             """, $"""
             <Tree>
@@ -17116,12 +16113,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ExplicitCapture);
-    }
 
     [Fact]
     public void TestCaptures27()
-    {
-        Test("""
+        => Test("""
             @"(?n)(?-n)()()\1\2"
             """, """
             <Tree>
@@ -17167,12 +16162,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptures28()
-    {
-        Test("""
+        => Test("""
             @"(?n)(?-n)()()\1\2"
             """, """
             <Tree>
@@ -17218,12 +16211,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ExplicitCapture);
-    }
 
     [Fact]
     public void TestCaptures29()
-    {
-        Test("""
+        => Test("""
             @"(?-n)(?n)()()\1\2"
             """, $"""
             <Tree>
@@ -17271,12 +16262,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestCaptures30()
-    {
-        Test("""
+        => Test("""
             @"(?-n)(?n)()()\1\2"
             """, $"""
             <Tree>
@@ -17324,12 +16313,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ExplicitCapture);
-    }
 
     [Fact]
     public void TestComplex1()
-    {
-        Test($"""
+        => Test($"""
             @"{And(".*[0-9].*[0-9].*", ".*[A-Z].*[A-Z].*", Not(".*(01|12).*"))}"
             """, """
             <Tree>
@@ -17599,12 +16586,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestComplex2()
-    {
-        Test($"""
+        => Test($"""
             @"{And(".*a.*", ".*b.*")}"
             """, """
             <Tree>
@@ -17694,12 +16679,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestComplex3()
-    {
-        Test($"""
+        => Test($"""
             @"{And(".*[a-z].*", ".*[A-Z].*", ".*[0-9].*", ".{2,4}")}"
             """, """
             <Tree>
@@ -17928,12 +16911,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestComplex4()
-    {
-        Test($"""
+        => Test($"""
             @"{And(".*[a-z].*", ".*[A-Z].*", ".*[0-9].*", ".{4,8}",
                     Not(".*(01|12|23|34|45|56|67|78|89).*"))}"
             """, """
@@ -18333,7 +17314,6 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestComplex5()
@@ -19182,8 +18162,7 @@ public sealed partial class CSharpRegexParserTests
 
     [Fact]
     public void TestComplex6()
-    {
-        Test("""
+        => Test("""
             @"pa[5\$s]{2}w[o0]rd$"
             """, """
             <Tree>
@@ -19239,12 +18218,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76731")]
     public void TestCategoryWithNumber()
-    {
-        Test("""
+        => Test("""
             @"[\p{IsLatin-1Supplement}]"
             """, """
             <Tree>
@@ -19271,12 +18248,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76731")]
     public void TestCategoryWithUnderscore()
-    {
-        Test("""
+        => Test("""
             @"[\p{_xmlW}]"
             """, """
             <Tree>
@@ -19303,12 +18278,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void TestMinusAsCharacterClassStart()
-    {
-        Test("""
+        => Test("""
             @"[-[:L:]"
             """, """
             <Tree>
@@ -19331,5 +18304,4 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 }

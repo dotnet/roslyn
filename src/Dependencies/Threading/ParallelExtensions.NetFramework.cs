@@ -17,17 +17,13 @@
 // With only changes to make the code work on NetFx.  Where changes have been made, the original code is kept around in
 // an ifdef'ed block to see what it was doing.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Threading;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities;
+namespace System.Threading.Tasks;
 
-internal static partial class RoslynParallel
+internal static partial class RoslynParallelExtensions
 {
     private static class NetFramework
     {

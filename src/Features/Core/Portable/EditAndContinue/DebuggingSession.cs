@@ -553,7 +553,7 @@ internal sealed class DebuggingSession : IDisposable
                 {
                     StorePendingUpdate(new PendingSolutionUpdate(
                         solution,
-                        solutionUpdate.ProjectsToStale,
+                        solutionUpdate.StaleProjects,
                         solutionUpdate.ProjectsToRebuild,
                         solutionUpdate.ProjectBaselines,
                         solutionUpdate.ModuleUpdates.Updates,
@@ -565,7 +565,7 @@ internal sealed class DebuggingSession : IDisposable
 
                     StorePendingUpdate(new PendingSolutionUpdate(
                         solution,
-                        solutionUpdate.ProjectsToStale,
+                        solutionUpdate.StaleProjects,
                         // if partial updates are not allowed we don't treat rebuild as part of solution update:
                         projectsToRebuild: [],
                         solutionUpdate.ProjectBaselines,
@@ -585,7 +585,7 @@ internal sealed class DebuggingSession : IDisposable
 
                 // No significant changes have been made.
                 // Commit the solution to apply any insignificant changes that do not generate updates.
-                LastCommittedSolution.CommitChanges(solution, projectsToStale: solutionUpdate.ProjectsToStale, projectsToUnstale: []);
+                LastCommittedSolution.CommitChanges(solution, solutionUpdate.StaleProjects);
                 break;
         }
 
@@ -601,7 +601,8 @@ internal sealed class DebuggingSession : IDisposable
             Diagnostics = solutionUpdate.Diagnostics,
             SyntaxError = solutionUpdate.SyntaxError,
             ProjectsToRestart = solutionUpdate.ProjectsToRestart,
-            ProjectsToRebuild = solutionUpdate.ProjectsToRebuild
+            ProjectsToRebuild = solutionUpdate.ProjectsToRebuild,
+            ProjectsToRedeploy = solutionUpdate.ProjectsToRedeploy,
         };
     }
 
@@ -611,6 +612,8 @@ internal sealed class DebuggingSession : IDisposable
 
         ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>? newNonRemappableRegions = null;
         using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectsToRebuildTransitive);
+        IEnumerable<ProjectId> baselinesToDiscard = [];
+        Solution? solution = null;
 
         var pendingUpdate = RetrievePendingUpdate();
         if (pendingUpdate is PendingSolutionUpdate pendingSolutionUpdate)
@@ -626,7 +629,7 @@ internal sealed class DebuggingSession : IDisposable
             if (newNonRemappableRegions.IsEmpty)
                 newNonRemappableRegions = null;
 
-            var solution = pendingSolutionUpdate.Solution;
+            solution = pendingSolutionUpdate.Solution;
 
             // Once the project is rebuilt all its dependencies are going to be up-to-date.
             var dependencyGraph = solution.GetProjectDependencyGraph();
@@ -637,7 +640,7 @@ internal sealed class DebuggingSession : IDisposable
             }
 
             // Unstale all projects that will be up-to-date after rebuild.
-            LastCommittedSolution.CommitChanges(solution, projectsToStale: pendingSolutionUpdate.ProjectsToStale, projectsToUnstale: projectsToRebuildTransitive);
+            LastCommittedSolution.CommitChanges(solution, staleProjects: pendingSolutionUpdate.StaleProjects.RemoveRange(projectsToRebuildTransitive));
 
             foreach (var projectId in projectsToRebuildTransitive)
             {
@@ -654,12 +657,14 @@ internal sealed class DebuggingSession : IDisposable
         {
             foreach (var updatedBaseline in pendingUpdate.ProjectBaselines)
             {
-                _projectBaselines[updatedBaseline.ProjectId] = [.. _projectBaselines[updatedBaseline.ProjectId].Select(existingBaseline => existingBaseline.ModuleId == updatedBaseline.ModuleId ? updatedBaseline : existingBaseline)];
+                _projectBaselines[updatedBaseline.ProjectId] = [.. _projectBaselines[updatedBaseline.ProjectId]
+                    .Select(existingBaseline => existingBaseline.ModuleId == updatedBaseline.ModuleId ? updatedBaseline : existingBaseline)];
             }
 
             // Discard any open baseline readers for projects that need to be rebuilt,
             // so that the build can overwrite the underlying files.
-            DiscardProjectBaselinesNoLock(projectsToRebuildTransitive);
+            Contract.ThrowIfNull(solution);
+            DiscardProjectBaselinesNoLock(solution, projectsToRebuildTransitive.Concat(baselinesToDiscard));
         }
 
         _baselineContentAccessLock.ExitWriteLock();
@@ -676,7 +681,7 @@ internal sealed class DebuggingSession : IDisposable
         _ = RetrievePendingUpdate();
     }
 
-    private void DiscardProjectBaselinesNoLock(IEnumerable<ProjectId> projects)
+    private void DiscardProjectBaselinesNoLock(Solution solution, IEnumerable<ProjectId> projects)
     {
         foreach (var projectId in projects)
         {
@@ -693,6 +698,8 @@ internal sealed class DebuggingSession : IDisposable
 
                     _initialBaselineModuleReaders.Remove(projectBaseline.ModuleId);
                 }
+
+                SessionLog.Write($"Baselines discarded: {solution.GetRequiredProject(projectId).GetLogDisplay()}.");
             }
         }
     }
@@ -705,7 +712,7 @@ internal sealed class DebuggingSession : IDisposable
         // Make sure the solution snapshot has all source-generated documents up-to-date.
         solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
 
-        LastCommittedSolution.CommitChanges(solution, projectsToStale: [], projectsToUnstale: rebuiltProjects);
+        LastCommittedSolution.CommitChanges(solution, staleProjects: null, projectsToUnstale: rebuiltProjects);
 
         // Wait for all operations on baseline to finish before we dispose the readers.
 
@@ -713,7 +720,7 @@ internal sealed class DebuggingSession : IDisposable
 
         lock (_projectEmitBaselinesGuard)
         {
-            DiscardProjectBaselinesNoLock(rebuiltProjects);
+            DiscardProjectBaselinesNoLock(solution, rebuiltProjects);
         }
 
         _baselineContentAccessLock.ExitWriteLock();
@@ -781,7 +788,8 @@ internal sealed class DebuggingSession : IDisposable
                 var oldProject = LastCommittedSolution.GetProject(projectId);
                 if (oldProject == null)
                 {
-                    // document is in a project that's been added to the solution
+                    // Document is in a project that's been added to the solution
+                    // No need to map the breakpoint from its original (base) location supplied by the debugger to a new one.
                     continue;
                 }
 
@@ -801,7 +809,9 @@ internal sealed class DebuggingSession : IDisposable
                     var (oldDocument, _) = await LastCommittedSolution.GetDocumentAndStateAsync(newDocument, cancellationToken).ConfigureAwait(false);
                     if (oldDocument == null)
                     {
-                        // Document is out-of-sync, can't reason about its content with respect to the binaries loaded in the debuggee.
+                        // Document is either
+                        // 1) added -- no need to map the breakpoint from original location to a new one
+                        // 2) out-of-sync, in which case we can't reason about its content with respect to the binaries loaded in the debuggee.
                         continue;
                     }
 
@@ -900,7 +910,7 @@ internal sealed class DebuggingSession : IDisposable
             var oldProject = LastCommittedSolution.GetProject(newProject.Id);
             if (oldProject == null)
             {
-                // TODO: https://github.com/dotnet/roslyn/issues/1204
+                // TODO: https://github.com/dotnet/roslyn/issues/79423
                 // Enumerate all documents of the new project.
                 return [];
             }
@@ -933,7 +943,7 @@ internal sealed class DebuggingSession : IDisposable
                 var (oldUnmappedDocument, _) = await LastCommittedSolution.GetDocumentAndStateAsync(newUnmappedDocument, cancellationToken).ConfigureAwait(false);
                 if (oldUnmappedDocument == null)
                 {
-                    // document out-of-date
+                    // document added or out-of-date 
                     continue;
                 }
 

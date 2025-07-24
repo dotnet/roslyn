@@ -236,9 +236,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
 
         return SyntaxFactory.MethodDeclaration(
             attributeLists: default,
-            // Pass `withLeadingElasticMarker: true` to ensure method will space itself properly within the members it
-            // is added to.
-            modifiers: AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration, withLeadingElasticMarker: true),
+            modifiers: AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration),
             returnType: returnType != null ? (TypeSyntax)returnType : SyntaxFactory.PredefinedType(VoidKeyword),
             explicitInterfaceSpecifier: null,
             identifier: name.ToIdentifierToken(),
@@ -430,12 +428,13 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
     private protected override SyntaxNode SetAccessorDeclaration(Accessibility accessibility, bool isInitOnly, IEnumerable<SyntaxNode>? statements)
         => AccessorDeclaration(isInitOnly ? SyntaxKind.InitAccessorDeclaration : SyntaxKind.SetAccessorDeclaration, accessibility, statements);
 
-    private static SyntaxNode AccessorDeclaration(
+    private static AccessorDeclarationSyntax AccessorDeclaration(
         SyntaxKind kind, Accessibility accessibility, IEnumerable<SyntaxNode>? statements)
     {
-        var accessor = SyntaxFactory.AccessorDeclaration(kind);
-        accessor = accessor.WithModifiers(
-            AsModifierList(accessibility, DeclarationModifiers.None, SyntaxKind.PropertyDeclaration));
+        var accessor = SyntaxFactory
+            .AccessorDeclaration(kind)
+            .WithModifiers(
+                AsModifierList(accessibility, DeclarationModifiers.None, SyntaxKind.PropertyDeclaration));
 
         accessor = statements == null
             ? accessor.WithSemicolonToken(SemicolonToken)
@@ -1437,7 +1436,10 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
                 modifiers = modifiers.WithIsStatic(false);
             }
 
-            var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers));
+            // We're updating the modifiers for something.  We don't want to add elastic trivia in that case as
+            // we don't want the act of adding/removing/modifying modifiers to change the formatting of the parent
+            // construct.
+            var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers, withLeadingElasticMarker: false));
             return SetModifierTokens(d, newTokens);
         });
     }
@@ -1647,7 +1649,10 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
                     }
                 }
 
-                var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers));
+                // We're updating the modifiers for something.  We don't want to add elastic trivia in that case as
+                // we don't want the act of adding/removing/modifying modifiers to change the formatting of the parent
+                // construct.
+                var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers, withLeadingElasticMarker: false));
                 return SetModifierTokens(d, newTokens);
             });
         }
@@ -1674,13 +1679,13 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         Accessibility accessibility,
         DeclarationModifiers modifiers,
         SyntaxKind kind,
-        bool withLeadingElasticMarker = false)
+        bool withLeadingElasticMarker = true)
         => AsModifierList(accessibility, GetAllowedModifiers(kind) & modifiers, withLeadingElasticMarker);
 
     private static SyntaxTokenList AsModifierList(
         Accessibility accessibility,
         DeclarationModifiers modifiers,
-        bool withLeadingElasticMarker = false)
+        bool withLeadingElasticMarker = true)
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var list);
 

@@ -38,18 +38,22 @@ using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Edito
 #else
 using OptionsCollectionAlias = OptionsCollection;
 #endif
-public abstract partial class AbstractUserDiagnosticTest_NoEditor : AbstractCodeActionOrUserDiagnosticTest_NoEditor
+public abstract partial class AbstractUserDiagnosticTest_NoEditor<
+    TDocument,
+    TProject,
+    TSolution,
+    TTestWorkspace>(ITestOutputHelper logger)
+    : AbstractCodeActionOrUserDiagnosticTest_NoEditor<TDocument, TProject, TSolution, TTestWorkspace>(logger)
+    where TDocument : TestHostDocument
+    where TProject : TestHostProject<TDocument>
+    where TSolution : TestHostSolution<TDocument>
+    where TTestWorkspace : TestWorkspace<TDocument, TProject, TSolution>
 {
-    protected AbstractUserDiagnosticTest_NoEditor(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
-
     internal abstract Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
-        TestWorkspace workspace, TestParameters parameters);
+        TTestWorkspace workspace, TestParameters parameters);
 
     internal abstract Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
-        TestWorkspace workspace, TestParameters parameters);
+        TTestWorkspace workspace, TestParameters parameters);
 
     private protected async Task TestDiagnosticsAsync(
         string initialMarkup, TestParameters parameters = null, params DiagnosticDescription[] expected)
@@ -82,20 +86,20 @@ public abstract partial class AbstractUserDiagnosticTest_NoEditor : AbstractCode
     }
 
     protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
-        TestWorkspace workspace, TestParameters parameters)
+        TTestWorkspace workspace, TestParameters parameters)
     {
         var (_, actions, actionToInvoke) = await GetDiagnosticAndFixesAsync(workspace, parameters);
         return (actions, actionToInvoke);
     }
 
     protected override async Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(
-        TestWorkspace workspace, TestParameters parameters)
+        TTestWorkspace workspace, TestParameters parameters)
     {
         var (dxs, _, _) = await GetDiagnosticAndFixesAsync(workspace, parameters);
         return dxs;
     }
 
-    internal override Task<CodeRefactoring> GetCodeRefactoringAsync(TestWorkspace workspace, TestParameters parameters)
+    internal override Task<CodeRefactoring> GetCodeRefactoringAsync(TTestWorkspace workspace, TestParameters parameters)
         => throw new NotImplementedException("No refactoring provided in diagnostic test");
 
     protected static void AddAnalyzerToWorkspace(Workspace workspace, DiagnosticAnalyzer analyzer)
@@ -117,7 +121,7 @@ public abstract partial class AbstractUserDiagnosticTest_NoEditor : AbstractCode
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(analyzerReferences));
     }
 
-    protected static Document GetDocumentAndSelectSpan(TestWorkspace workspace, out TextSpan span)
+    protected static Document GetDocumentAndSelectSpan(TTestWorkspace workspace, out TextSpan span)
     {
         var hostDocument = workspace.Documents.Single(d => d.SelectedSpans.Any());
         span = hostDocument.SelectedSpans.Single();
@@ -222,20 +226,8 @@ public abstract partial class AbstractUserDiagnosticTest_NoEditor : AbstractCode
             : new FixAllState(fixAllProvider, diagnosticSpan: null, document: null, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider);
     }
 
-    private protected Task TestActionCountInAllFixesAsync(
-        string initialMarkup,
-        int count,
-        ParseOptions parseOptions = null,
-        CompilationOptions compilationOptions = null,
-        OptionsCollectionAlias options = null,
-        OptionsCollectionAlias globalOptions = null,
-        object fixProviderData = null)
-    {
-        return TestActionCountInAllFixesAsync(
-            initialMarkup,
-            new TestParameters(parseOptions, compilationOptions, options, globalOptions, fixProviderData),
-            count);
-    }
+    private protected Task TestActionCountInAllFixesAsync(string initialMarkup, int count)
+        => TestActionCountInAllFixesAsync(initialMarkup, TestParameters.Default, count);
 
     private async Task TestActionCountInAllFixesAsync(
         string initialMarkup,

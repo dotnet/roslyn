@@ -171,7 +171,7 @@ public sealed class ConvertRegularStringToInterpolatedStringTests : AbstractCSha
                     const string v = $"string {{";
                 }
             }
-            """, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10));
+            """, new(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10)));
 
     [Fact]
     public Task TestMissingOnUnterminatedStringWithBraces()
@@ -216,7 +216,7 @@ public sealed class ConvertRegularStringToInterpolatedStringTests : AbstractCSha
                 public string FirstName { get; set; }
                 public string LastName { get; set; }
             }
-            """, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10));
+            """, new(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10)));
 
     [Fact]
     public Task TestMissingOnRegularStringWithBracesAndCursorOutOfBounds()

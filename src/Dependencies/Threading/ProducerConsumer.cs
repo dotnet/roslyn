@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,31 +11,10 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Threading;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities;
-
-internal readonly record struct ProducerConsumerOptions
-{
-    /// <summary>
-    /// Used when the consumeItems routine will only pull items on a single thread (never concurrently). produceItems
-    /// can be called concurrently on many threads.
-    /// </summary>
-    public static readonly ProducerConsumerOptions SingleReaderOptions = new() { SingleReader = true };
-
-    /// <summary>
-    /// Used when the consumeItems routine will only pull items on a single thread (never concurrently). produceItems
-    /// can be called on a single thread as well (never concurrently).
-    /// </summary>
-    public static readonly ProducerConsumerOptions SingleReaderWriterOptions = new() { SingleReader = true, SingleWriter = true };
-
-    /// <inheritdoc cref="ChannelOptions.SingleWriter"/>
-    public bool SingleWriter { get; init; }
-
-    /// <inheritdoc cref="ChannelOptions.SingleReader"/>
-    public bool SingleReader { get; init; }
-}
+namespace Microsoft.CodeAnalysis.Threading;
 
 internal static class ProducerConsumer<TItem>
 {
@@ -248,7 +229,7 @@ internal static class ProducerConsumer<TItem>
             // We're running in parallel, so we def have multiple writers
             ProducerConsumerOptions.SingleReaderOptions,
             produceItems: static (callback, args, cancellationToken) =>
-                RoslynParallel.ForEachAsync(
+                Parallel.ForEachAsync(
                     args.source,
                     cancellationToken,
                     async (source, cancellationToken) =>
@@ -310,7 +291,7 @@ internal static class ProducerConsumer<TItem>
     {
         return RunAsync(
             static (callback, args, cancellationToken) =>
-                RoslynParallel.ForEachAsync(
+                Parallel.ForEachAsync(
                     args.source, cancellationToken,
                     async (source, cancellationToken) => await args.produceItems(
                         source, callback, args.args, cancellationToken).ConfigureAwait(false)),

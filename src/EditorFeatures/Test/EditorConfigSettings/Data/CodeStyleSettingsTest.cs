@@ -66,8 +66,8 @@ public static class CodeStyleSettingsTest
             description: "TestDesciption",
             options,
             updater: null!,
-            enumValues: (DayOfWeek[])Enum.GetValues(typeof(DayOfWeek)),
-            valueDescriptions: Enum.GetNames(typeof(DayOfWeek)));
+            enumValues: Enum.GetValues<DayOfWeek>(),
+            valueDescriptions: Enum.GetNames<DayOfWeek>());
 
         Assert.Equal(string.Empty, setting.Category);
         Assert.Equal("TestDesciption", setting.Description);

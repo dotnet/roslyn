@@ -172,7 +172,9 @@ public abstract class RecommenderTests : TestBase
         await VerifyWorkerAsync(text, absent: false, options: scriptOptions ?? Options.Script);
     }
 
-    protected async Task VerifyKeywordAsync(SourceCodeKind kind, string text)
+    protected async Task VerifyKeywordAsync(
+        SourceCodeKind kind,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string text)
     {
         switch (kind)
         {
@@ -211,7 +213,9 @@ public abstract class RecommenderTests : TestBase
         }
     }
 
-    protected static string AddInsideMethod(string text, bool isAsync = false, string returnType = "void", bool topLevelStatement = false)
+    protected static string AddInsideMethod(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string text,
+        bool isAsync = false, string returnType = "void", bool topLevelStatement = false)
     {
         if (topLevelStatement)
         {

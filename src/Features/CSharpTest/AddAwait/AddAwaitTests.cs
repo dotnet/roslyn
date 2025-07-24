@@ -341,7 +341,7 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
 
     [Fact]
     public Task ChainedInvocation_ExpressionOfInvalidInvocation()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {

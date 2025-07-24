@@ -442,7 +442,7 @@ public sealed class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestByteOneMin()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -468,7 +468,7 @@ public sealed class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestUInt16OneMin()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -494,7 +494,7 @@ public sealed class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestUInt32OneMin()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -520,7 +520,7 @@ public sealed class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEd
 
     [Fact]
     public Task TestUInt64OneMin()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
