@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 int errorCount = 0;
                 try
                 {
-                    verifier.SetSystemModuleName(new AssemblyNameInfo(corlibName));
+                    verifier.SetSystemModuleName(AssemblyNameInfo.Parse(corlibName));
                     result = verifier.Verify(mainModule);
                     errorCount = result.Count();
                 }
