@@ -2902,6 +2902,30 @@ public sealed class SyntaxGeneratorTests
             """);
     }
 
+    [Fact]
+    public void TestMultipleMembersIntoClass()
+    {
+        using var workspace = new AdhocWorkspace();
+        var node = Generator.AddMembers(Generator.ClassDeclaration("C"),
+            [
+                Generator.MethodDeclaration("M1", returnType: Generator.TypeExpression(SpecialType.System_Void), accessibility: Accessibility.Public),
+                Generator.PropertyDeclaration("P1", Generator.TypeExpression(SpecialType.System_Int32), accessibility: Accessibility.Public)
+            ]);
+
+        AssertEx.EqualOrDiff(
+            """
+            class C
+            {
+                public void M1()
+                {
+                }
+
+                public int P1 { get; set; }
+            }
+            """,
+            Formatter.Format(node, workspace).ToFullString());
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65932")]
     public void TestAddExpressionBodyMembersToInterface()
     {
