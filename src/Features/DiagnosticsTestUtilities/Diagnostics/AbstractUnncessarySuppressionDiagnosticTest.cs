@@ -18,7 +18,12 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 
-public abstract class AbstractUnnecessarySuppressionDiagnosticTest(ITestOutputHelper logger) : AbstractUserDiagnosticTest_NoEditor(logger)
+public abstract class AbstractUnnecessarySuppressionDiagnosticTest(ITestOutputHelper logger)
+    : AbstractUserDiagnosticTest_NoEditor<
+        TestHostDocument,
+        TestHostProject,
+        TestHostSolution,
+        TestWorkspace>(logger)
 {
     internal abstract CodeFixProvider CodeFixProvider { get; }
     internal abstract AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer SuppressionAnalyzer { get; }

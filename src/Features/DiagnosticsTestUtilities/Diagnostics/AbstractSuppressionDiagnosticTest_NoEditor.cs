@@ -21,7 +21,11 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 
 public abstract class AbstractSuppressionDiagnosticTest_NoEditor(ITestOutputHelper logger = null)
-    : AbstractUserDiagnosticTest_NoEditor(logger)
+    : AbstractUserDiagnosticTest_NoEditor<
+        TestHostDocument,
+        TestHostProject,
+        TestHostSolution,
+        TestWorkspace>(logger)
 {
     protected abstract int CodeActionIndex { get; }
     protected virtual bool IncludeSuppressedDiagnostics => false;

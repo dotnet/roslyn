@@ -7,9 +7,12 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-
     Partial Public MustInherit Class AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
-        Inherits AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+        Inherits AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor(Of
+            TestHostDocument,
+            TestHostProject,
+            TestHostSolution,
+            TestWorkspace)
 
         Private ReadOnly _compilationOptions As VisualBasicCompilationOptions =
             New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithParseOptions(New VisualBasicParseOptions(LanguageVersion.Latest))

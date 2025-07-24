@@ -34,8 +34,20 @@ using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Edito
 #else
 using OptionsCollectionAlias = OptionsCollection;
 #endif
-public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor(ITestOutputHelper logger)
-    : AbstractUserDiagnosticTest_NoEditor(logger)
+public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor<
+    TDocument,
+    TProject,
+    TSolution,
+    TTestWorkspace>(ITestOutputHelper logger)
+    : AbstractUserDiagnosticTest_NoEditor<
+        TDocument,
+        TProject,
+        TSolution,
+        TTestWorkspace>(logger)
+    where TDocument : TestHostDocument
+    where TProject : TestHostProject<TDocument>
+    where TSolution : TestHostSolution<TDocument>
+    where TTestWorkspace : TestWorkspace<TDocument, TProject, TSolution>
 {
     private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap = [];
 
@@ -137,7 +149,7 @@ public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest_
     }
 
     internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
-        TestWorkspace workspace, TestParameters parameters)
+        TTestWorkspace workspace, TestParameters parameters)
     {
         var (analyzer, _) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
         AddAnalyzerToWorkspace(workspace, analyzer);
@@ -149,7 +161,7 @@ public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest_
     }
 
     internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
-        TestWorkspace workspace, TestParameters parameters)
+        TTestWorkspace workspace, TestParameters parameters)
     {
         var (analyzer, fixer) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
         AddAnalyzerToWorkspace(workspace, analyzer);
