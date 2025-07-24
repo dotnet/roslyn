@@ -19,4 +19,21 @@ public abstract class AbstractCSharpCodeActionTest_NoEditor : AbstractCodeAction
     protected override ParseOptions GetScriptOptions() => TestOptions.Script;
 
     protected internal override string GetLanguage() => LanguageNames.CSharp;
+
+    internal new Task TestInRegularAndScriptAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        int index = 0,
+        TestParameters? parameters = null)
+    {
+        return base.TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, index, parameters);
+    }
+
+    internal new Task TestInRegularAndScriptAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        TestParameters parameters)
+    {
+        return base.TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, parameters);
+    }
 }

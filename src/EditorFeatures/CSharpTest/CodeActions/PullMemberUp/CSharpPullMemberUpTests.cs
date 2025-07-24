@@ -3704,8 +3704,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
 
     [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
     public Task TestPullMethodToClassWithDirective()
-    {
-        return TestWithPullMemberDialogAsync("""
+        => TestWithPullMemberDialogAsync("""
             public class BaseClass
             {
             }
@@ -3729,12 +3728,10 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
                 #endregion
             }
             """);
-    }
 
     [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
     public Task TestPullMethodToClassBeforeDirective()
-    {
-        return TestWithPullMemberDialogAsync("""
+        => TestWithPullMemberDialogAsync("""
             public class BaseClass
             {
             }
@@ -3759,12 +3756,10 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
                 #endregion
             }
             """);
-    }
 
     [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
     public Task TestPullMethodToClassBeforeDirective2()
-    {
-        return TestWithPullMemberDialogAsync("""
+        => TestWithPullMemberDialogAsync("""
             public class BaseClass
             {
             }
@@ -3792,12 +3787,10 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
                 #endregion
             }
             """);
-    }
 
     [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
     public Task TestPullFieldToClassBeforeDirective1()
-    {
-        return TestWithPullMemberDialogAsync("""
+        => TestWithPullMemberDialogAsync("""
             public class BaseClass
             {
             }
@@ -3822,12 +3815,10 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
                 #endregion
             }
             """);
-    }
 
     [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
     public Task TestPullFieldToClassBeforeDirective2()
-    {
-        return TestWithPullMemberDialogAsync("""
+        => TestWithPullMemberDialogAsync("""
             public class BaseClass
             {
             }
@@ -3853,12 +3844,10 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
                 #endregion
             }
             """);
-    }
 
     [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
     public Task TestPullFieldToClassBeforeDirective()
-    {
-        return TestWithPullMemberDialogAsync("""
+        => TestWithPullMemberDialogAsync("""
             public class BaseClass
             {
             }
@@ -3882,12 +3871,10 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
                 #endregion
             }
             """);
-    }
 
     [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
     public Task TestPullEventToClassBeforeDirective()
-    {
-        return TestWithPullMemberDialogAsync("""
+        => TestWithPullMemberDialogAsync("""
             using System;
             public class BaseClass
             {
@@ -3913,12 +3900,10 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
                 #endregion
             }
             """);
-    }
 
     [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
     public Task TestPullPropertyToClassBeforeDirective()
-    {
-        return TestWithPullMemberDialogAsync("""
+        => TestWithPullMemberDialogAsync("""
             public class BaseClass
             {
             }
@@ -3942,12 +3927,10 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
                 #endregion
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55402")]
     public Task TestPullPropertyToClassOnKeyword()
-    {
-        return TestWithPullMemberDialogAsync("""
+        => TestWithPullMemberDialogAsync("""
             public class BaseClass
             {
             }
@@ -3966,7 +3949,6 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             {
             }
             """);
-    }
 
     #endregion Quick Action
 

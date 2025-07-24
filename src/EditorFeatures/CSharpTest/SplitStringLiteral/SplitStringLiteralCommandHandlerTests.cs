@@ -150,8 +150,7 @@ public sealed class SplitStringLiteralCommandHandlerTests
 
     [WpfFact]
     public void TestMissingBeforeString()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -161,12 +160,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingBeforeUtf8String()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -176,12 +173,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingBeforeInterpolatedString()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -191,12 +186,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingAfterString_1()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -206,12 +199,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingAfterString_2()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -221,12 +212,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingAfterString_3()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -236,12 +225,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingAfterString_4()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -251,12 +238,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingAfterInterpolatedString_1()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -266,12 +251,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingAfterInterpolatedString_2()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -281,12 +264,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingAfterInterpolatedString_3()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -296,12 +277,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingAfterInterpolatedString_4()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -311,12 +290,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingAfterUtf8String_1()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -326,12 +303,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingAfterUtf8String_2()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -341,12 +316,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingAfterUtf8String_3()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -356,12 +329,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingAfterUtf8String_4()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -371,12 +342,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingAfterUtf8String_5()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -386,12 +355,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingInVerbatimString()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -401,12 +368,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingInUtf8VerbatimString()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -416,12 +381,10 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingInInterpolatedVerbatimString()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -431,7 +394,6 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestInEmptyString()
@@ -533,8 +495,7 @@ public sealed class SplitStringLiteralCommandHandlerTests
 
     [WpfFact]
     public void TestInEmptyInterpolatedString()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -554,21 +515,17 @@ public sealed class SplitStringLiteralCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/41322")]
     public void TestInEmptyInterpolatedString_LF()
-    {
-        TestHandled(
+        => TestHandled(
 "class C\n{\n    void M()\n    {\n        var v = $\"[||]\";\n    }\n}",
 "class C\n{\n    void M()\n    {\n        var v = $\"\" +\n            $\"[||]\";\n    }\n}",
 endOfLine: "\n");
-    }
 
     [WpfFact]
     public void TestInEmptyInterpolatedString_BlockIndent()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -588,12 +545,10 @@ endOfLine: "\n");
                 }
             }
             """, indentStyle: IndentStyle.Block);
-    }
 
     [WpfFact]
     public void TestInEmptyInterpolatedString_NoneIndent()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -613,12 +568,10 @@ endOfLine: "\n");
                 }
             }
             """, indentStyle: IndentStyle.None);
-    }
 
     [WpfFact]
     public void TestSimpleString1()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -638,12 +591,10 @@ endOfLine: "\n");
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestUtf8String_1()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -663,12 +614,10 @@ endOfLine: "\n");
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestUtf8String_2()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -688,12 +637,10 @@ endOfLine: "\n");
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestInterpolatedString1()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -713,12 +660,10 @@ endOfLine: "\n");
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestInterpolatedString2()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -738,12 +683,10 @@ endOfLine: "\n");
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestInterpolatedString3()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -763,12 +706,10 @@ endOfLine: "\n");
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingInInterpolation1()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -778,12 +719,10 @@ endOfLine: "\n");
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingInInterpolation2()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -793,12 +732,10 @@ endOfLine: "\n");
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestSelection()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -808,7 +745,6 @@ endOfLine: "\n");
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
     public void TestBeforeEndQuote1()
@@ -1052,8 +988,7 @@ endOfLine: "\n");
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
     public void TestMultiCaretSingleLine()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -1074,12 +1009,10 @@ endOfLine: "\n");
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
     public void TestMultiCaretMultiLines()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -1105,12 +1038,10 @@ endOfLine: "\n");
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
     public void TestMultiCaretInterpolatedString()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -1137,12 +1068,10 @@ endOfLine: "\n");
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40277")]
     public void TestInStringWithKeepTabsEnabled1()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -1163,12 +1092,10 @@ endOfLine: "\n");
             }
             """,
             useTabs: true);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40277")]
     public void TestInStringWithKeepTabsEnabled2()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -1191,12 +1118,10 @@ endOfLine: "\n");
             }
             """,
             useTabs: true);
-    }
 
     [WpfFact]
     public void TestMissingInRawStringLiteral()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """"
             class C
             {
@@ -1208,12 +1133,10 @@ endOfLine: "\n");
                 }
             }
             """");
-    }
 
     [WpfFact]
     public void TestMissingInRawStringLiteralInterpolation()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """"
             class C
             {
@@ -1225,12 +1148,10 @@ endOfLine: "\n");
                 }
             }
             """");
-    }
 
     [WpfFact]
     public void TestMissingInRawStringLiteralInterpolation_MultiBrace()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """"
             class C
             {
@@ -1242,12 +1163,10 @@ endOfLine: "\n");
                 }
             }
             """");
-    }
 
     [WpfFact]
     public void TestMissingInRawUtf8StringLiteral()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """"
             class C
             {
@@ -1259,5 +1178,4 @@ endOfLine: "\n");
                 }
             }
             """");
-    }
 }
