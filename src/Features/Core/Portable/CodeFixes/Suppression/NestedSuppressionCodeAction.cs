@@ -6,12 +6,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression;
 
-internal abstract class NestedSuppressionCodeAction : CodeAction
+internal abstract class NestedSuppressionCodeAction(string title) : CodeAction
 {
-    protected NestedSuppressionCodeAction(string title)
-        => Title = title;
-
-    public sealed override string Title { get; }
+    public sealed override string Title { get; } = title;
 
     protected abstract string DiagnosticIdForEquivalenceKey { get; }
 

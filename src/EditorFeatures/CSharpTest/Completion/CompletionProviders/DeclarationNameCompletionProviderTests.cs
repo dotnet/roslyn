@@ -380,9 +380,10 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             }
             """, "GetCAsync");
 
-    [Fact(Skip = "not yet implemented")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17989")]
     public Task NonAsyncTaskOfT()
         => VerifyItemExistsAsync("""
+            using System.Threading.Tasks;
             public class C
             {
                 Task<C> $$
@@ -2605,6 +2606,32 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 }
             }
             """, "customers");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79417")]
+    public Task TestNestedParameter1()
+        => VerifyItemExistsAsync("""
+            class C
+            {
+                void M(MyWidget myWidget)
+                {
+                    void LocalFunction(MyWidget $$) { }
+                }
+            }
+            """, "myWidget");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79417")]
+    public Task TestNestedParameter2()
+        => VerifyItemExistsAsync("""
+            class MyWidget { }
+            class C(MyWidget myWidget)
+            {
+                class D(MyWidget $$) { }
+            }
+            """, "myWidget");
+
+#if  false
+
+#endif
 
     private static NamingStylePreferences MultipleCamelCaseLocalRules()
     {

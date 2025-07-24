@@ -57,8 +57,7 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
 
     [Fact]
     public void i_number_double_huge_neg_exp_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[123.456e-789]"
             """, """
             <Tree>
@@ -80,12 +79,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_number_huge_exp_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[0.4e00669999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999969999999006]"
             """, """
             <Tree>
@@ -111,12 +108,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
     </Diagnostics>
     """,
     @"");
-    }
 
     [Fact]
     public void i_number_neg_int_huge_exp_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-1e+9999]"
             """, """
             <Tree>
@@ -142,12 +137,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
     </Diagnostics>
     """,
     @"");
-    }
 
     [Fact]
     public void i_number_pos_double_huge_exp_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1.5e+9999]"
             """, """
             <Tree>
@@ -173,12 +166,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
     </Diagnostics>
     """,
     @"");
-    }
 
     [Fact]
     public void i_number_real_neg_overflow_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-123123e100000]"
             """, """
             <Tree>
@@ -204,12 +195,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
     </Diagnostics>
     """,
     @"");
-    }
 
     [Fact]
     public void i_number_real_pos_overflow_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[123123e100000]"
             """, """
             <Tree>
@@ -235,12 +224,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
     </Diagnostics>
     """,
     @"");
-    }
 
     [Fact]
     public void i_number_real_underflow_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[123e-10000000]"
             """, """
             <Tree>
@@ -262,12 +249,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_number_too_big_neg_int_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-123123123123123123123123123123]"
             """, """
             <Tree>
@@ -289,12 +274,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_number_too_big_pos_int_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[100000000000000000000]"
             """, """
             <Tree>
@@ -316,12 +299,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_number_very_big_negative_int_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-237462374673276894279832749832423479823246327846]"
             """, """
             <Tree>
@@ -343,12 +324,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_object_key_lone_2nd_surrogate_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""\uDFAA"":0}"
             """, """
             <Tree>
@@ -374,12 +353,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_1st_surrogate_but_2nd_missing_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uDADA""]"
             """, """
             <Tree>
@@ -401,12 +378,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_1st_valid_surrogate_2nd_invalid_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uD888\u1234""]"
             """, """
             <Tree>
@@ -428,12 +403,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_incomplete_surrogates_escape_valid_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uD800\uD800\n""]"
             """, """
             <Tree>
@@ -455,12 +428,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_incomplete_surrogate_and_escape_valid_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uD800\n""]"
             """, """
             <Tree>
@@ -482,12 +453,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_incomplete_surrogate_pair_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uDd1ea""]"
             """, """
             <Tree>
@@ -509,12 +478,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_invalid_lonely_surrogate_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\ud800""]"
             """, """
             <Tree>
@@ -536,12 +503,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_invalid_surrogate_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\ud800abc""]"
             """, """
             <Tree>
@@ -563,12 +528,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_invalid_utf_8_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""�""]"
             """, """
             <Tree>
@@ -590,12 +553,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_inverted_surrogates_U_1D11E_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uDd1e\uD834""]"
             """, """
             <Tree>
@@ -617,12 +578,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_iso_latin_1_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""�""]"
             """, """
             <Tree>
@@ -644,12 +603,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_lone_second_surrogate_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uDFAA""]"
             """, """
             <Tree>
@@ -671,12 +628,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_lone_utf8_continuation_byte_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""�""]"
             """, """
             <Tree>
@@ -698,12 +653,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_not_in_unicode_range_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""���""]"
             """, """
             <Tree>
@@ -725,12 +678,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_overlong_sequence_2_bytes_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""��""]"
             """, """
             <Tree>
@@ -752,12 +703,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_overlong_sequence_6_bytes_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""������""]"
             """, """
             <Tree>
@@ -779,12 +728,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_overlong_sequence_6_bytes_null_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""������""]"
             """, """
             <Tree>
@@ -806,12 +753,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_truncated_utf_8_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""��""]"
             """, """
             <Tree>
@@ -833,12 +778,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_UTF_16LE_with_BOM_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""é""]"
             """, """
             <Tree>
@@ -860,12 +803,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_UTF_8_invalid_sequence_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""日ш�""]"
             """, """
             <Tree>
@@ -887,12 +828,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_string_Utf8_surrogate_U_D800_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""��""]"
             """, """
             <Tree>
@@ -914,12 +853,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void i_structure_UTF_8_BOM_empty_object_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{}"
             """, """
             <Tree>
@@ -937,12 +874,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void n_array_1_true_without_comma_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1 true]"
             """, """
             <Tree>
@@ -975,12 +910,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="',' expected" Start="13" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_a_invalid_utf8_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[a�]"
             """, """
             <Tree>
@@ -1010,12 +943,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'a' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_colon_instead_of_comma_json()
-    {
-        TestNST("""""
+        => TestNST("""""
             @"["""": 1]"
             """"", """
             <Tree>
@@ -1049,12 +980,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Properties not allowed in an array" Start="15" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_comma_after_close_json()
-    {
-        TestNST("""""
+        => TestNST("""""
             @"[""""],"
             """"", """
             <Tree>
@@ -1087,12 +1016,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="',' unexpected" Start="16" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_comma_and_number_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[,1]"
             """, """
             <Tree>
@@ -1121,12 +1048,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="',' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_double_comma_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1,,2]"
             """, """
             <Tree>
@@ -1161,12 +1086,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="',' unexpected" Start="13" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_double_extra_comma_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""x"",,]"
             """, """
             <Tree>
@@ -1198,12 +1121,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="',' unexpected" Start="17" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_extra_close_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""x""]]"
             """, """
             <Tree>
@@ -1236,12 +1157,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="']' unexpected" Start="17" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_extra_comma_json()
-    {
-        TestNST("""""
+        => TestNST("""""
             @"["""",]"
             """"", """
             <Tree>
@@ -1270,12 +1189,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Trailing comma not allowed" Start="15" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_incomplete_json()
-    {
-        TestNST(""""
+        => TestNST(""""
             @"[""x"""
             """", """
             <Tree>
@@ -1305,12 +1222,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="']' expected" Start="16" Length="0" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_incomplete_invalid_value_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[x"
             """, """
             <Tree>
@@ -1340,12 +1255,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'x' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_inner_array_no_comma_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[3[4]]"
             """, """
             <Tree>
@@ -1384,12 +1297,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="',' expected" Start="12" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_invalid_utf8_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[�]"
             """, """
             <Tree>
@@ -1419,12 +1330,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'�' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_items_separated_by_semicolon_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1:2]"
             """, """
             <Tree>
@@ -1458,12 +1367,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Property name must be a string" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_just_comma_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[,]"
             """, """
             <Tree>
@@ -1489,12 +1396,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="',' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_just_minus_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-]"
             """, """
             <Tree>
@@ -1524,12 +1429,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_missing_value_json()
-    {
-        TestNST("""""
+        => TestNST("""""
             @"[   , """"]"
             """"", """
             <Tree>
@@ -1558,12 +1461,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="',' unexpected" Start="14" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_newlines_unclosed_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""a"",
             4
             ,1,"
@@ -1612,12 +1513,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Trailing comma not allowed" Start="24" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_number_and_comma_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1,]"
             """, """
             <Tree>
@@ -1646,12 +1545,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Trailing comma not allowed" Start="12" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_number_and_several_commas_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1,,]"
             """, """
             <Tree>
@@ -1683,12 +1580,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="',' unexpected" Start="13" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_star_inside_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[*]"
             """, """
             <Tree>
@@ -1718,12 +1613,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'*' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_unclosed_json()
-    {
-        TestNST(""""""
+        => TestNST(""""""
             @"["""""
             """""", """
             <Tree>
@@ -1753,12 +1646,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="']' expected" Start="15" Length="0" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_unclosed_trailing_comma_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1,"
             """, """
             <Tree>
@@ -1791,12 +1682,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Trailing comma not allowed" Start="12" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_unclosed_with_new_lines_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1,
             1
             ,1"
@@ -1842,12 +1731,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="']' expected" Start="20" Length="0" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_array_unclosed_with_object_inside_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[{}"
             """, """
             <Tree>
@@ -1879,12 +1766,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="']' expected" Start="13" Length="0" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_incomplete_false_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[fals]"
             """, """
             <Tree>
@@ -1914,12 +1799,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'f' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_incomplete_null_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[nul]"
             """, """
             <Tree>
@@ -1949,12 +1832,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'n' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_incomplete_true_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[tru]"
             """, """
             <Tree>
@@ -1984,12 +1865,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'t' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number____json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[++1234]"
             """, """
             <Tree>
@@ -2019,12 +1898,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'+' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number__1_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[+1]"
             """, """
             <Tree>
@@ -2054,12 +1931,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'+' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number__Inf_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[+Inf]"
             """, """
             <Tree>
@@ -2089,12 +1964,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'+' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number__01_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-01]"
             """, """
             <Tree>
@@ -2120,12 +1993,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number__1_0__json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-1.0.]"
             """, """
             <Tree>
@@ -2155,12 +2026,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="5" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number__2__json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-2.]"
             """, """
             <Tree>
@@ -2186,12 +2055,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number__NaN_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-NaN]"
             """, """
             <Tree>
@@ -2221,12 +2088,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number___1_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[.-1]"
             """, """
             <Tree>
@@ -2256,12 +2121,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number__2e_3_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[.2e-3]"
             """, """
             <Tree>
@@ -2287,12 +2150,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="5" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_0_1_2_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[0.1.2]"
             """, """
             <Tree>
@@ -2322,12 +2183,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="5" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_0_3e__json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[0.3e+]"
             """, """
             <Tree>
@@ -2357,12 +2216,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="5" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_0_3e_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[0.3e]"
             """, """
             <Tree>
@@ -2392,12 +2249,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_0_e1_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[0.e1]"
             """, """
             <Tree>
@@ -2423,12 +2278,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_0e__json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[0e+]"
             """, """
             <Tree>
@@ -2458,12 +2311,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_0e_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[0e]"
             """, """
             <Tree>
@@ -2493,12 +2344,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="2" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_0_capital_E__json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[0E+]"
             """, """
             <Tree>
@@ -2528,12 +2377,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_0_capital_E_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[0E]"
             """, """
             <Tree>
@@ -2563,12 +2410,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="2" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_1_0e__json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1.0e+]"
             """, """
             <Tree>
@@ -2598,12 +2443,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="5" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_1_0e_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1.0e]"
             """, """
             <Tree>
@@ -2633,12 +2476,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_1eE2_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1eE2]"
             """, """
             <Tree>
@@ -2668,12 +2509,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_1_000_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1 000.0]"
             """, """
             <Tree>
@@ -2706,12 +2545,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="',' expected" Start="13" Length="5" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_2_e_3_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[2.e+3]"
             """, """
             <Tree>
@@ -2737,12 +2574,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="5" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_2_e3_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[2.e3]"
             """, """
             <Tree>
@@ -2768,12 +2603,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_9_e__json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[9.e+]"
             """, """
             <Tree>
@@ -2803,12 +2636,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_expression_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1+2]"
             """, """
             <Tree>
@@ -2838,12 +2669,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_hex_1_digit_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[0x1]"
             """, """
             <Tree>
@@ -2869,12 +2698,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_hex_2_digits_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[0x42]"
             """, """
             <Tree>
@@ -2900,12 +2727,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_Inf_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[Inf]"
             """, """
             <Tree>
@@ -2935,12 +2760,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'I' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_infinity_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[Infinity]"
             """, """
             <Tree>
@@ -2966,12 +2789,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'Infinity' literal not allowed" Start="11" Length="8" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_invalid___json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[0e+-1]"
             """, """
             <Tree>
@@ -3001,12 +2822,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="5" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_invalid_negative_real_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-123.123foo]"
             """, """
             <Tree>
@@ -3036,12 +2855,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="11" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_invalid_utf_8_in_bigger_int_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[123�]"
             """, """
             <Tree>
@@ -3071,12 +2888,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_invalid_utf_8_in_exponent_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1e1�]"
             """, """
             <Tree>
@@ -3106,12 +2921,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_invalid_utf_8_in_int_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[0�]
             "
             """, """
@@ -3143,12 +2956,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="2" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_minus_infinity_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-Infinity]"
             """, """
             <Tree>
@@ -3175,12 +2986,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'-Infinity' literal not allowed" Start="11" Length="9" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_minus_sign_with_trailing_garbage_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-foo]"
             """, """
             <Tree>
@@ -3210,12 +3019,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_minus_space_1_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[- 1]"
             """, """
             <Tree>
@@ -3248,12 +3055,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_NaN_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[NaN]"
             """, """
             <Tree>
@@ -3279,12 +3084,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'NaN' literal not allowed" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_neg_int_starting_with_zero_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-012]"
             """, """
             <Tree>
@@ -3310,12 +3113,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_neg_real_without_int_part_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-.123]"
             """, """
             <Tree>
@@ -3341,12 +3142,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="5" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_neg_with_garbage_at_end_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-1x]"
             """, """
             <Tree>
@@ -3376,12 +3175,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_real_garbage_after_e_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1ea]"
             """, """
             <Tree>
@@ -3411,12 +3208,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_real_without_fractional_part_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1.]"
             """, """
             <Tree>
@@ -3442,12 +3237,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="2" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_real_with_invalid_utf8_after_e_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1e�]"
             """, """
             <Tree>
@@ -3477,12 +3270,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_starting_with_dot_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[.123]"
             """, """
             <Tree>
@@ -3508,12 +3299,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_U_FF11_fullwidth_digit_one_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[１]"
             """, """
             <Tree>
@@ -3543,12 +3332,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'１' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_with_alpha_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1.2a-3]"
             """, """
             <Tree>
@@ -3578,12 +3365,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="6" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_with_alpha_char_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1.8011670033376514H-308]"
             """, """
             <Tree>
@@ -3613,12 +3398,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="23" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_number_with_leading_zero_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[012]"
             """, """
             <Tree>
@@ -3644,12 +3427,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_bad_value_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""x"", truth]"
             """, """
             <Tree>
@@ -3685,12 +3466,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'t' unexpected" Start="18" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_bracket_key_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{[: ""x""}
             "
             """, """
@@ -3731,12 +3510,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Only properties allowed in an object" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_comma_instead_of_colon_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""x"", null}"
             """, """
             <Tree>
@@ -3770,12 +3547,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Property name must be followed by a ':'" Start="11" Length="5" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_double_colon_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""x""::""b""}"
             """, """
             <Tree>
@@ -3813,12 +3588,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="':' unexpected" Start="17" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_garbage_at_end_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"":""a"" 123}"
             """, """
             <Tree>
@@ -3856,12 +3629,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="',' expected" Start="23" Length="0" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_key_with_single_quotes_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{key: 'value'}"
             """, """
             <Tree>
@@ -3891,12 +3662,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Property name must be a string" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_lone_continuation_byte_in_key_and_trailing_comma_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""�"":""0"",}"
             """, """
             <Tree>
@@ -3927,12 +3696,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Trailing comma not allowed" Start="22" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_missing_colon_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"" b}"
             """, """
             <Tree>
@@ -3966,12 +3733,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Property name must be followed by a ':'" Start="11" Length="5" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_missing_key_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{:""b""}"
             """, """
             <Tree>
@@ -4005,12 +3770,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="':' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_missing_semicolon_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"" ""b""}"
             """, """
             <Tree>
@@ -4044,12 +3807,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Property name must be followed by a ':'" Start="11" Length="5" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_missing_value_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"":"
             """, """
             <Tree>
@@ -4083,12 +3844,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Missing property value" Start="17" Length="0" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_no_colon_json()
-    {
-        TestNST(""""
+        => TestNST(""""
             @"{""a"""
             """", """
             <Tree>
@@ -4118,12 +3877,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Property name must be followed by a ':'" Start="11" Length="5" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_non_string_key_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{1:1}"
             """, """
             <Tree>
@@ -4153,12 +3910,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Property name must be a string" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_non_string_key_but_huge_number_instead_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{9999E9999:1}"
             """, """
             <Tree>
@@ -4188,12 +3943,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Property name must be a string" Start="11" Length="9" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_repeated_null_null_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{null:null,null:null}"
             """, """
             <Tree>
@@ -4231,12 +3984,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Property name must be a string" Start="11" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_several_trailing_commas_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""id"":0,,,,,}"
             """, """
             <Tree>
@@ -4279,12 +4030,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Only properties allowed in an object" Start="20" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_single_quote_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{'a':0}"
             """, """
             <Tree>
@@ -4314,12 +4063,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_trailing_comma_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""id"":0,}"
             """, """
             <Tree>
@@ -4350,12 +4097,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Trailing comma not allowed" Start="19" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_trailing_comment_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"":""b""}/**/"
             """, """
             <Tree>
@@ -4385,12 +4130,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Comments not allowed" Start="23" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_trailing_comment_open_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"":""b""}/**//"
             """, """
             <Tree>
@@ -4424,12 +4167,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Comments not allowed" Start="23" Length="4" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_trailing_comment_slash_open_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"":""b""}//"
             """, """
             <Tree>
@@ -4463,12 +4204,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Unterminated comment" Start="23" Length="2" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_trailing_comment_slash_open_incomplete_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"":""b""}/"
             """, """
             <Tree>
@@ -4502,12 +4241,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Error parsing comment" Start="23" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_two_commas_in_a_row_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"":""b"",,""c"":""d""}"
             """, """
             <Tree>
@@ -4553,12 +4290,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Only properties allowed in an object" Start="23" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_unquoted_key_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{a: ""b""}"
             """, """
             <Tree>
@@ -4588,12 +4323,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Property name must be a string" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_unterminated_value_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"":""a"
             """, """
             <Tree>
@@ -4627,12 +4360,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Unterminated string" Start="17" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_with_single_string_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{ ""foo"" : ""bar"", ""a"" }"
             """, """
             <Tree>
@@ -4670,12 +4401,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Property name must be followed by a ':'" Start="31" Length="5" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_object_with_trailing_garbage_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"":""b""}#"
             """, """
             <Tree>
@@ -4712,12 +4441,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'#' unexpected" Start="23" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_single_space_json()
-    {
-        TestNST("""
+        => TestNST("""
             @" "
             """, """
             <Tree>
@@ -4741,12 +4468,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Syntax error" Start="10" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_1_surrogate_then_escape_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uD800\""]"
             """, """
             <Tree>
@@ -4776,12 +4501,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Unterminated string" Start="11" Length="12" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_1_surrogate_then_escape_u_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uD800\u""]"
             """, """
             <Tree>
@@ -4811,12 +4534,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid escape sequence" Start="19" Length="5" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_1_surrogate_then_escape_u1_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uD800\u1""]"
             """, """
             <Tree>
@@ -4846,12 +4567,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid escape sequence" Start="19" Length="6" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_1_surrogate_then_escape_u1x_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uD800\u1x""]"
             """, """
             <Tree>
@@ -4881,12 +4600,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid escape sequence" Start="19" Length="7" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_accentuated_char_no_quotes_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[é]"
             """, """
             <Tree>
@@ -4916,12 +4633,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'é' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_escaped_backslash_bad_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\\\""]"
             """, """
             <Tree>
@@ -4951,12 +4666,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Unterminated string" Start="11" Length="8" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_escaped_ctrl_char_tab_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\	""]"
             """, """
             <Tree>
@@ -4986,12 +4699,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_escaped_emoji_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\🌀""]"
             """, """
             <Tree>
@@ -5021,12 +4732,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid escape sequence" Start="13" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_escape_x_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\x00""]"
             """, """
             <Tree>
@@ -5056,12 +4765,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_incomplete_escape_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\""]"
             """, """
             <Tree>
@@ -5091,12 +4798,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Unterminated string" Start="11" Length="6" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_incomplete_escaped_character_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\u00A""]"
             """, """
             <Tree>
@@ -5126,12 +4831,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid escape sequence" Start="13" Length="7" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_incomplete_surrogate_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uD834\uDd""]"
             """, """
             <Tree>
@@ -5161,12 +4864,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid escape sequence" Start="19" Length="7" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_incomplete_surrogate_escape_invalid_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uD800\uD800\x""]"
             """, """
             <Tree>
@@ -5196,12 +4897,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid escape sequence" Start="25" Length="2" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_invalid_utf_8_in_escape_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\u�""]"
             """, """
             <Tree>
@@ -5231,12 +4930,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid escape sequence" Start="13" Length="6" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_invalid_backslash_esc_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\a""]"
             """, """
             <Tree>
@@ -5266,12 +4963,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_invalid_unicode_escape_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uqqqq""]"
             """, """
             <Tree>
@@ -5301,12 +4996,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid escape sequence" Start="13" Length="6" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_invalid_utf8_after_escape_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\�""]"
             """, """
             <Tree>
@@ -5336,12 +5029,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_leading_uescaped_thinspace_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[\u0020""asd""]"
             """, """
             <Tree>
@@ -5374,12 +5065,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'\' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_no_quotes_with_bad_escape_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[\n]"
             """, """
             <Tree>
@@ -5409,12 +5098,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'\' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_single_doublequote_json()
-    {
-        TestNST("""""
+        => TestNST("""""
             @""""
             """"", """
             <Tree>
@@ -5438,12 +5125,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Unterminated string" Start="10" Length="2" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_single_quote_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"['single quote']"
             """, """
             <Tree>
@@ -5469,12 +5154,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_single_string_no_double_quotes_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"abc"
             """, """
             <Tree>
@@ -5498,12 +5181,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'a' unexpected" Start="10" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_start_escape_unclosed_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\"
             """, """
             <Tree>
@@ -5533,12 +5214,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Unterminated string" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_unescaped_newline_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""new
             line""]"
             """, """
@@ -5566,12 +5245,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Illegal string character" Start="16" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_unescaped_tab_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""	""]"
             """, """
             <Tree>
@@ -5597,12 +5274,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Illegal string character" Start="13" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_unicode_CapitalU_json()
-    {
-        TestNST(""""
+        => TestNST(""""
             @"""\UA66D"""
             """", """
             <Tree>
@@ -5626,12 +5301,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid escape sequence" Start="12" Length="2" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_string_with_trailing_garbage_json()
-    {
-        TestNST(""""""
+        => TestNST(""""""
             @"""""x"
             """""", """
             <Tree>
@@ -5658,12 +5331,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'x' unexpected" Start="14" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_angle_bracket___json()
-    {
-        TestNST("""
+        => TestNST("""
             @"<.>"
             """, """
             <Tree>
@@ -5687,12 +5358,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'&lt;' unexpected" Start="10" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_angle_bracket_null_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[<null>]"
             """, """
             <Tree>
@@ -5722,12 +5391,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'&lt;' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_array_trailing_garbage_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1]x"
             """, """
             <Tree>
@@ -5760,12 +5427,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'x' unexpected" Start="13" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_array_with_extra_array_close_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1]]"
             """, """
             <Tree>
@@ -5798,12 +5463,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="']' unexpected" Start="13" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_array_with_unclosed_string_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""asd]"
             """, """
             <Tree>
@@ -5833,12 +5496,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Unterminated string" Start="11" Length="6" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_ascii_unicode_identifier_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"aå"
             """, """
             <Tree>
@@ -5862,12 +5523,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'a' unexpected" Start="10" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_capitalized_True_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[True]"
             """, """
             <Tree>
@@ -5897,12 +5556,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'T' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_close_unopened_array_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"1]"
             """, """
             <Tree>
@@ -5929,12 +5586,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="']' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_comma_instead_of_closing_brace_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""x"": true,"
             """, """
             <Tree>
@@ -5969,12 +5624,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Trailing comma not allowed" Start="22" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_double_array_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[][]"
             """, """
             <Tree>
@@ -6005,12 +5658,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'[' unexpected" Start="12" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_end_array_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"]"
             """, """
             <Tree>
@@ -6034,12 +5685,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="']' unexpected" Start="10" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_incomplete_Utf8_BOM_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"�{}"
             """, """
             <Tree>
@@ -6068,12 +5717,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'�' unexpected" Start="10" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_lone_open_bracket_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"["
             """, """
             <Tree>
@@ -6099,12 +5746,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="']' expected" Start="11" Length="0" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_number_with_trailing_garbage_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"2@"
             """, """
             <Tree>
@@ -6128,12 +5773,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid number" Start="10" Length="2" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_object_followed_by_closing_object_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{}}"
             """, """
             <Tree>
@@ -6162,12 +5805,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'}' unexpected" Start="12" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_object_unclosed_no_value_json()
-    {
-        TestNST("""""
+        => TestNST("""""
             @"{"""":"
             """"", """
             <Tree>
@@ -6201,12 +5842,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Missing property value" Start="16" Length="0" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_object_with_comment_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"":/*comment*/""b""}"
             """, """
             <Tree>
@@ -6236,12 +5875,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Comments not allowed" Start="17" Length="11" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_object_with_trailing_garbage_json()
-    {
-        TestNST(""""
+        => TestNST(""""
             @"{""a"": true} ""x"""
             """", """
             <Tree>
@@ -6278,12 +5915,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'&quot;' unexpected" Start="24" Length="5" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_open_array_apostrophe_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"['"
             """, """
             <Tree>
@@ -6313,12 +5948,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Unterminated string" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_open_array_comma_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[,"
             """, """
             <Tree>
@@ -6348,12 +5981,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="',' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_open_array_open_object_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[{"
             """, """
             <Tree>
@@ -6385,12 +6016,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'}' expected" Start="12" Length="0" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_open_array_open_string_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""a"
             """, """
             <Tree>
@@ -6420,12 +6049,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Unterminated string" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_open_array_string_json()
-    {
-        TestNST(""""
+        => TestNST(""""
             @"[""a"""
             """", """
             <Tree>
@@ -6455,12 +6082,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="']' expected" Start="16" Length="0" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_open_object_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{"
             """, """
             <Tree>
@@ -6486,12 +6111,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'}' expected" Start="11" Length="0" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_open_object_close_array_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{]"
             """, """
             <Tree>
@@ -6521,12 +6144,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="']' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_open_object_comma_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{,"
             """, """
             <Tree>
@@ -6556,12 +6177,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Only properties allowed in an object" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_open_object_open_array_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{["
             """, """
             <Tree>
@@ -6593,12 +6212,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Only properties allowed in an object" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_open_object_open_string_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"
             """, """
             <Tree>
@@ -6628,12 +6245,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Unterminated string" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_open_object_string_with_apostrophes_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{'a'"
             """, """
             <Tree>
@@ -6663,12 +6278,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Property name must be followed by a ':'" Start="11" Length="3" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_open_open_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\{[""\{[""\{[""\{"
             """, """
             <Tree>
@@ -6724,12 +6337,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_single_star_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"*"
             """, """
             <Tree>
@@ -6753,12 +6364,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'*' unexpected" Start="10" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_trailing___json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"":""b""}#{}"
             """, """
             <Tree>
@@ -6800,12 +6409,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'#' unexpected" Start="23" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_U_2060_word_joined_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[⁠]"
             """, """
             <Tree>
@@ -6835,12 +6442,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'⁠' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_uescaped_LF_before_string_json()
-    {
-        TestNST("""""
+        => TestNST("""""
             @"[\u000A""""]"
             """"", """
             <Tree>
@@ -6873,12 +6478,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'\' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_unclosed_array_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1"
             """, """
             <Tree>
@@ -6908,12 +6511,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="']' expected" Start="12" Length="0" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_unclosed_array_partial_null_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[ false, nul"
             """, """
             <Tree>
@@ -6949,12 +6550,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'n' unexpected" Start="19" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_unclosed_array_unfinished_false_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[ true, fals"
             """, """
             <Tree>
@@ -6990,12 +6589,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'f' unexpected" Start="18" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_unclosed_array_unfinished_true_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[ false, tru"
             """, """
             <Tree>
@@ -7031,12 +6628,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'t' unexpected" Start="19" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_unclosed_object_json()
-    {
-        TestNST(""""
+        => TestNST(""""
             @"{""asd"":""asd"""
             """", """
             <Tree>
@@ -7070,12 +6665,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'}' expected" Start="26" Length="0" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_unicode_identifier_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"å"
             """, """
             <Tree>
@@ -7099,12 +6692,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'å' unexpected" Start="10" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_whitespace_formfeed_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[]"
             """, """
             <Tree>
@@ -7126,12 +6717,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="Illegal whitespace character" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void n_structure_whitespace_U_2060_word_joiner_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[⁠]"
             """, """
             <Tree>
@@ -7161,12 +6750,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
       <Diagnostic Message="'⁠' unexpected" Start="11" Length="1" />
     </Diagnostics>
     """);
-    }
 
     [Fact]
     public void y_array_arraysWithSpaces_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[[]   ]"
             """, """
             <Tree>
@@ -7190,12 +6777,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_array_empty_string_json()
-    {
-        TestNST("""""
+        => TestNST("""""
             @"[""""]"
             """"", """
             <Tree>
@@ -7217,12 +6802,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_array_empty_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[]"
             """, """
             <Tree>
@@ -7240,12 +6823,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_array_ending_with_newline_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""a""]"
             """, """
             <Tree>
@@ -7267,12 +6848,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_array_false_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[false]"
             """, """
             <Tree>
@@ -7294,12 +6873,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_array_heterogeneous_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[null, 1, ""1"", {}]"
             """, """
             <Tree>
@@ -7341,12 +6918,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_array_null_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[null]"
             """, """
             <Tree>
@@ -7368,12 +6943,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_array_with_1_and_newline_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1
             ]"
             """, """
@@ -7397,12 +6970,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_array_with_leading_space_json()
-    {
-        TestNST("""
+        => TestNST("""
             @" [1]"
             """, """
             <Tree>
@@ -7427,12 +6998,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_array_with_several_null_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1,null,null,null,2]"
             """, """
             <Tree>
@@ -7478,12 +7047,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_array_with_trailing_space_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[2] "
             """, """
             <Tree>
@@ -7505,12 +7072,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[123e65]"
             """, """
             <Tree>
@@ -7532,12 +7097,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_0e_1_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[0e+1]"
             """, """
             <Tree>
@@ -7559,12 +7122,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_0e1_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[0e1]"
             """, """
             <Tree>
@@ -7586,12 +7147,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_after_space_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[ 4]"
             """, """
             <Tree>
@@ -7613,12 +7172,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_double_close_to_zero_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-0.000000000000000000000000000000000000000000000000000000000000000000000000000001]
             "
             """, """
@@ -7642,12 +7199,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_int_with_exp_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[20e1]"
             """, """
             <Tree>
@@ -7669,12 +7224,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_minus_zero_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-0]"
             """, """
             <Tree>
@@ -7696,12 +7249,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_negative_int_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-123]"
             """, """
             <Tree>
@@ -7723,12 +7274,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_negative_one_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-1]"
             """, """
             <Tree>
@@ -7750,12 +7299,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_negative_zero_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[-0]"
             """, """
             <Tree>
@@ -7777,12 +7324,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_real_capital_e_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1E22]"
             """, """
             <Tree>
@@ -7804,12 +7349,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_real_capital_e_neg_exp_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1E-2]"
             """, """
             <Tree>
@@ -7831,12 +7374,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_real_capital_e_pos_exp_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1E+2]"
             """, """
             <Tree>
@@ -7858,12 +7399,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_real_exponent_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[123e45]"
             """, """
             <Tree>
@@ -7885,12 +7424,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_real_fraction_exponent_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[123.456e78]"
             """, """
             <Tree>
@@ -7912,12 +7449,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_real_neg_exp_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1e-2]"
             """, """
             <Tree>
@@ -7939,12 +7474,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_real_pos_exponent_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[1e+2]"
             """, """
             <Tree>
@@ -7966,12 +7499,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_simple_int_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[123]"
             """, """
             <Tree>
@@ -7993,12 +7524,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_number_simple_real_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[123.456789]"
             """, """
             <Tree>
@@ -8020,12 +7549,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_object_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""asd"":""sdf"", ""dfg"":""fgh""}"
             """, """
             <Tree>
@@ -8059,12 +7586,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_object_basic_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""asd"":""sdf""}"
             """, """
             <Tree>
@@ -8090,12 +7615,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_object_duplicated_key_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"":""b"",""a"":""c""}"
             """, """
             <Tree>
@@ -8129,12 +7652,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_object_duplicated_key_and_value_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"":""b"",""a"":""b""}"
             """, """
             <Tree>
@@ -8168,12 +7689,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_object_empty_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{}"
             """, """
             <Tree>
@@ -8191,12 +7710,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_object_empty_key_json()
-    {
-        TestNST("""""
+        => TestNST("""""
             @"{"""":0}"
             """"", """
             <Tree>
@@ -8222,12 +7739,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_object_escaped_null_in_key_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""foo\u0000bar"": 42}"
             """, """
             <Tree>
@@ -8253,12 +7768,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_object_extreme_numbers_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{ ""min"": -1.0e+28, ""max"": 1.0e+28 }"
             """, """
             <Tree>
@@ -8292,12 +7805,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_object_long_strings_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""x"":[{""id"": ""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx""}], ""id"": ""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx""}"
             """,
             """
@@ -8346,14 +7857,12 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
               </CompilationUnit>
             </Tree>
             """,
-    @"",
-    @"");
-    }
+            @"",
+            @"");
 
     [Fact]
     public void y_object_simple_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""a"":[]}"
             """, """
             <Tree>
@@ -8381,12 +7890,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_object_string_unicode_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{""title"":""\u041f\u043e\u043b\u0442\u043e\u0440\u0430 \u0417\u0435\u043c\u043b\u0435\u043a\u043e\u043f\u0430"" }"
             """, """
             <Tree>
@@ -8412,12 +7919,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_object_with_newlines_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"{
             ""a"": ""b""
             }"
@@ -8447,12 +7952,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_1_2_3_bytes_UTF_8_sequences_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\u0060\u012a\u12AB""]"
             """, """
             <Tree>
@@ -8474,12 +7977,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_accepted_surrogate_pair_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uD801\udc37""]"
             """, """
             <Tree>
@@ -8501,12 +8002,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_accepted_surrogate_pairs_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\ud83d\ude39\ud83d\udc8d""]"
             """, """
             <Tree>
@@ -8528,12 +8027,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_allowed_escapes_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\""\\\/\b\f\n\r\t""]"
             """, """
             <Tree>
@@ -8555,12 +8052,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_backslash_and_u_escaped_zero_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\\u0000""]"
             """, """
             <Tree>
@@ -8582,12 +8077,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_backslash_doublequotes_json()
-    {
-        TestNST("""""
+        => TestNST("""""
             @"[""\""""]"
             """"", """
             <Tree>
@@ -8609,12 +8102,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_comments_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""a/*b*/c/*d//e""]"
             """, """
             <Tree>
@@ -8636,12 +8127,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_double_escape_a_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\\a""]"
             """, """
             <Tree>
@@ -8663,12 +8152,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_double_escape_n_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\\n""]"
             """, """
             <Tree>
@@ -8690,12 +8177,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_escaped_control_character_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\u0012""]"
             """, """
             <Tree>
@@ -8717,12 +8202,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_escaped_noncharacter_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uFFFF""]"
             """, """
             <Tree>
@@ -8744,12 +8227,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_in_array_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""asd""]"
             """, """
             <Tree>
@@ -8771,12 +8252,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_in_array_with_leading_space_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[ ""asd""]"
             """, """
             <Tree>
@@ -8798,12 +8277,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_last_surrogates_1_and_2_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uDBFF\uDFFF""]"
             """, """
             <Tree>
@@ -8825,12 +8302,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_nbsp_uescaped_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""new\u00A0line""]"
             """, """
             <Tree>
@@ -8852,12 +8327,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_nonCharacterInUTF_8_U_10FFFF_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""􏿿""]"
             """, """
             <Tree>
@@ -8879,12 +8352,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_null_escape_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\u0000""]"
             """, """
             <Tree>
@@ -8906,12 +8377,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_one_byte_utf_8_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\u002c""]"
             """, """
             <Tree>
@@ -8933,12 +8402,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_pi_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""π""]"
             """, """
             <Tree>
@@ -8960,12 +8427,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_reservedCharacterInUTF_8_U_1BFFF_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""𛿿""]"
             """, """
             <Tree>
@@ -8987,12 +8452,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_simple_ascii_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""asd ""]"
             """, """
             <Tree>
@@ -9014,12 +8477,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_space_json()
-    {
-        TestNST(""""
+        => TestNST(""""
             @""" """
             """", """
             <Tree>
@@ -9035,12 +8496,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_surrogates_U_1D11E_MUSICAL_SYMBOL_G_CLEF_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uD834\uDd1e""]"
             """, """
             <Tree>
@@ -9062,12 +8521,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_three_byte_utf_8_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\u0821""]"
             """, """
             <Tree>
@@ -9089,12 +8546,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_two_byte_utf_8_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\u0123""]"
             """, """
             <Tree>
@@ -9116,12 +8571,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_u_2028_line_sep_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""             ""]"
             """, """
             <Tree>
@@ -9143,12 +8596,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_u_2029_par_sep_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""             ""]"
             """, """
             <Tree>
@@ -9170,12 +8621,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_uEscape_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\u0061\u30af\u30EA\u30b9""]"
             """, """
             <Tree>
@@ -9197,12 +8646,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_uescaped_newline_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""new\u000Aline""]"
             """, """
             <Tree>
@@ -9224,12 +8671,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_unescaped_char_delete_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""""]"
             """, """
             <Tree>
@@ -9251,12 +8696,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_unicode_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uA66D""]"
             """, """
             <Tree>
@@ -9278,12 +8721,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_unicodeEscapedBackslash_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\u005C""]"
             """, """
             <Tree>
@@ -9305,12 +8746,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_unicode_2_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""⍂㈴⍂""]"
             """, """
             <Tree>
@@ -9332,12 +8771,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_unicode_escaped_double_quote_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\u0022""]"
             """, """
             <Tree>
@@ -9359,12 +8796,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_unicode_U_10FFFE_nonchar_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uDBFF\uDFFE""]"
             """, """
             <Tree>
@@ -9386,12 +8821,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_unicode_U_1FFFE_nonchar_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uD83F\uDFFE""]"
             """, """
             <Tree>
@@ -9413,12 +8846,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_unicode_U_200B_ZERO_WIDTH_SPACE_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\u200B""]"
             """, """
             <Tree>
@@ -9440,12 +8871,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_unicode_U_2064_invisible_plus_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\u2064""]"
             """, """
             <Tree>
@@ -9467,12 +8896,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_unicode_U_FDD0_nonchar_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uFDD0""]"
             """, """
             <Tree>
@@ -9494,12 +8921,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_unicode_U_FFFE_nonchar_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""\uFFFE""]"
             """, """
             <Tree>
@@ -9521,12 +8946,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_utf8_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""€𝄞""]"
             """, """
             <Tree>
@@ -9548,12 +8971,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_string_with_del_character_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""aa""]"
             """, """
             <Tree>
@@ -9575,12 +8996,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_structure_lonely_false_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"false"
             """, """
             <Tree>
@@ -9596,12 +9015,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_structure_lonely_int_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"42"
             """, """
             <Tree>
@@ -9617,12 +9034,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_structure_lonely_negative_real_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"-0.1"
             """, """
             <Tree>
@@ -9638,12 +9053,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_structure_lonely_null_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"null"
             """, """
             <Tree>
@@ -9659,12 +9072,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_structure_lonely_string_json()
-    {
-        TestNST(""""
+        => TestNST(""""
             @"""asd"""
             """", """
             <Tree>
@@ -9680,12 +9091,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_structure_lonely_true_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"true"
             """, """
             <Tree>
@@ -9701,12 +9110,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_structure_string_empty_json()
-    {
-        TestNST("""""""
+        => TestNST("""""""
             @""""""
             """"""", """
             <Tree>
@@ -9722,12 +9129,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_structure_trailing_newline_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[""a""]
             "
             """, """
@@ -9751,12 +9156,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_structure_true_in_array_json()
-    {
-        TestNST("""
+        => TestNST("""
             @"[true]"
             """, """
             <Tree>
@@ -9778,12 +9181,10 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 
     [Fact]
     public void y_structure_whitespace_array_json()
-    {
-        TestNST("""
+        => TestNST("""
             @" [] "
             """, """
             <Tree>
@@ -9804,5 +9205,4 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     @"",
     @"");
-    }
 }

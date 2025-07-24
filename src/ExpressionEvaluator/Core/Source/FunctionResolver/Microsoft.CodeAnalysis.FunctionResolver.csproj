@@ -8,7 +8,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
-    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_CONTRACTS_NO_ERROR_REPORTING</DefineConstants>
+    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_CONTRACTS_NO_ERROR_REPORTING;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_VALUE_TASK</DefineConstants>
     <!--
       Workaround: https://github.com/dotnet/roslyn/issues/78392
       We use NO_VALUE_TUPLE symbol to conditionally compile the code that

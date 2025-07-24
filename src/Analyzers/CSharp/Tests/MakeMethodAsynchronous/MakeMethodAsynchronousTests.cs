@@ -75,8 +75,8 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default,
-            compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+            """, new(parseOptions: CSharpParseOptions.Default,
+            compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication)));
 
         // no option offered to keep void
         await TestActionCountAsync(initial, count: 1, new TestParameters(compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication)));
@@ -1360,7 +1360,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25446")]
     public Task TestOnAwaitParsedAsType()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             class C
@@ -1386,7 +1386,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63404")]
     public Task PartialMethod1()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             public partial class C
@@ -1406,7 +1406,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             
             public partial class C
             {
-                partial void MAsync();
+                partial Task MAsync();
             }
             
             public partial class C
@@ -1420,7 +1420,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63404")]
     public Task PartialMethod2()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             public partial class C
@@ -1440,7 +1440,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             
             public partial class C
             {
-                public partial void MAsync();
+                public partial Task MAsync();
             }
             
             public partial class C
@@ -1454,7 +1454,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63404")]
     public Task PartialMethod3()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             public partial class C
@@ -1488,7 +1488,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63404")]
     public Task PartialMethod4()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             public partial class C

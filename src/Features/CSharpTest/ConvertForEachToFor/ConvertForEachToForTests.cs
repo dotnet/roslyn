@@ -1749,7 +1749,7 @@ public sealed partial class ConvertForEachToForTests : AbstractCSharpCodeActionT
                 IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
                 IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
             }
-            """, options: ImplicitTypeEverywhere);
+            """, new(options: ImplicitTypeEverywhere));
 
     [Fact]
     public Task ArrayRank2()
@@ -1794,5 +1794,5 @@ public sealed partial class ConvertForEachToForTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """, options: ImplicitTypeEverywhere);
+            """, new(options: ImplicitTypeEverywhere));
 }

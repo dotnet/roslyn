@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertForToForEac
 
         <Fact>
         Public Async Function TestArray1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "imports System
 
 class C
@@ -40,7 +40,7 @@ end class")
 
         <Fact>
         Public Async Function TestForSelected() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "imports System
 
 class C
@@ -63,7 +63,7 @@ end class")
 
         <Fact>
         Public Async Function TestAtEndOfFor() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "imports System
 
 class C
@@ -86,7 +86,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestBeforeFor() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "imports System
 
 class C
@@ -123,7 +123,7 @@ end class")
 
         <Fact>
         Public Async Function TestArrayPlusStep1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "imports System
 
 class C
@@ -235,7 +235,7 @@ end class")
 
         <Fact>
         Public Async Function TestList1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "imports System
 imports System.Collections.Generic
 
@@ -260,7 +260,7 @@ end class")
 
         <Fact>
         Public Async Function TestChooseNameFromDeclarationStatement() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "imports System
 imports System.Collections.Generic
 
@@ -286,7 +286,7 @@ end class")
 
         <Fact>
         Public Async Function TestChooseNameAndTypeFromDeclarationStatement() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "imports System
 imports System.Collections.Generic
 
@@ -312,7 +312,7 @@ end class")
 
         <Fact>
         Public Async Function TestChooseNameFromDeclarationStatement_PreserveComments() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "imports System
 imports System.Collections.Generic
 
@@ -342,7 +342,7 @@ end class")
 
         <Fact>
         Public Async Function TestChooseNameFromDeclarationStatement_PreserveDirectives() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "imports System
 imports System.Collections.Generic
 
@@ -404,7 +404,7 @@ end class")
 
         <Fact>
         Public Async Function TestWarningIfCollectionWrittenTo() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "imports System
 
 class C
@@ -521,7 +521,7 @@ end class")
 
         <Fact>
         Public Async Function TestTrivia() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "imports System
 
 class C
@@ -559,7 +559,7 @@ End Class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36305")>
         Public Async Function TestOnElementAt1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq

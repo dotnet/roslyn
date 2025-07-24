@@ -29,7 +29,7 @@ internal class FSharpFindUsagesContext : IFSharpFindUsagesContext
 
     public Task OnReferenceFoundAsync(FSharp.FindUsages.FSharpSourceReferenceItem reference)
     {
-        return _context.OnReferencesFoundAsync(IAsyncEnumerableExtensions.SingletonAsync(reference.RoslynSourceReferenceItem), CancellationToken).AsTask();
+        return _context.OnReferencesFoundAsync(AsyncEnumerableFactory.SingletonAsync(reference.RoslynSourceReferenceItem), CancellationToken).AsTask();
     }
 
     public Task ReportMessageAsync(string message)

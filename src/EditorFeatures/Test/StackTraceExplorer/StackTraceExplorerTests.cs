@@ -72,8 +72,7 @@ public sealed class StackTraceExplorerTests
 
     [Fact]
     public Task TestSymbolFound_DebuggerLine()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             "ConsoleApp4.dll!ConsoleApp4.MyClass.M()",
             """
             using System;
@@ -86,7 +85,6 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("object", "Object")]
@@ -104,8 +102,7 @@ public sealed class StackTraceExplorerTests
     [InlineData("uint", "UInt32")]
     [InlineData("ulong", "UInt64")]
     public Task TestSpecialTypes(string type, string typeName)
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             $"at ConsoleApp.MyClass.M({typeName} value)",
             $$"""
             using System;
@@ -118,12 +115,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_DebuggerLine_SingleSimpleClassParam()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             "ConsoleApp4.dll!ConsoleApp4.MyClass.M(String s)",
             """
             using System;
@@ -136,12 +131,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_ExceptionLine()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             "at ConsoleApp4.MyClass.M()",
             """
             using System;
@@ -154,12 +147,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_ExceptionLine_SingleSimpleClassParam()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             "at ConsoleApp4.MyClass.M(String s)",
             """
             using System;
@@ -172,12 +163,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_ExceptionLineWithFile()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.M() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26",
             """
             using System;
@@ -190,12 +179,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_GenericType()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp.MyClass`1.M(String s)",
             """
             using System;
@@ -207,12 +194,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_GenericType2()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp.MyClass`2.M(String s)",
             """
             using System;
@@ -224,12 +209,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_GenericType_GenericArg()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp.MyClass`1.M(T s)",
             """
             using System;
@@ -241,12 +224,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_ExceptionLine_GenericMethod()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.M[T](T t) in C:\repos\Test\MyClass.cs:line 7",
             """
             using System;
@@ -259,12 +240,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_ExceptionLine_GenericMethod_FromActivityLog()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.M&lt;T&gt;(T t)",
             """
             using System;
@@ -277,12 +256,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_ExceptionLine_MultipleGenerics()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             "at ConsoleApp4.MyClass.M<T>(T t)",
             """
             using System;
@@ -295,12 +272,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_ParameterSpacing()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             "at ConsoleApp.MyClass.M( String   s    )",
             """
             namespace ConsoleApp
@@ -313,12 +288,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_OverloadsWithSameName()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             "at ConsoleApp.MyClass.M(String value)",
             """
             namespace ConsoleApp
@@ -335,12 +308,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_ArrayParameter()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             "at ConsoleApp.MyClass.M(String[] s)",
             """
             namespace ConsoleApp
@@ -353,12 +324,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_MultidimensionArrayParameter()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             "at ConsoleApp.MyClass.M(String[,] s)",
             """
             namespace ConsoleApp
@@ -371,12 +340,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_MultidimensionArrayParameter_WithSpaces()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             "at ConsoleApp.MyClass.M(String[ , ] s)",
             """
             namespace ConsoleApp
@@ -389,12 +356,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_MultidimensionArrayParameter_WithSpaces2()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             "at ConsoleApp.MyClass.M(String[,] s)",
             """
             namespace ConsoleApp
@@ -407,12 +372,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_MultidimensionArrayParameter2()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             "at ConsoleApp.MyClass.M(String[,][] s)",
             """
             namespace ConsoleApp
@@ -425,12 +388,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact(Skip = "Symbol search for nested types does not work")]
     public Task TestSymbolFound_ExceptionLine_GenericsHierarchy()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             "at ConsoleApp4.MyClass`1.MyInnerClass`1.M[T](T t)",
             """
             using System;
@@ -449,12 +410,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact(Skip = "ref params do not work yet")]
     public Task TestSymbolFound_ExceptionLine_RefArg()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.M(String& s) in C:\repos\Test\MyClass.cs:line 8",
             """
             using System;
@@ -470,12 +429,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact(Skip = "out params do not work yet")]
     public Task TestSymbolFound_ExceptionLine_OutArg()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.M(String& s) in C:\repos\Test\MyClass.cs:line 8",
             """
             using System;
@@ -491,12 +448,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact(Skip = "in params do not work yet")]
     public Task TestSymbolFound_ExceptionLine_InArg()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.M(Int32& i)",
             """
             using System;
@@ -512,12 +467,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact(Skip = "Generated types/methods are not supported")]
     public Task TestSymbolFound_ExceptionLine_AsyncMethod()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.<>c.<DoThingAsync>b__1_0() in C:\repos\Test\MyClass.cs:line 15",
             """
             namespace ConsoleApp4
@@ -544,12 +497,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_ExceptionLine_PropertySet()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.set_I(Int32 value)",
             """
             using System;
@@ -566,12 +517,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_ExceptionLine_PropertyGet()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.get_I()",
             """
             using System;
@@ -588,12 +537,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_ExceptionLine_IndexerSet()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.set_Item(Int32 i, Int32 value)",
             """
             using System;
@@ -610,12 +557,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_ExceptionLine_IndexerGet()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.get_Item(Int32 i)",
             """
             using System;
@@ -632,12 +577,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_ExceptionLine_LocalFunction()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.<M>g__LocalFunction|0_0()",
             """
             using System;
@@ -662,12 +605,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_ExceptionLine_MultipleLocalFunctions()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.<M>g__LocalFunction|0_0()",
             """
             using System;
@@ -698,12 +639,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_ExceptionLine_MultipleLocalFunctions2()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.<M2>g__LocalFunction|0_0()",
             """
             using System;
@@ -734,12 +673,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSymbolFound_ExceptionLine_MemberFunctionSameNameAsFunction()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.LocalFunction()",
             """
             using System;
@@ -764,7 +701,6 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     /// <summary>
     /// Behavior for this test needs some explanation. Note that if there are multiple
@@ -779,8 +715,7 @@ public sealed class StackTraceExplorerTests
     /// </summary>
     [Fact]
     public Task TestSymbolFound_ExceptionLine_NestedLocalFunctions()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at C.<M>g__Local|0_1()",
             """
             using System;
@@ -803,12 +738,10 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Fact(Skip = "Top level local functions are not supported")]
     public Task TestSymbolFound_ExceptionLine_LocalInTopLevelStatement()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.Program.<Main$>g__LocalInTopLevelStatement|0_0()",
             """
             using System;
@@ -820,12 +753,10 @@ public sealed class StackTraceExplorerTests
                 throw new Exception();
             }
             """);
-    }
 
     [Fact(Skip = "The parser doesn't correctly handle ..ctor() methods yet")]
     public Task TestSymbolFound_ExceptionLine_Constructor()
-    {
-        return TestSymbolFoundAsync(
+        => TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass..ctor()",
             """
             namespace ConsoleApp4
@@ -844,7 +775,6 @@ public sealed class StackTraceExplorerTests
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("alkjsdflkjasdlkfjasd")]

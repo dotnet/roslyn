@@ -24,14 +24,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Protected Overrides Function GetIntrinsicOperatorDocumentationAsync(node As CastExpressionSyntax, document As Document, cancellationToken As CancellationToken) As ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
             Select Case node.Kind
                 Case SyntaxKind.CTypeExpression
-                    Return ValueTaskFactory.FromResult(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New CTypeCastExpressionDocumentation()})
+                    Return RoslynValueTaskExtensions.FromResult(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New CTypeCastExpressionDocumentation()})
                 Case SyntaxKind.DirectCastExpression
-                    Return ValueTaskFactory.FromResult(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New DirectCastExpressionDocumentation()})
+                    Return RoslynValueTaskExtensions.FromResult(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New DirectCastExpressionDocumentation()})
                 Case SyntaxKind.TryCastExpression
-                    Return ValueTaskFactory.FromResult(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New TryCastExpressionDocumentation()})
+                    Return RoslynValueTaskExtensions.FromResult(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New TryCastExpressionDocumentation()})
             End Select
 
-            Return ValueTaskFactory.FromResult(SpecializedCollections.EmptyEnumerable(Of AbstractIntrinsicOperatorDocumentation)())
+            Return RoslynValueTaskExtensions.FromResult(SpecializedCollections.EmptyEnumerable(Of AbstractIntrinsicOperatorDocumentation)())
         End Function
 
         Protected Overrides Function IsTriggerToken(token As SyntaxToken) As Boolean

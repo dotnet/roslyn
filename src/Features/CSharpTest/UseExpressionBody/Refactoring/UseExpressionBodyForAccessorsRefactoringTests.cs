@@ -81,7 +81,7 @@ public sealed class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSha
 
     [Fact]
     public Task TestUpdatePropertyIfPropertyWantsBlockAndAccessorWantsExpression()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -121,7 +121,7 @@ public sealed class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSha
 
     [Fact]
     public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -144,7 +144,7 @@ public sealed class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSha
 
     [Fact]
     public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -167,7 +167,7 @@ public sealed class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSha
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -193,7 +193,7 @@ public sealed class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSha
 
     [Fact]
     public Task TestOfferExpressionBodyForPropertyIfPropertyAndAccessorBothPreferExpressions()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -227,7 +227,7 @@ public sealed class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSha
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -245,7 +245,7 @@ public sealed class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSha
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -263,7 +263,7 @@ public sealed class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSha
 
     [Fact]
     public Task TestOfferedForPropertyIfUserPrefersBlockPropertiesAndHasBlockProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -281,7 +281,7 @@ public sealed class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSha
 
     [Fact]
     public Task TestOfferForPropertyIfPropertyPrefersBlockButCouldBecomeExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -298,7 +298,7 @@ public sealed class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSha
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
     public Task TestAccessorListFormatting()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -321,7 +321,7 @@ public sealed class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSha
 
     [Fact]
     public Task TestOfferedWithSelectionInsideExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {

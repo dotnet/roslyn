@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
@@ -28,7 +29,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestSingleGetterFromField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -52,7 +53,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestSingleGetterFromField_FileScopedNamespace()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace N;
 
@@ -80,7 +81,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestSingleGetterFromField_InRecord()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             record Class
             {
@@ -101,6 +102,32 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 int P { get; }
             }
             """, new TestParameters(TestOptions.RegularPreview));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76813")]
+    public Task TestSingleGetterFromField_CommentBeforeField()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                // Comment to preserve
+                [|int i|];
+
+                int P
+                {
+                    get
+                    {
+                        return i;
+                    }
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                // Comment to preserve
+                int P { get; }
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28511")]
     public Task TestNullable1()
@@ -123,7 +150,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28511")]
     public Task TestNullable2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -149,7 +176,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28511")]
     public Task TestNullable3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -173,7 +200,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28511")]
     public Task TestNullable4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -215,6 +242,39 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             struct MutableInt { public int Value; }
             """);
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76815")]
+    [InlineData("DateTime")]
+    [InlineData("ArraySegment<int>")]
+    [InlineData("DateTimeOffset")]
+    [InlineData("Guid")]
+    [InlineData("Index")]
+    [InlineData("Range")]
+    [InlineData("ReadOnlyMemory<int>")]
+    [InlineData("ReadOnlySpan<int>")]
+    [InlineData("TimeSpan")]
+    public Task TestWellKnownImmutableValueType1(string typeName)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            class Class
+            {
+                [|System.{{typeName}} i|];
+
+                System.{{typeName}} P
+                {
+                    get
+                    {
+                        return i;
+                    }
+                }
+            }
+            """,
+            $$"""
+            class Class
+            {
+                System.{{typeName}} P { get; }
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28511")]
     public Task TestMutableValueType1()
         => TestMissingInRegularAndScriptAsync(
@@ -236,7 +296,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28511")]
     public Task TestMutableValueType2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -299,7 +359,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28511")]
     public Task TestErrorType2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -341,7 +401,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28511")]
     public Task TestErrorType4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -365,7 +425,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28511")]
     public Task TestErrorType5()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -410,7 +470,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 public int P { get; private set; }
             }
             """,
-            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            new(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
 
     [Fact]
     public Task TestCSharp5_2()
@@ -432,7 +492,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -474,7 +534,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestSingleGetterFromProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -516,7 +576,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestGetterAndSetter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -545,7 +605,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestSingleGetterWithThis()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -587,7 +647,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestGetterAndSetterWithThis()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -860,7 +920,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestIfUnrelatedSymbolUsedInRefExpression()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -955,7 +1015,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestFieldWithMultipleDeclarators1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -981,7 +1041,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestFieldWithMultipleDeclarators2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1007,7 +1067,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestFieldWithMultipleDeclarators3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1033,7 +1093,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestFieldAndPropertyInDifferentParts()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             partial class Class
             {
@@ -1090,7 +1150,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestUpdateReferences()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1124,7 +1184,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestUpdateReferencesConflictResolution()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1158,7 +1218,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestWriteInConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1192,7 +1252,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestWriteInNotInConstructor1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1226,7 +1286,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestWriteInNotInConstructor2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1260,7 +1320,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30108")]
     public Task TestWriteInSimpleExpressionLambdaInConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1291,7 +1351,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30108")]
     public Task TestWriteInSimpleBlockLambdaInConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1328,7 +1388,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30108")]
     public Task TestWriteInParenthesizedExpressionLambdaInConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1359,7 +1419,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30108")]
     public Task TestWriteInParenthesizedBlockLambdaInConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1396,7 +1456,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30108")]
     public Task TestWriteInAnonymousMethodInConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1433,7 +1493,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30108")]
     public Task TestWriteInLocalFunctionInConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1466,7 +1526,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30108")]
     public Task TestWriteInExpressionBodiedLocalFunctionInConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1493,7 +1553,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestReadInExpressionBodiedLocalFunctionInConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1540,7 +1600,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestSingleLine1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1557,7 +1617,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestSingleLine2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1577,7 +1637,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestSingleLine3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1598,7 +1658,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task Tuple_SingleGetterFromField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1622,7 +1682,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TupleWithNames_SingleGetterFromField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1664,7 +1724,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TupleWithOneName_SingleGetterFromField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1688,7 +1748,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task Tuple_Initializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1736,7 +1796,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23216")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/23215")]
     public Task TestFixAllInDocument1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1772,7 +1832,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26527")]
     public Task TestFixAllInDocument2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             internal struct StringFormat
             {
@@ -1872,7 +1932,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ExpressionBodiedMemberGetOnly()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1892,7 +1952,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ExpressionBodiedMemberGetOnlyWithInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1912,7 +1972,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ExpressionBodiedMemberGetOnlyWithInitializerAndNeedsSetter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1934,7 +1994,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ExpressionBodiedMemberGetterAndSetter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1955,7 +2015,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ExpressionBodiedMemberGetter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1972,7 +2032,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ExpressionBodiedMemberGetterWithSetterNeeded()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1991,7 +2051,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ExpressionBodiedMemberGetterWithInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2008,7 +2068,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ExpressionBodiedGetterAndSetter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2028,7 +2088,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task ExpressionBodiedGetterAndSetterWithInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2048,7 +2108,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25401")]
     public Task TestGetterAccessibilityDiffers()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2077,7 +2137,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25401")]
     public Task TestSetterAccessibilityDiffers()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2106,7 +2166,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26858")]
     public Task TestPreserveTrailingTrivia1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Goo
             {
@@ -2126,7 +2186,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26858")]
     public Task TestPreserveTrailingTrivia2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Goo
             {
@@ -2146,7 +2206,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26858")]
     public Task TestPreserveTrailingTrivia3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Goo
             {
@@ -2168,7 +2228,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26858")]
     public Task TestKeepLeadingBlank()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Goo
             {
@@ -2192,7 +2252,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestMultipleFieldsAbove1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2219,7 +2279,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestMultipleFieldsAbove2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2246,7 +2306,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestMultipleFieldsAbove3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2274,7 +2334,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestMultipleFieldsAbove4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2302,7 +2362,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestMultipleFieldsBelow1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2329,7 +2389,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestMultipleFieldsBelow2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2356,7 +2416,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestMultipleFieldsBelow3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2384,7 +2444,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestMultipleFieldsBelow4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2412,7 +2472,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27675")]
     public Task TestSingleLineWithDirective()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2441,7 +2501,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27675")]
     public Task TestMultipleFieldsWithDirective()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2474,7 +2534,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27675")]
     public Task TestSingleLineWithDoubleDirectives()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestClass
             {
@@ -2504,7 +2564,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40622")]
     public Task TestUseTabs()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public class Foo
             {
@@ -2522,7 +2582,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40622")]
     public Task TestUseSpaces()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public class Foo
             {
@@ -2540,7 +2600,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40622")]
     public Task TestUseTabs_Editorconfig()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -2578,7 +2638,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40622")]
     public Task TestUseSpaces_Editorconfig()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -2635,7 +2695,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47999")]
     public Task TestPropertyIsReadOnlyAndSetterNeeded()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             struct S
             {
@@ -2654,7 +2714,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47999")]
     public Task TestPropertyIsReadOnlyWithNoAccessModifierAndSetterNeeded()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             struct S
             {
@@ -2673,7 +2733,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47999")]
     public Task TestPropertyIsReadOnlyAndSetterUnneeded()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             struct S
             {
@@ -2690,7 +2750,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestPropertyInRecordStruct()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             record struct S
             {
@@ -2744,7 +2804,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25408")]
     public Task TestLinkedFile()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
@@ -2802,7 +2862,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32597")]
     public Task TestAssignedVariable1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public struct UInt128
             {
@@ -2940,4 +3000,62 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 readonly ref int P => ref i;
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77011")]
+    public Task TestRemoveThisIfPreferredCodeStyle()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                [|private readonly string a;|]
+
+                public C(string a)
+                {
+                    this.a = a;
+                }
+
+                public string A => a;
+            }
+            """,
+            """
+            class C
+            {
+                public C(string a)
+                {
+                    A = a;
+                }
+
+                public string A { get; }
+            }
+            """,
+            new(options: Option(CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Error)));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77011")]
+    public Task TestKeepThisIfPreferredCodeStyle()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                [|private readonly string a;|]
+
+                public C(string a)
+                {
+                    this.a = a;
+                }
+
+                public string A => a;
+            }
+            """,
+            """
+            class C
+            {
+                public C(string a)
+                {
+                    this.A = a;
+                }
+
+                public string A { get; }
+            }
+            """,
+            new(options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error)));
 }

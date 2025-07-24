@@ -68,7 +68,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task TestPartialSelection_StaticOptionTrue()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -97,7 +97,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task TestPartialSelection_StaticOptionFalse()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -126,7 +126,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task TestPartialSelection_StaticOptionDefault()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -155,7 +155,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task TestUseExpressionBodyWhenPossible()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -181,7 +181,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -207,7 +207,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -239,7 +239,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -270,7 +270,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -301,7 +301,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -332,7 +332,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task TestReadOfDataThatDoesNotFlowIn()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -373,7 +373,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task TestOnStatementAfterUnconditionalGoto()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             delegate int del(int i);
 
@@ -415,7 +415,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task TestOnNamespace()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -442,7 +442,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task TestOnType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -469,7 +469,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task TestOnBase()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -496,7 +496,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task TestOnActionInvocation()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -537,7 +537,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task DisambiguateCallSiteIfNecessary1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -577,7 +577,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
     [Fact]
     public Task DisambiguateCallSiteIfNecessary2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -711,8 +711,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
                 }
             }
             """,
-
-parseOptions: TestOptions.Regular, index: CodeActionIndex);
+            new(parseOptions: TestOptions.Regular, index: CodeActionIndex));
 
     [Fact]
     public Task DoNotOverParenthesizeGenerics()
@@ -810,12 +809,11 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
                 }
             }
             """,
-
-parseOptions: TestOptions.Regular, index: CodeActionIndex);
+            new(parseOptions: TestOptions.Regular, index: CodeActionIndex));
 
     [Fact]
     public Task PreserveCommentsBeforeDeclaration_1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Construct
             {
@@ -858,7 +856,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact]
     public Task PreserveCommentsBeforeDeclaration_2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Construct
             {
@@ -909,7 +907,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact]
     public Task PreserveCommentsBeforeDeclaration_3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Construct
             {
@@ -957,7 +955,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     public Task TestTuple()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -986,7 +984,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     public Task TestTupleDeclarationWithNames()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1015,7 +1013,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     public Task TestTupleDeclarationWithSomeNames()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1044,7 +1042,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     public Task TestTupleWith1Arity()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class Program
@@ -1075,7 +1073,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     public Task TestTupleLiteralWithNames()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1104,7 +1102,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     public Task TestTupleDeclarationAndLiteralWithNames()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1133,7 +1131,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     public Task TestTupleIntoVar()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1162,7 +1160,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     public Task RefactorWithoutSystemValueTuple()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1191,7 +1189,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     public Task TestTupleWithNestedNamedTuple()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1220,7 +1218,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     public Task TestDeconstruction()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1249,7 +1247,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     public Task TestDeconstruction2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1281,7 +1279,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
     [Fact]
     [CompilerTrait(CompilerFeature.OutVar)]
     public Task TestOutVar()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1314,7 +1312,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
     [Fact]
     [CompilerTrait(CompilerFeature.Patterns)]
     public Task TestIsPattern()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1347,7 +1345,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
     [Fact]
     [CompilerTrait(CompilerFeature.Patterns)]
     public Task TestOutVarAndIsPattern()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1380,7 +1378,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
     [Fact]
     [CompilerTrait(CompilerFeature.Patterns)]
     public Task ConflictingOutVarLocals()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1423,7 +1421,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
     [Fact]
     [CompilerTrait(CompilerFeature.Patterns)]
     public Task ConflictingPatternLocals()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1465,7 +1463,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact]
     public Task TestCancellationTokenGoesLast()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading;
@@ -1509,7 +1507,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact]
     public Task TestUseVar1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1558,7 +1556,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact]
     public Task TestUseVar2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1619,7 +1617,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
             }
             """;
         await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
-        await TestInRegularAndScript1Async(code, """
+        await TestInRegularAndScriptAsync(code, """
             class C
             {
                 public static void Main()
@@ -1638,7 +1636,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact]
     public Task ExtractLocalFunctionCall_2()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 public static void Main()
@@ -1665,7 +1663,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
     public Task ExtractLocalFunctionCall_3()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 public static void Main()
@@ -1698,7 +1696,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
     public Task ExtractFunctionUnderLocalFunctionCall()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 int Testing;
@@ -1763,7 +1761,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
             }
             """;
         await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
-        await TestInRegularAndScript1Async(code, """
+        await TestInRegularAndScriptAsync(code, """
             class C
             {
                 public static void Main(string[] args)
@@ -1782,7 +1780,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact]
     public Task ExtractLocalFunctionInterior()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 public static void Main()
@@ -1817,7 +1815,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact]
     public Task ExtractLocalFunctionWithinForLoop()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void method()
@@ -1857,7 +1855,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact]
     public Task ExtractLocalFunctionWithinForLoop2()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void method()
@@ -1896,7 +1894,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
     [Fact]
     public Task ExtractLocalFunctionWithinForLoop3()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void method()
@@ -1961,7 +1959,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
                     }
                 }
             }
-            """, TestOptions.Regular7_1, index: CodeActionIndex);
+            """, new(TestOptions.Regular7_1, index: CodeActionIndex));
 
     [Fact]
     public Task TestDeconstruction4()
@@ -1990,7 +1988,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
                     }
                 }
             }
-            """, TestOptions.Regular7_1, index: CodeActionIndex);
+            """, new(TestOptions.Regular7_1, index: CodeActionIndex));
 
     [Fact]
     public Task TestDeconstruction5()
@@ -2019,11 +2017,11 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
                     }
                 }
             }
-            """, TestOptions.Regular7_1, index: CodeActionIndex);
+            """, new(TestOptions.Regular7_1, index: CodeActionIndex));
 
     [Fact]
     public Task TestIndexExpression()
-        => TestInRegularAndScript1Async(TestSources.Index + """
+        => TestInRegularAndScriptAsync(TestSources.Index + """
             class Program
             {
                 static void Main(string[] args)
@@ -2050,7 +2048,7 @@ class Program
 
     [Fact]
     public Task TestRangeExpression_Empty()
-        => TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
+        => TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + """
             class Program
             {
                 static void Main(string[] args)
@@ -2077,7 +2075,7 @@ class Program
 
     [Fact]
     public Task TestRangeExpression_Left()
-        => TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
+        => TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + """
             class Program
             {
                 static void Main(string[] args)
@@ -2104,7 +2102,7 @@ class Program
 
     [Fact]
     public Task TestRangeExpression_Right()
-        => TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
+        => TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + """
             class Program
             {
                 static void Main(string[] args)
@@ -2131,7 +2129,7 @@ class Program
 
     [Fact]
     public Task TestRangeExpression_Both()
-        => TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
+        => TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + """
             class Program
             {
                 static void Main(string[] args)
@@ -2158,7 +2156,7 @@ class Program
 
     [Fact]
     public Task TestAnnotatedNullableReturn()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2196,7 +2194,7 @@ class Program
 
     [Fact]
     public Task TestAnnotatedNullableParameters1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2235,7 +2233,7 @@ class Program
 
     [Fact]
     public Task TestAnnotatedNullableParameters2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2276,7 +2274,7 @@ class Program
 
     [Fact]
     public Task TestAnnotatedNullableParameters3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2313,7 +2311,7 @@ class Program
 
     [Fact]
     public Task TestAnnotatedNullableParameters4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2348,7 +2346,7 @@ class Program
 
     [Fact]
     public Task TestFlowStateNullableParameters1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2383,7 +2381,7 @@ class Program
 
     [Fact]
     public Task TestFlowStateNullableParameters2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2418,7 +2416,7 @@ class Program
 
     [Fact]
     public Task TestFlowStateNullableParameters3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2453,7 +2451,7 @@ class Program
 
     [Fact]
     public Task TestFlowStateNullableParameters_MultipleStates()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2503,7 +2501,7 @@ class Program
 
     [Fact]
     public Task TestFlowStateNullableParameters_MultipleStatesNonNullReturn()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2553,7 +2551,7 @@ class Program
 
     [Fact]
     public Task TestFlowStateNullableParameters_MultipleStatesNullReturn()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2601,7 +2599,7 @@ class Program
 
     [Fact]
     public Task TestFlowStateNullableParameters_RefNotNull()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2653,7 +2651,7 @@ class Program
     // that the value is indeed not null.
     [Fact]
     public Task TestFlowNullableReturn_NotNull1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2691,7 +2689,7 @@ class Program
 
     [Fact]
     public Task TestFlowNullableReturn_NotNull2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2730,7 +2728,7 @@ class Program
             """, CodeActionIndex);
     [Fact]
     public Task TestFlowNullable_Lambda()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2782,7 +2780,7 @@ class Program
 
     [Fact]
     public Task TestFlowNullable_LambdaWithReturn()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2834,7 +2832,7 @@ class Program
 
     [Fact]
     public Task TestExtractReadOnlyMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             struct S1
             {
@@ -2863,7 +2861,7 @@ class Program
 
     [Fact]
     public Task TestExtractReadOnlyMethodInReadOnlyStruct()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             readonly struct S1
             {
@@ -2892,7 +2890,7 @@ class Program
 
     [Fact]
     public Task TestExtractNonReadOnlyMethodInReadOnlyMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             struct S1
             {
@@ -2921,7 +2919,7 @@ class Program
 
     [Fact]
     public Task TestExtractNullableObjectWithExplicitCast()
-    => TestInRegularAndScript1Async(
+    => TestInRegularAndScriptAsync(
         """
         #nullable enable
 
@@ -2960,7 +2958,7 @@ class Program
 
     [Fact]
     public Task TestExtractNotNullableObjectWithExplicitCast()
-    => TestInRegularAndScript1Async(
+    => TestInRegularAndScriptAsync(
         """
         #nullable enable
 
@@ -2999,7 +2997,7 @@ class Program
 
     [Fact]
     public Task TestExtractNotNullableWithExplicitCast()
-    => TestInRegularAndScript1Async(
+    => TestInRegularAndScriptAsync(
         """
         #nullable enable
 
@@ -3052,7 +3050,7 @@ class Program
 
     [Fact]
     public Task TestExtractNullableWithExplicitCast()
-    => TestInRegularAndScript1Async(
+    => TestInRegularAndScriptAsync(
         """
         #nullable enable
 
@@ -3105,7 +3103,7 @@ class Program
 
     [Fact]
     public Task TestExtractNotNullableWithExplicitCastSelected()
-    => TestInRegularAndScript1Async(
+    => TestInRegularAndScriptAsync(
         """
         #nullable enable
 
@@ -3144,7 +3142,7 @@ class Program
 
     [Fact]
     public Task TestExtractNullableWithExplicitCastSelected()
-    => TestInRegularAndScript1Async(
+    => TestInRegularAndScriptAsync(
         """
         #nullable enable
 
@@ -3182,7 +3180,7 @@ class Program
         """, CodeActionIndex);
     [Fact]
     public Task TestExtractNullableNonNullFlowWithExplicitCastSelected()
-    => TestInRegularAndScript1Async(
+    => TestInRegularAndScriptAsync(
         """
         #nullable enable
 
@@ -3221,7 +3219,7 @@ class Program
 
     [Fact]
     public Task TestExtractNullableToNonNullableWithExplicitCastSelected()
-    => TestInRegularAndScript1Async(
+    => TestInRegularAndScriptAsync(
         """
         #nullable enable
 
@@ -3260,7 +3258,7 @@ class Program
 
     [Fact]
     public Task TestExtractLocalFunction_EnsureUniqueFunctionName()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Test
             {
@@ -3297,7 +3295,7 @@ class Program
 
     [Fact]
     public Task TestExtractLocalFunctionWithinLocalFunction_EnsureUniqueFunctionName()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Test
             {
@@ -3342,7 +3340,7 @@ class Program
 
     [Fact]
     public Task TestExtractNonStaticLocalMethod_WithDeclaration()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Test
             {
@@ -3377,7 +3375,7 @@ class Program
 
     [Fact]
     public Task ArgumentlessReturnWithConstIfExpression()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3417,7 +3415,7 @@ class Program
 
     [Fact]
     public Task TestPartialSelection_StaticOptionTrue_EarlierCSharpVersionShouldBeNonStatic()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -3446,7 +3444,7 @@ class Program
 
     [Fact]
     public Task TestPartialSelection_StaticOptionTrue_EarlierCSharpVersionShouldBeNonStatic2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -3475,7 +3473,7 @@ class Program
 
     [Fact]
     public Task TestPartialSelection_StaticOptionTrue_CSharp8AndLaterStaticSupported()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -3504,7 +3502,7 @@ class Program
 
     [Fact]
     public Task TestPartialSelection_StaticOptionTrue_CSharp8AndLaterStaticSupported2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -3533,7 +3531,7 @@ class Program
 
     [Fact]
     public Task TestInPropertyInitializer_Get()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3583,7 +3581,7 @@ class Program
 
     [Fact]
     public Task TestInPropertyInitializer_Get2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3633,7 +3631,7 @@ class Program
 
     [Fact]
     public Task TestInPropertyInitializer_Set()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3680,7 +3678,7 @@ class Program
 
     [Fact]
     public Task TestInPropertyInitializer_Set2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3727,7 +3725,7 @@ class Program
 
     [Fact]
     public Task TestInIndexer_Get()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3784,7 +3782,7 @@ class Program
 
     [Fact]
     public Task TestInIndexer_Get2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3841,7 +3839,7 @@ class Program
 
     [Fact]
     public Task TestInIndexer_Set()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3898,7 +3896,7 @@ class Program
 
     [Fact]
     public Task TestInIndexer_Set2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3981,7 +3979,7 @@ class Program
 
     [Fact]
     public Task TestInIntegerExpression()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class MethodExtraction
             {
@@ -4008,7 +4006,7 @@ class Program
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
     public Task TestEditorconfigSetting_StaticLocalFunction_True()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
@@ -4053,7 +4051,7 @@ class Program
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
     public Task TestEditorconfigSetting_StaticLocalFunction_False()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
@@ -4098,7 +4096,7 @@ class Program
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
     public Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_True()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
@@ -4140,7 +4138,7 @@ class Program
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
     public Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_False()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
@@ -4231,7 +4229,7 @@ class Program
             </Workspace>
             """;
 
-        await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
+        await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
@@ -4280,7 +4278,7 @@ class Program
             </Workspace>
             """;
 
-        await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
+        await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
@@ -4331,7 +4329,7 @@ class Program
             </Workspace>
             """;
 
-        await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
+        await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
@@ -4380,7 +4378,7 @@ class Program
             </Workspace>
             """;
 
-        await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
+        await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
@@ -4433,14 +4431,14 @@ class Program
             </Workspace>
             """;
 
-        await TestInRegularAndScript1Async(input, expected, CodeActionIndex,
+        await TestInRegularAndScriptAsync(input, expected, CodeActionIndex,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOption2.FalseWithSilentEnforcement)));
     }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/40654")]
     public Task TestOnInvalidUsingStatement_MultipleStatements()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -4468,7 +4466,7 @@ class Program
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/40555")]
     public Task TestOnLocalFunctionHeader_Parameter()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System;
             class C
             {
@@ -4506,7 +4504,7 @@ class Program
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/40555")]
     public Task TestOnLocalFunctionHeader_Parameter_ExpressionBody()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System;
             class C
             {
@@ -4540,7 +4538,7 @@ class Program
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/40555")]
     public Task TestOnLocalFunctionHeader_Identifier()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System;
             class C
             {
@@ -4578,7 +4576,7 @@ class Program
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/40555")]
     public Task TestOnLocalFunctionHeader_Identifier_ExpressionBody()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System;
             class C
             {
@@ -4891,7 +4889,7 @@ class Program
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/22150")]
     public Task ExtractLocalFunctionToLocalFunction()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 static void Main(string[] args)
@@ -5150,7 +5148,7 @@ class Program
             {
                 return "string";
             }
-            """, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact]
     public Task TestMissingOnExtractLocalFunctionInNamespace()
@@ -5208,7 +5206,7 @@ class Program
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/45422")]
     public Task TestExtractLocalFunctionWithExtraBrace()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 static void M()
@@ -5291,7 +5289,7 @@ class Program
                     }
                 }
             }
-            """, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+            """, new(TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex));
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/55031")]
@@ -5335,7 +5333,7 @@ class Program
                     }
                 }
             }
-            """, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+            """, new(TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex));
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/55031")]
@@ -5381,7 +5379,7 @@ class Program
                     }
                 }
             }
-            """, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+            """, new(TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex));
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/55031")]
@@ -5413,7 +5411,7 @@ class Program
                     }
                 }
             }
-            """, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+            """, new(TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex));
 
     [Fact]
     public Task TestExtractLocalFunction_MissingInBaseInitializer()
@@ -5489,7 +5487,7 @@ class Program
                 {
                 }
             }
-            """, TestOptions.Regular, index: CodeActionIndex);
+            """, new(TestOptions.Regular, index: CodeActionIndex));
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/63917")]
     [InlineData("true")]
@@ -5525,5 +5523,5 @@ class Program
                     }
                 }
             }
-            """, TestOptions.Regular, index: CodeActionIndex);
+            """, new(TestOptions.Regular, index: CodeActionIndex));
 }

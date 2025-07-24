@@ -128,7 +128,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                     }
                 }  
             }
-            """, parseOptions: CSharp8ParseOptions);
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38734")]
     public Task ShouldTriggerIfCapturesThisParameter2()
@@ -164,7 +164,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                     }
                 }  
             }
-            """, parseOptions: CSharp8ParseOptions);
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38734")]
     public Task ShouldTriggerIfCapturesThisParameter3()
@@ -200,7 +200,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                     }
                 }  
             }
-            """, parseOptions: CSharp8ParseOptions);
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38734")]
     public Task ShouldTriggerIfCapturesThisParameter4()
@@ -236,7 +236,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                     }
                 }  
             }
-            """, parseOptions: CSharp8ParseOptions);
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task ShouldTriggerIfExplicitlyPassedInThisParameter()
@@ -274,7 +274,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                     }
                 }  
             }
-            """, parseOptions: CSharp8ParseOptions);
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task ShouldTriggerForCSharp8()
@@ -307,7 +307,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                 }  
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestMultipleVariables()
@@ -341,7 +341,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                     }
                 }
             }
-            """, parseOptions: CSharp8ParseOptions);
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestMultipleCalls()
@@ -376,7 +376,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                 }
             }
             """
-, parseOptions: CSharp8ParseOptions);
+, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestMultipleCallsWithExistingParameters()
@@ -413,7 +413,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                 }
             }
             """
-, parseOptions: CSharp8ParseOptions);
+, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestRecursiveCall()
@@ -449,7 +449,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                     }
                 }
             }
-            """, parseOptions: CSharp8ParseOptions);
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestCallInArgumentList()
@@ -483,7 +483,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                     }
                 }
             }
-            """, parseOptions: CSharp8ParseOptions);
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestCallsWithNamedArguments()
@@ -520,7 +520,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                 }
             }
             """
-, parseOptions: CSharp8ParseOptions);
+, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestCallsWithDafaultValue()
@@ -557,7 +557,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                 }
             }
             """
-, parseOptions: CSharp8ParseOptions);
+, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestWarningAnnotation()
@@ -590,7 +590,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                 }  
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
     public Task TestNonCamelCaseCapture()
@@ -625,7 +625,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                 }  
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46858")]
     public Task ShouldNotTriggerIfCallsOtherLocalFunction()
@@ -691,7 +691,7 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
                 }  
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53179")]
     public Task TestLocalFunctionAsTopLevelStatement()
@@ -711,6 +711,6 @@ public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCode
             {
                 return y;
             }
-            """, parseOptions: CSharp8ParseOptions);
+            """, new(parseOptions: CSharp8ParseOptions));
 }
 

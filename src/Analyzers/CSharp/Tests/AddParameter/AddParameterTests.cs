@@ -2477,7 +2477,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             void local(int x, int y, int v)
             {
             }
-            """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44271")]
     public Task TopLevelStatement_Nested()
@@ -2579,7 +2579,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             {
                 public static class IsExternalInit { }
             }
-            """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact]
     public Task Test_PrimaryConstructor_Class()
@@ -2593,7 +2593,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             var r = new R(1, b);
 
             class R(int A, string b);
-            """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12));
+            """, new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54408")]
     public Task TestPositionalRecordStruct()
@@ -2617,7 +2617,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             {
                 public static class IsExternalInit { }
             }
-            """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact]
     public Task Test_PrimaryConstructor_Struct()
@@ -2631,11 +2631,11 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             var r = new R(1, b);
 
             struct R(int A, string b);
-            """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12));
+            """, new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56952")]
     public Task TestRecordsNamingConventions()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             [|new Test("repro")|];
 
             record Test();
@@ -2649,7 +2649,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestNamingConventions_PrimaryConstructor_Class()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             [|new Test("repro")|];
 
             class Test();
@@ -2661,7 +2661,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56952")]
     public Task TestRecordsNamingConventions_RecordStruct()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             [|new Test("repro")|];
 
             record struct Test();
@@ -2675,7 +2675,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestNamingConventions_PrimaryConstructor_Struct()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             [|new Test("repro")|];
 
             struct Test();
@@ -2687,7 +2687,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61715")]
     public Task TestMethodGroup1()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             public class Example
             {
                 public void Add(int x)
@@ -2723,7 +2723,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61715")]
     public Task TestMethodGroup2()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             public class Example
             {
                 public void Add(int x, string y)
@@ -2759,7 +2759,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61715")]
     public Task TestMethodGroup3()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             public class Example
             {
                 public int Add(int x, string y)
@@ -2797,7 +2797,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
     public Task TestAddConstructorParameterWithExistingField_BlockInitialize()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2846,7 +2846,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
     public Task TestAddConstructorParameterWithExistingField_ExpressionBodyInitialize()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2889,7 +2889,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
     public Task TestAddConstructorParameterWithExistingField_TupleInitialize()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2935,7 +2935,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
     public Task TestAddConstructorParameterWithExistingField_UnderscoreName()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2976,7 +2976,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
     public Task TestAddConstructorParameterWithExistingField_PrimaryConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C()
             {
@@ -3008,7 +3008,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
     public Task TestAddConstructorParameterWithExistingProperty_PrimaryConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C()
             {
@@ -3040,7 +3040,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
     public Task TestAddConstructorParameterWithExistingThrowingProperty_PrimaryConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 

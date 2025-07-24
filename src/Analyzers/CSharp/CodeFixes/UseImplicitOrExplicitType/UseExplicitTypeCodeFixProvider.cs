@@ -96,7 +96,8 @@ internal sealed class UseExplicitTypeCodeFixProvider() : SyntaxEditorBasedCodeFi
             var leadingTrivia = declarationExpression.GetLeadingTrivia()
                 .Concat(variableDesignation.GetAllPrecedingTriviaToPreviousToken().Where(t => !t.IsWhitespace()).Select(t => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation)));
 
-            var tupleDeclaration = GenerateTupleDeclaration(tupleTypeSymbol, variableDesignation).WithLeadingTrivia(leadingTrivia);
+            var tupleDeclaration = GenerateTupleDeclaration(
+                semanticModel, tupleTypeSymbol, variableDesignation, cancellationToken).WithLeadingTrivia(leadingTrivia);
 
             editor.ReplaceNode(declarationExpression, tupleDeclaration);
         }
@@ -171,7 +172,11 @@ internal sealed class UseExplicitTypeCodeFixProvider() : SyntaxEditorBasedCodeFi
         return typeSymbol;
     }
 
-    private static ExpressionSyntax GenerateTupleDeclaration(ITypeSymbol typeSymbol, ParenthesizedVariableDesignationSyntax parensDesignation)
+    private static ExpressionSyntax GenerateTupleDeclaration(
+        SemanticModel semanticModel,
+        ITypeSymbol typeSymbol,
+        ParenthesizedVariableDesignationSyntax parensDesignation,
+        CancellationToken cancellationToken)
     {
         Debug.Assert(typeSymbol.IsTupleType);
         var elements = ((INamedTypeSymbol)typeSymbol).TupleElements;
@@ -186,12 +191,18 @@ internal sealed class UseExplicitTypeCodeFixProvider() : SyntaxEditorBasedCodeFi
             switch (designation.Kind())
             {
                 case SyntaxKind.SingleVariableDesignation:
+                    var singleVariableDesignation = (SingleVariableDesignationSyntax)designation;
+                    var localSymbol = semanticModel.GetDeclaredSymbol(singleVariableDesignation, cancellationToken);
+                    var symbolType = localSymbol.GetSymbolType() ?? type;
+                    newDeclaration = DeclarationExpression(symbolType.GenerateTypeSyntax(allowVar: false), singleVariableDesignation);
+                    break;
                 case SyntaxKind.DiscardDesignation:
                     var typeName = type.GenerateTypeSyntax(allowVar: false);
                     newDeclaration = DeclarationExpression(typeName, designation);
                     break;
                 case SyntaxKind.ParenthesizedVariableDesignation:
-                    newDeclaration = GenerateTupleDeclaration(type, (ParenthesizedVariableDesignationSyntax)designation);
+                    newDeclaration = GenerateTupleDeclaration(
+                        semanticModel, type, (ParenthesizedVariableDesignationSyntax)designation, cancellationToken);
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(designation.Kind());

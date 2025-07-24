@@ -67,7 +67,7 @@ internal sealed partial class RemoteProcessTelemetryService(
                 _performanceReporter = new PerformanceReporter(telemetrySession, diagnosticAnalyzerPerformanceTracker, _shutdownCancellationSource.Token);
             }
 
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 
@@ -85,7 +85,7 @@ internal sealed partial class RemoteProcessTelemetryService(
             SetRoslynLogger(loggerTypeNames, () => new EtwLogger(logChecker));
             SetRoslynLogger(loggerTypeNames, () => new TraceLogger(logChecker));
 
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 
