@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -38,6 +39,14 @@ internal static class RemoteUtilities
             }
         }
 
+        foreach (var docId in solutionChanges.GetExplicitlyChangedSourceGeneratedDocuments())
+        {
+            var oldDoc = oldSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
+            var newDoc = newSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
+            var textChanges = await newDoc.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
+            builder.Add((docId, textChanges.ToImmutableArray()));
+        }
+
         return builder.ToImmutableAndClear();
     }
 
@@ -55,7 +64,8 @@ internal static class RemoteUtilities
         var documentIdsAndTexts = await documentTextChanges
             .SelectAsArrayAsync(async (tuple, cancellationToken) =>
             {
-                var oldText = await oldSolution.GetDocument(tuple.documentId).GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var document = await oldSolution.GetDocumentAsync(tuple.documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                var oldText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var newText = oldText.WithChanges(tuple.textChanges);
                 return (tuple.documentId, newText);
             }, cancellationToken)

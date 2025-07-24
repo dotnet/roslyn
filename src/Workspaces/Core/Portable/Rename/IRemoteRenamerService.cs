@@ -85,7 +85,7 @@ internal readonly struct SerializableRenameLocation(
 
     public async ValueTask<RenameLocation> RehydrateAsync(Solution solution, CancellationToken cancellation)
     {
-        var document = solution.GetRequiredDocument(DocumentId);
+        var document = await solution.GetRequiredDocumentAsync(DocumentId, includeSourceGenerated: true, cancellation).ConfigureAwait(false);
         var tree = await document.GetRequiredSyntaxTreeAsync(cancellation).ConfigureAwait(false);
 
         return new RenameLocation(
