@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1263,12 +1263,48 @@ public class Test
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
+            verifier.VerifyIL("Test.F(int[])", """
                 {
-                  // Code size        2 (0x2)
-                  .maxstack  1
-                  IL_0000:  ldnull
-                  IL_0001:  ret
+                  // Code size       54 (0x36)
+                  .maxstack  4
+                  .locals init (int& V_0,
+                                int V_1,
+                                int V_2,
+                                int V_3)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.1
+                  IL_0002:  ldelema    "int"
+                  IL_0007:  dup
+                  IL_0008:  ldind.i4
+                  IL_0009:  ldc.i4.2
+                  IL_000a:  add
+                  IL_000b:  dup
+                  IL_000c:  stloc.3
+                  IL_000d:  stind.i4
+                  IL_000e:  ldloc.3
+                  IL_000f:  ldarg.0
+                  IL_0010:  ldc.i4.3
+                  IL_0011:  ldelema    "int"
+                  IL_0016:  stloc.0
+                  IL_0017:  ldloc.0
+                  IL_0018:  ldind.i4
+                  IL_0019:  stloc.1
+                  IL_001a:  call       "System.Threading.Tasks.Task<int> Test.G()"
+                  IL_001f:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0024:  stloc.2
+                  IL_0025:  ldloc.0
+                  IL_0026:  ldloc.1
+                  IL_0027:  ldloc.2
+                  IL_0028:  add
+                  IL_0029:  dup
+                  IL_002a:  stloc.3
+                  IL_002b:  stind.i4
+                  IL_002c:  ldloc.3
+                  IL_002d:  ldc.i4.4
+                  IL_002e:  call       "int Test.H(int, int, int)"
+                  IL_0033:  pop
+                  IL_0034:  ldc.i4.1
+                  IL_0035:  ret
                 }
                 """);
         }
@@ -1434,12 +1470,48 @@ public class Test
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
+            verifier.VerifyIL("Test.F(int[])", """
                 {
-                  // Code size        2 (0x2)
-                  .maxstack  1
-                  IL_0000:  ldnull
-                  IL_0001:  ret
+                  // Code size       54 (0x36)
+                  .maxstack  4
+                  .locals init (int& V_0,
+                                int V_1,
+                                int V_2,
+                                int V_3)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.1
+                  IL_0002:  ldelema    "int"
+                  IL_0007:  dup
+                  IL_0008:  ldind.i4
+                  IL_0009:  ldc.i4.2
+                  IL_000a:  add
+                  IL_000b:  dup
+                  IL_000c:  stloc.3
+                  IL_000d:  stind.i4
+                  IL_000e:  ldloc.3
+                  IL_000f:  ldarg.0
+                  IL_0010:  ldc.i4.3
+                  IL_0011:  ldelema    "int"
+                  IL_0016:  stloc.0
+                  IL_0017:  ldloc.0
+                  IL_0018:  ldind.i4
+                  IL_0019:  stloc.1
+                  IL_001a:  call       "System.Threading.Tasks.Task<int> Test.G()"
+                  IL_001f:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0024:  stloc.2
+                  IL_0025:  ldloc.0
+                  IL_0026:  ldloc.1
+                  IL_0027:  ldloc.2
+                  IL_0028:  add
+                  IL_0029:  dup
+                  IL_002a:  stloc.3
+                  IL_002b:  stind.i4
+                  IL_002c:  ldloc.3
+                  IL_002d:  ldc.i4.4
+                  IL_002e:  call       "int Test.H(int, int, int)"
+                  IL_0033:  pop
+                  IL_0034:  ldc.i4.1
+                  IL_0035:  ret
                 }
                 """);
         }
@@ -1480,12 +1552,48 @@ public class Test
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
+            verifier.VerifyIL("Test.F(int[])", """
                 {
-                  // Code size        2 (0x2)
-                  .maxstack  1
-                  IL_0000:  ldnull
-                  IL_0001:  ret
+                  // Code size       61 (0x3d)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                int V_1,
+                                int V_2,
+                                int V_3,
+                                int V_4)
+                  IL_0000:  call       "System.Threading.Tasks.Task<int> Test.G()"
+                  IL_0005:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldc.i4.1
+                  IL_000c:  ldloc.0
+                  IL_000d:  bne.un.s   IL_0030
+                  IL_000f:  ldarg.0
+                  IL_0010:  ldc.i4.3
+                  IL_0011:  ldelema    "int"
+                  IL_0016:  dup
+                  IL_0017:  ldind.i4
+                  IL_0018:  stloc.2
+                  IL_0019:  call       "System.Threading.Tasks.Task<int> Test.G()"
+                  IL_001e:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0023:  stloc.3
+                  IL_0024:  ldloc.2
+                  IL_0025:  ldloc.3
+                  IL_0026:  add
+                  IL_0027:  dup
+                  IL_0028:  stloc.s    V_4
+                  IL_002a:  stind.i4
+                  IL_002b:  ldloc.s    V_4
+                  IL_002d:  stloc.1
+                  IL_002e:  br.s       IL_0032
+                  IL_0030:  ldc.i4.1
+                  IL_0031:  stloc.1
+                  IL_0032:  ldc.i4.0
+                  IL_0033:  ldloc.1
+                  IL_0034:  ldc.i4.4
+                  IL_0035:  call       "int Test.H(int, int, int)"
+                  IL_003a:  pop
+                  IL_003b:  ldc.i4.1
+                  IL_003c:  ret
                 }
                 """);
         }
@@ -1934,12 +2042,61 @@ public class Test
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
+            verifier.VerifyIL("Test.F(int[])", """
                 {
-                  // Code size        2 (0x2)
-                  .maxstack  1
-                  IL_0000:  ldnull
-                  IL_0001:  ret
+                  // Code size       86 (0x56)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                int V_1,
+                                bool V_2,
+                                int V_3,
+                                int V_4,
+                                int V_5)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  ldelema    "int"
+                  IL_0007:  dup
+                  IL_0008:  ldind.i4
+                  IL_0009:  stloc.0
+                  IL_000a:  call       "System.Threading.Tasks.Task<int> Test.G()"
+                  IL_000f:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0014:  stloc.1
+                  IL_0015:  ldloc.0
+                  IL_0016:  ldloc.1
+                  IL_0017:  add
+                  IL_0018:  dup
+                  IL_0019:  stloc.3
+                  IL_001a:  stind.i4
+                  IL_001b:  ldloc.3
+                  IL_001c:  call       "bool Test.B(int)"
+                  IL_0021:  stloc.2
+                  IL_0022:  ldloc.2
+                  IL_0023:  brtrue.s   IL_004b
+                  IL_0025:  ldarg.0
+                  IL_0026:  ldc.i4.1
+                  IL_0027:  ldelema    "int"
+                  IL_002c:  dup
+                  IL_002d:  ldind.i4
+                  IL_002e:  stloc.3
+                  IL_002f:  call       "System.Threading.Tasks.Task<int> Test.G()"
+                  IL_0034:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0039:  stloc.s    V_4
+                  IL_003b:  ldloc.3
+                  IL_003c:  ldloc.s    V_4
+                  IL_003e:  add
+                  IL_003f:  dup
+                  IL_0040:  stloc.s    V_5
+                  IL_0042:  stind.i4
+                  IL_0043:  ldloc.s    V_5
+                  IL_0045:  call       "bool Test.B(int)"
+                  IL_004a:  stloc.2
+                  IL_004b:  ldc.i4.0
+                  IL_004c:  ldloc.2
+                  IL_004d:  ldc.i4.4
+                  IL_004e:  call       "int Test.H(int, bool, int)"
+                  IL_0053:  pop
+                  IL_0054:  ldc.i4.1
+                  IL_0055:  ret
                 }
                 """);
         }
@@ -8232,6 +8389,23 @@ class C
             });
 
             verifier.VerifyDiagnostics();
+            verifier.VerifyIL("s1.Goo1()", """
+                {
+                  // Code size       22 (0x16)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldc.i4.s   42
+                  IL_0002:  call       "System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)"
+                  IL_0007:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000c:  stloc.0
+                  IL_000d:  ldarg.0
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldloc.0
+                  IL_0010:  call       "void s1.Bar(ref s1, int)"
+                  IL_0015:  ret
+                }
+                """);
+
             verifier.VerifyIL("c1.Goo1()", """
                 {
                   // Code size       22 (0x16)
