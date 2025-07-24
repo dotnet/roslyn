@@ -208,8 +208,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
     /// </summary>
     internal sealed class RazorSourceGenerator(Action<GeneratorExecutionContext> execute) : ISourceGenerator
     {
-        private int _callCount = 0;
-
         public void Initialize(GeneratorInitializationContext context) { }
 
         public void Execute(GeneratorExecutionContext context) => execute(context);
