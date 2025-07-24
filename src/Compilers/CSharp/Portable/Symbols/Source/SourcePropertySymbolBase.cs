@@ -1066,6 +1066,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.GetIsNewExtensionMember())
             {
                 ParameterHelpers.CheckUnderspecifiedGenericExtension(this, Parameters, diagnostics);
+
+                compilation.EnsureExtensionMarkerNameAttributeExists(diagnostics, GetFirstLocation(), modifyCompilation: true);
             }
         }
 
@@ -1424,6 +1426,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(
                     ref attributes,
                     compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
+            }
+
+            if (this.GetIsNewExtensionMember())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerNameAttribute(this, ((SourceNamedTypeSymbol)this.ContainingType).GetExtensionMarkerMetadataName()));
             }
         }
 

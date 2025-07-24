@@ -570,7 +570,8 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute,
                          WellKnownType.System_Runtime_InteropServices_CollectionsMarshal,
                          WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal,
-                         WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute
+                         WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute,
+                        WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerNameAttribute
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -653,7 +654,8 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute,
                          WellKnownType.System_Runtime_InteropServices_CollectionsMarshal,
                          WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal,
-                         WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute
+                         WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerNameAttribute
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -758,7 +760,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle,
                          WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerNameAttribute__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -969,7 +972,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle,
                          WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerNameAttribute__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,

@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             internal ImmutableArray<byte> lazyFilePathChecksum = default;
             internal string lazyDisplayFileName;
-            internal ExtensionInfo lazyExtensionInfo;
+            internal ExtensionInfo extensionInfo;
 
 #if DEBUG
             internal bool IsDefaultValue()
@@ -173,16 +173,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     (object)lazyCollectionBuilderAttributeData == CollectionBuilderAttributeData.Uninitialized &&
                     lazyFilePathChecksum.IsDefault &&
                     lazyDisplayFileName == null &&
-                    lazyExtensionInfo is null;
+                    extensionInfo is null;
             }
 #endif
         }
 
 #nullable enable
 
-        private class ExtensionInfo(MethodDefinitionHandle markerMethod)
+        private class ExtensionInfo(TypeDefinitionHandle groupingType, MethodDefinitionHandle markerMethod)
         {
-            public readonly MethodDefinitionHandle MarkerMethod = markerMethod;
+            public readonly TypeDefinitionHandle GroupingTypeHandle = groupingType;
+            public readonly MethodDefinitionHandle MarkerMethodHandle = markerMethod;
+            public PEMethodSymbol? LazyMarkerMethodSymbol;
             public StrongBox<ParameterSymbol?>? LazyExtensionParameter;
             public ConcurrentDictionary<MethodSymbol, MethodSymbol?>? LazyImplementationMap;
         }
@@ -207,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (arity == 0)
             {
-                result = new PENamedTypeSymbolNonGeneric(moduleSymbol, containingNamespace, handle, emittedNamespaceName);
+                result = new PENamedTypeSymbolNonGeneric(moduleSymbol, containingNamespace, handle, emittedNamespaceName, groupingType: default, markerMethod: default);
             }
             else
             {
@@ -217,7 +219,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     handle,
                     emittedNamespaceName,
                     genericParameterHandles,
-                    arity);
+                    arity,
+                    groupingType: default,
+                    markerMethod: default);
             }
 
             if (mrEx != null)
@@ -247,7 +251,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal static PENamedTypeSymbol Create(
             PEModuleSymbol moduleSymbol,
             PENamedTypeSymbol containingType,
-            TypeDefinitionHandle handle)
+            TypeDefinitionHandle handle,
+            TypeDefinitionHandle groupingType = default,
+            MethodDefinitionHandle markerMethod = default)
         {
             GenericParameterHandleCollection genericParameterHandles;
             ushort metadataArity;
@@ -267,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (metadataArity == 0)
             {
-                result = new PENamedTypeSymbolNonGeneric(moduleSymbol, containingType, handle, null);
+                result = new PENamedTypeSymbolNonGeneric(moduleSymbol, containingType, handle, emittedNamespaceName: null, groupingType, markerMethod);
             }
             else
             {
@@ -277,7 +283,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     handle,
                     null,
                     genericParameterHandles,
-                    arity);
+                    arity,
+                    groupingType,
+                    markerMethod);
             }
 
             if (mrEx != null || metadataArity < containerMetadataArity)
@@ -294,11 +302,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeDefinitionHandle handle,
             string emittedNamespaceName,
             ushort arity,
+            TypeDefinitionHandle groupingType,
+            MethodDefinitionHandle markerMethod,
             out bool mangleName)
         {
             Debug.Assert(!handle.IsNil);
             Debug.Assert((object)container != null);
             Debug.Assert(arity == 0 || this is PENamedTypeSymbolGeneric);
+            Debug.Assert(groupingType.IsNil == markerMethod.IsNil);
+            Debug.Assert(groupingType.IsNil || container.IsType);
 
             string metadataName;
             bool makeBad = false;
@@ -325,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 makeBad = true;
             }
 
-            if (arity == 0)
+            if (arity == 0 || !groupingType.IsNil)
             {
                 _name = metadataName;
                 mangleName = false;
@@ -347,11 +359,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // this is needed to allow EE to bind to file types from metadata, for example.
             if (container.IsNamespace && GeneratedNameParser.TryParseFileTypeName(_name, out var displayFileName, out var ordinal, out var originalTypeName))
             {
+                Debug.Assert(groupingType.IsNil);
+
                 _name = originalTypeName;
                 _lazyUncommonProperties = new UncommonProperties()
                 {
                     lazyFilePathChecksum = ordinal.ToImmutableArray(),
                     lazyDisplayFileName = displayFileName
+                };
+            }
+            else if (!groupingType.IsNil)
+            {
+                _lazyUncommonProperties = new UncommonProperties()
+                {
+                    extensionInfo = new ExtensionInfo(groupingType, markerMethod)
                 };
             }
 
@@ -392,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return null;
                 }
 
-                var uncommon = GetUncommonProperties().lazyExtensionInfo;
+                var uncommon = GetUncommonProperties().extensionInfo;
 
                 if (uncommon.LazyExtensionParameter is null)
                 {
@@ -406,9 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     var methodSymbol = GetMarkerMethodSymbol(@this, uncommon);
 
-                    if (methodSymbol.DeclaredAccessibility != Accessibility.Private ||
-                        methodSymbol.IsGenericMethod ||
-                        !methodSymbol.IsStatic ||
+                    if (methodSymbol.IsGenericMethod ||
                         !methodSymbol.ReturnsVoid ||
                         methodSymbol.ParameterCount != 1)
                     {
@@ -427,23 +446,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return null;
             }
 
-            var uncommon = GetUncommonProperties().lazyExtensionInfo;
+            var uncommon = GetUncommonProperties().extensionInfo;
             return GetMarkerMethodSymbol(this, uncommon);
         }
 
-        private static MethodSymbol GetMarkerMethodSymbol(PENamedTypeSymbol @this, ExtensionInfo uncommon)
+        private static PEMethodSymbol GetMarkerMethodSymbol(PENamedTypeSymbol @this, ExtensionInfo uncommon)
         {
-            Debug.Assert(!uncommon.MarkerMethod.IsNil);
+            Debug.Assert(!uncommon.MarkerMethodHandle.IsNil);
 
-            foreach (var member in @this.GetMembers(WellKnownMemberNames.ExtensionMarkerMethodName))
+            if (uncommon.LazyMarkerMethodSymbol is null)
             {
-                if (member is PEMethodSymbol candidate && candidate.Handle == uncommon.MarkerMethod)
-                {
-                    return candidate;
-                }
+                Interlocked.CompareExchange(ref uncommon.LazyMarkerMethodSymbol, new PEMethodSymbol(@this.ContainingPEModule, @this, uncommon.MarkerMethodHandle), null);
             }
 
-            throw ExceptionUtilities.Unreachable();
+            return uncommon.LazyMarkerMethodSymbol;
         }
 
         public sealed override MethodSymbol? TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
@@ -462,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return null;
             }
 
-            var uncommon = GetUncommonProperties().lazyExtensionInfo;
+            var uncommon = GetUncommonProperties().extensionInfo;
 
             if (uncommon.LazyImplementationMap is null)
             {
@@ -842,6 +858,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
+                if (IsExtension)
+                {
+                    return Accessibility.Public;
+                }
+
                 Accessibility access = Accessibility.Private;
 
                 switch (_flags & TypeAttributes.VisibilityMask)
@@ -908,26 +929,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (uncommon.lazyCustomAttributes.IsDefault)
             {
-                var loadedCustomAttributes = ContainingPEModule.GetCustomAttributesForToken(
-                    Handle,
-                    out _,
-                    // Filter out [Extension]
-                    MightContainExtensionMethods ? AttributeDescription.CaseSensitiveExtensionAttribute : default,
-                    out _,
-                    // Filter out [Obsolete], unless it was user defined
-                    (IsRefLikeType && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
-                    out _,
-                    // Filter out [IsReadOnly]
-                    IsReadOnly ? AttributeDescription.IsReadOnlyAttribute : default,
-                    out _,
-                    // Filter out [IsByRefLike]
-                    IsRefLikeType ? AttributeDescription.IsByRefLikeAttribute : default,
-                    out _,
-                    // Filter out [CompilerFeatureRequired]
-                    (IsRefLikeType && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
-                    out CustomAttributeHandle requiredHandle,
-                    // Filter out [RequiredMember]
-                    AttributeDescription.RequiredMemberAttribute);
+                ImmutableArray<CSharpAttributeData> loadedCustomAttributes;
+                CustomAttributeHandle requiredHandle;
+
+                if (IsExtension)
+                {
+                    // We do not recognize any attributes on extension blocks
+                    // PROTOTYPE: Add a test demonstrating the fact that we do not load attributes from grouping and marker types.
+                    loadedCustomAttributes = [];
+                    requiredHandle = default;
+                }
+                else
+                {
+                    loadedCustomAttributes = ContainingPEModule.GetCustomAttributesForToken(
+                        Handle,
+                        out _,
+                        // Filter out [Extension]
+                        MightContainExtensionMethods ? AttributeDescription.CaseSensitiveExtensionAttribute : default,
+                        out _,
+                        // Filter out [Obsolete], unless it was user defined
+                        (IsRefLikeType && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
+                        out _,
+                        // Filter out [IsReadOnly]
+                        IsReadOnly ? AttributeDescription.IsReadOnlyAttribute : default,
+                        out _,
+                        // Filter out [IsByRefLike]
+                        IsRefLikeType ? AttributeDescription.IsByRefLikeAttribute : default,
+                        out _,
+                        // Filter out [CompilerFeatureRequired]
+                        (IsRefLikeType && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
+                        out requiredHandle,
+                        // Filter out [RequiredMember]
+                        AttributeDescription.RequiredMemberAttribute);
+                }
 
                 ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
 
@@ -1828,7 +1862,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return _name;
+                return IsExtension ? "" : _name; // PROTOTYPE: add test coverage
+            }
+        }
+
+        public override string MetadataName
+        {
+            get
+            {
+                if (IsExtension)
+                {
+                    Debug.Assert(!MangleName);
+                    return _name; // PROTOTYPE: add test coverage
+                }
+
+                return base.MetadataName;
             }
         }
 
@@ -1959,6 +2007,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override bool IsExtension => _lazyUncommonProperties?.extensionInfo is { };
+
         public override TypeKind TypeKind
         {
             get
@@ -1967,7 +2017,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (result == TypeKind.Unknown)
                 {
-                    if (_flags.IsInterface())
+                    if (IsExtension)
+                    {
+                        // Extension
+                        result = TypeKind.Extension;
+                    }
+                    else if (_flags.IsInterface())
                     {
                         result = TypeKind.Interface;
                     }
@@ -2001,21 +2056,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                                         result = TypeKind.Struct;
                                     }
                                     break;
-
-                                case SpecialType.System_Object:
-                                    if (TryGetExtensionMarkerMethod() is { IsNil: false } markerHandle)
-                                    {
-                                        // Extension
-                                        result = TypeKind.Extension;
-
-                                        if (_lazyUncommonProperties is null)
-                                        {
-                                            Interlocked.CompareExchange(ref _lazyUncommonProperties, new UncommonProperties(), null);
-                                        }
-
-                                        Interlocked.CompareExchange(ref _lazyUncommonProperties.lazyExtensionInfo, new ExtensionInfo(markerHandle), null);
-                                    }
-                                    break;
                             }
                         }
                     }
@@ -2034,14 +2074,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private MethodDefinitionHandle TryGetExtensionMarkerMethod()
         {
-            if (!this.HasSpecialName ||
-                !this.IsSealed ||
-                this.DeclaredAccessibility != Accessibility.Public ||
-                !this.InterfacesNoUseSiteDiagnostics().IsEmpty)
-            {
-                return default;
-            }
-
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
 
@@ -2055,7 +2087,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     MethodAttributes flags;
                     module.GetMethodDefPropsOrThrow(methodHandle, out methodName, out _, out flags, out _);
 
-                    if ((flags & MethodAttributes.SpecialName) != 0 && methodName is WellKnownMemberNames.ExtensionMarkerMethodName)
+                    if ((flags & (MethodAttributes.SpecialName | MethodAttributes.Static | MethodAttributes.MemberAccessMask)) == (MethodAttributes.SpecialName | MethodAttributes.Static | MethodAttributes.Private) &&
+                        methodName is WellKnownMemberNames.ExtensionMarkerMethodName)
                     {
                         if (!foundMarkerMethod.IsNil)
                         {
@@ -2128,6 +2161,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private IEnumerable<PENamedTypeSymbol> CreateNestedTypes()
         {
+            if (IsExtension)
+            {
+                // We do not support type declarations in extension blocks
+                // PROTOTYPE: Add a test demonstrating the fact that we do not load nested types from grouping and marker types.
+                yield break;
+            }
+
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
 
@@ -2141,6 +2181,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 yield break;
             }
+
+            // PROTOTYPE: test effect of every condition here
+            bool checkForExtensionGroup = this.IsStatic && this.ContainingType is null && this.TypeKind == TypeKind.Class &&
+                                          module.HasExtensionAttribute(_handle, ignoreCase: false) && !this.IsGenericType;
 
             // Currently, it appears that we must import ALL types, even private ones,
             // in order to maintain language semantics. This is because a class may implement
@@ -2156,13 +2200,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // importing the type A.X.
             foreach (var typeRid in nestedTypeDefs)
             {
-                yield return PENamedTypeSymbol.Create(moduleSymbol, this, typeRid);
+                var type = PENamedTypeSymbol.Create(moduleSymbol, this, typeRid);
+
+                // PROTOTYPE: test effect of every condition here
+                if (checkForExtensionGroup &&
+                    type.DeclaredAccessibility == Accessibility.Public &&
+                    type.HasSpecialName && type.IsSealed && module.HasExtensionAttribute(type.Handle, ignoreCase: false) &&
+                    type.TypeKind == TypeKind.Class && type.BaseTypeNoUseSiteDiagnostics.IsObjectType() &&
+                    type.InterfacesNoUseSiteDiagnostics().IsEmpty)
+                {
+                    // This looks like an extension grouping type. Restore extension blocks from marker types
+                    ImmutableArray<TypeDefinitionHandle> markerTypeDefs;
+
+                    try
+                    {
+                        markerTypeDefs = module.GetNestedTypeDefsOrThrow(type.Handle);
+                    }
+                    catch (BadImageFormatException)
+                    {
+                        yield break;
+                    }
+
+                    foreach (var markerRid in markerTypeDefs)
+                    {
+                        var marker = PENamedTypeSymbol.Create(moduleSymbol, type, markerRid);
+
+                        // PROTOTYPE: test effect of every condition here
+                        if (marker.HasSpecialName && marker.IsStatic && marker.DeclaredAccessibility == Accessibility.Private &&
+                            marker.TypeKind == TypeKind.Class && marker.BaseTypeNoUseSiteDiagnostics.IsObjectType() && marker.Arity == 0 &&
+                            marker.InterfacesNoUseSiteDiagnostics().IsEmpty &&
+                            (type.Arity == 0 || (marker is PENamedTypeSymbolGeneric genericMarker && genericMarker.MatchesContainingTypeParameters())))
+                        {
+                            // Try to locate the marker method.
+                            if (marker.TryGetExtensionMarkerMethod() is { IsNil: false } markerHandle)
+                            {
+                                marker = PENamedTypeSymbol.Create(moduleSymbol, this, markerRid, type.Handle, markerHandle);
+                                yield return marker;
+                            }
+                        }
+                    }
+
+                    continue;
+                }
+
+                yield return type;
             }
         }
 
         private MultiDictionary<string, PEFieldSymbol> CreateFields(ArrayBuilder<PEFieldSymbol> fieldMembers)
         {
             var privateFieldNameToSymbols = new MultiDictionary<string, PEFieldSymbol>();
+
+            if (IsExtension)
+            {
+                // PROTOTYPE: Add a test demonstrating the fact that we do not load fields from grouping and marker types.
+                return privateFieldNameToSymbols;
+            }
 
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
@@ -2256,17 +2349,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used 
             var isOrdinaryEmbeddableStruct = (this.TypeKind == TypeKind.Struct) && (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None) && this.ContainingAssembly.IsLinked;
+            bool isExtension = IsExtension;
 
-            MethodDefinitionHandle? extensionMarkerMethod = _lazyUncommonProperties?.lazyExtensionInfo?.MarkerMethod;
-            Debug.Assert(extensionMarkerMethod is not null || this.TypeKind is not TypeKind.Extension);
+            // PROTOTYPE: Add a test demonstrating the fact that we do not load methods from marker types into the extension blocks.
 
             try
             {
-                foreach (var methodHandle in module.GetMethodsOfTypeOrThrow(_handle))
+                foreach (var methodHandle in module.GetMethodsOfTypeOrThrow(isExtension ? _lazyUncommonProperties.extensionInfo.GroupingTypeHandle : _handle))
                 {
-                    if (isOrdinaryEmbeddableStruct || module.ShouldImportMethod(_handle, methodHandle, moduleSymbol.ImportOptions) ||
-                        extensionMarkerMethod == methodHandle)
+                    if (isOrdinaryEmbeddableStruct || module.ShouldImportMethod(_handle, methodHandle, moduleSymbol.ImportOptions))
                     {
+                        // PROTOTYPE: Would it be worth building a map across all methods to optimize this?
+                        // PROTOTYPE: Should we strip the ExtensionMarkerNameAttribute from GetAttributes()?
+                        if (isExtension && (!module.HasExtensionMarkerNameAttribute(methodHandle, out string markerName) || markerName != MetadataName))
+                        {
+                            // Method doesn't belong to this extension block
+                            continue;
+                        }
+
                         var method = new PEMethodSymbol(moduleSymbol, this, methodHandle);
                         members.Add(method);
                         map.Add(methodHandle, method);
@@ -2283,13 +2383,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
+            bool isExtension = IsExtension;
+
+            // PROTOTYPE: Add a test demonstrating the fact that we do not load properties from marker types into extension blocks.
 
             try
             {
-                foreach (var propertyDef in module.GetPropertiesOfTypeOrThrow(_handle))
+                foreach (var propertyDef in module.GetPropertiesOfTypeOrThrow(isExtension ? _lazyUncommonProperties.extensionInfo.GroupingTypeHandle : _handle))
                 {
                     try
                     {
+                        // PROTOTYPE: Would it be worth building a map across all properties to optimize this?
+                        // PROTOTYPE: Should we strip the ExtensionMarkerNameAttribute from GetAttributes()?
+                        if (isExtension && (!module.HasExtensionMarkerNameAttribute(propertyDef, out string markerName) || markerName != MetadataName))
+                        {
+                            // Property doesn't belong to this extension block
+                            continue;
+                        }
+
                         var methods = module.GetPropertyMethodsOrThrow(propertyDef);
 
                         PEMethodSymbol getMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Getter);
@@ -2313,6 +2424,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol,
             ArrayBuilder<Symbol> members)
         {
+            if (IsExtension)
+            {
+                // We do not support event declarations in extension blocks
+                // PROTOTYPE: Add a test demonstrating the fact that we do not load events from grouping and marker types.
+                return;
+            }
+
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
 
@@ -2577,7 +2695,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         internal override string ExtensionName
-            => Name; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Confirm implementation
+        {
+            get
+            {
+                if (!IsExtension)
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+
+                string groupName;
+
+                try
+                {
+                    groupName = ContainingPEModule.Module.GetTypeDefNameOrThrow(_lazyUncommonProperties.extensionInfo.GroupingTypeHandle);
+                }
+                catch (BadImageFormatException)
+                {
+                    groupName = string.Empty;
+                }
+
+                return groupName; // PROTOTYPE: is this the right value to return?
+            }
+        }
 
         public override bool IsReadOnly
         {
@@ -2824,8 +2963,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 PEModuleSymbol moduleSymbol,
                 NamespaceOrTypeSymbol container,
                 TypeDefinitionHandle handle,
-                string emittedNamespaceName) :
-                base(moduleSymbol, container, handle, emittedNamespaceName, 0, out _)
+                string emittedNamespaceName,
+                TypeDefinitionHandle groupingType,
+                MethodDefinitionHandle markerMethod) :
+                base(moduleSymbol, container, handle, emittedNamespaceName, 0, groupingType, markerMethod, out _)
             {
             }
 
@@ -2895,12 +3036,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     TypeDefinitionHandle handle,
                     string emittedNamespaceName,
                     GenericParameterHandleCollection genericParameterHandles,
-                    ushort arity)
+                    ushort arity,
+                    TypeDefinitionHandle groupingType,
+                    MethodDefinitionHandle markerMethod)
                 : base(moduleSymbol,
                       container,
                       handle,
                       emittedNamespaceName,
                       arity,
+                      groupingType,
+                      markerMethod,
                       out bool mangleName)
             {
                 Debug.Assert(genericParameterHandles.Count > 0);
@@ -3009,7 +3154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             /// that represent the corresponding type parameters on the containing
             /// types, in fact match the actual type parameters on the containing types.
             /// </summary>
-            private bool MatchesContainingTypeParameters()
+            internal bool MatchesContainingTypeParameters()
             {
                 var container = this.ContainingType;
                 if ((object)container == null)

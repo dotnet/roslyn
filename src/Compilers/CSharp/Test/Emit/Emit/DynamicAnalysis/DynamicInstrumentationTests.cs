@@ -3644,8 +3644,8 @@ static class C
 ";
             var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
 
-            AssertNotInstrumented(verifier, "C.<>E__0.M1");
-            AssertNotInstrumented(verifier, "C.<>E__0.M2");
+            AssertNotInstrumented(verifier, "C.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M1");
+            AssertNotInstrumented(verifier, "C.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M2");
 
             AssertNotInstrumented(verifier, "C.M1");
             AssertInstrumented(verifier, "C.M2");
@@ -3671,13 +3671,13 @@ static class C
 ";
             var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
 
-            AssertNotInstrumented(verifier, "C.<>E__0.P1.get");
-            AssertNotInstrumented(verifier, "C.<>E__0.P1.set");
+            AssertNotInstrumented(verifier, "C.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P1.get");
+            AssertNotInstrumented(verifier, "C.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P1.set");
             AssertNotInstrumented(verifier, "C.get_P1");
             AssertNotInstrumented(verifier, "C.set_P1");
 
-            AssertNotInstrumented(verifier, "C.<>E__0.P2.get");
-            AssertNotInstrumented(verifier, "C.<>E__0.P2.set");
+            AssertNotInstrumented(verifier, "C.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P2.get");
+            AssertNotInstrumented(verifier, "C.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P2.set");
             AssertInstrumented(verifier, "C.get_P2");
             AssertInstrumented(verifier, "C.set_P2");
         }

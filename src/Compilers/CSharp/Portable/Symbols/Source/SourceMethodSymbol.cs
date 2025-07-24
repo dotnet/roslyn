@@ -231,6 +231,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, nameof(CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators)))
                     ));
             }
+
+            if (target.GetIsNewExtensionMember())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerNameAttribute(target, ((SourceNamedTypeSymbol)target.ContainingType).GetExtensionMarkerMetadataName()));
+            }
         }
 
         internal static bool IsInstanceIncrementDecrementOrCompoundAssignmentOperator(MethodSymbol target)
