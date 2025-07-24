@@ -76,8 +76,6 @@ internal sealed class CopilotSemanticSearchQueryExecutor(IHostWorkspaceProvider 
             var compileResult = await RemoteSemanticSearchServiceProxy.CompileQueryAsync(
                 _workspace.CurrentSolution.Services,
                 query,
-                language: LanguageNames.CSharp,
-                SemanticSearchUtilities.ReferenceAssembliesDirectory,
                 cancellationSource.Token).ConfigureAwait(false);
 
             if (compileResult == null)

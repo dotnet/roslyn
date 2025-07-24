@@ -71,8 +71,6 @@ internal sealed class SemanticSearchQueryExecutor(
             var compileResult = await RemoteSemanticSearchServiceProxy.CompileQueryAsync(
                 solution.Services,
                 query,
-                language: LanguageNames.CSharp,
-                SemanticSearchUtilities.ReferenceAssembliesDirectory,
                 cancellationToken).ConfigureAwait(false);
 
             if (compileResult == null)
