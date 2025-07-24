@@ -1130,11 +1130,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0} должен возвращать поток, который поддерживает операции чтения и поиска.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Method_0_must_be_static_and_non_generic">
-        <source>Method '{0}' must be static and non-generic</source>
-        <target state="translated">Метод "{0}" должен быть статическим и неуниверсалным</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
         <target state="translated">Прочие файлы</target>
@@ -1345,11 +1340,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Операторы</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parameter_type_0_is_not_among_supported_types_1">
-        <source>Parameter type '{0}' is not among supported types: {1}</source>
-        <target state="new">Parameter type '{0}' is not among supported types: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
         <source>Please resolve errors in your code before renaming this element.</source>
         <target state="translated">Устраните ошибки в коде, прежде чем переименовать этот элемент.</target>
@@ -1409,11 +1399,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</source>
         <target state="new">Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
-      </trans-unit>
-      <trans-unit id="Query">
-        <source>Query</source>
-        <target state="translated">Запрос</target>
-        <note />
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
         <source>Reference to undefined group name '{0}'</source>
@@ -2620,11 +2605,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Разрешить модуль: "{0}" из "{1}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Return_type_0_is_not_among_supported_types_1">
-        <source>Return type '{0}' is not among supported types: {1}</source>
-        <target state="new">Return type '{0}' is not among supported types: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Грубая редакция</target>
@@ -2652,22 +2632,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="SemanticSearch">
         <source>Semantic Search</source>
-        <target state="translated">Семантический поиск</target>
+        <target state="new">Semantic Search</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_only_supported_on_net_core">
         <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
-        <target state="translated">Семантический поиск поддерживается только в том случае, если анализ кода выполняется в отдельном процессе последней версии .NET (см. "Сервис" &gt; "Параметры" &gt; "Текстовый редактор" &gt; "C#" &gt; "Дополнительно").</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Semantic_search_query_failed_to_compile">
-        <source>Semantic search query failed to compile</source>
-        <target state="translated">Не удалось скомпилировать запрос семантического поиска</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Semantic_search_query_terminated_with_exception">
-        <source>Semantic search query terminated with exception</source>
-        <target state="translated">Запрос семантического поиска завершен с исключением</target>
+        <target state="new">Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2765,16 +2735,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="needs-review-translation">Сборка анализатора "{0}" ссылается на версию "{1}" компилятора, являющуюся более новой, чем версия "{2}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_query_does_not_specify_0_top_level_function">
-        <source>The query does not specify '{0}' top-level function</source>
-        <target state="new">The query does not specify '{0}' top-level function</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_query_specifies_multiple_top_level_functions_1">
-        <source>The query specifies multiple top-level functions '{1}'</source>
-        <target state="new">The query specifies multiple top-level functions '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="translated">Выделенный фрагмент содержит вызов локальной функции без ее объявления.</target>
@@ -2815,11 +2775,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Слишком много закрывающих круглых скобок</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
-      <trans-unit id="Top_level_function_0_must_have_a_single_parameter">
-        <source>Top-level function '{0}' must have a single parameter</source>
-        <target state="new">Top-level function '{0}' must have a single parameter</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">Завершающая запятая не разрешена</target>
@@ -2843,11 +2798,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Unable_to_get_the_directory_name_for_0">
         <source>Unable to get the directory name for {0}.</source>
         <target state="new">Unable to get the directory name for {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unable_to_load_type_0_1">
-        <source>Unable to load type '{0}': '{1}'</source>
-        <target state="translated">Не удалось загрузить тип "{0}": "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">
