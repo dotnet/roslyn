@@ -37,15 +37,9 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
            .GetRequiredDocument(documentId)
            .GetTextAsync();
 
-    [Theory]
-    [CombinatorialData]
-    public async Task Test(bool requireCommit)
+    [Fact]
+    public async Task Test()
     {
-        // See https://github.com/dotnet/sdk/blob/main/src/BuiltInTools/dotnet-watch/HotReload/CompilationHandler.cs#L125
-
-        // Note that xUnit does not run test case of a theory in parallel, so we can set global state here:
-        WatchHotReloadService.RequireCommit = requireCommit;
-
         var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
         var source2 = "class C { void M() { System.Console.WriteLine(2); /*2*/} }";
         var source3 = "class C { void M() { System.Console.WriteLine(2); /*3*/} }";
@@ -89,10 +83,7 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         Assert.Equal(1, result.ProjectUpdates.Length);
         AssertEx.Equal([0x02000002], result.ProjectUpdates[0].UpdatedTypes);
 
-        if (requireCommit)
-        {
-            hotReload.CommitUpdate();
-        }
+        hotReload.CommitUpdate();
 
         var updatedText = await GetCommittedDocumentTextAsync(hotReload, documentIdA);
         Assert.Equal(source2, updatedText.ToString());
@@ -124,12 +115,9 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         AssertEx.SetEqual(["P"], result.ProjectsToRestart.Select(p => solution.GetRequiredProject(p.Key).Name));
         AssertEx.SetEqual(["P"], result.ProjectsToRebuild.Select(p => solution.GetRequiredProject(p).Name));
 
-        if (requireCommit)
-        {
-            // Emulate the user making choice to not restart.
-            // dotnet-watch then waits until Ctrl+R forces restart.
-            hotReload.DiscardUpdate();
-        }
+        // Emulate the user making choice to not restart.
+        // dotnet-watch then waits until Ctrl+R forces restart.
+        hotReload.DiscardUpdate();
 
         updatedText = await GetCommittedDocumentTextAsync(hotReload, documentIdA);
         Assert.Equal(source3, updatedText.ToString());
