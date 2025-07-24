@@ -64,7 +64,7 @@ public sealed class DocCommentFormattingTests
                     <description>Item 2.</description>
                     </item>
                     </list>
-            """, "Here is an example of a bulleted list:\r\n\r\n• Item 1.\r\n• Item 2.");
+            """, "Here is an example of a bulleted list:\r\n\r\n• Item 1. • Item 2.");
     }
 
     [Fact]
