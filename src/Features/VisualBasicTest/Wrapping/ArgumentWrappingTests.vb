@@ -60,7 +60,7 @@ end class")
 
         <Fact>
         Public Async Function TestInHeader1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub Bar()
         [||]Goobar(i, j)
@@ -76,7 +76,7 @@ end class")
 
         <Fact>
         Public Async Function TestInHeader2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub Bar()
         a.[||]Goobar(i, j)
@@ -92,7 +92,7 @@ end class")
 
         <Fact>
         Public Async Function TestInHeader4() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub Bar()
         a.Goobar(i, j[||])
@@ -728,7 +728,7 @@ end class")
 
         <Fact>
         Public Async Function TestInObjectCreation1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub Goo()
         var v = [||]new Bar(a, b, c)
@@ -745,7 +745,7 @@ end class")
 
         <Fact>
         Public Async Function TestInObjectCreation2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub Goo()
         var v = new Bar([||]a, b, c)
@@ -762,7 +762,7 @@ end class")
 
         <Fact>
         Public Async Function TestInConstructorInitializer1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     public sub new()
         mybase.new([||]a, b, c)

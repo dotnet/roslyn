@@ -25,7 +25,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixAll()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -63,7 +63,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixReturnType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -87,7 +87,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixReturnType_Async()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -111,7 +111,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixReturnType_AsyncLocalFunction()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -141,7 +141,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixReturnType_WithTrivia()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -165,7 +165,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixReturnType_ArrowBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -197,7 +197,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26639")]
     public Task FixLocalFunctionReturnType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -241,7 +241,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26628")]
     public Task FixField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -259,7 +259,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixFieldEqualsNull()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -285,7 +285,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixPropertyEqualsNull()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -311,7 +311,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixLocalDeclaration()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -335,7 +335,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixLocalDeclaration_FromAssignment()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -376,7 +376,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixParameter_FromAssignment()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -460,7 +460,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26628")]
     public Task FixPropertyDeclaration()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -478,7 +478,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixPropertyDeclaration_WithReturnNull()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -496,7 +496,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixPropertyDeclaration_ArrowBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -515,7 +515,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26626")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/30026")]
     public Task FixOptionalParameter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -533,7 +533,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixLocalWithAs()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -557,7 +557,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixReturnType_Iterator_Enumerable()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -581,7 +581,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixReturnType_Iterator_Enumerator()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -605,7 +605,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixReturnType_IteratorProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -635,7 +635,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixReturnType_Iterator_LocalFunction()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -665,7 +665,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39422")]
     public Task FixReturnType_ConditionalOperator_Function()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -689,7 +689,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39422")]
     public Task FixAllReturnType_ConditionalOperator_Function()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -743,7 +743,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39422")]
     public Task FixAllReturnType_Invocation()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -801,7 +801,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39420")]
     public Task FixReturnType_TernaryExpression_Function()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -825,7 +825,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39423")]
     public Task FixReturnType_Default()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -849,7 +849,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39423")]
     public Task FixReturnType_DefaultWithNullableType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -873,7 +873,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixInvocation_NamedArgument()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -914,7 +914,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixInvocation_NamedArgument_OutOfOrder()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -971,7 +971,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixInvocation_PositionArgument()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -1012,7 +1012,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixInvocation_PositionArgument_SecondPosition()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -1068,7 +1068,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact]
     public Task FixPropertyDeclaration_Unassigned()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -1089,7 +1089,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44983")]
     public Task FixFieldDeclaration_Unassigned()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -1121,7 +1121,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46354")]
     public Task FixTupleFieldAssignment()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -1147,7 +1147,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46354")]
     public Task FixTupleNamedFieldAssignment()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -1173,7 +1173,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46354")]
     public Task FixTupleGenericFieldAssignment()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program

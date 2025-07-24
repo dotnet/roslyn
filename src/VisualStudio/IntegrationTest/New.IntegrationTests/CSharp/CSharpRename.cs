@@ -422,8 +422,7 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
             """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class2.cs", @"", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class2.cs", HangMitigatingCancellationToken);
-
-        const string class2Markup = """
+        MarkupTestFile.GetSpans("""
             class SomeOtherClass
             {
                 void M()
@@ -431,8 +430,7 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
                     [|Program|] p = new [|Program|]();
                 }
             }
-            """;
-        MarkupTestFile.GetSpans(class2Markup, out var code, out var renameSpans);
+            """, out var code, out var renameSpans);
 
         await TestServices.Editor.SetTextAsync(code, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("Program", charsOffset: 0, HangMitigatingCancellationToken);

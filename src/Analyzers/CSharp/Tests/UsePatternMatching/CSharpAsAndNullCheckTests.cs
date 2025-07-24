@@ -57,7 +57,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
         => await TestStatement($"while ({input}) {{ }}", $"while ({output}) {{ }}");
 
     private Task TestStatement(string input, string output, LanguageVersion version = LanguageVersion.CSharp8)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             $$"""
             class C
             {
@@ -112,7 +112,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestInSwitchSection()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -147,7 +147,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33345")]
     public Task TestRemoveNewLinesInSwitchStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -230,7 +230,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task InlineTypeCheckComplexExpression1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -257,7 +257,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestInlineTypeCheckWithElse()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -290,7 +290,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestComments1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -319,7 +319,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestComments2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -347,7 +347,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestComments3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -377,7 +377,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33345")]
     public Task TestRemoveNewLines()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -407,7 +407,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33345")]
     public Task TestRemoveNewLinesWhereBlankLineIsNotEmpty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -437,7 +437,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33345")]
     public Task TestRemoveNewLines2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -470,7 +470,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task InlineTypeCheckComplexCondition1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -497,7 +497,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task InlineTypeCheckComplexCondition2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -524,7 +524,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task InlineTypeCheckComplexCondition3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -588,7 +588,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestDefiniteAssignment3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -748,7 +748,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15957")]
     public Task TestTrivia1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -783,7 +783,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17129")]
     public Task TestTrivia2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             namespace N
@@ -966,7 +966,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23504")]
     public Task DoNotChangeOriginalFormatting1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -997,7 +997,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23504")]
     public Task DoNotChangeOriginalFormatting2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1059,7 +1059,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestNegativeDefiniteAssignment1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1084,7 +1084,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestNegativeDefiniteAssignment2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1121,7 +1121,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25993")]
     public Task TestEmbeddedStatement1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1256,7 +1256,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestDeclarationOnOuterBlock()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1293,7 +1293,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestConditionalExpression()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1344,7 +1344,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestForStatement_InlineTypeCheck()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1367,7 +1367,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestForStatement_InScope()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1414,7 +1414,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestForStatement_AssignedBeforeAccess()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1447,7 +1447,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestForStatement_MultipleDeclarators()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1511,7 +1511,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestLocalFunction()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1549,7 +1549,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestExpressionLambda()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1607,7 +1607,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40007")]
     public Task TestSpaceAfterGenericType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -1682,7 +1682,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37398")]
     public Task TestPrecedingDirectiveTrivia()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1719,7 +1719,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40006")]
     public Task TestArrayOfNullables()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -1797,7 +1797,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55782")]
     public Task TestLocalReferencedAcrossScopes2()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System.Transactions;
 
             class BaseObject { }
@@ -1881,7 +1881,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37875")]
     public Task TestNullableWhenWrittenTo1()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             #nullable enable
             using System;
 
@@ -1913,7 +1913,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37875")]
     public Task TestNullableWhenWrittenTo2()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             #nullable enable
             using System;
 

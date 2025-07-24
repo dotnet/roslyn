@@ -173,7 +173,7 @@ internal partial class StreamingFindUsagesPresenter
                 cancellationToken =>
                 {
                     _tableDataSink.FactorySnapshotChanged(this);
-                    return ValueTaskFactory.CompletedTask;
+                    return ValueTask.CompletedTask;
                 },
                 presenter._asyncListener,
                 CancellationTokenSource.Token);
@@ -537,7 +537,7 @@ internal partial class StreamingFindUsagesPresenter
                 NoDefinitionsFoundMessage = message;
             }
 
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         public sealed override async ValueTask ReportMessageAsync(string message, NotificationSeverity severity, CancellationToken cancellationToken)
@@ -571,7 +571,7 @@ internal partial class StreamingFindUsagesPresenter
                     _findReferencesWindow.SetProgress(current, maximum);
             }
 
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         protected static DefinitionItem CreateNoResultsDefinitionItem(string message)

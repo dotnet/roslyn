@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                          method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is null);
             // All possibly interesting methods should go through VisitMethodSymbolWithExtensionRewrite first
 
-            /*
+            /* Tracking issue: https://github.com/dotnet/roslyn/issues/79426
             Debug.Assert(method is null ||
                          method.ContainingSymbol is not NamedTypeSymbol ||
                          method.MethodKind is (MethodKind.Constructor or MethodKind.StaticConstructor) ||

@@ -27,7 +27,7 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         SolutionServices solutionServices,
         CancellationToken cancellationToken)
     {
-        return ValueTaskFactory.FromResult(references);
+        return ValueTask.FromResult(references);
     }
 
     public static async partial ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(

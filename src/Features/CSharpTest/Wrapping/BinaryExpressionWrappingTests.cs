@@ -22,10 +22,10 @@ public sealed class BinaryExpressionWrappingTests : AbstractWrappingTests
         => new(options: Option(CodeStyleOptions2.OperatorPlacementWhenWrapping, OperatorPlacementWhenWrappingPreference.BeginningOfLine));
 
     private Task TestEndOfLine(string markup, string expected)
-        => TestInRegularAndScript1Async(markup, expected, EndOfLine);
+        => TestInRegularAndScriptAsync(markup, expected, EndOfLine);
 
     private Task TestBeginningOfLine(string markup, string expected)
-        => TestInRegularAndScript1Async(markup, expected, BeginningOfLine);
+        => TestInRegularAndScriptAsync(markup, expected, BeginningOfLine);
 
     [Fact]
     public Task TestMissingWithSyntaxError()
@@ -238,15 +238,15 @@ public sealed class BinaryExpressionWrappingTests : AbstractWrappingTests
             }
             """,
             EndOfLine,
-"""
-class C {
-    void Bar() {
-        if (i &&
-            j) {
-        }
-    }
-}
-""");
+            """
+            class C {
+                void Bar() {
+                    if (i &&
+                        j) {
+                    }
+                }
+            }
+            """);
 
     [Fact]
     public Task TestTwoExprWrappingCases_Beginning()
@@ -260,15 +260,15 @@ class C {
             }
             """,
             BeginningOfLine,
-"""
-class C {
-    void Bar() {
-        if (i
-            && j) {
-        }
-    }
-}
-""");
+            """
+            class C {
+                void Bar() {
+                    if (i
+                        && j) {
+                    }
+                }
+            }
+            """);
 
     [Fact]
     public Task TestThreeExprWrappingCases_End()
@@ -282,16 +282,16 @@ class C {
             }
             """,
             EndOfLine,
-"""
-class C {
-    void Bar() {
-        if (i &&
-            j ||
-            k) {
-        }
-    }
-}
-""");
+            """
+            class C {
+                void Bar() {
+                    if (i &&
+                        j ||
+                        k) {
+                    }
+                }
+            }
+            """);
 
     [Fact]
     public Task TestThreeExprWrappingCases_Beginning()
@@ -305,16 +305,16 @@ class C {
             }
             """,
             BeginningOfLine,
-"""
-class C {
-    void Bar() {
-        if (i
-            && j
-            || k) {
-        }
-    }
-}
-""");
+            """
+            class C {
+                void Bar() {
+                    if (i
+                        && j
+                        || k) {
+                    }
+                }
+            }
+            """);
 
     [Fact]
     public Task Test_AllOptions_NoInitialMatches_End()
@@ -331,26 +331,26 @@ class C {
             }
             """,
             EndOfLine,
-"""
-class C {
-    void Bar() {
-        if (
-            i &&
-            j ||
-            k) {
-        }
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        if (
-            i && j || k) {
-        }
-    }
-}
-""");
+            """
+            class C {
+                void Bar() {
+                    if (
+                        i &&
+                        j ||
+                        k) {
+                    }
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    if (
+                        i && j || k) {
+                    }
+                }
+            }
+            """);
 
     [Fact]
     public Task Test_AllOptions_NoInitialMatches_Beginning()
@@ -367,26 +367,26 @@ class C {
             }
             """,
             BeginningOfLine,
-"""
-class C {
-    void Bar() {
-        if (
-            i
-            && j
-            || k) {
-        }
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        if (
-            i && j || k) {
-        }
-    }
-}
-""");
+            """
+            class C {
+                void Bar() {
+                    if (
+                        i
+                        && j
+                        || k) {
+                    }
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    if (
+                        i && j || k) {
+                    }
+                }
+            }
+            """);
 
     [Fact]
     public Task Test_DoNotOfferExistingOption1()
@@ -431,23 +431,23 @@ class C {
             }
             """,
             EndOfLine,
-"""
-class C {
-    void Bar() {
-        if (a &&
-            b) {
-        }
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        if (a && b) {
-        }
-    }
-}
-""");
+            """
+            class C {
+                void Bar() {
+                    if (a &&
+                        b) {
+                    }
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    if (a && b) {
+                    }
+                }
+            }
+            """);
 
     [Fact]
     public Task Test_DoNotOfferExistingOption2_Beginning()
@@ -462,14 +462,14 @@ class C {
             }
             """,
             BeginningOfLine,
-"""
-class C {
-    void Bar() {
-        if (a && b) {
-        }
-    }
-}
-""");
+            """
+            class C {
+                void Bar() {
+                    if (a && b) {
+                    }
+                }
+            }
+            """);
 
     [Fact]
     public Task TestInLocalInitializer_Beginning()
@@ -482,24 +482,24 @@ class C {
             }
             """,
             BeginningOfLine,
-"""
-class C {
-    void Goo() {
-        var v = a
-            && b
-            && c;
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        var v = a
-                && b
-                && c;
-    }
-}
-""");
+            """
+            class C {
+                void Goo() {
+                    var v = a
+                        && b
+                        && c;
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    var v = a
+                            && b
+                            && c;
+                }
+            }
+            """);
 
     [Fact]
     public Task TestInLocalInitializer_End()
@@ -512,24 +512,24 @@ class C {
             }
             """,
             EndOfLine,
-"""
-class C {
-    void Goo() {
-        var v = a &&
-            b &&
-            c;
-    }
-}
-""",
-"""
-class C {
-    void Goo() {
-        var v = a &&
-                b &&
-                c;
-    }
-}
-""");
+            """
+            class C {
+                void Goo() {
+                    var v = a &&
+                        b &&
+                        c;
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo() {
+                    var v = a &&
+                            b &&
+                            c;
+                }
+            }
+            """);
 
     [Fact]
     public Task TestInField_Beginning()
@@ -540,20 +540,20 @@ class C {
             }
             """,
             BeginningOfLine,
-"""
-class C {
-    bool v = a
-        && b
-        && c;
-}
-""",
-"""
-class C {
-    bool v = a
-             && b
-             && c;
-}
-""");
+            """
+            class C {
+                bool v = a
+                    && b
+                    && c;
+            }
+            """,
+            """
+            class C {
+                bool v = a
+                         && b
+                         && c;
+            }
+            """);
 
     [Fact]
     public Task TestInField_End()
@@ -564,20 +564,20 @@ class C {
             }
             """,
             EndOfLine,
-"""
-class C {
-    bool v = a &&
-        b &&
-        c;
-}
-""",
-"""
-class C {
-    bool v = a &&
-             b &&
-             c;
-}
-""");
+            """
+            class C {
+                bool v = a &&
+                    b &&
+                    c;
+            }
+            """,
+            """
+            class C {
+                bool v = a &&
+                         b &&
+                         c;
+            }
+            """);
 
     [Fact]
     public Task TestAddition_End()
@@ -590,26 +590,26 @@ class C {
             }
             """,
             EndOfLine,
-"""
-class C {
-    void Bar() {
-        var goo = "now" +
-            "is" +
-            "the" +
-            "time";
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        var goo = "now" +
-                  "is" +
-                  "the" +
-                  "time";
-    }
-}
-""");
+            """
+            class C {
+                void Bar() {
+                    var goo = "now" +
+                        "is" +
+                        "the" +
+                        "time";
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    var goo = "now" +
+                              "is" +
+                              "the" +
+                              "time";
+                }
+            }
+            """);
 
     [Fact]
     public Task TestAddition_Beginning()
@@ -622,26 +622,26 @@ class C {
             }
             """,
             BeginningOfLine,
-"""
-class C {
-    void Bar() {
-        var goo = "now"
-            + "is"
-            + "the"
-            + "time";
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        var goo = "now"
-                  + "is"
-                  + "the"
-                  + "time";
-    }
-}
-""");
+            """
+            class C {
+                void Bar() {
+                    var goo = "now"
+                        + "is"
+                        + "the"
+                        + "time";
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    var goo = "now"
+                              + "is"
+                              + "the"
+                              + "time";
+                }
+            }
+            """);
 
     [Fact]
     public Task TestUnderscoreName_End()
@@ -695,14 +695,14 @@ class C {
             }
             """,
             BeginningOfLine,
-"""
-class C {
-    bool v =
-        a
-        && b
-        && c;
-}
-""");
+            """
+            class C {
+                bool v =
+                    a
+                    && b
+                    && c;
+            }
+            """);
 
     [Fact]
     public Task TestInField_Already_Wrapped_End()
@@ -714,14 +714,14 @@ class C {
             }
             """,
             EndOfLine,
-"""
-class C {
-    bool v =
-        a &&
-        b &&
-        c;
-}
-""");
+            """
+            class C {
+                bool v =
+                    a &&
+                    b &&
+                    c;
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34127")]
     public Task TestWrapLowerPrecedenceInLargeBinary()
@@ -733,18 +733,18 @@ class C {
             }
             """,
             EndOfLine,
-"""
-class C
-{
-    bool v = a + b + c + d ==
-        x * y * z;
-}
-""",
-"""
-class C
-{
-    bool v = a + b + c + d ==
-             x * y * z;
-}
-""");
+            """
+            class C
+            {
+                bool v = a + b + c + d ==
+                    x * y * z;
+            }
+            """,
+            """
+            class C
+            {
+                bool v = a + b + c + d ==
+                         x * y * z;
+            }
+            """);
 }
