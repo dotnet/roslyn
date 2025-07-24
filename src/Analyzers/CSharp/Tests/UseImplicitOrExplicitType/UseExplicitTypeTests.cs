@@ -2727,4 +2727,21 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new(options: ExplicitTypeEverywhere()));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74372")]
+    public Task TestAnonymousType()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System.Linq;
+
+            public class Temp
+            {
+                public void temp()
+                {
+                    var y = new[] { new { t = 0 } }.ToList();
+
+                    y.ToDictionary(x => x.t, x => x).TryGetValue(0, out [|var|] y2);
+                }
+            }
+            """, new TestParameters(options: ExplicitTypeEverywhere()));
 }
