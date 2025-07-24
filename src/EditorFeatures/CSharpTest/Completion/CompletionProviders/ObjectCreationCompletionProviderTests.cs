@@ -104,7 +104,7 @@ public sealed class ObjectCreationCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task IsCommitCharacterTest()
     {
-        const string markup = """
+        await VerifyCommitCharactersAsync("""
             using D = System.Globalization.DigitShapes; 
             class Program
             {
@@ -113,9 +113,7 @@ public sealed class ObjectCreationCompletionProviderTests : AbstractCSharpComple
                     D d = new $$
                 }
             }
-            """;
-
-        await VerifyCommitCharactersAsync(markup, textTypedSoFar: "",
+            """, textTypedSoFar: "",
             validChars: [' ', '(', '{', '['],
             invalidChars: ['x', ',', '#']);
     }

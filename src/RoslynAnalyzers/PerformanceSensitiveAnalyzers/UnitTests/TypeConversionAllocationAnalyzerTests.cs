@@ -419,7 +419,7 @@ public sealed class TypeConversionAllocationAnalyzerTests
     [Fact]
     public async Task TypeConversionAllocation_ArgumentWithImplicitStringCastOperatorAsync()
     {
-        const string programWithoutImplicitCastOperator = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -431,15 +431,11 @@ public sealed class TypeConversionAllocationAnalyzerTests
                     System.Console.WriteLine(astruct);
                 }
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(programWithoutImplicitCastOperator,
+            """,
             // Test0.cs(10,34): warning HAA0601: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
 #pragma warning disable RS0030 // Do not use banned APIs
             VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(9, 34));
-#pragma warning restore RS0030 // Do not use banned APIs
-
-        const string programWithImplicitCastOperator = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -464,14 +460,13 @@ public sealed class TypeConversionAllocationAnalyzerTests
                     return astruct.WrappedString;
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(programWithImplicitCastOperator);
+            """);
     }
 
     [Fact]
     public async Task TypeConversionAllocation_YieldReturnImplicitStringCastOperatorAsync()
     {
-        const string programWithoutImplicitCastOperator = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -483,15 +478,11 @@ public sealed class TypeConversionAllocationAnalyzerTests
                     yield return this;
                 }
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(programWithoutImplicitCastOperator,
+            """,
             // Test0.cs(10,22): warning HAA0601: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
 #pragma warning disable RS0030 // Do not use banned APIs
             VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(9, 22));
-#pragma warning restore RS0030 // Do not use banned APIs
-
-        const string programWithImplicitCastOperator = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -508,9 +499,7 @@ public sealed class TypeConversionAllocationAnalyzerTests
                     return "";
                 }
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(programWithImplicitCastOperator);
+            """);
     }
 
     [Fact]
@@ -568,7 +557,7 @@ public sealed class TypeConversionAllocationAnalyzerTests
     [Fact]
     public async Task TypeConversionAllocation_ExpressionBodiedPropertyBoxing_WithBoxingAsync()
     {
-        const string snippet = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -577,9 +566,7 @@ public sealed class TypeConversionAllocationAnalyzerTests
                 [PerformanceSensitive("uri")]
                 object Obj => 1;
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(snippet,
+            """,
             // Test0.cs(8,19): warning HAA0601: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
 #pragma warning disable RS0030 // Do not use banned APIs
             VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(7, 19));
@@ -589,7 +576,7 @@ public sealed class TypeConversionAllocationAnalyzerTests
     [Fact]
     public async Task TypeConversionAllocation_ExpressionBodiedPropertyBoxing_WithoutBoxingAsync()
     {
-        const string snippet = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -598,15 +585,13 @@ public sealed class TypeConversionAllocationAnalyzerTests
                 [PerformanceSensitive("uri")]
                 object Obj => 1.ToString();
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(snippet);
+            """);
     }
 
     [Fact]
     public async Task TypeConversionAllocation_ExpressionBodiedPropertyDelegateAsync()
     {
-        const string snippet = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -617,9 +602,7 @@ public sealed class TypeConversionAllocationAnalyzerTests
                 [PerformanceSensitive("uri")]
                 Action<int> Obj => Function;
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(snippet,
+            """,
             // Test0.cs(10,24): warning HAA0603: This will allocate a delegate instance
 #pragma warning disable RS0030 // Do not use banned APIs
             VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithLocation(9, 24));
@@ -630,7 +613,8 @@ public sealed class TypeConversionAllocationAnalyzerTests
     public async Task TypeConversionAllocation_ExpressionBodiedPropertyExplicitDelegate_NoWarningAsync()
     {
         // Tests that an explicit delegate creation does not trigger HAA0603. It should be handled by HAA0502.
-        const string snippet = """
+
+        await VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -641,9 +625,7 @@ public sealed class TypeConversionAllocationAnalyzerTests
                 [PerformanceSensitive("uri")]
                 Action<int> Obj => new Action<int>(Function);
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(snippet);
+            """);
     }
 
     [Fact]
@@ -696,7 +678,7 @@ public sealed class TypeConversionAllocationAnalyzerTests
     [Fact]
     public async Task TypeConversionAllocation_NoDiagnosticWhenPassingDelegateAsArgumentAsync()
     {
-        const string snippet = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -713,14 +695,13 @@ public sealed class TypeConversionAllocationAnalyzerTests
                     process();
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(snippet);
+            """);
     }
 
     [Fact]
     public async Task TypeConversionAllocation_ReportBoxingAllocationForPassingStructInstanceMethodForDelegateConstructorAsync()
     {
-        const string snippet = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -742,9 +723,7 @@ public sealed class TypeConversionAllocationAnalyzerTests
                     return obj.ToString();
                 }
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(snippet,
+            """,
             // Test0.cs(11,54): warning HAA0602: Struct instance method being used for delegate creation, this will result in a boxing instruction
             VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithSpan(10, 54, 10, 64));
     }
@@ -752,7 +731,7 @@ public sealed class TypeConversionAllocationAnalyzerTests
     [Fact]
     public async Task TypeConversionAllocation_DoNotReportBoxingAllocationForPassingStructStaticMethodForDelegateConstructorAsync()
     {
-        const string snippet = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -774,15 +753,13 @@ public sealed class TypeConversionAllocationAnalyzerTests
                     return obj.ToString();
                 }
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(snippet);
+            """);
     }
 
     [Fact]
     public async Task TypeConversionAllocation_DoNotReportInlineDelegateAsStructInstanceMethodsAsync()
     {
-        const string snippet = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -808,8 +785,6 @@ public sealed class TypeConversionAllocationAnalyzerTests
                 {
                 }
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(snippet);
+            """);
     }
 }

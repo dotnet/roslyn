@@ -14,73 +14,67 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public async Task TestAsync()
         {
-            const string source = """
+            await VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s = @"
                 [||]class D { } //
                 ";
                 }
-                """;
-            const string fixedSource = """
+                """, """
                 public class C
                 {
                     string s = @"
                 class D { } // 1
                 ";
                 }
-                """;
-            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
+                """);
         }
 
         [Fact]
         public async Task TestAsync_RawStringLiteral()
         {
-            const string source = """"
+            await VerifyCSharp11Async(""""
 public class C
 {
     string s = """
 [||]class D { } //
 """;
 }
-"""";
-            const string fixedSource = """"
+"""", """"
 public class C
 {
     string s = """
 class D { } // 1
 """;
 }
-"""";
-            await VerifyCSharp11Async(source, fixedSource);
+"""");
         }
 
         [Fact]
         public async Task TestAsync_RawStringLiteral_Indented()
         {
-            const string source = """"
+            await VerifyCSharp11Async(""""
 public class C
 {
     string s = """
         [||]class D { } //
         """;
 }
-"""";
-            const string fixedSource = """"
+"""", """"
 public class C
 {
     string s = """
         class D { } // 1
         """;
 }
-"""";
-            await VerifyCSharp11Async(source, fixedSource);
+"""");
         }
 
         [Fact]
         public async Task TestAsync_RawStringLiteral_Indented_Multiple()
         {
-            const string source = """"
+            await VerifyCSharp11Async(""""
 public class C
 {
     string s = """
@@ -88,8 +82,7 @@ public class C
         class E { } //,
         """;
 }
-"""";
-            const string fixedSource = """"
+"""", """"
 public class C
 {
     string s = """
@@ -97,14 +90,13 @@ public class C
         class E { } // 2, 3
         """;
 }
-"""";
-            await VerifyCSharp11Async(source, fixedSource);
+"""");
         }
 
         [Fact]
         public async Task CSharp_VerifyFix_WithTriviaAsync()
         {
-            const string source = """
+            await VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s =
@@ -112,8 +104,7 @@ public class C
                 class D { } //
                 " /*after*/ ;
                 }
-                """;
-            const string fixedSource = """
+                """, """
                 public class C
                 {
                     string s =
@@ -121,14 +112,13 @@ public class C
                 class D { } // 1
                 " /*after*/ ;
                 }
-                """;
-            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
+                """);
         }
 
         [Fact]
         public async Task CSharp_VerifyFix_NonNumberCommentsLeftAloneAsync()
         {
-            const string source = """
+            await VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s = @"
@@ -138,8 +128,7 @@ public class C
                 } // test
                 ";
                 }
-                """;
-            const string fixedSource = """
+                """, """
                 public class C
                 {
                     string s = @"
@@ -149,14 +138,13 @@ public class C
                 } // test
                 ";
                 }
-                """;
-            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
+                """);
         }
 
         [Fact]
         public async Task CSharp_VerifyFix_MultipleCommasAsync()
         {
-            const string source = """
+            await VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s = @"
@@ -165,8 +153,7 @@ public class C
                 } //
                 ";
                 }
-                """;
-            const string fixedSource = """
+                """, """
                 public class C
                 {
                     string s = @"
@@ -175,54 +162,49 @@ public class C
                 } // 4
                 ";
                 }
-                """;
-            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
+                """);
         }
 
         [Fact]
         public async Task CSharp_VerifyFix_LastLineAsync()
         {
-            const string source = """
+            await VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s = @"[||]class D { } //";
                 }
-                """;
-            const string fixedSource = """
+                """, """
                 public class C
                 {
                     string s = @"class D { } // 1";
                 }
-                """;
-            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
+                """);
         }
 
         [Fact]
         public async Task CountOverTenAsync()
         {
-            const string source = """
+            await VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s = @"
                 [||]class D { } // ,,,,,,,,,,,,
                 ";
                 }
-                """;
-            const string fixedSource = """
+                """, """
                 public class C
                 {
                     string s = @"
                 class D { } // 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
                 ";
                 }
-                """;
-            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
+                """);
         }
 
         [Fact]
         public async Task EmptyNumberIsImproperAsync()
         {
-            const string source = """
+            await VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s = @"
@@ -231,9 +213,7 @@ public class C
                 } //
                 ";
                 }
-                """;
-
-            const string fixedSource = """
+                """, """
                 public class C
                 {
                     string s = @"
@@ -242,15 +222,13 @@ public class C
                 } // 4
                 ";
                 }
-                """;
-
-            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
+                """);
         }
 
         [Fact]
         public async Task EmptyNumberBeforeCommaIsImproperAsync()
         {
-            const string source = """
+            await VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s = @"
@@ -259,9 +237,7 @@ public class C
                 }
                 ";
                 }
-                """;
-
-            const string fixedSource = """
+                """, """
                 public class C
                 {
                     string s = @"
@@ -270,15 +246,13 @@ public class C
                 }
                 ";
                 }
-                """;
-
-            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
+                """);
         }
 
         [Fact]
         public async Task EmptyCommentOnEmptyLineIsProperAsync()
         {
-            const string source = """
+            await VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s = @"
@@ -290,9 +264,7 @@ public class C
                 } //
                 ";
                 }
-                """;
-
-            const string fixedSource = """
+                """, """
                 public class C
                 {
                     string s = @"
@@ -304,9 +276,7 @@ public class C
                 } // 4
                 ";
                 }
-                """;
-
-            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
+                """);
         }
 
         #region Utilities

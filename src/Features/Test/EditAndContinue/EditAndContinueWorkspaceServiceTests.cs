@@ -273,14 +273,6 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             {
             }
             """;
-
-        var source2 = """
-            class C
-            {
-                public void F() {}
-            }
-            """;
-
         var sourceFile = Temp.CreateFile().WriteAllText(source1, Encoding.UTF8);
 
         solution = solution.
@@ -297,7 +289,12 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
 
         // change the source:
-        solution = solution.WithDocumentText(documentId, CreateText(source2));
+        solution = solution.WithDocumentText(documentId, CreateText("""
+            class C
+            {
+                public void F() {}
+            }
+            """));
 
         var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
@@ -2621,8 +2618,6 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // Project B (baseline, but not loaded into solution):
         var sourceB1 = "class B { int F() => 1; }";
-        var sourceB2 = "class B { virtual int F() => 1; }"; // rude edit
-
         var dir = Temp.CreateDirectory();
         var sourceFileA = dir.CreateFile("a.cs").WriteAllText(sourceA1, Encoding.UTF8);
         var sourceFileB = dir.CreateFile("b.cs").WriteAllText(sourceB1, Encoding.UTF8);
@@ -2662,7 +2657,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         solution = solution.
             AddTestProject("B", id: projectBId).
-            AddTestDocument(sourceB2, path: sourceFileB.Path, out var documentBId).Project.Solution;
+            AddTestDocument("class B { virtual int F() => 1; }", path: sourceFileB.Path, out var documentBId).Project.Solution;
 
         var documentB2 = solution.GetRequiredDocument(documentBId);
 
@@ -5439,26 +5434,6 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
                 }
             }
             """;
-
-        const string modifiedSource = $$"""
-            class Test
-            {
-                static bool A() => {{movedType}}.True;
-                static bool B() => A();
-                static void G() { while (B()); }
-
-                static void F()
-                {
-                    H();
-                }
-
-                static void H()
-                {
-                    G();
-                }
-            }
-            """;
-
         using var workspace = CreateWorkspace(out var solution, out var service);
         (solution, var document) = AddDefaultTestProject(solution, source);
         var documentId = document.Id;
@@ -5480,7 +5455,24 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // Apply edit on remaining document: source after code fix -> modifiedSource
 
-        modifiedSolution = modifiedSolution.WithDocumentText(document.Id, CreateText(modifiedSource));
+        modifiedSolution = modifiedSolution.WithDocumentText(document.Id, CreateText($$"""
+            class Test
+            {
+                static bool A() => {{movedType}}.True;
+                static bool B() => A();
+                static void G() { while (B()); }
+
+                static void F()
+                {
+                    H();
+                }
+
+                static void H()
+                {
+                    G();
+                }
+            }
+            """));
 
         var newProject = modifiedSolution.GetProject(oldProject.Id);
         Assert.Equal(1, oldProject.DocumentIds.Count);

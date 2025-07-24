@@ -3756,7 +3756,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9576")]
     public async Task InlineIntoLambdaWithReturnStatementWithNoExpression()
     {
-        const string initial = """
+        await TestInRegularAndScriptAsync("""
             using System;
             class C
             {
@@ -3772,9 +3772,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     });
                 }
             }
-            """;
-
-        const string expected = """
+            """, """
             using System;
             class C
             {
@@ -3789,9 +3787,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     });
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Theory]

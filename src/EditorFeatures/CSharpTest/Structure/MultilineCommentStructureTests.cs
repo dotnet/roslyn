@@ -266,9 +266,7 @@ public sealed class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaS
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16186")]
     public async Task TestInvalidComment()
     {
-        const string code = @"$${|span:/*/|}";
-
-        await VerifyBlockSpansAsync(code,
+        await VerifyBlockSpansAsync(@"$${|span:/*/|}",
             Region("span", "/* / ...", autoCollapse: true));
     }
 }

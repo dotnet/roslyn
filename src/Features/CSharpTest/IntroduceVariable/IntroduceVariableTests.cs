@@ -4831,7 +4831,7 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49720")]
     public async Task HandleIFormattableTargetTyping1()
     {
-        const string code = """
+        await TestInRegularAndScriptAsync("""
             namespace N
             {
                 using System;
@@ -4845,9 +4845,7 @@ class C
                     }
                 }
             }
-            """;
-
-        const string expected = """
+            """, """
             namespace N
             {
                 using System;
@@ -4862,9 +4860,7 @@ class C
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/936")]

@@ -1413,11 +1413,6 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     internal async Task UpdatingAnalyzerReferenceReloadsGenerators(
         SourceGeneratorExecutionPreference executionPreference)
     {
-        // We have two versions of the same source generator attached to this project as a resource.  Each creates a
-        // 'HelloWorld' class, just with a different string it emits inside.
-        const string AnalyzerResourceV1 = @"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v1";
-        const string AnalyzerResourceV2 = @"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v2";
-
         using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)], TestHost.OutOfProcess);
         var mefServices = (VisualStudioMefHostServices)workspace.Services.HostServices;
 
@@ -1446,7 +1441,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
 
         // Add and test the v1 generator first.
         {
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(AnalyzerResourceV1))
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(@"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v1"))
             using (var destination = File.OpenWrite(analyzerPath))
             {
                 stream!.CopyTo(destination);
@@ -1464,7 +1459,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
 
         // Now, overwrite the analyzer reference with a new version that generates different contents
         {
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(AnalyzerResourceV2))
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(@"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v2"))
             using (var destination = File.OpenWrite(analyzerPath))
             {
                 stream!.CopyTo(destination);

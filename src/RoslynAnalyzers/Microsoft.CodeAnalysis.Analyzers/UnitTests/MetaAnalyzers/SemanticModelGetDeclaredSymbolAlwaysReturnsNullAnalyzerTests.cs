@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public Task NoDiagnosticForCompilationError()
         {
-            const string code = """
+            return VerifyCS.VerifyAnalyzerAsync("""
                 using Microsoft.CodeAnalysis;
                 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -94,15 +94,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                         var x = semanticModel.{|CS7036:GetDeclaredSymbol|}();
                     }
                 }
-                """;
-
-            return VerifyCS.VerifyAnalyzerAsync(code);
+                """);
         }
 
         [Fact, WorkItem(7061, "https://github.com/dotnet/roslyn-analyzers/issues/7061")]
         public Task LocalFunctionStatement_NoDiagnostic()
         {
-            const string code = """
+            return VerifyCS.VerifyAnalyzerAsync("""
                        using Microsoft.CodeAnalysis;
                        using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -113,9 +111,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                                var x = semanticModel.GetDeclaredSymbol(syntax);
                            }
                        }
-                       """;
-
-            return VerifyCS.VerifyAnalyzerAsync(code);
+                       """);
         }
     }
 }

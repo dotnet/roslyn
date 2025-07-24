@@ -1383,8 +1383,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2091")]
     public void PressingEnter_InTextBeforeSpace()
     {
-        const string code =
-            """
+        VerifyPressingEnter("""
             class C
             {
                 /// <summary>
@@ -1394,10 +1393,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        const string expected =
-            """
+            """, """
             class C
             {
                 /// <summary>
@@ -1408,16 +1404,13 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        VerifyPressingEnter(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2108")]
     public void PressingEnter_Indentation1()
     {
-        const string code =
-            """
+        VerifyPressingEnter("""
             class C
             {
                 /// <summary>
@@ -1427,10 +1420,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        const string expected =
-            """
+            """, """
             class C
             {
                 /// <summary>
@@ -1441,16 +1431,13 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        VerifyPressingEnter(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2108")]
     public void PressingEnter_Indentation2()
     {
-        const string code =
-            """
+        VerifyPressingEnter("""
             class C
             {
                 /// <summary>
@@ -1460,10 +1447,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        const string expected =
-            """
+            """, """
             class C
             {
                 /// <summary>
@@ -1474,16 +1458,13 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        VerifyPressingEnter(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2108")]
     public void PressingEnter_Indentation3()
     {
-        const string code =
-            """
+        VerifyPressingEnter("""
             class C
             {
                 /// <summary>
@@ -1493,10 +1474,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        const string expected =
-            """
+            """, """
             class C
             {
                 /// <summary>
@@ -1507,16 +1485,13 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        VerifyPressingEnter(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2108")]
     public void PressingEnter_Indentation4()
     {
-        const string code =
-            """
+        VerifyPressingEnter("""
             class C
             {
                 /// <summary>
@@ -1526,10 +1501,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        const string expected =
-            """
+            """, """
             class C
             {
                 /// <summary>
@@ -1540,16 +1512,13 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        VerifyPressingEnter(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2108")]
     public void PressingEnter_Indentation5_UseTabs()
     {
-        const string code =
-            """
+        VerifyPressingEnter("""
             class C
             {
             	/// <summary>
@@ -1559,10 +1528,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             	{
             	}
             }
-            """;
-
-        const string expected =
-            """
+            """, """
             class C
             {
             	/// <summary>
@@ -1573,9 +1539,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             	{
             	}
             }
-            """;
-
-        VerifyPressingEnter(code, expected, useTabs: true);
+            """, useTabs: true);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/5486")]
@@ -1966,8 +1930,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
     public void TestOpenLineAbove1()
     {
-        const string code =
-            """
+        VerifyOpenLineAbove("""
             class C
             {
                 /// <summary>
@@ -1977,8 +1940,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-        VerifyOpenLineAbove(code, """
+            """, """
             class C
             {
                 /// <summary>
@@ -1995,8 +1957,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
     public void TestOpenLineAbove2()
     {
-        const string code =
-            """
+        VerifyOpenLineAbove("""
             class C
             {
                 /// <summary>
@@ -2006,10 +1967,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        const string expected =
-            """
+            """, """
             class C
             {
                 /// <summary>
@@ -2020,16 +1978,17 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        VerifyOpenLineAbove(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
     public void TestOpenLineAbove3()
     {
-        const string code =
-            """
+
+        // Note that the caret position specified below does not look correct because
+        // it is in virtual space in this case.
+
+        VerifyOpenLineAbove("""
             class C
             {
                 /// $$<summary>
@@ -2039,12 +1998,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        // Note that the caret position specified below does not look correct because
-        // it is in virtual space in this case.
-        const string expected =
-            """
+            """, """
             class C
             {
             $$
@@ -2055,16 +2009,13 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        VerifyOpenLineAbove(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
     public void TestOpenLineAbove4_Tabs()
     {
-        const string code =
-            """
+        VerifyOpenLineAbove("""
             class C
             {
             		  /// <summary>
@@ -2074,10 +2025,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             	{
             	}
             }
-            """;
-
-        const string expected =
-            """
+            """, """
             class C
             {
             		  /// <summary>
@@ -2088,16 +2036,13 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             	{
             	}
             }
-            """;
-
-        VerifyOpenLineAbove(code, expected, useTabs: true);
+            """, useTabs: true);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
     public void TestOpenLineBelow1()
     {
-        const string code =
-            """
+        VerifyOpenLineBelow("""
             class C
             {
                 /// <summary>
@@ -2107,10 +2052,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        const string expected =
-            """
+            """, """
             class C
             {
                 /// <summary>
@@ -2121,16 +2063,13 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        VerifyOpenLineBelow(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
     public void TestOpenLineBelow2()
     {
-        const string code =
-            """
+        VerifyOpenLineBelow("""
             class C
             {
                 /// <summary>
@@ -2140,10 +2079,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        const string expected =
-            """
+            """, """
             class C
             {
                 /// <summary>
@@ -2154,39 +2090,30 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 {
                 }
             }
-            """;
-
-        VerifyOpenLineBelow(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
     public void TestOpenLineBelow3()
     {
-        const string code =
-            """
+        VerifyOpenLineBelow("""
             /// <summary>
             /// stuff
             /// $$</summary>
 
-            """;
-
-        const string expected =
-            """
+            """, """
             /// <summary>
             /// stuff
             /// </summary>
             /// $$
 
-            """;
-
-        VerifyOpenLineBelow(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
     public void TestOpenLineBelow4_Tabs()
     {
-        const string code =
-            """
+        VerifyOpenLineBelow("""
             class C
             {
             	/// <summary>
@@ -2196,10 +2123,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             	{
             	}
             }
-            """;
-
-        const string expected =
-            """
+            """, """
             class C
             {
             	/// <summary>
@@ -2210,32 +2134,24 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             	{
             	}
             }
-            """;
-
-        VerifyOpenLineBelow(code, expected, useTabs: true);
+            """, useTabs: true);
     }
 
     [WpfFact, WorkItem(468638, @"https://devdiv.visualstudio.com/DevDiv/NET%20Developer%20Experience%20IDE/_workitems/edit/468638")]
     public void VerifyEnterWithTrimNewLineEditorConfigOption()
     {
-        const string code =
-            """
+        VerifyPressingEnter("""
             /// <summary>
             /// $$
             /// </summary>
             class C { }
-            """;
-
-        const string expected =
-            """
+            """, """
             /// <summary>
             ///
             /// $$
             /// </summary>
             class C { }
-            """;
-
-        VerifyPressingEnter(code, expected, useTabs: true, trimTrailingWhiteSpace: true);
+            """, useTabs: true, trimTrailingWhiteSpace: true);
     }
 
     [WpfFact]

@@ -108,15 +108,13 @@ public sealed class BuildHostProcessManagerTests
     [UseCulture("de-DE", "de-DE")]
     internal void ProcessStartInfo_PassesLocale(BuildHostProcessKind buildHostKind)
     {
-        const string Locale = "de-DE";
-
         var processStartInfo = new BuildHostProcessManager()
             .CreateBuildHostStartInfo(buildHostKind, pipeName: "");
 
 #if NET
         var localeIndex = processStartInfo.ArgumentList.IndexOf("--locale");
         Assert.True(localeIndex >= 0);
-        Assert.Equal(Locale, processStartInfo.ArgumentList[localeIndex + 1]);
+        Assert.Equal("de-DE", processStartInfo.ArgumentList[localeIndex + 1]);
 #else
         Assert.Contains($"--locale {Locale}", processStartInfo.Arguments);
 #endif

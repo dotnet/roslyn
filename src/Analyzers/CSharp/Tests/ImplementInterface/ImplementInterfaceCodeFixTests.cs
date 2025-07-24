@@ -5371,7 +5371,7 @@ class B : IGoo
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545736")]
     public async Task TestCastedOptionalParameter1()
     {
-        const string code = """
+        await TestWithAllCodeStyleOptionsOffAsync("""
             using System;
             interface I
             {
@@ -5381,9 +5381,7 @@ class B : IGoo
             class C : {|CS0535:I|}
             {
             }
-            """;
-
-        const string expected = """
+            """, """
             using System;
             interface I
             {
@@ -5397,9 +5395,7 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-            """;
-
-        await TestWithAllCodeStyleOptionsOffAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545737")]

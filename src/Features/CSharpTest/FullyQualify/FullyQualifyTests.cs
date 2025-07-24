@@ -1588,7 +1588,7 @@ class C
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
     public async Task TestAddUsingsEditorBrowsableNeverSameProject(TestHost testHost)
     {
-        const string InitialWorkspace = """
+        await TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.cs">using System.ComponentModel;
@@ -1608,9 +1608,7 @@ class C
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        const string ExpectedDocumentText = """
+            """, """
             class Program
             {
                 static void Main(string[] args)
@@ -1618,15 +1616,13 @@ class C
                     Project p = new [|ProjectLib.Project()|];
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
+            """, new TestParameters(testHost: testHost));
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
     public async Task TestAddUsingsEditorBrowsableNeverDifferentProject(TestHost testHost)
     {
-        const string InitialWorkspace = """
+        await TestMissingAsync("""
             <Workspace>
                 <Project Language="Visual Basic" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.vb">
@@ -1651,14 +1647,13 @@ class C
             </Document>
                 </Project>
             </Workspace>
-            """;
-        await TestMissingAsync(InitialWorkspace, new TestParameters(testHost: testHost));
+            """, new TestParameters(testHost: testHost));
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
     public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn(TestHost testHost)
     {
-        const string InitialWorkspace = """
+        await TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="Visual Basic" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.vb">
@@ -1681,9 +1676,7 @@ class C
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        const string ExpectedDocumentText = """
+            """, """
             class Program
             {
                 static void Main(string[] args)
@@ -1691,8 +1684,7 @@ class C
                     ProjectLib.Project p = new Project();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
+            """, new TestParameters(testHost: testHost));
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
@@ -1729,7 +1721,7 @@ class C
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79462")]
     public async Task TestFullyQualifyWithSourceGeneratedFile(TestHost testHost)
     {
-        const string InitialWorkspace = """
+        await TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Console" CommonReferences="true">
                     <Document FilePath="Program.cs">using Goo;
@@ -1751,9 +1743,7 @@ class C
                                     </DocumentFromSourceGenerator>
                 </Project>
             </Workspace>
-            """;
-
-        const string ExpectedDocumentText = """
+            """, """
             using Goo;
             
             Something a;
@@ -1763,8 +1753,6 @@ class C
             {
                 class Something { }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
+            """, new TestParameters(testHost: testHost));
     }
 }

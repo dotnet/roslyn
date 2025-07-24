@@ -22,14 +22,12 @@ public sealed class SpeculativeTCompletionProviderTests : AbstractCSharpCompleti
     [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
     public async Task IsCommitCharacterTest()
     {
-        const string markup = """
+        await VerifyCommonCommitCharactersAsync("""
             class C
             {
                 $$
             }
-            """;
-
-        await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "");
+            """, textTypedSoFar: "");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
